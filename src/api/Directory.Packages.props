@@ -1,0 +1,4 @@
+<Project>
+  <!-- Inherit from root Directory.Packages.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Packages.props', '$(MSBuildThisFileDirectory)..'))" />
+</Project>

@@ -1,0 +1,15 @@
+<Project>
+  <!-- Inherit from root Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+  <PropertyGroup>
+    <!-- Use NetVersion from root -->
+    <TargetFramework>$(NetVersion)</TargetFramework>
+    <!-- Define API for platform-specific code -->
+    <DefineConstants>$(DefineConstants);API</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AIRoutine.CodeStyle.AspNetCore" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

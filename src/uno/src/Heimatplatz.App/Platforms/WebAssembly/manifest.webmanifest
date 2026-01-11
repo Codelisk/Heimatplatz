@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "Heimatplatz",
+  "display": "standalone",
+  "name": "Heimatplatz",
+  "short_name": "Heimatplatz",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}

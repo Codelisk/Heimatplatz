@@ -1,0 +1,39 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Exclude warnings from generated code (Source Generators) -->
+    <!-- CS8669: Nullable annotation context, CS9107: Captured parameter -->
+    <WarningsNotAsErrors>CS8669;CS9107</WarningsNotAsErrors>
+    <NoWarn>$(NoWarn);CS8669;CS9107</NoWarn>
+
+    <UnoFeatures>
+      Hosting;
+      Http;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shiny.Mediator" />
+  </ItemGroup>
+
+  <!-- OpenAPI HTTP Contract Generation from API -->
+  <ItemGroup>
+    <MediatorHttp Include="ApiContracts"
+                  Uri="http://localhost:5292/openapi/v1.json"
+                  Namespace="Heimatplatz.Core.ApiClient.Generated"
+                  ContractPostfix="HttpRequest"
+                  GenerateJsonConverters="false"
+                  Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared -->
+    <ProjectReference Include="..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
+  </ItemGroup>
+</Project>

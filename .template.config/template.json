@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "AIRoutine",
+  "classifications": ["Web", "API", "Uno", "FullStack", "Mobile", "Desktop"],
+  "identity": "Heimatplatz.CSharp",
+  "name": "AIRoutine Full-Stack (API + Uno App)",
+  "shortName": "airoutine-fullstack",
+  "sourceName": "Heimatplatz",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "preferNameDirectory": true,
+  "sources": [
+    {
+      "exclude": [
+        "subm/**",
+        ".gitmodules"
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    {
+      "path": "Heimatplatz.slnx"
+    }
+  ],
+  "postActions": [
+    {
+      "id": "init-script",
+      "actionId": "3A7C4B45-1F5D-4A30-959A-51B88E82B5D2",
+      "description": "Initialize git and add submodules",
+      "args": {
+        "executable": "pwsh",
+        "args": "-ExecutionPolicy Bypass -File init.ps1"
+      },
+      "manualInstructions": [
+        {
+          "text": "Run './init.ps1' (Windows) or './init.sh' (Linux/macOS) to initialize git and add submodules."
+        }
+      ],
+      "continueOnError": false
+    },
+    {
+      "id": "claude-setup",
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C",
+      "description": "Claude Code Setup",
+      "manualInstructions": [
+        {
+          "text": "To setup Claude Code plugins, start 'claude' in this directory. The SessionStart hook will automatically install the uno-dev plugin with MCP servers."
+        }
+      ]
+    }
+  ]
+}

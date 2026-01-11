@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Heimatplatz.AppHost/Heimatplatz.AppHost.csproj" />
+    <Project Path="src/Heimatplatz.ServiceDefaults/Heimatplatz.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>
