@@ -18,6 +18,7 @@
     <ProjectReference Include="..\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
     <!-- Contracts & Handlers -->
     <!-- Features -->
+    <ProjectReference Include="..\..\Features\Immobilien\Heimatplatz.Api.Features.Immobilien\Heimatplatz.Api.Features.Immobilien.csproj" />
   </ItemGroup>
 
 </Project>
