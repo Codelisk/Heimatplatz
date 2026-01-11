@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Shiny.Extensions.DependencyInjection" />
+    <PackageReference Include="Shiny.Mediator" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Heimatplatz.Api.Features.Immobilien.Contracts\Heimatplatz.Api.Features.Immobilien.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

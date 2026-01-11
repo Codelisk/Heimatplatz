@@ -27,6 +27,13 @@
   <Folder Name="/src/api/src/Shared/">
     <Project Path="src/api/src/Shared/Heimatplatz.Api.Shared/Heimatplatz.Api.Shared.csproj" />
   </Folder>
+  <Folder Name="/src/api/src/Core/">
+    <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Data.Seeding/Heimatplatz.Api.Core.Data.Seeding.csproj" />
+  </Folder>
+  <Folder Name="/src/api/src/Features/Immobilien/">
+    <Project Path="src/api/src/Features/Immobilien/Heimatplatz.Api.Features.Immobilien/Heimatplatz.Api.Features.Immobilien.csproj" />
+    <Project Path="src/api/src/Features/Immobilien/Heimatplatz.Api.Features.Immobilien.Contracts/Heimatplatz.Api.Features.Immobilien.Contracts.csproj" />
+  </Folder>
   <Folder Name="/src/uno/src/Shared/">
     <Project Path="src/uno/src/Shared/Heimatplatz.Shared/Heimatplatz.Shared.csproj" />
   </Folder>

@@ -1,6 +1,7 @@
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Core.Data.Seeding.Configuration;
+using Heimatplatz.Api.Features.Immobilien.Configuration;
 using Microsoft.Extensions.Configuration;
 
 namespace Heimatplatz.Api.Core.Startup;
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddShinyMediator();
 
         // Features
+        services.AddImmobilienFeature();
 
         return services;
     }
