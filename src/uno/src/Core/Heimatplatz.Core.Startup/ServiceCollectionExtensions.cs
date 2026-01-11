@@ -1,3 +1,4 @@
+using Heimatplatz.Features.Immobilien.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shiny.Mediator.Infrastructure;
 using UnoFramework.Mediator;
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<BaseServices>();
 
         // Features
+        services.AddImmobilienFeature();
 
         return services;
     }

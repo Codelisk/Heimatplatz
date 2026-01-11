@@ -1,0 +1,36 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Disable style analyzer for XAML controls in this feature library -->
+    <NoWarn>$(NoWarn);UNO0001</NoWarn>
+
+    <UnoFeatures>
+      Hosting;
+      Toolkit;
+      Mvvm;
+      Navigation;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shiny.Mediator" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Heimatplatz.Features.Immobilien.Contracts\Heimatplatz.Features.Immobilien.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.Controls\Heimatplatz.Core.Controls.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
+    <!-- Framework -->
+    <ProjectReference Include="..\..\..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\subm\uno\src\UnoFramework.Contracts\UnoFramework.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\subm\uno\src\UnoFramework.Generators\UnoFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

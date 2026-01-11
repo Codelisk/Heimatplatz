@@ -1,0 +1,22 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Disable style analyzer for XAML controls in this controls library -->
+    <NoWarn>$(NoWarn);UNO0001</NoWarn>
+
+    <UnoFeatures>
+      Toolkit;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
+    <ProjectReference Include="..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

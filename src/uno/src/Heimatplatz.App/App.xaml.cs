@@ -1,4 +1,5 @@
 using Heimatplatz.Core.Startup;
+using Heimatplatz.Features.Immobilien.Presentation;
 using Uno.Resizetizer;
 
 namespace Heimatplatz.App;
@@ -58,14 +59,18 @@ public partial class App : Application
     {
         views.Register(
             new ViewMap(ViewModel: typeof(ShellViewModel)),
-            new ViewMap<MainPage, MainViewModel>()
+            new ViewMap<MainPage, MainViewModel>(),
+            new ViewMap<ImmobilienPage, ImmobilienViewModel>(),
+            new ViewMap<ImmobilieDetailPage, ImmobilieDetailViewModel>()
         );
 
         routes.Register(
             new RouteMap("", View: views.FindByViewModel<ShellViewModel>(),
                 Nested:
                 [
-                    new ("Main", View: views.FindByViewModel<MainViewModel>())
+                    new ("Main", View: views.FindByViewModel<MainViewModel>()),
+                    new ("Immobilien", View: views.FindByViewModel<ImmobilienViewModel>()),
+                    new ("ImmobilieDetail", View: views.FindByViewModel<ImmobilieDetailViewModel>())
                 ]
             )
         );

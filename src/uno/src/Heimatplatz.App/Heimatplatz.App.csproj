@@ -56,7 +56,9 @@
     <!-- Core Projects -->
     <ProjectReference Include="..\Core\Heimatplatz.Core.Startup\Heimatplatz.Core.Startup.csproj" />
     <ProjectReference Include="..\Core\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
+    <ProjectReference Include="..\Core\Heimatplatz.Core.Controls\Heimatplatz.Core.Controls.csproj" />
     <!-- Features -->
+    <ProjectReference Include="..\Features\Immobilien\Heimatplatz.Features.Immobilien\Heimatplatz.Features.Immobilien.csproj" />
     <!-- Framework References -->
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework.Contracts\UnoFramework.Contracts.csproj" />

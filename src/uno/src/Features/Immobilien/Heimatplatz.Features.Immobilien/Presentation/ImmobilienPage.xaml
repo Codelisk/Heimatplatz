@@ -1,0 +1,69 @@
+<Page x:Class="Heimatplatz.Features.Immobilien.Presentation.ImmobilienPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:Heimatplatz.Features.Immobilien.Presentation"
+      xmlns:controls="using:Heimatplatz.Core.Controls.Controls"
+      xmlns:featureControls="using:Heimatplatz.Features.Immobilien.Controls"
+      xmlns:fwControls="using:UnoFramework.Controls"
+      xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+      NavigationCacheMode="Required"
+      Background="{ThemeResource BackgroundBrush}">
+
+    <Grid>
+        <fwControls:BusyOverlay IsBusy="{Binding IsBusy}" BusyMessage="{Binding BusyMessage}">
+            <Grid RowSpacing="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <controls:AppHeader
+                    Grid.Row="0"
+                    ObjectCount="{Binding TotalCount}" />
+
+                <!-- Filter Bar -->
+                <featureControls:FilterBar
+                    Grid.Row="1"
+                    SelectedType="{Binding SelectedTyp, Mode=TwoWay}"
+                    MinPrice="{Binding MinPreis, Mode=TwoWay}"
+                    MaxPrice="{Binding MaxPreis, Mode=TwoWay}"
+                    SearchLocation="{Binding OrtSuche, Mode=TwoWay}"
+                    MinArea="{Binding MinWohnflaeche, Mode=TwoWay}"
+                    FilterChangedCommand="{Binding ApplyFilterCommand}" />
+
+                <!-- Property Grid -->
+                <ScrollViewer Grid.Row="2" Padding="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=24}">
+                    <muxc:ItemsRepeater ItemsSource="{Binding Immobilien}">
+                        <muxc:ItemsRepeater.Layout>
+                            <muxc:UniformGridLayout
+                                MinItemWidth="{utu:Responsive Narrowest=280, Narrow=300, Normal=320, Wide=350}"
+                                MinColumnSpacing="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=20}"
+                                MinRowSpacing="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=20}"
+                                ItemsStretch="Fill" />
+                        </muxc:ItemsRepeater.Layout>
+                        <muxc:ItemsRepeater.ItemTemplate>
+                            <DataTemplate>
+                                <controls:PropertyCard
+                                    ImageUrl="{Binding HauptbildUrl}"
+                                    Location="{Binding Ort}"
+                                    Price="{Binding Preis}"
+                                    Area="{Binding Wohnflaeche}"
+                                    ExtraInfo="{Binding ZusatzInfo}"
+                                    CommandParameter="{Binding Id}" />
+                            </DataTemplate>
+                        </muxc:ItemsRepeater.ItemTemplate>
+                    </muxc:ItemsRepeater>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <controls:AppFooter Grid.Row="3" />
+
+            </Grid>
+        </fwControls:BusyOverlay>
+    </Grid>
+
+</Page>

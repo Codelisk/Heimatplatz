@@ -35,5 +35,6 @@
 
   <ItemGroup>
     <!-- Features -->
+    <ProjectReference Include="..\..\Features\Immobilien\Heimatplatz.Features.Immobilien\Heimatplatz.Features.Immobilien.csproj" />
   </ItemGroup>
 </Project>
