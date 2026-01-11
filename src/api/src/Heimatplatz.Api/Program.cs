@@ -1,4 +1,5 @@
 
+using System.Text.Json.Serialization;
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Startup;
 using Scalar.AspNetCore;
@@ -6,6 +7,13 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// Configure JSON to serialize enums as strings for OpenAPI compatibility
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.Services.AddOpenApi();
 builder.Services.AddApiServices(builder.Configuration);
 

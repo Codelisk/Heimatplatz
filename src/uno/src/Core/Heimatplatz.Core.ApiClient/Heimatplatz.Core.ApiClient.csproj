@@ -7,9 +7,13 @@
     <Nullable>enable</Nullable>
 
     <!-- Exclude warnings from generated code (Source Generators) -->
-    <!-- CS8669: Nullable annotation context, CS9107: Captured parameter -->
-    <WarningsNotAsErrors>CS8669;CS9107</WarningsNotAsErrors>
-    <NoWarn>$(NoWarn);CS8669;CS9107</NoWarn>
+    <!-- CS8669: Nullable annotation context, CS9107: Captured parameter, CS0472: Comparing non-nullable value type to null -->
+    <WarningsNotAsErrors>CS8669;CS9107;CS0472</WarningsNotAsErrors>
+    <NoWarn>$(NoWarn);CS8669;CS9107;CS0472</NoWarn>
+
+    <!-- Emit generated source files for inspection -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
 
     <UnoFeatures>
       Hosting;
