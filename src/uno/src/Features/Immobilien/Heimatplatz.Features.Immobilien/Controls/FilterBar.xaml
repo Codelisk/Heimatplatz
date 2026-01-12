@@ -7,11 +7,9 @@
 
     <Border
         Background="{ThemeResource BackgroundBrush}"
-        BorderBrush="{ThemeResource OnSurfaceVariantBrush}"
-        BorderThickness="0,0,0,1"
         Padding="16,12">
 
-        <Grid>
+        <Grid ColumnSpacing="24">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -19,77 +17,147 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Type Toggle Buttons -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="0">
-                <ToggleButton
-                    x:Name="HouseToggle"
-                    Content="HOUSE"
-                    Padding="16,8"
-                    Background="Black"
-                    Foreground="White"
-                    BorderThickness="0"
-                    CornerRadius="0"
-                    FontSize="12"
-                    FontWeight="SemiBold"
-                    IsChecked="True" />
-                <ToggleButton
-                    x:Name="LandToggle"
-                    Content="LAND"
-                    Padding="16,8"
-                    Background="White"
-                    Foreground="Black"
-                    BorderBrush="Black"
-                    BorderThickness="1,1,1,1"
-                    CornerRadius="0"
-                    FontSize="12"
-                    FontWeight="SemiBold" />
-            </StackPanel>
+            <!-- Type Toggle Buttons - Pill Style -->
+            <Border Grid.Column="0" BorderBrush="Black" BorderThickness="1" CornerRadius="22" Height="40">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        x:Name="HouseToggleBg"
+                        Grid.Column="0"
+                        Background="Black"
+                        CornerRadius="20,0,0,20"
+                        Padding="24,0"
+                        MinWidth="80">
+                        <TextBlock
+                            x:Name="HouseToggleText"
+                            Text="HOUSE"
+                            FontSize="12"
+                            CharacterSpacing="80"
+                            FontWeight="SemiBold"
+                            Foreground="White"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Border>
+                    <Border
+                        x:Name="LandToggleBg"
+                        Grid.Column="1"
+                        Background="Transparent"
+                        CornerRadius="0,20,20,0"
+                        Padding="24,0"
+                        MinWidth="80">
+                        <TextBlock
+                            x:Name="LandToggleText"
+                            Text="LAND"
+                            FontSize="12"
+                            CharacterSpacing="80"
+                            FontWeight="SemiBold"
+                            Foreground="Black"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Border>
+                    <!-- Invisible buttons for click handling -->
+                    <Button x:Name="HouseToggle" Grid.Column="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0" />
+                    <Button x:Name="LandToggle" Grid.Column="1" Background="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0" />
+                </Grid>
+            </Border>
 
-            <!-- Price Range -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0">
+            <!-- Price Range with Slider -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                 <TextBlock
                     x:Name="PriceRangeText"
                     Text="€500K - €2.5M"
-                    FontSize="14"
-                    VerticalAlignment="Center"
-                    Margin="0,0,16,0" />
-                <Slider
-                    x:Name="PriceSlider"
-                    Width="200"
-                    Minimum="0"
-                    Maximum="5000000"
-                    StepFrequency="50000"
-                    VerticalAlignment="Center" />
+                    FontSize="13"
+                    FontWeight="Medium"
+                    HorizontalAlignment="Center" />
+                <Grid Width="200" Height="20" VerticalAlignment="Center">
+                    <!-- Slider Track Line -->
+                    <Border
+                        Height="2"
+                        Background="Black"
+                        VerticalAlignment="Center"
+                        Margin="8,0" />
+                    <!-- Min Handle -->
+                    <Ellipse
+                        x:Name="MinHandle"
+                        Width="12"
+                        Height="12"
+                        Fill="Black"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="30,0,0,0" />
+                    <!-- Max Handle -->
+                    <Ellipse
+                        x:Name="MaxHandle"
+                        Width="12"
+                        Height="12"
+                        Fill="Black"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="150,0,0,0" />
+                </Grid>
             </StackPanel>
 
-            <!-- Location Search -->
-            <TextBox
+            <!-- Location Search Box -->
+            <Border
                 Grid.Column="2"
-                x:Name="LocationSearchBox"
-                PlaceholderText="Ort suchen..."
-                Margin="16,0"
-                VerticalAlignment="Center"
-                MaxWidth="300"
-                HorizontalAlignment="Left" />
+                BorderBrush="Black"
+                BorderThickness="1"
+                MaxWidth="220"
+                MinWidth="180"
+                Height="40"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center">
+                <Grid Padding="12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Name="LocationSearchBox"
+                        PlaceholderText="Berlin, Germany"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        FontSize="13"
+                        Padding="0"
+                        VerticalAlignment="Center" />
+                    <FontIcon
+                        Grid.Column="1"
+                        Glyph="&#xE721;"
+                        FontSize="16"
+                        Foreground="Black"
+                        VerticalAlignment="Center"
+                        Margin="8,0,0,0" />
+                </Grid>
+            </Border>
 
             <!-- Surface Area -->
-            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
                 <TextBlock
                     Text="SURFACE AREA"
-                    FontSize="12"
-                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                    VerticalAlignment="Center"
-                    Margin="0,0,8,0" />
-                <TextBox
-                    x:Name="MinAreaBox"
-                    Width="60"
-                    PlaceholderText="150+"
+                    FontSize="11"
+                    CharacterSpacing="80"
+                    FontWeight="Medium"
                     VerticalAlignment="Center" />
+                <Border BorderBrush="Black" BorderThickness="1" Height="40" MinWidth="60">
+                    <TextBox
+                        x:Name="MinAreaBox"
+                        Width="50"
+                        Text="150+"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        FontSize="13"
+                        Padding="0"
+                        TextAlignment="Center"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center" />
+                </Border>
                 <TextBlock
                     Text="m²"
-                    FontSize="12"
-                    VerticalAlignment="Center"
-                    Margin="4,0,0,0" />
+                    FontSize="13"
+                    VerticalAlignment="Center" />
             </StackPanel>
 
         </Grid>

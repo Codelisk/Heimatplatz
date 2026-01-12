@@ -1,5 +1,4 @@
 using Heimatplatz.Core.ApiClient.Generated;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using ICommand = System.Windows.Input.ICommand;
 
 namespace Heimatplatz.Features.Immobilien.Controls;
@@ -78,39 +77,29 @@ public sealed partial class FilterBar : UserControl
     {
         this.InitializeComponent();
 
-        HouseToggle.Checked += OnHouseToggleChecked;
-        LandToggle.Checked += OnLandToggleChecked;
-        PriceSlider.ValueChanged += OnPriceSliderChanged;
+        HouseToggle.Click += OnHouseToggleClick;
+        LandToggle.Click += OnLandToggleClick;
         LocationSearchBox.TextChanged += OnLocationSearchChanged;
         MinAreaBox.TextChanged += OnMinAreaChanged;
     }
 
-    private void OnHouseToggleChecked(object sender, RoutedEventArgs e)
+    private void OnHouseToggleClick(object sender, RoutedEventArgs e)
     {
-        LandToggle.IsChecked = false;
-        HouseToggle.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
-        HouseToggle.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
-        LandToggle.Background = new SolidColorBrush(Microsoft.UI.Colors.White);
-        LandToggle.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Black);
+        HouseToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
+        HouseToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
+        LandToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        LandToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Black);
         SelectedType = ImmobilienTyp.Haus;
         NotifyFilterChanged();
     }
 
-    private void OnLandToggleChecked(object sender, RoutedEventArgs e)
+    private void OnLandToggleClick(object sender, RoutedEventArgs e)
     {
-        HouseToggle.IsChecked = false;
-        LandToggle.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
-        LandToggle.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
-        HouseToggle.Background = new SolidColorBrush(Microsoft.UI.Colors.White);
-        HouseToggle.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Black);
+        LandToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
+        LandToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
+        HouseToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        HouseToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Black);
         SelectedType = ImmobilienTyp.Grundstueck;
-        NotifyFilterChanged();
-    }
-
-    private void OnPriceSliderChanged(object sender, RangeBaseValueChangedEventArgs e)
-    {
-        MaxPrice = (decimal)e.NewValue;
-        UpdatePriceRangeText();
         NotifyFilterChanged();
     }
 
@@ -147,20 +136,25 @@ public sealed partial class FilterBar : UserControl
         {
             if (type == ImmobilienTyp.Haus)
             {
-                filterBar.HouseToggle.IsChecked = true;
+                filterBar.HouseToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
+                filterBar.HouseToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
+                filterBar.LandToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                filterBar.LandToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Black);
             }
             else if (type == ImmobilienTyp.Grundstueck)
             {
-                filterBar.LandToggle.IsChecked = true;
+                filterBar.LandToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
+                filterBar.LandToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
+                filterBar.HouseToggleBg.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                filterBar.HouseToggleText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Black);
             }
         }
     }
 
     private static void OnMaxPriceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is FilterBar filterBar && e.NewValue is decimal price)
+        if (d is FilterBar filterBar && e.NewValue is decimal)
         {
-            filterBar.PriceSlider.Value = (double)price;
             filterBar.UpdatePriceRangeText();
         }
     }

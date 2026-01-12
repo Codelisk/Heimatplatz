@@ -10,9 +10,10 @@ using UnoFramework.ViewModels;
 
 namespace Heimatplatz.Features.Immobilien.Presentation;
 
-public partial class ImmobilieDetailViewModel(BaseServices baseServices, IMediator mediator) : PageViewModel(baseServices), INavigationAware
+public partial class ImmobilieDetailViewModel(BaseServices baseServices, IMediator mediator, ImmobilieListeDto? immobilieData = null) : PageViewModel(baseServices), INavigationAware
 {
     private readonly IMediator _mediator = mediator;
+    private readonly ImmobilieListeDto? _navigationData = immobilieData;
 
     [ObservableProperty]
     private string _title = "Details";
@@ -164,9 +165,33 @@ public partial class ImmobilieDetailViewModel(BaseServices baseServices, IMediat
 
     public async void OnNavigatedTo(object? parameter)
     {
-        if (parameter is IDictionary<string, object> data && data.TryGetValue("Id", out var idObj) && idObj is Guid id)
+        Console.WriteLine($"=== ImmobilieDetailViewModel.OnNavigatedTo called ===");
+        Console.WriteLine($"=== Constructor data: {_navigationData?.Titel} (Id: {_navigationData?.Id}) ===");
+        Console.WriteLine($"=== Parameter: {parameter} (type: {parameter?.GetType().Name}) ===");
+
+        // Priority: Constructor injection (from DataViewMap) > INavigationAware parameter
+        Guid? id = _navigationData?.Id;
+
+        if (id is null)
         {
-            await LoadCommand.ExecuteAsync(id);
+            // Fallback to parameter for backward compatibility
+            id = parameter switch
+            {
+                Guid guid => guid,
+                ImmobilieListeDto dto => dto.Id,
+                IDictionary<string, object> data when data.TryGetValue("Id", out var idObj) && idObj is Guid dictId => dictId,
+                _ => null
+            };
+        }
+
+        if (id.HasValue)
+        {
+            Console.WriteLine($"=== Loading detail for ID: {id.Value} ===");
+            await LoadCommand.ExecuteAsync(id.Value);
+        }
+        else
+        {
+            Console.WriteLine($"=== Could not extract ID ===");
         }
     }
 

@@ -17,11 +17,23 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddOpenApi();
 builder.Services.AddApiServices(builder.Configuration);
 
+// Configure CORS for development
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 app.Services.EnsureDatabaseCreated();
 await app.RunSeedersAsync();
 
+app.UseCors();
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 

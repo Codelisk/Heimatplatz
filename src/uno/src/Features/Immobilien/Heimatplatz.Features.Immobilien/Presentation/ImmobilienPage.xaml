@@ -1,11 +1,14 @@
 <Page x:Class="Heimatplatz.Features.Immobilien.Presentation.ImmobilienPage"
+      x:Name="PageRoot"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:Heimatplatz.Features.Immobilien.Presentation"
+      xmlns:apiModels="using:Heimatplatz.Core.ApiClient.Generated"
       xmlns:controls="using:Heimatplatz.Core.Controls.Controls"
       xmlns:featureControls="using:Heimatplatz.Features.Immobilien.Controls"
       xmlns:fwControls="using:UnoFramework.Controls"
       xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
       NavigationCacheMode="Required"
       Background="{ThemeResource BackgroundBrush}">
@@ -36,24 +39,26 @@
                     FilterChangedCommand="{Binding ApplyFilterCommand}" />
 
                 <!-- Property Grid -->
-                <ScrollViewer Grid.Row="2" Padding="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=24}">
-                    <muxc:ItemsRepeater ItemsSource="{Binding Immobilien}">
+                <ScrollViewer Grid.Row="2" Padding="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=12}">
+                    <muxc:ItemsRepeater
+                        ItemsSource="{Binding Immobilien}"
+                        uen:Navigation.Request="ImmobilieDetail"
+                        Margin="0,8,0,0">
                         <muxc:ItemsRepeater.Layout>
                             <muxc:UniformGridLayout
-                                MinItemWidth="{utu:Responsive Narrowest=280, Narrow=300, Normal=320, Wide=350}"
-                                MinColumnSpacing="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=20}"
-                                MinRowSpacing="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=20}"
+                                MinItemWidth="{utu:Responsive Narrowest=280, Narrow=280, Normal=200, Wide=200}"
+                                MinColumnSpacing="{utu:Responsive Narrowest=12, Narrow=16, Normal=20, Wide=24}"
+                                MinRowSpacing="{utu:Responsive Narrowest=20, Narrow=24, Normal=28, Wide=32}"
                                 ItemsStretch="Fill" />
                         </muxc:ItemsRepeater.Layout>
                         <muxc:ItemsRepeater.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="apiModels:ImmobilieListeDto">
                                 <controls:PropertyCard
                                     ImageUrl="{Binding HauptbildUrl}"
                                     Location="{Binding Ort}"
                                     Price="{Binding Preis}"
                                     Area="{Binding Wohnflaeche}"
-                                    ExtraInfo="{Binding ZusatzInfo}"
-                                    CommandParameter="{Binding Id}" />
+                                    ExtraInfo="{Binding ZusatzInfo}" />
                             </DataTemplate>
                         </muxc:ItemsRepeater.ItemTemplate>
                     </muxc:ItemsRepeater>

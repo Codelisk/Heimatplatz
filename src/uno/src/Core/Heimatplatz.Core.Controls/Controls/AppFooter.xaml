@@ -6,53 +6,21 @@
     xmlns:utu="using:Uno.Toolkit.UI">
 
     <Border
-        Background="{ThemeResource SurfaceBrush}"
-        BorderBrush="{ThemeResource OnSurfaceVariantBrush}"
-        BorderThickness="0,1,0,0"
-        Padding="16,24">
+        Background="{ThemeResource BackgroundBrush}"
+        Padding="{utu:Responsive Narrowest='8,16', Narrow='12,24', Normal='16,32'}">
 
-        <StackPanel HorizontalAlignment="Center" Spacing="16">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="{utu:Responsive Narrowest=8, Narrow=16, Normal=32}">
+            <HyperlinkButton x:Name="ImpressumButton" Padding="{utu:Responsive Narrowest='4,4', Normal='8,4'}">
+                <TextBlock Text="IMPRESSUM" FontSize="{utu:Responsive Narrowest=9, Normal=11}" CharacterSpacing="{utu:Responsive Narrowest=40, Normal=100}" FontWeight="SemiBold" Foreground="Black" />
+            </HyperlinkButton>
 
-            <!-- Links -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
-                <Button
-                    x:Name="ImpressumButton"
-                    Content="IMPRESSUM"
-                    Background="Transparent"
-                    Foreground="{ThemeResource OnSurfaceBrush}"
-                    FontSize="12"
-                    FontWeight="SemiBold"
-                    Padding="8,4"
-                    BorderThickness="0" />
+            <HyperlinkButton x:Name="DatenschutzButton" Padding="{utu:Responsive Narrowest='4,4', Normal='8,4'}">
+                <TextBlock Text="DATENSCHUTZ" FontSize="{utu:Responsive Narrowest=9, Normal=11}" CharacterSpacing="{utu:Responsive Narrowest=40, Normal=100}" FontWeight="SemiBold" Foreground="Black" />
+            </HyperlinkButton>
 
-                <Button
-                    x:Name="DatenschutzButton"
-                    Content="DATENSCHUTZ"
-                    Background="Transparent"
-                    Foreground="{ThemeResource OnSurfaceBrush}"
-                    FontSize="12"
-                    FontWeight="SemiBold"
-                    Padding="8,4"
-                    BorderThickness="0" />
-
-                <Button
-                    x:Name="KontaktButton"
-                    Content="KONTAKT"
-                    Background="Transparent"
-                    Foreground="{ThemeResource OnSurfaceBrush}"
-                    FontSize="12"
-                    FontWeight="SemiBold"
-                    Padding="8,4"
-                    BorderThickness="0" />
-            </StackPanel>
-
-            <!-- Copyright -->
-            <TextBlock
-                Text="© 2025 HEIMATPLATZ REAL ESTATE"
-                FontSize="10"
-                Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                HorizontalAlignment="Center" />
-
+            <HyperlinkButton x:Name="KontaktButton" Padding="{utu:Responsive Narrowest='4,4', Normal='8,4'}">
+                <TextBlock Text="KONTAKT" FontSize="{utu:Responsive Narrowest=9, Normal=11}" CharacterSpacing="{utu:Responsive Narrowest=40, Normal=100}" FontWeight="SemiBold" Foreground="Black" />
+            </HyperlinkButton>
         </StackPanel>
 
     </Border>

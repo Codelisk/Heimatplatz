@@ -61,9 +61,10 @@ public class GetImmobilienHandler(AppDbContext db)
             ImmobilienSortierung.Ort => request.Richtung == SortierRichtung.Aufsteigend
                 ? query.OrderBy(i => i.Ort).ThenBy(i => i.Bezirk)
                 : query.OrderByDescending(i => i.Ort).ThenByDescending(i => i.Bezirk),
+            // Default: sort by Id (stable for SQLite compatibility)
             _ => request.Richtung == SortierRichtung.Aufsteigend
-                ? query.OrderBy(i => i.CreatedAt)
-                : query.OrderByDescending(i => i.CreatedAt)
+                ? query.OrderBy(i => i.Id)
+                : query.OrderByDescending(i => i.Id)
         };
 
         // Pagination

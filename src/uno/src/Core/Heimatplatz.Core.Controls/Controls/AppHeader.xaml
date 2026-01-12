@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:utu="using:Uno.Toolkit.UI">
 
-    <Grid Height="60" Background="{ThemeResource BackgroundBrush}">
+    <Grid Height="56" Background="{ThemeResource BackgroundBrush}" Padding="{utu:Responsive Narrowest='8,0', Narrow='12,0', Normal='16,0'}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
@@ -14,27 +14,26 @@
         </Grid.ColumnDefinitions>
 
         <!-- Logo -->
-        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
-            <Border Width="20" Height="20" Background="Black" Margin="0,0,8,0" />
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+            <Border Width="16" Height="16" Margin="0,0,8,0" Background="Black" CornerRadius="2" />
             <TextBlock
                 Text="HEIMATPLATZ"
                 FontWeight="Bold"
-                FontSize="18"
-                VerticalAlignment="Center"
-                Style="{StaticResource TitleTextBlockStyle}" />
+                FontSize="{utu:Responsive Narrowest=12, Narrow=13, Normal=14}"
+                CharacterSpacing="{utu:Responsive Narrowest=50, Normal=100}"
+                VerticalAlignment="Center" />
         </StackPanel>
 
         <!-- Object Count -->
-        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="{utu:Responsive Narrowest='8,0,8,0', Narrow='12,0,12,0', Normal='0,0,16,0'}">
             <TextBlock
-                Text="OBJECTS:"
-                FontSize="12"
-                Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                VerticalAlignment="Center"
-                Margin="0,0,4,0" />
+                Text="{utu:Responsive Narrowest='', Narrow='OBJECTS: '}"
+                FontSize="{utu:Responsive Narrowest=10, Normal=12}"
+                CharacterSpacing="50"
+                VerticalAlignment="Center" />
             <TextBlock
                 x:Name="ObjectCountText"
-                FontSize="12"
+                FontSize="{utu:Responsive Narrowest=10, Normal=12}"
                 FontWeight="SemiBold"
                 VerticalAlignment="Center" />
         </StackPanel>
@@ -43,14 +42,13 @@
         <Button
             Grid.Column="3"
             x:Name="AccountButton"
-            Content="ACCOUNT"
-            Margin="8,0,16,0"
-            Padding="16,8"
+            Padding="{utu:Responsive Narrowest='12,8', Narrow='16,8', Normal='20,8'}"
             Background="Transparent"
             BorderBrush="Black"
             BorderThickness="1"
-            FontSize="12"
-            FontWeight="SemiBold" />
+            CornerRadius="0">
+            <TextBlock Text="ACCOUNT" FontSize="{utu:Responsive Narrowest=10, Normal=11}" CharacterSpacing="{utu:Responsive Narrowest=40, Normal=80}" FontWeight="SemiBold" />
+        </Button>
 
     </Grid>
 

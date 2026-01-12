@@ -1,3 +1,5 @@
+using Heimatplatz.Features.Immobilien.Presentation;
+
 namespace Heimatplatz.App.Presentation;
 
 public class ShellViewModel
@@ -13,6 +15,6 @@ public class ShellViewModel
 
     public async Task Start()
     {
-        await _navigator.NavigateViewModelAsync<MainViewModel>(this);
+        await _navigator.NavigateViewModelAsync<ImmobilienViewModel>(this);
     }
 }

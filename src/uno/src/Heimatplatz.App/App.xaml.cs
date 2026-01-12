@@ -1,3 +1,4 @@
+using Heimatplatz.Core.ApiClient.Generated;
 using Heimatplatz.Core.Startup;
 using Heimatplatz.Features.Immobilien.Presentation;
 using Uno.Resizetizer;
@@ -47,9 +48,10 @@ public partial class App : Application
             );
         MainWindow = builder.Window;
 
-#if DEBUG
-        MainWindow.UseStudio();
-#endif
+// Hot Design Studio disabled to clean up header UI
+// #if DEBUG
+//         MainWindow.UseStudio();
+// #endif
         MainWindow.SetWindowIcon();
 
         Host = await builder.NavigateAsync<Shell>();
@@ -61,7 +63,7 @@ public partial class App : Application
             new ViewMap(ViewModel: typeof(ShellViewModel)),
             new ViewMap<MainPage, MainViewModel>(),
             new ViewMap<ImmobilienPage, ImmobilienViewModel>(),
-            new ViewMap<ImmobilieDetailPage, ImmobilieDetailViewModel>()
+            new DataViewMap<ImmobilieDetailPage, ImmobilieDetailViewModel, ImmobilieListeDto>()
         );
 
         routes.Register(

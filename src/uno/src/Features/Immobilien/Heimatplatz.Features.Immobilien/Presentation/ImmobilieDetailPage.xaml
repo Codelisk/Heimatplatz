@@ -79,8 +79,8 @@
                                     <DataTemplate>
                                         <Image
                                             Source="{Binding Url}"
-                                            Height="120"
-                                            Width="180"
+                                            Height="{utu:Responsive Narrowest=80, Narrow=100, Normal=120}"
+                                            Width="{utu:Responsive Narrowest=120, Narrow=150, Normal=180}"
                                             Stretch="UniformToFill" />
                                     </DataTemplate>
                                 </muxc:ItemsRepeater.ItemTemplate>
@@ -110,12 +110,12 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Price -->
-                                <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,16,16">
+                                <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,8,16">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="4" Height="40" Background="Black" />
+                                        <Border Width="4" Height="{utu:Responsive Narrowest=32, Normal=40}" Background="Black" />
                                         <StackPanel>
-                                            <TextBlock Text="PRICE" FontSize="10" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                            <TextBlock Text="{Binding PreisFormatiert}" FontSize="32" FontWeight="Bold" />
+                                            <TextBlock Text="PRICE" FontSize="{utu:Responsive Narrowest=9, Normal=10}" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{Binding PreisFormatiert}" FontSize="{utu:Responsive Narrowest=20, Narrow=24, Normal=32}" FontWeight="Bold" />
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
@@ -123,21 +123,21 @@
                                 <!-- Living Area -->
                                 <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,0,0,16">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="4" Height="40" Background="Black" />
+                                        <Border Width="4" Height="{utu:Responsive Narrowest=32, Normal=40}" Background="Black" />
                                         <StackPanel>
-                                            <TextBlock Text="LIVING AREA" FontSize="10" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                            <TextBlock Text="{Binding WohnflaecheFormatiert}" FontSize="32" FontWeight="Bold" />
+                                            <TextBlock Text="LIVING AREA" FontSize="{utu:Responsive Narrowest=9, Normal=10}" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{Binding WohnflaecheFormatiert}" FontSize="{utu:Responsive Narrowest=20, Narrow=24, Normal=32}" FontWeight="Bold" />
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
 
                                 <!-- Rooms -->
-                                <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,16,16">
+                                <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,8,16">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="4" Height="40" Background="Black" />
+                                        <Border Width="4" Height="{utu:Responsive Narrowest=32, Normal=40}" Background="Black" />
                                         <StackPanel>
-                                            <TextBlock Text="ROOMS" FontSize="10" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                            <TextBlock Text="{Binding ZimmerFormatiert}" FontSize="32" FontWeight="Bold" />
+                                            <TextBlock Text="ROOMS" FontSize="{utu:Responsive Narrowest=9, Normal=10}" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{Binding ZimmerFormatiert}" FontSize="{utu:Responsive Narrowest=20, Narrow=24, Normal=32}" FontWeight="Bold" />
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
@@ -145,10 +145,10 @@
                                 <!-- Plot Size -->
                                 <StackPanel Grid.Column="1" Grid.Row="1" Margin="0,0,0,16">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="4" Height="40" Background="Black" />
+                                        <Border Width="4" Height="{utu:Responsive Narrowest=32, Normal=40}" Background="Black" />
                                         <StackPanel>
-                                            <TextBlock Text="PLOT SIZE" FontSize="10" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                            <TextBlock Text="{Binding GrundstuecksflaecheFormatiert}" FontSize="32" FontWeight="Bold" />
+                                            <TextBlock Text="PLOT SIZE" FontSize="{utu:Responsive Narrowest=9, Normal=10}" Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{Binding GrundstuecksflaecheFormatiert}" FontSize="{utu:Responsive Narrowest=20, Narrow=24, Normal=32}" FontWeight="Bold" />
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>

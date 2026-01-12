@@ -46,10 +46,15 @@ public partial class ImmobilienViewModel(BaseServices baseServices, IMediator me
     [UnoCommand]
     private async Task LoadAsync()
     {
+        Console.WriteLine("=== LoadAsync started ===");
+        Logger.LogInformation("=== LoadAsync started ===");
+
         using (BeginBusy("Lade Immobilien..."))
         {
             try
             {
+                Logger.LogInformation("Requesting count from API...");
+
                 // Load total count for header
                 var countResponse = await _mediator.Request(new GetImmobilienAnzahlHttpRequest
                 {
@@ -57,6 +62,9 @@ public partial class ImmobilienViewModel(BaseServices baseServices, IMediator me
                     Status = ImmobilienStatus.Aktiv
                 });
                 TotalCount = countResponse.Result.Anzahl;
+
+                Logger.LogInformation("Count response received: {Count}", TotalCount);
+                Logger.LogInformation("Requesting immobilien from API...");
 
                 // Load properties
                 var response = await _mediator.Request(new GetImmobilienHttpRequest
@@ -72,13 +80,16 @@ public partial class ImmobilienViewModel(BaseServices baseServices, IMediator me
                     Richtung = SortierRichtung.Absteigend
                 });
 
-                Immobilien = new ObservableCollection<ImmobilieListeDto>(response.Result.Eintraege);
+                Logger.LogInformation("Immobilien response received: {Count} items", response.Result.Eintraege?.Count ?? 0);
+                Immobilien = new ObservableCollection<ImmobilieListeDto>(response.Result.Eintraege ?? []);
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Fehler beim Laden der Immobilien");
+                Logger.LogError(ex, "Fehler beim Laden der Immobilien: {Message}", ex.Message);
             }
         }
+
+        Logger.LogInformation("=== LoadAsync finished ===");
     }
 
     [UnoCommand]
@@ -89,16 +100,47 @@ public partial class ImmobilienViewModel(BaseServices baseServices, IMediator me
     }
 
     [UnoCommand]
-    private async Task NavigateToDetailAsync(Guid id)
+    private async Task NavigateToDetailAsync(object? parameter)
     {
-        await Navigator.NavigateViewModelAsync<ImmobilieDetailViewModel>(this, data: new Dictionary<string, object>
+        Console.WriteLine($"=== NavigateToDetailAsync called with parameter: {parameter} (type: {parameter?.GetType().Name}) ===");
+        Logger.LogInformation("NavigateToDetailAsync called with parameter: {Parameter} (type: {Type})", parameter, parameter?.GetType().Name);
+
+        Guid? id = parameter switch
         {
-            ["Id"] = id
-        });
+            Guid guid => guid,
+            ImmobilieListeDto dto => dto.Id,
+            _ => null
+        };
+
+        Console.WriteLine($"=== Extracted ID: {id} ===");
+        Logger.LogInformation("Extracted ID: {Id}", id);
+
+        if (id.HasValue)
+        {
+            Console.WriteLine($"=== Navigating to detail page with ID: {id.Value} ===");
+            Logger.LogInformation("Navigating to detail page with ID: {Id}", id.Value);
+            try
+            {
+                var result = await Navigator.NavigateRouteAsync(this, "ImmobilieDetail", data: id.Value);
+                Console.WriteLine($"=== Navigation result: {result} ===");
+                Logger.LogInformation("Navigation result: {Result}", result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"=== Navigation FAILED with error: {ex.Message} ===");
+                Logger.LogError(ex, "Navigation failed: {Message}", ex.Message);
+            }
+        }
+        else
+        {
+            Console.WriteLine("=== ID is null, not navigating ===");
+            Logger.LogWarning("NavigateToDetailAsync: ID is null, not navigating");
+        }
     }
 
     public async void OnNavigatedTo(object? parameter)
     {
+        Console.WriteLine("=== ImmobilienViewModel.OnNavigatedTo called ===");
         await LoadCommand.ExecuteAsync(null);
     }
 

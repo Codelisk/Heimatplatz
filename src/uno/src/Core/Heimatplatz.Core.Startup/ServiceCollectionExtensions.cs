@@ -1,3 +1,4 @@
+using Heimatplatz.Core.ApiClient.Configuration;
 using Heimatplatz.Features.Immobilien.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shiny.Mediator.Infrastructure;
@@ -16,6 +17,9 @@ public static class ServiceCollectionExtensions
         services.AddShinyMediator();
         services.AddSingleton<IEventCollector, UnoEventCollector>();
         services.AddSingleton<BaseServices>();
+
+        // API Client
+        services.AddApiClientFeature();
 
         // Features
         services.AddImmobilienFeature();
