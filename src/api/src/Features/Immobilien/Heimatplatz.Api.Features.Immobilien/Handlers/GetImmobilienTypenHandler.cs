@@ -9,6 +9,7 @@ namespace Heimatplatz.Api.Features.Immobilien.Handlers;
 /// Handler fuer verfuegbare Immobilientypen
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
+[MediatorHttpGroup("/api/immobilien")]
 public class GetImmobilienTypenHandler
     : IRequestHandler<GetImmobilienTypenRequest, GetImmobilienTypenResponse>
 {
@@ -19,6 +20,7 @@ public class GetImmobilienTypenHandler
         new(3, nameof(ImmobilienTyp.Wohnung), "Wohnung")
     ];
 
+    [MediatorHttpGet("typen")]
     public Task<GetImmobilienTypenResponse> Handle(
         GetImmobilienTypenRequest request,
         IMediatorContext context,

@@ -12,9 +12,11 @@ namespace Heimatplatz.Api.Features.Immobilien.Handlers;
 /// Handler fuer paginierte Immobilien-Liste mit Filtern
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
+[MediatorHttpGroup("/api/immobilien")]
 public class GetImmobilienHandler(AppDbContext db)
     : IRequestHandler<GetImmobilienRequest, GetImmobilienResponse>
 {
+    [MediatorHttpGet("")]
     public async Task<GetImmobilienResponse> Handle(
         GetImmobilienRequest request,
         IMediatorContext context,

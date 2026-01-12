@@ -4,6 +4,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Shiny.Extensions.DependencyInjection" />
     <PackageReference Include="Shiny.Mediator" />
+    <PackageReference Include="Shiny.Mediator.AspNet" />
   </ItemGroup>
 
   <ItemGroup>
