@@ -427,3 +427,7 @@ Thumbs.db
 # Uno Platform
 *.generated.cs
 .uno/
+
+# Claude Code temp files
+nul
+tmpclaude-*
