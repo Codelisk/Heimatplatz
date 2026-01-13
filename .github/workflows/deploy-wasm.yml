@@ -1,0 +1,47 @@
+name: Deploy Uno WASM to IONOS
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/uno/src/Heimatplatz.App/Heimatplatz.App.csproj
+
+      - name: Publish WASM
+        run: |
+          dotnet publish src/uno/src/Heimatplatz.App/Heimatplatz.App.csproj \
+            -c Release \
+            -f net10.0-browserwasm \
+            -o ./publish
+        env:
+          UNO_SINGLE_TARGET: wasm
+
+      - name: Create .nojekyll file
+        run: touch ./publish/wwwroot/.nojekyll
+
+      - name: Deploy to IONOS
+        uses: ionos-deploy-now/deploy-to-ionos@v1
+        with:
+          project-id: ${{ secrets.IONOS_PROJECT_ID }}
+          branch-id: ${{ secrets.IONOS_BRANCH_ID }}
+          service-host: api-eu.ionos.space
+          api-key: ${{ secrets.IONOS_API_KEY }}
+          dist-folder: ./publish/wwwroot
