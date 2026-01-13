@@ -36,7 +36,7 @@ public record ImmobilieDetailDto(
     int? Badezimmer,
     int? Baujahr,
     IReadOnlyList<ImmobilieBildDto> Bilder,
-    DateTimeOffset ErstelltAm
+    DateTime ErstelltAm
 );
 
 /// <summary>

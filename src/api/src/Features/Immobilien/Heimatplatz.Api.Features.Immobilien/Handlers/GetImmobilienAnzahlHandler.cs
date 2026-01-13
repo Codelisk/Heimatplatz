@@ -12,9 +12,11 @@ namespace Heimatplatz.Api.Features.Immobilien.Handlers;
 /// Handler fuer Immobilien-Anzahl (optimierte COUNT-Query)
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
+[MediatorHttpGroup("/api/immobilien")]
 public class GetImmobilienAnzahlHandler(AppDbContext db)
     : IRequestHandler<GetImmobilienAnzahlRequest, GetImmobilienAnzahlResponse>
 {
+    [MediatorHttpGet("anzahl")]
     public async Task<GetImmobilienAnzahlResponse> Handle(
         GetImmobilienAnzahlRequest request,
         IMediatorContext context,

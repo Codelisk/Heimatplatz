@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <!-- OpenAPI HTTP Contract Generation from API -->
+  <!-- TODO: Enable when API OpenAPI spec includes proper enum definitions
   <ItemGroup>
     <MediatorHttp Include="ApiContracts"
                   Uri="http://localhost:5292/openapi/v1.json"
@@ -35,6 +36,7 @@
                   GenerateJsonConverters="false"
                   Visible="false" />
   </ItemGroup>
+  -->
 
   <ItemGroup>
     <!-- Shared -->
