@@ -1,4 +1,4 @@
-name: Deploy Uno WASM to IONOS
+name: Deploy Uno WASM to IONOS via FTP
 
 on:
   push:
@@ -34,14 +34,22 @@ jobs:
         env:
           UNO_SINGLE_TARGET: wasm
 
-      - name: Create .nojekyll file
-        run: touch ./publish/wwwroot/.nojekyll
+      - name: Create .htaccess for SPA routing
+        run: |
+          cat > ./publish/wwwroot/.htaccess << 'EOF'
+          RewriteEngine On
+          RewriteBase /
+          RewriteRule ^index\.html$ - [L]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /index.html [L]
+          EOF
 
-      - name: Deploy to IONOS
-        uses: ionos-deploy-now/deploy-to-ionos@v1
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          project-id: ${{ secrets.IONOS_PROJECT_ID }}
-          branch-id: ${{ secrets.IONOS_BRANCH_ID }}
-          service-host: api-eu.ionos.space
-          api-key: ${{ secrets.IONOS_API_KEY }}
-          dist-folder: ./publish/wwwroot
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./publish/wwwroot/
+          server-dir: /
