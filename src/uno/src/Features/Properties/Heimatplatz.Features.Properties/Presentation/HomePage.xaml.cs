@@ -1,3 +1,5 @@
+using Heimatplatz.Features.Properties.Contracts.Models;
+using Heimatplatz.Features.Properties.Controls;
 using Microsoft.UI.Xaml.Controls;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -14,5 +16,10 @@ public sealed partial class HomePage : Page
         ViewModel = new HomeViewModel();
         this.InitializeComponent();
         this.DataContext = ViewModel;
+    }
+
+    private void OnPropertyCardClicked(object sender, PropertyListItemDto property)
+    {
+        Frame.Navigate(typeof(PropertyDetailPage), property.Id);
     }
 }

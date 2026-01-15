@@ -1,6 +1,7 @@
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace Heimatplatz.Features.Properties.Controls;
@@ -13,7 +14,15 @@ public sealed partial class PropertyCard : UserControl
     public PropertyCard()
     {
         this.InitializeComponent();
+        this.PointerPressed += OnCardPointerPressed;
+        this.PointerEntered += OnCardPointerEntered;
+        this.PointerExited += OnCardPointerExited;
     }
+
+    /// <summary>
+    /// Event wenn die Karte angeklickt wird
+    /// </summary>
+    public event EventHandler<PropertyListItemDto>? CardClicked;
 
     /// <summary>
     /// Die anzuzeigende Immobilie
@@ -123,5 +132,25 @@ public sealed partial class PropertyCard : UserControl
         if (price >= 1_000)
             return $"{price / 1_000:0} T€";
         return $"{price:N0} €";
+    }
+
+    private void OnCardPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (Property != null)
+        {
+            CardClicked?.Invoke(this, Property);
+        }
+    }
+
+    private void OnCardPointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        // Hover-Effekt: Leichte Skalierung
+        this.Scale = new System.Numerics.Vector3(1.02f, 1.02f, 1f);
+    }
+
+    private void OnCardPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        // Hover-Effekt zuruecksetzen
+        this.Scale = new System.Numerics.Vector3(1f, 1f, 1f);
     }
 }

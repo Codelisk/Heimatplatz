@@ -153,6 +153,7 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate>
                                 <controls:PropertyCard Property="{Binding}"
+                                                       CardClicked="OnPropertyCardClicked"
                                                        AutomationProperties.AutomationId="HomePage_PropertyCard" />
                             </DataTemplate>
                         </ItemsRepeater.ItemTemplate>
