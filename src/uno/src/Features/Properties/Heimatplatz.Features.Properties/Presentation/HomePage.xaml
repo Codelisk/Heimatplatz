@@ -22,6 +22,7 @@
             <Grid utu:SafeArea.Insets="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -43,14 +44,14 @@
                         <!-- Logo: Elegant -->
                         <TextBlock Grid.Column="0"
                                    Text="HEIMATPLATZ"
-                                   FontSize="15"
+                                   FontSize="{utu:Responsive Narrowest=12, Normal=15}"
                                    FontWeight="Bold"
                                    CharacterSpacing="150"
                                    Foreground="{ThemeResource OnSurfaceBrush}"
                                    VerticalAlignment="Center"
                                    AutomationProperties.AutomationId="HomePage_Logo" />
 
-                        <!-- Ort-Picker + Filter Chips -->
+                        <!-- Ort-Picker + Filter Chips (Desktop) -->
                         <StackPanel Grid.Column="1"
                                     Orientation="Horizontal"
                                     Spacing="16"
@@ -59,13 +60,12 @@
                                     Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
                                     AutomationProperties.AutomationId="HomePage_FilterArea">
 
-                            <!-- Ort-Picker -->
-                            <ComboBox x:Name="OrtPicker"
-                                      PlaceholderText="Ort auswählen"
-                                      MinWidth="180"
-                                      SelectedItem="{Binding SelectedOrt, Mode=TwoWay}"
-                                      ItemsSource="{Binding Orte}"
-                                      AutomationProperties.AutomationId="HomePage_OrtPicker" />
+                            <!-- Ort-Picker (hierarchisch) -->
+                            <controls:OrtPicker x:Name="OrtPickerControl"
+                                                MinWidth="200"
+                                                Bezirke="{Binding Bezirke}"
+                                                SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
+                                                AutomationProperties.AutomationId="HomePage_OrtPicker" />
 
                             <!-- Separator -->
                             <Border Width="1"
@@ -91,11 +91,11 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Ergebnis-Counter: Eleganter -->
+                        <!-- Ergebnis-Counter -->
                         <TextBlock Grid.Column="2"
                                    VerticalAlignment="Center"
                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                   FontSize="13"
+                                   FontSize="{utu:Responsive Narrowest=11, Normal=13}"
                                    AutomationProperties.AutomationId="HomePage_ResultCount">
                             <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
                             <Run Text=" Objekte" />
@@ -103,34 +103,42 @@
                     </Grid>
                 </Border>
 
-                <!-- Mobile Filter (nur auf kleinen Screens) -->
-                <Border Grid.Row="0"
-                        Grid.RowSpan="2"
-                        VerticalAlignment="Top"
-                        Margin="0,56,0,0"
+                <!-- Mobile Filter (eigene Row, nur auf kleinen Screens) -->
+                <Border Grid.Row="1"
                         Background="{ThemeResource SurfaceBrush}"
-                        Padding="16,12"
+                        BorderBrush="{ThemeResource BorderBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,8"
                         Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}"
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                  HorizontalScrollMode="Auto"
-                                  VerticalScrollMode="Disabled">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <controls:FilterChip Label="Alle"
-                                                 IsSelected="{Binding IsAllSelected, Mode=TwoWay}" />
-                            <controls:FilterChip Label="Haus"
-                                                 IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
-                            <controls:FilterChip Label="Grundstück"
-                                                 IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
-                            <controls:FilterChip Label="Zwangsverst."
-                                                 IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
-                        </StackPanel>
-                    </ScrollViewer>
+                    <StackPanel Spacing="8">
+                        <!-- OrtPicker auf Mobile -->
+                        <controls:OrtPicker Bezirke="{Binding Bezirke}"
+                                            SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
+                                            HorizontalAlignment="Stretch"
+                                            AutomationProperties.AutomationId="HomePage_MobileOrtPicker" />
+
+                        <!-- Filter Chips: Eine Zeile, scrollbar bei Bedarf -->
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                      HorizontalScrollMode="Auto"
+                                      VerticalScrollMode="Disabled">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <controls:FilterChip Label="Alle"
+                                                     IsSelected="{Binding IsAllSelected, Mode=TwoWay}" />
+                                <controls:FilterChip Label="Haus"
+                                                     IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
+                                <controls:FilterChip Label="Grundstück"
+                                                     IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
+                                <controls:FilterChip Label="Zwangsverst."
+                                                     IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </StackPanel>
                 </Border>
 
-                <!-- Content: Responsives Grid Layout - Kompakter -->
-                <ScrollViewer Grid.Row="1"
-                              Padding="{utu:Responsive Narrowest='12,56,12,12', Normal='20,16'}"
+                <!-- Content: Responsives Grid Layout -->
+                <ScrollViewer Grid.Row="2"
+                              Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
                               AutomationProperties.AutomationId="HomePage_ScrollViewer">
                     <ItemsRepeater ItemsSource="{Binding Properties}"
                                    AutomationProperties.AutomationId="HomePage_PropertyList">
@@ -152,7 +160,7 @@
                 </ScrollViewer>
 
                 <!-- Empty State: Schlicht -->
-                <StackPanel Grid.Row="1"
+                <StackPanel Grid.Row="2"
                             Visibility="{Binding IsEmpty}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"

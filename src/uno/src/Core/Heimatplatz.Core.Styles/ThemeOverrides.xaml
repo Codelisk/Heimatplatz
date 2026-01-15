@@ -42,10 +42,10 @@
             <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource SystemAccentColor}" />
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource SystemAccentColor}" />
 
-            <!-- Background Colors (Hellgrau Toene) -->
-            <Color x:Key="SolidBackgroundFillColorBase">#F8FAFC</Color>
-            <Color x:Key="SolidBackgroundFillColorSecondary">#F1F5F9</Color>
-            <Color x:Key="SolidBackgroundFillColorTertiary">#E2E8F0</Color>
+            <!-- Background Colors (Solides Weiss/Grau) -->
+            <Color x:Key="SolidBackgroundFillColorBase">#FFFFFF</Color>
+            <Color x:Key="SolidBackgroundFillColorSecondary">#F5F5F5</Color>
+            <Color x:Key="SolidBackgroundFillColorTertiary">#EEEEEE</Color>
 
             <!-- Surface Colors (Weiss) -->
             <Color x:Key="LayerFillColorDefault">#FFFFFF</Color>

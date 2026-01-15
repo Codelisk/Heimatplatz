@@ -142,12 +142,13 @@
                         <Run x:Name="AddressText" />
                     </TextBlock>
 
-                    <!-- Titel -->
+                    <!-- Titel (max 2 Zeilen) -->
                     <TextBlock x:Name="TitleText"
                                FontSize="11"
                                Foreground="{ThemeResource DetailsBrush}"
+                               TextWrapping="Wrap"
                                TextTrimming="CharacterEllipsis"
-                               MaxLines="1"
+                               MaxLines="2"
                                AutomationProperties.AutomationId="PropertyCard_Title" />
 
                     <!-- Anbieter -->

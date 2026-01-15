@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -32,23 +33,36 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     private bool _isZwangsversteigerungSelected;
 
-    [ObservableProperty]
-    private string? _selectedOrt;
+    private List<string> _selectedOrte = new();
+    public List<string> SelectedOrte
+    {
+        get => _selectedOrte;
+        set
+        {
+            if (SetProperty(ref _selectedOrte, value))
+            {
+                ApplyFilters();
+            }
+        }
+    }
 
-    public List<string> Orte { get; } = ["Alle Orte", "Linz", "Wels", "Steyr", "Leonding", "Traun"];
+    /// <summary>
+    /// Hierarchische Bezirk/Ort-Struktur für OÖ
+    /// </summary>
+    public List<BezirkModel> Bezirke { get; } =
+    [
+        new BezirkModel("Linz-Land", "Traun", "Leonding", "Ansfelden", "Pasching", "Hörsching"),
+        new BezirkModel("Linz-Stadt", "Linz", "Urfahr"),
+        new BezirkModel("Wels-Land", "Wels", "Marchtrenk", "Gunskirchen"),
+        new BezirkModel("Steyr-Land", "Steyr", "Sierning", "Garsten"),
+    ];
 
     public Visibility IsEmpty => Properties.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
     public HomeViewModel()
     {
-        SelectedOrt = "Alle Orte";
         // TODO: API-Integration - vorerst Testdaten laden
         LoadTestData();
-    }
-
-    partial void OnSelectedOrtChanged(string? value)
-    {
-        ApplyFilters();
     }
 
     partial void OnIsAllSelectedChanged(bool value)
@@ -91,12 +105,14 @@ public partial class HomeViewModel : ObservableObject
 
     private void ApplyFilters()
     {
+        System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Called. SelectedOrte.Count = {SelectedOrte.Count}");
         var filtered = _allProperties.AsEnumerable();
 
-        // Ort-Filter
-        if (!string.IsNullOrEmpty(SelectedOrt) && SelectedOrt != "Alle Orte")
+        // Ort-Filter (Multi-Select)
+        if (SelectedOrte.Count > 0)
         {
-            filtered = filtered.Where(p => p.Ort == SelectedOrt);
+            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by orte: {string.Join(", ", SelectedOrte)}");
+            filtered = filtered.Where(p => SelectedOrte.Contains(p.Ort));
         }
 
         // Typ-Filter
@@ -108,7 +124,9 @@ public partial class HomeViewModel : ObservableObject
             filtered = filtered.Where(p => p.Typ == PropertyType.Zwangsversteigerung);
 
         Properties.Clear();
-        foreach (var property in filtered)
+        var filteredList = filtered.ToList();
+        System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Result count: {filteredList.Count}");
+        foreach (var property in filteredList)
         {
             Properties.Add(property);
         }
