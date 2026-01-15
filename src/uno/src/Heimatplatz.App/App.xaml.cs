@@ -48,10 +48,10 @@ public partial class App : Application
             );
         MainWindow = builder.Window;
 
-// Hot Design Studio disabled to clean up header UI
-// #if DEBUG
-//         MainWindow.UseStudio();
-// #endif
+        // Hot Design Studio disabled to clean up header UI
+#if DEBUG
+        MainWindow.UseStudio();
+#endif
         MainWindow.SetWindowIcon();
 
         Host = await builder.NavigateAsync<Shell>();
