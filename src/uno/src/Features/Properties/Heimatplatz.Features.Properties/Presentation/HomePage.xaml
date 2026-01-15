@@ -25,12 +25,12 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Eleganter Header -->
+                <!-- Kompakter Header -->
                 <Border Grid.Row="0"
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Padding="{utu:Responsive Narrowest='16,12', Normal='32,16'}"
+                        Padding="{utu:Responsive Narrowest='12,10', Normal='20,12'}"
                         AutomationProperties.AutomationId="HomePage_Header">
 
                     <Grid>
@@ -109,18 +109,18 @@
                     </ScrollViewer>
                 </Border>
 
-                <!-- Content: Responsives Grid Layout -->
+                <!-- Content: Responsives Grid Layout - Kompakter -->
                 <ScrollViewer Grid.Row="1"
-                              Padding="{utu:Responsive Narrowest='16,60,16,16', Normal='32,24'}"
+                              Padding="{utu:Responsive Narrowest='12,56,12,12', Normal='20,16'}"
                               AutomationProperties.AutomationId="HomePage_ScrollViewer">
                     <ItemsRepeater ItemsSource="{Binding Properties}"
                                    AutomationProperties.AutomationId="HomePage_PropertyList">
                         <ItemsRepeater.Layout>
                             <UniformGridLayout Orientation="Horizontal"
-                                               MinItemWidth="300"
-                                               MinItemHeight="340"
-                                               MinRowSpacing="20"
-                                               MinColumnSpacing="20"
+                                               MinItemWidth="280"
+                                               MinItemHeight="360"
+                                               MinRowSpacing="16"
+                                               MinColumnSpacing="16"
                                                ItemsStretch="Fill" />
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>

@@ -41,36 +41,87 @@ public sealed partial class PropertyCard : UserControl
 
     private void UpdateDisplay(PropertyListItemDto property)
     {
-        // Preis formatieren
-        PriceText.Text = $"{property.Preis:N0} €";
+        // Preis formatieren (kompakt)
+        PriceText.Text = FormatPrice(property.Preis);
 
-        // Titel und Adresse
+        // Ort und Adresse (neue Struktur)
+        OrtText.Text = property.Ort;
+        AddressText.Text = property.Adresse;
+
+        // Titel
         TitleText.Text = property.Titel;
-        AddressText.Text = $"{property.Adresse}, {property.Ort}";
 
-        // Flaeche
-        var flaeche = property.WohnflaecheM2 ?? property.GrundstuecksflaecheM2;
-        var flaechenTyp = property.WohnflaecheM2.HasValue ? "Wohnfläche" : "Grundstück";
-        AreaText.Text = flaeche.HasValue ? $"{flaeche} m² {flaechenTyp}" : "Keine Angabe";
+        // Typ-Badge
+        TypeBadgeText.Text = property.Typ switch
+        {
+            PropertyType.Haus => "HAUS",
+            PropertyType.Grundstueck => "GRUND",
+            PropertyType.Zwangsversteigerung => "ZV",
+            _ => "IMM"
+        };
 
-        // Zimmer (nur bei Haeusern anzeigen)
-        if (property.Zimmer.HasValue && property.Typ == PropertyType.Haus)
+        // Zwangsversteigerung visuell hervorheben
+        if (property.Typ == PropertyType.Zwangsversteigerung)
+        {
+            TypeBadge.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Microsoft.UI.Colors.Firebrick);
+            TypeBadgeText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Microsoft.UI.Colors.White);
+        }
+
+        // Grundstuecksflaeche
+        GrundstueckText.Text = property.GrundstuecksflaecheM2?.ToString("N0") ?? "—";
+
+        // Wohnflaeche
+        if (property.WohnflaecheM2.HasValue)
+        {
+            WohnflaechePanel.Visibility = Visibility.Visible;
+            WohnflaecheText.Text = property.WohnflaecheM2.Value.ToString("N0");
+        }
+        else
+        {
+            WohnflaechePanel.Visibility = Visibility.Collapsed;
+        }
+
+        // Zimmer
+        if (property.Zimmer.HasValue)
         {
             RoomsPanel.Visibility = Visibility.Visible;
-            RoomsText.Text = $"{property.Zimmer} Zimmer";
+            RoomsText.Text = property.Zimmer.Value.ToString();
         }
         else
         {
             RoomsPanel.Visibility = Visibility.Collapsed;
         }
 
-        // Anbieter Badge
-        SellerBadgeText.Text = property.AnbieterTyp == SellerType.Privat ? "Privat" : "Makler";
+        // Anbieter (kompakt)
+        SellerBadgeText.Text = property.AnbieterTyp == SellerType.Privat ? "Privat" : property.AnbieterName;
 
-        // Bild laden
-        if (!string.IsNullOrEmpty(property.BildUrl))
+        // Bilder laden (FlipView fuer Swipe)
+        if (property.BildUrls?.Count > 0)
         {
-            PropertyImage.Source = new BitmapImage(new Uri(property.BildUrl));
+            var imageUrls = property.BildUrls.Where(url => !string.IsNullOrEmpty(url)).ToList();
+            ImageFlipView.ItemsSource = imageUrls;
+
+            // Counter anzeigen wenn mehrere Bilder
+            if (imageUrls.Count > 1)
+            {
+                ImageCounterBadge.Visibility = Visibility.Visible;
+                ImageCounterText.Text = $"1/{imageUrls.Count}";
+                ImageFlipView.SelectionChanged += (s, e) =>
+                {
+                    ImageCounterText.Text = $"{ImageFlipView.SelectedIndex + 1}/{imageUrls.Count}";
+                };
+            }
         }
+    }
+
+    private static string FormatPrice(decimal price)
+    {
+        if (price >= 1_000_000)
+            return $"{price / 1_000_000:0.##} Mio €";
+        if (price >= 1_000)
+            return $"{price / 1_000:0} T€";
+        return $"{price:N0} €";
     }
 }

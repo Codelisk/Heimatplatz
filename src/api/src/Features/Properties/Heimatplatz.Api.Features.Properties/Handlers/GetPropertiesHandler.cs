@@ -66,7 +66,7 @@ public class GetPropertiesHandler(AppDbContext dbContext) : IRequestHandler<GetP
                 p.Typ,
                 p.AnbieterTyp,
                 p.AnbieterName,
-                p.BildUrls.FirstOrDefault()
+                p.BildUrls
             ))
             .ToList();
 

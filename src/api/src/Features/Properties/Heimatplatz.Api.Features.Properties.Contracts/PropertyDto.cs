@@ -38,5 +38,5 @@ public record PropertyListItemDto(
     PropertyType Typ,
     SellerType AnbieterTyp,
     string AnbieterName,
-    string? BildUrl
+    List<string> BildUrls
 );

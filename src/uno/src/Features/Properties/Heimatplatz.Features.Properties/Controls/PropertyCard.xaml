@@ -26,7 +26,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Premium Bild mit Overlay -->
+            <!-- Premium Bilder-Carousel mit Overlay -->
             <Grid Grid.Row="0"
                   AutomationProperties.AutomationId="PropertyCard_ImageContainer">
 
@@ -41,13 +41,39 @@
                               VerticalAlignment="Center" />
                 </Border>
 
-                <!-- Bild -->
-                <Border CornerRadius="12,12,0,0">
-                    <Image x:Name="PropertyImage"
-                           Stretch="UniformToFill"
-                           HorizontalAlignment="Stretch"
-                           VerticalAlignment="Stretch"
-                           AutomationProperties.AutomationId="PropertyCard_Image" />
+                <!-- FlipView fuer Bilder-Swipe -->
+                <Border CornerRadius="12,12,0,0"
+                        AutomationProperties.AutomationId="PropertyCard_ImageBorder">
+                    <Border.Clip>
+                        <RectangleGeometry Rect="0,0,10000,180" />
+                    </Border.Clip>
+                    <FlipView x:Name="ImageFlipView"
+                              Background="Transparent"
+                              AutomationProperties.AutomationId="PropertyCard_FlipView">
+                        <FlipView.ItemTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding}"
+                                       Stretch="UniformToFill"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </FlipView.ItemTemplate>
+                    </FlipView>
+                </Border>
+
+                <!-- Bild-Counter unten links -->
+                <Border x:Name="ImageCounterBadge"
+                        Background="#99000000"
+                        CornerRadius="4"
+                        Padding="8,4"
+                        Margin="12"
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Left"
+                        Visibility="Collapsed"
+                        AutomationProperties.AutomationId="PropertyCard_ImageCounter">
+                    <TextBlock x:Name="ImageCounterText"
+                               FontSize="11"
+                               Foreground="White" />
                 </Border>
 
                 <!-- Typ-Badge: Oben links -->
@@ -117,23 +143,23 @@
                            Margin="0,2,0,0"
                            AutomationProperties.AutomationId="PropertyCard_Title" />
 
-                <!-- Zeile 4: Kenndaten als Tags -->
+                <!-- Zeile 4: Grundstuecksflaeche prominent -->
+                <TextBlock Margin="0,8,0,0"
+                           AutomationProperties.AutomationId="PropertyCard_Area">
+                    <Run x:Name="GrundstueckText"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Foreground="{ThemeResource OnSurfaceBrush}" />
+                    <Run Text=" m²"
+                         FontSize="14"
+                         Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                </TextBlock>
+
+                <!-- Zeile 5: Weitere Details als Tags -->
                 <StackPanel Orientation="Horizontal"
                             Spacing="8"
-                            Margin="0,8,0,0"
+                            Margin="0,6,0,0"
                             AutomationProperties.AutomationId="PropertyCard_Details">
-
-                    <!-- Grundstueck: Prominent -->
-                    <Border Background="{ThemeResource AccentBrush}"
-                            CornerRadius="4"
-                            Padding="10,6">
-                        <TextBlock FontSize="13"
-                                   Foreground="{ThemeResource ChipSelectedForegroundBrush}"
-                                   AutomationProperties.AutomationId="PropertyCard_Area">
-                            <Run x:Name="GrundstueckText" FontWeight="Bold" />
-                            <Run Text=" m²" FontWeight="Normal" />
-                        </TextBlock>
-                    </Border>
 
                     <!-- Wohnflaeche -->
                     <Border x:Name="WohnflaechePanel"
