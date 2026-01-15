@@ -275,23 +275,30 @@
                                 </Border>
 
                                 <!-- Thumbnails -->
-                                <ItemsRepeater ItemsSource="{x:Bind ViewModel.Property.BildUrls, Mode=OneWay}">
+                                <ItemsRepeater x:Name="ThumbnailRepeater"
+                                               ItemsSource="{x:Bind ViewModel.Property.BildUrls, Mode=OneWay}">
                                     <ItemsRepeater.Layout>
                                         <StackLayout Orientation="Horizontal" Spacing="12" />
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
                                         <DataTemplate>
-                                            <Border CornerRadius="8"
-                                                    Width="120"
-                                                    Height="80"
-                                                    BorderThickness="2"
-                                                    BorderBrush="Transparent">
-                                                <Border.Clip>
-                                                    <RectangleGeometry Rect="0,0,120,80" />
-                                                </Border.Clip>
-                                                <Image Source="{Binding}"
-                                                       Stretch="UniformToFill" />
-                                            </Border>
+                                            <Button Click="OnThumbnailClick"
+                                                    Padding="0"
+                                                    BorderThickness="0"
+                                                    Background="Transparent"
+                                                    Tag="{Binding}">
+                                                <Border CornerRadius="8"
+                                                        Width="120"
+                                                        Height="80"
+                                                        BorderThickness="2"
+                                                        BorderBrush="{ThemeResource BorderBrush}">
+                                                    <Border.Clip>
+                                                        <RectangleGeometry Rect="0,0,120,80" />
+                                                    </Border.Clip>
+                                                    <Image Source="{Binding}"
+                                                           Stretch="UniformToFill" />
+                                                </Border>
+                                            </Button>
                                         </DataTemplate>
                                     </ItemsRepeater.ItemTemplate>
                                 </ItemsRepeater>

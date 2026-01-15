@@ -17,7 +17,7 @@
         <Button x:Name="PickerButton"
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Stretch"
-                Background="{ThemeResource SurfaceBrush}"
+                Background="{ThemeResource SolidBackgroundFillColorSecondary}"
                 BorderBrush="{ThemeResource BorderBrush}"
                 BorderThickness="1"
                 CornerRadius="6"

@@ -60,4 +60,21 @@ public sealed partial class PropertyDetailPage : Page
             ViewModel.CurrentImageIndex = flipView.SelectedIndex + 1;
         }
     }
+
+    private void OnThumbnailClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string imageUrl)
+        {
+            // Finde den Index des geklickten Bildes
+            var urls = ViewModel.Property?.BildUrls;
+            if (urls != null)
+            {
+                var index = urls.IndexOf(imageUrl);
+                if (index >= 0)
+                {
+                    DesktopImageFlipView.SelectedIndex = index;
+                }
+            }
+        }
+    }
 }
