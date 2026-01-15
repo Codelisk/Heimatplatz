@@ -32,12 +32,23 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     private bool _isZwangsversteigerungSelected;
 
+    [ObservableProperty]
+    private string? _selectedOrt;
+
+    public List<string> Orte { get; } = ["Alle Orte", "Linz", "Wels", "Steyr", "Leonding", "Traun"];
+
     public Visibility IsEmpty => Properties.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
     public HomeViewModel()
     {
+        SelectedOrt = "Alle Orte";
         // TODO: API-Integration - vorerst Testdaten laden
         LoadTestData();
+    }
+
+    partial void OnSelectedOrtChanged(string? value)
+    {
+        ApplyFilters();
     }
 
     partial void OnIsAllSelectedChanged(bool value)
@@ -47,7 +58,7 @@ public partial class HomeViewModel : ObservableObject
             IsHausSelected = false;
             IsGrundstueckSelected = false;
             IsZwangsversteigerungSelected = false;
-            LoadTestData();
+            ApplyFilters();
         }
     }
 
@@ -56,7 +67,7 @@ public partial class HomeViewModel : ObservableObject
         if (value)
         {
             IsAllSelected = false;
-            FilterProperties(PropertyType.Haus);
+            ApplyFilters();
         }
     }
 
@@ -65,7 +76,7 @@ public partial class HomeViewModel : ObservableObject
         if (value)
         {
             IsAllSelected = false;
-            FilterProperties(PropertyType.Grundstueck);
+            ApplyFilters();
         }
     }
 
@@ -74,13 +85,28 @@ public partial class HomeViewModel : ObservableObject
         if (value)
         {
             IsAllSelected = false;
-            FilterProperties(PropertyType.Zwangsversteigerung);
+            ApplyFilters();
         }
     }
 
-    private void FilterProperties(PropertyType typ)
+    private void ApplyFilters()
     {
-        var filtered = _allProperties.Where(p => p.Typ == typ).ToList();
+        var filtered = _allProperties.AsEnumerable();
+
+        // Ort-Filter
+        if (!string.IsNullOrEmpty(SelectedOrt) && SelectedOrt != "Alle Orte")
+        {
+            filtered = filtered.Where(p => p.Ort == SelectedOrt);
+        }
+
+        // Typ-Filter
+        if (IsHausSelected)
+            filtered = filtered.Where(p => p.Typ == PropertyType.Haus);
+        else if (IsGrundstueckSelected)
+            filtered = filtered.Where(p => p.Typ == PropertyType.Grundstueck);
+        else if (IsZwangsversteigerungSelected)
+            filtered = filtered.Where(p => p.Typ == PropertyType.Zwangsversteigerung);
+
         Properties.Clear();
         foreach (var property in filtered)
         {
@@ -109,11 +135,6 @@ public partial class HomeViewModel : ObservableObject
                 ["https://picsum.photos/seed/zwang1a/800/600", "https://picsum.photos/seed/zwang1b/800/600"]),
         };
 
-        Properties.Clear();
-        foreach (var property in _allProperties)
-        {
-            Properties.Add(property);
-        }
-        OnPropertyChanged(nameof(IsEmpty));
+        ApplyFilters();
     }
 }

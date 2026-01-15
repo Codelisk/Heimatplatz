@@ -50,26 +50,45 @@
                                    VerticalAlignment="Center"
                                    AutomationProperties.AutomationId="HomePage_Logo" />
 
-                        <!-- Filter Chips: Zentriert mit mehr Abstand -->
+                        <!-- Ort-Picker + Filter Chips -->
                         <StackPanel Grid.Column="1"
                                     Orientation="Horizontal"
-                                    Spacing="8"
+                                    Spacing="16"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
-                                    AutomationProperties.AutomationId="HomePage_FilterChips">
-                            <controls:FilterChip Label="Alle"
-                                                 IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
-                                                 AutomationProperties.AutomationId="HomePage_FilterChip_All" />
-                            <controls:FilterChip Label="Haus"
-                                                 IsSelected="{Binding IsHausSelected, Mode=TwoWay}"
-                                                 AutomationProperties.AutomationId="HomePage_FilterChip_Haus" />
-                            <controls:FilterChip Label="Grundstück"
-                                                 IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}"
-                                                 AutomationProperties.AutomationId="HomePage_FilterChip_Grundstueck" />
-                            <controls:FilterChip Label="Zwangsverst."
-                                                 IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
-                                                 AutomationProperties.AutomationId="HomePage_FilterChip_Zwangsversteigerung" />
+                                    AutomationProperties.AutomationId="HomePage_FilterArea">
+
+                            <!-- Ort-Picker -->
+                            <ComboBox x:Name="OrtPicker"
+                                      PlaceholderText="Ort auswählen"
+                                      MinWidth="180"
+                                      SelectedItem="{Binding SelectedOrt, Mode=TwoWay}"
+                                      ItemsSource="{Binding Orte}"
+                                      AutomationProperties.AutomationId="HomePage_OrtPicker" />
+
+                            <!-- Separator -->
+                            <Border Width="1"
+                                    Height="24"
+                                    Background="{ThemeResource BorderBrush}" />
+
+                            <!-- Filter Chips -->
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="8"
+                                        AutomationProperties.AutomationId="HomePage_FilterChips">
+                                <controls:FilterChip Label="Alle"
+                                                     IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
+                                                     AutomationProperties.AutomationId="HomePage_FilterChip_All" />
+                                <controls:FilterChip Label="Haus"
+                                                     IsSelected="{Binding IsHausSelected, Mode=TwoWay}"
+                                                     AutomationProperties.AutomationId="HomePage_FilterChip_Haus" />
+                                <controls:FilterChip Label="Grundstück"
+                                                     IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}"
+                                                     AutomationProperties.AutomationId="HomePage_FilterChip_Grundstueck" />
+                                <controls:FilterChip Label="Zwangsverst."
+                                                     IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
+                                                     AutomationProperties.AutomationId="HomePage_FilterChip_Zwangsversteigerung" />
+                            </StackPanel>
                         </StackPanel>
 
                         <!-- Ergebnis-Counter: Eleganter -->
@@ -118,7 +137,7 @@
                         <ItemsRepeater.Layout>
                             <UniformGridLayout Orientation="Horizontal"
                                                MinItemWidth="280"
-                                               MinItemHeight="360"
+                                               MinItemHeight="290"
                                                MinRowSpacing="16"
                                                MinColumnSpacing="16"
                                                ItemsStretch="Fill" />
