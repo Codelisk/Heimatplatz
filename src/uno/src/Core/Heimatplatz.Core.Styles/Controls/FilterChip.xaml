@@ -4,13 +4,12 @@
 
     <!--
     ============================================================================
-    FILTER CHIP STYLES
-    ============================================================================
-    Styles fuer die Filter-Chips (Haus, Grundstueck, Zwangsversteigerung)
+    FILTER CHIP STYLES - Elegante Pill-Form
+    Premium minimalistisch mit sanften Uebergaengen
     ============================================================================
     -->
 
-    <!-- Base Chip Style -->
+    <!-- Base Chip Style: Elegante Pill-Form -->
     <Style x:Key="FilterChipBaseStyle" TargetType="ToggleButton">
         <Setter Property="Background" Value="{ThemeResource ChipUnselectedBackgroundBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource ChipUnselectedForegroundBrush}" />
@@ -20,23 +19,15 @@
         <Setter Property="Padding" Value="16,8" />
         <Setter Property="MinHeight" Value="36" />
         <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="CharacterSpacing" Value="20" />
     </Style>
 
-    <!-- Filter Chip Container -->
+    <!-- Filter Chip Container: Mehr Spacing -->
     <Style x:Key="FilterChipContainerStyle" TargetType="StackPanel">
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="Spacing" Value="8" />
-    </Style>
-
-    <!-- Filter Section Header -->
-    <Style x:Key="FilterSectionHeaderStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceVariantBrush}" />
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="Margin" Value="0,0,0,8" />
-        <Setter Property="CharacterSpacing" Value="50" />
     </Style>
 
 </ResourceDictionary>

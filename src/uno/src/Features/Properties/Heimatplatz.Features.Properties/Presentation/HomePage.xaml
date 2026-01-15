@@ -8,38 +8,55 @@
       NavigationCacheMode="Required">
 
     <!--
-    HomePage - Hauptseite mit Immobilien-Liste
-    Responsive: Mobile = vertikale Liste, Desktop = Grid-Layout
+    HomePage - Premium Editorial Design
+    Elegantes Layout mit grosszuegigem Weissraum
     -->
 
-    <Grid Style="{StaticResource ResponsivePageRootStyle}"
+    <Grid Background="{ThemeResource BackgroundBrush}"
           AutomationProperties.AutomationId="HomePage_Root">
 
         <uc:BusyOverlay IsBusy="{Binding IsBusy}"
                         BusyMessage="{Binding BusyMessage}"
                         AutomationProperties.AutomationId="HomePage_BusyOverlay">
 
-            <Grid>
+            <Grid utu:SafeArea.Insets="Top">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Header -->
-                <controls:AppHeader Grid.Row="0"
-                                    AutomationProperties.AutomationId="HomePage_Header" />
-
-                <!-- Filter Section -->
-                <Border Grid.Row="1"
+                <!-- Eleganter Header -->
+                <Border Grid.Row="0"
                         Background="{ThemeResource SurfaceBrush}"
-                        Padding="{utu:Responsive Narrowest='16,12', Normal='24,16'}"
-                        AutomationProperties.AutomationId="HomePage_FilterSection">
-                    <StackPanel>
-                        <TextBlock Text="IMMOBILIENTYP"
-                                   Style="{StaticResource FilterSectionHeaderStyle}"
-                                   AutomationProperties.AutomationId="HomePage_FilterLabel" />
-                        <StackPanel Style="{StaticResource FilterChipContainerStyle}"
+                        BorderBrush="{ThemeResource BorderBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="{utu:Responsive Narrowest='16,12', Normal='32,16'}"
+                        AutomationProperties.AutomationId="HomePage_Header">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Logo: Elegant -->
+                        <TextBlock Grid.Column="0"
+                                   Text="HEIMATPLATZ"
+                                   FontSize="15"
+                                   FontWeight="Bold"
+                                   CharacterSpacing="150"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.AutomationId="HomePage_Logo" />
+
+                        <!-- Filter Chips: Zentriert mit mehr Abstand -->
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
                                     AutomationProperties.AutomationId="HomePage_FilterChips">
                             <controls:FilterChip Label="Alle"
                                                  IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
@@ -50,78 +67,84 @@
                             <controls:FilterChip Label="Grundstück"
                                                  IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}"
                                                  AutomationProperties.AutomationId="HomePage_FilterChip_Grundstueck" />
-                            <controls:FilterChip Label="Zwangsversteigerung"
+                            <controls:FilterChip Label="Zwangsverst."
                                                  IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
                                                  AutomationProperties.AutomationId="HomePage_FilterChip_Zwangsversteigerung" />
                         </StackPanel>
-                    </StackPanel>
+
+                        <!-- Ergebnis-Counter: Eleganter -->
+                        <TextBlock Grid.Column="2"
+                                   VerticalAlignment="Center"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   FontSize="13"
+                                   AutomationProperties.AutomationId="HomePage_ResultCount">
+                            <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
+                            <Run Text=" Objekte" />
+                        </TextBlock>
+                    </Grid>
                 </Border>
 
-                <!-- Content mit ResponsiveView -->
-                <utu:ResponsiveView Grid.Row="2"
-                                    AutomationProperties.AutomationId="HomePage_ResponsiveContent">
+                <!-- Mobile Filter (nur auf kleinen Screens) -->
+                <Border Grid.Row="0"
+                        Grid.RowSpan="2"
+                        VerticalAlignment="Top"
+                        Margin="0,56,0,0"
+                        Background="{ThemeResource SurfaceBrush}"
+                        Padding="16,12"
+                        Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}"
+                        AutomationProperties.AutomationId="HomePage_MobileFilter">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                  HorizontalScrollMode="Auto"
+                                  VerticalScrollMode="Disabled">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <controls:FilterChip Label="Alle"
+                                                 IsSelected="{Binding IsAllSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="Haus"
+                                                 IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="Grundstück"
+                                                 IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="Zwangsverst."
+                                                 IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
 
-                    <!-- Mobile Layout: Vertikale Liste -->
-                    <utu:ResponsiveView.NarrowTemplate>
-                        <DataTemplate>
-                            <ScrollViewer Style="{StaticResource ResponsiveScrollableContentStyle}"
-                                          AutomationProperties.AutomationId="HomePage_MobileScrollViewer">
-                                <ItemsRepeater ItemsSource="{Binding Properties}"
-                                               AutomationProperties.AutomationId="HomePage_MobileList">
-                                    <ItemsRepeater.Layout>
-                                        <StackLayout Spacing="16" />
-                                    </ItemsRepeater.Layout>
-                                    <ItemsRepeater.ItemTemplate>
-                                        <DataTemplate>
-                                            <controls:PropertyCard Property="{Binding}"
-                                                                   AutomationProperties.AutomationId="HomePage_PropertyCard" />
-                                        </DataTemplate>
-                                    </ItemsRepeater.ItemTemplate>
-                                </ItemsRepeater>
-                            </ScrollViewer>
-                        </DataTemplate>
-                    </utu:ResponsiveView.NarrowTemplate>
+                <!-- Content: Responsives Grid Layout -->
+                <ScrollViewer Grid.Row="1"
+                              Padding="{utu:Responsive Narrowest='16,60,16,16', Normal='32,24'}"
+                              AutomationProperties.AutomationId="HomePage_ScrollViewer">
+                    <ItemsRepeater ItemsSource="{Binding Properties}"
+                                   AutomationProperties.AutomationId="HomePage_PropertyList">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout Orientation="Horizontal"
+                                               MinItemWidth="300"
+                                               MinItemHeight="340"
+                                               MinRowSpacing="20"
+                                               MinColumnSpacing="20"
+                                               ItemsStretch="Fill" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate>
+                                <controls:PropertyCard Property="{Binding}"
+                                                       AutomationProperties.AutomationId="HomePage_PropertyCard" />
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </ScrollViewer>
 
-                    <!-- Desktop Layout: Grid mit 2-3 Spalten -->
-                    <utu:ResponsiveView.WideTemplate>
-                        <DataTemplate>
-                            <ScrollViewer Padding="32,24"
-                                          AutomationProperties.AutomationId="HomePage_DesktopScrollViewer">
-                                <ItemsRepeater ItemsSource="{Binding Properties}"
-                                               AutomationProperties.AutomationId="HomePage_DesktopGrid">
-                                    <ItemsRepeater.Layout>
-                                        <UniformGridLayout MinItemWidth="320"
-                                                           MaximumRowsOrColumns="3"
-                                                           MinRowSpacing="24"
-                                                           MinColumnSpacing="24"
-                                                           ItemsStretch="Fill" />
-                                    </ItemsRepeater.Layout>
-                                    <ItemsRepeater.ItemTemplate>
-                                        <DataTemplate>
-                                            <controls:PropertyCard Property="{Binding}"
-                                                                   AutomationProperties.AutomationId="HomePage_PropertyCard" />
-                                        </DataTemplate>
-                                    </ItemsRepeater.ItemTemplate>
-                                </ItemsRepeater>
-                            </ScrollViewer>
-                        </DataTemplate>
-                    </utu:ResponsiveView.WideTemplate>
-
-                </utu:ResponsiveView>
-
-                <!-- Empty State -->
-                <StackPanel Grid.Row="2"
+                <!-- Empty State: Schlicht -->
+                <StackPanel Grid.Row="1"
                             Visibility="{Binding IsEmpty}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-                            Spacing="16"
+                            Spacing="8"
                             AutomationProperties.AutomationId="HomePage_EmptyState">
-                    <FontIcon Glyph="&#xE80F;"
-                              FontSize="64"
-                              Foreground="{ThemeResource DetailsBrush}"
-                              HorizontalAlignment="Center" />
-                    <TextBlock Text="Keine Immobilien gefunden"
-                               Style="{StaticResource TitleMedium}"
+                    <TextBlock Text="—"
+                               FontSize="32"
+                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Keine Treffer"
+                               FontSize="14"
                                Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                HorizontalAlignment="Center"
                                AutomationProperties.AutomationId="HomePage_EmptyText" />
