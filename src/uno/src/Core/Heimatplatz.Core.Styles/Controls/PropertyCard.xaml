@@ -14,7 +14,7 @@
     <!-- Property Card Container -->
     <Style x:Key="PropertyCardContainerStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusSm}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>

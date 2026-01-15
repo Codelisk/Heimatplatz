@@ -136,7 +136,7 @@
                             <Border Background="{ThemeResource SurfaceBrush}"
                                     Margin="16,-20,16,16"
                                     Padding="16"
-                                    CornerRadius="{StaticResource RadiusLg}"
+                                    CornerRadius="{StaticResource RadiusSm}"
                                     Translation="0,0,8">
                                 <Border.Shadow>
                                     <ThemeShadow />
@@ -210,7 +210,7 @@
                                         </TextBlock>
                                         <!-- Map Placeholder -->
                                         <Border Background="{ThemeResource PlaceholderBrush}"
-                                                CornerRadius="{StaticResource RadiusMd}"
+                                                CornerRadius="{StaticResource RadiusSm}"
                                                 Height="150">
                                             <FontIcon Glyph="&#xE707;"
                                                       FontSize="32"
@@ -229,7 +229,7 @@
                                             Height="56"
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Center"
-                                            CornerRadius="{StaticResource RadiusMd}"
+                                            CornerRadius="{StaticResource RadiusSm}"
                                             Margin="0,8,0,0"
                                             Click="OnContactClick" />
                                 </StackPanel>
@@ -247,14 +247,14 @@
                             <!-- Links: Bilder -->
                             <StackPanel Grid.Column="0" Spacing="16">
                                 <!-- Hauptbild -->
-                                <Border CornerRadius="{StaticResource RadiusLg}"
+                                <Border CornerRadius="{StaticResource RadiusSm}"
                                         Height="480">
                                     <Border.Clip>
                                         <RectangleGeometry Rect="0,0,10000,480" />
                                     </Border.Clip>
                                     <Grid>
                                         <Border Background="{ThemeResource PlaceholderBrush}"
-                                                CornerRadius="{StaticResource RadiusLg}">
+                                                CornerRadius="{StaticResource RadiusSm}">
                                             <FontIcon Glyph="&#xE722;"
                                                       FontSize="64"
                                                       Foreground="{ThemeResource DetailsBrush}"
@@ -287,7 +287,7 @@
                                                     BorderThickness="0"
                                                     Background="Transparent"
                                                     Tag="{Binding}">
-                                                <Border CornerRadius="{StaticResource RadiusMd}"
+                                                <Border CornerRadius="{StaticResource RadiusSm}"
                                                         Width="120"
                                                         Height="80"
                                                         BorderThickness="2"
@@ -326,7 +326,7 @@
 
                                 <!-- Typ Badge -->
                                 <Border Background="{ThemeResource AccentBrush}"
-                                        CornerRadius="{StaticResource RadiusMd}"
+                                        CornerRadius="{StaticResource RadiusSm}"
                                         Padding="14,8"
                                         HorizontalAlignment="Left">
                                     <TextBlock Text="{x:Bind ViewModel.TypeText, Mode=OneWay}"
@@ -363,7 +363,7 @@
 
                                 <!-- Anbieter Info -->
                                 <Border Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                        CornerRadius="{StaticResource RadiusMd}"
+                                        CornerRadius="{StaticResource RadiusSm}"
                                         Padding="16"
                                         Margin="0,16,0,0">
                                     <StackPanel Spacing="8">
@@ -387,7 +387,7 @@
                                         Width="300"
                                         HorizontalAlignment="Left"
                                         HorizontalContentAlignment="Center"
-                                        CornerRadius="{StaticResource RadiusMd}"
+                                        CornerRadius="{StaticResource RadiusSm}"
                                         Margin="0,24,0,0"
                                         Click="OnContactClick" />
                             </StackPanel>

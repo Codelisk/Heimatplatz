@@ -10,7 +10,7 @@
     -->
 
     <Border Background="{ThemeResource SurfaceBrush}"
-            CornerRadius="{StaticResource RadiusLg}"
+            CornerRadius="{StaticResource RadiusSm}"
             Padding="0"
             Translation="0,0,8"
             AutomationProperties.AutomationId="PropertyCard_Container">
@@ -95,7 +95,7 @@
 
                 <!-- Preis: Unten rechts auf dem Bild -->
                 <Border Background="#E6000000"
-                        CornerRadius="{StaticResource RadiusMd}"
+                        CornerRadius="{StaticResource RadiusSm}"
                         Padding="12,6"
                         Margin="12"
                         VerticalAlignment="Bottom"
