@@ -123,15 +123,15 @@
                             Margin="0,8,0,0"
                             AutomationProperties.AutomationId="PropertyCard_Details">
 
-                    <!-- Grundstueck -->
-                    <Border Background="{ThemeResource SolidBackgroundFillColorSecondary}"
+                    <!-- Grundstueck: Prominent -->
+                    <Border Background="{ThemeResource AccentBrush}"
                             CornerRadius="4"
-                            Padding="8,4">
-                        <TextBlock FontSize="11"
-                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                            Padding="10,6">
+                        <TextBlock FontSize="13"
+                                   Foreground="{ThemeResource ChipSelectedForegroundBrush}"
                                    AutomationProperties.AutomationId="PropertyCard_Area">
-                            <Run x:Name="GrundstueckText" FontWeight="SemiBold" />
-                            <Run Text=" m²" />
+                            <Run x:Name="GrundstueckText" FontWeight="Bold" />
+                            <Run Text=" m²" FontWeight="Normal" />
                         </TextBlock>
                     </Border>
 
