@@ -113,6 +113,37 @@
                         Background="Transparent"
                         Tapped="OnImageTapped"
                         AutomationProperties.AutomationId="PropertyCard_TapOverlay" />
+
+                <!-- Dezente Navigations-Pfeile -->
+                <Button x:Name="PrevImageButton"
+                        Click="OnPrevImageClick"
+                        Background="#40000000"
+                        BorderThickness="0"
+                        Padding="8,16"
+                        CornerRadius="0,4,4,0"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Visibility="Collapsed"
+                        Opacity="0.7">
+                    <FontIcon Glyph="&#xE76B;"
+                              FontSize="14"
+                              Foreground="White" />
+                </Button>
+
+                <Button x:Name="NextImageButton"
+                        Click="OnNextImageClick"
+                        Background="#40000000"
+                        BorderThickness="0"
+                        Padding="8,16"
+                        CornerRadius="4,0,0,4"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Visibility="Collapsed"
+                        Opacity="0.7">
+                    <FontIcon Glyph="&#xE76C;"
+                              FontSize="14"
+                              Foreground="White" />
+                </Button>
             </Grid>
 
             <!-- Content: Zwei-Spalten Layout -->

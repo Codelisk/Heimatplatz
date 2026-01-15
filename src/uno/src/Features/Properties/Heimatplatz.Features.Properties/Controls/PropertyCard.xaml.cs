@@ -112,11 +112,16 @@ public sealed partial class PropertyCard : UserControl
             var imageUrls = property.BildUrls.Where(url => !string.IsNullOrEmpty(url)).ToList();
             ImageFlipView.ItemsSource = imageUrls;
 
-            // Counter anzeigen wenn mehrere Bilder
+            // Counter und Pfeile anzeigen wenn mehrere Bilder
             if (imageUrls.Count > 1)
             {
                 ImageCounterBadge.Visibility = Visibility.Visible;
                 ImageCounterText.Text = $"1/{imageUrls.Count}";
+
+                // Navigations-Pfeile anzeigen
+                PrevImageButton.Visibility = Visibility.Visible;
+                NextImageButton.Visibility = Visibility.Visible;
+
                 ImageFlipView.SelectionChanged += (s, e) =>
                 {
                     ImageCounterText.Text = $"{ImageFlipView.SelectedIndex + 1}/{imageUrls.Count}";
@@ -149,6 +154,32 @@ public sealed partial class PropertyCard : UserControl
         {
             CardClicked?.Invoke(this, Property);
             e.Handled = true;
+        }
+    }
+
+    private void OnPrevImageClick(object sender, RoutedEventArgs e)
+    {
+        if (ImageFlipView.SelectedIndex > 0)
+        {
+            ImageFlipView.SelectedIndex--;
+        }
+        else if (ImageFlipView.Items.Count > 0)
+        {
+            // Wrap zum letzten Bild
+            ImageFlipView.SelectedIndex = ImageFlipView.Items.Count - 1;
+        }
+    }
+
+    private void OnNextImageClick(object sender, RoutedEventArgs e)
+    {
+        if (ImageFlipView.SelectedIndex < ImageFlipView.Items.Count - 1)
+        {
+            ImageFlipView.SelectedIndex++;
+        }
+        else
+        {
+            // Wrap zum ersten Bild
+            ImageFlipView.SelectedIndex = 0;
         }
     }
 
