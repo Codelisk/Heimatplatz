@@ -1,0 +1,179 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ============================================================================
+    THEME OVERRIDES - Anpassbare Farbpalette
+    ============================================================================
+
+    Diese Datei ueberschreibt die WinUI/Fluent System-Farben.
+    Aendere hier die Farben um dein eigenes Design zu erstellen.
+
+    WICHTIG:
+    - Definiere Farben fuer ALLE drei Themes: Light, Dark, HighContrast
+    - Nutze {ThemeResource ...} in deinen Styles um diese Farben zu referenzieren
+    - SystemAccentColor ist die primaere Akzentfarbe deiner App
+
+    Dokumentation:
+    - https://learn.microsoft.com/en-us/windows/apps/design/signature-experiences/color
+    - https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/xaml-theme-resources
+    ============================================================================
+    -->
+
+    <ResourceDictionary.ThemeDictionaries>
+
+        <!-- ================================================================
+             LIGHT THEME
+             ================================================================ -->
+        <ResourceDictionary x:Key="Light">
+
+            <!-- Accent Color (Primaere Markenfarbe) -->
+            <Color x:Key="SystemAccentColor">#005FB8</Color>
+            <Color x:Key="SystemAccentColorLight1">#1A6DC0</Color>
+            <Color x:Key="SystemAccentColorLight2">#3380C8</Color>
+            <Color x:Key="SystemAccentColorLight3">#4D93D0</Color>
+            <Color x:Key="SystemAccentColorDark1">#004C99</Color>
+            <Color x:Key="SystemAccentColorDark2">#003D7A</Color>
+            <Color x:Key="SystemAccentColorDark3">#002E5C</Color>
+
+            <!-- Accent Brushes -->
+            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource SystemAccentColor}" />
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource SystemAccentColor}" />
+
+            <!-- Background Colors -->
+            <Color x:Key="SolidBackgroundFillColorBase">#F3F3F3</Color>
+            <Color x:Key="SolidBackgroundFillColorSecondary">#EEEEEE</Color>
+            <Color x:Key="SolidBackgroundFillColorTertiary">#F9F9F9</Color>
+
+            <!-- Surface Colors -->
+            <Color x:Key="LayerFillColorDefault">#FFFFFF</Color>
+            <Color x:Key="LayerFillColorAlt">#FFFFFF</Color>
+            <Color x:Key="CardBackgroundFillColorDefault">#FFFFFF</Color>
+            <Color x:Key="CardBackgroundFillColorSecondary">#F6F6F6</Color>
+
+            <!-- Text Colors -->
+            <Color x:Key="TextFillColorPrimary">#1A1A1A</Color>
+            <Color x:Key="TextFillColorSecondary">#5C5C5C</Color>
+            <Color x:Key="TextFillColorTertiary">#8A8A8A</Color>
+            <Color x:Key="TextFillColorDisabled">#A0A0A0</Color>
+
+            <!-- Border/Stroke Colors -->
+            <Color x:Key="ControlStrokeColorDefault">#D6D6D6</Color>
+            <Color x:Key="ControlStrokeColorSecondary">#E0E0E0</Color>
+            <Color x:Key="DividerStrokeColorDefault">#E8E8E8</Color>
+
+            <!-- Semantic Colors -->
+            <Color x:Key="SystemErrorColor">#C42B1C</Color>
+            <Color x:Key="SystemSuccessColor">#0F7B0F</Color>
+            <Color x:Key="SystemWarningColor">#9D5D00</Color>
+            <Color x:Key="SystemInfoColor">#0078D4</Color>
+
+            <!-- Semantic Brushes -->
+            <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource SystemErrorColor}" />
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SystemSuccessColor}" />
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource SystemWarningColor}" />
+            <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource SystemInfoColor}" />
+
+            <!-- App-Specific Semantic Brushes -->
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource LayerFillColorDefault}" />
+            <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardBackgroundFillColorDefault}" />
+            <SolidColorBrush x:Key="OnBackgroundBrush" Color="{StaticResource TextFillColorPrimary}" />
+            <SolidColorBrush x:Key="OnSurfaceBrush" Color="{StaticResource TextFillColorPrimary}" />
+            <SolidColorBrush x:Key="OnSurfaceVariantBrush" Color="{StaticResource TextFillColorSecondary}" />
+            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource ControlStrokeColorDefault}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerStrokeColorDefault}" />
+
+        </ResourceDictionary>
+
+        <!-- ================================================================
+             DARK THEME
+             ================================================================ -->
+        <ResourceDictionary x:Key="Dark">
+
+            <!-- Accent Color (Primaere Markenfarbe) -->
+            <Color x:Key="SystemAccentColor">#60CDFF</Color>
+            <Color x:Key="SystemAccentColorLight1">#7AD5FF</Color>
+            <Color x:Key="SystemAccentColorLight2">#93DDFF</Color>
+            <Color x:Key="SystemAccentColorLight3">#ADE5FF</Color>
+            <Color x:Key="SystemAccentColorDark1">#4DC4F7</Color>
+            <Color x:Key="SystemAccentColorDark2">#3ABBEF</Color>
+            <Color x:Key="SystemAccentColorDark3">#27B2E7</Color>
+
+            <!-- Accent Brushes -->
+            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource SystemAccentColor}" />
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource SystemAccentColor}" />
+
+            <!-- Background Colors -->
+            <Color x:Key="SolidBackgroundFillColorBase">#202020</Color>
+            <Color x:Key="SolidBackgroundFillColorSecondary">#1C1C1C</Color>
+            <Color x:Key="SolidBackgroundFillColorTertiary">#282828</Color>
+
+            <!-- Surface Colors -->
+            <Color x:Key="LayerFillColorDefault">#2D2D2D</Color>
+            <Color x:Key="LayerFillColorAlt">#333333</Color>
+            <Color x:Key="CardBackgroundFillColorDefault">#2D2D2D</Color>
+            <Color x:Key="CardBackgroundFillColorSecondary">#323232</Color>
+
+            <!-- Text Colors -->
+            <Color x:Key="TextFillColorPrimary">#FFFFFF</Color>
+            <Color x:Key="TextFillColorSecondary">#C5C5C5</Color>
+            <Color x:Key="TextFillColorTertiary">#9A9A9A</Color>
+            <Color x:Key="TextFillColorDisabled">#6D6D6D</Color>
+
+            <!-- Border/Stroke Colors -->
+            <Color x:Key="ControlStrokeColorDefault">#4D4D4D</Color>
+            <Color x:Key="ControlStrokeColorSecondary">#404040</Color>
+            <Color x:Key="DividerStrokeColorDefault">#3D3D3D</Color>
+
+            <!-- Semantic Colors -->
+            <Color x:Key="SystemErrorColor">#FF99A4</Color>
+            <Color x:Key="SystemSuccessColor">#6CCB5F</Color>
+            <Color x:Key="SystemWarningColor">#FCE100</Color>
+            <Color x:Key="SystemInfoColor">#60CDFF</Color>
+
+            <!-- Semantic Brushes -->
+            <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource SystemErrorColor}" />
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SystemSuccessColor}" />
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource SystemWarningColor}" />
+            <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource SystemInfoColor}" />
+
+            <!-- App-Specific Semantic Brushes -->
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource LayerFillColorDefault}" />
+            <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardBackgroundFillColorDefault}" />
+            <SolidColorBrush x:Key="OnBackgroundBrush" Color="{StaticResource TextFillColorPrimary}" />
+            <SolidColorBrush x:Key="OnSurfaceBrush" Color="{StaticResource TextFillColorPrimary}" />
+            <SolidColorBrush x:Key="OnSurfaceVariantBrush" Color="{StaticResource TextFillColorSecondary}" />
+            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource ControlStrokeColorDefault}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerStrokeColorDefault}" />
+
+        </ResourceDictionary>
+
+        <!-- ================================================================
+             HIGH CONTRAST THEME
+             Nutzt SystemColor-Ressourcen fuer Barrierefreiheit
+             ================================================================ -->
+        <ResourceDictionary x:Key="HighContrast">
+
+            <!-- High Contrast nutzt System-Farben - NICHT aendern! -->
+            <SolidColorBrush x:Key="AccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="CardBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="OnBackgroundBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="OnSurfaceBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="OnSurfaceVariantBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
+            <SolidColorBrush x:Key="BorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="ErrorBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="SuccessBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="InfoBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

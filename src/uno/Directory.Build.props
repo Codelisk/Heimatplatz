@@ -1,0 +1,33 @@
+<Project>
+  <!-- Inherit from root Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+  <PropertyGroup>
+    <!-- Uno Platform Target Frameworks -->
+    <!-- UNO_SINGLE_TARGET: desktop, wasm, oder false für alle Targets -->
+    <!-- Standardmäßig 'desktop' auf Windows für schnellere lokale Builds -->
+    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == '' AND '$(OS)' == 'Windows_NT'">desktop</UNO_SINGLE_TARGET>
+    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == ''">false</UNO_SINGLE_TARGET>
+
+    <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'false'">$(NetVersion)-android;$(NetVersion)-ios;$(NetVersion)-desktop;$(NetVersion)-browserwasm;$(NetVersion)</UnoFrameworks>
+    <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'desktop'">$(NetVersion)-desktop</UnoFrameworks>
+    <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'wasm'">$(NetVersion)-browserwasm</UnoFrameworks>
+
+    <!-- Contracts use only NetVersion (no platform-specific TFMs) -->
+    <UnoContractsFrameworks>$(NetVersion)</UnoContractsFrameworks>
+
+    <!--
+      Adding NoWarn to remove build warnings
+      NU1507: Warning when there are multiple package sources when using CPM with no source mapping
+      NETSDK1201: Warning that specifying RID won't create self containing app
+      PRI257: Ignore default language (en) not being one of the included resources
+    -->
+    <NoWarn>$(NoWarn);NU1507;NETSDK1201;PRI257</NoWarn>
+    <!-- Define UNO for platform-specific code -->
+    <DefineConstants>$(DefineConstants);UNO</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AIRoutine.CodeStyle.Uno" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

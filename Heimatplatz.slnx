@@ -1,0 +1,41 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path=".gitmodules" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/api/src/">
+    <Project Path="src/api/src/Heimatplatz.Api/Heimatplatz.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/api/src/Core/">
+    <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Data/Heimatplatz.Api.Core.Data.csproj" />
+    <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Startup/Heimatplatz.Api.Core.Startup.csproj" />
+  </Folder>
+  <Folder Name="/src/uno/src/">
+    <Project Path="src/uno/src/Heimatplatz.App/Heimatplatz.App.csproj" />
+  </Folder>
+  <Folder Name="/src/uno/src/Core/">
+    <Project Path="src/uno/src/Core/Heimatplatz.Core.ApiClient/Heimatplatz.Core.ApiClient.csproj" />
+    <Project Path="src/uno/src/Core/Heimatplatz.Core.Startup/Heimatplatz.Core.Startup.csproj" />
+    <Project Path="src/uno/src/Core/Heimatplatz.Core.Styles/Heimatplatz.Core.Styles.csproj" />
+  </Folder>
+  <Folder Name="/src/aspire/src/">
+    <Project Path="src/aspire/src/Heimatplatz.AppHost/Heimatplatz.AppHost.csproj" />
+    <Project Path="src/aspire/src/Heimatplatz.ServiceDefaults/Heimatplatz.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/api/src/Shared/">
+    <Project Path="src/api/src/Shared/Heimatplatz.Api.Shared/Heimatplatz.Api.Shared.csproj" />
+  </Folder>
+  <Folder Name="/src/uno/src/Shared/">
+    <Project Path="src/uno/src/Shared/Heimatplatz.Shared/Heimatplatz.Shared.csproj" />
+  </Folder>
+  <Folder Name="/subm/uno/">
+    <Project Path="subm/uno/src/UnoFramework/UnoFramework.csproj" />
+    <Project Path="subm/uno/src/UnoFramework.Contracts/UnoFramework.Contracts.csproj" />
+    <Project Path="subm/uno/src/UnoFramework.Generators/UnoFramework.Generators.csproj" />
+  </Folder>
+  <Folder Name="/subm/cli/">
+    <Project Path="subm/cli/Automation.Cli.csproj" />
+  </Folder>
+</Solution>

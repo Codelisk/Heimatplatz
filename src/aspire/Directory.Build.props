@@ -1,0 +1,9 @@
+<Project>
+  <!-- Inherit from root Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+  <PropertyGroup>
+    <!-- Use NetVersion from root -->
+    <TargetFramework>$(NetVersion)</TargetFramework>
+  </PropertyGroup>
+</Project>

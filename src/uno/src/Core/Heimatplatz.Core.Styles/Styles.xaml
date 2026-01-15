@@ -1,0 +1,41 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ============================================================================
+    CORE STYLES - Einstiegspunkt
+    ============================================================================
+
+    Dieses ResourceDictionary laedt alle App-spezifischen Styles.
+    Es wird in App.xaml referenziert.
+
+    STRUKTUR:
+    1. ThemeOverrides.xaml  - Anpassbare Farbpalette (HIER ANPASSEN!)
+    2. Tokens/Spacing.xaml  - Spacing-Tokens
+    3. Layouts/Responsive.xaml - Responsive Helpers
+
+    ANPASSUNG:
+    - Oeffne ThemeOverrides.xaml um Farben anzupassen
+    - Nutze WinUI/Fluent Styles direkt (FilledButtonStyle, etc.)
+    - Fuer Control-Anpassungen: Lightweight Styling nutzen
+
+    Dokumentation:
+    - https://platform.uno/docs/articles/external/uno.themes/doc/lightweight-styling.html
+    ============================================================================
+    -->
+
+    <ResourceDictionary.MergedDictionaries>
+
+        <!-- Theme Color Overrides (ANPASSBARE FARBPALETTE) -->
+        <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/ThemeOverrides.xaml" />
+
+        <!-- Spacing Tokens -->
+        <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Tokens/Spacing.xaml" />
+
+        <!-- Responsive Layout Helpers -->
+        <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Layouts/Responsive.xaml" />
+
+    </ResourceDictionary.MergedDictionaries>
+
+</ResourceDictionary>

@@ -1,0 +1,66 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+
+    <!-- Suppress IL2026 trimming warnings for Uno.Extensions -->
+    <NoWarn>$(NoWarn);IL2026;IL2104;IL2111</NoWarn>
+
+    <!-- Display name -->
+    <ApplicationTitle>Heimatplatz.App</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.heimatplatz.app</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>AIRoutine</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>AIRoutine FullStack Uno Platform App</Description>
+
+    <!--
+      UnoFeatures are used to quickly add and manage features enabled for your app.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <UnoFeatures>
+      Hosting;
+      Toolkit;
+      Logging;
+      Mvvm;
+      Configuration;
+      Localization;
+      Navigation;
+      ThemeService;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <!-- App Icon -->
+  <ItemGroup>
+    <UnoIcon Include="Assets\Icons\icon.svg" ForegroundFile="Assets\Icons\icon_foreground.svg" Color="#00000000" />
+  </ItemGroup>
+
+  <!-- Splash Screen -->
+  <ItemGroup>
+    <UnoSplashScreen Include="Assets\Splash\splash_screen.svg" Color="#7F7F7F" BaseSize="128,128" />
+  </ItemGroup>
+
+  <!-- WebAssembly AppManifest -->
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
+    <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\AppManifest.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Core Projects -->
+    <ProjectReference Include="..\Core\Heimatplatz.Core.Startup\Heimatplatz.Core.Startup.csproj" />
+    <ProjectReference Include="..\Core\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
+    <!-- Features -->
+    <!-- Framework References -->
+    <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
+    <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework.Contracts\UnoFramework.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework.Generators\UnoFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

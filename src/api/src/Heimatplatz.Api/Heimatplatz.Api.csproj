@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="Shiny.Mediator.AspNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Heimatplatz.Api.Core.Startup\Heimatplatz.Api.Core.Startup.csproj" />
+    <ProjectReference Include="..\..\..\aspire\src\Heimatplatz.ServiceDefaults\Heimatplatz.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

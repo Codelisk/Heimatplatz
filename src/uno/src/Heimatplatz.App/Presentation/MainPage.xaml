@@ -1,0 +1,71 @@
+<Page x:Class="Heimatplatz.App.Presentation.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:Heimatplatz.App.Presentation"
+      xmlns:controls="using:UnoFramework.Controls"
+      xmlns:utu="using:Uno.Toolkit.UI"
+      NavigationCacheMode="Required">
+
+    <!--
+    ============================================================================
+    RESPONSIVE PAGE PATTERN
+    ============================================================================
+    Dieses Pattern zeigt die empfohlene Struktur fuer responsive Pages:
+
+    1. Grid mit PageRootStyle als aeusserer Container
+    2. SafeArea.Insets fuer Notch/StatusBar
+    3. AutoLayout mit responsivem Padding/Spacing
+    4. {utu:Responsive} fuer breakpoint-basierte Werte
+
+    Fuer komplett unterschiedliche Layouts (Phone vs Desktop):
+    Verwende <utu:ResponsiveView> mit NarrowTemplate/WideTemplate
+    ============================================================================
+    -->
+
+    <Grid Style="{StaticResource PageRootStyle}"
+          AutomationProperties.AutomationId="MainPage.Root">
+        <controls:BusyOverlay IsBusy="{Binding IsBusy}" BusyMessage="{Binding BusyMessage}"
+                              AutomationProperties.AutomationId="MainPage.BusyOverlay">
+            <Grid utu:SafeArea.Insets="VisibleBounds">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Navigation Header -->
+                <utu:NavigationBar Content="{Binding Title}"
+                                   AutomationProperties.AutomationId="MainPage.NavigationBar"
+                                   Style="{StaticResource DefaultNavigationBarStyle}" />
+
+                <!-- Main Content mit AutoLayout -->
+                <utu:AutoLayout Grid.Row="1"
+                                Style="{StaticResource CenteredContentAutoLayoutStyle}"
+                                Padding="{utu:Responsive Narrowest=16, Narrow=20, Normal=24, Wide=32, Widest=48}"
+                                Spacing="{utu:Responsive Narrowest=12, Narrow=14, Normal=16, Wide=20, Widest=24}">
+
+                    <!-- Headline -->
+                    <TextBlock Text="Welcome to Heimatplatz!"
+                               AutomationProperties.AutomationId="MainPage.HeadlineText"
+                               Style="{StaticResource HeadlineLargeCenteredTextStyle}" />
+
+                    <!-- Subtitle -->
+                    <TextBlock Text="Full-Stack: API + Uno App with shared configuration"
+                               AutomationProperties.AutomationId="MainPage.SubtitleText"
+                               Style="{StaticResource BodyMediumCenteredSubtleTextStyle}" />
+
+                    <!-- Action Button -->
+                    <Button Content="Click Me"
+                            AutomationProperties.AutomationId="MainPage.ClickButton"
+                            Style="{StaticResource PrimaryButtonCenteredStyle}"
+                            Command="{Binding ClickCommand}" />
+
+                    <!-- Click Counter -->
+                    <TextBlock Text="{Binding ClickCount, Converter={StaticResource NullToCollapsedConverter}}"
+                               AutomationProperties.AutomationId="MainPage.ClickCountText"
+                               Style="{StaticResource TitleLargeCenteredTextStyle}" />
+
+                </utu:AutoLayout>
+            </Grid>
+        </controls:BusyOverlay>
+    </Grid>
+</Page>

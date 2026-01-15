@@ -1,0 +1,6 @@
+[submodule "subm/uno"]
+	path = subm/uno
+	url = https://github.com/AIRoutine/UnoFramework.git
+[submodule "subm/cli"]
+	path = subm/cli
+	url = https://github.com/AIRoutine/Automation.Cli.git
