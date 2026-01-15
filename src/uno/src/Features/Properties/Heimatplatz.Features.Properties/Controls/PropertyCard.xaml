@@ -10,7 +10,7 @@
     -->
 
     <Border Background="{ThemeResource SurfaceBrush}"
-            CornerRadius="12"
+            CornerRadius="{StaticResource RadiusLg}"
             Padding="0"
             Translation="0,0,8"
             AutomationProperties.AutomationId="PropertyCard_Container">
@@ -64,7 +64,7 @@
                 <!-- Bild-Counter unten links -->
                 <Border x:Name="ImageCounterBadge"
                         Background="#99000000"
-                        CornerRadius="4"
+                        CornerRadius="{StaticResource RadiusSm}"
                         Padding="8,4"
                         Margin="12"
                         VerticalAlignment="Bottom"
@@ -79,7 +79,7 @@
                 <!-- Typ-Badge: Oben links -->
                 <Border x:Name="TypeBadge"
                         Background="{ThemeResource AccentBrush}"
-                        CornerRadius="4"
+                        CornerRadius="{StaticResource RadiusSm}"
                         Padding="10,5"
                         Margin="12"
                         VerticalAlignment="Top"
@@ -95,7 +95,7 @@
 
                 <!-- Preis: Unten rechts auf dem Bild -->
                 <Border Background="#E6000000"
-                        CornerRadius="6"
+                        CornerRadius="{StaticResource RadiusMd}"
                         Padding="12,6"
                         Margin="12"
                         VerticalAlignment="Bottom"
@@ -225,7 +225,7 @@
                         <!-- Wohnflaeche -->
                         <Border x:Name="WohnflaechePanel"
                                 Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                CornerRadius="4"
+                                CornerRadius="{StaticResource RadiusSm}"
                                 Padding="6,3">
                             <TextBlock FontSize="10"
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
@@ -238,7 +238,7 @@
                         <!-- Zimmer -->
                         <Border x:Name="RoomsPanel"
                                 Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                CornerRadius="4"
+                                CornerRadius="{StaticResource RadiusSm}"
                                 Padding="6,3">
                             <TextBlock FontSize="10"
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"

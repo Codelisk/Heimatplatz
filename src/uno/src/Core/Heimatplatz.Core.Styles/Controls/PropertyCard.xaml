@@ -14,7 +14,7 @@
     <!-- Property Card Container -->
     <Style x:Key="PropertyCardContainerStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBrush}" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
@@ -78,7 +78,7 @@
     <!-- Seller Badge Container -->
     <Style x:Key="SellerBadgeStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource SellerBadgeBackgroundBrush}" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusSm}" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>

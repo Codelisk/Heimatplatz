@@ -74,7 +74,7 @@
         <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
         <Setter Property="Padding"
                 Value="{utu:Responsive Narrowest=12, Narrow=14, Normal=16, Wide=20, Widest=24}" />
     </Style>
@@ -83,7 +83,7 @@
     <Style x:Key="ResponsiveCardSubtleStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
         <Setter Property="Padding"
                 Value="{utu:Responsive Narrowest=12, Narrow=14, Normal=16, Wide=20, Widest=24}" />
     </Style>

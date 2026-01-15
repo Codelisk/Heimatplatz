@@ -20,7 +20,7 @@
                 Background="{ThemeResource SurfaceBrush}"
                 BorderBrush="{ThemeResource BorderBrush}"
                 BorderThickness="1"
-                CornerRadius="6"
+                CornerRadius="{StaticResource RadiusMd}"
                 Padding="12,8"
                 AutomationProperties.AutomationId="OrtPicker_Button">
             <Grid>
@@ -48,7 +48,7 @@
                 <Flyout x:Name="PickerFlyout"
                         Placement="Bottom">
                     <Border Background="{ThemeResource SurfaceBrush}"
-                            CornerRadius="8"
+                            CornerRadius="{StaticResource RadiusMd}"
                             Padding="12"
                             Margin="-12">
                         <StackPanel MinWidth="250"
