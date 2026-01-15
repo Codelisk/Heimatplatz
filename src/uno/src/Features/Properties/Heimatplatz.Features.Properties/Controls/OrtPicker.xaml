@@ -17,7 +17,7 @@
         <Button x:Name="PickerButton"
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Stretch"
-                Background="{ThemeResource SolidBackgroundFillColorSecondary}"
+                Background="{ThemeResource SurfaceBrush}"
                 BorderBrush="{ThemeResource BorderBrush}"
                 BorderThickness="1"
                 CornerRadius="6"
@@ -47,30 +47,34 @@
             <Button.Flyout>
                 <Flyout x:Name="PickerFlyout"
                         Placement="Bottom">
-                    <StackPanel MinWidth="250"
-                                MaxHeight="350"
-                                Spacing="4">
+                    <Border Background="{ThemeResource SurfaceBrush}"
+                            CornerRadius="8"
+                            Padding="12"
+                            Margin="-12">
+                        <StackPanel MinWidth="250"
+                                    MaxHeight="350"
+                                    Spacing="4">
 
-                        <!-- Header mit "Alle abwählen" -->
-                        <Grid Margin="0,0,0,8">
-                            <TextBlock Text="Orte auswählen"
-                                       FontSize="14"
-                                       FontWeight="SemiBold"
-                                       Foreground="{ThemeResource OnSurfaceBrush}" />
-                            <Button x:Name="ClearAllButton"
-                                    Content="Zurücksetzen"
-                                    HorizontalAlignment="Right"
-                                    FontSize="12"
-                                    Padding="8,4"
-                                    Background="Transparent"
-                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                    Click="ClearAllButton_Click" />
-                        </Grid>
+                            <!-- Header mit "Alle abwählen" -->
+                            <Grid Margin="0,0,0,8">
+                                <TextBlock Text="Orte auswählen"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                <Button x:Name="ClearAllButton"
+                                        Content="Zurücksetzen"
+                                        HorizontalAlignment="Right"
+                                        FontSize="12"
+                                        Padding="8,4"
+                                        Background="Transparent"
+                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                        Click="ClearAllButton_Click" />
+                            </Grid>
 
-                        <!-- Bezirke Liste -->
-                        <ScrollViewer MaxHeight="280"
-                                      VerticalScrollBarVisibility="Auto">
-                            <ItemsRepeater x:Name="BezirkeRepeater"
+                            <!-- Bezirke Liste -->
+                            <ScrollViewer MaxHeight="280"
+                                          VerticalScrollBarVisibility="Auto">
+                                <ItemsRepeater x:Name="BezirkeRepeater"
                                            ItemsSource="{x:Bind Bezirke, Mode=OneWay}">
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="models:BezirkModel">
@@ -110,8 +114,9 @@
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
-                        </ScrollViewer>
-                    </StackPanel>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
                 </Flyout>
             </Button.Flyout>
         </Button>
