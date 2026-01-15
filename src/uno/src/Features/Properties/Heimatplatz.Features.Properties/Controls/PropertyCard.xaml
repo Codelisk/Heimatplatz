@@ -32,7 +32,7 @@
 
                 <!-- Placeholder -->
                 <Border Background="{ThemeResource PlaceholderBrush}"
-                        CornerRadius="12,12,0,0"
+                        CornerRadius="{StaticResource RadiusSmTop}"
                         AutomationProperties.AutomationId="PropertyCard_ImagePlaceholder">
                     <FontIcon Glyph="&#xE722;"
                               FontSize="36"
@@ -42,7 +42,7 @@
                 </Border>
 
                 <!-- FlipView fuer Bilder-Swipe -->
-                <Border CornerRadius="12,12,0,0"
+                <Border CornerRadius="{StaticResource RadiusSmTop}"
                         AutomationProperties.AutomationId="PropertyCard_ImageBorder">
                     <Border.Clip>
                         <RectangleGeometry Rect="0,0,10000,180" />
@@ -120,7 +120,7 @@
                         Background="#40000000"
                         BorderThickness="0"
                         Padding="8,16"
-                        CornerRadius="0,4,4,0"
+                        CornerRadius="{StaticResource RadiusSmRight}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Left"
                         Visibility="Collapsed"
@@ -135,7 +135,7 @@
                         Background="#40000000"
                         BorderThickness="0"
                         Padding="8,16"
-                        CornerRadius="4,0,0,4"
+                        CornerRadius="{StaticResource RadiusSmLeft}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
                         Visibility="Collapsed"

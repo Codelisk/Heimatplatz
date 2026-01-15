@@ -16,6 +16,12 @@
     <CornerRadius x:Key="RadiusLg">12</CornerRadius>
     <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
 
+    <!-- Corner Radius - Composite (TopLeft, TopRight, BottomRight, BottomLeft) -->
+    <CornerRadius x:Key="RadiusSmTop">4,4,0,0</CornerRadius>
+    <CornerRadius x:Key="RadiusSmBottom">0,0,4,4</CornerRadius>
+    <CornerRadius x:Key="RadiusSmLeft">4,0,0,4</CornerRadius>
+    <CornerRadius x:Key="RadiusSmRight">0,4,4,0</CornerRadius>
+
     <!-- Thickness -->
     <Thickness x:Key="BorderThin">1</Thickness>
     <Thickness x:Key="PaddingSm">8</Thickness>
