@@ -1,0 +1,51 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ============================================================================
+    APP HEADER STYLES
+    ============================================================================
+    Styles fuer den App-Header mit Logo und Navigation
+    ============================================================================
+    -->
+
+    <!-- Header Container -->
+    <Style x:Key="AppHeaderContainerStyle" TargetType="Grid">
+        <Setter Property="Background" Value="{ThemeResource HeaderBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource HeaderBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="MinHeight" Value="56" />
+    </Style>
+
+    <!-- Header Logo Text -->
+    <Style x:Key="AppHeaderLogoStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceBrush}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Header Navigation Button -->
+    <Style x:Key="AppHeaderNavButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Header Search Box -->
+    <Style x:Key="AppHeaderSearchBoxStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{ThemeResource SolidBackgroundFillColorSecondary}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="PlaceholderText" Value="Suchen..." />
+        <Setter Property="MinWidth" Value="200" />
+        <Setter Property="MaxWidth" Value="400" />
+    </Style>
+
+</ResourceDictionary>

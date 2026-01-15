@@ -1,0 +1,156 @@
+<Page
+    x:Class="Heimatplatz.Views.MobileDetailansichtPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="#F8FAFC">
+
+    <Grid x:Name="RootGrid">
+        <!-- Header -->
+        <Border x:Name="Header"
+                Background="White"
+                BorderBrush="#E2E8F0"
+                BorderThickness="1"
+                Height="56"
+                VerticalAlignment="Top">
+            <Grid>
+                <TextBlock Text="←"
+                           FontFamily="Inter"
+                           FontSize="24"
+                           Foreground="Black"
+                           Margin="15,0,0,0"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"/>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="0,0,15,0"
+                            Spacing="40">
+                    <TextBlock Text="♡"
+                               FontFamily="Inter"
+                               FontSize="24"
+                               Foreground="Black"/>
+                    <TextBlock Text="↗"
+                               FontFamily="Inter"
+                               FontSize="24"
+                               Foreground="Black"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Hero Image -->
+        <Border x:Name="HeroImage"
+                Background="#E0E0E0"
+                Height="280"
+                Margin="0,56,0,0"
+                VerticalAlignment="Top"/>
+
+        <!-- Content Card -->
+        <Border x:Name="Content"
+                Background="White"
+                BorderBrush="#E2E8F0"
+                BorderThickness="1"
+                CornerRadius="8"
+                Margin="16,352,16,0"
+                VerticalAlignment="Top"
+                Padding="16">
+            <StackPanel>
+                <!-- Price -->
+                <TextBlock Text="€ 349.000"
+                           FontFamily="Inter"
+                           FontWeight="Bold"
+                           FontSize="28"
+                           Foreground="Black"/>
+
+                <!-- Title -->
+                <TextBlock Text="Einfamilienhaus in Linz-Urfahr"
+                           FontFamily="Inter"
+                           FontWeight="SemiBold"
+                           FontSize="20"
+                           Foreground="Black"
+                           Margin="0,8,0,0"/>
+
+                <!-- Details -->
+                <TextBlock Text="145 m² · 5 Zimmer · Baujahr 2018"
+                           FontFamily="Inter"
+                           FontSize="14"
+                           Foreground="#666666"
+                           Margin="0,8,0,0"/>
+
+                <!-- Badge -->
+                <Border Background="#2563EB"
+                        CornerRadius="4"
+                        Height="28"
+                        Width="60"
+                        HorizontalAlignment="Left"
+                        Margin="0,12,0,0">
+                    <TextBlock Text="Haus"
+                               FontFamily="Inter"
+                               FontWeight="Medium"
+                               FontSize="12"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Beschreibung Section -->
+                <TextBlock Text="Beschreibung"
+                           FontFamily="Inter"
+                           FontWeight="SemiBold"
+                           FontSize="16"
+                           Foreground="Black"
+                           Margin="0,24,0,0"/>
+                <TextBlock Text="Wunderschönes Einfamilienhaus mit großem Garten in ruhiger Lage."
+                           FontFamily="Inter"
+                           FontSize="14"
+                           Foreground="#666666"
+                           Margin="0,8,0,0"
+                           TextWrapping="Wrap"/>
+
+                <!-- Ausstattung Section -->
+                <TextBlock Text="Ausstattung"
+                           FontFamily="Inter"
+                           FontWeight="SemiBold"
+                           FontSize="16"
+                           Foreground="Black"
+                           Margin="0,24,0,0"/>
+                <TextBlock Text="✓ Garage  ✓ Garten  ✓ Terrasse  ✓ Keller"
+                           FontFamily="Inter"
+                           FontSize="14"
+                           Foreground="#666666"
+                           Margin="0,8,0,0"/>
+
+                <!-- Standort Section -->
+                <TextBlock Text="Standort"
+                           FontFamily="Inter"
+                           FontWeight="SemiBold"
+                           FontSize="16"
+                           Foreground="Black"
+                           Margin="0,24,0,0"/>
+
+                <!-- Map Placeholder -->
+                <Border Background="#E0E0E0"
+                        CornerRadius="8"
+                        Height="150"
+                        Margin="0,8,0,0"/>
+
+                <!-- CTA Button -->
+                <Button x:Name="ContactButton"
+                        Content="Anbieter kontaktieren"
+                        Background="#2563EB"
+                        Foreground="White"
+                        FontFamily="Inter"
+                        FontWeight="SemiBold"
+                        FontSize="16"
+                        Height="56"
+                        CornerRadius="6"
+                        Margin="0,24,0,0"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

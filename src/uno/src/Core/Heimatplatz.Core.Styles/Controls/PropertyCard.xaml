@@ -1,0 +1,92 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:utu="using:Uno.Toolkit.UI">
+
+    <!--
+    ============================================================================
+    PROPERTY CARD STYLES
+    ============================================================================
+    Styles fuer die Immobilien-Karten in der Listenansicht.
+    ============================================================================
+    -->
+
+    <!-- Property Card Container -->
+    <Style x:Key="PropertyCardContainerStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBrush}" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- Property Card Image -->
+    <Style x:Key="PropertyCardImageStyle" TargetType="Image">
+        <Setter Property="Stretch" Value="UniformToFill" />
+        <Setter Property="Height" Value="180" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- Property Card Image Placeholder -->
+    <Style x:Key="PropertyCardImagePlaceholderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource PlaceholderBrush}" />
+        <Setter Property="Height" Value="180" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- Property Card Content Container -->
+    <Style x:Key="PropertyCardContentStyle" TargetType="StackPanel">
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Spacing" Value="8" />
+    </Style>
+
+    <!-- Property Card Price Text -->
+    <Style x:Key="PropertyCardPriceStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource PriceBrush}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <!-- Property Card Title Text -->
+    <Style x:Key="PropertyCardTitleStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceBrush}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="MaxLines" Value="1" />
+    </Style>
+
+    <!-- Property Card Address Text -->
+    <Style x:Key="PropertyCardAddressStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource AddressBrush}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="MaxLines" Value="1" />
+    </Style>
+
+    <!-- Property Card Details Text -->
+    <Style x:Key="PropertyCardDetailsStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource DetailsBrush}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- Property Card Details Container -->
+    <Style x:Key="PropertyCardDetailsContainerStyle" TargetType="StackPanel">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="12" />
+    </Style>
+
+    <!-- Seller Badge Container -->
+    <Style x:Key="SellerBadgeStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource SellerBadgeBackgroundBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!-- Seller Badge Text -->
+    <Style x:Key="SellerBadgeTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource SellerBadgeForegroundBrush}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+</ResourceDictionary>

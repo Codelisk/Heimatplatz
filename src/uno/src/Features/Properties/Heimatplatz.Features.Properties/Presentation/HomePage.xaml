@@ -1,0 +1,132 @@
+<Page x:Class="Heimatplatz.Features.Properties.Presentation.HomePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
+      xmlns:controls="using:Heimatplatz.Features.Properties.Controls"
+      xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:uc="using:UnoFramework.Controls"
+      NavigationCacheMode="Required">
+
+    <!--
+    HomePage - Hauptseite mit Immobilien-Liste
+    Responsive: Mobile = vertikale Liste, Desktop = Grid-Layout
+    -->
+
+    <Grid Style="{StaticResource ResponsivePageRootStyle}"
+          AutomationProperties.AutomationId="HomePage_Root">
+
+        <uc:BusyOverlay IsBusy="{Binding IsBusy}"
+                        BusyMessage="{Binding BusyMessage}"
+                        AutomationProperties.AutomationId="HomePage_BusyOverlay">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <controls:AppHeader Grid.Row="0"
+                                    AutomationProperties.AutomationId="HomePage_Header" />
+
+                <!-- Filter Section -->
+                <Border Grid.Row="1"
+                        Background="{ThemeResource SurfaceBrush}"
+                        Padding="{utu:Responsive Narrowest='16,12', Normal='24,16'}"
+                        AutomationProperties.AutomationId="HomePage_FilterSection">
+                    <StackPanel>
+                        <TextBlock Text="IMMOBILIENTYP"
+                                   Style="{StaticResource FilterSectionHeaderStyle}"
+                                   AutomationProperties.AutomationId="HomePage_FilterLabel" />
+                        <StackPanel Style="{StaticResource FilterChipContainerStyle}"
+                                    AutomationProperties.AutomationId="HomePage_FilterChips">
+                            <controls:FilterChip Label="Alle"
+                                                 IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
+                                                 AutomationProperties.AutomationId="HomePage_FilterChip_All" />
+                            <controls:FilterChip Label="Haus"
+                                                 IsSelected="{Binding IsHausSelected, Mode=TwoWay}"
+                                                 AutomationProperties.AutomationId="HomePage_FilterChip_Haus" />
+                            <controls:FilterChip Label="Grundstück"
+                                                 IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}"
+                                                 AutomationProperties.AutomationId="HomePage_FilterChip_Grundstueck" />
+                            <controls:FilterChip Label="Zwangsversteigerung"
+                                                 IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
+                                                 AutomationProperties.AutomationId="HomePage_FilterChip_Zwangsversteigerung" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Content mit ResponsiveView -->
+                <utu:ResponsiveView Grid.Row="2"
+                                    AutomationProperties.AutomationId="HomePage_ResponsiveContent">
+
+                    <!-- Mobile Layout: Vertikale Liste -->
+                    <utu:ResponsiveView.NarrowTemplate>
+                        <DataTemplate>
+                            <ScrollViewer Style="{StaticResource ResponsiveScrollableContentStyle}"
+                                          AutomationProperties.AutomationId="HomePage_MobileScrollViewer">
+                                <ItemsRepeater ItemsSource="{Binding Properties}"
+                                               AutomationProperties.AutomationId="HomePage_MobileList">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Spacing="16" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate>
+                                            <controls:PropertyCard Property="{Binding}"
+                                                                   AutomationProperties.AutomationId="HomePage_PropertyCard" />
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+                        </DataTemplate>
+                    </utu:ResponsiveView.NarrowTemplate>
+
+                    <!-- Desktop Layout: Grid mit 2-3 Spalten -->
+                    <utu:ResponsiveView.WideTemplate>
+                        <DataTemplate>
+                            <ScrollViewer Padding="32,24"
+                                          AutomationProperties.AutomationId="HomePage_DesktopScrollViewer">
+                                <ItemsRepeater ItemsSource="{Binding Properties}"
+                                               AutomationProperties.AutomationId="HomePage_DesktopGrid">
+                                    <ItemsRepeater.Layout>
+                                        <UniformGridLayout MinItemWidth="320"
+                                                           MaximumRowsOrColumns="3"
+                                                           MinRowSpacing="24"
+                                                           MinColumnSpacing="24"
+                                                           ItemsStretch="Fill" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate>
+                                            <controls:PropertyCard Property="{Binding}"
+                                                                   AutomationProperties.AutomationId="HomePage_PropertyCard" />
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+                        </DataTemplate>
+                    </utu:ResponsiveView.WideTemplate>
+
+                </utu:ResponsiveView>
+
+                <!-- Empty State -->
+                <StackPanel Grid.Row="2"
+                            Visibility="{Binding IsEmpty}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Spacing="16"
+                            AutomationProperties.AutomationId="HomePage_EmptyState">
+                    <FontIcon Glyph="&#xE80F;"
+                              FontSize="64"
+                              Foreground="{ThemeResource DetailsBrush}"
+                              HorizontalAlignment="Center" />
+                    <TextBlock Text="Keine Immobilien gefunden"
+                               Style="{StaticResource TitleMedium}"
+                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                               HorizontalAlignment="Center"
+                               AutomationProperties.AutomationId="HomePage_EmptyText" />
+                </StackPanel>
+            </Grid>
+        </uc:BusyOverlay>
+    </Grid>
+</Page>

@@ -36,6 +36,11 @@
         <!-- Responsive Layout Helpers -->
         <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Layouts/Responsive.xaml" />
 
+        <!-- Control Styles -->
+        <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Controls/PropertyCard.xaml" />
+        <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Controls/FilterChip.xaml" />
+        <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Controls/AppHeader.xaml" />
+
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

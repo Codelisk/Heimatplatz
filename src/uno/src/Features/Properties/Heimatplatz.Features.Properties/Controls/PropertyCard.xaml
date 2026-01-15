@@ -1,0 +1,111 @@
+<UserControl x:Class="Heimatplatz.Features.Properties.Controls.PropertyCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Heimatplatz.Features.Properties.Controls"
+             xmlns:utu="using:Uno.Toolkit.UI">
+
+    <!--
+    PropertyCard - Immobilien-Karte fuer Listenansicht
+    Zeigt: Bild, Preis, Titel, Adresse, Details (Flaeche, Zimmer), Anbieter-Badge
+    -->
+
+    <Border Style="{StaticResource PropertyCardContainerStyle}"
+            AutomationProperties.AutomationId="PropertyCard_Container"
+            Translation="0,0,16">
+        <Border.Shadow>
+            <ThemeShadow />
+        </Border.Shadow>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Bild mit abgerundeten Ecken oben -->
+            <Grid Grid.Row="0"
+                  CornerRadius="12,12,0,0"
+                  AutomationProperties.AutomationId="PropertyCard_ImageContainer">
+                <Grid.Clip>
+                    <RectangleGeometry Rect="0,0,400,180" />
+                </Grid.Clip>
+
+                <!-- Placeholder wenn kein Bild -->
+                <Border Style="{StaticResource PropertyCardImagePlaceholderStyle}"
+                        CornerRadius="12,12,0,0"
+                        AutomationProperties.AutomationId="PropertyCard_ImagePlaceholder">
+                    <FontIcon Glyph="&#xE722;"
+                              FontSize="48"
+                              Foreground="{ThemeResource DetailsBrush}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                </Border>
+
+                <!-- Eigentliches Bild -->
+                <Image x:Name="PropertyImage"
+                       Style="{StaticResource PropertyCardImageStyle}"
+                       AutomationProperties.AutomationId="PropertyCard_Image" />
+
+                <!-- Anbieter Badge oben links -->
+                <Border Style="{StaticResource SellerBadgeStyle}"
+                        Margin="12"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Left"
+                        AutomationProperties.AutomationId="PropertyCard_SellerBadge">
+                    <TextBlock x:Name="SellerBadgeText"
+                               Style="{StaticResource SellerBadgeTextStyle}"
+                               AutomationProperties.AutomationId="PropertyCard_SellerBadgeText" />
+                </Border>
+            </Grid>
+
+            <!-- Content -->
+            <StackPanel Grid.Row="1"
+                        Style="{StaticResource PropertyCardContentStyle}"
+                        AutomationProperties.AutomationId="PropertyCard_Content">
+
+                <!-- Preis -->
+                <TextBlock x:Name="PriceText"
+                           Style="{StaticResource PropertyCardPriceStyle}"
+                           AutomationProperties.AutomationId="PropertyCard_Price" />
+
+                <!-- Titel -->
+                <TextBlock x:Name="TitleText"
+                           Style="{StaticResource PropertyCardTitleStyle}"
+                           AutomationProperties.AutomationId="PropertyCard_Title" />
+
+                <!-- Adresse -->
+                <TextBlock x:Name="AddressText"
+                           Style="{StaticResource PropertyCardAddressStyle}"
+                           AutomationProperties.AutomationId="PropertyCard_Address" />
+
+                <!-- Details (Flaeche, Zimmer) -->
+                <StackPanel Style="{StaticResource PropertyCardDetailsContainerStyle}"
+                            AutomationProperties.AutomationId="PropertyCard_Details">
+
+                    <!-- Flaeche -->
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE80F;"
+                                  FontSize="14"
+                                  Foreground="{ThemeResource DetailsBrush}" />
+                        <TextBlock x:Name="AreaText"
+                                   Style="{StaticResource PropertyCardDetailsStyle}"
+                                   AutomationProperties.AutomationId="PropertyCard_Area" />
+                    </StackPanel>
+
+                    <!-- Zimmer (nur wenn vorhanden) -->
+                    <StackPanel x:Name="RoomsPanel"
+                                Orientation="Horizontal"
+                                Spacing="4">
+                        <FontIcon Glyph="&#xE825;"
+                                  FontSize="14"
+                                  Foreground="{ThemeResource DetailsBrush}" />
+                        <TextBlock x:Name="RoomsText"
+                                   Style="{StaticResource PropertyCardDetailsStyle}"
+                                   AutomationProperties.AutomationId="PropertyCard_Rooms" />
+                    </StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

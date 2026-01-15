@@ -24,50 +24,51 @@
     <ResourceDictionary.ThemeDictionaries>
 
         <!-- ================================================================
-             LIGHT THEME
+             LIGHT THEME - Heimatplatz Design System
+             Minimalistisch Schwarz-Weiss fuer Immobilien OOe
              ================================================================ -->
         <ResourceDictionary x:Key="Light">
 
-            <!-- Accent Color (Primaere Markenfarbe) -->
-            <Color x:Key="SystemAccentColor">#005FB8</Color>
-            <Color x:Key="SystemAccentColorLight1">#1A6DC0</Color>
-            <Color x:Key="SystemAccentColorLight2">#3380C8</Color>
-            <Color x:Key="SystemAccentColorLight3">#4D93D0</Color>
-            <Color x:Key="SystemAccentColorDark1">#004C99</Color>
-            <Color x:Key="SystemAccentColorDark2">#003D7A</Color>
-            <Color x:Key="SystemAccentColorDark3">#002E5C</Color>
+            <!-- Accent Color (Schwarz als Primaerfarbe) -->
+            <Color x:Key="SystemAccentColor">#000000</Color>
+            <Color x:Key="SystemAccentColorLight1">#1A1A1A</Color>
+            <Color x:Key="SystemAccentColorLight2">#333333</Color>
+            <Color x:Key="SystemAccentColorLight3">#4D4D4D</Color>
+            <Color x:Key="SystemAccentColorDark1">#000000</Color>
+            <Color x:Key="SystemAccentColorDark2">#000000</Color>
+            <Color x:Key="SystemAccentColorDark3">#000000</Color>
 
             <!-- Accent Brushes -->
             <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource SystemAccentColor}" />
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource SystemAccentColor}" />
 
-            <!-- Background Colors -->
-            <Color x:Key="SolidBackgroundFillColorBase">#F3F3F3</Color>
-            <Color x:Key="SolidBackgroundFillColorSecondary">#EEEEEE</Color>
-            <Color x:Key="SolidBackgroundFillColorTertiary">#F9F9F9</Color>
+            <!-- Background Colors (Hellgrau Toene) -->
+            <Color x:Key="SolidBackgroundFillColorBase">#F8FAFC</Color>
+            <Color x:Key="SolidBackgroundFillColorSecondary">#F1F5F9</Color>
+            <Color x:Key="SolidBackgroundFillColorTertiary">#E2E8F0</Color>
 
-            <!-- Surface Colors -->
+            <!-- Surface Colors (Weiss) -->
             <Color x:Key="LayerFillColorDefault">#FFFFFF</Color>
             <Color x:Key="LayerFillColorAlt">#FFFFFF</Color>
             <Color x:Key="CardBackgroundFillColorDefault">#FFFFFF</Color>
-            <Color x:Key="CardBackgroundFillColorSecondary">#F6F6F6</Color>
+            <Color x:Key="CardBackgroundFillColorSecondary">#F8FAFC</Color>
 
-            <!-- Text Colors -->
-            <Color x:Key="TextFillColorPrimary">#1A1A1A</Color>
-            <Color x:Key="TextFillColorSecondary">#5C5C5C</Color>
-            <Color x:Key="TextFillColorTertiary">#8A8A8A</Color>
-            <Color x:Key="TextFillColorDisabled">#A0A0A0</Color>
+            <!-- Text Colors (Slate Palette) -->
+            <Color x:Key="TextFillColorPrimary">#0F172A</Color>
+            <Color x:Key="TextFillColorSecondary">#334155</Color>
+            <Color x:Key="TextFillColorTertiary">#64748B</Color>
+            <Color x:Key="TextFillColorDisabled">#94A3B8</Color>
 
             <!-- Border/Stroke Colors -->
-            <Color x:Key="ControlStrokeColorDefault">#D6D6D6</Color>
-            <Color x:Key="ControlStrokeColorSecondary">#E0E0E0</Color>
-            <Color x:Key="DividerStrokeColorDefault">#E8E8E8</Color>
+            <Color x:Key="ControlStrokeColorDefault">#E2E8F0</Color>
+            <Color x:Key="ControlStrokeColorSecondary">#CBD5E1</Color>
+            <Color x:Key="DividerStrokeColorDefault">#E2E8F0</Color>
 
             <!-- Semantic Colors -->
-            <Color x:Key="SystemErrorColor">#C42B1C</Color>
-            <Color x:Key="SystemSuccessColor">#0F7B0F</Color>
-            <Color x:Key="SystemWarningColor">#9D5D00</Color>
-            <Color x:Key="SystemInfoColor">#0078D4</Color>
+            <Color x:Key="SystemErrorColor">#DC2626</Color>
+            <Color x:Key="SystemSuccessColor">#16A34A</Color>
+            <Color x:Key="SystemWarningColor">#D97706</Color>
+            <Color x:Key="SystemInfoColor">#2563EB</Color>
 
             <!-- Semantic Brushes -->
             <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource SystemErrorColor}" />
@@ -84,6 +85,26 @@
             <SolidColorBrush x:Key="OnSurfaceVariantBrush" Color="{StaticResource TextFillColorSecondary}" />
             <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource ControlStrokeColorDefault}" />
             <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerStrokeColorDefault}" />
+
+            <!-- Heimatplatz-Spezifische Brushes -->
+            <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="HeaderBorderBrush" Color="#E2E8F0" />
+            <SolidColorBrush x:Key="ChipSelectedBackgroundBrush" Color="#000000" />
+            <SolidColorBrush x:Key="ChipSelectedForegroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="ChipUnselectedBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="ChipUnselectedForegroundBrush" Color="#334155" />
+            <SolidColorBrush x:Key="ChipUnselectedBorderBrush" Color="#E2E8F0" />
+            <SolidColorBrush x:Key="PrimaryButtonBackgroundBrush" Color="#000000" />
+            <SolidColorBrush x:Key="PrimaryButtonForegroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SecondaryButtonBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SecondaryButtonForegroundBrush" Color="#000000" />
+            <SolidColorBrush x:Key="SecondaryButtonBorderBrush" Color="#CBD5E1" />
+            <SolidColorBrush x:Key="PlaceholderBrush" Color="#E0E0E0" />
+            <SolidColorBrush x:Key="SellerBadgeBackgroundBrush" Color="#F1F5F9" />
+            <SolidColorBrush x:Key="SellerBadgeForegroundBrush" Color="#64748B" />
+            <SolidColorBrush x:Key="PriceBrush" Color="#000000" />
+            <SolidColorBrush x:Key="AddressBrush" Color="#666666" />
+            <SolidColorBrush x:Key="DetailsBrush" Color="#999999" />
 
         </ResourceDictionary>
 
@@ -149,6 +170,26 @@
             <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource ControlStrokeColorDefault}" />
             <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerStrokeColorDefault}" />
 
+            <!-- Heimatplatz-Spezifische Brushes (Dark) -->
+            <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="HeaderBorderBrush" Color="#4D4D4D" />
+            <SolidColorBrush x:Key="ChipSelectedBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="ChipSelectedForegroundBrush" Color="#000000" />
+            <SolidColorBrush x:Key="ChipUnselectedBackgroundBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="ChipUnselectedForegroundBrush" Color="#C5C5C5" />
+            <SolidColorBrush x:Key="ChipUnselectedBorderBrush" Color="#4D4D4D" />
+            <SolidColorBrush x:Key="PrimaryButtonBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="PrimaryButtonForegroundBrush" Color="#000000" />
+            <SolidColorBrush x:Key="SecondaryButtonBackgroundBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="SecondaryButtonForegroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SecondaryButtonBorderBrush" Color="#4D4D4D" />
+            <SolidColorBrush x:Key="PlaceholderBrush" Color="#404040" />
+            <SolidColorBrush x:Key="SellerBadgeBackgroundBrush" Color="#333333" />
+            <SolidColorBrush x:Key="SellerBadgeForegroundBrush" Color="#9A9A9A" />
+            <SolidColorBrush x:Key="PriceBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="AddressBrush" Color="#C5C5C5" />
+            <SolidColorBrush x:Key="DetailsBrush" Color="#9A9A9A" />
+
         </ResourceDictionary>
 
         <!-- ================================================================
@@ -171,6 +212,26 @@
             <SolidColorBrush x:Key="SuccessBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="InfoBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+
+            <!-- Heimatplatz-Spezifische Brushes (HighContrast) -->
+            <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="HeaderBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="ChipSelectedBackgroundBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="ChipSelectedForegroundBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="ChipUnselectedBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ChipUnselectedForegroundBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="ChipUnselectedBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="PrimaryButtonBackgroundBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="PrimaryButtonForegroundBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="SecondaryButtonBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="SecondaryButtonForegroundBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="SecondaryButtonBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="PlaceholderBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
+            <SolidColorBrush x:Key="SellerBadgeBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="SellerBadgeForegroundBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
+            <SolidColorBrush x:Key="PriceBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="AddressBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
+            <SolidColorBrush x:Key="DetailsBrush" Color="{ThemeResource SystemColorGrayTextColor}" />
 
         </ResourceDictionary>
 

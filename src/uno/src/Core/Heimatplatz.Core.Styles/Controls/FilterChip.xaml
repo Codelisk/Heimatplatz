@@ -1,0 +1,42 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ============================================================================
+    FILTER CHIP STYLES
+    ============================================================================
+    Styles fuer die Filter-Chips (Haus, Grundstueck, Zwangsversteigerung)
+    ============================================================================
+    -->
+
+    <!-- Base Chip Style -->
+    <Style x:Key="FilterChipBaseStyle" TargetType="ToggleButton">
+        <Setter Property="Background" Value="{ThemeResource ChipUnselectedBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource ChipUnselectedForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ChipUnselectedBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
+
+    <!-- Filter Chip Container -->
+    <Style x:Key="FilterChipContainerStyle" TargetType="StackPanel">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="8" />
+    </Style>
+
+    <!-- Filter Section Header -->
+    <Style x:Key="FilterSectionHeaderStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceVariantBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+        <Setter Property="CharacterSpacing" Value="50" />
+    </Style>
+
+</ResourceDictionary>

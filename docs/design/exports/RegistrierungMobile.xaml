@@ -1,0 +1,238 @@
+<Page
+    x:Class="Heimatplatz.Views.RegistrierungMobilePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="#F8FAFC">
+
+    <ScrollViewer>
+        <Grid x:Name="RootGrid" Padding="16,0,16,24">
+            <!-- Back Button -->
+            <TextBlock Text="←"
+                       FontFamily="Inter"
+                       FontSize="24"
+                       Foreground="Black"
+                       Margin="0,20,0,0"
+                       VerticalAlignment="Top"
+                       HorizontalAlignment="Left"/>
+
+            <!-- Content -->
+            <StackPanel Margin="0,100,0,0" VerticalAlignment="Top">
+                <!-- Logo -->
+                <TextBlock Text="ImmoOÖ"
+                           FontFamily="Inter"
+                           FontWeight="Bold"
+                           FontSize="32"
+                           Foreground="Black"/>
+
+                <!-- Subtitle -->
+                <TextBlock Text="Konto erstellen"
+                           FontFamily="Inter"
+                           FontSize="16"
+                           Foreground="#666666"
+                           Margin="0,16,0,0"/>
+
+                <!-- Name Label -->
+                <TextBlock Text="Name"
+                           FontFamily="Inter"
+                           FontWeight="Medium"
+                           FontSize="14"
+                           Foreground="Black"
+                           Margin="0,32,0,0"/>
+
+                <!-- Name Input -->
+                <Border Background="White"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Height="48"
+                        Margin="0,8,0,0">
+                    <TextBox PlaceholderText="Max Mustermann"
+                             FontFamily="Inter"
+                             FontSize="14"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             VerticalAlignment="Center"
+                             Margin="16,0,16,0"/>
+                </Border>
+
+                <!-- Email Label -->
+                <TextBlock Text="E-Mail"
+                           FontFamily="Inter"
+                           FontWeight="Medium"
+                           FontSize="14"
+                           Foreground="Black"
+                           Margin="0,20,0,0"/>
+
+                <!-- Email Input -->
+                <Border Background="White"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Height="48"
+                        Margin="0,8,0,0">
+                    <TextBox PlaceholderText="max@beispiel.at"
+                             FontFamily="Inter"
+                             FontSize="14"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             VerticalAlignment="Center"
+                             Margin="16,0,16,0"/>
+                </Border>
+
+                <!-- Password Label -->
+                <TextBlock Text="Passwort"
+                           FontFamily="Inter"
+                           FontWeight="Medium"
+                           FontSize="14"
+                           Foreground="Black"
+                           Margin="0,20,0,0"/>
+
+                <!-- Password Input -->
+                <Border Background="White"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Height="48"
+                        Margin="0,8,0,0">
+                    <PasswordBox PlaceholderText="Passwort eingeben"
+                                 FontFamily="Inter"
+                                 FontSize="14"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 VerticalAlignment="Center"
+                                 Margin="16,0,16,0"/>
+                </Border>
+
+                <!-- Confirm Password Label -->
+                <TextBlock Text="Passwort bestätigen"
+                           FontFamily="Inter"
+                           FontWeight="Medium"
+                           FontSize="14"
+                           Foreground="Black"
+                           Margin="0,20,0,0"/>
+
+                <!-- Confirm Password Input -->
+                <Border Background="White"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Height="48"
+                        Margin="0,8,0,0">
+                    <PasswordBox PlaceholderText="Passwort wiederholen"
+                                 FontFamily="Inter"
+                                 FontSize="14"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 VerticalAlignment="Center"
+                                 Margin="16,0,16,0"/>
+                </Border>
+
+                <!-- Ich bin Section -->
+                <TextBlock Text="Ich bin..."
+                           FontFamily="Inter"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           Foreground="#0F172A"
+                           Margin="8,24,0,0"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="8,8,0,0">
+                    <Border Background="Black" CornerRadius="6" Padding="12,8">
+                        <TextBlock Text="Käufer"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"
+                                   FontSize="13"
+                                   Foreground="White"/>
+                    </Border>
+                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                        <TextBlock Text="Verkäufer"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"
+                                   FontSize="13"
+                                   Foreground="#334155"/>
+                    </Border>
+                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                        <TextBlock Text="Beides"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"
+                                   FontSize="13"
+                                   Foreground="#334155"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Art des Verkäufers Section -->
+                <TextBlock Text="Art des Verkäufers"
+                           FontFamily="Inter"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           Foreground="#0F172A"
+                           Margin="8,24,0,0"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="8,8,0,0">
+                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                        <TextBlock Text="Privatperson"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"
+                                   FontSize="13"
+                                   Foreground="#334155"/>
+                    </Border>
+                    <Border Background="Black" CornerRadius="6" Padding="12,8">
+                        <TextBlock Text="Immobilienfirma"
+                                   FontFamily="Inter"
+                                   FontWeight="Medium"
+                                   FontSize="13"
+                                   Foreground="White"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Firmenname Section -->
+                <TextBlock Text="Firmenname"
+                           FontFamily="Inter"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           Foreground="#0F172A"
+                           Margin="8,24,0,0"/>
+
+                <Border Background="White"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Height="48"
+                        Margin="8,8,0,0">
+                    <TextBox PlaceholderText="Mustermann Immobilien GmbH"
+                             FontFamily="Inter"
+                             FontSize="14"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             VerticalAlignment="Center"
+                             Margin="15,0,15,0"/>
+                </Border>
+
+                <!-- Register Button -->
+                <Button x:Name="RegisterButton"
+                        Content="Registrieren"
+                        Background="Black"
+                        Foreground="White"
+                        FontFamily="Inter"
+                        FontWeight="SemiBold"
+                        FontSize="16"
+                        Height="48"
+                        CornerRadius="6"
+                        Margin="0,32,0,0"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"/>
+
+                <!-- Login Link -->
+                <TextBlock Text="Schon ein Konto? Anmelden"
+                           FontFamily="Inter"
+                           FontSize="14"
+                           Foreground="Black"
+                           HorizontalAlignment="Center"
+                           Margin="0,24,0,0"/>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>
