@@ -35,5 +35,7 @@
 
   <ItemGroup>
     <!-- Features -->
+    <ProjectReference Include="..\..\Features\Auth\Heimatplatz.Features.Auth\Heimatplatz.Features.Auth.csproj" />
+    <ProjectReference Include="..\..\Features\Auth\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />
   </ItemGroup>
 </Project>

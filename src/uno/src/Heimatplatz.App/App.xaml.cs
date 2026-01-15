@@ -1,4 +1,5 @@
 using Heimatplatz.Core.Startup;
+using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Properties.Presentation;
 using Uno.Resizetizer;
 
@@ -60,7 +61,8 @@ public partial class App : Application
         views.Register(
             new ViewMap(ViewModel: typeof(ShellViewModel)),
             new ViewMap<MainPage, MainViewModel>(),
-            new ViewMap<HomePage, HomeViewModel>()
+            new ViewMap<HomePage, HomeViewModel>(),
+            new ViewMap<RegisterPage, RegisterViewModel>()
         );
 
         routes.Register(
@@ -68,7 +70,8 @@ public partial class App : Application
                 Nested:
                 [
                     new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
-                    new ("Main", View: views.FindByViewModel<MainViewModel>())
+                    new ("Main", View: views.FindByViewModel<MainViewModel>()),
+                    new ("Register", View: views.FindByViewModel<RegisterViewModel>())
                 ]
             )
         );

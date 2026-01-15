@@ -1,0 +1,11 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

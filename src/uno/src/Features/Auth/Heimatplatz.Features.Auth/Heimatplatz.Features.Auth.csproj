@@ -1,0 +1,18 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
+    <!-- Framework References -->
+    <ProjectReference Include="..\..\..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\subm\uno\src\UnoFramework.Contracts\UnoFramework.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
