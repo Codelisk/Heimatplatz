@@ -107,6 +107,12 @@
                                Foreground="White"
                                AutomationProperties.AutomationId="PropertyCard_Price" />
                 </Border>
+
+                <!-- Transparentes Overlay für Tap-Events (über FlipView) -->
+                <Border x:Name="ImageTapOverlay"
+                        Background="Transparent"
+                        Tapped="OnImageTapped"
+                        AutomationProperties.AutomationId="PropertyCard_TapOverlay" />
             </Grid>
 
             <!-- Content: Zwei-Spalten Layout -->

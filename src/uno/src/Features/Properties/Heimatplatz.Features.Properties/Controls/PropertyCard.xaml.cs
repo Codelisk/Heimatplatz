@@ -142,6 +142,16 @@ public sealed partial class PropertyCard : UserControl
         }
     }
 
+    private void OnImageTapped(object sender, TappedRoutedEventArgs e)
+    {
+        // Tap auf Bildbereich - navigiere zur Detailansicht
+        if (Property != null)
+        {
+            CardClicked?.Invoke(this, Property);
+            e.Handled = true;
+        }
+    }
+
     private void OnCardPointerEntered(object sender, PointerRoutedEventArgs e)
     {
         // Hover-Effekt: Leichte Skalierung
