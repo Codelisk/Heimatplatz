@@ -54,7 +54,18 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- Logo (Desktop) -->
+                        <!-- Titel (Mobile) / Logo (Desktop) -->
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind ViewModel.Property.Titel, Mode=OneWay}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxLines="1"
+                                   Margin="8,0"
+                                   Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}" />
                         <TextBlock Grid.Column="1"
                                    Text="HEIMATPLATZ"
                                    FontSize="15"
@@ -141,14 +152,6 @@
 
                                     <!-- Mobile Content -->
                                     <StackPanel Padding="16,12" Spacing="12" Background="{ThemeResource SurfaceBrush}">
-
-                                        <!-- Titel zuerst -->
-                                        <TextBlock Text="{x:Bind ViewModel.Property.Titel, Mode=OneWay}"
-                                                   FontSize="17"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                                   TextWrapping="Wrap"
-                                                   LineHeight="22" />
 
                                         <!-- Preis und Typ -->
                                         <Grid>
