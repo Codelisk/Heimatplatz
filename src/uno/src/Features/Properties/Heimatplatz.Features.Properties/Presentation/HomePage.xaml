@@ -53,31 +53,26 @@
                                    Margin="0,0,24,0"
                                    AutomationProperties.AutomationId="HomePage_Logo" />
 
-                        <!-- Ort-Picker + Filter Chips (Desktop) -->
+                        <!-- Ort-Picker + Filter Chips (Desktop) - nur ab Wide (905px+) -->
                         <StackPanel Grid.Column="1"
                                     Orientation="Horizontal"
-                                    Spacing="12"
+                                    Spacing="8"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Margin="16,0"
-                                    Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
+                                    Margin="8,0"
+                                    Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
                                     AutomationProperties.AutomationId="HomePage_FilterArea">
 
                             <!-- Ort-Picker (hierarchisch) -->
                             <controls:OrtPicker x:Name="OrtPickerControl"
-                                                MinWidth="200"
+                                                MinWidth="140"
                                                 Bezirke="{Binding Bezirke}"
                                                 SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
                                                 AutomationProperties.AutomationId="HomePage_OrtPicker" />
 
-                            <!-- Separator -->
-                            <Border Width="1"
-                                    Height="24"
-                                    Background="{ThemeResource BorderBrush}" />
-
                             <!-- Filter Chips -->
                             <StackPanel Orientation="Horizontal"
-                                        Spacing="8"
+                                        Spacing="6"
                                         AutomationProperties.AutomationId="HomePage_FilterChips">
                                 <controls:FilterChip Label="Alle"
                                                      IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
@@ -85,7 +80,7 @@
                                 <controls:FilterChip Label="Haus"
                                                      IsSelected="{Binding IsHausSelected, Mode=TwoWay}"
                                                      AutomationProperties.AutomationId="HomePage_FilterChip_Haus" />
-                                <controls:FilterChip Label="Grundstück"
+                                <controls:FilterChip Label="Grund"
                                                      IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}"
                                                      AutomationProperties.AutomationId="HomePage_FilterChip_Grundstueck" />
                                 <controls:FilterChip Label="ZV"
@@ -121,13 +116,13 @@
                     </Grid>
                 </Border>
 
-                <!-- Mobile Filter (eigene Row, nur auf kleinen Screens) -->
+                <!-- Mobile Filter (eigene Row, bis Normal - unter 905px) -->
                 <Border Grid.Row="1"
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
                         Padding="12,8"
-                        Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}"
+                        Visibility="{utu:Responsive Normal=Visible, Wide=Collapsed}"
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
                     <StackPanel Spacing="8">
                         <!-- OrtPicker auf Mobile -->
@@ -136,21 +131,17 @@
                                             HorizontalAlignment="Stretch"
                                             AutomationProperties.AutomationId="HomePage_MobileOrtPicker" />
 
-                        <!-- Filter Chips: Eine Zeile, scrollbar bei Bedarf -->
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                      HorizontalScrollMode="Auto"
-                                      VerticalScrollMode="Disabled">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <controls:FilterChip Label="Alle"
-                                                     IsSelected="{Binding IsAllSelected, Mode=TwoWay}" />
-                                <controls:FilterChip Label="Haus"
-                                                     IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
-                                <controls:FilterChip Label="Grundstück"
-                                                     IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
-                                <controls:FilterChip Label="Zwangsverst."
-                                                     IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
-                            </StackPanel>
-                        </ScrollViewer>
+                        <!-- Filter Chips: Kurze Labels bei Mobile -->
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <controls:FilterChip Label="Alle"
+                                                 IsSelected="{Binding IsAllSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="Haus"
+                                                 IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="Grund"
+                                                 IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="ZV"
+                                                 IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
