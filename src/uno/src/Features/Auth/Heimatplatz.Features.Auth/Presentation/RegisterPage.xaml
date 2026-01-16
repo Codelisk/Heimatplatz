@@ -23,18 +23,19 @@
                 <DataTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="520" />
+                            <ColumnDefinition Width="*" MaxWidth="600" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left: Form Panel - Refined Editorial Style -->
+                        <!-- Left: Form Panel - Full Width -->
                         <Border Grid.Column="0"
                                 Background="{ThemeResource SurfaceBrush}">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalAlignment="Stretch">
                                 <StackPanel Padding="56,48"
                                             Spacing="32"
-                                            MaxWidth="380"
-                                            HorizontalAlignment="Center">
+                                            MaxWidth="440"
+                                            HorizontalAlignment="Stretch">
 
                                     <!-- Back + Logo Row -->
                                     <Grid>
@@ -221,113 +222,25 @@
                             </ScrollViewer>
                         </Border>
 
-                        <!-- Right: Hero Panel - Geometric Editorial Design -->
+                        <!-- Right: Hero Panel - Simple Branding -->
                         <Border Grid.Column="1"
                                 Background="{ThemeResource PrimaryButtonBackgroundBrush}">
-                            <Grid>
-                                <!-- Decorative geometric shapes -->
-                                <Border Width="300"
-                                        Height="300"
-                                        CornerRadius="150"
-                                        Opacity="0.03"
-                                        Background="{ThemeResource PrimaryButtonForegroundBrush}"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        Margin="0,-80,-80,0" />
-
-                                <Border Width="200"
-                                        Height="200"
-                                        CornerRadius="100"
-                                        Opacity="0.05"
-                                        Background="{ThemeResource PrimaryButtonForegroundBrush}"
+                            <StackPanel VerticalAlignment="Center"
                                         HorizontalAlignment="Left"
-                                        VerticalAlignment="Bottom"
-                                        Margin="-60,-0,0,-40" />
-
-                                <!-- Main Content -->
-                                <StackPanel VerticalAlignment="Center"
-                                            HorizontalAlignment="Left"
-                                            Margin="80,0"
-                                            MaxWidth="480">
-
-                                    <!-- House Icon -->
-                                    <Border Width="64"
-                                            Height="64"
-                                            CornerRadius="16"
-                                            Background="{ThemeResource PrimaryButtonForegroundBrush}"
-                                            Opacity="0.15"
-                                            Margin="0,0,0,32">
-                                        <FontIcon Glyph="&#xE80F;"
-                                                  FontSize="28"
-                                                  Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center" />
-                                    </Border>
-
-                                    <!-- Headline -->
-                                    <TextBlock Text="HEIMATPLATZ"
-                                               FontSize="48"
-                                               FontWeight="Bold"
-                                               CharacterSpacing="80"
-                                               Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
-
-                                    <!-- Tagline -->
-                                    <TextBlock FontSize="18"
-                                               Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                               Opacity="0.85"
-                                               Margin="0,20,0,0"
-                                               LineHeight="28"
-                                               TextWrapping="Wrap">
-                                        <Run Text="Ihre Traumimmobilie" /><LineBreak />
-                                        <Run Text="in Oberösterreich" />
-                                    </TextBlock>
-
-                                    <!-- Stats/Trust Indicators -->
-                                    <StackPanel Orientation="Horizontal"
-                                                Spacing="32"
-                                                Margin="0,48,0,0">
-                                        <StackPanel>
-                                            <TextBlock Text="500+"
-                                                       FontSize="28"
-                                                       FontWeight="Bold"
-                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
-                                            <TextBlock Text="Immobilien"
-                                                       FontSize="12"
-                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                                       Opacity="0.7" />
-                                        </StackPanel>
-                                        <Border Width="1"
-                                                Height="40"
-                                                Background="{ThemeResource PrimaryButtonForegroundBrush}"
-                                                Opacity="0.2" />
-                                        <StackPanel>
-                                            <TextBlock Text="50+"
-                                                       FontSize="28"
-                                                       FontWeight="Bold"
-                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
-                                            <TextBlock Text="Gemeinden"
-                                                       FontSize="12"
-                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                                       Opacity="0.7" />
-                                        </StackPanel>
-                                        <Border Width="1"
-                                                Height="40"
-                                                Background="{ThemeResource PrimaryButtonForegroundBrush}"
-                                                Opacity="0.2" />
-                                        <StackPanel>
-                                            <TextBlock Text="100%"
-                                                       FontSize="28"
-                                                       FontWeight="Bold"
-                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
-                                            <TextBlock Text="Regional"
-                                                       FontSize="12"
-                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                                       Opacity="0.7" />
-                                        </StackPanel>
-                                    </StackPanel>
-
-                                </StackPanel>
-                            </Grid>
+                                        Margin="64,0">
+                                <TextBlock Text="HEIMATPLATZ"
+                                           FontSize="42"
+                                           FontWeight="Bold"
+                                           CharacterSpacing="100"
+                                           Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
+                                <TextBlock Text="Finden Sie Ihre Traumimmobilie in Oberösterreich"
+                                           FontSize="16"
+                                           Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                           Opacity="0.9"
+                                           Margin="0,16,0,0"
+                                           TextWrapping="Wrap"
+                                           MaxWidth="400" />
+                            </StackPanel>
                         </Border>
 
                     </Grid>
