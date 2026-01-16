@@ -48,22 +48,32 @@ builder.Services.AddAuthorization(options =>
 {
     // Policy: Nur Kaeufer
     options.AddPolicy(AuthorizationPolicies.RequireBuyer, policy =>
-        policy.RequireClaim("user_role", "Buyer"));
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("user_role", "Buyer");
+    });
 
     // Policy: Nur Verkaeufer
     options.AddPolicy(AuthorizationPolicies.RequireSeller, policy =>
-        policy.RequireClaim("user_role", "Seller"));
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("user_role", "Seller");
+    });
 
     // Policy: Kaeufer ODER Verkaeufer (mindestens eine Rolle)
     options.AddPolicy(AuthorizationPolicies.RequireAnyRole, policy =>
+    {
+        policy.RequireAuthenticatedUser();
         policy.RequireAssertion(context =>
             context.User.HasClaim(c =>
                 c.Type == "user_role" &&
-                (c.Value == "Buyer" || c.Value == "Seller"))));
+                (c.Value == "Buyer" || c.Value == "Seller")));
+    });
 
     // Policy: Kaeufer UND Verkaeufer (beide Rollen)
     options.AddPolicy(AuthorizationPolicies.RequireBuyerAndSeller, policy =>
     {
+        policy.RequireAuthenticatedUser();
         policy.RequireClaim("user_role", "Buyer");
         policy.RequireClaim("user_role", "Seller");
     });
