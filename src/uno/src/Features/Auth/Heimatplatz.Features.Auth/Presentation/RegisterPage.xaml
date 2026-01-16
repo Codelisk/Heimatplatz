@@ -339,8 +339,7 @@
                                                        Foreground="{ThemeResource OnSurfaceBrush}" />
                                             <TextBox Text="{Binding Vorname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Max"
-                                                     Height="48"
-                                                     VerticalContentAlignment="Center"
+                                                     Padding="12,14"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
 
@@ -352,8 +351,7 @@
                                                        Foreground="{ThemeResource OnSurfaceBrush}" />
                                             <TextBox Text="{Binding Nachname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Mustermann"
-                                                     Height="48"
-                                                     VerticalContentAlignment="Center"
+                                                     Padding="12,14"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
                                     </Grid>
@@ -366,8 +364,7 @@
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
                                         <TextBox Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  PlaceholderText="max@beispiel.at"
-                                                 Height="48"
-                                                 VerticalContentAlignment="Center"
+                                                 Padding="12,14"
                                                  CornerRadius="{StaticResource RadiusSm}" />
                                     </StackPanel>
 
@@ -379,8 +376,7 @@
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
                                         <PasswordBox Password="{Binding Passwort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Mindestens 8 Zeichen"
-                                                     Height="48"
-                                                     VerticalContentAlignment="Center"
+                                                     Padding="12,14"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                     </StackPanel>
 
@@ -392,8 +388,7 @@
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
                                         <PasswordBox Password="{Binding PasswortBestaetigung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Passwort wiederholen"
-                                                     Height="48"
-                                                     VerticalContentAlignment="Center"
+                                                     Padding="12,14"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                     </StackPanel>
 
