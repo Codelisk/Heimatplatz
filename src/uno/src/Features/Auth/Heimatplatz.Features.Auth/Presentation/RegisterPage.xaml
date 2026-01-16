@@ -32,9 +32,8 @@
                                 Background="{ThemeResource SurfaceBrush}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto"
                                           HorizontalAlignment="Stretch">
-                                <StackPanel Padding="56,48"
+                                <StackPanel Padding="48,48"
                                             Spacing="32"
-                                            MaxWidth="440"
                                             HorizontalAlignment="Stretch">
 
                                     <!-- Back + Logo Row -->
