@@ -60,7 +60,7 @@ public sealed partial class PropertyCard : UserControl
         // Titel
         TitleText.Text = property.Titel;
 
-        // Typ-Badge
+        // Typ-Badge Text und Farbe
         TypeBadgeText.Text = property.Typ switch
         {
             PropertyType.Haus => "HAUS",
@@ -69,14 +69,22 @@ public sealed partial class PropertyCard : UserControl
             _ => "IMM"
         };
 
-        // Zwangsversteigerung visuell hervorheben
-        if (property.Typ == PropertyType.Zwangsversteigerung)
+        // Typ-spezifische Farben: HAUS=schwarz, GRUND=grün, ZV=rot
+        (TypeBadge.Background, TypeBadgeText.Foreground) = property.Typ switch
         {
-            TypeBadge.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Microsoft.UI.Colors.Firebrick);
-            TypeBadgeText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Microsoft.UI.Colors.White);
-        }
+            PropertyType.Haus => (
+                new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 45, 55, 72)),
+                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
+            PropertyType.Grundstueck => (
+                new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 34, 139, 34)),
+                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
+            PropertyType.Zwangsversteigerung => (
+                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Firebrick),
+                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
+            _ => (
+                (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"],
+                (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChipSelectedForegroundBrush"])
+        };
 
         // Grundstuecksflaeche
         GrundstueckText.Text = property.GrundstuecksflaecheM2?.ToString("N0") ?? "—";
