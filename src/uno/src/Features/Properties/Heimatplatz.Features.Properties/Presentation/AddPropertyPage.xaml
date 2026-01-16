@@ -1,0 +1,202 @@
+<Page x:Class="Heimatplatz.Features.Properties.Presentation.AddPropertyPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
+      xmlns:models="using:Heimatplatz.Features.Properties.Contracts.Models"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer>
+        <utu:AutoLayout Padding="24"
+                        Spacing="24"
+                        Orientation="Vertical"
+                        PrimaryAxisAlignment="Start">
+
+            <!-- Header -->
+            <utu:AutoLayout Spacing="8"
+                            Orientation="Vertical">
+                <TextBlock Text="Immobilie hinzufügen"
+                           Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock Text="Erstellen Sie ein neues Immobilienangebot"
+                           Style="{StaticResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </utu:AutoLayout>
+
+            <!-- Success Message -->
+            <InfoBar x:Name="SuccessInfoBar"
+                     Visibility="{x:Bind ViewModel.ShowSuccess, Mode=OneWay}"
+                     Severity="Success"
+                     Title="Erfolgreich gespeichert"
+                     Message="Ihre Immobilie wurde erfolgreich erstellt."
+                     IsClosable="True"
+                     IsOpen="True" />
+
+            <!-- Error Message -->
+            <InfoBar x:Name="ErrorInfoBar"
+                     Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                     Severity="Error"
+                     Title="Fehler"
+                     Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                     IsClosable="True"
+                     IsOpen="True" />
+
+            <!-- Basis-Informationen -->
+            <utu:Card>
+                <utu:AutoLayout Padding="20"
+                                Spacing="16"
+                                Orientation="Vertical">
+                    <TextBlock Text="Basis-Informationen"
+                               Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                    <TextBox Header="Titel *"
+                             Text="{x:Bind ViewModel.Titel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="z.B. Einfamilienhaus in Linz-Urfahr"
+                             MaxLength="200" />
+
+                    <TextBox Header="Beschreibung *"
+                             Text="{x:Bind ViewModel.Beschreibung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Detaillierte Beschreibung der Immobilie (mind. 50 Zeichen)"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             MinHeight="120"
+                             MaxLength="2000" />
+
+                    <utu:AutoLayout Orientation="Horizontal"
+                                    Spacing="16">
+                        <TextBox Header="Preis (EUR) *"
+                                 Text="{x:Bind ViewModel.Preis, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="349000"
+                                 InputScope="Number"
+                                 Width="200" />
+
+                        <ComboBox Header="Immobilientyp *"
+                                  SelectedItem="{x:Bind ViewModel.SelectedTyp, Mode=TwoWay}"
+                                  Width="200">
+                            <x:String>Haus</x:String>
+                            <x:String>Grundstück</x:String>
+                            <x:String>Zwangsversteigerung</x:String>
+                        </ComboBox>
+                    </utu:AutoLayout>
+                </utu:AutoLayout>
+            </utu:Card>
+
+            <!-- Adresse -->
+            <utu:Card>
+                <utu:AutoLayout Padding="20"
+                                Spacing="16"
+                                Orientation="Vertical">
+                    <TextBlock Text="Adresse"
+                               Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                    <TextBox Header="Straße und Hausnummer *"
+                             Text="{x:Bind ViewModel.Adresse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Hauptstraße 15" />
+
+                    <utu:AutoLayout Orientation="Horizontal"
+                                    Spacing="16">
+                        <TextBox Header="Ort *"
+                                 Text="{x:Bind ViewModel.Ort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="Linz"
+                                 Width="250" />
+
+                        <TextBox Header="PLZ *"
+                                 Text="{x:Bind ViewModel.Plz, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="4040"
+                                 InputScope="Number"
+                                 Width="120" />
+                    </utu:AutoLayout>
+                </utu:AutoLayout>
+            </utu:Card>
+
+            <!-- Details (Optional) -->
+            <utu:Card>
+                <utu:AutoLayout Padding="20"
+                                Spacing="16"
+                                Orientation="Vertical">
+                    <TextBlock Text="Details (optional)"
+                               Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                    <utu:AutoLayout Orientation="Horizontal"
+                                    Spacing="16">
+                        <TextBox Header="Wohnfläche (m²)"
+                                 Text="{x:Bind ViewModel.WohnflaecheM2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="145"
+                                 InputScope="Number"
+                                 Width="140" />
+
+                        <TextBox Header="Grundstücksfläche (m²)"
+                                 Text="{x:Bind ViewModel.GrundstuecksflaecheM2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="520"
+                                 InputScope="Number"
+                                 Width="180" />
+
+                        <TextBox Header="Zimmer"
+                                 Text="{x:Bind ViewModel.Zimmer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="5"
+                                 InputScope="Number"
+                                 Width="100" />
+
+                        <TextBox Header="Baujahr"
+                                 Text="{x:Bind ViewModel.Baujahr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="2018"
+                                 InputScope="Number"
+                                 Width="120" />
+                    </utu:AutoLayout>
+                </utu:AutoLayout>
+            </utu:Card>
+
+            <!-- Anbieter-Informationen -->
+            <utu:Card>
+                <utu:AutoLayout Padding="20"
+                                Spacing="16"
+                                Orientation="Vertical">
+                    <TextBlock Text="Anbieter-Informationen"
+                               Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                    <utu:AutoLayout Orientation="Horizontal"
+                                    Spacing="16">
+                        <ComboBox Header="Anbietertyp *"
+                                  SelectedItem="{x:Bind ViewModel.SelectedAnbieterTyp, Mode=TwoWay}"
+                                  Width="200">
+                            <x:String>Privat</x:String>
+                            <x:String>Makler</x:String>
+                        </ComboBox>
+
+                        <TextBox Header="Anbieter-Name *"
+                                 Text="{x:Bind ViewModel.AnbieterName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="Ihr Name"
+                                 Width="300" />
+                    </utu:AutoLayout>
+                </utu:AutoLayout>
+            </utu:Card>
+
+            <!-- Actions -->
+            <utu:AutoLayout Orientation="Horizontal"
+                            Spacing="12"
+                            PrimaryAxisAlignment="End">
+                <Button Content="Abbrechen"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        Click="OnCancelClick" />
+
+                <Button Command="{x:Bind ViewModel.SavePropertyCommand}"
+                        Style="{StaticResource AccentButtonStyle}"
+                        MinWidth="140">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ProgressRing Width="16"
+                                      Height="16"
+                                      IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                                      Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                        <TextBlock Text="Speichern" />
+                    </StackPanel>
+                </Button>
+            </utu:AutoLayout>
+
+            <!-- Required Fields Note -->
+            <TextBlock Text="* Pflichtfelder"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       HorizontalAlignment="Right" />
+
+        </utu:AutoLayout>
+    </ScrollViewer>
+</Page>

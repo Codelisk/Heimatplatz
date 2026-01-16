@@ -1,4 +1,5 @@
 using Heimatplatz.Api.Core.Data.Entities;
+using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
 
 namespace Heimatplatz.Api.Features.Properties.Data.Entities;
@@ -52,4 +53,10 @@ public class Property : BaseEntity
 
     /// <summary>Bild-URLs (JSON-Array)</summary>
     public List<string> BildUrls { get; set; } = [];
+
+    /// <summary>ID des Benutzers (Verkaeufer), der diese Immobilie erstellt hat</summary>
+    public Guid UserId { get; set; }
+
+    /// <summary>Navigation Property zum Benutzer (Verkaeufer)</summary>
+    public User User { get; set; } = null!;
 }

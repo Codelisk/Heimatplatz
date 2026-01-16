@@ -1,5 +1,7 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
+using Heimatplatz.Api.Features.Auth.Contracts.Enums;
+using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +20,29 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
         if (await dbContext.Set<Property>().AnyAsync(cancellationToken))
             return;
 
+        // Benutzer mit Seller-Rolle abrufen
+        var sellers = await dbContext.Set<UserRole>()
+            .Where(ur => ur.RoleType == UserRoleType.Seller)
+            .Select(ur => ur.UserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        if (sellers.Count == 0)
+        {
+            // Keine Seller vorhanden - Seeding ueberspringen
+            return;
+        }
+
+        // Properties gleichmaessig auf Seller verteilen
+        var sellerIndex = 0;
+        Guid GetNextSellerId()
+        {
+            var sellerId = sellers[sellerIndex];
+            sellerIndex = (sellerIndex + 1) % sellers.Count;
+            return sellerId;
+        }
+
+        var now = DateTimeOffset.UtcNow;
         var properties = new List<Property>
         {
             // Haeuser
@@ -244,6 +269,13 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 BildUrls = ["https://picsum.photos/seed/doppel1/800/600"]
             }
         };
+
+        // UserId und CreatedAt fuer alle Properties setzen
+        foreach (var property in properties)
+        {
+            property.UserId = GetNextSellerId();
+            property.CreatedAt = now;
+        }
 
         dbContext.Set<Property>().AddRange(properties);
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -54,10 +54,20 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
                 v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
             );
 
+        // Foreign Key zu User (Verkaeufer)
+        builder.Property(p => p.UserId)
+            .IsRequired();
+
+        builder.HasOne(p => p.User)
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Indizes fuer haeufige Abfragen
         builder.HasIndex(p => p.Typ);
         builder.HasIndex(p => p.Ort);
         builder.HasIndex(p => p.Preis);
         builder.HasIndex(p => p.CreatedAt);
+        builder.HasIndex(p => p.UserId);
     }
 }

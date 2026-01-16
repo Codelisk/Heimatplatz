@@ -51,6 +51,12 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     private string? _userInitials;
 
+    [ObservableProperty]
+    private string? _userFirstInitial;
+
+    [ObservableProperty]
+    private string? _userDisplayName;
+
     private List<string> _selectedOrte = new();
     public List<string> SelectedOrte
     {
@@ -96,6 +102,8 @@ public partial class HomeViewModel : ObservableObject
         IsAuthenticated = _authService.IsAuthenticated;
         UserFullName = _authService.UserFullName;
         UserInitials = GetInitials(_authService.UserFullName);
+        UserFirstInitial = GetFirstInitial(_authService.UserFullName);
+        UserDisplayName = GetDisplayName(_authService.UserFullName);
     }
 
     private static string? GetInitials(string? fullName)
@@ -111,6 +119,36 @@ public partial class HomeViewModel : ObservableObject
             return parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant();
 
         return $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Erstes Initial fuer Monogramm-Anzeige (z.B. "M")
+    /// </summary>
+    private static string? GetFirstInitial(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return null;
+
+        return fullName.Trim()[0].ToString().ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Abgekuerzter Anzeigename fuer elegante Darstellung (z.B. "M. Schmidt")
+    /// </summary>
+    private static string? GetDisplayName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return null;
+
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+            return null;
+
+        if (parts.Length == 1)
+            return parts[0];
+
+        // Format: "M. Nachname"
+        return $"{parts[0][0]}. {parts[^1]}";
     }
 
     [RelayCommand]

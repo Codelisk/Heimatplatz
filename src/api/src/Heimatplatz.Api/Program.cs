@@ -39,7 +39,31 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+// Authorization mit Policies fuer Benutzerrollen
+builder.Services.AddAuthorization(options =>
+{
+    // Policy: Nur Kaeufer
+    options.AddPolicy("RequireBuyer", policy =>
+        policy.RequireClaim("user_role", "Buyer"));
+
+    // Policy: Nur Verkaeufer
+    options.AddPolicy("RequireSeller", policy =>
+        policy.RequireClaim("user_role", "Seller"));
+
+    // Policy: Kaeufer ODER Verkaeufer (mindestens eine Rolle)
+    options.AddPolicy("RequireAnyRole", policy =>
+        policy.RequireAssertion(context =>
+            context.User.HasClaim(c =>
+                c.Type == "user_role" &&
+                (c.Value == "Buyer" || c.Value == "Seller"))));
+
+    // Policy: Kaeufer UND Verkaeufer (beide Rollen)
+    options.AddPolicy("RequireBuyerAndSeller", policy =>
+    {
+        policy.RequireClaim("user_role", "Buyer");
+        policy.RequireClaim("user_role", "Seller");
+    });
+});
 
 // JSON Serialization: Enums als Strings fuer bessere OpenAPI Dokumentation
 builder.Services.ConfigureHttpJsonOptions(options =>

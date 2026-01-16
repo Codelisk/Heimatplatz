@@ -2,12 +2,22 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Shiny.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Api.Features.Auth.Services;
+
+/// <summary>
+/// Claim-Type fuer Benutzerrollen
+/// </summary>
+public static class HeimatplatzClaimTypes
+{
+    /// <summary>Claim-Type fuer Benutzerrollen (Buyer, Seller)</summary>
+    public const string UserRole = "user_role";
+}
 
 /// <summary>
 /// JWT Token Service - generiert Access und Refresh Tokens
@@ -28,7 +38,7 @@ public class TokenService : ITokenService
         _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
     }
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user, IEnumerable<UserRoleType>? roles = null)
     {
         var issuer = _configuration["Authentication:Jwt:Issuer"];
         var audience = _configuration["Authentication:Jwt:Audience"];
@@ -44,6 +54,15 @@ public class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
+
+        // Benutzerrollen als Claims hinzufuegen
+        if (roles != null)
+        {
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(HeimatplatzClaimTypes.UserRole, role.ToString()));
+            }
+        }
 
         var credentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
 

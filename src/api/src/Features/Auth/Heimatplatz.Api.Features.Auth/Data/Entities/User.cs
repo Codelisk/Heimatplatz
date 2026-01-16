@@ -21,4 +21,7 @@ public class User : BaseEntity
 
     /// <summary>Vollstaendiger Name</summary>
     public string FullName => $"{Vorname} {Nachname}";
+
+    /// <summary>Rollen des Benutzers (Kaeufer, Verkaeufer)</summary>
+    public ICollection<UserRole> Roles { get; set; } = new List<UserRole>();
 }

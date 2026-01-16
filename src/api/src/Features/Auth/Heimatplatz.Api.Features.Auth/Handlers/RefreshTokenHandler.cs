@@ -20,9 +20,10 @@ public class RefreshTokenHandler(
     [MediatorHttpPost("/api/auth/refresh", OperationId = "RefreshToken")]
     public async Task<RefreshTokenResponse> Handle(RefreshTokenRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
-        // Refresh Token in DB suchen
+        // Refresh Token in DB suchen inkl. User und dessen Rollen
         var storedToken = await dbContext.Set<RefreshToken>()
             .Include(rt => rt.User)
+                .ThenInclude(u => u!.Roles)
             .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken, cancellationToken);
 
         if (storedToken == null)
@@ -45,8 +46,11 @@ public class RefreshTokenHandler(
         storedToken.IsRevoked = true;
         storedToken.RevokedAt = DateTimeOffset.UtcNow;
 
-        // Neue Tokens generieren
-        var accessToken = tokenService.GenerateAccessToken(storedToken.User);
+        // Rollen des Benutzers ermitteln
+        var roles = storedToken.User.Roles.Select(r => r.RoleType);
+
+        // Neue Tokens generieren mit Rollen
+        var accessToken = tokenService.GenerateAccessToken(storedToken.User, roles);
         var newRefreshTokenString = tokenService.GenerateRefreshToken();
         var refreshValidityHours = tokenService.GetRefreshTokenValidityHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(refreshValidityHours);

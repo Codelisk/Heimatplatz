@@ -1,5 +1,6 @@
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
@@ -45,8 +46,27 @@ public class RegisterHandler(
         dbContext.Set<User>().Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Automatischer Login nach Registrierung: Tokens generieren
-        var accessToken = tokenService.GenerateAccessToken(user);
+        // Rollen zuweisen falls angegeben
+        var assignedRoles = new List<UserRoleType>();
+        if (request.Roles is { Count: > 0 })
+        {
+            foreach (var roleType in request.Roles.Distinct())
+            {
+                var userRole = new UserRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    RoleType = roleType,
+                    CreatedAt = DateTimeOffset.UtcNow
+                };
+                dbContext.Set<UserRole>().Add(userRole);
+                assignedRoles.Add(roleType);
+            }
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        // Automatischer Login nach Registrierung: Tokens generieren (mit zugewiesenen Rollen)
+        var accessToken = tokenService.GenerateAccessToken(user, roles: assignedRoles.Count > 0 ? assignedRoles : null);
         var refreshTokenString = tokenService.GenerateRefreshToken();
         var refreshValidityHours = tokenService.GetRefreshTokenValidityHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(refreshValidityHours);

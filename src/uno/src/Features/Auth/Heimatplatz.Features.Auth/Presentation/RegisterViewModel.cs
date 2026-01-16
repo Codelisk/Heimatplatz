@@ -44,6 +44,12 @@ public partial class RegisterViewModel : ObservableObject
     private bool _isSuccess;
 
     [ObservableProperty]
+    private bool _isBuyer;
+
+    [ObservableProperty]
+    private bool _isSeller;
+
+    [ObservableProperty]
     private string? _successMessage;
 
     public RegisterViewModel(IMediator mediator, IAuthService authService)
@@ -58,13 +64,16 @@ public partial class RegisterViewModel : ObservableObject
         !string.IsNullOrWhiteSpace(Email) &&
         !string.IsNullOrWhiteSpace(Passwort) &&
         Passwort == PasswortBestaetigung &&
-        Passwort.Length >= 8;
+        Passwort.Length >= 8 &&
+        (IsBuyer || IsSeller); // Mindestens eine Rolle muss ausgewaehlt sein
 
     partial void OnVornameChanged(string value) => OnPropertyChanged(nameof(CanRegister));
     partial void OnNachnameChanged(string value) => OnPropertyChanged(nameof(CanRegister));
     partial void OnEmailChanged(string value) => OnPropertyChanged(nameof(CanRegister));
     partial void OnPasswortChanged(string value) => OnPropertyChanged(nameof(CanRegister));
     partial void OnPasswortBestaetigungChanged(string value) => OnPropertyChanged(nameof(CanRegister));
+    partial void OnIsBuyerChanged(bool value) => OnPropertyChanged(nameof(CanRegister));
+    partial void OnIsSellerChanged(bool value) => OnPropertyChanged(nameof(CanRegister));
 
     [RelayCommand]
     private async Task RegisterAsync()
@@ -82,6 +91,13 @@ public partial class RegisterViewModel : ObservableObject
 
         try
         {
+            // Rollen basierend auf Auswahl erstellen
+            var selectedRoles = new List<Heimatplatz.Core.ApiClient.Generated.UserRoleType>();
+            if (IsBuyer)
+                selectedRoles.Add(Heimatplatz.Core.ApiClient.Generated.UserRoleType.Buyer);
+            if (IsSeller)
+                selectedRoles.Add(Heimatplatz.Core.ApiClient.Generated.UserRoleType.Seller);
+
             // Der RegisterHttpRequest wird automatisch aus der OpenAPI-Spec generiert
             // Body enthält den eigentlichen Request gemäß OpenAPI-Schema
             var response = await _mediator.Request(new Heimatplatz.Core.ApiClient.Generated.RegisterHttpRequest
@@ -91,7 +107,8 @@ public partial class RegisterViewModel : ObservableObject
                     Vorname = Vorname,
                     Nachname = Nachname,
                     Email = Email,
-                    Passwort = Passwort
+                    Passwort = Passwort,
+                    Roles = selectedRoles
                 }
             });
 
@@ -113,6 +130,8 @@ public partial class RegisterViewModel : ObservableObject
             Email = string.Empty;
             Passwort = string.Empty;
             PasswortBestaetigung = string.Empty;
+            IsBuyer = false;
+            IsSeller = false;
         }
         catch (Exception ex)
         {
@@ -139,6 +158,8 @@ public partial class RegisterViewModel : ObservableObject
             return "Das Passwort muss mindestens 8 Zeichen lang sein.";
         if (Passwort != PasswortBestaetigung)
             return "Die Passwörter stimmen nicht überein.";
+        if (!IsBuyer && !IsSeller)
+            return "Bitte wählen Sie mindestens eine Rolle (Käufer oder Verkäufer).";
         return string.Empty;
     }
 }

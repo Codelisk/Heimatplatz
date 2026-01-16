@@ -19,6 +19,9 @@ public static class ServiceCollectionExtensions
         services.AddAppData(configuration);
         services.AddDataSeeding();
 
+        // HttpContext für Handler, die den authentifizierten User benötigen
+        services.AddHttpContextAccessor();
+
         services.AddShinyServiceRegistry();
         services.AddShinyMediator();
 

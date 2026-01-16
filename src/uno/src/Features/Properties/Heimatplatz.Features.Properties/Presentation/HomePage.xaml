@@ -131,11 +131,13 @@
                                         AutomationProperties.AutomationId="HomePage_RegisterButton" />
                             </StackPanel>
 
-                            <!-- Eingeloggt: Profil-Bereich -->
+                            <!-- Eingeloggt: Profil-Button - Minimales Monogramm -->
                             <Button Visibility="{Binding IsAuthenticated}"
                                     Background="Transparent"
                                     BorderThickness="0"
-                                    Padding="4"
+                                    Padding="0"
+                                    MinWidth="0"
+                                    MinHeight="0"
                                     AutomationProperties.AutomationId="HomePage_ProfileButton">
                                 <Button.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedRight">
@@ -143,6 +145,13 @@
                                                         AutomationProperties.AutomationId="HomePage_ProfileMenuItem">
                                             <MenuFlyoutItem.Icon>
                                                 <FontIcon Glyph="&#xE77B;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Immobilie hinzufügen"
+                                                        uen:Navigation.Request="AddProperty"
+                                                        AutomationProperties.AutomationId="HomePage_AddPropertyMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE710;" FontSize="14" />
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />
@@ -155,32 +164,10 @@
                                         </MenuFlyoutItem>
                                     </MenuFlyout>
                                 </Button.Flyout>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <!-- Avatar mit Initialen -->
-                                    <Grid Width="32" Height="32">
-                                        <Ellipse Fill="{ThemeResource PrimaryButtonBackgroundBrush}" />
-                                        <TextBlock Text="{Binding UserInitials}"
-                                                   Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                                   FontSize="12"
-                                                   FontWeight="SemiBold"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center" />
-                                    </Grid>
-                                    <!-- Name (nur Desktop) -->
-                                    <TextBlock Text="{Binding UserFullName}"
-                                               Foreground="{ThemeResource OnSurfaceBrush}"
-                                               FontSize="13"
-                                               FontWeight="Medium"
-                                               VerticalAlignment="Center"
-                                               Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
-                                               MaxWidth="120"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <!-- Dropdown-Chevron -->
-                                    <FontIcon Glyph="&#xE70D;"
-                                              FontSize="10"
-                                              Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                              VerticalAlignment="Center" />
-                                </StackPanel>
+                                <!-- Profil-Icon -->
+                                <FontIcon Glyph="&#xE77B;"
+                                          FontSize="20"
+                                          Foreground="{ThemeResource OnSurfaceBrush}" />
                             </Button>
                         </StackPanel>
                     </Grid>

@@ -169,6 +169,48 @@
                                                          CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
 
+                                        <!-- Rollenauswahl -->
+                                        <StackPanel Spacing="12" Margin="0,8,0,0">
+                                            <TextBlock Text="Ich möchte..."
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                            <TextBlock Text="Wählen Sie mindestens eine Option"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                       Margin="0,-4,0,4" />
+
+                                            <!-- Kaeufer Checkbox -->
+                                            <CheckBox IsChecked="{Binding IsBuyer, Mode=TwoWay}"
+                                                      Padding="8,0,0,0">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="Immobilien suchen"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                    <TextBlock Text="Als Käufer Angebote entdecken und Anfragen stellen"
+                                                               FontSize="12"
+                                                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </CheckBox>
+
+                                            <!-- Verkaeufer Checkbox -->
+                                            <CheckBox IsChecked="{Binding IsSeller, Mode=TwoWay}"
+                                                      Padding="8,0,0,0">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="Immobilien anbieten"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                    <TextBlock Text="Als Verkäufer eigene Objekte inserieren und verwalten"
+                                                               FontSize="12"
+                                                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </CheckBox>
+                                        </StackPanel>
+
                                     </StackPanel>
 
                                     <!-- Register Button - Prominent CTA -->
@@ -396,6 +438,46 @@
                                                      PlaceholderText="Passwort wiederholen"
                                                      Padding="12,14"
                                                      CornerRadius="{StaticResource RadiusSm}" />
+                                    </StackPanel>
+
+                                    <!-- Rollenauswahl -->
+                                    <StackPanel Spacing="10" Margin="0,6,0,0">
+                                        <TextBlock Text="Ich möchte..."
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        <TextBlock Text="Wählen Sie mindestens eine Option"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                   Margin="0,-4,0,4" />
+
+                                        <!-- Kaeufer Checkbox -->
+                                        <CheckBox IsChecked="{Binding IsBuyer, Mode=TwoWay}"
+                                                  Padding="8,0,0,0">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="Immobilien suchen"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                <TextBlock Text="Als Käufer Angebote entdecken"
+                                                           FontSize="12"
+                                                           Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            </StackPanel>
+                                        </CheckBox>
+
+                                        <!-- Verkaeufer Checkbox -->
+                                        <CheckBox IsChecked="{Binding IsSeller, Mode=TwoWay}"
+                                                  Padding="8,0,0,0">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="Immobilien anbieten"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                <TextBlock Text="Als Verkäufer Objekte inserieren"
+                                                           FontSize="12"
+                                                           Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            </StackPanel>
+                                        </CheckBox>
                                     </StackPanel>
 
                                 </StackPanel>
