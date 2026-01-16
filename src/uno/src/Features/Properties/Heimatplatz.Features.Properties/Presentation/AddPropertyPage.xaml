@@ -15,6 +15,37 @@
         </Style>
     </Page.Resources>
 
+    <!-- Visual States for Responsive Layout -->
+    <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="WindowSizeStates">
+            <VisualState x:Name="WideState">
+                <VisualState.StateTriggers>
+                    <AdaptiveTrigger MinWindowWidth="600" />
+                </VisualState.StateTriggers>
+            </VisualState>
+
+            <VisualState x:Name="NarrowState">
+                <VisualState.StateTriggers>
+                    <AdaptiveTrigger MinWindowWidth="0" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                    <!-- Switch to vertical layouts -->
+                    <Setter Target="PropertyTypeLayout.Orientation" Value="Vertical" />
+                    <Setter Target="AddressLayout.Orientation" Value="Vertical" />
+                    <Setter Target="PriceLayout.Orientation" Value="Vertical" />
+                    <Setter Target="HouseDetailsLayout.Orientation" Value="Vertical" />
+
+                    <!-- Remove width constraints for full-width fields -->
+                    <Setter Target="CityField.Width" Value="NaN" />
+                    <Setter Target="PostalCodeField.Width" Value="NaN" />
+                    <Setter Target="WohnflaecheField.Width" Value="NaN" />
+                    <Setter Target="ZimmerField.Width" Value="NaN" />
+                    <Setter Target="BaujahrField.Width" Value="NaN" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+
     <ScrollViewer>
         <StackPanel Padding="12" Spacing="8" MaxWidth="900">
 
@@ -38,42 +69,26 @@
                      IsClosable="True"
                      IsOpen="True" />
 
-            <Grid ColumnSpacing="8" RowSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <ComboBox Grid.Column="0"
-                          Grid.Row="0"
+            <StackPanel x:Name="PropertyTypeLayout" Spacing="8" Orientation="Horizontal">
+                <ComboBox x:Name="PropertyTypeCombo"
                           Header="Immobilientyp *"
                           ItemsSource="{Binding PropertyTypes}"
                           SelectedItem="{Binding SelectedPropertyTypeItem, Mode=TwoWay}"
                           DisplayMemberPath="DisplayName"
-                          HorizontalAlignment="Stretch"
-                          MinWidth="200" />
+                          HorizontalAlignment="Stretch" />
 
-                <ComboBox Grid.Column="1"
-                          Grid.Row="0"
+                <ComboBox x:Name="SellerTypeCombo"
                           Header="Anbietertyp *"
                           SelectedItem="{Binding SelectedAnbieterTyp, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch"
-                          MinWidth="200">
+                          HorizontalAlignment="Stretch">
                     <x:String>Privat</x:String>
                     <x:String>Makler</x:String>
                 </ComboBox>
+            </StackPanel>
 
-                <TextBox Grid.Column="0"
-                         Grid.Row="1"
-                         Grid.ColumnSpan="2"
-                         Header="Titel *"
-                         Text="{Binding Titel, Mode=TwoWay}"
-                         PlaceholderText="z.B. Schöne 3-Zimmer Wohnung" />
-            </Grid>
+            <TextBox Header="Titel *"
+                     Text="{Binding Titel, Mode=TwoWay}"
+                     PlaceholderText="z.B. Schöne 3-Zimmer Wohnung" />
 
             <TextBox Header="Beschreibung *"
                      Text="{Binding Beschreibung, Mode=TwoWay}"
@@ -83,85 +98,73 @@
                      MinHeight="80"
                      MaxHeight="200" />
 
-            <Grid ColumnSpacing="8" RowSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="100" />
-                </Grid.ColumnDefinitions>
-
-                <TextBox Grid.Column="0"
+            <StackPanel x:Name="AddressLayout" Spacing="8" Orientation="Horizontal">
+                <TextBox x:Name="AddressField"
                          Header="Adresse *"
                          Text="{Binding Adresse, Mode=TwoWay}"
                          PlaceholderText="Straße und Hausnummer"
-                         MinWidth="150" />
+                         HorizontalAlignment="Stretch" />
 
-                <TextBox Grid.Column="1"
+                <TextBox x:Name="CityField"
                          Header="Ort *"
                          Text="{Binding Ort, Mode=TwoWay}"
                          PlaceholderText="z.B. Linz"
-                         MinWidth="120" />
+                         HorizontalAlignment="Stretch"
+                         Width="150" />
 
-                <TextBox Grid.Column="2"
+                <TextBox x:Name="PostalCodeField"
                          Header="PLZ *"
                          Text="{Binding Plz, Mode=TwoWay}"
                          PlaceholderText="4020"
                          InputScope="Number"
-                         MinWidth="80" />
-            </Grid>
+                         HorizontalAlignment="Stretch"
+                         Width="100" />
+            </StackPanel>
 
             <!-- Preis & Anbieter -->
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <TextBox Grid.Column="0"
+            <StackPanel x:Name="PriceLayout" Spacing="8" Orientation="Horizontal">
+                <TextBox x:Name="PriceField"
                          Header="Preis (€) *"
                          Text="{Binding Preis, Mode=TwoWay}"
                          PlaceholderText="z.B. 350000"
                          InputScope="Number"
-                         MinWidth="150" />
+                         HorizontalAlignment="Stretch" />
 
-                <TextBox Grid.Column="1"
+                <TextBox x:Name="SellerNameField"
                          Header="Anbieter-Name *"
                          Text="{Binding AnbieterName, Mode=TwoWay}"
                          PlaceholderText="Ihr Name"
-                         MinWidth="150" />
-            </Grid>
+                         HorizontalAlignment="Stretch" />
+            </StackPanel>
 
             <!-- Immobilien-Details (Haus) -->
-            <StackPanel Spacing="8"
+            <StackPanel x:Name="HouseDetailsLayout"
+                        Spacing="8"
+                        Orientation="Horizontal"
                         Visibility="{Binding IsHouseType, Mode=OneWay}">
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.5*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <TextBox x:Name="WohnflaecheField"
+                         Header="Wohnfläche (m²)"
+                         Text="{Binding WohnflaecheM2, Mode=TwoWay}"
+                         PlaceholderText="90"
+                         InputScope="Number"
+                         HorizontalAlignment="Stretch"
+                         Width="180" />
 
-                    <TextBox Grid.Column="0"
-                             Header="Wohnfläche (m²)"
-                             Text="{Binding WohnflaecheM2, Mode=TwoWay}"
-                             PlaceholderText="90"
-                             InputScope="Number"
-                             MinWidth="120" />
+                <TextBox x:Name="ZimmerField"
+                         Header="Zimmer"
+                         Text="{Binding Zimmer, Mode=TwoWay}"
+                         PlaceholderText="3"
+                         InputScope="Number"
+                         HorizontalAlignment="Stretch"
+                         Width="120" />
 
-                    <TextBox Grid.Column="1"
-                             Header="Zimmer"
-                             Text="{Binding Zimmer, Mode=TwoWay}"
-                             PlaceholderText="3"
-                             InputScope="Number"
-                             MinWidth="100" />
-
-                    <TextBox Grid.Column="2"
-                             Header="Baujahr"
-                             Text="{Binding Baujahr, Mode=TwoWay}"
-                             PlaceholderText="2005"
-                             InputScope="Number"
-                             MinWidth="100" />
-                </Grid>
+                <TextBox x:Name="BaujahrField"
+                         Header="Baujahr"
+                         Text="{Binding Baujahr, Mode=TwoWay}"
+                         PlaceholderText="2005"
+                         InputScope="Number"
+                         HorizontalAlignment="Stretch"
+                         Width="120" />
             </StackPanel>
 
             <!-- Grundstück (Land) -->
