@@ -54,13 +54,15 @@
                           ItemsSource="{Binding PropertyTypes}"
                           SelectedItem="{Binding SelectedPropertyTypeItem, Mode=TwoWay}"
                           DisplayMemberPath="DisplayName"
-                          HorizontalAlignment="Stretch" />
+                          HorizontalAlignment="Stretch"
+                          MinWidth="200" />
 
                 <ComboBox Grid.Column="1"
                           Grid.Row="0"
                           Header="Anbietertyp *"
                           SelectedItem="{Binding SelectedAnbieterTyp, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch">
+                          HorizontalAlignment="Stretch"
+                          MinWidth="200">
                     <x:String>Privat</x:String>
                     <x:String>Makler</x:String>
                 </ComboBox>
@@ -91,18 +93,21 @@
                 <TextBox Grid.Column="0"
                          Header="Adresse *"
                          Text="{Binding Adresse, Mode=TwoWay}"
-                         PlaceholderText="Straße und Hausnummer" />
+                         PlaceholderText="Straße und Hausnummer"
+                         MinWidth="150" />
 
                 <TextBox Grid.Column="1"
                          Header="Ort *"
                          Text="{Binding Ort, Mode=TwoWay}"
-                         PlaceholderText="z.B. Linz" />
+                         PlaceholderText="z.B. Linz"
+                         MinWidth="120" />
 
                 <TextBox Grid.Column="2"
                          Header="PLZ *"
                          Text="{Binding Plz, Mode=TwoWay}"
                          PlaceholderText="4020"
-                         InputScope="Number" />
+                         InputScope="Number"
+                         MinWidth="80" />
             </Grid>
 
             <!-- Preis & Anbieter -->
@@ -116,12 +121,14 @@
                          Header="Preis (€) *"
                          Text="{Binding Preis, Mode=TwoWay}"
                          PlaceholderText="z.B. 350000"
-                         InputScope="Number" />
+                         InputScope="Number"
+                         MinWidth="150" />
 
                 <TextBox Grid.Column="1"
                          Header="Anbieter-Name *"
                          Text="{Binding AnbieterName, Mode=TwoWay}"
-                         PlaceholderText="Ihr Name" />
+                         PlaceholderText="Ihr Name"
+                         MinWidth="150" />
             </Grid>
 
             <!-- Immobilien-Details (Haus) -->
@@ -138,19 +145,22 @@
                              Header="Wohnfläche (m²)"
                              Text="{Binding WohnflaecheM2, Mode=TwoWay}"
                              PlaceholderText="90"
-                             InputScope="Number" />
+                             InputScope="Number"
+                             MinWidth="120" />
 
                     <TextBox Grid.Column="1"
                              Header="Zimmer"
                              Text="{Binding Zimmer, Mode=TwoWay}"
                              PlaceholderText="3"
-                             InputScope="Number" />
+                             InputScope="Number"
+                             MinWidth="100" />
 
                     <TextBox Grid.Column="2"
                              Header="Baujahr"
                              Text="{Binding Baujahr, Mode=TwoWay}"
                              PlaceholderText="2005"
-                             InputScope="Number" />
+                             InputScope="Number"
+                             MinWidth="100" />
                 </Grid>
             </StackPanel>
 
@@ -160,7 +170,8 @@
                 <TextBox Header="Grundstücksfläche (m²)"
                          Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay}"
                          PlaceholderText="500"
-                         InputScope="Number" />
+                         InputScope="Number"
+                         MinWidth="150" />
             </StackPanel>
 
             <!-- Primary Action -->
