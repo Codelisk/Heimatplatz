@@ -275,14 +275,10 @@
                             <StackPanel Padding="24,28"
                                         Spacing="24">
 
-                                <!-- Title Section with accent -->
+                                <!-- Title Section -->
                                 <StackPanel Spacing="8">
-                                    <Border Width="32"
-                                            Height="3"
-                                            Background="{ThemeResource AccentBrush}"
-                                            HorizontalAlignment="Left" />
                                     <TextBlock Text="Konto erstellen"
-                                               FontSize="26"
+                                               FontSize="24"
                                                FontWeight="Bold"
                                                Foreground="{ThemeResource OnSurfaceBrush}" />
                                     <TextBlock Text="Registrieren Sie sich für exklusive Angebote"
@@ -344,6 +340,7 @@
                                             <TextBox Text="{Binding Vorname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Max"
                                                      Height="48"
+                                                     VerticalContentAlignment="Center"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
 
@@ -356,6 +353,7 @@
                                             <TextBox Text="{Binding Nachname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Mustermann"
                                                      Height="48"
+                                                     VerticalContentAlignment="Center"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
                                     </Grid>
@@ -369,6 +367,7 @@
                                         <TextBox Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  PlaceholderText="max@beispiel.at"
                                                  Height="48"
+                                                 VerticalContentAlignment="Center"
                                                  CornerRadius="{StaticResource RadiusSm}" />
                                     </StackPanel>
 
@@ -381,6 +380,7 @@
                                         <PasswordBox Password="{Binding Passwort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Mindestens 8 Zeichen"
                                                      Height="48"
+                                                     VerticalContentAlignment="Center"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                     </StackPanel>
 
@@ -393,6 +393,7 @@
                                         <PasswordBox Password="{Binding PasswortBestaetigung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Passwort wiederholen"
                                                      Height="48"
+                                                     VerticalContentAlignment="Center"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                     </StackPanel>
 
