@@ -10,6 +10,8 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// </summary>
 public sealed partial class HomePage : Page
 {
+    public HomeViewModel ViewModel => (HomeViewModel)DataContext;
+
     public HomePage()
     {
         this.InitializeComponent();

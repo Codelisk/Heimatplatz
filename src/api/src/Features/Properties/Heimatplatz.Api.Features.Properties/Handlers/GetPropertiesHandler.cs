@@ -1,4 +1,5 @@
 using Heimatplatz.Api;
+using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
@@ -15,7 +16,7 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class GetPropertiesHandler(AppDbContext dbContext) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
 {
-    [MediatorHttpGet("/api/properties", OperationId = "GetProperties")]
+    [MediatorHttpGet("/api/properties", OperationId = "GetProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var query = dbContext.Set<Property>().AsQueryable();

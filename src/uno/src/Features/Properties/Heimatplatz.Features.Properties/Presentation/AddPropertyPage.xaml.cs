@@ -13,6 +13,29 @@ public sealed partial class AddPropertyPage : Page
     public AddPropertyPage()
     {
         InitializeComponent();
+
+        // Beim Laden des ViewModels PropertyChanged-Listener hinzufügen
+        Loaded += OnPageLoaded;
+    }
+
+    private void OnPageLoaded(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Bei Fehler oder Success automatisch nach oben scrollen
+        if (e.PropertyName == nameof(ViewModel.HasError) || e.PropertyName == nameof(ViewModel.ShowSuccess))
+        {
+            if (ViewModel.HasError || ViewModel.ShowSuccess)
+            {
+                PageScrollViewer.ChangeView(null, 0, null, false);
+            }
+        }
     }
 
     private void OnCancelClick(object sender, RoutedEventArgs e)

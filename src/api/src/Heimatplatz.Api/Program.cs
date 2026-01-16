@@ -1,6 +1,7 @@
 
 using System.Text;
 using System.Text.Json.Serialization;
+using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Startup;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,6 +27,9 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    // Deaktiviere Claim-Type-Mapping (JWT Claims wie 'sub' nicht in XML-Schema Claims umwandeln)
+    options.MapInboundClaims = false;
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -43,22 +47,22 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(options =>
 {
     // Policy: Nur Kaeufer
-    options.AddPolicy("RequireBuyer", policy =>
+    options.AddPolicy(AuthorizationPolicies.RequireBuyer, policy =>
         policy.RequireClaim("user_role", "Buyer"));
 
     // Policy: Nur Verkaeufer
-    options.AddPolicy("RequireSeller", policy =>
+    options.AddPolicy(AuthorizationPolicies.RequireSeller, policy =>
         policy.RequireClaim("user_role", "Seller"));
 
     // Policy: Kaeufer ODER Verkaeufer (mindestens eine Rolle)
-    options.AddPolicy("RequireAnyRole", policy =>
+    options.AddPolicy(AuthorizationPolicies.RequireAnyRole, policy =>
         policy.RequireAssertion(context =>
             context.User.HasClaim(c =>
                 c.Type == "user_role" &&
                 (c.Value == "Buyer" || c.Value == "Seller"))));
 
     // Policy: Kaeufer UND Verkaeufer (beide Rollen)
-    options.AddPolicy("RequireBuyerAndSeller", policy =>
+    options.AddPolicy(AuthorizationPolicies.RequireBuyerAndSeller, policy =>
     {
         policy.RequireClaim("user_role", "Buyer");
         policy.RequireClaim("user_role", "Seller");
@@ -81,6 +85,7 @@ app.UseHttpsRedirection();
 // Authentication und Authorization Middleware
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapDefaultEndpoints();
 app.MapEndpoints();

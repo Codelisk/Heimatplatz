@@ -148,7 +148,7 @@
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
                                         <MenuFlyoutItem Text="Immobilie hinzufügen"
-                                                        uen:Navigation.Request="AddProperty"
+                                                        Command="{x:Bind ViewModel.NavigateToAddPropertyCommand}"
                                                         AutomationProperties.AutomationId="HomePage_AddPropertyMenuItem">
                                             <MenuFlyoutItem.Icon>
                                                 <FontIcon Glyph="&#xE710;" FontSize="14" />

@@ -1,4 +1,7 @@
 using Heimatplatz.Features.Properties.Presentation;
+#if DEBUG
+using Heimatplatz.Features.Debug.Presentation;
+#endif
 
 namespace Heimatplatz.App.Presentation;
 
@@ -15,6 +18,10 @@ public class ShellViewModel
 
     public async Task Start()
     {
+#if DEBUG
+        await _navigator.NavigateViewModelAsync<DebugStartViewModel>(this);
+#else
         await _navigator.NavigateViewModelAsync<HomeViewModel>(this);
+#endif
     }
 }

@@ -1,8 +1,8 @@
-using System.Net.Http.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Shiny.Mediator;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -12,7 +12,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 public partial class AddPropertyViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
-    private readonly HttpClient _httpClient;
+    private readonly IMediator _mediator;
 
     [ObservableProperty]
     private string _titel = string.Empty;
@@ -57,15 +57,18 @@ public partial class AddPropertyViewModel : ObservableObject
     private bool _isBusy;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
+
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     [ObservableProperty]
     private bool _showSuccess;
 
-    public AddPropertyViewModel(IAuthService authService, HttpClient httpClient)
+    public AddPropertyViewModel(IAuthService authService, IMediator mediator)
     {
         _authService = authService;
-        _httpClient = httpClient;
+        _mediator = mediator;
 
         // Verkäufer-Name mit aktuellem Benutzer vorausfüllen
         AnbieterName = _authService.UserFullName ?? string.Empty;
@@ -129,48 +132,32 @@ public partial class AddPropertyViewModel : ObservableObject
             if (!string.IsNullOrWhiteSpace(Baujahr) && int.TryParse(Baujahr, out var bj))
                 baujahrValue = bj;
 
-            var dto = new CreatePropertyDto(
-                Titel: Titel.Trim(),
-                Adresse: Adresse.Trim(),
-                Ort: Ort.Trim(),
-                Plz: Plz.Trim(),
-                Preis: preisValue,
-                Typ: SelectedTyp,
-                AnbieterTyp: SelectedAnbieterTyp,
-                AnbieterName: AnbieterName.Trim(),
-                Beschreibung: Beschreibung.Trim(),
-                WohnflaecheM2: wohnflaecheValue,
-                GrundstuecksflaecheM2: grundstuecksValue,
-                Zimmer: zimmerValue,
-                Baujahr: baujahrValue
-            );
-
-            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:5292/api/properties")
+            // Der CreatePropertyHttpRequest wird automatisch aus der OpenAPI-Spec generiert
+            var response = await _mediator.Request(new Heimatplatz.Core.ApiClient.Generated.CreatePropertyHttpRequest
             {
-                Content = JsonContent.Create(dto)
-            };
+                Body = new Heimatplatz.Core.ApiClient.Generated.CreatePropertyRequest
+                {
+                    Titel = Titel.Trim(),
+                    Adresse = Adresse.Trim(),
+                    Ort = Ort.Trim(),
+                    Plz = Plz.Trim(),
+                    Preis = (double)preisValue,
+                    Typ = (Heimatplatz.Core.ApiClient.Generated.PropertyType)SelectedTyp,
+                    AnbieterTyp = (Heimatplatz.Core.ApiClient.Generated.SellerType)SelectedAnbieterTyp,
+                    AnbieterName = AnbieterName.Trim(),
+                    Beschreibung = Beschreibung.Trim(),
+                    WohnflaecheM2 = wohnflaecheValue,
+                    GrundstuecksflaecheM2 = grundstuecksValue,
+                    Zimmer = zimmerValue,
+                    Baujahr = baujahrValue
+                }
+            });
 
-            // JWT Token hinzufügen
-            if (!string.IsNullOrEmpty(_authService.AccessToken))
-            {
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AccessToken);
-            }
+            ShowSuccess = true;
 
-            var response = await _httpClient.SendAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                ShowSuccess = true;
-
-                // Formular zurücksetzen
-                await Task.Delay(1500);
-                ResetForm();
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                ErrorMessage = $"Fehler beim Speichern: {response.StatusCode}";
-            }
+            // Formular zurücksetzen
+            await Task.Delay(1500);
+            ResetForm();
         }
         catch (Exception ex)
         {

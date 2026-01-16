@@ -1,0 +1,17 @@
+{
+  "titel": "Wunderschoenes Einfamilienhaus in Top-Lage mit Garten",
+  "adresse": "Musterstrasse 123",
+  "ort": "Zuerich",
+  "plz": "8001",
+  "preis": 1250000,
+  "typ": "Haus",
+  "anbieterTyp": "Privat",
+  "anbieterName": "Test Seller",
+  "beschreibung": "Ein traumhaftes Einfamilienhaus in bester Wohnlage mit einem gepflegten Garten. Das Haus verfuegt ueber eine moderne Ausstattung und wurde vor kurzem renoviert. Ideal fuer Familien.",
+  "wohnflaecheM2": 150,
+  "grundstuecksflaecheM2": 500,
+  "zimmer": 5,
+  "baujahr": 1995,
+  "ausstattung": ["Balkon", "Garten", "Garage", "Keller"],
+  "bildUrls": ["https://picsum.photos/800/600?random=1"]
+}

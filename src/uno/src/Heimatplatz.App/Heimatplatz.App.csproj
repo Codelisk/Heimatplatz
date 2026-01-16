@@ -61,6 +61,7 @@
     <ProjectReference Include="..\Features\Auth\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />
     <ProjectReference Include="..\Features\Properties\Heimatplatz.Features.Properties\Heimatplatz.Features.Properties.csproj" />
     <ProjectReference Include="..\Features\Properties\Heimatplatz.Features.Properties.Contracts\Heimatplatz.Features.Properties.Contracts.csproj" />
+    <ProjectReference Include="..\Features\Debug\Heimatplatz.Features.Debug\Heimatplatz.Features.Debug.csproj" Condition="'$(Configuration)' == 'Debug'" />
     <!-- Framework References -->
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework.Contracts\UnoFramework.Contracts.csproj" />

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Heimatplatz.Api;
+using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
@@ -19,7 +20,7 @@ public class CreatePropertyHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<CreatePropertyRequest, CreatePropertyResponse>
 {
-    [MediatorHttpPost("/api/properties", OperationId = "CreateProperty")]
+    [MediatorHttpPost("/api/properties", OperationId = "CreateProperty", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<CreatePropertyResponse> Handle(CreatePropertyRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // UserId aus JWT Token extrahieren

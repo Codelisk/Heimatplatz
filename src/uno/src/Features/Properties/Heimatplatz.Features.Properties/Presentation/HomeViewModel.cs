@@ -5,6 +5,7 @@ using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -14,6 +15,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 public partial class HomeViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
+    private readonly INavigator _navigator;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -83,9 +85,10 @@ public partial class HomeViewModel : ObservableObject
 
     public Visibility IsEmpty => Properties.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-    public HomeViewModel(IAuthService authService)
+    public HomeViewModel(IAuthService authService, INavigator navigator)
     {
         _authService = authService;
+        _navigator = navigator;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
         UpdateAuthState();
@@ -155,6 +158,12 @@ public partial class HomeViewModel : ObservableObject
     private void Logout()
     {
         _authService.ClearAuthentication();
+    }
+
+    [RelayCommand]
+    private async Task NavigateToAddPropertyAsync()
+    {
+        await _navigator.NavigateViewModelAsync<AddPropertyViewModel>(this);
     }
 
     partial void OnIsAllSelectedChanged(bool value)

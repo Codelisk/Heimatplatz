@@ -3,11 +3,13 @@ using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Core.Data.Seeding.Configuration;
 using Heimatplatz.Api.Features.Auth.Configuration;
 using Heimatplatz.Api.Features.Properties.Configuration;
+using Heimatplatz.Api.Features.ForeclosureAuctions.Configuration;
 using Microsoft.Extensions.Configuration;
 
 // Feature endpoint namespaces
 using Heimatplatz.Api.Features.Auth;
 using Heimatplatz.Api.Features.Properties;
+using Heimatplatz.Api.Features.ForeclosureAuctions;
 
 namespace Heimatplatz.Api.Core.Startup;
 
@@ -28,6 +30,7 @@ public static class ServiceCollectionExtensions
         // Features
         services.AddAuthFeature();
         services.AddPropertiesFeature();
+        services.AddForeclosureAuctionsFeature();
 
         return services;
     }
@@ -38,6 +41,7 @@ public static class ServiceCollectionExtensions
         // Call each feature's generated endpoints explicitly to avoid ambiguity
         Heimatplatz.Api.Features.Auth.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Properties.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
+        Heimatplatz.Api.Features.ForeclosureAuctions.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
 
         return app;
     }
