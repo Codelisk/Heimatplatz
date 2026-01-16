@@ -50,14 +50,16 @@
                                    CharacterSpacing="150"
                                    Foreground="{ThemeResource OnSurfaceBrush}"
                                    VerticalAlignment="Center"
+                                   Margin="0,0,24,0"
                                    AutomationProperties.AutomationId="HomePage_Logo" />
 
                         <!-- Ort-Picker + Filter Chips (Desktop) -->
                         <StackPanel Grid.Column="1"
                                     Orientation="Horizontal"
-                                    Spacing="16"
+                                    Spacing="12"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
+                                    Margin="16,0"
                                     Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
                                     AutomationProperties.AutomationId="HomePage_FilterArea">
 
@@ -86,7 +88,7 @@
                                 <controls:FilterChip Label="Grundstück"
                                                      IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}"
                                                      AutomationProperties.AutomationId="HomePage_FilterChip_Grundstueck" />
-                                <controls:FilterChip Label="Zwangsverst."
+                                <controls:FilterChip Label="ZV"
                                                      IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
                                                      AutomationProperties.AutomationId="HomePage_FilterChip_Zwangsversteigerung" />
                             </StackPanel>
