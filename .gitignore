@@ -6,6 +6,9 @@ x86/
 [Bb]in/
 [Oo]bj/
 
+# Allow Features/Debug folder for debug features
+!src/uno/src/Features/Debug/
+
 # Visual Studio
 .vs/
 *.user

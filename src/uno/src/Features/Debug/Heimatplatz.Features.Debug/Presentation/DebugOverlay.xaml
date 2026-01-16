@@ -1,0 +1,131 @@
+<Page x:Class="Heimatplatz.Features.Debug.Presentation.DebugOverlay"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d">
+
+    <!-- Floating Debug Button -->
+    <Button Width="48"
+            Height="48"
+            Background="#CC000000"
+            CornerRadius="24"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+        <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+                <ScrollViewer MaxHeight="600"
+                              MinWidth="320">
+                    <StackPanel Spacing="16"
+                                Padding="16">
+
+                        <!-- Header -->
+                        <TextBlock Text="DEBUG TOOLS"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="#FF6B6B" />
+
+                        <Border Height="1"
+                                Background="#30FFFFFF" />
+
+                        <!-- Quick Login Section -->
+                        <TextBlock Text="Quick Login"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Opacity="0.7" />
+
+                        <StackPanel Spacing="8">
+                            <Button Content="🛒 Login as Buyer"
+                                    Command="{x:Bind ViewModel.LoginAsBuyerCommand}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="🏠 Login as Seller"
+                                    Command="{x:Bind ViewModel.LoginAsSellerCommand}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="👤 Login as Both"
+                                    Command="{x:Bind ViewModel.LoginAsBothCommand}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="🚪 Logout"
+                                    Command="{x:Bind ViewModel.LogoutCommand}"
+                                    HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <Border Height="1"
+                                Background="#30FFFFFF"
+                                Margin="0,8,0,0" />
+
+                        <!-- Navigation Section -->
+                        <TextBlock Text="Navigation"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Opacity="0.7" />
+
+                        <StackPanel Spacing="8">
+                            <Button Content="→ Home"
+                                    Command="{x:Bind ViewModel.NavigateToHomeCommand}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="→ Add Property"
+                                    Command="{x:Bind ViewModel.NavigateToAddPropertyCommand}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="→ Login Page"
+                                    Command="{x:Bind ViewModel.NavigateToLoginCommand}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="→ Register Page"
+                                    Command="{x:Bind ViewModel.NavigateToRegisterCommand}"
+                                    HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <Border Height="1"
+                                Background="#30FFFFFF"
+                                Margin="0,8,0,0" />
+
+                        <!-- Debug Info Section -->
+                        <TextBlock Text="Current User"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Opacity="0.7" />
+
+                        <StackPanel Spacing="4">
+                            <TextBlock FontSize="12"
+                                       Opacity="0.8">
+                                <Run Text="Email: " />
+                                <Run Text="{x:Bind ViewModel.CurrentUserEmail, Mode=OneWay}"
+                                     FontWeight="SemiBold" />
+                            </TextBlock>
+
+                            <TextBlock FontSize="12"
+                                       Opacity="0.8">
+                                <Run Text="Roles: " />
+                                <Run Text="{x:Bind ViewModel.CurrentUserRoles, Mode=OneWay}"
+                                     FontWeight="SemiBold" />
+                            </TextBlock>
+
+                            <Button Content="📋 Copy Token"
+                                    Command="{x:Bind ViewModel.CopyTokenCommand}"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,8,0,0" />
+                        </StackPanel>
+
+                        <!-- Status Message -->
+                        <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                                   FontSize="12"
+                                   Foreground="#4CAF50"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}" />
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Flyout>
+        </Button.Flyout>
+
+        <!-- Button Icon -->
+        <FontIcon Glyph="&#xE115;"
+                  FontSize="24"
+                  Foreground="White" />
+    </Button>
+</Page>
