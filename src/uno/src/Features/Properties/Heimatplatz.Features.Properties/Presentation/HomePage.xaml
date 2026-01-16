@@ -89,7 +89,7 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Rechte Seite: Counter + Auth Buttons -->
+                        <!-- Rechte Seite: Counter + Auth Bereich -->
                         <StackPanel Grid.Column="2"
                                     Orientation="Horizontal"
                                     Spacing="12"
@@ -104,25 +104,84 @@
                                 <Run Text=" Objekte" />
                             </TextBlock>
 
-                            <!-- Anmelden Button -->
-                            <Button Content="Anmelden"
-                                    uen:Navigation.Request="Login"
-                                    Style="{StaticResource TextButtonStyle}"
-                                    FontSize="13"
-                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                    Padding="8,6"
-                                    AutomationProperties.AutomationId="HomePage_LoginButton" />
+                            <!-- Nicht eingeloggt: Anmelden + Registrieren -->
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="12"
+                                        Visibility="{Binding IsNotAuthenticated}"
+                                        AutomationProperties.AutomationId="HomePage_AuthButtons">
 
-                            <!-- Registrieren Button (prominent) -->
-                            <Button Content="Registrieren"
-                                    uen:Navigation.Request="Register"
-                                    Background="{ThemeResource PrimaryButtonBackgroundBrush}"
-                                    Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                    FontSize="13"
-                                    FontWeight="SemiBold"
-                                    Padding="12,8"
-                                    CornerRadius="{StaticResource RadiusSm}"
-                                    AutomationProperties.AutomationId="HomePage_RegisterButton" />
+                                <!-- Anmelden Button -->
+                                <Button Content="Anmelden"
+                                        uen:Navigation.Request="Login"
+                                        Style="{StaticResource TextButtonStyle}"
+                                        FontSize="13"
+                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                        Padding="8,6"
+                                        AutomationProperties.AutomationId="HomePage_LoginButton" />
+
+                                <!-- Registrieren Button (prominent) -->
+                                <Button Content="Registrieren"
+                                        uen:Navigation.Request="Register"
+                                        Background="{ThemeResource PrimaryButtonBackgroundBrush}"
+                                        Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Padding="12,8"
+                                        CornerRadius="{StaticResource RadiusSm}"
+                                        AutomationProperties.AutomationId="HomePage_RegisterButton" />
+                            </StackPanel>
+
+                            <!-- Eingeloggt: Profil-Bereich -->
+                            <Button Visibility="{Binding IsAuthenticated}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="4"
+                                    AutomationProperties.AutomationId="HomePage_ProfileButton">
+                                <Button.Flyout>
+                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                        <MenuFlyoutItem Text="Mein Profil"
+                                                        AutomationProperties.AutomationId="HomePage_ProfileMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE77B;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="Abmelden"
+                                                        Command="{Binding LogoutCommand}"
+                                                        AutomationProperties.AutomationId="HomePage_LogoutMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xF3B1;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <!-- Avatar mit Initialen -->
+                                    <Grid Width="32" Height="32">
+                                        <Ellipse Fill="{ThemeResource PrimaryButtonBackgroundBrush}" />
+                                        <TextBlock Text="{Binding UserInitials}"
+                                                   Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                    <!-- Name (nur Desktop) -->
+                                    <TextBlock Text="{Binding UserFullName}"
+                                               Foreground="{ThemeResource OnSurfaceBrush}"
+                                               FontSize="13"
+                                               FontWeight="Medium"
+                                               VerticalAlignment="Center"
+                                               Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
+                                               MaxWidth="120"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <!-- Dropdown-Chevron -->
+                                    <FontIcon Glyph="&#xE70D;"
+                                              FontSize="10"
+                                              Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                              VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>

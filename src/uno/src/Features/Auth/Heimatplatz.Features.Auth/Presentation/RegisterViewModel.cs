@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz;
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 
@@ -13,6 +14,7 @@ namespace Heimatplatz.Features.Auth.Presentation;
 public partial class RegisterViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
+    private readonly IAuthService _authService;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -44,9 +46,10 @@ public partial class RegisterViewModel : ObservableObject
     [ObservableProperty]
     private string? _successMessage;
 
-    public RegisterViewModel(IMediator mediator)
+    public RegisterViewModel(IMediator mediator, IAuthService authService)
     {
         _mediator = mediator;
+        _authService = authService;
     }
 
     public bool CanRegister =>
@@ -91,6 +94,15 @@ public partial class RegisterViewModel : ObservableObject
                     Passwort = Passwort
                 }
             });
+
+            // Benutzer nach Registrierung automatisch einloggen
+            _authService.SetAuthenticatedUser(
+                response.Result.AccessToken,
+                response.Result.RefreshToken,
+                response.Result.UserId,
+                response.Result.Email,
+                response.Result.FullName,
+                response.Result.ExpiresAt);
 
             IsSuccess = true;
             SuccessMessage = $"Willkommen, {response.Result.FullName}! Ihre Registrierung war erfolgreich.";

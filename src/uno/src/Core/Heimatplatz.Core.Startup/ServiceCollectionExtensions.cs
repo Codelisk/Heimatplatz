@@ -1,3 +1,5 @@
+using Heimatplatz.Core.ApiClient.Configuration;
+using Heimatplatz.Features.Auth.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shiny.Mediator.Infrastructure;
 using UnoFramework.Mediator;
@@ -16,7 +18,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IEventCollector, UnoEventCollector>();
         services.AddSingleton<BaseServices>();
 
+        // Core Features
+        services.AddApiClientFeature();
+
         // Features
+        services.AddAuthFeature();
 
         return services;
     }

@@ -1,8 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz;
+using Heimatplatz.Core.ApiClient.Generated;
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Features.Auth.Presentation;
 
@@ -13,6 +16,9 @@ namespace Heimatplatz.Features.Auth.Presentation;
 public partial class LoginViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
+    private readonly IAuthService _authService;
+    private readonly INavigator _navigator;
+    private readonly ILogger<LoginViewModel> _logger;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -29,9 +35,16 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
-    public LoginViewModel(IMediator mediator)
+    public LoginViewModel(
+        IMediator mediator,
+        IAuthService authService,
+        INavigator navigator,
+        ILogger<LoginViewModel> logger)
     {
         _mediator = mediator;
+        _authService = authService;
+        _navigator = navigator;
+        _logger = logger;
     }
 
     public bool CanLogin =>
@@ -56,30 +69,47 @@ public partial class LoginViewModel : ObservableObject
 
         try
         {
-            // TODO: Implementiere Login-API-Aufruf wenn verfuegbar
-            // Beispiel:
-            // var response = await _mediator.Request(new LoginHttpRequest
-            // {
-            //     Body = new LoginRequest
-            //     {
-            //         Email = Email,
-            //         Passwort = Passwort
-            //     }
-            // });
+            _logger.LogInformation("Login-Versuch fuer {Email}", Email);
 
-            // Simulierte Verzoegerung fuer Demo
-            await Task.Delay(1000);
+            var (_, result) = await _mediator.Request(new LoginHttpRequest
+            {
+                Body = new LoginRequest
+                {
+                    Email = Email,
+                    Passwort = Passwort
+                }
+            });
 
-            // Erfolgreiche Anmeldung simulieren
-            // In der echten Implementierung: Token speichern und navigieren
+            if (result == null)
+            {
+                ErrorMessage = "Login fehlgeschlagen. Bitte versuchen Sie es erneut.";
+                return;
+            }
+
+            // Token und Benutzerdaten speichern
+            _authService.SetAuthenticatedUser(
+                result.AccessToken,
+                result.RefreshToken,
+                result.UserId,
+                result.Email,
+                result.FullName,
+                result.ExpiresAt);
+
+            _logger.LogInformation("Login erfolgreich fuer {Email}", Email);
 
             // Formular zuruecksetzen
             Email = string.Empty;
             Passwort = string.Empty;
+
+            // Zurueck zur HomePage navigieren
+            await _navigator.NavigateBackAsync(this);
         }
         catch (Exception ex)
         {
-            ErrorMessage = ex.Message;
+            _logger.LogError(ex, "Login fehlgeschlagen fuer {Email}", Email);
+            ErrorMessage = ex.Message.Contains("401") || ex.Message.Contains("Unauthorized")
+                ? "Ungueltige E-Mail-Adresse oder Passwort."
+                : $"Login fehlgeschlagen: {ex.Message}";
         }
         finally
         {

@@ -13,10 +13,13 @@ public record RegisterRequest(
 ) : IRequest<RegisterResponse>;
 
 /// <summary>
-/// Response nach erfolgreicher Registrierung
+/// Response nach erfolgreicher Registrierung (mit automatischem Login)
 /// </summary>
 public record RegisterResponse(
+    string AccessToken,
+    string RefreshToken,
     Guid UserId,
     string Email,
-    string FullName
+    string FullName,
+    DateTimeOffset ExpiresAt
 );

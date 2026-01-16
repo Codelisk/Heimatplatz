@@ -10,12 +10,13 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Auth.Handlers;
 
 /// <summary>
-/// Handler fuer RegisterRequest - registriert neuen Benutzer
+/// Handler fuer RegisterRequest - registriert neuen Benutzer und loggt automatisch ein
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class RegisterHandler(
     AppDbContext dbContext,
-    IPasswordHasher passwordHasher
+    IPasswordHasher passwordHasher,
+    ITokenService tokenService
 ) : IRequestHandler<RegisterRequest, RegisterResponse>
 {
     [MediatorHttpPost("/api/auth/register", OperationId = "Register")]
@@ -44,10 +45,32 @@ public class RegisterHandler(
         dbContext.Set<User>().Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        // Automatischer Login nach Registrierung: Tokens generieren
+        var accessToken = tokenService.GenerateAccessToken(user);
+        var refreshTokenString = tokenService.GenerateRefreshToken();
+        var refreshValidityHours = tokenService.GetRefreshTokenValidityHours();
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(refreshValidityHours);
+
+        // Refresh Token in DB speichern
+        var refreshToken = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Token = refreshTokenString,
+            ExpiresAt = expiresAt,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        dbContext.Set<RefreshToken>().Add(refreshToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         return new RegisterResponse(
+            accessToken,
+            refreshTokenString,
             user.Id,
             user.Email,
-            user.FullName
+            user.FullName,
+            expiresAt
         );
     }
 }

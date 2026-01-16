@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
@@ -12,6 +13,8 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// </summary>
 public partial class HomeViewModel : ObservableObject
 {
+    private readonly IAuthService _authService;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -32,6 +35,21 @@ public partial class HomeViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isZwangsversteigerungSelected;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotAuthenticated))]
+    private bool _isAuthenticated;
+
+    /// <summary>
+    /// Inverse von IsAuthenticated fuer XAML-Binding
+    /// </summary>
+    public bool IsNotAuthenticated => !IsAuthenticated;
+
+    [ObservableProperty]
+    private string? _userFullName;
+
+    [ObservableProperty]
+    private string? _userInitials;
 
     private List<string> _selectedOrte = new();
     public List<string> SelectedOrte
@@ -59,10 +77,46 @@ public partial class HomeViewModel : ObservableObject
 
     public Visibility IsEmpty => Properties.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-    public HomeViewModel()
+    public HomeViewModel(IAuthService authService)
     {
-        // TODO: API-Integration - vorerst Testdaten laden
+        _authService = authService;
+        _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        UpdateAuthState();
         LoadTestData();
+    }
+
+    private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
+    {
+        UpdateAuthState();
+    }
+
+    private void UpdateAuthState()
+    {
+        IsAuthenticated = _authService.IsAuthenticated;
+        UserFullName = _authService.UserFullName;
+        UserInitials = GetInitials(_authService.UserFullName);
+    }
+
+    private static string? GetInitials(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return null;
+
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+            return null;
+
+        if (parts.Length == 1)
+            return parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant();
+
+        return $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+    }
+
+    [RelayCommand]
+    private void Logout()
+    {
+        _authService.ClearAuthentication();
     }
 
     partial void OnIsAllSelectedChanged(bool value)

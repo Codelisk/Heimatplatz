@@ -6,16 +6,13 @@ namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// HomePage - Hauptseite mit Immobilien-Liste
+/// ViewModel wird via Uno.Extensions.Navigation automatisch injiziert
 /// </summary>
 public sealed partial class HomePage : Page
 {
-    public HomeViewModel ViewModel { get; }
-
     public HomePage()
     {
-        ViewModel = new HomeViewModel();
         this.InitializeComponent();
-        this.DataContext = ViewModel;
     }
 
     private void OnPropertyCardClicked(object sender, PropertyListItemDto property)

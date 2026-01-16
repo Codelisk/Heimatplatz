@@ -1,3 +1,5 @@
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Heimatplatz.Features.Auth.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Features.Auth.Configuration;
@@ -12,8 +14,10 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAuthFeature(this IServiceCollection services)
     {
-        // ViewModels und Services werden automatisch via [Service] Attribut registriert
-        // oder hier explizit registriert falls noetig
+        // AuthService als Singleton registrieren (Session-weite Token-Verwaltung)
+        services.AddSingleton<IAuthService, AuthService>();
+
+        // ViewModels werden automatisch via [Service] Attribut registriert
 
         return services;
     }
