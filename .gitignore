@@ -30,3 +30,11 @@ Thumbs.db
 
 # MSBuild
 MSBuild_Logs/
+
+# SQLite temp files
+*.db-shm
+*.db-wal
+
+# Screenshots and temp files
+screenshots/
+temp_*.png
