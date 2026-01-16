@@ -62,7 +62,8 @@ public partial class App : Application
             new ViewMap(ViewModel: typeof(ShellViewModel)),
             new ViewMap<MainPage, MainViewModel>(),
             new ViewMap<HomePage, HomeViewModel>(),
-            new ViewMap<RegisterPage, RegisterViewModel>()
+            new ViewMap<RegisterPage, RegisterViewModel>(),
+            new ViewMap<LoginPage, LoginViewModel>()
         );
 
         routes.Register(
@@ -71,7 +72,8 @@ public partial class App : Application
                 [
                     new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
                     new ("Main", View: views.FindByViewModel<MainViewModel>()),
-                    new ("Register", View: views.FindByViewModel<RegisterViewModel>())
+                    new ("Register", View: views.FindByViewModel<RegisterViewModel>()),
+                    new ("Login", View: views.FindByViewModel<LoginViewModel>())
                 ]
             )
         );

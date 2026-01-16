@@ -89,10 +89,10 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Rechte Seite: Counter + Registrieren -->
+                        <!-- Rechte Seite: Counter + Auth Buttons -->
                         <StackPanel Grid.Column="2"
                                     Orientation="Horizontal"
-                                    Spacing="16"
+                                    Spacing="12"
                                     VerticalAlignment="Center">
 
                             <!-- Ergebnis-Counter -->
@@ -104,13 +104,24 @@
                                 <Run Text=" Objekte" />
                             </TextBlock>
 
-                            <!-- Registrieren Button -->
-                            <Button Content="Registrieren"
-                                    uen:Navigation.Request="Register"
+                            <!-- Anmelden Button -->
+                            <Button Content="Anmelden"
+                                    uen:Navigation.Request="Login"
                                     Style="{StaticResource TextButtonStyle}"
                                     FontSize="13"
-                                    Foreground="{ThemeResource PrimaryBrush}"
-                                    Padding="12,6"
+                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                    Padding="8,6"
+                                    AutomationProperties.AutomationId="HomePage_LoginButton" />
+
+                            <!-- Registrieren Button (prominent) -->
+                            <Button Content="Registrieren"
+                                    uen:Navigation.Request="Register"
+                                    Background="{ThemeResource PrimaryButtonBackgroundBrush}"
+                                    Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Padding="12,8"
+                                    CornerRadius="{StaticResource RadiusSm}"
                                     AutomationProperties.AutomationId="HomePage_RegisterButton" />
                         </StackPanel>
                     </Grid>
