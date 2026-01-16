@@ -4,6 +4,7 @@
       xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
       xmlns:controls="using:Heimatplatz.Features.Properties.Controls"
       xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:uc="using:UnoFramework.Controls"
       NavigationCacheMode="Required">
 
@@ -91,15 +92,30 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Ergebnis-Counter -->
-                        <TextBlock Grid.Column="2"
-                                   VerticalAlignment="Center"
-                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                   FontSize="{utu:Responsive Narrowest=11, Normal=13}"
-                                   AutomationProperties.AutomationId="HomePage_ResultCount">
-                            <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
-                            <Run Text=" Objekte" />
-                        </TextBlock>
+                        <!-- Rechte Seite: Counter + Registrieren -->
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="16"
+                                    VerticalAlignment="Center">
+
+                            <!-- Ergebnis-Counter -->
+                            <TextBlock VerticalAlignment="Center"
+                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                       FontSize="{utu:Responsive Narrowest=11, Normal=13}"
+                                       AutomationProperties.AutomationId="HomePage_ResultCount">
+                                <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
+                                <Run Text=" Objekte" />
+                            </TextBlock>
+
+                            <!-- Registrieren Button -->
+                            <Button Content="Registrieren"
+                                    uen:Navigation.Request="Register"
+                                    Style="{StaticResource TextButtonStyle}"
+                                    FontSize="13"
+                                    Foreground="{ThemeResource PrimaryBrush}"
+                                    Padding="12,6"
+                                    AutomationProperties.AutomationId="HomePage_RegisterButton" />
+                        </StackPanel>
                     </Grid>
                 </Border>
 
