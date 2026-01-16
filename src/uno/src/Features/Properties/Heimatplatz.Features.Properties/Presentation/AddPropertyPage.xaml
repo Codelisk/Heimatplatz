@@ -63,13 +63,16 @@
                     <Setter Target="HouseDetailsLayout.RowSpacing" Value="8" />
                     <Setter Target="WohnflaecheField.(Grid.Row)" Value="0" />
                     <Setter Target="WohnflaecheField.(Grid.Column)" Value="0" />
-                    <Setter Target="WohnflaecheField.(Grid.ColumnSpan)" Value="3" />
-                    <Setter Target="ZimmerField.(Grid.Row)" Value="1" />
+                    <Setter Target="WohnflaecheField.(Grid.ColumnSpan)" Value="2" />
+                    <Setter Target="GrundstuecksflaecheField.(Grid.Row)" Value="1" />
+                    <Setter Target="GrundstuecksflaecheField.(Grid.Column)" Value="0" />
+                    <Setter Target="GrundstuecksflaecheField.(Grid.ColumnSpan)" Value="2" />
+                    <Setter Target="ZimmerField.(Grid.Row)" Value="2" />
                     <Setter Target="ZimmerField.(Grid.Column)" Value="0" />
-                    <Setter Target="ZimmerField.(Grid.ColumnSpan)" Value="3" />
-                    <Setter Target="BaujahrField.(Grid.Row)" Value="2" />
+                    <Setter Target="ZimmerField.(Grid.ColumnSpan)" Value="2" />
+                    <Setter Target="BaujahrField.(Grid.Row)" Value="3" />
                     <Setter Target="BaujahrField.(Grid.Column)" Value="0" />
-                    <Setter Target="BaujahrField.(Grid.ColumnSpan)" Value="3" />
+                    <Setter Target="BaujahrField.(Grid.ColumnSpan)" Value="2" />
                 </VisualState.Setters>
             </VisualState>
         </VisualStateGroup>
@@ -212,7 +215,6 @@
                   ColumnSpacing="8"
                   Visibility="{Binding IsHouseType, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.5*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
@@ -231,9 +233,18 @@
                          InputScope="Number"
                          HorizontalAlignment="Stretch" />
 
-                <TextBox x:Name="ZimmerField"
+                <TextBox x:Name="GrundstuecksflaecheField"
                          Grid.Row="0"
                          Grid.Column="1"
+                         Header="Grundstücksfläche (m²)"
+                         Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay}"
+                         PlaceholderText="500"
+                         InputScope="Number"
+                         HorizontalAlignment="Stretch" />
+
+                <TextBox x:Name="ZimmerField"
+                         Grid.Row="1"
+                         Grid.Column="0"
                          Header="Zimmer"
                          Text="{Binding Zimmer, Mode=TwoWay}"
                          PlaceholderText="3"
@@ -241,8 +252,8 @@
                          HorizontalAlignment="Stretch" />
 
                 <TextBox x:Name="BaujahrField"
-                         Grid.Row="0"
-                         Grid.Column="2"
+                         Grid.Row="1"
+                         Grid.Column="1"
                          Header="Baujahr"
                          Text="{Binding Baujahr, Mode=TwoWay}"
                          PlaceholderText="2005"
