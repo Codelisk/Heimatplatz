@@ -3,13 +3,14 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:Heimatplatz.Features.Auth.Presentation"
       xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:uc="using:UnoFramework.Controls"
       Background="{ThemeResource BackgroundBrush}">
 
     <!--
-    RegisterPage - Responsive Registrierungsseite
-    Desktop: Split-Layout (Form links, Hero rechts)
-    Mobile: Single-Column mit Hero oben
+    RegisterPage - Editorial Luxury Design
+    Desktop: Elegantes Split-Layout mit geometrischem Hero
+    Mobile: Kompaktes Single-Column Layout
     -->
 
     <uc:BusyOverlay IsBusy="{Binding IsBusy}"
@@ -22,253 +23,456 @@
                 <DataTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="480" />
+                            <ColumnDefinition Width="520" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left: Form Panel -->
+                        <!-- Left: Form Panel - Refined Editorial Style -->
                         <Border Grid.Column="0"
                                 Background="{ThemeResource SurfaceBrush}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <StackPanel Padding="48,64"
-                                            Spacing="24"
-                                            MaxWidth="400"
+                                <StackPanel Padding="56,48"
+                                            Spacing="32"
+                                            MaxWidth="380"
                                             HorizontalAlignment="Center">
 
-                                    <!-- Logo -->
-                                    <TextBlock Text="HEIMATPLATZ"
-                                               FontSize="18"
-                                               FontWeight="Bold"
-                                               CharacterSpacing="150"
-                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <!-- Back + Logo Row -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <!-- Title -->
-                                    <StackPanel Spacing="8">
+                                        <!-- Back Button -->
+                                        <Button Grid.Column="0"
+                                                uen:Navigation.Request="-"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <FontIcon Glyph="&#xE72B;"
+                                                          FontSize="14"
+                                                          Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                                <TextBlock Text="Zurück"
+                                                           FontSize="13"
+                                                           Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Title Section with accent line -->
+                                    <StackPanel Spacing="12">
+                                        <Border Width="40"
+                                                Height="3"
+                                                Background="{ThemeResource AccentBrush}"
+                                                HorizontalAlignment="Left" />
+                                        <TextBlock Text="Willkommen"
+                                                   FontSize="13"
+                                                   CharacterSpacing="200"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
                                         <TextBlock Text="Konto erstellen"
-                                                   FontSize="28"
+                                                   FontSize="32"
                                                    FontWeight="Bold"
-                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
-                                        <TextBlock Text="Registrieren Sie sich um Ihre Traumimmobilie zu finden"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                                   Margin="0,-4,0,0" />
+                                        <TextBlock Text="Registrieren Sie sich für exklusive Immobilien-Angebote in Oberösterreich"
                                                    FontSize="14"
                                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                                   TextWrapping="Wrap" />
+                                                   TextWrapping="Wrap"
+                                                   LineHeight="22" />
                                     </StackPanel>
 
                                     <!-- Error Message -->
                                     <Border Background="{ThemeResource ErrorBrush}"
                                             CornerRadius="{StaticResource RadiusSm}"
-                                            Padding="12"
+                                            Padding="16"
                                             Visibility="{Binding ErrorMessage, Converter={StaticResource NullToCollapsedConverter}}">
-                                        <TextBlock Text="{Binding ErrorMessage}"
-                                                   Foreground="White"
-                                                   FontSize="13"
-                                                   TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <FontIcon Glyph="&#xE7BA;"
+                                                      FontSize="16"
+                                                      Foreground="White" />
+                                            <TextBlock Text="{Binding ErrorMessage}"
+                                                       Foreground="White"
+                                                       FontSize="13"
+                                                       TextWrapping="Wrap"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
                                     </Border>
 
                                     <!-- Success Message -->
                                     <Border Background="{ThemeResource SuccessBrush}"
                                             CornerRadius="{StaticResource RadiusSm}"
-                                            Padding="12"
+                                            Padding="16"
                                             Visibility="{Binding IsSuccess}">
-                                        <TextBlock Text="{Binding SuccessMessage}"
-                                                   Foreground="White"
-                                                   FontSize="13"
-                                                   TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <FontIcon Glyph="&#xE73E;"
+                                                      FontSize="16"
+                                                      Foreground="White" />
+                                            <TextBlock Text="{Binding SuccessMessage}"
+                                                       Foreground="White"
+                                                       FontSize="13"
+                                                       TextWrapping="Wrap"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
                                     </Border>
 
-                                    <!-- Form Fields -->
-                                    <StackPanel Spacing="16">
+                                    <!-- Form Fields - Two Column for Names -->
+                                    <StackPanel Spacing="20">
 
-                                        <!-- Vorname -->
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Vorname"
-                                                       FontSize="14"
-                                                       FontWeight="Medium"
-                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
-                                            <TextBox Text="{Binding Vorname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                     PlaceholderText="Max"
-                                                     Height="44"
-                                                     CornerRadius="{StaticResource RadiusSm}" />
-                                        </StackPanel>
+                                        <!-- Name Row (Two Columns) -->
+                                        <Grid ColumnSpacing="16">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- Nachname -->
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Nachname"
-                                                       FontSize="14"
-                                                       FontWeight="Medium"
-                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
-                                            <TextBox Text="{Binding Nachname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                     PlaceholderText="Mustermann"
-                                                     Height="44"
-                                                     CornerRadius="{StaticResource RadiusSm}" />
-                                        </StackPanel>
+                                            <!-- Vorname -->
+                                            <StackPanel Grid.Column="0" Spacing="8">
+                                                <TextBlock Text="Vorname"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                <TextBox Text="{Binding Vorname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         PlaceholderText="Max"
+                                                         Height="48"
+                                                         CornerRadius="{StaticResource RadiusSm}" />
+                                            </StackPanel>
+
+                                            <!-- Nachname -->
+                                            <StackPanel Grid.Column="1" Spacing="8">
+                                                <TextBlock Text="Nachname"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                <TextBox Text="{Binding Nachname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         PlaceholderText="Mustermann"
+                                                         Height="48"
+                                                         CornerRadius="{StaticResource RadiusSm}" />
+                                            </StackPanel>
+                                        </Grid>
 
                                         <!-- E-Mail -->
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="E-Mail"
-                                                       FontSize="14"
-                                                       FontWeight="Medium"
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="E-Mail Adresse"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
                                                        Foreground="{ThemeResource OnSurfaceBrush}" />
                                             <TextBox Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="max@beispiel.at"
-                                                     Height="44"
+                                                     Height="48"
                                                      CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
 
                                         <!-- Passwort -->
-                                        <StackPanel Spacing="6">
+                                        <StackPanel Spacing="8">
                                             <TextBlock Text="Passwort"
-                                                       FontSize="14"
-                                                       FontWeight="Medium"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
                                                        Foreground="{ThemeResource OnSurfaceBrush}" />
                                             <PasswordBox Password="{Binding Passwort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                          PlaceholderText="Mindestens 8 Zeichen"
-                                                         Height="44"
+                                                         Height="48"
                                                          CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
 
                                         <!-- Passwort bestaetigen -->
-                                        <StackPanel Spacing="6">
+                                        <StackPanel Spacing="8">
                                             <TextBlock Text="Passwort bestätigen"
-                                                       FontSize="14"
-                                                       FontWeight="Medium"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
                                                        Foreground="{ThemeResource OnSurfaceBrush}" />
                                             <PasswordBox Password="{Binding PasswortBestaetigung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                          PlaceholderText="Passwort wiederholen"
-                                                         Height="44"
+                                                         Height="48"
                                                          CornerRadius="{StaticResource RadiusSm}" />
                                         </StackPanel>
 
                                     </StackPanel>
 
-                                    <!-- Register Button -->
-                                    <Button Content="Registrieren"
+                                    <!-- Register Button - Prominent CTA -->
+                                    <Button Content="Konto erstellen"
                                             Command="{Binding RegisterCommand}"
                                             Background="{ThemeResource PrimaryButtonBackgroundBrush}"
                                             Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
                                             FontWeight="SemiBold"
                                             FontSize="15"
-                                            Height="48"
+                                            Height="52"
                                             CornerRadius="{StaticResource RadiusSm}"
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Center" />
 
                                     <!-- Login Link -->
-                                    <TextBlock Text="Schon ein Konto? Anmelden"
-                                               FontSize="14"
-                                               Foreground="{ThemeResource OnSurfaceBrush}"
-                                               HorizontalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Center"
+                                                Spacing="6">
+                                        <TextBlock Text="Bereits ein Konto?"
+                                                   FontSize="14"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="Anmelden"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                                   TextDecorations="Underline" />
+                                    </StackPanel>
 
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
 
-                        <!-- Right: Hero Panel -->
+                        <!-- Right: Hero Panel - Geometric Editorial Design -->
                         <Border Grid.Column="1"
                                 Background="{ThemeResource PrimaryButtonBackgroundBrush}">
-                            <StackPanel VerticalAlignment="Center"
+                            <Grid>
+                                <!-- Decorative geometric shapes -->
+                                <Border Width="300"
+                                        Height="300"
+                                        CornerRadius="150"
+                                        Opacity="0.03"
+                                        Background="{ThemeResource PrimaryButtonForegroundBrush}"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Margin="0,-80,-80,0" />
+
+                                <Border Width="200"
+                                        Height="200"
+                                        CornerRadius="100"
+                                        Opacity="0.05"
+                                        Background="{ThemeResource PrimaryButtonForegroundBrush}"
                                         HorizontalAlignment="Left"
-                                        Margin="64,0">
-                                <TextBlock Text="HEIMATPLATZ"
-                                           FontSize="42"
-                                           FontWeight="Bold"
-                                           CharacterSpacing="100"
-                                           Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
-                                <TextBlock Text="Finden Sie Ihre Traumimmobilie in Oberösterreich"
-                                           FontSize="16"
-                                           Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                           Opacity="0.9"
-                                           Margin="0,16,0,0"
-                                           TextWrapping="Wrap"
-                                           MaxWidth="400" />
-                            </StackPanel>
+                                        VerticalAlignment="Bottom"
+                                        Margin="-60,-0,0,-40" />
+
+                                <!-- Main Content -->
+                                <StackPanel VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            Margin="80,0"
+                                            MaxWidth="480">
+
+                                    <!-- House Icon -->
+                                    <Border Width="64"
+                                            Height="64"
+                                            CornerRadius="16"
+                                            Background="{ThemeResource PrimaryButtonForegroundBrush}"
+                                            Opacity="0.15"
+                                            Margin="0,0,0,32">
+                                        <FontIcon Glyph="&#xE80F;"
+                                                  FontSize="28"
+                                                  Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <!-- Headline -->
+                                    <TextBlock Text="HEIMATPLATZ"
+                                               FontSize="48"
+                                               FontWeight="Bold"
+                                               CharacterSpacing="80"
+                                               Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
+
+                                    <!-- Tagline -->
+                                    <TextBlock FontSize="18"
+                                               Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                               Opacity="0.85"
+                                               Margin="0,20,0,0"
+                                               LineHeight="28"
+                                               TextWrapping="Wrap">
+                                        <Run Text="Ihre Traumimmobilie" /><LineBreak />
+                                        <Run Text="in Oberösterreich" />
+                                    </TextBlock>
+
+                                    <!-- Stats/Trust Indicators -->
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="32"
+                                                Margin="0,48,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="500+"
+                                                       FontSize="28"
+                                                       FontWeight="Bold"
+                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
+                                            <TextBlock Text="Immobilien"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                                       Opacity="0.7" />
+                                        </StackPanel>
+                                        <Border Width="1"
+                                                Height="40"
+                                                Background="{ThemeResource PrimaryButtonForegroundBrush}"
+                                                Opacity="0.2" />
+                                        <StackPanel>
+                                            <TextBlock Text="50+"
+                                                       FontSize="28"
+                                                       FontWeight="Bold"
+                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
+                                            <TextBlock Text="Gemeinden"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                                       Opacity="0.7" />
+                                        </StackPanel>
+                                        <Border Width="1"
+                                                Height="40"
+                                                Background="{ThemeResource PrimaryButtonForegroundBrush}"
+                                                Opacity="0.2" />
+                                        <StackPanel>
+                                            <TextBlock Text="100%"
+                                                       FontSize="28"
+                                                       FontWeight="Bold"
+                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
+                                            <TextBlock Text="Regional"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                                       Opacity="0.7" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                </StackPanel>
+                            </Grid>
                         </Border>
 
                     </Grid>
                 </DataTemplate>
             </utu:ResponsiveView.WideTemplate>
 
-            <!-- Mobile Layout (Narrow) -->
+            <!-- Mobile Layout (Narrow) - Compact Editorial -->
             <utu:ResponsiveView.NarrowTemplate>
                 <DataTemplate>
-                    <ScrollViewer>
-                        <StackPanel utu:SafeArea.Insets="All">
+                    <Grid utu:SafeArea.Insets="All"
+                          Background="{ThemeResource SurfaceBrush}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                            <!-- Hero Section (Mobile) -->
-                            <Border Background="{ThemeResource PrimaryButtonBackgroundBrush}"
-                                    Padding="24,48">
-                                <StackPanel>
-                                    <TextBlock Text="HEIMATPLATZ"
-                                               FontSize="28"
-                                               FontWeight="Bold"
-                                               CharacterSpacing="100"
-                                               Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
+                        <!-- Compact Header with Back -->
+                        <Border Grid.Row="0"
+                                Background="{ThemeResource PrimaryButtonBackgroundBrush}"
+                                Padding="20,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Back Button -->
+                                <Button Grid.Column="0"
+                                        uen:Navigation.Request="-"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE72B;"
+                                              FontSize="18"
+                                              Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
+                                </Button>
+
+                                <!-- Centered Title -->
+                                <TextBlock Grid.Column="1"
+                                           Text="HEIMATPLATZ"
+                                           FontSize="14"
+                                           FontWeight="Bold"
+                                           CharacterSpacing="150"
+                                           Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Scrollable Form Section -->
+                        <ScrollViewer Grid.Row="1">
+                            <StackPanel Padding="24,28"
+                                        Spacing="24">
+
+                                <!-- Title Section with accent -->
+                                <StackPanel Spacing="8">
+                                    <Border Width="32"
+                                            Height="3"
+                                            Background="{ThemeResource AccentBrush}"
+                                            HorizontalAlignment="Left" />
                                     <TextBlock Text="Konto erstellen"
+                                               FontSize="26"
+                                               FontWeight="Bold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <TextBlock Text="Registrieren Sie sich für exklusive Angebote"
                                                FontSize="14"
-                                               Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                               Opacity="0.9"
-                                               Margin="0,8,0,0" />
+                                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                               TextWrapping="Wrap" />
                                 </StackPanel>
-                            </Border>
-
-                            <!-- Form Section (Mobile) -->
-                            <StackPanel Padding="24"
-                                        Spacing="20">
 
                                 <!-- Error Message -->
                                 <Border Background="{ThemeResource ErrorBrush}"
                                         CornerRadius="{StaticResource RadiusSm}"
-                                        Padding="12"
+                                        Padding="14"
                                         Visibility="{Binding ErrorMessage, Converter={StaticResource NullToCollapsedConverter}}">
-                                    <TextBlock Text="{Binding ErrorMessage}"
-                                               Foreground="White"
-                                               FontSize="13"
-                                               TextWrapping="Wrap" />
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <FontIcon Glyph="&#xE7BA;"
+                                                  FontSize="14"
+                                                  Foreground="White" />
+                                        <TextBlock Text="{Binding ErrorMessage}"
+                                                   Foreground="White"
+                                                   FontSize="13"
+                                                   TextWrapping="Wrap"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
                                 </Border>
 
                                 <!-- Success Message -->
                                 <Border Background="{ThemeResource SuccessBrush}"
                                         CornerRadius="{StaticResource RadiusSm}"
-                                        Padding="12"
+                                        Padding="14"
                                         Visibility="{Binding IsSuccess}">
-                                    <TextBlock Text="{Binding SuccessMessage}"
-                                               Foreground="White"
-                                               FontSize="13"
-                                               TextWrapping="Wrap" />
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <FontIcon Glyph="&#xE73E;"
+                                                  FontSize="14"
+                                                  Foreground="White" />
+                                        <TextBlock Text="{Binding SuccessMessage}"
+                                                   Foreground="White"
+                                                   FontSize="13"
+                                                   TextWrapping="Wrap"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
                                 </Border>
 
                                 <!-- Form Fields -->
-                                <StackPanel Spacing="16">
+                                <StackPanel Spacing="18">
 
-                                    <!-- Vorname -->
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="Vorname"
-                                                   FontSize="14"
-                                                   FontWeight="Medium"
-                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
-                                        <TextBox Text="{Binding Vorname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 PlaceholderText="Max"
-                                                 Height="48"
-                                                 CornerRadius="{StaticResource RadiusSm}" />
-                                    </StackPanel>
+                                    <!-- Name Row (Two Columns on Mobile too) -->
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <!-- Nachname -->
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="Nachname"
-                                                   FontSize="14"
-                                                   FontWeight="Medium"
-                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
-                                        <TextBox Text="{Binding Nachname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 PlaceholderText="Mustermann"
-                                                 Height="48"
-                                                 CornerRadius="{StaticResource RadiusSm}" />
-                                    </StackPanel>
+                                        <!-- Vorname -->
+                                        <StackPanel Grid.Column="0" Spacing="6">
+                                            <TextBlock Text="Vorname"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                            <TextBox Text="{Binding Vorname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                     PlaceholderText="Max"
+                                                     Height="48"
+                                                     CornerRadius="{StaticResource RadiusSm}" />
+                                        </StackPanel>
+
+                                        <!-- Nachname -->
+                                        <StackPanel Grid.Column="1" Spacing="6">
+                                            <TextBlock Text="Nachname"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                            <TextBox Text="{Binding Nachname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                     PlaceholderText="Mustermann"
+                                                     Height="48"
+                                                     CornerRadius="{StaticResource RadiusSm}" />
+                                        </StackPanel>
+                                    </Grid>
 
                                     <!-- E-Mail -->
                                     <StackPanel Spacing="6">
-                                        <TextBlock Text="E-Mail"
-                                                   FontSize="14"
-                                                   FontWeight="Medium"
+                                        <TextBlock Text="E-Mail Adresse"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
                                         <TextBox Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  PlaceholderText="max@beispiel.at"
@@ -279,8 +483,8 @@
                                     <!-- Passwort -->
                                     <StackPanel Spacing="6">
                                         <TextBlock Text="Passwort"
-                                                   FontSize="14"
-                                                   FontWeight="Medium"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
                                         <PasswordBox Password="{Binding Passwort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Mindestens 8 Zeichen"
@@ -291,8 +495,8 @@
                                     <!-- Passwort bestaetigen -->
                                     <StackPanel Spacing="6">
                                         <TextBlock Text="Passwort bestätigen"
-                                                   FontSize="14"
-                                                   FontWeight="Medium"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
                                         <PasswordBox Password="{Binding PasswortBestaetigung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                      PlaceholderText="Passwort wiederholen"
@@ -303,27 +507,35 @@
                                 </StackPanel>
 
                                 <!-- Register Button -->
-                                <Button Content="Registrieren"
+                                <Button Content="Konto erstellen"
                                         Command="{Binding RegisterCommand}"
                                         Background="{ThemeResource PrimaryButtonBackgroundBrush}"
                                         Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
                                         FontWeight="SemiBold"
                                         FontSize="15"
-                                        Height="48"
+                                        Height="52"
                                         CornerRadius="{StaticResource RadiusSm}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center" />
 
                                 <!-- Login Link -->
-                                <TextBlock Text="Schon ein Konto? Anmelden"
-                                           FontSize="14"
-                                           Foreground="{ThemeResource OnSurfaceBrush}"
-                                           HorizontalAlignment="Center" />
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center"
+                                            Spacing="6">
+                                    <TextBlock Text="Bereits ein Konto?"
+                                               FontSize="14"
+                                               Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                    <TextBlock Text="Anmelden"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}"
+                                               TextDecorations="Underline" />
+                                </StackPanel>
 
                             </StackPanel>
+                        </ScrollViewer>
 
-                        </StackPanel>
-                    </ScrollViewer>
+                    </Grid>
                 </DataTemplate>
             </utu:ResponsiveView.NarrowTemplate>
 
