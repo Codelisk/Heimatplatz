@@ -1,214 +1,174 @@
 <Page x:Class="Heimatplatz.Features.Properties.Presentation.AddPropertyPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
       xmlns:models="using:Heimatplatz.Features.Properties.Contracts.Models"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <ScrollViewer x:Name="PageScrollViewer">
-        <utu:AutoLayout Padding="24"
-                        Spacing="24"
-                        Orientation="Vertical"
-                        PrimaryAxisAlignment="Start">
+    <ScrollViewer>
+        <StackPanel Padding="12" Spacing="8" MaxWidth="900">
 
             <!-- Header -->
-            <utu:AutoLayout Spacing="8"
-                            Orientation="Vertical">
-                <TextBlock Text="Immobilie hinzufügen"
-                           Style="{StaticResource TitleTextBlockStyle}" />
-                <TextBlock Text="Erstellen Sie ein neues Immobilienangebot"
-                           Style="{StaticResource BodyTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </utu:AutoLayout>
+            <TextBlock Text="Immobilie hinzufügen"
+                       Style="{StaticResource TitleTextBlockStyle}"
+                       Margin="0,0,0,8" />
 
-            <!-- Success Message -->
-            <InfoBar x:Name="SuccessInfoBar"
-                     Visibility="{Binding ShowSuccess, Mode=OneWay}"
+            <!-- Success/Error Messages -->
+            <InfoBar Visibility="{Binding ShowSuccess, Mode=OneWay}"
                      Severity="Success"
-                     Title="Erfolgreich gespeichert"
-                     Message="Ihre Immobilie wurde erfolgreich erstellt."
+                     Title="Erfolgreich"
+                     Message="Immobilie wurde erstellt."
                      IsClosable="True"
                      IsOpen="True" />
 
-            <!-- Error Message -->
-            <InfoBar x:Name="ErrorInfoBar"
-                     Visibility="{Binding HasError, Mode=OneWay}"
+            <InfoBar Visibility="{Binding HasError, Mode=OneWay}"
                      Severity="Error"
                      Title="Fehler"
                      Message="{Binding ErrorMessage, Mode=OneWay}"
                      IsClosable="True"
                      IsOpen="True" />
 
-            <!-- Basis-Informationen -->
-            <Border Background="{ThemeResource SurfaceBrush}"
-                    BorderBrush="{ThemeResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMd}">
-                <utu:AutoLayout Padding="20"
-                                Spacing="16"
-                                Orientation="Vertical">
-                    <TextBlock Text="Basis-Informationen"
-                               Style="{StaticResource SubtitleTextBlockStyle}" />
+            <Grid ColumnSpacing="8" RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-                    <TextBox Header="Titel *"
-                             Text="{Binding Titel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="z.B. Einfamilienhaus in Linz-Urfahr"
-                             MaxLength="200" />
+                <ComboBox Grid.Column="0"
+                          Grid.Row="0"
+                          Header="Immobilientyp *"
+                          ItemsSource="{Binding PropertyTypes}"
+                          SelectedItem="{Binding SelectedPropertyTypeItem, Mode=TwoWay}"
+                          DisplayMemberPath="DisplayName"
+                          HorizontalAlignment="Stretch" />
 
-                    <TextBox Header="Beschreibung *"
-                             Text="{Binding Beschreibung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="Detaillierte Beschreibung der Immobilie (mind. 50 Zeichen)"
-                             TextWrapping="Wrap"
-                             AcceptsReturn="True"
-                             MinHeight="120"
-                             MaxLength="2000" />
+                <ComboBox Grid.Column="1"
+                          Grid.Row="0"
+                          Header="Anbietertyp *"
+                          SelectedItem="{Binding SelectedAnbieterTyp, Mode=TwoWay}"
+                          HorizontalAlignment="Stretch">
+                    <x:String>Privat</x:String>
+                    <x:String>Makler</x:String>
+                </ComboBox>
 
-                    <utu:AutoLayout Orientation="Horizontal"
-                                    Spacing="16">
-                        <TextBox Header="Preis (EUR) *"
-                                 Text="{Binding Preis, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="349000"
-                                 InputScope="Number"
-                                 Width="200" />
+                <TextBox Grid.Column="0"
+                         Grid.Row="1"
+                         Grid.ColumnSpan="2"
+                         Header="Titel *"
+                         Text="{Binding Titel, Mode=TwoWay}"
+                         PlaceholderText="z.B. Schöne 3-Zimmer Wohnung" />
+            </Grid>
 
-                        <ComboBox Header="Immobilientyp *"
-                                  SelectedIndex="0"
-                                  Width="200">
-                            <x:String>Haus</x:String>
-                            <x:String>Grundstück</x:String>
-                            <x:String>Zwangsversteigerung</x:String>
-                        </ComboBox>
-                    </utu:AutoLayout>
-                </utu:AutoLayout>
-            </Border>
+            <TextBox Header="Beschreibung *"
+                     Text="{Binding Beschreibung, Mode=TwoWay}"
+                     PlaceholderText="Detaillierte Beschreibung (mind. 50 Zeichen)"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     Height="80" />
 
-            <!-- Adresse -->
-            <Border Background="{ThemeResource SurfaceBrush}"
-                    BorderBrush="{ThemeResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMd}">
-                <utu:AutoLayout Padding="20"
-                                Spacing="16"
-                                Orientation="Vertical">
-                    <TextBlock Text="Adresse"
-                               Style="{StaticResource SubtitleTextBlockStyle}" />
+            <Grid ColumnSpacing="8" RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
 
-                    <TextBox Header="Straße und Hausnummer *"
-                             Text="{Binding Adresse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="Hauptstraße 15" />
+                <TextBox Grid.Column="0"
+                         Header="Adresse *"
+                         Text="{Binding Adresse, Mode=TwoWay}"
+                         PlaceholderText="Straße und Hausnummer" />
 
-                    <utu:AutoLayout Orientation="Horizontal"
-                                    Spacing="16">
-                        <TextBox Header="Ort *"
-                                 Text="{Binding Ort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="Linz"
-                                 Width="250" />
+                <TextBox Grid.Column="1"
+                         Header="Ort *"
+                         Text="{Binding Ort, Mode=TwoWay}"
+                         PlaceholderText="z.B. Linz" />
 
-                        <TextBox Header="PLZ *"
-                                 Text="{Binding Plz, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="4040"
-                                 InputScope="Number"
-                                 Width="120" />
-                    </utu:AutoLayout>
-                </utu:AutoLayout>
-            </Border>
+                <TextBox Grid.Column="2"
+                         Header="PLZ *"
+                         Text="{Binding Plz, Mode=TwoWay}"
+                         PlaceholderText="4020"
+                         InputScope="Number" />
+            </Grid>
 
-            <!-- Details (Optional) -->
-            <Border Background="{ThemeResource SurfaceBrush}"
-                    BorderBrush="{ThemeResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMd}">
-                <utu:AutoLayout Padding="20"
-                                Spacing="16"
-                                Orientation="Vertical">
-                    <TextBlock Text="Details (optional)"
-                               Style="{StaticResource SubtitleTextBlockStyle}" />
+            <!-- Preis & Anbieter -->
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                    <utu:AutoLayout Orientation="Horizontal"
-                                    Spacing="16">
-                        <TextBox Header="Wohnfläche (m²)"
-                                 Text="{Binding WohnflaecheM2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="145"
-                                 InputScope="Number"
-                                 Width="140" />
+                <TextBox Grid.Column="0"
+                         Header="Preis (€) *"
+                         Text="{Binding Preis, Mode=TwoWay}"
+                         PlaceholderText="z.B. 350000"
+                         InputScope="Number" />
 
-                        <TextBox Header="Grundstücksfläche (m²)"
-                                 Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="520"
-                                 InputScope="Number"
-                                 Width="180" />
+                <TextBox Grid.Column="1"
+                         Header="Anbieter-Name *"
+                         Text="{Binding AnbieterName, Mode=TwoWay}"
+                         PlaceholderText="Ihr Name" />
+            </Grid>
 
-                        <TextBox Header="Zimmer"
-                                 Text="{Binding Zimmer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="5"
-                                 InputScope="Number"
-                                 Width="100" />
+            <!-- Immobilien-Details (Haus) -->
+            <StackPanel Spacing="8"
+                        Visibility="{Binding IsHouseType, Mode=OneWay}">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                        <TextBox Header="Baujahr"
-                                 Text="{Binding Baujahr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="2018"
-                                 InputScope="Number"
-                                 Width="120" />
-                    </utu:AutoLayout>
-                </utu:AutoLayout>
-            </Border>
+                    <TextBox Grid.Column="0"
+                             Header="Wohnfläche (m²)"
+                             Text="{Binding WohnflaecheM2, Mode=TwoWay}"
+                             PlaceholderText="90"
+                             InputScope="Number" />
 
-            <!-- Anbieter-Informationen -->
-            <Border Background="{ThemeResource SurfaceBrush}"
-                    BorderBrush="{ThemeResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource RadiusMd}">
-                <utu:AutoLayout Padding="20"
-                                Spacing="16"
-                                Orientation="Vertical">
-                    <TextBlock Text="Anbieter-Informationen"
-                               Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <TextBox Grid.Column="1"
+                             Header="Zimmer"
+                             Text="{Binding Zimmer, Mode=TwoWay}"
+                             PlaceholderText="3"
+                             InputScope="Number" />
 
-                    <utu:AutoLayout Orientation="Horizontal"
-                                    Spacing="16">
-                        <ComboBox Header="Anbietertyp *"
-                                  SelectedIndex="0"
-                                  Width="200">
-                            <x:String>Privat</x:String>
-                            <x:String>Makler</x:String>
-                        </ComboBox>
+                    <TextBox Grid.Column="2"
+                             Header="Baujahr"
+                             Text="{Binding Baujahr, Mode=TwoWay}"
+                             PlaceholderText="2005"
+                             InputScope="Number" />
+                </Grid>
+            </StackPanel>
 
-                        <TextBox Header="Anbieter-Name *"
-                                 Text="{Binding AnbieterName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="Ihr Name"
-                                 Width="300" />
-                    </utu:AutoLayout>
-                </utu:AutoLayout>
-            </Border>
+            <!-- Grundstück (Land) -->
+            <StackPanel Spacing="8"
+                        Visibility="{Binding IsLandType, Mode=OneWay}">
+                <TextBox Header="Grundstücksfläche (m²)"
+                         Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay}"
+                         PlaceholderText="500"
+                         InputScope="Number" />
+            </StackPanel>
 
             <!-- Actions -->
-            <utu:AutoLayout Orientation="Horizontal"
-                            Spacing="12"
-                            PrimaryAxisAlignment="End">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8"
+                        HorizontalAlignment="Right"
+                        Margin="0,8,0,0">
                 <Button Content="Abbrechen"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        Click="OnCancelClick" />
+                        Style="{StaticResource DefaultButtonStyle}" />
+                <Button Content="Speichern"
+                        Command="{Binding SavePropertyCommand}"
+                        Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
 
-                <Button Command="{Binding SavePropertyCommand}"
-                        Style="{StaticResource AccentButtonStyle}"
-                        MinWidth="140">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <ProgressRing Width="16"
-                                      Height="16"
-                                      IsActive="{Binding IsBusy, Mode=OneWay}"
-                                      Visibility="{Binding IsBusy, Mode=OneWay}" />
-                        <TextBlock Text="Speichern" />
-                    </StackPanel>
-                </Button>
-            </utu:AutoLayout>
-
-            <!-- Required Fields Note -->
             <TextBlock Text="* Pflichtfelder"
-                       Style="{StaticResource CaptionTextBlockStyle}"
+                       FontSize="11"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                       HorizontalAlignment="Right" />
+                       Margin="0,4,0,0" />
 
-        </utu:AutoLayout>
+        </StackPanel>
     </ScrollViewer>
 </Page>
