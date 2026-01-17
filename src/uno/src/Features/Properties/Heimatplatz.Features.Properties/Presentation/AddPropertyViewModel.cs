@@ -56,12 +56,6 @@ public partial class AddPropertyViewModel : ObservableObject
     private string _preis = string.Empty;
 
     [ObservableProperty]
-    private SellerType _selectedAnbieterTyp = SellerType.Privat;
-
-    [ObservableProperty]
-    private string _anbieterName = string.Empty;
-
-    [ObservableProperty]
     private string _beschreibung = string.Empty;
 
     [ObservableProperty]
@@ -180,9 +174,6 @@ public partial class AddPropertyViewModel : ObservableObject
         _updatePropertyClient = updatePropertyClient;
         _navigator = navigator;
 
-        // Pre-fill seller name with current user
-        AnbieterName = _authService.UserFullName ?? string.Empty;
-
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
     }
@@ -227,8 +218,6 @@ public partial class AddPropertyViewModel : ObservableObject
                 Ort = prop.Ort;
                 Plz = prop.Plz;
                 Preis = prop.Preis.ToString();
-                SelectedAnbieterTyp = (SellerType)prop.AnbieterTyp;
-                AnbieterName = prop.AnbieterName;
                 Beschreibung = prop.Beschreibung ?? string.Empty;
 
                 // Optional fields
@@ -287,12 +276,6 @@ public partial class AddPropertyViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(AnbieterName))
-        {
-            ErrorMessage = "Anbieter-Name ist erforderlich";
-            return;
-        }
-
         IsBusy = true;
 
         try
@@ -314,6 +297,10 @@ public partial class AddPropertyViewModel : ObservableObject
             if (!string.IsNullOrWhiteSpace(Baujahr) && int.TryParse(Baujahr, out var bj))
                 baujahrValue = bj;
 
+            // Get seller info from auth service
+            var sellerName = _authService.UserFullName ?? "Unbekannt";
+            var sellerType = 0; // Privat (default for all users)
+
             // TypeSpecificData for future use
             Dictionary<string, object>? typeSpecificData = null;
 
@@ -330,8 +317,8 @@ public partial class AddPropertyViewModel : ObservableObject
                     PostalCode = Plz.Trim(),
                     Price = preisValue,
                     Type = (int)SelectedTyp,
-                    SellerType = (int)SelectedAnbieterTyp,
-                    SellerName = AnbieterName.Trim(),
+                    SellerType = sellerType,
+                    SellerName = sellerName,
                     Description = Beschreibung.Trim(),
                     LivingAreaSquareMeters = wohnflaecheValue,
                     PlotAreaSquareMeters = grundstuecksValue,
@@ -357,8 +344,8 @@ public partial class AddPropertyViewModel : ObservableObject
                         PostalCode = Plz.Trim(),
                         Price = (double)preisValue,
                         Type = (Heimatplatz.Core.ApiClient.Generated.PropertyType)SelectedTyp,
-                        SellerType = (Heimatplatz.Core.ApiClient.Generated.SellerType)SelectedAnbieterTyp,
-                        SellerName = AnbieterName.Trim(),
+                        SellerType = (Heimatplatz.Core.ApiClient.Generated.SellerType)sellerType,
+                        SellerName = sellerName,
                         Description = Beschreibung.Trim(),
                         LivingAreaSquareMeters = wohnflaecheValue,
                         PlotAreaSquareMeters = grundstuecksValue,
@@ -410,8 +397,6 @@ public partial class AddPropertyViewModel : ObservableObject
         Zimmer = string.Empty;
         Baujahr = string.Empty;
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
-        SelectedAnbieterTyp = SellerType.Privat;
-        AnbieterName = _authService.UserFullName ?? string.Empty;
 
         // Reset foreclosure fields
         SelectedPropertyCategory = PropertyCategory.Einfamilienhaus;

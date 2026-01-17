@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Manual;
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Shiny.Mediator;
@@ -13,6 +14,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// </summary>
 public partial class EditPropertyViewModel : ObservableObject
 {
+    private readonly IAuthService _authService;
     private readonly IMediator _mediator;
     private readonly UpdatePropertyManualClient _updatePropertyClient;
     private readonly INavigator _navigator;
@@ -51,12 +53,6 @@ public partial class EditPropertyViewModel : ObservableObject
     private string _preis = string.Empty;
 
     [ObservableProperty]
-    private string _selectedAnbieterTyp = "Privat";
-
-    [ObservableProperty]
-    private string _anbieterName = string.Empty;
-
-    [ObservableProperty]
     private string _beschreibung = string.Empty;
 
     [ObservableProperty]
@@ -85,28 +81,24 @@ public partial class EditPropertyViewModel : ObservableObject
     private bool _showSuccess;
 
     public EditPropertyViewModel(
+        IAuthService authService,
         IMediator mediator,
         UpdatePropertyManualClient updatePropertyClient,
-        INavigator navigator)
+        INavigator navigator,
+        EditPropertyData data)
     {
+        _authService = authService;
         _mediator = mediator;
         _updatePropertyClient = updatePropertyClient;
         _navigator = navigator;
 
+        PropertyId = data.PropertyId;
+
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
-    }
 
-    /// <summary>
-    /// Called when page is navigated to with data (PropertyId)
-    /// </summary>
-    public async Task OnNavigatedToAsync(IDictionary<string, object>? data)
-    {
-        if (data?.TryGetValue("PropertyId", out var propertyIdObj) == true && propertyIdObj is Guid id)
-        {
-            PropertyId = id;
-            await LoadPropertyAsync(id);
-        }
+        // Load property data
+        _ = LoadPropertyAsync(data.PropertyId);
     }
 
     /// <summary>
@@ -137,8 +129,6 @@ public partial class EditPropertyViewModel : ObservableObject
                 Ort = prop.Ort;
                 Plz = prop.Plz;
                 Preis = prop.Preis.ToString();
-                SelectedAnbieterTyp = prop.AnbieterTyp == Heimatplatz.Core.ApiClient.Generated.SellerType.Privat ? "Privat" : "Makler";
-                AnbieterName = prop.AnbieterName;
                 Beschreibung = prop.Beschreibung ?? string.Empty;
 
                 // Optional fields
@@ -196,12 +186,6 @@ public partial class EditPropertyViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(AnbieterName))
-        {
-            ErrorMessage = "Anbieter-Name ist erforderlich";
-            return;
-        }
-
         IsLoading = true;
 
         try
@@ -223,11 +207,9 @@ public partial class EditPropertyViewModel : ObservableObject
             if (!string.IsNullOrWhiteSpace(Baujahr) && int.TryParse(Baujahr, out var bj))
                 baujahrValue = bj;
 
-            // Map property type
-            var propertyType = (int)SelectedTyp;
-
-            // Map seller type
-            var sellerType = SelectedAnbieterTyp == "Privat" ? 0 : 1;
+            // Get seller info from auth service
+            var sellerName = _authService.UserFullName ?? "Unbekannt";
+            var sellerType = 0; // Privat (default for all users)
 
             // Update property using manual client
             // WORKAROUND: Using manual client due to Shiny Mediator OpenAPI generator bug
@@ -239,9 +221,9 @@ public partial class EditPropertyViewModel : ObservableObject
                 City = Ort.Trim(),
                 PostalCode = Plz.Trim(),
                 Price = preisValue,
-                Type = propertyType,
+                Type = (int)SelectedTyp,
                 SellerType = sellerType,
-                SellerName = AnbieterName.Trim(),
+                SellerName = sellerName,
                 Description = Beschreibung.Trim(),
                 LivingAreaSquareMeters = wohnflaecheValue,
                 PlotAreaSquareMeters = grundstuecksValue,

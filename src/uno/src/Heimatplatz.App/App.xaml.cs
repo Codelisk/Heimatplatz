@@ -1,5 +1,6 @@
 using Heimatplatz.Core.Startup;
 using Heimatplatz.Features.Auth.Presentation;
+using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Presentation;
 using Uno.Resizetizer;
 #if DEBUG
@@ -68,6 +69,7 @@ public partial class App : Application
             new ViewMap<RegisterPage, RegisterViewModel>(),
             new ViewMap<LoginPage, LoginViewModel>(),
             new ViewMap<AddPropertyPage, AddPropertyViewModel>(),
+            new DataViewMap<EditPropertyPage, EditPropertyViewModel, EditPropertyData>(),
             new ViewMap<MyPropertiesPage, MyPropertiesViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
@@ -88,6 +90,7 @@ public partial class App : Application
                     new ("Register", View: views.FindByViewModel<RegisterViewModel>()),
                     new ("Login", View: views.FindByViewModel<LoginViewModel>()),
                     new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
+                    new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
                     new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>())
                 ]
             )

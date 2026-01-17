@@ -118,20 +118,17 @@ public partial class MyPropertiesViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Navigates to AddPropertyPage in edit mode for the selected property
+    /// Navigates to EditPropertyPage to edit the selected property
     /// </summary>
     [RelayCommand]
     private async Task EditPropertyAsync(PropertyListItemDto property)
     {
         if (property == null) return;
 
-        // Navigate to AddPropertyPage with the property ID for editing
-        await _navigator.NavigateViewModelAsync<AddPropertyViewModel>(
+        // Navigate to EditPropertyPage with the property ID
+        await _navigator.NavigateViewModelAsync<EditPropertyViewModel>(
             this,
-            data: new Dictionary<string, object>
-            {
-                ["PropertyId"] = property.Id
-            }
+            data: new EditPropertyData(property.Id)
         );
     }
 

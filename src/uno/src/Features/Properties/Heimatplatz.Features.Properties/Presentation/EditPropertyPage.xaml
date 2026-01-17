@@ -29,15 +29,6 @@
                     <AdaptiveTrigger MinWindowWidth="0" />
                 </VisualState.StateTriggers>
                 <VisualState.Setters>
-                    <!-- PropertyType Layout - Stack vertically -->
-                    <Setter Target="PropertyTypeLayout.RowSpacing" Value="8" />
-                    <Setter Target="PropertyTypeCombo.(Grid.Row)" Value="0" />
-                    <Setter Target="PropertyTypeCombo.(Grid.Column)" Value="0" />
-                    <Setter Target="PropertyTypeCombo.(Grid.ColumnSpan)" Value="2" />
-                    <Setter Target="SellerTypeCombo.(Grid.Row)" Value="1" />
-                    <Setter Target="SellerTypeCombo.(Grid.Column)" Value="0" />
-                    <Setter Target="SellerTypeCombo.(Grid.ColumnSpan)" Value="2" />
-
                     <!-- Address Layout - Stack vertically -->
                     <Setter Target="AddressLayout.RowSpacing" Value="8" />
                     <Setter Target="AddressField.(Grid.Row)" Value="0" />
@@ -49,15 +40,6 @@
                     <Setter Target="PostalCodeField.(Grid.Row)" Value="2" />
                     <Setter Target="PostalCodeField.(Grid.Column)" Value="0" />
                     <Setter Target="PostalCodeField.(Grid.ColumnSpan)" Value="3" />
-
-                    <!-- Price Layout - Stack vertically -->
-                    <Setter Target="PriceLayout.RowSpacing" Value="8" />
-                    <Setter Target="PriceField.(Grid.Row)" Value="0" />
-                    <Setter Target="PriceField.(Grid.Column)" Value="0" />
-                    <Setter Target="PriceField.(Grid.ColumnSpan)" Value="2" />
-                    <Setter Target="SellerNameField.(Grid.Row)" Value="1" />
-                    <Setter Target="SellerNameField.(Grid.Column)" Value="0" />
-                    <Setter Target="SellerNameField.(Grid.ColumnSpan)" Value="2" />
 
                     <!-- House Details Layout - Stack vertically -->
                     <Setter Target="HouseDetailsLayout.RowSpacing" Value="8" />
@@ -108,35 +90,10 @@
                      IsClosable="True"
                      IsOpen="True" />
 
-            <Grid x:Name="PropertyTypeLayout" ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <ComboBox x:Name="PropertyTypeCombo"
-                          Grid.Row="0"
-                          Grid.Column="0"
-                          Header="Immobilientyp *"
-                          ItemsSource="{Binding PropertyTypes}"
-                          SelectedItem="{Binding SelectedPropertyTypeItem, Mode=TwoWay}"
-                          DisplayMemberPath="DisplayName"
-                          HorizontalAlignment="Stretch" />
-
-                <ComboBox x:Name="SellerTypeCombo"
-                          Grid.Row="0"
-                          Grid.Column="1"
-                          Header="Anbietertyp *"
-                          SelectedItem="{Binding SelectedAnbieterTyp, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch">
-                    <x:String>Privat</x:String>
-                    <x:String>Makler</x:String>
-                </ComboBox>
-            </Grid>
+            <ComboBox Header="Immobilientyp *"
+                      ItemsSource="{Binding PropertyTypes}"
+                      SelectedItem="{Binding SelectedPropertyTypeItem, Mode=TwoWay}"
+                      DisplayMemberPath="DisplayName" />
 
             <TextBox Header="Titel *"
                      Text="{Binding Titel, Mode=TwoWay}"
@@ -188,34 +145,11 @@
                          HorizontalAlignment="Stretch" />
             </Grid>
 
-            <!-- Preis & Anbieter -->
-            <Grid x:Name="PriceLayout" ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <TextBox x:Name="PriceField"
-                         Grid.Row="0"
-                         Grid.Column="0"
-                         Header="Preis (€) *"
-                         Text="{Binding Preis, Mode=TwoWay}"
-                         PlaceholderText="z.B. 350000"
-                         InputScope="Number"
-                         HorizontalAlignment="Stretch" />
-
-                <TextBox x:Name="SellerNameField"
-                         Grid.Row="0"
-                         Grid.Column="1"
-                         Header="Anbieter-Name *"
-                         Text="{Binding AnbieterName, Mode=TwoWay}"
-                         PlaceholderText="Ihr Name"
-                         HorizontalAlignment="Stretch" />
-            </Grid>
+            <!-- Preis -->
+            <TextBox Header="Preis (€) *"
+                     Text="{Binding Preis, Mode=TwoWay}"
+                     PlaceholderText="z.B. 350000"
+                     InputScope="Number" />
 
             <!-- Immobilien-Details (Haus) -->
             <Grid x:Name="HouseDetailsLayout"
