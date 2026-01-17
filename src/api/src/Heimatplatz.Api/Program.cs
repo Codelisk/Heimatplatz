@@ -7,6 +7,7 @@ using Heimatplatz.Api.Core.Startup;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using Shiny.Mediator;
 
 var builder = WebApplication.CreateBuilder(args);
 
