@@ -101,6 +101,16 @@
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
+                <Button Content="📋 My Properties"
+                        Command="{x:Bind ViewModel.NavigateToMyPropertiesCommand}"
+                        HorizontalAlignment="Stretch"
+                        MinWidth="300" />
+
+                <Button Content="✏️ Edit First Seller Property"
+                        Command="{x:Bind ViewModel.EditFirstSellerPropertyCommand}"
+                        HorizontalAlignment="Stretch"
+                        MinWidth="300" />
+
                 <!-- Auth Pages -->
                 <Border Height="1"
                         Background="#30FFFFFF"

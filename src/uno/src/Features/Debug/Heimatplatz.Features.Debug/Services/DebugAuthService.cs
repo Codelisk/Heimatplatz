@@ -103,7 +103,7 @@ public class DebugAuthService : IDebugAuthService
             var jwtToken = handler.ReadJwtToken(token);
 
             var roles = jwtToken.Claims
-                .Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
+                .Where(c => c.Type == ClaimTypes.Role || c.Type == "role" || c.Type == "user_role")
                 .Select(c => c.Value)
                 .ToList();
 

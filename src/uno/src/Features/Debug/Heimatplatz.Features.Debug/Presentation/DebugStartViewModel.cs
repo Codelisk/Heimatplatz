@@ -5,6 +5,7 @@ using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Debug.Services;
 using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
+using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Features.Debug.Presentation;
@@ -19,6 +20,7 @@ public partial class DebugStartViewModel : ObservableObject
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
     private readonly ILogger<DebugStartViewModel> _logger;
+    private readonly IMediator _mediator;
 
     // Test-User Credentials
     private const string BuyerEmail = "test.buyer@heimatplatz.dev";
@@ -48,12 +50,14 @@ public partial class DebugStartViewModel : ObservableObject
         IDebugAuthService debugAuthService,
         IAuthService authService,
         INavigator navigator,
-        ILogger<DebugStartViewModel> logger)
+        ILogger<DebugStartViewModel> logger,
+        IMediator mediator)
     {
         _debugAuthService = debugAuthService;
         _authService = authService;
         _navigator = navigator;
         _logger = logger;
+        _mediator = mediator;
 
         // Auth-State-Changes beobachten
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
@@ -135,6 +139,13 @@ public partial class DebugStartViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task NavigateToMyPropertiesAsync()
+    {
+        _logger.LogInformation("[DEBUG] Navigation zu MyProperties");
+        await _navigator.NavigateRouteAsync(this, "MyProperties");
+    }
+
+    [RelayCommand]
     private async Task NavigateToLoginAsync()
     {
         _logger.LogInformation("[DEBUG] Navigation zu Login");
@@ -146,6 +157,52 @@ public partial class DebugStartViewModel : ObservableObject
     {
         _logger.LogInformation("[DEBUG] Navigation zu Register");
         await _navigator.NavigateRouteAsync(this, "Register");
+    }
+
+    [RelayCommand]
+    private async Task EditFirstSellerPropertyAsync()
+    {
+        _logger.LogInformation("[DEBUG] Navigation zu EditProperty mit erster Seller-Property");
+
+        try
+        {
+            // Ensure seller is logged in
+            if (!_authService.IsAuthenticated || CurrentUserEmail != SellerEmail)
+            {
+                await QuickLoginAsync(SellerEmail);
+            }
+
+            // Fetch user's properties
+            var result = await _mediator.Request(
+                new Heimatplatz.Core.ApiClient.Generated.GetUserPropertiesHttpRequest()
+            );
+
+            if (result.Result?.Properties != null && result.Result.Properties.Count > 0)
+            {
+                // Get first property
+                var firstProperty = result.Result.Properties[0];
+
+                _logger.LogInformation("[DEBUG] Navigiere zu EditProperty mit PropertyId: {PropertyId}", firstProperty.Id);
+
+                // Navigate to EditProperty with PropertyId
+                await _navigator.NavigateRouteAsync(
+                    this,
+                    "EditProperty",
+                    data: new Dictionary<string, object>
+                    {
+                        { "PropertyId", firstProperty.Id }
+                    }
+                );
+            }
+            else
+            {
+                _logger.LogWarning("[DEBUG] Keine Properties für Seller gefunden");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[DEBUG] Fehler beim Laden der ersten Property");
+        }
     }
 }
 #endif

@@ -5,6 +5,7 @@ using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
@@ -13,6 +14,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// ViewModel for MyPropertiesPage - manages user's own properties
 /// </summary>
+[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class MyPropertiesViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
@@ -42,6 +44,9 @@ public partial class MyPropertiesViewModel : ObservableObject
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
+
+        // Initialize as empty until properties are loaded
+        IsEmpty = true;
     }
 
     /// <summary>
@@ -63,29 +68,29 @@ public partial class MyPropertiesViewModel : ObservableObject
         try
         {
             // Der GetUserPropertiesHttpRequest wird automatisch aus der OpenAPI-Spec generiert
-            var result = await _mediator.Request(
+            var (context, response) = await _mediator.Request(
                 new Heimatplatz.Core.ApiClient.Generated.GetUserPropertiesHttpRequest()
             );
 
             Properties.Clear();
 
-            if (result.Result?.Properties != null)
+            if (response?.Properties != null)
             {
-                foreach (var prop in result.Result.Properties)
+                foreach (var prop in response.Properties)
                 {
                     Properties.Add(new PropertyListItemDto(
-                        Id: Guid.Parse(prop.Id),
-                        Titel: prop.Title,
-                        Adresse: prop.Address,
-                        Ort: prop.City,
-                        Preis: (decimal)prop.Price,
-                        WohnflaecheM2: prop.LivingAreaSquareMeters,
-                        GrundstuecksflaecheM2: prop.PlotAreaSquareMeters,
-                        Zimmer: prop.Rooms,
-                        Typ: (PropertyType)prop.Type,
-                        AnbieterTyp: (SellerType)prop.SellerType,
-                        AnbieterName: prop.SellerName,
-                        BildUrls: prop.ImageUrls?.ToList() ?? new List<string>()
+                        Id: prop.Id,
+                        Titel: prop.Titel,
+                        Adresse: prop.Adresse,
+                        Ort: prop.Ort,
+                        Preis: (decimal)prop.Preis,
+                        WohnflaecheM2: prop.WohnflaecheM2,
+                        GrundstuecksflaecheM2: prop.GrundstuecksflaecheM2,
+                        Zimmer: prop.Zimmer,
+                        Typ: (PropertyType)prop.Typ,
+                        AnbieterTyp: (SellerType)prop.AnbieterTyp,
+                        AnbieterName: prop.AnbieterName,
+                        BildUrls: prop.BildUrls
                     ));
                 }
             }
@@ -94,7 +99,6 @@ public partial class MyPropertiesViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            // TODO: Show error message to user
             await ShowErrorDialogAsync("Fehler beim Laden", $"Die Immobilien konnten nicht geladen werden: {ex.Message}");
         }
         finally

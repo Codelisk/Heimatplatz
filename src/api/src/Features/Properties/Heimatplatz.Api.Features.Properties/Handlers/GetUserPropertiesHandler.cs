@@ -40,7 +40,6 @@ public class GetUserPropertiesHandler(
         // Query properties for the authenticated user
         var properties = await dbContext.Set<Property>()
             .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.CreatedAt)
             .Select(p => new PropertyListItemDto(
                 p.Id,
                 p.Title,
