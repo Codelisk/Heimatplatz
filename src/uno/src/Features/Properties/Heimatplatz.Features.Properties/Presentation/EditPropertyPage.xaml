@@ -278,14 +278,29 @@
                          MinWidth="150" />
             </StackPanel>
 
-            <!-- Primary Action -->
-            <Button Content="Änderungen speichern"
-                    Command="{Binding UpdatePropertyCommand}"
-                    HorizontalAlignment="Stretch"
-                    Height="48"
-                    Margin="0,16,0,8"
-                    Style="{StaticResource AccentButtonStyle}"
-                    CornerRadius="{StaticResource RadiusSm}" />
+            <!-- Action Buttons -->
+            <Grid Margin="0,16,0,8" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        Content="Abbrechen"
+                        Command="{Binding CancelCommand}"
+                        HorizontalAlignment="Stretch"
+                        Height="48"
+                        Style="{StaticResource TextButtonStyle}"
+                        CornerRadius="{StaticResource RadiusSm}" />
+
+                <Button Grid.Column="1"
+                        Content="Änderungen speichern"
+                        Command="{Binding UpdatePropertyCommand}"
+                        HorizontalAlignment="Stretch"
+                        Height="48"
+                        Style="{StaticResource AccentButtonStyle}"
+                        CornerRadius="{StaticResource RadiusSm}" />
+            </Grid>
 
             <TextBlock Text="* Pflichtfelder"
                        FontSize="11"

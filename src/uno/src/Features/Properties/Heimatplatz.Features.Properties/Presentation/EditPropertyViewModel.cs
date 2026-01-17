@@ -4,6 +4,7 @@ using Heimatplatz.Core.ApiClient.Manual;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Shiny.Mediator;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -14,6 +15,7 @@ public partial class EditPropertyViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
     private readonly UpdatePropertyManualClient _updatePropertyClient;
+    private readonly INavigator _navigator;
 
     // Property ID being edited
     [ObservableProperty]
@@ -84,10 +86,12 @@ public partial class EditPropertyViewModel : ObservableObject
 
     public EditPropertyViewModel(
         IMediator mediator,
-        UpdatePropertyManualClient updatePropertyClient)
+        UpdatePropertyManualClient updatePropertyClient,
+        INavigator navigator)
     {
         _mediator = mediator;
         _updatePropertyClient = updatePropertyClient;
+        _navigator = navigator;
 
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
@@ -261,5 +265,14 @@ public partial class EditPropertyViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Navigiert zurück zur vorherigen Seite ohne zu speichern
+    /// </summary>
+    [RelayCommand]
+    private async Task CancelAsync()
+    {
+        await _navigator.NavigateBackAsync(this);
     }
 }

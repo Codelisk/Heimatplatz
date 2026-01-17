@@ -17,6 +17,7 @@ public partial class AddPropertyViewModel : ObservableObject
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
     private readonly UpdatePropertyManualClient _updatePropertyClient;
+    private readonly INavigator _navigator;
 
     // Edit Mode - Property ID if editing existing property
     [ObservableProperty]
@@ -171,11 +172,13 @@ public partial class AddPropertyViewModel : ObservableObject
     public AddPropertyViewModel(
         IAuthService authService,
         IMediator mediator,
-        UpdatePropertyManualClient updatePropertyClient)
+        UpdatePropertyManualClient updatePropertyClient,
+        INavigator navigator)
     {
         _authService = authService;
         _mediator = mediator;
         _updatePropertyClient = updatePropertyClient;
+        _navigator = navigator;
 
         // Pre-fill seller name with current user
         AnbieterName = _authService.UserFullName ?? string.Empty;
@@ -219,23 +222,23 @@ public partial class AddPropertyViewModel : ObservableObject
                 var prop = result.Result.Property;
 
                 // Fill common fields
-                Titel = prop.Title;
-                Adresse = prop.Address;
-                Ort = prop.City;
-                Plz = prop.PostalCode;
-                Preis = prop.Price.ToString();
-                SelectedAnbieterTyp = (SellerType)prop.SellerType;
-                AnbieterName = prop.SellerName;
-                Beschreibung = prop.Description ?? string.Empty;
+                Titel = prop.Titel;
+                Adresse = prop.Adresse;
+                Ort = prop.Ort;
+                Plz = prop.Plz;
+                Preis = prop.Preis.ToString();
+                SelectedAnbieterTyp = (SellerType)prop.AnbieterTyp;
+                AnbieterName = prop.AnbieterName;
+                Beschreibung = prop.Beschreibung ?? string.Empty;
 
                 // Optional fields
-                WohnflaecheM2 = prop.LivingAreaSquareMeters?.ToString() ?? string.Empty;
-                GrundstuecksflaecheM2 = prop.PlotAreaSquareMeters?.ToString() ?? string.Empty;
-                Zimmer = prop.Rooms?.ToString() ?? string.Empty;
-                Baujahr = prop.YearBuilt?.ToString() ?? string.Empty;
+                WohnflaecheM2 = prop.WohnflaecheM2?.ToString() ?? string.Empty;
+                GrundstuecksflaecheM2 = prop.GrundstuecksflaecheM2?.ToString() ?? string.Empty;
+                Zimmer = prop.Zimmer?.ToString() ?? string.Empty;
+                Baujahr = prop.Baujahr?.ToString() ?? string.Empty;
 
                 // Set property type
-                var typeItem = PropertyTypes.FirstOrDefault(t => (int)t.Value == (int)prop.Type);
+                var typeItem = PropertyTypes.FirstOrDefault(t => (int)t.Value == (int)prop.Typ);
                 if (typeItem != null)
                 {
                     SelectedPropertyTypeItem = typeItem;
@@ -385,6 +388,14 @@ public partial class AddPropertyViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Navigiert zurück zur vorherigen Seite ohne zu speichern
+    /// </summary>
+    [RelayCommand]
+    private async Task CancelAsync()
+    {
+        await _navigator.NavigateBackAsync(this);
+    }
 
     private void ResetForm()
     {
