@@ -3,17 +3,17 @@ using System.Text.Json.Serialization;
 namespace Heimatplatz.Api.Features.Properties.Contracts;
 
 /// <summary>
-/// Art der Immobilie
+/// Type of property
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PropertyType
 {
-    /// <summary>Einfamilienhaus, Reihenhaus, Villa, etc.</summary>
-    Haus = 1,
+    /// <summary>House (single-family home, townhouse, apartment, etc.)</summary>
+    House = 1,
 
-    /// <summary>Baugrund, Grundstueck</summary>
-    Grundstueck = 2,
+    /// <summary>Land (building plot, farmland, etc.)</summary>
+    Land = 2,
 
-    /// <summary>Immobilie aus Zwangsversteigerung</summary>
-    Zwangsversteigerung = 3
+    /// <summary>Foreclosure (auction property)</summary>
+    Foreclosure = 3
 }

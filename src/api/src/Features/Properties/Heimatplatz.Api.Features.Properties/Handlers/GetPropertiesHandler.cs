@@ -14,37 +14,38 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 /// Handler fuer GetPropertiesRequest - gibt gefilterte Immobilien-Liste zurueck
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
+[MediatorHttpGroup("/api/properties")]
 public class GetPropertiesHandler(AppDbContext dbContext) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
 {
-    [MediatorHttpGet("/api/properties", OperationId = "GetProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpGet("/", OperationId = "GetProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var query = dbContext.Set<Property>().AsQueryable();
 
         // Filter anwenden
         if (request.Typ.HasValue)
-            query = query.Where(p => p.Typ == request.Typ.Value);
+            query = query.Where(p => p.Type == request.Typ.Value);
 
         if (request.AnbieterTyp.HasValue)
-            query = query.Where(p => p.AnbieterTyp == request.AnbieterTyp.Value);
+            query = query.Where(p => p.SellerType == request.AnbieterTyp.Value);
 
         if (request.PreisMin.HasValue)
-            query = query.Where(p => p.Preis >= request.PreisMin.Value);
+            query = query.Where(p => p.Price >= request.PreisMin.Value);
 
         if (request.PreisMax.HasValue)
-            query = query.Where(p => p.Preis <= request.PreisMax.Value);
+            query = query.Where(p => p.Price <= request.PreisMax.Value);
 
         if (request.FlaecheMin.HasValue)
-            query = query.Where(p => (p.WohnflaecheM2 ?? p.GrundstuecksflaecheM2) >= request.FlaecheMin.Value);
+            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) >= request.FlaecheMin.Value);
 
         if (request.FlaecheMax.HasValue)
-            query = query.Where(p => (p.WohnflaecheM2 ?? p.GrundstuecksflaecheM2) <= request.FlaecheMax.Value);
+            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) <= request.FlaecheMax.Value);
 
         if (request.ZimmerMin.HasValue)
-            query = query.Where(p => p.Zimmer >= request.ZimmerMin.Value);
+            query = query.Where(p => p.Rooms >= request.ZimmerMin.Value);
 
         if (!string.IsNullOrWhiteSpace(request.Ort))
-            query = query.Where(p => p.Ort.Contains(request.Ort) || p.Plz.StartsWith(request.Ort));
+            query = query.Where(p => p.City.Contains(request.Ort) || p.PostalCode.StartsWith(request.Ort));
 
         // Gesamtanzahl fuer Paging
         var gesamt = await query.CountAsync(cancellationToken);
@@ -57,17 +58,17 @@ public class GetPropertiesHandler(AppDbContext dbContext) : IRequestHandler<GetP
             .Take(request.Take)
             .Select(p => new PropertyListItemDto(
                 p.Id,
-                p.Titel,
-                p.Adresse,
-                p.Ort,
-                p.Preis,
-                p.WohnflaecheM2,
-                p.GrundstuecksflaecheM2,
-                p.Zimmer,
-                p.Typ,
-                p.AnbieterTyp,
-                p.AnbieterName,
-                p.BildUrls
+                p.Title,
+                p.Address,
+                p.City,
+                p.Price,
+                p.LivingAreaSquareMeters,
+                p.PlotAreaSquareMeters,
+                p.Rooms,
+                p.Type,
+                p.SellerType,
+                p.SellerName,
+                p.ImageUrls
             ))
             .ToList();
 

@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Startup;
+using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -100,6 +101,20 @@ app.UseAuthorization();
 
 app.MapDefaultEndpoints();
 app.MapEndpoints();
+
+// Manual endpoint registration for UpdateProperty due to Shiny Mediator OpenAPI Generator bug
+// Bug: MediatorHttpPut doesn't generate 'parameters' array in OpenAPI spec for route parameters
+// This causes the client generator to fail with "The name 'Id' does not exist in the current context"
+// Using /update suffix to avoid conflict with auto-generated endpoints
+app.MapPut("/api/properties/{Id:guid}/update", async (Guid Id, UpdatePropertyRequest request, IMediator mediator) =>
+{
+    request.Id = Id;  // Bind route parameter to request
+    var result = await mediator.Request(request);
+    return Results.Ok(result.Result);
+})
+.RequireAuthorization(AuthorizationPolicies.RequireSeller)
+.WithName("UpdateProperty")
+.ExcludeFromDescription();  // Exclude from OpenAPI to prevent conflicts
 
 if (app.Environment.IsDevelopment())
 {

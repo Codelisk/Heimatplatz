@@ -1,0 +1,18 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Heimatplatz.Core.Styles -> C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Core\Heimatplatz.Core.Styles\bin\Debug\net10.0-desktop\Heimatplatz.Core.Styles.dll
+  Heimatplatz.Shared -> C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Shared\Heimatplatz.Shared\bin\Debug\net10.0-desktop\Heimatplatz.Shared.dll
+  UnoFramework.Contracts -> C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\subm\uno\src\UnoFramework.Contracts\bin\Debug\net10.0\UnoFramework.Contracts.dll
+  UnoFramework.Generators -> C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\subm\uno\src\UnoFramework.Generators\bin\Debug\netstandard2.0\UnoFramework.Generators.dll
+  Heimatplatz.Features.Auth.Contracts -> C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Features\Auth\Heimatplatz.Features.Auth.Contracts\bin\Debug\net10.0-desktop\Heimatplatz.Features.Auth.Contracts.dll
+  Heimatplatz.Features.Properties.Contracts -> C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Features\Properties\Heimatplatz.Features.Properties.Contracts\bin\Debug\net10.0-desktop\Heimatplatz.Features.Properties.Contracts.dll
+  UnoFramework -> C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\subm\uno\src\UnoFramework\bin\Debug\net10.0-desktop\UnoFramework.dll
+C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Core\Heimatplatz.Core.ApiClient\obj\Debug\net10.0-desktop\Shiny.Mediator.SourceGenerators\Shiny.Mediator.SourceGenerators.OpenApiHttpClientSourceGenerator\Heimatplatz.Core.ApiClient.Generated.UpdatePropertyHttpRequestHandler.g.cs(23,40): error CS0103: The name 'Id' does not exist in the current context [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Core\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj::TargetFramework=net10.0-desktop]
+
+Build FAILED.
+
+C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Core\Heimatplatz.Core.ApiClient\obj\Debug\net10.0-desktop\Shiny.Mediator.SourceGenerators\Shiny.Mediator.SourceGenerators.OpenApiHttpClientSourceGenerator\Heimatplatz.Core.ApiClient.Generated.UpdatePropertyHttpRequestHandler.g.cs(23,40): error CS0103: The name 'Id' does not exist in the current context [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\uno\src\Core\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj::TargetFramework=net10.0-desktop]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.93

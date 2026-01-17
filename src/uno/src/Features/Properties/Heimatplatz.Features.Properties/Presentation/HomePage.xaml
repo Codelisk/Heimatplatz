@@ -147,6 +147,13 @@
                                                 <FontIcon Glyph="&#xE77B;" FontSize="14" />
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Meine Immobilien"
+                                                        uen:Navigation.Request="MyProperties"
+                                                        AutomationProperties.AutomationId="HomePage_MyPropertiesMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE80F;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem Text="Immobilie hinzufügen"
                                                         Command="{x:Bind ViewModel.NavigateToAddPropertyCommand}"
                                                         AutomationProperties.AutomationId="HomePage_AddPropertyMenuItem">

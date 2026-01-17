@@ -1,19 +1,44 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Core.ApiClient.Manual;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Heimatplatz.Features.Properties.Models;
 using Shiny.Mediator;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
-/// ViewModel fuer AddPropertyPage
+/// ViewModel for AddPropertyPage
 /// </summary>
 public partial class AddPropertyViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
+    private readonly UpdatePropertyManualClient _updatePropertyClient;
 
+    // Edit Mode - Property ID if editing existing property
+    [ObservableProperty]
+    private Guid? _propertyId;
+
+    public bool IsEditMode => PropertyId.HasValue;
+
+    // PropertyType Items for ComboBox
+    public List<PropertyTypeItem> PropertyTypes { get; } = PropertyTypeItem.GetAll();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedTyp), nameof(IsHouseType), nameof(IsLandType), nameof(IsForeclosureType))]
+    private PropertyTypeItem? _selectedPropertyTypeItem;
+
+    public PropertyType SelectedTyp => SelectedPropertyTypeItem?.Value ?? PropertyType.House;
+
+    // Visibility properties based on selected property type
+    public bool IsHouseType => SelectedTyp == PropertyType.House;
+    public bool IsLandType => SelectedTyp == PropertyType.Land;
+    public bool IsForeclosureType => SelectedTyp == PropertyType.Foreclosure;
+
+    // Common Fields
     [ObservableProperty]
     private string _titel = string.Empty;
 
@@ -28,9 +53,6 @@ public partial class AddPropertyViewModel : ObservableObject
 
     [ObservableProperty]
     private string _preis = string.Empty;
-
-    [ObservableProperty]
-    private PropertyType _selectedTyp = PropertyType.Haus;
 
     [ObservableProperty]
     private SellerType _selectedAnbieterTyp = SellerType.Privat;
@@ -53,6 +75,87 @@ public partial class AddPropertyViewModel : ObservableObject
     [ObservableProperty]
     private string _baujahr = string.Empty;
 
+    // Foreclosure-Specific Fields
+    [ObservableProperty]
+    private PropertyCategory _selectedPropertyCategory = PropertyCategory.Einfamilienhaus;
+
+    [ObservableProperty]
+    private DateTimeOffset _auctionDate = DateTimeOffset.Now.AddDays(30);
+
+    [ObservableProperty]
+    private string _estimatedValue = string.Empty;
+
+    [ObservableProperty]
+    private string _minimumBid = string.Empty;
+
+    [ObservableProperty]
+    private string _caseNumber = string.Empty;
+
+    [ObservableProperty]
+    private string _court = string.Empty;
+
+    [ObservableProperty]
+    private string _status = "Aktiv";
+
+    // Grundbuch-Daten
+    [ObservableProperty]
+    private string _registrationNumber = string.Empty;
+
+    [ObservableProperty]
+    private string _cadastralMunicipality = string.Empty;
+
+    [ObservableProperty]
+    private string _plotNumber = string.Empty;
+
+    [ObservableProperty]
+    private string _sheetNumber = string.Empty;
+
+    // Flaechendaten (zusaetzliche)
+    [ObservableProperty]
+    private string _totalArea = string.Empty;
+
+    [ObservableProperty]
+    private string _buildingArea = string.Empty;
+
+    [ObservableProperty]
+    private string _gardenArea = string.Empty;
+
+    // Immobilien-Details
+    [ObservableProperty]
+    private string _zoningDesignation = string.Empty;
+
+    [ObservableProperty]
+    private string _buildingCondition = string.Empty;
+
+    // Versteigerungs-Details
+    [ObservableProperty]
+    private DateTimeOffset? _viewingDate;
+
+    [ObservableProperty]
+    private DateTimeOffset? _biddingDeadline;
+
+    [ObservableProperty]
+    private string _ownershipShare = string.Empty;
+
+    [ObservableProperty]
+    private string _edictUrl = string.Empty;
+
+    [ObservableProperty]
+    private string _notes = string.Empty;
+
+    // Dokumente (URLs)
+    [ObservableProperty]
+    private string _floorPlanUrl = string.Empty;
+
+    [ObservableProperty]
+    private string _sitePlanUrl = string.Empty;
+
+    [ObservableProperty]
+    private string _longAppraisalUrl = string.Empty;
+
+    [ObservableProperty]
+    private string _shortAppraisalUrl = string.Empty;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -65,14 +168,90 @@ public partial class AddPropertyViewModel : ObservableObject
     [ObservableProperty]
     private bool _showSuccess;
 
-    public AddPropertyViewModel(IAuthService authService, IMediator mediator)
+    public AddPropertyViewModel(
+        IAuthService authService,
+        IMediator mediator,
+        UpdatePropertyManualClient updatePropertyClient)
     {
         _authService = authService;
         _mediator = mediator;
+        _updatePropertyClient = updatePropertyClient;
 
-        // Verkäufer-Name mit aktuellem Benutzer vorausfüllen
+        // Pre-fill seller name with current user
         AnbieterName = _authService.UserFullName ?? string.Empty;
+
+        // Set default property type
+        SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
     }
+
+    /// <summary>
+    /// Called when page is navigated to with data (e.g., PropertyId for editing)
+    /// </summary>
+    public async Task OnNavigatedToAsync(IDictionary<string, object>? data)
+    {
+        if (data?.TryGetValue("PropertyId", out var propertyIdObj) == true && propertyIdObj is Guid id)
+        {
+            PropertyId = id;
+            await LoadPropertyForEditingAsync(id);
+        }
+    }
+
+    /// <summary>
+    /// Loads property data for editing
+    /// </summary>
+    private async Task LoadPropertyForEditingAsync(Guid propertyId)
+    {
+        IsBusy = true;
+        ErrorMessage = null;
+
+        try
+        {
+            // Load property details using GetPropertyByIdHttpRequest
+            var result = await _mediator.Request(
+                new Heimatplatz.Core.ApiClient.Generated.GetPropertyByIdHttpRequest
+                {
+                    Id = propertyId
+                }
+            );
+
+            if (result.Result?.Property != null)
+            {
+                var prop = result.Result.Property;
+
+                // Fill common fields
+                Titel = prop.Title;
+                Adresse = prop.Address;
+                Ort = prop.City;
+                Plz = prop.PostalCode;
+                Preis = prop.Price.ToString();
+                SelectedAnbieterTyp = (SellerType)prop.SellerType;
+                AnbieterName = prop.SellerName;
+                Beschreibung = prop.Description ?? string.Empty;
+
+                // Optional fields
+                WohnflaecheM2 = prop.LivingAreaSquareMeters?.ToString() ?? string.Empty;
+                GrundstuecksflaecheM2 = prop.PlotAreaSquareMeters?.ToString() ?? string.Empty;
+                Zimmer = prop.Rooms?.ToString() ?? string.Empty;
+                Baujahr = prop.YearBuilt?.ToString() ?? string.Empty;
+
+                // Set property type
+                var typeItem = PropertyTypes.FirstOrDefault(t => (int)t.Value == (int)prop.Type);
+                if (typeItem != null)
+                {
+                    SelectedPropertyTypeItem = typeItem;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Fehler beim Laden der Immobilie: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
 
     [RelayCommand]
     private async Task SavePropertyAsync()
@@ -80,7 +259,7 @@ public partial class AddPropertyViewModel : ObservableObject
         ErrorMessage = null;
         ShowSuccess = false;
 
-        // Validierung
+        // Validation
         if (string.IsNullOrWhiteSpace(Titel) || Titel.Length < 10)
         {
             ErrorMessage = "Titel muss mindestens 10 Zeichen lang sein";
@@ -132,32 +311,69 @@ public partial class AddPropertyViewModel : ObservableObject
             if (!string.IsNullOrWhiteSpace(Baujahr) && int.TryParse(Baujahr, out var bj))
                 baujahrValue = bj;
 
-            // Der CreatePropertyHttpRequest wird automatisch aus der OpenAPI-Spec generiert
-            var response = await _mediator.Request(new Heimatplatz.Core.ApiClient.Generated.CreatePropertyHttpRequest
+            // TypeSpecificData for future use
+            Dictionary<string, object>? typeSpecificData = null;
+
+            if (IsEditMode)
             {
-                Body = new Heimatplatz.Core.ApiClient.Generated.CreatePropertyRequest
+                // Update existing property using manual client
+                // WORKAROUND: Using manual client due to Shiny Mediator OpenAPI generator bug
+                // See: https://github.com/shinyorg/mediator/issues/54
+                var updateRequest = new Heimatplatz.Core.ApiClient.Manual.UpdatePropertyRequestDto
                 {
-                    Titel = Titel.Trim(),
-                    Adresse = Adresse.Trim(),
-                    Ort = Ort.Trim(),
-                    Plz = Plz.Trim(),
-                    Preis = (double)preisValue,
-                    Typ = (Heimatplatz.Core.ApiClient.Generated.PropertyType)SelectedTyp,
-                    AnbieterTyp = (Heimatplatz.Core.ApiClient.Generated.SellerType)SelectedAnbieterTyp,
-                    AnbieterName = AnbieterName.Trim(),
-                    Beschreibung = Beschreibung.Trim(),
-                    WohnflaecheM2 = wohnflaecheValue,
-                    GrundstuecksflaecheM2 = grundstuecksValue,
-                    Zimmer = zimmerValue,
-                    Baujahr = baujahrValue
-                }
-            });
+                    Title = Titel.Trim(),
+                    Address = Adresse.Trim(),
+                    City = Ort.Trim(),
+                    PostalCode = Plz.Trim(),
+                    Price = preisValue,
+                    Type = (int)SelectedTyp,
+                    SellerType = (int)SelectedAnbieterTyp,
+                    SellerName = AnbieterName.Trim(),
+                    Description = Beschreibung.Trim(),
+                    LivingAreaSquareMeters = wohnflaecheValue,
+                    PlotAreaSquareMeters = grundstuecksValue,
+                    Rooms = zimmerValue,
+                    YearBuilt = baujahrValue,
+                    TypeSpecificData = typeSpecificData
+                };
+
+                await _updatePropertyClient.UpdatePropertyAsync(
+                    PropertyId!.Value,
+                    updateRequest);
+            }
+            else
+            {
+                // Create new property using generated client
+                var response = await _mediator.Request(new Heimatplatz.Core.ApiClient.Generated.CreatePropertyHttpRequest
+                {
+                    Body = new Heimatplatz.Core.ApiClient.Generated.CreatePropertyRequest
+                    {
+                        Title = Titel.Trim(),
+                        Address = Adresse.Trim(),
+                        City = Ort.Trim(),
+                        PostalCode = Plz.Trim(),
+                        Price = (double)preisValue,
+                        Type = (Heimatplatz.Core.ApiClient.Generated.PropertyType)SelectedTyp,
+                        SellerType = (Heimatplatz.Core.ApiClient.Generated.SellerType)SelectedAnbieterTyp,
+                        SellerName = AnbieterName.Trim(),
+                        Description = Beschreibung.Trim(),
+                        LivingAreaSquareMeters = wohnflaecheValue,
+                        PlotAreaSquareMeters = grundstuecksValue,
+                        Rooms = zimmerValue,
+                        YearBuilt = baujahrValue,
+                        TypeSpecificData = typeSpecificData
+                    }
+                });
+            }
 
             ShowSuccess = true;
 
-            // Formular zurücksetzen
-            await Task.Delay(1500);
-            ResetForm();
+            // Formular zurücksetzen (nur bei Create)
+            if (!IsEditMode)
+            {
+                await Task.Delay(1500);
+                ResetForm();
+            }
         }
         catch (Exception ex)
         {
@@ -168,6 +384,7 @@ public partial class AddPropertyViewModel : ObservableObject
             IsBusy = false;
         }
     }
+
 
     private void ResetForm()
     {
@@ -181,9 +398,47 @@ public partial class AddPropertyViewModel : ObservableObject
         GrundstuecksflaecheM2 = string.Empty;
         Zimmer = string.Empty;
         Baujahr = string.Empty;
-        SelectedTyp = PropertyType.Haus;
+        SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
         SelectedAnbieterTyp = SellerType.Privat;
         AnbieterName = _authService.UserFullName ?? string.Empty;
+
+        // Reset foreclosure fields
+        SelectedPropertyCategory = PropertyCategory.Einfamilienhaus;
+        AuctionDate = DateTimeOffset.Now.AddDays(30);
+        EstimatedValue = string.Empty;
+        MinimumBid = string.Empty;
+        CaseNumber = string.Empty;
+        Court = string.Empty;
+        Status = "Aktiv";
+
+        // Reset Grundbuch-Daten
+        RegistrationNumber = string.Empty;
+        CadastralMunicipality = string.Empty;
+        PlotNumber = string.Empty;
+        SheetNumber = string.Empty;
+
+        // Reset Flaechendaten
+        TotalArea = string.Empty;
+        BuildingArea = string.Empty;
+        GardenArea = string.Empty;
+
+        // Reset Immobilien-Details
+        ZoningDesignation = string.Empty;
+        BuildingCondition = string.Empty;
+
+        // Reset Versteigerungs-Details
+        ViewingDate = null;
+        BiddingDeadline = null;
+        OwnershipShare = string.Empty;
+        EdictUrl = string.Empty;
+        Notes = string.Empty;
+
+        // Reset Dokumente
+        FloorPlanUrl = string.Empty;
+        SitePlanUrl = string.Empty;
+        LongAppraisalUrl = string.Empty;
+        ShortAppraisalUrl = string.Empty;
+
         ShowSuccess = false;
     }
 }

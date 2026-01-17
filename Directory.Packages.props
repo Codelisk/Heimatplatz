@@ -4,7 +4,7 @@
     <MicrosoftVersion>10.0.1</MicrosoftVersion>
     <AspireVersion>13.1.0</AspireVersion>
     <OpenTelemetryVersion>1.14.0</OpenTelemetryVersion>
-    <ShinyMediatorVersion>6.0.2</ShinyMediatorVersion>
+    <ShinyMediatorVersion>6.1.0</ShinyMediatorVersion>
   </PropertyGroup>
 
   <ItemGroup>

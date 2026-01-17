@@ -139,6 +139,21 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<DateTimeOffset>("AuctionDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTimeOffset?>("BiddingDeadline")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("BuildingArea")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BuildingCondition")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CadastralMunicipality")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("CaseNumber")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
@@ -166,6 +181,18 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FloorPlanUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("GardenArea")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LongAppraisalUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal?>("MinimumBid")
                         .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
@@ -174,9 +201,24 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("NumberOfRooms")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("ObjectDescription")
                         .IsRequired()
                         .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnershipShare")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("PlotArea")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PlotNumber")
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PostalCode")
@@ -184,10 +226,41 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("State")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("RegistrationNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SheetNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ShortAppraisalUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SitePlanUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalArea")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("ViewingDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("YearBuilt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ZoningDesignation")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -202,7 +275,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations
 
                     b.HasIndex("PostalCode");
 
-                    b.HasIndex("State");
+                    b.HasIndex("RegistrationNumber");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("ForeclosureAuctions", (string)null);
                 });
@@ -213,61 +288,68 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Adresse")
+                    b.Property<string>("Address")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("AnbieterName")
+                    b.Property<string>("City")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("AnbieterTyp")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Ausstattung")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("Baujahr")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Beschreibung")
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("BildUrls")
-                        .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("GrundstuecksflaecheM2")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Ort")
-                        .IsRequired()
-                        .HasMaxLength(100)
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Plz")
+                    b.Property<string>("Features")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageUrls")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("LivingAreaSquareMeters")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("PlotAreaSquareMeters")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PostalCode")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Preis")
+                    b.Property<decimal>("Price")
                         .HasPrecision(12, 2)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Titel")
+                    b.Property<int?>("Rooms")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SellerName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Typ")
+                    b.Property<int>("SellerType")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TypeSpecificData")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -275,21 +357,18 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("WohnflaecheM2")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("Zimmer")
+                    b.Property<int?>("YearBuilt")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("City");
+
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("Ort");
+                    b.HasIndex("Price");
 
-                    b.HasIndex("Preis");
-
-                    b.HasIndex("Typ");
+                    b.HasIndex("Type");
 
                     b.HasIndex("UserId");
 

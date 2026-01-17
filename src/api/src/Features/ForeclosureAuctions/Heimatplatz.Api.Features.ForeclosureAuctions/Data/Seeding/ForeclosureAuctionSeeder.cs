@@ -20,198 +20,240 @@ public class ForeclosureAuctionSeeder(AppDbContext dbContext) : ISeeder
 
         var auctions = new List<ForeclosureAuction>
         {
-            // Wien
-            new ForeclosureAuction
-            {
-                AuctionDate = baseDate.AddDays(30),
-                Address = "Mariahilfer Straße 123",
-                City = "Wien",
-                PostalCode = "1060",
-                State = AustrianState.Wien,
-                Category = PropertyCategory.Wohnungseigentum,
-                ObjectDescription = "3-Zimmer-Wohnung mit Balkon in zentraler Lage",
-                EstimatedValue = 350000m,
-                MinimumBid = 280000m,
-                CaseNumber = "123 E 456/24",
-                Court = "Bezirksgericht Innere Stadt Wien",
-                EdictUrl = "https://edikte.justiz.gv.at/sample1.odt",
-                Notes = "Sanierungsbedürftig, gute Anbindung"
-            },
-            new ForeclosureAuction
-            {
-                AuctionDate = baseDate.AddDays(45),
-                Address = "Praterstraße 45",
-                City = "Wien",
-                PostalCode = "1020",
-                State = AustrianState.Wien,
-                Category = PropertyCategory.GewerblicheLiegenschaft,
-                ObjectDescription = "Geschäftslokal mit Lager im Erdgeschoss",
-                EstimatedValue = 520000m,
-                MinimumBid = 416000m,
-                CaseNumber = "234 E 567/24",
-                Court = "Bezirksgericht Leopoldstadt",
-                EdictUrl = "https://edikte.justiz.gv.at/sample2.odt"
-            },
-
-            // Niederösterreich
-            new ForeclosureAuction
-            {
-                AuctionDate = baseDate.AddDays(21),
-                Address = "Hauptstraße 78",
-                City = "Baden",
-                PostalCode = "2500",
-                State = AustrianState.Niederoesterreich,
-                Category = PropertyCategory.Einfamilienhaus,
-                ObjectDescription = "Einfamilienhaus mit Garten und Garage",
-                EstimatedValue = 480000m,
-                MinimumBid = 384000m,
-                CaseNumber = "345 E 678/24",
-                Court = "Bezirksgericht Baden",
-                Notes = "Baujahr 1985, teilweise renoviert"
-            },
-            new ForeclosureAuction
-            {
-                AuctionDate = baseDate.AddDays(60),
-                Address = "Waldweg 12",
-                City = "Mödling",
-                PostalCode = "2340",
-                State = AustrianState.Niederoesterreich,
-                Category = PropertyCategory.Grundstueck,
-                ObjectDescription = "Baugrundstück in ruhiger Siedlungslage",
-                EstimatedValue = 180000m,
-                MinimumBid = 144000m,
-                CaseNumber = "456 E 789/24",
-                Court = "Bezirksgericht Mödling"
-            },
-
-            // Oberösterreich
+            // Oberösterreich - Linz
             new ForeclosureAuction
             {
                 AuctionDate = baseDate.AddDays(35),
+                Category = PropertyCategory.Mehrfamilienhaus,
+                ObjectDescription = "Mehrfamilienhaus mit 6 Wohneinheiten",
+                Status = "Aktiv",
                 Address = "Landstraße 234",
                 City = "Linz",
                 PostalCode = "4020",
-                State = AustrianState.Oberoesterreich,
-                Category = PropertyCategory.Mehrfamilienhaus,
-                ObjectDescription = "Mehrfamilienhaus mit 6 Wohneinheiten",
+                RegistrationNumber = "EZ 1234/2024",
+                CadastralMunicipality = "Linz Stadt",
+                PlotNumber = "567/8",
+                SheetNumber = "Blatt 12",
+                TotalArea = 850m,
+                BuildingArea = 620m,
+                PlotArea = 850m,
+                YearBuilt = 1998,
+                NumberOfRooms = 24,
+                ZoningDesignation = "Bauland-Wohngebiet",
+                BuildingCondition = "Gut, vollvermietet",
                 EstimatedValue = 890000m,
                 MinimumBid = 712000m,
+                ViewingDate = baseDate.AddDays(28),
                 CaseNumber = "567 E 890/24",
                 Court = "Bezirksgericht Linz",
-                Notes = "Vollvermietet, guter Zustand"
+                Notes = "Vollvermietet, guter Zustand, zentrale Lage"
             },
+
+            // Oberösterreich - Wels
             new ForeclosureAuction
             {
                 AuctionDate = baseDate.AddDays(50),
+                Category = PropertyCategory.GewerblicheLiegenschaft,
+                ObjectDescription = "Lagerhalle mit Bürotrakt",
+                Status = "Aktiv",
                 Address = "Industriestraße 56",
                 City = "Wels",
                 PostalCode = "4600",
-                State = AustrianState.Oberoesterreich,
-                Category = PropertyCategory.GewerblicheLiegenschaft,
-                ObjectDescription = "Lagerhalle mit Bürotrakt",
+                RegistrationNumber = "EZ 5678/2024",
+                CadastralMunicipality = "Wels Industriegebiet",
+                PlotNumber = "234/1",
+                SheetNumber = "Blatt 45",
+                TotalArea = 2400m,
+                BuildingArea = 1800m,
+                PlotArea = 2400m,
+                YearBuilt = 2005,
+                ZoningDesignation = "Betriebsbaugebiet",
+                BuildingCondition = "Sehr gut, betriebsbereit",
                 EstimatedValue = 650000m,
                 MinimumBid = 520000m,
+                ViewingDate = baseDate.AddDays(43),
+                BiddingDeadline = baseDate.AddDays(49),
                 CaseNumber = "678 E 901/24",
-                Court = "Bezirksgericht Wels"
+                Court = "Bezirksgericht Wels",
+                Notes = "Moderne Lagerhalle mit vollausgestattetem Bürobereich"
             },
 
-            // Steiermark
+            // Oberösterreich - Steyr
             new ForeclosureAuction
             {
                 AuctionDate = baseDate.AddDays(28),
-                Address = "Herrengasse 89",
-                City = "Graz",
-                PostalCode = "8010",
-                State = AustrianState.Steiermark,
-                Category = PropertyCategory.Zweifamilienhaus,
-                ObjectDescription = "Zweifamilienhaus mit zwei separaten Eingängen",
-                EstimatedValue = 520000m,
-                MinimumBid = 416000m,
-                CaseNumber = "789 E 012/24",
-                Court = "Bezirksgericht für Zivilrechtssachen Graz"
+                Category = PropertyCategory.Einfamilienhaus,
+                ObjectDescription = "Einfamilienhaus mit Garage und großem Garten",
+                Status = "Aktiv",
+                Address = "Resthofstraße 45",
+                City = "Steyr",
+                PostalCode = "4400",
+                RegistrationNumber = "EZ 3456/2024",
+                CadastralMunicipality = "Steyr Münichholz",
+                PlotNumber = "789/12",
+                SheetNumber = "Blatt 23",
+                TotalArea = 650m,
+                BuildingArea = 180m,
+                GardenArea = 450m,
+                PlotArea = 650m,
+                YearBuilt = 1985,
+                NumberOfRooms = 6,
+                ZoningDesignation = "Bauland-Wohngebiet",
+                BuildingCondition = "Renovierungsbedürftig",
+                EstimatedValue = 420000m,
+                MinimumBid = 336000m,
+                ViewingDate = baseDate.AddDays(21),
+                CaseNumber = "234 E 123/24",
+                Court = "Bezirksgericht Steyr",
+                Notes = "Ruhige Lage, großer Garten, Renovierungspotential"
             },
 
-            // Tirol
+            // Oberösterreich - Vöcklabruck
             new ForeclosureAuction
             {
                 AuctionDate = baseDate.AddDays(42),
-                Address = "Alpweg 34",
-                City = "Innsbruck",
-                PostalCode = "6020",
-                State = AustrianState.Tirol,
-                Category = PropertyCategory.Einfamilienhaus,
-                ObjectDescription = "Chalet-artiges Einfamilienhaus mit Bergblick",
-                EstimatedValue = 720000m,
-                MinimumBid = 576000m,
-                CaseNumber = "890 E 123/24",
-                Court = "Bezirksgericht Innsbruck",
-                Notes = "Touristische Vermietung möglich"
+                Category = PropertyCategory.Zweifamilienhaus,
+                ObjectDescription = "Zweifamilienhaus mit separaten Eingängen",
+                Status = "Aktiv",
+                Address = "Salzburger Straße 89",
+                City = "Vöcklabruck",
+                PostalCode = "4840",
+                RegistrationNumber = "EZ 7890/2024",
+                CadastralMunicipality = "Vöcklabruck",
+                PlotNumber = "456/3",
+                SheetNumber = "Blatt 67",
+                TotalArea = 520m,
+                BuildingArea = 240m,
+                GardenArea = 280m,
+                PlotArea = 520m,
+                YearBuilt = 1992,
+                NumberOfRooms = 10,
+                ZoningDesignation = "Bauland-Wohngebiet",
+                BuildingCondition = "Gut erhalten, teilweise modernisiert",
+                EstimatedValue = 495000m,
+                MinimumBid = 396000m,
+                ViewingDate = baseDate.AddDays(35),
+                CaseNumber = "890 E 456/24",
+                Court = "Bezirksgericht Vöcklabruck",
+                Notes = "Zwei separate Wohneinheiten, ideal für Vermietung"
             },
 
-            // Salzburg
+            // Oberösterreich - Braunau am Inn
             new ForeclosureAuction
             {
-                AuctionDate = baseDate.AddDays(25),
-                Address = "Getreidegasse 67",
-                City = "Salzburg",
-                PostalCode = "5020",
-                State = AustrianState.Salzburg,
+                AuctionDate = baseDate.AddDays(60),
                 Category = PropertyCategory.Wohnungseigentum,
-                ObjectDescription = "Altstadt-Wohnung mit historischem Charme",
-                EstimatedValue = 420000m,
-                MinimumBid = 336000m,
-                CaseNumber = "901 E 234/24",
-                Court = "Bezirksgericht Salzburg",
-                Notes = "Denkmalschutz zu beachten"
+                ObjectDescription = "3-Zimmer-Wohnung mit Balkon und Tiefgaragenplatz",
+                Status = "Aktiv",
+                Address = "Stadtplatz 12",
+                City = "Braunau am Inn",
+                PostalCode = "5280",
+                RegistrationNumber = "EZ 2345/2024",
+                CadastralMunicipality = "Braunau am Inn",
+                PlotNumber = "123/45/6",
+                SheetNumber = "Blatt 8, Top 6",
+                TotalArea = 95m,
+                BuildingArea = 95m,
+                YearBuilt = 2010,
+                NumberOfRooms = 3,
+                ZoningDesignation = "Bauland-Kerngebiet",
+                BuildingCondition = "Sehr gut, neuwertig",
+                EstimatedValue = 285000m,
+                MinimumBid = 228000m,
+                ViewingDate = baseDate.AddDays(53),
+                OwnershipShare = "1/1",
+                CaseNumber = "123 E 789/24",
+                Court = "Bezirksgericht Braunau am Inn",
+                EdictUrl = "https://edikte.justiz.gv.at/sample-braunau.odt",
+                Notes = "Zentrale Lage, moderne Ausstattung, inkl. Tiefgaragenplatz"
             },
 
-            // Kärnten
-            new ForeclosureAuction
-            {
-                AuctionDate = baseDate.AddDays(55),
-                Address = "Seestraße 15",
-                City = "Klagenfurt",
-                PostalCode = "9020",
-                State = AustrianState.Kaernten,
-                Category = PropertyCategory.Einfamilienhaus,
-                ObjectDescription = "Einfamilienhaus mit Seeblick und Bootssteg",
-                EstimatedValue = 680000m,
-                MinimumBid = 544000m,
-                CaseNumber = "012 E 345/24",
-                Court = "Bezirksgericht Klagenfurt"
-            },
-
-            // Vorarlberg
+            // Oberösterreich - Ried im Innkreis
             new ForeclosureAuction
             {
                 AuctionDate = baseDate.AddDays(38),
-                Address = "Bergstraße 88",
-                City = "Bregenz",
-                PostalCode = "6900",
-                State = AustrianState.Vorarlberg,
-                Category = PropertyCategory.Wohnungseigentum,
-                ObjectDescription = "Penthouse-Wohnung mit Bodenseeblick",
-                EstimatedValue = 580000m,
-                MinimumBid = 464000m,
-                CaseNumber = "123 E 456/24",
-                Court = "Bezirksgericht Bregenz"
+                Category = PropertyCategory.GewerblicheLiegenschaft,
+                ObjectDescription = "Geschäftslokal mit Schaufensterfront in bester Innenstadtlage",
+                Status = "Aktiv",
+                Address = "Hauptplatz 5",
+                City = "Ried im Innkreis",
+                PostalCode = "4910",
+                RegistrationNumber = "EZ 6789/2024",
+                CadastralMunicipality = "Ried im Innkreis",
+                PlotNumber = "234/7",
+                SheetNumber = "Blatt 34",
+                TotalArea = 140m,
+                BuildingArea = 140m,
+                YearBuilt = 1975,
+                ZoningDesignation = "Bauland-Kerngebiet",
+                BuildingCondition = "Saniert, betriebsfertig",
+                EstimatedValue = 320000m,
+                MinimumBid = 256000m,
+                ViewingDate = baseDate.AddDays(31),
+                CaseNumber = "456 E 234/24",
+                Court = "Bezirksgericht Ried im Innkreis",
+                Notes = "Beste Lage am Hauptplatz, hohe Frequenz"
             },
 
-            // Burgenland
+            // Oberösterreich - Gmunden (Salzkammergut)
             new ForeclosureAuction
             {
-                AuctionDate = baseDate.AddDays(32),
-                Address = "Weingartenweg 22",
-                City = "Eisenstadt",
-                PostalCode = "7000",
-                State = AustrianState.Burgenland,
+                AuctionDate = baseDate.AddDays(55),
+                Category = PropertyCategory.Einfamilienhaus,
+                ObjectDescription = "Einfamilienhaus mit Seeblick am Traunsee",
+                Status = "Aktiv",
+                Address = "Seestraße 78",
+                City = "Gmunden",
+                PostalCode = "4810",
+                RegistrationNumber = "EZ 4567/2024",
+                CadastralMunicipality = "Gmunden",
+                PlotNumber = "890/4",
+                SheetNumber = "Blatt 56",
+                TotalArea = 780m,
+                BuildingArea = 220m,
+                GardenArea = 560m,
+                PlotArea = 780m,
+                YearBuilt = 2002,
+                NumberOfRooms = 7,
+                ZoningDesignation = "Bauland-Wohngebiet See",
+                BuildingCondition = "Sehr gut, hochwertige Ausstattung",
+                EstimatedValue = 875000m,
+                MinimumBid = 700000m,
+                ViewingDate = baseDate.AddDays(48),
+                BiddingDeadline = baseDate.AddDays(54),
+                CaseNumber = "789 E 567/24",
+                Court = "Bezirksgericht Gmunden",
+                EdictUrl = "https://edikte.justiz.gv.at/sample-gmunden.odt",
+                Notes = "Traumhafte Seelage, direkter Seezugang, hochwertige Ausstattung"
+            },
+
+            // Oberösterreich - Kirchdorf an der Krems
+            new ForeclosureAuction
+            {
+                AuctionDate = baseDate.AddDays(45),
                 Category = PropertyCategory.LandUndForstwirtschaft,
-                ObjectDescription = "Weingut mit Wohnhaus und Produktionshallen",
-                EstimatedValue = 950000m,
-                MinimumBid = 760000m,
-                CaseNumber = "234 E 567/24",
-                Court = "Bezirksgericht Eisenstadt",
-                Notes = "Inklusive Weinreben und Maschinen"
+                ObjectDescription = "Landwirtschaftlicher Betrieb mit Wohnhaus und Nebengebäuden",
+                Status = "Aktiv",
+                Address = "Kremstalstraße 156",
+                City = "Kirchdorf an der Krems",
+                PostalCode = "4560",
+                RegistrationNumber = "EZ 8901/2024",
+                CadastralMunicipality = "Kirchdorf an der Krems",
+                PlotNumber = "567/1",
+                SheetNumber = "Blatt 89",
+                TotalArea = 25000m,
+                BuildingArea = 450m,
+                PlotArea = 25000m,
+                YearBuilt = 1978,
+                NumberOfRooms = 8,
+                ZoningDesignation = "Grünland-Land- und Forstwirtschaft",
+                BuildingCondition = "Funktionsfähig, Modernisierungsbedarf",
+                EstimatedValue = 680000m,
+                MinimumBid = 544000m,
+                ViewingDate = baseDate.AddDays(38),
+                CaseNumber = "901 E 890/24",
+                Court = "Bezirksgericht Kirchdorf an der Krems",
+                Notes = "Ca. 2,5 ha Grund, Wohnhaus, Stallungen, Scheunen"
             }
         };
 

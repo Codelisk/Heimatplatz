@@ -16,6 +16,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 
 /// <summary>
 /// Handler for UpdatePropertyRequest - updates an existing property owned by the authenticated user
+/// NOTE: Manual endpoint registration required due to Shiny Mediator OpenAPI Generator bug with PUT route parameters
+/// Bug: MediatorHttpPut doesn't generate 'parameters' array in OpenAPI spec for route parameters
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class UpdatePropertyHandler(
@@ -23,7 +25,6 @@ public class UpdatePropertyHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<UpdatePropertyRequest, UpdatePropertyResponse>
 {
-    [MediatorHttpPut("/api/properties/{id}", OperationId = "UpdateProperty", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<UpdatePropertyResponse> Handle(UpdatePropertyRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract HttpContext

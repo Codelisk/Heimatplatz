@@ -33,6 +33,9 @@
         <!-- Spacing Tokens -->
         <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Tokens/Spacing.xaml" />
 
+        <!-- Property Type Colors -->
+        <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Tokens/PropertyColors.xaml" />
+
         <!-- Responsive Layout Helpers -->
         <ResourceDictionary Source="ms-appx:///Heimatplatz.Core.Styles/Layouts/Responsive.xaml" />
 

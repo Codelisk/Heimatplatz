@@ -63,22 +63,22 @@ public sealed partial class PropertyCard : UserControl
         // Typ-Badge Text und Farbe
         TypeBadgeText.Text = property.Typ switch
         {
-            PropertyType.Haus => "HAUS",
-            PropertyType.Grundstueck => "GRUND",
-            PropertyType.Zwangsversteigerung => "ZV",
+            PropertyType.House => "HAUS",
+            PropertyType.Land => "GRUND",
+            PropertyType.Foreclosure => "ZV",
             _ => "IMM"
         };
 
         // Typ-spezifische Farben: HAUS=schwarz, GRUND=grün, ZV=rot
         (TypeBadge.Background, TypeBadgeText.Foreground) = property.Typ switch
         {
-            PropertyType.Haus => (
+            PropertyType.House => (
                 new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 45, 55, 72)),
                 new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
-            PropertyType.Grundstueck => (
+            PropertyType.Land => (
                 new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 34, 139, 34)),
                 new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
-            PropertyType.Zwangsversteigerung => (
+            PropertyType.Foreclosure => (
                 new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Firebrick),
                 new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
             _ => (

@@ -59,9 +59,9 @@ public partial class PropertyDetailViewModel : ObservableObject
         // Typ-Text
         TypeText = Property.Typ switch
         {
-            PropertyType.Haus => "HAUS",
-            PropertyType.Grundstueck => "GRUNDSTÜCK",
-            PropertyType.Zwangsversteigerung => "ZWANGSVERSTEIGERUNG",
+            PropertyType.House => "HAUS",
+            PropertyType.Land => "GRUNDSTÜCK",
+            PropertyType.Foreclosure => "ZWANGSVERSTEIGERUNG",
             _ => string.Empty
         };
 
@@ -107,7 +107,7 @@ public partial class PropertyDetailViewModel : ObservableObject
             GrundstuecksflaecheM2: 520,
             Zimmer: 5,
             Baujahr: 2018,
-            Typ: PropertyType.Haus,
+            Typ: PropertyType.House,
             AnbieterTyp: SellerType.Makler,
             AnbieterName: "Mustermann Immobilien",
             AnbieterTelefon: "+43 732 123456",

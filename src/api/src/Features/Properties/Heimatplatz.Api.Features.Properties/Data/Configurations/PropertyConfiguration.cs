@@ -15,44 +15,49 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
 
         builder.HasKey(p => p.Id);
 
-        builder.Property(p => p.Titel)
+        builder.Property(p => p.Title)
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(p => p.Adresse)
+        builder.Property(p => p.Address)
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(p => p.Ort)
+        builder.Property(p => p.City)
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(p => p.Plz)
+        builder.Property(p => p.PostalCode)
             .IsRequired()
             .HasMaxLength(10);
 
-        builder.Property(p => p.Preis)
+        builder.Property(p => p.Price)
             .HasPrecision(12, 2);
 
-        builder.Property(p => p.AnbieterName)
+        builder.Property(p => p.SellerName)
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(p => p.Beschreibung)
+        builder.Property(p => p.Description)
             .HasMaxLength(4000);
 
         // JSON-Columns fuer Listen
-        builder.Property(p => p.Ausstattung)
+        builder.Property(p => p.Features)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
             );
 
-        builder.Property(p => p.BildUrls)
+        builder.Property(p => p.ImageUrls)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
             );
+
+        // Typ-spezifische Daten als JSON
+        builder.Property(p => p.TypeSpecificData)
+            .HasColumnType("TEXT")
+            .IsRequired();
 
         // Foreign Key zu User (Verkaeufer)
         builder.Property(p => p.UserId)
@@ -64,9 +69,9 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .OnDelete(DeleteBehavior.Restrict);
 
         // Indizes fuer haeufige Abfragen
-        builder.HasIndex(p => p.Typ);
-        builder.HasIndex(p => p.Ort);
-        builder.HasIndex(p => p.Preis);
+        builder.HasIndex(p => p.Type);
+        builder.HasIndex(p => p.City);
+        builder.HasIndex(p => p.Price);
         builder.HasIndex(p => p.CreatedAt);
         builder.HasIndex(p => p.UserId);
     }

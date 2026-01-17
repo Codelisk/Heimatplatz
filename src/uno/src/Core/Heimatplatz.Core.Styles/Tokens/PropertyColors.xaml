@@ -1,0 +1,42 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+    ============================================================================
+    PROPERTY TYPE COLORS - Swiss Editorial Design System
+    ============================================================================
+
+    Farbpalette für Immobilientypen basierend auf Swiss Editorial Minimalism:
+    - Wohnung: Terracotta (warm, urban, cozy)
+    - Haus: Forest Green (natural, established, grounded)
+    - Grundstück: Ochre (earth, potential, foundational)
+    - Gewerbe: Steel Blue (professional, modern, business)
+    ============================================================================
+    -->
+
+    <!-- Wohnung - Terracotta -->
+    <Color x:Key="WohnungColor">#D85D3E</Color>
+    <SolidColorBrush x:Key="WohnungBrush" Color="{StaticResource WohnungColor}" />
+    <SolidColorBrush x:Key="WohnungLightBrush" Color="#D85D3E" Opacity="0.15" />
+    <SolidColorBrush x:Key="WohnungHoverBrush" Color="#D85D3E" Opacity="0.8" />
+
+    <!-- Haus - Forest Green -->
+    <Color x:Key="HausColor">#2D5F4C</Color>
+    <SolidColorBrush x:Key="HausBrush" Color="{StaticResource HausColor}" />
+    <SolidColorBrush x:Key="HausLightBrush" Color="#2D5F4C" Opacity="0.15" />
+    <SolidColorBrush x:Key="HausHoverBrush" Color="#2D5F4C" Opacity="0.8" />
+
+    <!-- Grundstück - Ochre -->
+    <Color x:Key="GrundstueckColor">#B8860B</Color>
+    <SolidColorBrush x:Key="GrundstueckBrush" Color="{StaticResource GrundstueckColor}" />
+    <SolidColorBrush x:Key="GrundstueckLightBrush" Color="#B8860B" Opacity="0.15" />
+    <SolidColorBrush x:Key="GrundstueckHoverBrush" Color="#B8860B" Opacity="0.8" />
+
+    <!-- Gewerbe - Steel Blue -->
+    <Color x:Key="GewerbeColor">#4A6FA5</Color>
+    <SolidColorBrush x:Key="GewerbeBrush" Color="{StaticResource GewerbeColor}" />
+    <SolidColorBrush x:Key="GewerbeLightBrush" Color="#4A6FA5" Opacity="0.15" />
+    <SolidColorBrush x:Key="GewerbeHoverBrush" Color="#4A6FA5" Opacity="0.8" />
+
+</ResourceDictionary>

@@ -24,9 +24,6 @@ public class GetForeclosureAuctionsHandler(AppDbContext dbContext)
         var query = dbContext.Set<ForeclosureAuction>().AsQueryable();
 
         // Filter anwenden
-        if (request.State.HasValue)
-            query = query.Where(fa => fa.State == request.State.Value);
-
         if (request.Category.HasValue)
             query = query.Where(fa => fa.Category == request.Category.Value);
 
@@ -45,6 +42,9 @@ public class GetForeclosureAuctionsHandler(AppDbContext dbContext)
         if (request.MaxEstimatedValue.HasValue)
             query = query.Where(fa => fa.EstimatedValue <= request.MaxEstimatedValue.Value);
 
+        if (!string.IsNullOrWhiteSpace(request.Status))
+            query = query.Where(fa => fa.Status == request.Status);
+
         // Laden und Sortieren (SQLite unterstuetzt DateTimeOffset nicht in ORDER BY)
         var entities = await query.ToListAsync(cancellationToken);
         var auctions = entities
@@ -53,18 +53,37 @@ public class GetForeclosureAuctionsHandler(AppDbContext dbContext)
             {
                 Id = fa.Id,
                 AuctionDate = fa.AuctionDate,
+                Category = fa.Category,
+                ObjectDescription = fa.ObjectDescription,
+                Status = fa.Status,
                 Address = fa.Address,
                 City = fa.City,
                 PostalCode = fa.PostalCode,
-                State = fa.State,
-                Category = fa.Category,
-                ObjectDescription = fa.ObjectDescription,
-                EdictUrl = fa.EdictUrl,
-                Notes = fa.Notes,
+                RegistrationNumber = fa.RegistrationNumber,
+                CadastralMunicipality = fa.CadastralMunicipality,
+                PlotNumber = fa.PlotNumber,
+                SheetNumber = fa.SheetNumber,
+                TotalArea = fa.TotalArea,
+                BuildingArea = fa.BuildingArea,
+                GardenArea = fa.GardenArea,
+                PlotArea = fa.PlotArea,
+                YearBuilt = fa.YearBuilt,
+                NumberOfRooms = fa.NumberOfRooms,
+                ZoningDesignation = fa.ZoningDesignation,
+                BuildingCondition = fa.BuildingCondition,
                 EstimatedValue = fa.EstimatedValue,
                 MinimumBid = fa.MinimumBid,
+                ViewingDate = fa.ViewingDate,
+                BiddingDeadline = fa.BiddingDeadline,
+                OwnershipShare = fa.OwnershipShare,
                 CaseNumber = fa.CaseNumber,
                 Court = fa.Court,
+                EdictUrl = fa.EdictUrl,
+                Notes = fa.Notes,
+                FloorPlanUrl = fa.FloorPlanUrl,
+                SitePlanUrl = fa.SitePlanUrl,
+                LongAppraisalUrl = fa.LongAppraisalUrl,
+                ShortAppraisalUrl = fa.ShortAppraisalUrl,
                 CreatedAt = fa.CreatedAt
             })
             .ToList();

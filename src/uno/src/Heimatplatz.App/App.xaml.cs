@@ -15,7 +15,7 @@ public partial class App : Application
         this.InitializeComponent();
     }
 
-    protected Window? MainWindow { get; private set; }
+    public static Window? MainWindow { get; private set; }
 
     public IHost? Host { get; private set; }
 
@@ -67,7 +67,8 @@ public partial class App : Application
             new ViewMap<HomePage, HomeViewModel>(),
             new ViewMap<RegisterPage, RegisterViewModel>(),
             new ViewMap<LoginPage, LoginViewModel>(),
-            new ViewMap<AddPropertyPage, AddPropertyViewModel>()
+            new ViewMap<AddPropertyPage, AddPropertyViewModel>(),
+            new ViewMap<MyPropertiesPage, MyPropertiesViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
 #endif
@@ -86,7 +87,8 @@ public partial class App : Application
                     new ("Main", View: views.FindByViewModel<MainViewModel>()),
                     new ("Register", View: views.FindByViewModel<RegisterViewModel>()),
                     new ("Login", View: views.FindByViewModel<LoginViewModel>()),
-                    new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>())
+                    new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
+                    new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>())
                 ]
             )
         );
