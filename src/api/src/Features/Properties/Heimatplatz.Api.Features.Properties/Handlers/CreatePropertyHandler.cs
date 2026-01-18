@@ -8,6 +8,7 @@ using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Heimatplatz.Api.Features.Notifications.Contracts.Events;
 using Microsoft.AspNetCore.Http;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
@@ -21,7 +22,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [MediatorHttpGroup("/api/properties")]
 public class CreatePropertyHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IMediator mediator
 ) : IRequestHandler<CreatePropertyRequest, CreatePropertyResponse>
 {
     [MediatorHttpPost("/", OperationId = "CreateProperty", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
@@ -117,6 +119,15 @@ public class CreatePropertyHandler(
 
         dbContext.Set<Property>().Add(property);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Publish PropertyCreatedEvent for notification system
+        var propertyCreatedEvent = new PropertyCreatedEvent(
+            property.Id,
+            property.Title,
+            property.City,
+            property.Price
+        );
+        await mediator.Publish(propertyCreatedEvent, cancellationToken);
 
         return new CreatePropertyResponse(
             property.Id,

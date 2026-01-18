@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shiny.Mediator" />
+    <PackageReference Include="Shiny.Mediator.AspNet" />
+    <PackageReference Include="Shiny.Push" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
+    <ProjectReference Include="..\Heimatplatz.Api.Features.Notifications.Contracts\Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
+    <ProjectReference Include="..\..\Auth\Heimatplatz.Api.Features.Auth\Heimatplatz.Api.Features.Auth.csproj" />
+  </ItemGroup>
+
+</Project>

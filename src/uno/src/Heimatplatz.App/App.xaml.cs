@@ -1,5 +1,7 @@
 using Heimatplatz.Core.Startup;
 using Heimatplatz.Features.Auth.Presentation;
+using Heimatplatz.Features.Notifications.Presentation;
+using Heimatplatz.Features.Notifications.Services;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Presentation;
 using Uno.Resizetizer;
@@ -58,7 +60,34 @@ public partial class App : Application
         MainWindow.SetWindowIcon();
 
         Host = await builder.NavigateAsync<Shell>();
+
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+        // Initialize push notifications after app startup (mobile platforms only)
+        _ = InitializePushNotificationsAsync();
+#endif
     }
+
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+    private async Task InitializePushNotificationsAsync()
+    {
+        try
+        {
+            // Wait a bit to let the app finish startup
+            await Task.Delay(1000);
+
+            var pushInitializer = Host?.Services.GetService<IPushNotificationInitializer>();
+            if (pushInitializer != null)
+            {
+                await pushInitializer.InitializeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't crash the app
+            System.Diagnostics.Debug.WriteLine($"Failed to initialize push notifications: {ex}");
+        }
+    }
+#endif
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
     {
@@ -71,7 +100,8 @@ public partial class App : Application
             new ViewMap<AddPropertyPage, AddPropertyViewModel>(),
             new DataViewMap<EditPropertyPage, EditPropertyViewModel, EditPropertyData>(),
             new ViewMap<MyPropertiesPage, MyPropertiesViewModel>(),
-            new ViewMap<FavoritesPage, FavoritesViewModel>()
+            new ViewMap<FavoritesPage, FavoritesViewModel>(),
+            new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
 #endif
@@ -93,7 +123,8 @@ public partial class App : Application
                     new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
                     new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
                     new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
-                    new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>())
+                    new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),
+                    new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>())
                 ]
             )
         );

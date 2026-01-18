@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
     <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
     <ProjectReference Include="..\..\Auth\Heimatplatz.Api.Features.Auth\Heimatplatz.Api.Features.Auth.csproj" />
+    <ProjectReference Include="..\..\Notifications\Heimatplatz.Api.Features.Notifications.Contracts\Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

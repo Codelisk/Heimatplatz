@@ -4,7 +4,8 @@
     <MicrosoftVersion>10.0.1</MicrosoftVersion>
     <AspireVersion>13.1.0</AspireVersion>
     <OpenTelemetryVersion>1.14.0</OpenTelemetryVersion>
-    <ShinyMediatorVersion>6.1.0</ShinyMediatorVersion>
+    <ShinyMediatorVersion>6.1.1</ShinyMediatorVersion>
+    <ShinyPushVersion>4.0.0-beta-0095</ShinyPushVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,12 @@
     <PackageVersion Include="Shiny.Mediator.AspNet" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Mediator.Contracts" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Extensions.DependencyInjection" Version="2.0.0-beta-0001" />
+    <PackageVersion Include="Shiny.Push" Version="$(ShinyPushVersion)" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+
+    <!-- Uno Extensions -->
+    <PackageVersion Include="Uno.Extensions.Reactive" Version="5.3.8" />
 
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />

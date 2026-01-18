@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Heimatplatz.Features.Notifications.Presentation.NotificationSettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:utu="using:Uno.Toolkit.UI"
+    xmlns:local="using:Heimatplatz.Features.Notifications.Presentation"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <!-- Chip style for location tags -->
+        <Style x:Key="LocationChipStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource SystemAccentColor}" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Margin" Value="4" />
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <utu:AutoLayout
+            Padding="24"
+            Spacing="24"
+            Orientation="Vertical"
+            MaxWidth="800"
+            HorizontalAlignment="Center">
+
+            <!-- Header -->
+            <utu:AutoLayout Spacing="8" Orientation="Vertical">
+                <TextBlock
+                    Text="Benachrichtigungseinstellungen"
+                    Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock
+                    Text="Erhalten Sie Benachrichtigungen über neue Immobilien in Ihren bevorzugten Orten."
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    TextWrapping="Wrap" />
+            </utu:AutoLayout>
+
+            <!-- Enable/Disable Toggle -->
+            <utu:Card>
+                <utu:AutoLayout Padding="16" Spacing="12" Orientation="Horizontal">
+                    <FontIcon
+                        Glyph="&#xEA8F;"
+                        FontSize="24"
+                        Foreground="{ThemeResource SystemAccentColor}"
+                        VerticalAlignment="Center" />
+                    <utu:AutoLayout Spacing="4" Orientation="Vertical" HorizontalAlignment="Stretch">
+                        <TextBlock
+                            Text="Benachrichtigungen aktivieren"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock
+                            Text="Push-Benachrichtigungen für neue Immobilien"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </utu:AutoLayout>
+                    <ToggleSwitch
+                        IsOn="{x:Bind ViewModel.Preferences.IsEnabled, Mode=OneWay}"
+                        Toggled="OnNotificationsToggled"
+                        VerticalAlignment="Center" />
+                </utu:AutoLayout>
+            </utu:Card>
+
+            <!-- Location Filters -->
+            <utu:Card>
+                <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                    <utu:AutoLayout Spacing="8" Orientation="Vertical">
+                        <TextBlock
+                            Text="Orte"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock
+                            Text="Wählen Sie die Orte aus, für die Sie Benachrichtigungen erhalten möchten."
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            TextWrapping="Wrap" />
+                    </utu:AutoLayout>
+
+                    <!-- Add Location Input -->
+                    <utu:AutoLayout Spacing="8" Orientation="Horizontal">
+                        <TextBox
+                            x:Name="LocationTextBox"
+                            PlaceholderText="Ort hinzufügen (z.B. Zürich, Bern)"
+                            Text="{x:Bind ViewModel.NewLocation.Value, Mode=TwoWay}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            KeyDown="OnLocationKeyDown" />
+                        <Button
+                            Content="Hinzufügen"
+                            Click="OnAddLocationClick"
+                            Style="{StaticResource AccentButtonStyle}"
+                            VerticalAlignment="Center" />
+                    </utu:AutoLayout>
+
+                    <!-- Location List -->
+                    <ItemsRepeater
+                        ItemsSource="{x:Bind ViewModel.Preferences.Locations, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Orientation="Vertical" Spacing="8" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border Style="{StaticResource LocationChipStyle}">
+                                    <utu:AutoLayout Spacing="8" Orientation="Horizontal">
+                                        <FontIcon
+                                            Glyph="&#xE707;"
+                                            FontSize="16"
+                                            Foreground="White"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Text="{x:Bind}"
+                                            Foreground="White"
+                                            VerticalAlignment="Center" />
+                                        <Button
+                                            Content="&#xE711;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            Foreground="White"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="4"
+                                            Click="OnRemoveLocationClick"
+                                            Tag="{x:Bind}"
+                                            VerticalAlignment="Center" />
+                                    </utu:AutoLayout>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+
+                    <!-- Empty State -->
+                    <TextBlock
+                        Text="Noch keine Orte hinzugefügt. Fügen Sie Orte hinzu, um Benachrichtigungen zu erhalten."
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        TextWrapping="Wrap"
+                        HorizontalAlignment="Center"
+                        Visibility="{x:Bind ViewModel.Preferences.Locations.Count, Mode=OneWay, Converter={StaticResource EmptyToVisibilityConverter}}" />
+                </utu:AutoLayout>
+            </utu:Card>
+
+            <!-- Info Card -->
+            <utu:Card Background="{ThemeResource SystemFillColorAttentionBackgroundBrush}">
+                <utu:AutoLayout Padding="16" Spacing="12" Orientation="Horizontal">
+                    <FontIcon
+                        Glyph="&#xE946;"
+                        FontSize="20"
+                        Foreground="{ThemeResource SystemAccentColor}"
+                        VerticalAlignment="Top" />
+                    <TextBlock
+                        Text="Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie in einem Ihrer ausgewählten Orte verfügbar ist."
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        VerticalAlignment="Center" />
+                </utu:AutoLayout>
+            </utu:Card>
+        </utu:AutoLayout>
+    </ScrollViewer>
+</Page>

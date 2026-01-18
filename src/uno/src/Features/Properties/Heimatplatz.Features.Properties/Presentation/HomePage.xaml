@@ -169,6 +169,13 @@
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
                                         <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="Benachrichtigungen"
+                                                        uen:Navigation.Request="NotificationSettings"
+                                                        AutomationProperties.AutomationId="HomePage_NotificationSettingsMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xEA8F;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem Text="Abmelden"
                                                         Command="{Binding LogoutCommand}"
                                                         AutomationProperties.AutomationId="HomePage_LogoutMenuItem">

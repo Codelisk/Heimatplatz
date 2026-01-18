@@ -1,5 +1,6 @@
 using Heimatplatz.Core.ApiClient.Configuration;
 using Heimatplatz.Features.Auth.Configuration;
+using Heimatplatz.Features.Notifications.Configuration;
 using Heimatplatz.Features.Properties.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shiny.Mediator.Infrastructure;
@@ -24,6 +25,7 @@ public static class ServiceCollectionExtensions
 
         // Features
         services.AddAuthFeature();
+        services.AddNotificationsFeature();
         services.AddPropertiesFeature();
 
         return services;
