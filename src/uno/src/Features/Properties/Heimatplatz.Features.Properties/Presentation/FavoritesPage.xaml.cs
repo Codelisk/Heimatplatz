@@ -1,25 +1,23 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
-/// MyPropertiesPage - Page for managing user's own properties
+/// FavoritesPage - Page for viewing favorited properties
 /// </summary>
-public sealed partial class MyPropertiesPage : Page
+public sealed partial class FavoritesPage : Page
 {
-    public MyPropertiesPage()
+    public FavoritesPage()
     {
         this.InitializeComponent();
         this.Loaded += OnLoaded;
     }
 
-    public MyPropertiesViewModel? ViewModel => DataContext as MyPropertiesViewModel;
+    public FavoritesViewModel? ViewModel => DataContext as FavoritesViewModel;
 
     private async void OnLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        // Load data when page is loaded (ViewModel is guaranteed to be set)
         if (ViewModel != null)
         {
             await ViewModel.OnNavigatedToAsync();

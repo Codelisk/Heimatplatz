@@ -1,4 +1,4 @@
-<Page x:Class="Heimatplatz.Features.Properties.Presentation.MyPropertiesPage"
+<Page x:Class="Heimatplatz.Features.Properties.Presentation.FavoritesPage"
       x:Name="RootPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,8 +9,8 @@
       NavigationCacheMode="Disabled">
 
     <!--
-    MyPropertiesPage - User Property Management
-    Zeigt alle Immobilien des eingeloggten Users
+    FavoritesPage - User's Favorited Properties
+    Zeigt alle favorisierten Immobilien des eingeloggten Kaeufers
     -->
 
     <Grid Background="{ThemeResource BackgroundBrush}">
@@ -30,7 +30,7 @@
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
                         Padding="{utu:Responsive Narrowest='16,12', Normal='24,16'}">
-                    <TextBlock Text="Meine Immobilien"
+                    <TextBlock Text="Meine Favoriten"
                                Style="{StaticResource TitleLargeTextBlockStyle}"
                                FontWeight="SemiBold" />
                 </Border>
@@ -48,33 +48,28 @@
                                     VerticalAlignment="Center"
                                     Padding="0,80,0,0">
 
-                            <FontIcon Glyph="&#xE80F;"
+                            <FontIcon Glyph="&#xE734;"
                                       FontSize="64"
                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                       HorizontalAlignment="Center" />
 
-                            <TextBlock Text="Noch keine Immobilien"
+                            <TextBlock Text="Noch keine Favoriten"
                                        Style="{StaticResource TitleMediumTextBlockStyle}"
                                        Foreground="{ThemeResource OnSurfaceBrush}"
                                        HorizontalAlignment="Center" />
 
-                            <TextBlock Text="Erstellen Sie Ihr erstes Inserat"
+                            <TextBlock Text="Markieren Sie Immobilien als Favoriten, um sie hier zu sehen"
                                        Style="{StaticResource BodyMediumTextBlockStyle}"
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                        HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="400"
                                        Margin="0,0,0,24" />
-
-                            <Button Style="{StaticResource FilledButtonStyle}"
-                                    Command="{Binding NavigateToAddPropertyCommand}">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon Glyph="&#xE710;" FontSize="16" />
-                                    <TextBlock Text="Immobilie inserieren" />
-                                </StackPanel>
-                            </Button>
                         </StackPanel>
 
-                        <!-- Properties Grid -->
-                        <ItemsRepeater ItemsSource="{Binding Properties}"
+                        <!-- Favorites Grid -->
+                        <ItemsRepeater ItemsSource="{Binding Favorites}"
                                        Visibility="{Binding IsNotEmpty, FallbackValue=Collapsed}">
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout MinItemWidth="{utu:Responsive Narrowest=300, Normal=320, Wide=340}"
@@ -90,7 +85,7 @@
                                         <controls:PropertyCard Property="{Binding}"
                                                                Margin="0" />
 
-                                        <!-- Action Buttons Overlay -->
+                                        <!-- Remove Favorite Button Overlay -->
                                         <Border Background="{ThemeResource SurfaceBrush}"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Top"
@@ -103,32 +98,17 @@
                                                 <ThemeShadow />
                                             </Border.Shadow>
 
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <!-- Edit Button -->
-                                                <Button Style="{StaticResource IconButtonStyle}"
-                                                        Command="{Binding DataContext.EditPropertyCommand, ElementName=RootPage}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTipService.ToolTip="Bearbeiten"
-                                                        Width="36"
-                                                        Height="36"
-                                                        Padding="0">
-                                                    <FontIcon Glyph="&#xE70F;"
-                                                              FontSize="16" />
-                                                </Button>
-
-                                                <!-- Delete Button -->
-                                                <Button Style="{StaticResource IconButtonStyle}"
-                                                        Command="{Binding DataContext.DeletePropertyCommand, ElementName=RootPage}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTipService.ToolTip="Löschen"
-                                                        Width="36"
-                                                        Height="36"
-                                                        Padding="0">
-                                                    <FontIcon Glyph="&#xE74D;"
-                                                              FontSize="16"
-                                                              Foreground="{ThemeResource ErrorBrush}" />
-                                                </Button>
-                                            </StackPanel>
+                                            <Button Style="{StaticResource IconButtonStyle}"
+                                                    Command="{Binding DataContext.RemoveFavoriteCommand, ElementName=RootPage}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTipService.ToolTip="Aus Favoriten entfernen"
+                                                    Width="36"
+                                                    Height="36"
+                                                    Padding="0">
+                                                <FontIcon Glyph="&#xE735;"
+                                                          FontSize="16"
+                                                          Foreground="{ThemeResource ErrorBrush}" />
+                                            </Button>
                                         </Border>
                                     </Grid>
                                 </DataTemplate>

@@ -75,10 +75,10 @@ public class UserSeeder(
             }
         };
 
-        // Debug-Test-User mit bekannten Credentials
-        var buyerId = Guid.NewGuid();
-        var sellerId = Guid.NewGuid();
-        var bothId = Guid.NewGuid();
+        // Debug-Test-User mit bekannten Credentials und festen IDs (für konsistente DB-Referenzen)
+        var buyerId = Guid.Parse("CC412C93-5D61-4AE2-B928-937812946ED2");
+        var sellerId = Guid.Parse("3FFBDB4F-DC66-4FAC-97C0-23F6B525892B");
+        var bothId = Guid.Parse("DF4E5296-0225-4E6E-8CDD-368F20E73704");
 
         var debugUsers = new List<User>
         {

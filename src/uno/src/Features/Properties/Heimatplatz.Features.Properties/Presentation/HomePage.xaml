@@ -147,6 +147,13 @@
                                                 <FontIcon Glyph="&#xE77B;" FontSize="14" />
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Meine Favoriten"
+                                                        Command="{x:Bind ViewModel.NavigateToFavoritesCommand}"
+                                                        AutomationProperties.AutomationId="HomePage_FavoritesMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE734;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem Text="Meine Immobilien"
                                                         uen:Navigation.Request="MyProperties"
                                                         AutomationProperties.AutomationId="HomePage_MyPropertiesMenuItem">

@@ -86,6 +86,14 @@ public sealed partial class PropertyCard : UserControl
                 (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChipSelectedForegroundBrush"])
         };
 
+        // Nur HAUS und GRUND anzeigen, andere Typen verstecken
+        TypeBadge.Visibility = property.Typ switch
+        {
+            PropertyType.House => Visibility.Visible,
+            PropertyType.Land => Visibility.Visible,
+            _ => Visibility.Collapsed
+        };
+
         // Grundstuecksflaeche
         GrundstueckText.Text = property.GrundstuecksflaecheM2?.ToString("N0") ?? "—";
 

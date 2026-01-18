@@ -166,6 +166,12 @@ public partial class HomeViewModel : ObservableObject
         await _navigator.NavigateViewModelAsync<AddPropertyViewModel>(this);
     }
 
+    [RelayCommand]
+    private async Task NavigateToFavoritesAsync()
+    {
+        await _navigator.NavigateViewModelAsync<FavoritesViewModel>(this);
+    }
+
     partial void OnIsAllSelectedChanged(bool value)
     {
         if (value)

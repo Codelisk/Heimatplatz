@@ -13,15 +13,15 @@ using Uno.Extensions.Navigation;
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
-/// ViewModel for MyPropertiesPage - manages user's own properties
+/// ViewModel for FavoritesPage - manages user's favorited properties
 /// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public partial class MyPropertiesViewModel : ObservableObject
+public partial class FavoritesViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
-    private readonly ILogger<MyPropertiesViewModel> _logger;
+    private readonly ILogger<FavoritesViewModel> _logger;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -30,7 +30,7 @@ public partial class MyPropertiesViewModel : ObservableObject
     private string? _busyMessage;
 
     [ObservableProperty]
-    private ObservableCollection<PropertyListItemDto> _properties = new();
+    private ObservableCollection<PropertyListItemDto> _favorites = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotEmpty))]
@@ -38,91 +38,84 @@ public partial class MyPropertiesViewModel : ObservableObject
 
     public bool IsNotEmpty => !IsEmpty;
 
-    public MyPropertiesViewModel(
+    public FavoritesViewModel(
         IAuthService authService,
         IMediator mediator,
         INavigator navigator,
-        ILogger<MyPropertiesViewModel> logger)
+        ILogger<FavoritesViewModel> logger)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
         _logger = logger;
 
-        // Initialize as empty until properties are loaded
+        // Initialize as empty until favorites are loaded
         IsEmpty = true;
 
-        // Subscribe to authentication state changes to reload data when user logs in/out
+        // Subscribe to authentication state changes
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
-        _logger.LogInformation("[MyProperties] ViewModel constructed");
+        _logger.LogInformation("[Favorites] ViewModel constructed");
 
-        // Load properties immediately if user is authenticated
+        // Load favorites immediately if user is authenticated
         if (_authService.IsAuthenticated)
         {
-            _ = LoadPropertiesAsync();
+            _ = LoadFavoritesAsync();
         }
     }
 
     private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
     {
-        _logger.LogInformation("[MyProperties] Auth state changed. IsAuthenticated: {IsAuthenticated}", isAuthenticated);
+        _logger.LogInformation("[Favorites] Auth state changed. IsAuthenticated: {IsAuthenticated}", isAuthenticated);
         if (isAuthenticated)
         {
-            // Reload properties when user logs in
-            await LoadPropertiesAsync();
+            await LoadFavoritesAsync();
         }
         else
         {
-            // Clear properties when user logs out
-            Properties.Clear();
+            Favorites.Clear();
             IsEmpty = true;
         }
     }
 
     /// <summary>
-    /// Called when the page is navigated to - must be called manually from Page.OnNavigatedTo
+    /// Called when the page is navigated to
     /// </summary>
     public async Task OnNavigatedToAsync()
     {
-        _logger.LogInformation("[MyProperties] OnNavigatedToAsync called");
-        await LoadPropertiesAsync();
+        _logger.LogInformation("[Favorites] OnNavigatedToAsync called");
+        await LoadFavoritesAsync();
     }
 
     /// <summary>
-    /// Loads all properties for the current user
+    /// Loads all favorited properties for the current user
     /// </summary>
-    private async Task LoadPropertiesAsync()
+    private async Task LoadFavoritesAsync()
     {
         IsBusy = true;
-        BusyMessage = "Lade Immobilien...";
+        BusyMessage = "Lade Favoriten...";
 
         try
         {
-            _logger.LogInformation("[MyProperties] Starting to load properties");
+            _logger.LogInformation("[Favorites] Starting to load favorites");
 
-            // Der GetUserPropertiesHttpRequest wird automatisch aus der OpenAPI-Spec generiert
             var (context, response) = await _mediator.Request(
-                new Heimatplatz.Core.ApiClient.Generated.GetUserPropertiesHttpRequest()
+                new Heimatplatz.Core.ApiClient.Generated.GetUserFavoritesHttpRequest()
             );
 
-            _logger.LogInformation("[MyProperties] Response received. Response null: {IsNull}", response == null);
-            _logger.LogInformation("[MyProperties] Properties null: {IsNull}", response?.Properties == null);
-            _logger.LogInformation("[MyProperties] Properties count: {Count}", response?.Properties?.Count ?? 0);
+            _logger.LogInformation("[Favorites] Response received. Properties count: {Count}", response?.Properties?.Count ?? 0);
 
-            // Clear existing properties
-            Properties.Clear();
+            Favorites.Clear();
 
-            // Update empty state immediately after clearing
             IsEmpty = response?.Properties == null || !response.Properties.Any();
-            _logger.LogInformation("[MyProperties] IsEmpty set to: {IsEmpty}", IsEmpty);
+            _logger.LogInformation("[Favorites] IsEmpty set to: {IsEmpty}", IsEmpty);
 
             if (response?.Properties != null)
             {
-                _logger.LogInformation("[MyProperties] Adding {Count} properties to collection", response.Properties.Count);
+                _logger.LogInformation("[Favorites] Adding {Count} favorites to collection", response.Properties.Count);
                 foreach (var prop in response.Properties)
                 {
-                    Properties.Add(new PropertyListItemDto(
+                    Favorites.Add(new PropertyListItemDto(
                         Id: prop.Id,
                         Titel: prop.Titel,
                         Adresse: prop.Adresse,
@@ -137,13 +130,13 @@ public partial class MyPropertiesViewModel : ObservableObject
                         BildUrls: prop.BildUrls
                     ));
                 }
-                _logger.LogInformation("[MyProperties] Final Properties.Count: {Count}", Properties.Count);
+                _logger.LogInformation("[Favorites] Final Favorites.Count: {Count}", Favorites.Count);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[MyProperties] Error loading properties");
-            await ShowErrorDialogAsync("Fehler beim Laden", $"Die Immobilien konnten nicht geladen werden: {ex.Message}");
+            _logger.LogError(ex, "[Favorites] Error loading favorites");
+            await ShowErrorDialogAsync("Fehler beim Laden", $"Die Favoriten konnten nicht geladen werden: {ex.Message}");
             IsEmpty = true;
         }
         finally
@@ -154,67 +147,40 @@ public partial class MyPropertiesViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Navigates to AddPropertyPage to create a new property
+    /// Removes a property from favorites
     /// </summary>
     [RelayCommand]
-    private async Task NavigateToAddPropertyAsync()
-    {
-        await _navigator.NavigateViewModelAsync<AddPropertyViewModel>(this);
-    }
-
-    /// <summary>
-    /// Navigates to EditPropertyPage to edit the selected property
-    /// </summary>
-    [RelayCommand]
-    private async Task EditPropertyAsync(PropertyListItemDto property)
-    {
-        if (property == null) return;
-
-        // Navigate to EditPropertyPage with the property ID
-        await _navigator.NavigateViewModelAsync<EditPropertyViewModel>(
-            this,
-            data: new EditPropertyData(property.Id)
-        );
-    }
-
-    /// <summary>
-    /// Deletes the selected property after user confirmation
-    /// </summary>
-    [RelayCommand]
-    private async Task DeletePropertyAsync(PropertyListItemDto property)
+    private async Task RemoveFavoriteAsync(PropertyListItemDto property)
     {
         if (property == null) return;
 
         // Show confirmation dialog
-        var confirmed = await ShowDeleteConfirmationAsync(property);
+        var confirmed = await ShowRemoveFavoriteConfirmationAsync(property);
         if (!confirmed) return;
 
         IsBusy = true;
-        BusyMessage = "Lösche Immobilie...";
+        BusyMessage = "Entferne Favorit...";
 
         try
         {
-            // Der DeletePropertyHttpRequest wird automatisch aus der OpenAPI-Spec generiert
             var result = await _mediator.Request(
-                new Heimatplatz.Core.ApiClient.Generated.DeletePropertyHttpRequest
+                new Heimatplatz.Core.ApiClient.Generated.RemoveFavoriteHttpRequest
                 {
-                    Id = property.Id
+                    PropertyId = property.Id
                 }
             );
 
             if (result.Result?.Success == true)
             {
-                // Remove from collection
-                Properties.Remove(property);
-                IsEmpty = !Properties.Any();
+                Favorites.Remove(property);
+                IsEmpty = !Favorites.Any();
 
-                // Show success message
-                await ShowSuccessDialogAsync("Erfolgreich gelöscht", result.Result.Message ?? "Die Immobilie wurde erfolgreich gelöscht.");
+                await ShowSuccessDialogAsync("Erfolgreich entfernt", result.Result.Message ?? "Die Immobilie wurde aus den Favoriten entfernt.");
             }
         }
         catch (Exception ex)
         {
-            await ShowErrorDialogAsync("Fehler beim Löschen", $"Die Immobilie konnte nicht gelöscht werden: {ex.Message}");
+            await ShowErrorDialogAsync("Fehler beim Entfernen", $"Die Immobilie konnte nicht aus den Favoriten entfernt werden: {ex.Message}");
         }
         finally
         {
@@ -224,15 +190,28 @@ public partial class MyPropertiesViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Shows a confirmation dialog for deleting a property
+    /// Navigates to property details
     /// </summary>
-    private async Task<bool> ShowDeleteConfirmationAsync(PropertyListItemDto property)
+    [RelayCommand]
+    private async Task ViewPropertyDetailsAsync(PropertyListItemDto property)
+    {
+        if (property == null) return;
+
+        // Navigate to property details page (to be implemented)
+        _logger.LogInformation("[Favorites] Navigating to property details for ID: {PropertyId}", property.Id);
+        // TODO: Implement navigation to property details page
+    }
+
+    /// <summary>
+    /// Shows a confirmation dialog for removing a favorite
+    /// </summary>
+    private async Task<bool> ShowRemoveFavoriteConfirmationAsync(PropertyListItemDto property)
     {
         var dialog = new ContentDialog
         {
-            Title = "Immobilie löschen?",
-            Content = $"Möchten Sie \"{property.Titel}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
-            PrimaryButtonText = "Löschen",
+            Title = "Favorit entfernen?",
+            Content = $"Möchten Sie \"{property.Titel}\" wirklich aus Ihren Favoriten entfernen?",
+            PrimaryButtonText = "Entfernen",
             SecondaryButtonText = "Abbrechen",
             DefaultButton = ContentDialogButton.Secondary,
             XamlRoot = Window.Current?.Content?.XamlRoot

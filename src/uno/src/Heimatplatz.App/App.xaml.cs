@@ -70,7 +70,8 @@ public partial class App : Application
             new ViewMap<LoginPage, LoginViewModel>(),
             new ViewMap<AddPropertyPage, AddPropertyViewModel>(),
             new DataViewMap<EditPropertyPage, EditPropertyViewModel, EditPropertyData>(),
-            new ViewMap<MyPropertiesPage, MyPropertiesViewModel>()
+            new ViewMap<MyPropertiesPage, MyPropertiesViewModel>(),
+            new ViewMap<FavoritesPage, FavoritesViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
 #endif
@@ -91,7 +92,8 @@ public partial class App : Application
                     new ("Login", View: views.FindByViewModel<LoginViewModel>()),
                     new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
                     new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
-                    new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>())
+                    new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
+                    new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>())
                 ]
             )
         );
