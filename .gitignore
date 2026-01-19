@@ -41,3 +41,9 @@ MSBuild_Logs/
 # Screenshots and temp files
 screenshots/
 temp_*.png
+
+# Push Notification Secrets (Firebase + APNs)
+firebase-service-account.json
+apns-auth-key.p8
+google-services.json
+GoogleService-Info.plist

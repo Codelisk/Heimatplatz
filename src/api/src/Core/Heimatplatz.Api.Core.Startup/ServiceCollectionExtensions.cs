@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
         services.AddAuthFeature();
         services.AddPropertiesFeature();
         services.AddForeclosureAuctionsFeature();
-        services.AddNotificationsFeature();
+        services.AddNotificationsFeature(configuration);
 
         return services;
     }

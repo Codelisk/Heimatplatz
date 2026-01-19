@@ -20,7 +20,9 @@ public static class ServiceCollectionExtensions
         // ViewModels and Pages are registered via MVUX source generation
 
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
-        // Register Shiny.Push with native provider (mobile platforms only)
+        // Register Shiny.Push with native providers
+        // Android: Uses Firebase via google-services.json (place in Platforms/Android/)
+        // iOS/macOS: Uses native APNs
         services.AddPush<PushNotificationDelegate>();
 #endif
 

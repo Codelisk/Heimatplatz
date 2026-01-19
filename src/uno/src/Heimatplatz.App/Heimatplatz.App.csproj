@@ -52,6 +52,16 @@
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\AppManifest.js" />
   </ItemGroup>
 
+  <!-- Firebase Configuration for Push Notifications -->
+  <!-- Android: Download from Firebase Console -> Project Settings -> Your Apps -> Android -->
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <GoogleServicesJson Include="Platforms\Android\google-services.json" Condition="Exists('Platforms\Android\google-services.json')" />
+  </ItemGroup>
+  <!-- iOS: Download from Firebase Console -> Project Settings -> Your Apps -> iOS -->
+  <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <BundleResource Include="Platforms\iOS\GoogleService-Info.plist" Condition="Exists('Platforms\iOS\GoogleService-Info.plist')" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Core Projects -->
     <ProjectReference Include="..\Core\Heimatplatz.Core.Startup\Heimatplatz.Core.Startup.csproj" />
@@ -61,6 +71,8 @@
     <ProjectReference Include="..\Features\Auth\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />
     <ProjectReference Include="..\Features\Properties\Heimatplatz.Features.Properties\Heimatplatz.Features.Properties.csproj" />
     <ProjectReference Include="..\Features\Properties\Heimatplatz.Features.Properties.Contracts\Heimatplatz.Features.Properties.Contracts.csproj" />
+    <ProjectReference Include="..\Features\Notifications\Heimatplatz.Features.Notifications\Heimatplatz.Features.Notifications.csproj" />
+    <ProjectReference Include="..\Features\Notifications\Heimatplatz.Features.Notifications.Contracts\Heimatplatz.Features.Notifications.Contracts.csproj" />
     <ProjectReference Include="..\Features\Debug\Heimatplatz.Features.Debug\Heimatplatz.Features.Debug.csproj" Condition="'$(Configuration)' == 'Debug'" />
     <!-- Framework References -->
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
