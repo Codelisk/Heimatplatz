@@ -21,12 +21,9 @@ public sealed partial class NotificationSettingsPage : Page
         if (ViewModel == null)
             return;
 
-        var location = await ViewModel.NewLocation;
-        if (!string.IsNullOrWhiteSpace(location))
+        if (!string.IsNullOrWhiteSpace(ViewModel.NewLocation))
         {
-            await ViewModel.AddLocation(location);
-            await ViewModel.NewLocation.UpdateAsync(_ => string.Empty, CancellationToken.None);
-            LocationTextBox.Focus(FocusState.Programmatic);
+            await ViewModel.AddLocationCommand.ExecuteAsync(null);
         }
     }
 
@@ -35,7 +32,7 @@ public sealed partial class NotificationSettingsPage : Page
         if (ViewModel == null || sender is not Button button || button.Tag is not string location)
             return;
 
-        await ViewModel.RemoveLocation(location);
+        await ViewModel.RemoveLocationCommand.ExecuteAsync(location);
     }
 
     private async void OnNotificationsToggled(object sender, RoutedEventArgs e)
@@ -43,7 +40,7 @@ public sealed partial class NotificationSettingsPage : Page
         if (ViewModel == null || sender is not ToggleSwitch toggle)
             return;
 
-        await ViewModel.ToggleEnabled(toggle.IsOn);
+        await ViewModel.ToggleEnabledCommand.ExecuteAsync(null);
     }
 
     private async void OnLocationKeyDown(object sender, KeyRoutedEventArgs e)

@@ -58,7 +58,7 @@
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </utu:AutoLayout>
                     <ToggleSwitch
-                        IsOn="{x:Bind ViewModel.Preferences.IsEnabled, Mode=OneWay}"
+                        IsOn="{x:Bind ViewModel.IsEnabled, Mode=TwoWay}"
                         Toggled="OnNotificationsToggled"
                         VerticalAlignment="Center" />
                 </utu:AutoLayout>
@@ -83,7 +83,7 @@
                         <TextBox
                             x:Name="LocationTextBox"
                             PlaceholderText="Ort hinzufügen (z.B. Zürich, Bern)"
-                            Text="{x:Bind ViewModel.NewLocation.Value, Mode=TwoWay}"
+                            Text="{x:Bind ViewModel.NewLocation, Mode=TwoWay}"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Center"
                             KeyDown="OnLocationKeyDown" />
@@ -96,7 +96,7 @@
 
                     <!-- Location List -->
                     <ItemsRepeater
-                        ItemsSource="{x:Bind ViewModel.Preferences.Locations, Mode=OneWay}">
+                        ItemsSource="{x:Bind ViewModel.Locations, Mode=OneWay}">
                         <ItemsRepeater.Layout>
                             <StackLayout Orientation="Vertical" Spacing="8" />
                         </ItemsRepeater.Layout>
@@ -136,7 +136,7 @@
                         Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                         TextWrapping="Wrap"
                         HorizontalAlignment="Center"
-                        Visibility="{x:Bind ViewModel.Preferences.Locations.Count, Mode=OneWay, Converter={StaticResource EmptyToVisibilityConverter}}" />
+                        Visibility="{x:Bind ViewModel.Locations.Count, Mode=OneWay, Converter={StaticResource EmptyToVisibilityConverter}}" />
                 </utu:AutoLayout>
             </utu:Card>
 
