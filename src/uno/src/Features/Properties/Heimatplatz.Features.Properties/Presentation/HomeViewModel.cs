@@ -172,6 +172,12 @@ public partial class HomeViewModel : ObservableObject
         await _navigator.NavigateViewModelAsync<FavoritesViewModel>(this);
     }
 
+    [RelayCommand]
+    private async Task NavigateToBlockedAsync()
+    {
+        await _navigator.NavigateViewModelAsync<BlockedViewModel>(this);
+    }
+
     partial void OnIsAllSelectedChanged(bool value)
     {
         if (value)

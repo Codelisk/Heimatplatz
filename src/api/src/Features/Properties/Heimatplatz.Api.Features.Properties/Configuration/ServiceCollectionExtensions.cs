@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
         // Seeder registrieren
         services.AddSeeder<PropertySeeder>();
         services.AddSeeder<FavoriteSeeder>();
+        services.AddSeeder<BlockedSeeder>();
 
         return services;
     }

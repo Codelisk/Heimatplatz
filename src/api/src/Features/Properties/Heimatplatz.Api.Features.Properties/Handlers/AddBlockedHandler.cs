@@ -12,17 +12,18 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Properties.Handlers;
 
 /// <summary>
-/// Handler for AddFavoriteRequest - adds a property to the user's favorites
+/// Handler for AddBlockedRequest - adds a property to the user's blocked list.
+/// If the property is favorited, it will be removed from favorites (either-or relationship).
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
-[MediatorHttpGroup("/api/favorites")]
-public class AddFavoriteHandler(
+[MediatorHttpGroup("/api/blocked")]
+public class AddBlockedHandler(
     AppDbContext dbContext,
     IHttpContextAccessor httpContextAccessor
-) : IRequestHandler<AddFavoriteRequest, AddFavoriteResponse>
+) : IRequestHandler<AddBlockedRequest, AddBlockedResponse>
 {
-    [MediatorHttpPost("", OperationId = "AddFavorite", AuthorizationPolicies = [AuthorizationPolicies.RequireBuyer])]
-    public async Task<AddFavoriteResponse> Handle(AddFavoriteRequest request, IMediatorContext context, CancellationToken cancellationToken)
+    [MediatorHttpPost("", OperationId = "AddBlocked", AuthorizationPolicies = [AuthorizationPolicies.RequireBuyer])]
+    public async Task<AddBlockedResponse> Handle(AddBlockedRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token
         var httpContext = httpContextAccessor.HttpContext
@@ -42,29 +43,31 @@ public class AddFavoriteHandler(
 
         if (!propertyExists)
         {
-            return new AddFavoriteResponse(false, "Immobilie nicht gefunden");
+            return new AddBlockedResponse(false, "Immobilie nicht gefunden");
         }
 
-        // Check if property is blocked (cannot favorite blocked properties - either-or relationship)
-        var isBlocked = await dbContext.Set<Blocked>()
+        // Check if already blocked
+        var blockedExists = await dbContext.Set<Blocked>()
             .AnyAsync(b => b.UserId == userId && b.PropertyId == request.PropertyId, cancellationToken);
 
-        if (isBlocked)
+        if (blockedExists)
         {
-            return new AddFavoriteResponse(false, "Blockierte Immobilie kann nicht favorisiert werden. Bitte zuerst Blockierung aufheben.");
+            return new AddBlockedResponse(false, "Immobilie ist bereits blockiert");
         }
 
-        // Check if favorite already exists
-        var favoriteExists = await dbContext.Set<Favorite>()
-            .AnyAsync(f => f.UserId == userId && f.PropertyId == request.PropertyId, cancellationToken);
+        // Check if property is favorited and remove from favorites (either-or relationship)
+        var wasRemovedFromFavorites = false;
+        var favorite = await dbContext.Set<Favorite>()
+            .FirstOrDefaultAsync(f => f.UserId == userId && f.PropertyId == request.PropertyId, cancellationToken);
 
-        if (favoriteExists)
+        if (favorite != null)
         {
-            return new AddFavoriteResponse(false, "Immobilie ist bereits in Favoriten");
+            dbContext.Set<Favorite>().Remove(favorite);
+            wasRemovedFromFavorites = true;
         }
 
-        // Add favorite
-        var favorite = new Favorite
+        // Add to blocked list
+        var blocked = new Blocked
         {
             Id = Guid.NewGuid(),
             UserId = userId,
@@ -72,9 +75,13 @@ public class AddFavoriteHandler(
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        dbContext.Set<Favorite>().Add(favorite);
+        dbContext.Set<Blocked>().Add(blocked);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new AddFavoriteResponse(true, "Immobilie zu Favoriten hinzugefuegt");
+        var message = wasRemovedFromFavorites
+            ? "Immobilie blockiert und aus Favoriten entfernt"
+            : "Immobilie blockiert";
+
+        return new AddBlockedResponse(true, message, wasRemovedFromFavorites);
     }
 }

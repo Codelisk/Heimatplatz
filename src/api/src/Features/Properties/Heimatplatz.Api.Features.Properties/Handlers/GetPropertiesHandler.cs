@@ -1,9 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
@@ -12,15 +14,34 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 
 /// <summary>
 /// Handler fuer GetPropertiesRequest - gibt gefilterte Immobilien-Liste zurueck
+/// Blockierte Properties werden fuer authentifizierte Benutzer automatisch ausgeblendet
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/properties")]
-public class GetPropertiesHandler(AppDbContext dbContext) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
+public class GetPropertiesHandler(
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor
+) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
 {
     [MediatorHttpGet("/", OperationId = "GetProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var query = dbContext.Set<Property>().AsQueryable();
+
+        // Exclude blocked properties for authenticated users
+        var httpContext = httpContextAccessor.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub);
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                var blockedPropertyIds = dbContext.Set<Blocked>()
+                    .Where(b => b.UserId == userId)
+                    .Select(b => b.PropertyId);
+
+                query = query.Where(p => !blockedPropertyIds.Contains(p.Id));
+            }
+        }
 
         // Filter anwenden
         if (request.Typ.HasValue)

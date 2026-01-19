@@ -101,6 +101,7 @@ public partial class App : Application
             new DataViewMap<EditPropertyPage, EditPropertyViewModel, EditPropertyData>(),
             new ViewMap<MyPropertiesPage, MyPropertiesViewModel>(),
             new ViewMap<FavoritesPage, FavoritesViewModel>(),
+            new ViewMap<BlockedPage, BlockedViewModel>(),
             new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
@@ -124,6 +125,7 @@ public partial class App : Application
                     new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
                     new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
                     new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),
+                    new ("Blocked", View: views.FindByViewModel<BlockedViewModel>()),
                     new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>())
                 ]
             )

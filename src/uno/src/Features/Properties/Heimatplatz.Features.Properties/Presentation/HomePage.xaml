@@ -154,6 +154,13 @@
                                                 <FontIcon Glyph="&#xE734;" FontSize="14" />
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Blockierte Immobilien"
+                                                        Command="{x:Bind ViewModel.NavigateToBlockedCommand}"
+                                                        AutomationProperties.AutomationId="HomePage_BlockedMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE8F8;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem Text="Meine Immobilien"
                                                         uen:Navigation.Request="MyProperties"
                                                         AutomationProperties.AutomationId="HomePage_MyPropertiesMenuItem">
