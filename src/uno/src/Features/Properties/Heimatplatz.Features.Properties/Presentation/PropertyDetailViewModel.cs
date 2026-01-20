@@ -1,15 +1,22 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Shiny.Extensions.DependencyInjection;
+using Shiny.Mediator;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel fuer die PropertyDetailPage
 /// </summary>
+[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class PropertyDetailViewModel : ObservableObject
 {
     private readonly IClipboardService _clipboardService;
+    private readonly IMediator _mediator;
+    private readonly IAuthService _authService;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -38,10 +45,31 @@ public partial class PropertyDetailViewModel : ObservableObject
     [ObservableProperty]
     private string? _copyFeedback;
 
-    public PropertyDetailViewModel(IClipboardService clipboardService)
+    [ObservableProperty]
+    private string? _blockFeedback;
+
+    [ObservableProperty]
+    private bool _isBlocked;
+
+    /// <summary>
+    /// Event that is raised when the property has been blocked and navigation should occur
+    /// </summary>
+    public event EventHandler? PropertyBlocked;
+
+    public PropertyDetailViewModel(
+        IClipboardService clipboardService,
+        IMediator mediator,
+        IAuthService authService)
     {
         _clipboardService = clipboardService;
+        _mediator = mediator;
+        _authService = authService;
     }
+
+    /// <summary>
+    /// Indicates if the user can block properties (must be authenticated)
+    /// </summary>
+    public bool CanBlock => _authService.IsAuthenticated;
 
     /// <summary>
     /// Gibt an, ob Kontaktdaten verfuegbar sind
@@ -126,6 +154,60 @@ public partial class PropertyDetailViewModel : ObservableObject
             CopyFeedback = "Kopiert!";
             await Task.Delay(1500);
             CopyFeedback = null;
+        }
+    }
+
+    /// <summary>
+    /// Blocks the current property so it won't appear in the main list
+    /// </summary>
+    [RelayCommand]
+    private async Task BlockPropertyAsync()
+    {
+        if (Property == null || !CanBlock)
+            return;
+
+        IsBusy = true;
+        BusyMessage = "Blockiere Immobilie...";
+
+        try
+        {
+            var result = await _mediator.Request(
+                new Heimatplatz.Core.ApiClient.Generated.AddBlockedHttpRequest
+                {
+                    Body = new Heimatplatz.Core.ApiClient.Generated.AddBlockedRequest
+                    {
+                        PropertyId = Property.Id
+                    }
+                }
+            );
+
+            if (result.Result?.Success == true)
+            {
+                IsBlocked = true;
+                BlockFeedback = result.Result.WasRemovedFromFavorites
+                    ? "Blockiert und aus Favoriten entfernt"
+                    : "Blockiert";
+
+                // Notify that the property was blocked - page should navigate back
+                PropertyBlocked?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                BlockFeedback = result.Result?.Message ?? "Fehler beim Blockieren";
+                await Task.Delay(2000);
+                BlockFeedback = null;
+            }
+        }
+        catch (Exception)
+        {
+            BlockFeedback = "Fehler beim Blockieren";
+            await Task.Delay(2000);
+            BlockFeedback = null;
+        }
+        finally
+        {
+            IsBusy = false;
+            BusyMessage = null;
         }
     }
 
