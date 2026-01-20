@@ -258,13 +258,17 @@ public partial class HomeViewModel : ObservableObject
             filtered = filtered.Where(p => p.CreatedAt >= cutoffDate);
         }
 
-        // Type filter
-        if (IsHausSelected)
-            filtered = filtered.Where(p => p.Type == PropertyType.House);
-        else if (IsGrundstueckSelected)
-            filtered = filtered.Where(p => p.Type == PropertyType.Land);
-        else if (IsZwangsversteigerungSelected)
-            filtered = filtered.Where(p => p.Type == PropertyType.Foreclosure);
+        // Type filter (Multi-Select mit OR-Logik)
+        var selectedTypes = new List<PropertyType>();
+        if (IsHausSelected) selectedTypes.Add(PropertyType.House);
+        if (IsGrundstueckSelected) selectedTypes.Add(PropertyType.Land);
+        if (IsZwangsversteigerungSelected) selectedTypes.Add(PropertyType.Foreclosure);
+
+        if (selectedTypes.Count > 0)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by types: {string.Join(", ", selectedTypes)}");
+            filtered = filtered.Where(p => selectedTypes.Contains(p.Type));
+        }
 
         Properties.Clear();
         var filteredList = filtered.ToList();
