@@ -31,9 +31,45 @@
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
                         Padding="{utu:Responsive Narrowest='16,12', Normal='24,16'}">
-                    <TextBlock Text="{Binding PageTitle}"
-                               Style="{StaticResource TitleLargeTextBlockStyle}"
-                               FontWeight="SemiBold" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Title and selection count -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding PageTitle}"
+                                       Style="{StaticResource TitleLargeTextBlockStyle}"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SelectedCountText}"
+                                       Style="{StaticResource BodyMediumTextBlockStyle}"
+                                       Foreground="{ThemeResource AccentBrush}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{Binding ShowBulkUnblockButton}" />
+                        </StackPanel>
+
+                        <!-- Action buttons -->
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    Visibility="{Binding IsNotEmpty}">
+                            <!-- Bulk unblock button -->
+                            <Button Content="Alle entblocken"
+                                    Command="{Binding BulkUnblockCommand}"
+                                    Background="{ThemeResource ErrorBrush}"
+                                    Foreground="{ThemeResource ChipSelectedForegroundBrush}"
+                                    Visibility="{Binding ShowBulkUnblockButton}"
+                                    Padding="16,8"
+                                    CornerRadius="{StaticResource ControlCornerRadius}" />
+
+                            <!-- Selection mode toggle -->
+                            <Button Content="{Binding SelectionModeButtonText}"
+                                    Command="{Binding ToggleSelectionModeCommand}"
+                                    Style="{StaticResource OutlinedButtonStyle}"
+                                    Padding="16,8" />
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
                 <!-- Content Area -->
@@ -81,12 +117,36 @@
 
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
+                                    <Grid Tapped="OnPropertyCardTapped">
                                         <!-- Property Card -->
                                         <controls:PropertyCard Property="{Binding}"
                                                                Margin="0" />
 
-                                        <!-- Unblock Button Overlay -->
+                                        <!-- Selection Toggle Button (visible in selection mode) -->
+                                        <Button x:Name="SelectionButton"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Top"
+                                                Margin="8"
+                                                Width="36"
+                                                Height="36"
+                                                Padding="0"
+                                                CornerRadius="18"
+                                                Command="{Binding DataContext.TogglePropertySelectionCommand, ElementName=RootPage}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding DataContext.IsSelectionMode, ElementName=RootPage}">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                                                    <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
+                                                    <Setter Property="BorderBrush" Value="{ThemeResource OutlineBrush}" />
+                                                    <Setter Property="BorderThickness" Value="2" />
+                                                </Style>
+                                            </Button.Style>
+                                            <FontIcon Glyph="&#xE739;"
+                                                      FontSize="16"
+                                                      Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        </Button>
+
+                                        <!-- Unblock Button Overlay (hidden in selection mode) -->
                                         <Border Background="{ThemeResource SurfaceBrush}"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Top"
@@ -94,7 +154,8 @@
                                                 Margin="8"
                                                 Padding="4"
                                                 BorderBrush="{ThemeResource OutlineBrush}"
-                                                BorderThickness="1">
+                                                BorderThickness="1"
+                                                Visibility="{Binding DataContext.IsNotSelectionMode, ElementName=RootPage}">
                                             <Border.Shadow>
                                                 <ThemeShadow />
                                             </Border.Shadow>

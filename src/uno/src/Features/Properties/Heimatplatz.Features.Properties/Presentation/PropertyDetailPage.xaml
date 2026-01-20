@@ -80,12 +80,22 @@
                         <!-- Actions -->
                         <StackPanel Grid.Column="2"
                                     Orientation="Horizontal"
-                                    Spacing="{utu:Responsive Narrowest=16, Normal=24}">
+                                    Spacing="{utu:Responsive Narrowest=12, Normal=20}">
                             <Button Background="Transparent"
                                     BorderThickness="0"
                                     Padding="8"
                                     ToolTipService.ToolTip="Favorit">
                                 <FontIcon Glyph="&#xEB51;"
+                                          FontSize="20"
+                                          Foreground="{ThemeResource OnSurfaceBrush}" />
+                            </Button>
+                            <Button Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="8"
+                                    Command="{x:Bind ViewModel.BlockPropertyCommand}"
+                                    Visibility="{x:Bind ViewModel.CanBlock}"
+                                    ToolTipService.ToolTip="Immobilie blockieren">
+                                <FontIcon Glyph="&#xE8F8;"
                                           FontSize="20"
                                           Foreground="{ThemeResource OnSurfaceBrush}" />
                             </Button>

@@ -1,4 +1,3 @@
-using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -11,14 +10,20 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// </summary>
 public sealed partial class PropertyDetailPage : Page
 {
-    public PropertyDetailViewModel ViewModel { get; }
+    public PropertyDetailViewModel? ViewModel => DataContext as PropertyDetailViewModel;
 
     public PropertyDetailPage()
     {
-        // Use ClipboardService directly - it's registered via [Service] attribute
-        var clipboardService = new Services.ClipboardService();
-        ViewModel = new PropertyDetailViewModel(clipboardService);
         this.InitializeComponent();
+        this.DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.PropertyBlocked += OnPropertyBlocked;
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -33,14 +38,23 @@ public sealed partial class PropertyDetailPage : Page
             _ => null
         };
 
-        if (propertyId.HasValue)
+        if (propertyId.HasValue && ViewModel != null)
         {
             ViewModel.LoadProperty(propertyId.Value);
         }
-        else
+        else if (ViewModel != null)
         {
             // Fallback: Lade Testdaten
             ViewModel.LoadProperty(Guid.NewGuid());
+        }
+    }
+
+    private void OnPropertyBlocked(object? sender, EventArgs e)
+    {
+        // Navigate back after blocking - the property is now hidden from the list
+        if (Frame.CanGoBack)
+        {
+            Frame.GoBack();
         }
     }
 
@@ -54,7 +68,7 @@ public sealed partial class PropertyDetailPage : Page
 
     private void OnImageSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is FlipView flipView)
+        if (sender is FlipView flipView && ViewModel != null)
         {
             ViewModel.CurrentImageIndex = flipView.SelectedIndex + 1;
         }
@@ -62,7 +76,7 @@ public sealed partial class PropertyDetailPage : Page
 
     private void OnThumbnailClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is string imageUrl)
+        if (sender is Button button && button.Tag is string imageUrl && ViewModel != null)
         {
             // Find the index of the clicked image
             var urls = ViewModel.Property?.ImageUrls;
@@ -79,7 +93,7 @@ public sealed partial class PropertyDetailPage : Page
 
     private async void OnCopyEmailClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is string email)
+        if (sender is Button button && button.Tag is string email && ViewModel != null)
         {
             await ViewModel.CopyToClipboardAsync(email);
         }
@@ -87,7 +101,7 @@ public sealed partial class PropertyDetailPage : Page
 
     private async void OnCopyPhoneClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is string phone)
+        if (sender is Button button && button.Tag is string phone && ViewModel != null)
         {
             await ViewModel.CopyToClipboardAsync(phone);
         }
@@ -95,7 +109,7 @@ public sealed partial class PropertyDetailPage : Page
 
     private async void OnCopyLinkClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is string link)
+        if (sender is Button button && button.Tag is string link && ViewModel != null)
         {
             await ViewModel.CopyToClipboardAsync(link);
         }
