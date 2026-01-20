@@ -36,6 +36,7 @@
 
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.12.11" />
 
     <!-- Push Notification Providers -->

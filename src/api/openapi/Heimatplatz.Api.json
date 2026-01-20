@@ -1,0 +1,2057 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Heimatplatz.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/users/roles": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "AssignUserRole",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignUserRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignUserRoleResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RemoveUserRole",
+        "parameters": [
+          {
+            "name": "UserId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "RoleType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/UserRoleType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveUserRoleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{UserId}/roles": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetUserRoles",
+        "parameters": [
+          {
+            "name": "UserId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserRolesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RefreshToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "Register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foreclosure-auctions/{Id}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetForeclosureAuctionById",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetForeclosureAuctionByIdResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foreclosure-auctions": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetForeclosureAuctions",
+        "parameters": [
+          {
+            "name": "Category",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PropertyCategory"
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "AuctionDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "AuctionDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "MaxEstimatedValue",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetForeclosureAuctionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blocked": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "AddBlocked",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddBlockedRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddBlockedResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetUserBlocked",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserBlockedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blocked/{PropertyId}": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RemoveBlocked",
+        "parameters": [
+          {
+            "name": "PropertyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveBlockedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/favorites": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "AddFavorite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFavoriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddFavoriteResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetUserFavorites",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserFavoritesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/favorites/{PropertyId}": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RemoveFavorite",
+        "parameters": [
+          {
+            "name": "PropertyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveFavoriteResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/properties": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "CreateProperty",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePropertyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePropertyResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetProperties",
+        "parameters": [
+          {
+            "name": "Typ",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PropertyType"
+            }
+          },
+          {
+            "name": "AnbieterTyp",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SellerType"
+            }
+          },
+          {
+            "name": "PreisMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "PreisMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "FlaecheMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "FlaecheMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "ZimmerMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Ort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Skip",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "Take",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertiesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UpdateProperty",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePropertyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePropertyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/properties/{Id}": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "DeleteProperty",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePropertyResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPropertyById",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertyByIdResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/properties/user": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetUserProperties",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserPropertiesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/preferences": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetNotificationPreferences",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetNotificationPreferencesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UpdateNotificationPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferencesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateNotificationPreferencesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/register-device": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RegisterDevice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDeviceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterDeviceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddBlockedRequest": {
+        "required": [
+          "PropertyId"
+        ],
+        "type": "object",
+        "properties": {
+          "PropertyId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "AddBlockedResponse": {
+        "required": [
+          "Success",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "WasRemovedFromFavorites": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "AddFavoriteRequest": {
+        "required": [
+          "PropertyId"
+        ],
+        "type": "object",
+        "properties": {
+          "PropertyId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "AddFavoriteResponse": {
+        "required": [
+          "Success",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssignUserRoleRequest": {
+        "required": [
+          "UserId",
+          "RoleType"
+        ],
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RoleType": {
+            "$ref": "#/components/schemas/UserRoleType"
+          }
+        }
+      },
+      "AssignUserRoleResponse": {
+        "required": [
+          "UserId",
+          "RoleType",
+          "WasAlreadyAssigned"
+        ],
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RoleType": {
+            "$ref": "#/components/schemas/UserRoleType"
+          },
+          "WasAlreadyAssigned": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreatePropertyRequest": {
+        "required": [
+          "Title",
+          "Address",
+          "City",
+          "PostalCode",
+          "Price",
+          "Type",
+          "SellerType",
+          "SellerName"
+        ],
+        "type": "object",
+        "properties": {
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "SellerName": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LivingAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PlotAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "YearBuilt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Features": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "ImageUrls": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "TypeSpecificData": {
+            "type": [
+              "null",
+              "object"
+            ]
+          }
+        }
+      },
+      "CreatePropertyResponse": {
+        "required": [
+          "PropertyId",
+          "Title",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "PropertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DeletePropertyResponse": {
+        "required": [
+          "Success",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": "string"
+          }
+        }
+      },
+      "ForeclosureAuctionDto": {
+        "required": [
+          "Id",
+          "AuctionDate",
+          "Category",
+          "ObjectDescription",
+          "Address",
+          "City",
+          "PostalCode",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "AuctionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Category": {
+            "$ref": "#/components/schemas/PropertyCategory"
+          },
+          "ObjectDescription": {
+            "type": "string"
+          },
+          "Status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "RegistrationNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CadastralMunicipality": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PlotNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SheetNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "TotalArea": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "BuildingArea": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "GardenArea": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "PlotArea": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "YearBuilt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "NumberOfRooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ZoningDesignation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "BuildingCondition": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "EstimatedValue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "MinimumBid": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "ViewingDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "BiddingDeadline": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "OwnershipShare": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CaseNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Court": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "EdictUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "FloorPlanUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SitePlanUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LongAppraisalUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ShortAppraisalUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GetForeclosureAuctionByIdResponse": {
+        "type": "object",
+        "properties": {
+          "Auction": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ForeclosureAuctionDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetForeclosureAuctionsResponse": {
+        "required": [
+          "Auctions"
+        ],
+        "type": "object",
+        "properties": {
+          "Auctions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForeclosureAuctionDto"
+            }
+          }
+        }
+      },
+      "GetNotificationPreferencesResponse": {
+        "required": [
+          "IsEnabled",
+          "Locations"
+        ],
+        "type": "object",
+        "properties": {
+          "IsEnabled": {
+            "type": "boolean"
+          },
+          "Locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "GetPropertiesResponse": {
+        "required": [
+          "Immobilien",
+          "Gesamt"
+        ],
+        "type": "object",
+        "properties": {
+          "Immobilien": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyListItemDto"
+            }
+          },
+          "Gesamt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "GetPropertyByIdResponse": {
+        "required": [
+          "Property"
+        ],
+        "type": "object",
+        "properties": {
+          "Property": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PropertyDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetUserBlockedResponse": {
+        "required": [
+          "Properties"
+        ],
+        "type": "object",
+        "properties": {
+          "Properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyListItemDto"
+            }
+          }
+        }
+      },
+      "GetUserFavoritesResponse": {
+        "required": [
+          "Properties"
+        ],
+        "type": "object",
+        "properties": {
+          "Properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyListItemDto"
+            }
+          }
+        }
+      },
+      "GetUserPropertiesResponse": {
+        "required": [
+          "Properties"
+        ],
+        "type": "object",
+        "properties": {
+          "Properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyListItemDto"
+            }
+          }
+        }
+      },
+      "GetUserRolesResponse": {
+        "required": [
+          "UserId",
+          "Roles",
+          "IsBuyer",
+          "IsSeller"
+        ],
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRoleType"
+            }
+          },
+          "IsBuyer": {
+            "type": "boolean"
+          },
+          "IsSeller": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LoginRequest": {
+        "required": [
+          "Email",
+          "Passwort"
+        ],
+        "type": "object",
+        "properties": {
+          "Email": {
+            "type": "string"
+          },
+          "Passwort": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponse": {
+        "required": [
+          "AccessToken",
+          "RefreshToken",
+          "UserId",
+          "Email",
+          "FullName",
+          "ExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "AccessToken": {
+            "type": "string"
+          },
+          "RefreshToken": {
+            "type": "string"
+          },
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "ExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PropertyCategory": {
+        "enum": [
+          "Einfamilienhaus",
+          "Zweifamilienhaus",
+          "Mehrfamilienhaus",
+          "Wohnungseigentum",
+          "GewerblicheLiegenschaft",
+          "Grundstueck",
+          "LandUndForstwirtschaft",
+          "Sonstiges"
+        ]
+      },
+      "PropertyDto": {
+        "required": [
+          "Id",
+          "Title",
+          "Address",
+          "City",
+          "PostalCode",
+          "Price",
+          "LivingAreaM2",
+          "PlotAreaM2",
+          "Rooms",
+          "YearBuilt",
+          "Type",
+          "SellerType",
+          "SellerName",
+          "Description",
+          "Features",
+          "ImageUrls",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "LivingAreaM2": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PlotAreaM2": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "YearBuilt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "SellerName": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PropertyListItemDto": {
+        "required": [
+          "Id",
+          "Title",
+          "Address",
+          "City",
+          "Price",
+          "LivingAreaM2",
+          "PlotAreaM2",
+          "Rooms",
+          "Type",
+          "SellerType",
+          "SellerName",
+          "ImageUrls",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "LivingAreaM2": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PlotAreaM2": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "SellerName": {
+            "type": "string"
+          },
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PropertyType": {
+        "enum": [
+          "House",
+          "Land",
+          "Foreclosure"
+        ]
+      },
+      "RefreshTokenRequest": {
+        "required": [
+          "RefreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "RefreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "RefreshTokenResponse": {
+        "required": [
+          "AccessToken",
+          "RefreshToken",
+          "ExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "AccessToken": {
+            "type": "string"
+          },
+          "RefreshToken": {
+            "type": "string"
+          },
+          "ExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RegisterDeviceRequest": {
+        "required": [
+          "DeviceToken",
+          "Platform"
+        ],
+        "type": "object",
+        "properties": {
+          "DeviceToken": {
+            "type": "string"
+          },
+          "Platform": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterDeviceResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "required": [
+          "Vorname",
+          "Nachname",
+          "Email",
+          "Passwort"
+        ],
+        "type": "object",
+        "properties": {
+          "Vorname": {
+            "type": "string"
+          },
+          "Nachname": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Passwort": {
+            "type": "string"
+          },
+          "Roles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/UserRoleType"
+            }
+          }
+        }
+      },
+      "RegisterResponse": {
+        "required": [
+          "AccessToken",
+          "RefreshToken",
+          "UserId",
+          "Email",
+          "FullName",
+          "ExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "AccessToken": {
+            "type": "string"
+          },
+          "RefreshToken": {
+            "type": "string"
+          },
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "ExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RemoveBlockedResponse": {
+        "required": [
+          "Success",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RemoveFavoriteResponse": {
+        "required": [
+          "Success",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RemoveUserRoleResponse": {
+        "required": [
+          "UserId",
+          "RoleType",
+          "WasRemoved"
+        ],
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RoleType": {
+            "$ref": "#/components/schemas/UserRoleType"
+          },
+          "WasRemoved": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SellerType": {
+        "enum": [
+          "Privat",
+          "Makler"
+        ]
+      },
+      "UpdateNotificationPreferencesRequest": {
+        "required": [
+          "IsEnabled",
+          "Locations"
+        ],
+        "type": "object",
+        "properties": {
+          "IsEnabled": {
+            "type": "boolean"
+          },
+          "Locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateNotificationPreferencesResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdatePropertyRequest": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "SellerName": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LivingAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PlotAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "YearBuilt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Features": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "ImageUrls": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "TypeSpecificData": {
+            "type": [
+              "null",
+              "object"
+            ]
+          }
+        }
+      },
+      "UpdatePropertyResponse": {
+        "required": [
+          "Id",
+          "Title",
+          "UpdatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "UpdatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "UserRoleType": {
+        "enum": [
+          "Buyer",
+          "Seller"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Heimatplatz.Api"
+    }
+  ]
+}

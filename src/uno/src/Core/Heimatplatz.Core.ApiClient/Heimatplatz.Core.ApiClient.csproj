@@ -22,10 +22,9 @@
     <PackageReference Include="Shiny.Mediator" />
   </ItemGroup>
 
-  <!-- OpenAPI HTTP Contract Generation from API -->
+  <!-- OpenAPI HTTP Contract Generation from API (file-based, generated at build time) -->
   <ItemGroup>
-    <MediatorHttp Include="ApiContracts"
-                  Uri="http://localhost:5292/openapi/v1.json"
+    <MediatorHttp Include="../../../../api/openapi/Heimatplatz.Api.json"
                   Namespace="Heimatplatz.Core.ApiClient.Generated"
                   ContractPostfix="HttpRequest"
                   GenerateJsonConverters="false"
