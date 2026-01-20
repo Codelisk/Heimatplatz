@@ -1,11 +1,13 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftVersion>10.0.1</MicrosoftVersion>
+    <MicrosoftVersion>10.0.2</MicrosoftVersion>
+    <MicrosoftExtensionsVersion>10.2.0</MicrosoftExtensionsVersion>
     <AspireVersion>13.1.0</AspireVersion>
     <OpenTelemetryVersion>1.14.0</OpenTelemetryVersion>
     <ShinyMediatorVersion>6.1.1</ShinyMediatorVersion>
     <ShinyPushVersion>4.0.0-beta-0095</ShinyPushVersion>
+    <AndroidXLifecycleVersion>2.10.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,24 +17,35 @@
     <PackageVersion Include="Shiny.Mediator.Contracts" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Extensions.DependencyInjection" Version="2.0.0-beta-0001" />
     <PackageVersion Include="Shiny.Push" Version="$(ShinyPushVersion)" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 
     <!-- Uno Extensions -->
-    <PackageVersion Include="Uno.Extensions.Reactive" Version="5.3.8" />
+    <PackageVersion Include="Uno.Extensions.Reactive" Version="7.0.17" />
+
+    <!-- AndroidX Version Override (resolve transitive conflicts) -->
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Process" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState.Android" Version="$(AndroidXLifecycleVersion)" />
 
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.11.10" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.11" />
 
     <!-- Push Notification Providers -->
-    <PackageVersion Include="FirebaseAdmin" Version="3.1.0" />
+    <PackageVersion Include="FirebaseAdmin" Version="3.4.0" />
     <PackageVersion Include="Apns" Version="1.0.4" />
 
     <!-- Aspire packages -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="$(AspireVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.1.0" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryVersion)" />
@@ -65,7 +78,7 @@
     <PackageVersion Include="Uno.UITest.Helpers" Version="1.1.0-dev.70" />
     <PackageVersion Include="Uno.UITest.Selenium" Version="1.1.0-dev.70" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="6.0.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
 
