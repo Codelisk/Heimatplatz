@@ -13,6 +13,7 @@
             CornerRadius="{StaticResource RadiusSm}"
             Padding="0"
             Translation="0,0,8"
+            PointerPressed="OnCardPointerPressed"
             AutomationProperties.AutomationId="PropertyCard_Container">
         <Border.Shadow>
             <ThemeShadow />
@@ -33,6 +34,7 @@
                 <!-- Placeholder -->
                 <Border Background="{ThemeResource PlaceholderBrush}"
                         CornerRadius="{StaticResource RadiusSmTop}"
+                        IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_ImagePlaceholder">
                     <FontIcon Glyph="&#xE722;"
                               FontSize="36"
@@ -43,6 +45,7 @@
 
                 <!-- FlipView fuer Bilder-Swipe -->
                 <Border CornerRadius="{StaticResource RadiusSmTop}"
+                        IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_ImageBorder">
                     <Border.Clip>
                         <RectangleGeometry Rect="0,0,10000,180" />
@@ -70,6 +73,7 @@
                         VerticalAlignment="Bottom"
                         HorizontalAlignment="Left"
                         Visibility="Collapsed"
+                        IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_ImageCounter">
                     <TextBlock x:Name="ImageCounterText"
                                FontSize="11"
@@ -84,6 +88,7 @@
                         Margin="12"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Left"
+                        IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_TypeBadge">
                     <TextBlock x:Name="TypeBadgeText"
                                FontSize="11"
@@ -100,6 +105,7 @@
                         Margin="12"
                         VerticalAlignment="Bottom"
                         HorizontalAlignment="Right"
+                        IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_PriceOverlay">
                     <TextBlock x:Name="PriceText"
                                FontSize="18"
@@ -108,15 +114,12 @@
                                AutomationProperties.AutomationId="PropertyCard_Price" />
                 </Border>
 
-                <!-- Transparentes Overlay für Tap-Events (über FlipView) -->
-                <Border x:Name="ImageTapOverlay"
-                        Background="Transparent"
-                        Tapped="OnImageTapped"
-                        AutomationProperties.AutomationId="PropertyCard_TapOverlay" />
+                <!-- Transparentes Overlay für Tap-Events (über FlipView) wurde entfernt, da Tapped auf Root Grid -->
 
                 <!-- Dezente Navigations-Pfeile -->
                 <Button x:Name="PrevImageButton"
                         Click="OnPrevImageClick"
+                        PointerPressed="OnPrevImagePointerPressed"
                         Background="#40000000"
                         BorderThickness="0"
                         Padding="8,16"
@@ -132,6 +135,7 @@
 
                 <Button x:Name="NextImageButton"
                         Click="OnNextImageClick"
+                        PointerPressed="OnNextImagePointerPressed"
                         Background="#40000000"
                         BorderThickness="0"
                         Padding="8,16"

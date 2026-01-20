@@ -273,8 +273,16 @@ public partial class HomeViewModel : ObservableObject
         if (value)
         {
             IsAllSelected = false;
-            ApplyFilters();
         }
+        else
+        {
+            // Wenn alle deselektiert sind, setze "Alle" zurück
+            if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
+            {
+                IsAllSelected = true;
+            }
+        }
+        ApplyFilters();
     }
 
     partial void OnIsGrundstueckSelectedChanged(bool value)
@@ -284,8 +292,16 @@ public partial class HomeViewModel : ObservableObject
         if (value)
         {
             IsAllSelected = false;
-            ApplyFilters();
         }
+        else
+        {
+            // Wenn alle deselektiert sind, setze "Alle" zurück
+            if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
+            {
+                IsAllSelected = true;
+            }
+        }
+        ApplyFilters();
     }
 
     partial void OnIsZwangsversteigerungSelectedChanged(bool value)
@@ -295,8 +311,16 @@ public partial class HomeViewModel : ObservableObject
         if (value)
         {
             IsAllSelected = false;
-            ApplyFilters();
         }
+        else
+        {
+            // Wenn alle deselektiert sind, setze "Alle" zurück
+            if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
+            {
+                IsAllSelected = true;
+            }
+        }
+        ApplyFilters();
     }
 
     private void ApplyFilters()

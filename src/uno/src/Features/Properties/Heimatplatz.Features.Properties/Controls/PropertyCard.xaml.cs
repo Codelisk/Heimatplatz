@@ -14,7 +14,6 @@ public sealed partial class PropertyCard : UserControl
     public PropertyCard()
     {
         this.InitializeComponent();
-        this.PointerPressed += OnCardPointerPressed;
         this.PointerEntered += OnCardPointerEntered;
         this.PointerExited += OnCardPointerExited;
     }
@@ -163,16 +162,6 @@ public sealed partial class PropertyCard : UserControl
         }
     }
 
-    private void OnImageTapped(object sender, TappedRoutedEventArgs e)
-    {
-        // Tap auf Bildbereich - navigiere zur Detailansicht
-        if (Property != null)
-        {
-            CardClicked?.Invoke(this, Property);
-            e.Handled = true;
-        }
-    }
-
     private void OnPrevImageClick(object sender, RoutedEventArgs e)
     {
         if (ImageFlipView.SelectedIndex > 0)
@@ -186,6 +175,12 @@ public sealed partial class PropertyCard : UserControl
         }
     }
 
+    private void OnPrevImagePointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        // Verhindere Navigation zur Detail-Seite
+        e.Handled = true;
+    }
+
     private void OnNextImageClick(object sender, RoutedEventArgs e)
     {
         if (ImageFlipView.SelectedIndex < ImageFlipView.Items.Count - 1)
@@ -197,6 +192,12 @@ public sealed partial class PropertyCard : UserControl
             // Wrap zum ersten Bild
             ImageFlipView.SelectedIndex = 0;
         }
+    }
+
+    private void OnNextImagePointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        // Verhindere Navigation zur Detail-Seite
+        e.Handled = true;
     }
 
     private void OnCardPointerEntered(object sender, PointerRoutedEventArgs e)
