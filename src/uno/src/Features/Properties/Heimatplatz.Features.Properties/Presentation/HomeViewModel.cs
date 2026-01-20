@@ -7,6 +7,8 @@ using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
 using Uno.Extensions.Navigation;
 
+// ReSharper disable InconsistentNaming
+
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
@@ -37,6 +39,19 @@ public partial class HomeViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isZwangsversteigerungSelected;
+
+    private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
+    public AgeFilter SelectedAgeFilter
+    {
+        get => _selectedAgeFilter;
+        set
+        {
+            if (SetProperty(ref _selectedAgeFilter, value))
+            {
+                ApplyFilters();
+            }
+        }
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotAuthenticated))]
@@ -221,20 +236,35 @@ public partial class HomeViewModel : ObservableObject
         System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Called. SelectedOrte.Count = {SelectedOrte.Count}");
         var filtered = _allProperties.AsEnumerable();
 
-        // Ort-Filter (Multi-Select)
+        // City filter (Multi-Select)
         if (SelectedOrte.Count > 0)
         {
-            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by orte: {string.Join(", ", SelectedOrte)}");
-            filtered = filtered.Where(p => SelectedOrte.Contains(p.Ort));
+            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by cities: {string.Join(", ", SelectedOrte)}");
+            filtered = filtered.Where(p => SelectedOrte.Contains(p.City));
         }
 
-        // Typ-Filter
+        // Age filter
+        if (SelectedAgeFilter != AgeFilter.Alle)
+        {
+            var cutoffDate = SelectedAgeFilter switch
+            {
+                AgeFilter.EinTag => DateTime.Now.AddDays(-1),
+                AgeFilter.EineWoche => DateTime.Now.AddDays(-7),
+                AgeFilter.EinMonat => DateTime.Now.AddMonths(-1),
+                AgeFilter.EinJahr => DateTime.Now.AddYears(-1),
+                _ => DateTime.MinValue
+            };
+            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by age: {SelectedAgeFilter}, cutoff: {cutoffDate}");
+            filtered = filtered.Where(p => p.CreatedAt >= cutoffDate);
+        }
+
+        // Type filter
         if (IsHausSelected)
-            filtered = filtered.Where(p => p.Typ == PropertyType.House);
+            filtered = filtered.Where(p => p.Type == PropertyType.House);
         else if (IsGrundstueckSelected)
-            filtered = filtered.Where(p => p.Typ == PropertyType.Land);
+            filtered = filtered.Where(p => p.Type == PropertyType.Land);
         else if (IsZwangsversteigerungSelected)
-            filtered = filtered.Where(p => p.Typ == PropertyType.Foreclosure);
+            filtered = filtered.Where(p => p.Type == PropertyType.Foreclosure);
 
         Properties.Clear();
         var filteredList = filtered.ToList();
@@ -250,20 +280,39 @@ public partial class HomeViewModel : ObservableObject
 
     private void LoadTestData()
     {
+        var now = DateTime.Now;
+
         _allProperties = new List<PropertyListItemDto>
         {
+            // Created today
             new(Guid.NewGuid(), "Einfamilienhaus in Linz-Urfahr", "Hauptstrasse 15", "Linz", 349000, 145, 520, 5, PropertyType.House, SellerType.Makler, "Mustermann Immobilien",
-                ["https://picsum.photos/seed/haus1a/800/600", "https://picsum.photos/seed/haus1b/800/600", "https://picsum.photos/seed/haus1c/800/600"]),
+                ["https://picsum.photos/seed/haus1a/800/600", "https://picsum.photos/seed/haus1b/800/600", "https://picsum.photos/seed/haus1c/800/600"],
+                now.AddHours(-2)),
+
+            // Created yesterday
             new(Guid.NewGuid(), "Modernes Reihenhaus in Wels", "Ringstrasse 42", "Wels", 289000, 120, 180, 4, PropertyType.House, SellerType.Privat, "Familie Huber",
-                ["https://picsum.photos/seed/haus2a/800/600", "https://picsum.photos/seed/haus2b/800/600"]),
+                ["https://picsum.photos/seed/haus2a/800/600", "https://picsum.photos/seed/haus2b/800/600"],
+                now.AddHours(-20)),
+
+            // Created 5 days ago
             new(Guid.NewGuid(), "Familienhaus in Steyr", "Bahnhofstrasse 67", "Steyr", 315000, 135, 450, 5, PropertyType.House, SellerType.Makler, "Immobilien Steyr",
-                ["https://picsum.photos/seed/haus3a/800/600", "https://picsum.photos/seed/haus3b/800/600", "https://picsum.photos/seed/haus3c/800/600", "https://picsum.photos/seed/haus3d/800/600"]),
+                ["https://picsum.photos/seed/haus3a/800/600", "https://picsum.photos/seed/haus3b/800/600", "https://picsum.photos/seed/haus3c/800/600", "https://picsum.photos/seed/haus3d/800/600"],
+                now.AddDays(-5)),
+
+            // Created 2 weeks ago
             new(Guid.NewGuid(), "Baugrundstück in Wels", "Neubaugebiet Sued", "Wels", 189000, null, 850, null, PropertyType.Land, SellerType.Privat, "Familie Mueller",
-                ["https://picsum.photos/seed/grund1a/800/600", "https://picsum.photos/seed/grund1b/800/600"]),
+                ["https://picsum.photos/seed/grund1a/800/600", "https://picsum.photos/seed/grund1b/800/600"],
+                now.AddDays(-14)),
+
+            // Created 2 months ago
             new(Guid.NewGuid(), "Sonniges Baugrundstück Linz-Land", "Am Sonnenhang 12", "Leonding", 245000, null, 720, null, PropertyType.Land, SellerType.Makler, "Grund & Boden OOe",
-                ["https://picsum.photos/seed/grund2a/800/600", "https://picsum.photos/seed/grund2b/800/600", "https://picsum.photos/seed/grund2c/800/600"]),
+                ["https://picsum.photos/seed/grund2a/800/600", "https://picsum.photos/seed/grund2b/800/600", "https://picsum.photos/seed/grund2c/800/600"],
+                now.AddMonths(-2)),
+
+            // Created 6 months ago
             new(Guid.NewGuid(), "Zwangsversteigerung: Haus in Traun", "Industriestrasse 45", "Traun", 185000, 110, 380, 4, PropertyType.Foreclosure, SellerType.Makler, "Bezirksgericht Linz",
-                ["https://picsum.photos/seed/zwang1a/800/600", "https://picsum.photos/seed/zwang1b/800/600"]),
+                ["https://picsum.photos/seed/zwang1a/800/600", "https://picsum.photos/seed/zwang1b/800/600"],
+                now.AddMonths(-6)),
         };
 
         ApplyFilters();

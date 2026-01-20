@@ -89,7 +89,8 @@ public class GetPropertiesHandler(
                 p.Type,
                 p.SellerType,
                 p.SellerName,
-                p.ImageUrls
+                p.ImageUrls,
+                p.CreatedAt
             ))
             .ToList();
 

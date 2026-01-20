@@ -30,7 +30,7 @@ public partial class PropertyDetailViewModel : ObservableObject
     private string _typeText = string.Empty;
 
     [ObservableProperty]
-    private string _ausstattungText = "Keine Angaben";
+    private string _featuresText = "Keine Angaben";
 
     private void UpdateDisplayProperties()
     {
@@ -39,25 +39,25 @@ public partial class PropertyDetailViewModel : ObservableObject
             FormattedPrice = string.Empty;
             DetailsText = string.Empty;
             TypeText = string.Empty;
-            AusstattungText = "Keine Angaben";
+            FeaturesText = "Keine Angaben";
             return;
         }
 
-        // Preis formatieren
-        FormattedPrice = $"€ {Property.Preis:N0}".Replace(",", ".");
+        // Format price
+        FormattedPrice = $"€ {Property.Price:N0}".Replace(",", ".");
 
-        // Details zusammenstellen
+        // Build details text
         var parts = new List<string>();
-        if (Property.WohnflaecheM2.HasValue)
-            parts.Add($"{Property.WohnflaecheM2} m²");
-        if (Property.Zimmer.HasValue)
-            parts.Add($"{Property.Zimmer} Zimmer");
-        if (Property.Baujahr.HasValue)
-            parts.Add($"Baujahr {Property.Baujahr}");
+        if (Property.LivingAreaM2.HasValue)
+            parts.Add($"{Property.LivingAreaM2} m²");
+        if (Property.Rooms.HasValue)
+            parts.Add($"{Property.Rooms} Zimmer");
+        if (Property.YearBuilt.HasValue)
+            parts.Add($"Baujahr {Property.YearBuilt}");
         DetailsText = string.Join(" · ", parts);
 
-        // Typ-Text
-        TypeText = Property.Typ switch
+        // Type text
+        TypeText = Property.Type switch
         {
             PropertyType.House => "HAUS",
             PropertyType.Land => "GRUNDSTÜCK",
@@ -65,9 +65,9 @@ public partial class PropertyDetailViewModel : ObservableObject
             _ => string.Empty
         };
 
-        // Ausstattung
-        AusstattungText = Property.Ausstattung?.Count > 0
-            ? string.Join("  ", Property.Ausstattung.Select(a => $"✓ {a}"))
+        // Features
+        FeaturesText = Property.Features?.Count > 0
+            ? string.Join("  ", Property.Features.Select(a => $"✓ {a}"))
             : "Keine Angaben";
     }
 
@@ -78,7 +78,7 @@ public partial class PropertyDetailViewModel : ObservableObject
 
         try
         {
-            // TODO: API-Integration - vorerst Testdaten
+            // TODO: API integration - mock data for now
             Property = GetMockProperty(propertyId);
             UpdateDisplayProperties();
         }
@@ -90,39 +90,39 @@ public partial class PropertyDetailViewModel : ObservableObject
 
     public void ContactSeller()
     {
-        // TODO: Kontaktformular oder E-Mail oeffnen
-        System.Diagnostics.Debug.WriteLine($"Kontaktiere Anbieter: {Property?.AnbieterName}");
+        // TODO: Open contact form or email
+        System.Diagnostics.Debug.WriteLine($"Contacting seller: {Property?.SellerName}");
     }
 
     private PropertyDetailDto GetMockProperty(Guid propertyId)
     {
-        // Mock-Daten basierend auf den Testdaten in HomeViewModel
+        // Mock data based on test data in HomeViewModel
         return new PropertyDetailDto(
             Id: propertyId,
-            Titel: "Einfamilienhaus in Linz-Urfahr",
-            Adresse: "Hauptstrasse 15",
-            Ort: "Linz",
-            Preis: 349000,
-            WohnflaecheM2: 145,
-            GrundstuecksflaecheM2: 520,
-            Zimmer: 5,
-            Baujahr: 2018,
-            Typ: PropertyType.House,
-            AnbieterTyp: SellerType.Makler,
-            AnbieterName: "Mustermann Immobilien",
-            AnbieterTelefon: "+43 732 123456",
-            AnbieterEmail: "info@mustermann-immo.at",
-            BildUrls:
+            Title: "Einfamilienhaus in Linz-Urfahr",
+            Address: "Hauptstrasse 15",
+            City: "Linz",
+            Price: 349000,
+            LivingAreaM2: 145,
+            PlotAreaM2: 520,
+            Rooms: 5,
+            YearBuilt: 2018,
+            Type: PropertyType.House,
+            SellerType: SellerType.Makler,
+            SellerName: "Mustermann Immobilien",
+            SellerPhone: "+43 732 123456",
+            SellerEmail: "info@mustermann-immo.at",
+            ImageUrls:
             [
                 "https://picsum.photos/seed/haus1a/800/600",
                 "https://picsum.photos/seed/haus1b/800/600",
                 "https://picsum.photos/seed/haus1c/800/600"
             ],
-            Beschreibung: "Wunderschönes Einfamilienhaus mit großem Garten in ruhiger Lage. " +
-                          "Das Haus wurde 2018 erbaut und befindet sich in einem ausgezeichneten Zustand. " +
-                          "Die hochwertige Ausstattung und die durchdachte Raumaufteilung machen dieses Objekt " +
-                          "zu einem idealen Zuhause für Familien.",
-            Ausstattung: ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"]
+            Description: "Wunderschönes Einfamilienhaus mit großem Garten in ruhiger Lage. " +
+                         "Das Haus wurde 2018 erbaut und befindet sich in einem ausgezeichneten Zustand. " +
+                         "Die hochwertige Ausstattung und die durchdachte Raumaufteilung machen dieses Objekt " +
+                         "zu einem idealen Zuhause für Familien.",
+            Features: ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"]
         );
     }
 }

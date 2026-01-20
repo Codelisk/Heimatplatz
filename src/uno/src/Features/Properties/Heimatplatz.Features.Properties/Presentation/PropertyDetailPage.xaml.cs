@@ -65,8 +65,8 @@ public sealed partial class PropertyDetailPage : Page
     {
         if (sender is Button button && button.Tag is string imageUrl)
         {
-            // Finde den Index des geklickten Bildes
-            var urls = ViewModel.Property?.BildUrls;
+            // Find the index of the clicked image
+            var urls = ViewModel.Property?.ImageUrls;
             if (urls != null)
             {
                 var index = urls.IndexOf(imageUrl);

@@ -50,18 +50,18 @@ public sealed partial class PropertyCard : UserControl
 
     private void UpdateDisplay(PropertyListItemDto property)
     {
-        // Preis formatieren (kompakt)
-        PriceText.Text = FormatPrice(property.Preis);
+        // Format price (compact)
+        PriceText.Text = FormatPrice(property.Price);
 
-        // Ort und Adresse (neue Struktur)
-        OrtText.Text = property.Ort;
-        AddressText.Text = property.Adresse;
+        // City and address
+        OrtText.Text = property.City;
+        AddressText.Text = property.Address;
 
-        // Titel
-        TitleText.Text = property.Titel;
+        // Title
+        TitleText.Text = property.Title;
 
-        // Typ-Badge Text und Farbe
-        TypeBadgeText.Text = property.Typ switch
+        // Type badge text and color
+        TypeBadgeText.Text = property.Type switch
         {
             PropertyType.House => "HAUS",
             PropertyType.Land => "GRUND",
@@ -69,8 +69,8 @@ public sealed partial class PropertyCard : UserControl
             _ => "IMM"
         };
 
-        // Typ-spezifische Farben: HAUS=schwarz, GRUND=grün, ZV=rot
-        (TypeBadge.Background, TypeBadgeText.Foreground) = property.Typ switch
+        // Type-specific colors: HAUS=black, GRUND=green, ZV=red
+        (TypeBadge.Background, TypeBadgeText.Foreground) = property.Type switch
         {
             PropertyType.House => (
                 new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 45, 55, 72)),
@@ -86,55 +86,55 @@ public sealed partial class PropertyCard : UserControl
                 (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChipSelectedForegroundBrush"])
         };
 
-        // Nur HAUS und GRUND anzeigen, andere Typen verstecken
-        TypeBadge.Visibility = property.Typ switch
+        // Only show HAUS and GRUND, hide other types
+        TypeBadge.Visibility = property.Type switch
         {
             PropertyType.House => Visibility.Visible,
             PropertyType.Land => Visibility.Visible,
             _ => Visibility.Collapsed
         };
 
-        // Grundstuecksflaeche
-        GrundstueckText.Text = property.GrundstuecksflaecheM2?.ToString("N0") ?? "—";
+        // Plot area
+        GrundstueckText.Text = property.PlotAreaM2?.ToString("N0") ?? "—";
 
-        // Wohnflaeche
-        if (property.WohnflaecheM2.HasValue)
+        // Living area
+        if (property.LivingAreaM2.HasValue)
         {
             WohnflaechePanel.Visibility = Visibility.Visible;
-            WohnflaecheText.Text = property.WohnflaecheM2.Value.ToString("N0");
+            WohnflaecheText.Text = property.LivingAreaM2.Value.ToString("N0");
         }
         else
         {
             WohnflaechePanel.Visibility = Visibility.Collapsed;
         }
 
-        // Zimmer
-        if (property.Zimmer.HasValue)
+        // Rooms
+        if (property.Rooms.HasValue)
         {
             RoomsPanel.Visibility = Visibility.Visible;
-            RoomsText.Text = property.Zimmer.Value.ToString();
+            RoomsText.Text = property.Rooms.Value.ToString();
         }
         else
         {
             RoomsPanel.Visibility = Visibility.Collapsed;
         }
 
-        // Anbieter (kompakt)
-        SellerBadgeText.Text = property.AnbieterTyp == SellerType.Privat ? "Privat" : property.AnbieterName;
+        // Seller (compact)
+        SellerBadgeText.Text = property.SellerType == SellerType.Privat ? "Privat" : property.SellerName;
 
-        // Bilder laden (FlipView fuer Swipe)
-        if (property.BildUrls?.Count > 0)
+        // Load images (FlipView for swipe)
+        if (property.ImageUrls?.Count > 0)
         {
-            var imageUrls = property.BildUrls.Where(url => !string.IsNullOrEmpty(url)).ToList();
+            var imageUrls = property.ImageUrls.Where(url => !string.IsNullOrEmpty(url)).ToList();
             ImageFlipView.ItemsSource = imageUrls;
 
-            // Counter und Pfeile anzeigen wenn mehrere Bilder
+            // Show counter and arrows when multiple images
             if (imageUrls.Count > 1)
             {
                 ImageCounterBadge.Visibility = Visibility.Visible;
                 ImageCounterText.Text = $"1/{imageUrls.Count}";
 
-                // Navigations-Pfeile anzeigen
+                // Show navigation arrows
                 PrevImageButton.Visibility = Visibility.Visible;
                 NextImageButton.Visibility = Visibility.Visible;
 

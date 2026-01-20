@@ -1,19 +1,20 @@
 namespace Heimatplatz.Features.Properties.Contracts.Models;
 
 /// <summary>
-/// DTO fuer Immobilien-Listenansicht
+/// DTO for property list view
 /// </summary>
 public record PropertyListItemDto(
     Guid Id,
-    string Titel,
-    string Adresse,
-    string Ort,
-    decimal Preis,
-    int? WohnflaecheM2,
-    int? GrundstuecksflaecheM2,
-    int? Zimmer,
-    PropertyType Typ,
-    SellerType AnbieterTyp,
-    string AnbieterName,
-    List<string> BildUrls
+    string Title,
+    string Address,
+    string City,
+    decimal Price,
+    int? LivingAreaM2,
+    int? PlotAreaM2,
+    int? Rooms,
+    PropertyType Type,
+    SellerType SellerType,
+    string SellerName,
+    List<string> ImageUrls,
+    DateTime CreatedAt
 );

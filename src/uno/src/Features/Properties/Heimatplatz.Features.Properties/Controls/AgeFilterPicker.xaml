@@ -1,0 +1,97 @@
+<UserControl x:Class="Heimatplatz.Features.Properties.Controls.AgeFilterPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Heimatplatz.Features.Properties.Controls">
+
+    <!--
+    AgeFilterPicker - Filter fuer das Alter von Eintraegen
+    Optionen: Alle, 1 Tag, 1 Woche, 1 Monat, 1 Jahr
+    -->
+
+    <Grid>
+        <Button x:Name="PickerButton"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                Background="{ThemeResource SurfaceBrush}"
+                BorderBrush="{ThemeResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource RadiusSm}"
+                Padding="12,8"
+                AutomationProperties.AutomationId="AgeFilterPicker_Button">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="SelectionText"
+                           Grid.Column="0"
+                           Text="Älter als..."
+                           FontSize="14"
+                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+
+                <FontIcon Grid.Column="1"
+                          Glyph="&#xE70D;"
+                          FontSize="12"
+                          Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                          VerticalAlignment="Center" />
+            </Grid>
+
+            <Button.Flyout>
+                <Flyout x:Name="PickerFlyout"
+                        Placement="Bottom">
+                    <Border Background="{ThemeResource SurfaceBrush}"
+                            CornerRadius="{StaticResource RadiusSm}"
+                            Padding="12"
+                            Margin="-12">
+                        <StackPanel MinWidth="180"
+                                    Spacing="4">
+
+                            <!-- Header -->
+                            <TextBlock Text="Zeitraum auswählen"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource OnSurfaceBrush}"
+                                       Margin="0,0,0,8" />
+
+                            <!-- RadioButtons fuer Auswahl -->
+                            <RadioButton x:Name="RadioAlle"
+                                         Content="Alle"
+                                         IsChecked="True"
+                                         Checked="RadioButton_Checked"
+                                         Tag="Alle"
+                                         FontSize="13"
+                                         Margin="0,2" />
+                            <RadioButton x:Name="RadioEinTag"
+                                         Content="1 Tag"
+                                         Checked="RadioButton_Checked"
+                                         Tag="EinTag"
+                                         FontSize="13"
+                                         Margin="0,2" />
+                            <RadioButton x:Name="RadioEineWoche"
+                                         Content="1 Woche"
+                                         Checked="RadioButton_Checked"
+                                         Tag="EineWoche"
+                                         FontSize="13"
+                                         Margin="0,2" />
+                            <RadioButton x:Name="RadioEinMonat"
+                                         Content="1 Monat"
+                                         Checked="RadioButton_Checked"
+                                         Tag="EinMonat"
+                                         FontSize="13"
+                                         Margin="0,2" />
+                            <RadioButton x:Name="RadioEinJahr"
+                                         Content="1 Jahr"
+                                         Checked="RadioButton_Checked"
+                                         Tag="EinJahr"
+                                         FontSize="13"
+                                         Margin="0,2" />
+                        </StackPanel>
+                    </Border>
+                </Flyout>
+            </Button.Flyout>
+        </Button>
+    </Grid>
+</UserControl>

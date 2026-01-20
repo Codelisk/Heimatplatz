@@ -38,7 +38,7 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
     protected override string LoadErrorTitle => "Fehler beim Laden";
 
     protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
-        => $"Möchten Sie \"{property.Titel}\" wirklich aus Ihren Favoriten entfernen?";
+        => $"Möchten Sie \"{property.Title}\" wirklich aus Ihren Favoriten entfernen?";
 
     protected override string GetRemoveSuccessMessage(string? apiMessage)
         => apiMessage ?? "Die Immobilie wurde aus den Favoriten entfernt.";
@@ -64,17 +64,18 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
 
         return response.Properties.Select(prop => new PropertyListItemDto(
             Id: prop.Id,
-            Titel: prop.Titel,
-            Adresse: prop.Adresse,
-            Ort: prop.Ort,
-            Preis: (decimal)prop.Preis,
-            WohnflaecheM2: prop.WohnflaecheM2,
-            GrundstuecksflaecheM2: prop.GrundstuecksflaecheM2,
-            Zimmer: prop.Zimmer,
-            Typ: (PropertyType)prop.Typ,
-            AnbieterTyp: (SellerType)prop.AnbieterTyp,
-            AnbieterName: prop.AnbieterName,
-            BildUrls: prop.BildUrls
+            Title: prop.Title,
+            Address: prop.Address,
+            City: prop.City,
+            Price: (decimal)prop.Price,
+            LivingAreaM2: prop.LivingAreaM2,
+            PlotAreaM2: prop.PlotAreaM2,
+            Rooms: prop.Rooms,
+            Type: (PropertyType)prop.Type,
+            SellerType: (SellerType)prop.SellerType,
+            SellerName: prop.SellerName,
+            ImageUrls: prop.ImageUrls,
+            CreatedAt: prop.CreatedAt.DateTime
         )).ToList();
     }
 

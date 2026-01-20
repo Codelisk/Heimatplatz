@@ -124,17 +124,18 @@ public partial class MyPropertiesViewModel : ObservableObject
                 {
                     Properties.Add(new PropertyListItemDto(
                         Id: prop.Id,
-                        Titel: prop.Titel,
-                        Adresse: prop.Adresse,
-                        Ort: prop.Ort,
-                        Preis: (decimal)prop.Preis,
-                        WohnflaecheM2: prop.WohnflaecheM2,
-                        GrundstuecksflaecheM2: prop.GrundstuecksflaecheM2,
-                        Zimmer: prop.Zimmer,
-                        Typ: (PropertyType)prop.Typ,
-                        AnbieterTyp: (SellerType)prop.AnbieterTyp,
-                        AnbieterName: prop.AnbieterName,
-                        BildUrls: prop.BildUrls
+                        Title: prop.Title,
+                        Address: prop.Address,
+                        City: prop.City,
+                        Price: (decimal)prop.Price,
+                        LivingAreaM2: prop.LivingAreaM2,
+                        PlotAreaM2: prop.PlotAreaM2,
+                        Rooms: prop.Rooms,
+                        Type: (PropertyType)prop.Type,
+                        SellerType: (SellerType)prop.SellerType,
+                        SellerName: prop.SellerName,
+                        ImageUrls: prop.ImageUrls,
+                        CreatedAt: prop.CreatedAt.DateTime
                     ));
                 }
                 _logger.LogInformation("[MyProperties] Final Properties.Count: {Count}", Properties.Count);
@@ -231,7 +232,7 @@ public partial class MyPropertiesViewModel : ObservableObject
         var dialog = new ContentDialog
         {
             Title = "Immobilie löschen?",
-            Content = $"Möchten Sie \"{property.Titel}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+            Content = $"Möchten Sie \"{property.Title}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
             PrimaryButtonText = "Löschen",
             SecondaryButtonText = "Abbrechen",
             DefaultButton = ContentDialogButton.Secondary,
