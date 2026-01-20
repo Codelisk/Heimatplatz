@@ -904,6 +904,83 @@
           }
         }
       },
+      "ContactInfoDto": {
+        "required": [
+          "Id",
+          "Type",
+          "Source",
+          "Name",
+          "Email",
+          "Phone",
+          "OriginalListingUrl",
+          "SourceName",
+          "DisplayOrder"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/ContactType"
+          },
+          "Source": {
+            "$ref": "#/components/schemas/ContactSource"
+          },
+          "Name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "OriginalListingUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DisplayOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ContactSource": {
+        "enum": [
+          "Manual",
+          "Import"
+        ]
+      },
+      "ContactType": {
+        "enum": [
+          "Seller",
+          "Agent",
+          "PropertyManager"
+        ]
+      },
       "CreatePropertyRequest": {
         "required": [
           "Title",
@@ -1431,6 +1508,12 @@
           }
         }
       },
+      "InquiryType": {
+        "enum": [
+          "None",
+          "ContactData"
+        ]
+      },
       "LoginRequest": {
         "required": [
           "Email",
@@ -1509,7 +1592,9 @@
           "Description",
           "Features",
           "ImageUrls",
-          "CreatedAt"
+          "CreatedAt",
+          "InquiryType",
+          "Contacts"
         ],
         "type": "object",
         "properties": {
@@ -1603,6 +1688,15 @@
           "CreatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "InquiryType": {
+            "$ref": "#/components/schemas/InquiryType"
+          },
+          "Contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactInfoDto"
+            }
           }
         }
       },
@@ -1620,7 +1714,8 @@
           "SellerType",
           "SellerName",
           "ImageUrls",
-          "CreatedAt"
+          "CreatedAt",
+          "InquiryType"
         ],
         "type": "object",
         "properties": {
@@ -1690,6 +1785,9 @@
           "CreatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "InquiryType": {
+            "$ref": "#/components/schemas/InquiryType"
           }
         }
       },

@@ -16,9 +16,9 @@ public record PropertyDetailDto(
     PropertyType Type,
     SellerType SellerType,
     string SellerName,
-    string? SellerPhone,
-    string? SellerEmail,
     List<string> ImageUrls,
     string? Description,
-    List<string> Features
+    List<string> Features,
+    InquiryType InquiryType,
+    List<ContactInfoDto> Contacts
 );

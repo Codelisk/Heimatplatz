@@ -1,6 +1,7 @@
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts;
+using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,22 @@ public class GetPropertyByIdHandler(AppDbContext dbContext) : IRequestHandler<Ge
                 p.Description,
                 p.Features,
                 p.ImageUrls,
-                p.CreatedAt
+                p.CreatedAt,
+                p.InquiryType,
+                p.Contacts
+                    .OrderBy(c => c.DisplayOrder)
+                    .Select(c => new ContactInfoDto(
+                        c.Id,
+                        c.Type,
+                        c.Source,
+                        c.Name,
+                        c.Email,
+                        c.Phone,
+                        c.OriginalListingUrl,
+                        c.SourceName,
+                        c.DisplayOrder
+                    ))
+                    .ToList()
             ))
             .FirstOrDefaultAsync(cancellationToken);
 

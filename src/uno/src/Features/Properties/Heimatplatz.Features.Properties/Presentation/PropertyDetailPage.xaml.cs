@@ -1,3 +1,5 @@
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -13,7 +15,9 @@ public sealed partial class PropertyDetailPage : Page
 
     public PropertyDetailPage()
     {
-        ViewModel = new PropertyDetailViewModel();
+        // Use ClipboardService directly - it's registered via [Service] attribute
+        var clipboardService = new Services.ClipboardService();
+        ViewModel = new PropertyDetailViewModel(clipboardService);
         this.InitializeComponent();
     }
 
@@ -48,11 +52,6 @@ public sealed partial class PropertyDetailPage : Page
         }
     }
 
-    private void OnContactClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ContactSeller();
-    }
-
     private void OnImageSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is FlipView flipView)
@@ -77,4 +76,29 @@ public sealed partial class PropertyDetailPage : Page
             }
         }
     }
+
+    private async void OnCopyEmailClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string email)
+        {
+            await ViewModel.CopyToClipboardAsync(email);
+        }
+    }
+
+    private async void OnCopyPhoneClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string phone)
+        {
+            await ViewModel.CopyToClipboardAsync(phone);
+        }
+    }
+
+    private async void OnCopyLinkClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string link)
+        {
+            await ViewModel.CopyToClipboardAsync(link);
+        }
+    }
+
 }

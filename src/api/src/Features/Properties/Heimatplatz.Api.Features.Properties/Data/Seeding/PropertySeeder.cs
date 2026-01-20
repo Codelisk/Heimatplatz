@@ -3,6 +3,7 @@ using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
+using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific.Enums;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
@@ -282,6 +283,9 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
         // TypeSpecificData fuer alle Properties setzen
         SetTypeSpecificData(properties);
 
+        // Kontaktdaten fuer alle Properties generieren
+        SetContactData(properties);
+
         dbContext.Set<Property>().AddRange(properties);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -354,6 +358,95 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                     );
                     property.SetTypedData(foreclosureData);
                     break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generiert Kontaktdaten fuer alle Properties
+    /// </summary>
+    private static void SetContactData(List<Property> properties)
+    {
+        var emailDomains = new[] { "gmail.com", "gmx.at", "outlook.com", "immobilien.at" };
+        var phonePrefix = new[] { "+43 650", "+43 664", "+43 676", "+43 699" };
+
+        foreach (var property in properties)
+        {
+            property.InquiryType = InquiryType.ContactData;
+
+            // Hauptkontakt basierend auf SellerType
+            var contactType = property.SellerType == SellerType.Makler
+                ? ContactType.Agent
+                : ContactType.Seller;
+
+            var nameParts = property.SellerName.Split(' ');
+            var emailName = nameParts.Length > 1
+                ? $"{nameParts[0].ToLower()}.{nameParts[^1].ToLower()}"
+                : property.SellerName.ToLower().Replace(" ", ".");
+
+            var mainContact = new PropertyContactInfo
+            {
+                Id = Guid.NewGuid(),
+                PropertyId = property.Id,
+                Type = contactType,
+                Source = ContactSource.Manual,
+                Name = property.SellerName,
+                Email = $"{emailName}@{emailDomains[Random.Shared.Next(emailDomains.Length)]}",
+                Phone = $"{phonePrefix[Random.Shared.Next(phonePrefix.Length)]} {Random.Shared.Next(1000000, 9999999)}",
+                DisplayOrder = 0,
+                CreatedAt = property.CreatedAt
+            };
+
+            property.Contacts.Add(mainContact);
+
+            // Bei Maklern: zusaetzlich Eigentuemer als zweiten Kontakt (50% Chance)
+            if (property.SellerType == SellerType.Makler && Random.Shared.Next(2) == 0)
+            {
+                var ownerNames = new[] { "Herr Mueller", "Frau Schmidt", "Familie Weber", "Herr Huber", "Frau Maier" };
+                var ownerName = ownerNames[Random.Shared.Next(ownerNames.Length)];
+
+                var ownerContact = new PropertyContactInfo
+                {
+                    Id = Guid.NewGuid(),
+                    PropertyId = property.Id,
+                    Type = ContactType.Seller,
+                    Source = ContactSource.Manual,
+                    Name = ownerName,
+                    Phone = $"{phonePrefix[Random.Shared.Next(phonePrefix.Length)]} {Random.Shared.Next(1000000, 9999999)}",
+                    DisplayOrder = 1,
+                    CreatedAt = property.CreatedAt
+                };
+
+                property.Contacts.Add(ownerContact);
+            }
+
+            // Bei einigen Properties: Import-Quelle mit Original-Link (30% Chance)
+            if (Random.Shared.Next(10) < 3)
+            {
+                var importSources = new[] {
+                    ("ImmoScout24", "https://www.immobilienscout24.at/expose/"),
+                    ("willhaben", "https://www.willhaben.at/iad/immobilien/d/"),
+                    ("ImmobilienNET", "https://www.immobilien.net/expose/")
+                };
+
+                var (sourceName, baseUrl) = importSources[Random.Shared.Next(importSources.Length)];
+                var sourceId = Random.Shared.Next(100000, 999999).ToString();
+
+                var importContact = new PropertyContactInfo
+                {
+                    Id = Guid.NewGuid(),
+                    PropertyId = property.Id,
+                    Type = ContactType.Agent,
+                    Source = ContactSource.Import,
+                    Name = $"Anbieter via {sourceName}",
+                    OriginalListingUrl = $"{baseUrl}{sourceId}",
+                    SourceName = sourceName,
+                    SourceId = sourceId,
+                    DisplayOrder = property.Contacts.Count,
+                    CreatedAt = property.CreatedAt
+                };
+
+                property.Contacts.Add(importContact);
             }
         }
     }

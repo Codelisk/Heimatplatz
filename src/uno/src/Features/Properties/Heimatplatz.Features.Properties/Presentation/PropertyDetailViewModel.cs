@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -8,6 +9,8 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// </summary>
 public partial class PropertyDetailViewModel : ObservableObject
 {
+    private readonly IClipboardService _clipboardService;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -31,6 +34,24 @@ public partial class PropertyDetailViewModel : ObservableObject
 
     [ObservableProperty]
     private string _featuresText = "Keine Angaben";
+
+    [ObservableProperty]
+    private string? _copyFeedback;
+
+    public PropertyDetailViewModel(IClipboardService clipboardService)
+    {
+        _clipboardService = clipboardService;
+    }
+
+    /// <summary>
+    /// Gibt an, ob Kontaktdaten verfuegbar sind
+    /// </summary>
+    public bool HasContacts => Property?.Contacts?.Count > 0;
+
+    /// <summary>
+    /// Gibt an, ob der Kontakt-Button angezeigt werden soll
+    /// </summary>
+    public bool ShowContactButton => Property?.InquiryType == InquiryType.ContactData && HasContacts;
 
     private void UpdateDisplayProperties()
     {
@@ -69,6 +90,9 @@ public partial class PropertyDetailViewModel : ObservableObject
         FeaturesText = Property.Features?.Count > 0
             ? string.Join("  ", Property.Features.Select(a => $"✓ {a}"))
             : "Keine Angaben";
+
+        OnPropertyChanged(nameof(HasContacts));
+        OnPropertyChanged(nameof(ShowContactButton));
     }
 
     public void LoadProperty(Guid propertyId)
@@ -88,15 +112,37 @@ public partial class PropertyDetailViewModel : ObservableObject
         }
     }
 
-    public void ContactSeller()
+    /// <summary>
+    /// Kopiert einen Text in die Zwischenablage
+    /// </summary>
+    public async Task CopyToClipboardAsync(string? text)
     {
-        // TODO: Open contact form or email
-        System.Diagnostics.Debug.WriteLine($"Contacting seller: {Property?.SellerName}");
+        if (string.IsNullOrWhiteSpace(text))
+            return;
+
+        var success = await _clipboardService.CopyToClipboardAsync(text);
+        if (success)
+        {
+            CopyFeedback = "Kopiert!";
+            await Task.Delay(1500);
+            CopyFeedback = null;
+        }
     }
+
+    /// <summary>
+    /// Gibt den Anzeigenamen fuer einen ContactType zurueck
+    /// </summary>
+    public static string GetContactTypeName(ContactType type) => type switch
+    {
+        ContactType.Seller => "Eigentümer",
+        ContactType.Agent => "Makler",
+        ContactType.PropertyManager => "Hausverwaltung",
+        _ => "Kontakt"
+    };
 
     private PropertyDetailDto GetMockProperty(Guid propertyId)
     {
-        // Mock data based on test data in HomeViewModel
+        // Mock data with new Contacts structure
         return new PropertyDetailDto(
             Id: propertyId,
             Title: "Einfamilienhaus in Linz-Urfahr",
@@ -110,8 +156,6 @@ public partial class PropertyDetailViewModel : ObservableObject
             Type: PropertyType.House,
             SellerType: SellerType.Makler,
             SellerName: "Mustermann Immobilien",
-            SellerPhone: "+43 732 123456",
-            SellerEmail: "info@mustermann-immo.at",
             ImageUrls:
             [
                 "https://picsum.photos/seed/haus1a/800/600",
@@ -122,7 +166,33 @@ public partial class PropertyDetailViewModel : ObservableObject
                          "Das Haus wurde 2018 erbaut und befindet sich in einem ausgezeichneten Zustand. " +
                          "Die hochwertige Ausstattung und die durchdachte Raumaufteilung machen dieses Objekt " +
                          "zu einem idealen Zuhause für Familien.",
-            Features: ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"]
+            Features: ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"],
+            InquiryType: InquiryType.ContactData,
+            Contacts:
+            [
+                new ContactInfoDto(
+                    Id: Guid.NewGuid(),
+                    Type: ContactType.Agent,
+                    Source: ContactSource.Manual,
+                    Name: "Mustermann Immobilien",
+                    Email: "info@mustermann-immo.at",
+                    Phone: "+43 732 123456",
+                    OriginalListingUrl: null,
+                    SourceName: null,
+                    DisplayOrder: 0
+                ),
+                new ContactInfoDto(
+                    Id: Guid.NewGuid(),
+                    Type: ContactType.Seller,
+                    Source: ContactSource.Manual,
+                    Name: "Herr Huber",
+                    Email: null,
+                    Phone: "+43 664 9876543",
+                    OriginalListingUrl: null,
+                    SourceName: null,
+                    DisplayOrder: 1
+                )
+            ]
         );
     }
 }

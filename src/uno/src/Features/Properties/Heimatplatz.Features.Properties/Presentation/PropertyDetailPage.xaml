@@ -2,6 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
+      xmlns:models="using:Heimatplatz.Features.Properties.Contracts.Models"
       xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:uc="using:UnoFramework.Controls"
       x:Name="RootPage"
@@ -56,7 +57,7 @@
 
                         <!-- Titel (Mobile) / Logo (Desktop) -->
                         <TextBlock Grid.Column="1"
-                                   Text="{x:Bind ViewModel.Property.Titel, Mode=OneWay}"
+                                   Text="{x:Bind ViewModel.Property.Title, Mode=OneWay}"
                                    FontSize="14"
                                    FontWeight="SemiBold"
                                    Foreground="{ThemeResource OnSurfaceBrush}"
@@ -126,7 +127,7 @@
                                                       VerticalAlignment="Center" />
                                         </Border>
                                         <FlipView x:Name="MobileImageFlipView"
-                                                  ItemsSource="{x:Bind ViewModel.Property.BildUrls, Mode=OneWay}">
+                                                  ItemsSource="{x:Bind ViewModel.Property.ImageUrls, Mode=OneWay}">
                                             <FlipView.ItemTemplate>
                                                 <DataTemplate>
                                                     <Image Source="{Binding}"
@@ -145,7 +146,7 @@
                                             <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="White">
                                                 <Run Text="{x:Bind ViewModel.CurrentImageIndex, Mode=OneWay}" />
                                                 <Run Text=" / " />
-                                                <Run Text="{x:Bind ViewModel.Property.BildUrls.Count, Mode=OneWay}" />
+                                                <Run Text="{x:Bind ViewModel.Property.ImageUrls.Count, Mode=OneWay}" />
                                             </TextBlock>
                                         </Border>
                                     </Grid>
@@ -195,7 +196,7 @@
                                                               FontSize="16"
                                                               Foreground="{ThemeResource AccentBrush}"
                                                               HorizontalAlignment="Center" />
-                                                    <TextBlock Text="{x:Bind ViewModel.Property.WohnflaecheM2, Mode=OneWay}"
+                                                    <TextBlock Text="{x:Bind ViewModel.Property.LivingAreaM2, Mode=OneWay}"
                                                                FontSize="14"
                                                                FontWeight="SemiBold"
                                                                Foreground="{ThemeResource OnSurfaceBrush}"
@@ -212,7 +213,7 @@
                                                               FontSize="16"
                                                               Foreground="{ThemeResource AccentBrush}"
                                                               HorizontalAlignment="Center" />
-                                                    <TextBlock Text="{x:Bind ViewModel.Property.Zimmer, Mode=OneWay}"
+                                                    <TextBlock Text="{x:Bind ViewModel.Property.Rooms, Mode=OneWay}"
                                                                FontSize="14"
                                                                FontWeight="SemiBold"
                                                                Foreground="{ThemeResource OnSurfaceBrush}"
@@ -229,7 +230,7 @@
                                                               FontSize="16"
                                                               Foreground="{ThemeResource AccentBrush}"
                                                               HorizontalAlignment="Center" />
-                                                    <TextBlock Text="{x:Bind ViewModel.Property.Baujahr, Mode=OneWay}"
+                                                    <TextBlock Text="{x:Bind ViewModel.Property.YearBuilt, Mode=OneWay}"
                                                                FontSize="14"
                                                                FontWeight="SemiBold"
                                                                Foreground="{ThemeResource OnSurfaceBrush}"
@@ -251,7 +252,7 @@
                                                        FontSize="15"
                                                        FontWeight="SemiBold"
                                                        Foreground="{ThemeResource OnSurfaceBrush}" />
-                                            <TextBlock Text="{x:Bind ViewModel.Property.Beschreibung, Mode=OneWay}"
+                                            <TextBlock Text="{x:Bind ViewModel.Property.Description, Mode=OneWay}"
                                                        FontSize="13"
                                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                                        TextWrapping="Wrap"
@@ -269,7 +270,7 @@
                                                        FontSize="15"
                                                        FontWeight="SemiBold"
                                                        Foreground="{ThemeResource OnSurfaceBrush}" />
-                                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Property.Ausstattung, Mode=OneWay}">
+                                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Property.Features, Mode=OneWay}">
                                                 <ItemsRepeater.Layout>
                                                     <UniformGridLayout Orientation="Horizontal"
                                                                        MinItemWidth="100"
@@ -313,9 +314,9 @@
                                                           Foreground="{ThemeResource AccentBrush}" />
                                                 <TextBlock FontSize="13"
                                                            Foreground="{ThemeResource OnSurfaceVariantBrush}">
-                                                    <Run Text="{x:Bind ViewModel.Property.Adresse, Mode=OneWay}" />
+                                                    <Run Text="{x:Bind ViewModel.Property.Address, Mode=OneWay}" />
                                                     <Run Text=", " />
-                                                    <Run Text="{x:Bind ViewModel.Property.Ort, Mode=OneWay}" />
+                                                    <Run Text="{x:Bind ViewModel.Property.City, Mode=OneWay}" />
                                                 </TextBlock>
                                             </StackPanel>
                                             <!-- Map Placeholder -->
@@ -341,7 +342,7 @@
                                 </StackPanel>
                             </ScrollViewer>
 
-                            <!-- Sticky CTA Button -->
+                            <!-- Sticky CTA Button mit Kontakt-Flyout -->
                             <Border Grid.Row="1"
                                     Background="{ThemeResource SurfaceBrush}"
                                     BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
@@ -356,8 +357,139 @@
                                         Height="44"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center"
-                                        CornerRadius="{StaticResource RadiusSm}"
-                                        Click="OnContactClick" />
+                                        CornerRadius="{StaticResource RadiusSm}">
+                                    <Button.Flyout>
+                                        <Flyout Placement="Top">
+                                            <Border Background="{ThemeResource SurfaceBrush}"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Padding="16"
+                                                    MinWidth="280"
+                                                    MaxWidth="320">
+                                                <StackPanel Spacing="16">
+                                                    <!-- Header -->
+                                                    <TextBlock Text="Kontaktdaten"
+                                                               FontSize="18"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+
+                                                    <!-- Kontakte Liste -->
+                                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.Property.Contacts, Mode=OneWay}">
+                                                        <ItemsRepeater.ItemTemplate>
+                                                            <DataTemplate x:DataType="models:ContactInfoDto">
+                                                                <StackPanel Spacing="8" Margin="0,0,0,12">
+                                                                    <!-- Name + Typ Badge -->
+                                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                        <TextBlock Text="{x:Bind Name}"
+                                                                                   FontSize="14"
+                                                                                   FontWeight="SemiBold"
+                                                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                                    </StackPanel>
+
+                                                                    <!-- Email -->
+                                                                    <Grid Visibility="{x:Bind Email, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <FontIcon Grid.Column="0"
+                                                                                  Glyph="&#xE715;"
+                                                                                  FontSize="14"
+                                                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                  Margin="0,0,8,0" />
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Text="{x:Bind Email}"
+                                                                                   FontSize="13"
+                                                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                   VerticalAlignment="Center"
+                                                                                   TextTrimming="CharacterEllipsis" />
+                                                                        <Button Grid.Column="2"
+                                                                                Tag="{x:Bind Email}"
+                                                                                Click="OnCopyEmailClick"
+                                                                                Background="Transparent"
+                                                                                Padding="8"
+                                                                                ToolTipService.ToolTip="Kopieren">
+                                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                                                        </Button>
+                                                                    </Grid>
+
+                                                                    <!-- Telefon -->
+                                                                    <Grid Visibility="{x:Bind Phone, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <FontIcon Grid.Column="0"
+                                                                                  Glyph="&#xE717;"
+                                                                                  FontSize="14"
+                                                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                  Margin="0,0,8,0" />
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Text="{x:Bind Phone}"
+                                                                                   FontSize="13"
+                                                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <Button Grid.Column="2"
+                                                                                Tag="{x:Bind Phone}"
+                                                                                Click="OnCopyPhoneClick"
+                                                                                Background="Transparent"
+                                                                                Padding="8"
+                                                                                ToolTipService.ToolTip="Kopieren">
+                                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                                                        </Button>
+                                                                    </Grid>
+
+                                                                    <!-- Original Link -->
+                                                                    <Grid Visibility="{x:Bind OriginalListingUrl, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <FontIcon Grid.Column="0"
+                                                                                  Glyph="&#xE71B;"
+                                                                                  FontSize="14"
+                                                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                  Margin="0,0,8,0" />
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Text="Original-Anzeige"
+                                                                                   FontSize="13"
+                                                                                   Foreground="{ThemeResource AccentBrush}"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <Button Grid.Column="2"
+                                                                                Tag="{x:Bind OriginalListingUrl}"
+                                                                                Click="OnCopyLinkClick"
+                                                                                Background="Transparent"
+                                                                                Padding="8"
+                                                                                ToolTipService.ToolTip="Link kopieren">
+                                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                                                        </Button>
+                                                                    </Grid>
+
+                                                                    <!-- Quelle -->
+                                                                    <TextBlock Text="{x:Bind SourceName}"
+                                                                               FontSize="11"
+                                                                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                               Opacity="0.7"
+                                                                               Visibility="{x:Bind SourceName, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </ItemsRepeater.ItemTemplate>
+                                                    </ItemsRepeater>
+
+                                                    <!-- Kopiert Feedback -->
+                                                    <TextBlock Text="{x:Bind ViewModel.CopyFeedback, Mode=OneWay}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource AccentBrush}"
+                                                               HorizontalAlignment="Center"
+                                                               Visibility="{x:Bind ViewModel.CopyFeedback, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
                             </Border>
                         </Grid>
 
@@ -387,7 +519,7 @@
                                                       VerticalAlignment="Center" />
                                         </Border>
                                         <FlipView x:Name="DesktopImageFlipView"
-                                                  ItemsSource="{x:Bind ViewModel.Property.BildUrls, Mode=OneWay}"
+                                                  ItemsSource="{x:Bind ViewModel.Property.ImageUrls, Mode=OneWay}"
                                                   SelectionChanged="OnImageSelectionChanged">
                                             <FlipView.ItemTemplate>
                                                 <DataTemplate>
@@ -401,7 +533,7 @@
 
                                 <!-- Thumbnails -->
                                 <ItemsRepeater x:Name="ThumbnailRepeater"
-                                               ItemsSource="{x:Bind ViewModel.Property.BildUrls, Mode=OneWay}">
+                                               ItemsSource="{x:Bind ViewModel.Property.ImageUrls, Mode=OneWay}">
                                     <ItemsRepeater.Layout>
                                         <StackLayout Orientation="Horizontal" Spacing="12" />
                                     </ItemsRepeater.Layout>
@@ -438,7 +570,7 @@
                                            Foreground="{ThemeResource OnSurfaceBrush}" />
 
                                 <!-- Titel -->
-                                <TextBlock Text="{x:Bind ViewModel.Property.Titel, Mode=OneWay}"
+                                <TextBlock Text="{x:Bind ViewModel.Property.Title, Mode=OneWay}"
                                            FontSize="24"
                                            FontWeight="SemiBold"
                                            Foreground="{ThemeResource OnSurfaceBrush}"
@@ -467,7 +599,7 @@
                                                FontSize="18"
                                                FontWeight="SemiBold"
                                                Foreground="{ThemeResource OnSurfaceBrush}" />
-                                    <TextBlock Text="{x:Bind ViewModel.Property.Beschreibung, Mode=OneWay}"
+                                    <TextBlock Text="{x:Bind ViewModel.Property.Description, Mode=OneWay}"
                                                FontSize="14"
                                                Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                                TextWrapping="Wrap"
@@ -480,7 +612,7 @@
                                                FontSize="18"
                                                FontWeight="SemiBold"
                                                Foreground="{ThemeResource OnSurfaceBrush}" />
-                                    <TextBlock Text="{x:Bind ViewModel.AusstattungText, Mode=OneWay}"
+                                    <TextBlock Text="{x:Bind ViewModel.FeaturesText, Mode=OneWay}"
                                                FontSize="14"
                                                Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                                TextWrapping="Wrap" />
@@ -496,13 +628,13 @@
                                                    FontSize="14"
                                                    FontWeight="SemiBold"
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
-                                        <TextBlock Text="{x:Bind ViewModel.Property.AnbieterName, Mode=OneWay}"
+                                        <TextBlock Text="{x:Bind ViewModel.Property.SellerName, Mode=OneWay}"
                                                    FontSize="14"
                                                    Foreground="{ThemeResource OnSurfaceVariantBrush}" />
                                     </StackPanel>
                                 </Border>
 
-                                <!-- CTA Button -->
+                                <!-- CTA Button mit Kontakt-Flyout -->
                                 <Button Content="Anbieter kontaktieren"
                                         Background="{ThemeResource AccentBrush}"
                                         Foreground="{ThemeResource ChipSelectedForegroundBrush}"
@@ -513,8 +645,139 @@
                                         HorizontalAlignment="Left"
                                         HorizontalContentAlignment="Center"
                                         CornerRadius="{StaticResource RadiusSm}"
-                                        Margin="0,24,0,0"
-                                        Click="OnContactClick" />
+                                        Margin="0,24,0,0">
+                                    <Button.Flyout>
+                                        <Flyout Placement="Top">
+                                            <Border Background="{ThemeResource SurfaceBrush}"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Padding="16"
+                                                    MinWidth="320"
+                                                    MaxWidth="400">
+                                                <StackPanel Spacing="16">
+                                                    <!-- Header -->
+                                                    <TextBlock Text="Kontaktdaten"
+                                                               FontSize="18"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+
+                                                    <!-- Kontakte Liste -->
+                                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.Property.Contacts, Mode=OneWay}">
+                                                        <ItemsRepeater.ItemTemplate>
+                                                            <DataTemplate x:DataType="models:ContactInfoDto">
+                                                                <StackPanel Spacing="8" Margin="0,0,0,12">
+                                                                    <!-- Name + Typ Badge -->
+                                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                        <TextBlock Text="{x:Bind Name}"
+                                                                                   FontSize="14"
+                                                                                   FontWeight="SemiBold"
+                                                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                                    </StackPanel>
+
+                                                                    <!-- Email -->
+                                                                    <Grid Visibility="{x:Bind Email, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <FontIcon Grid.Column="0"
+                                                                                  Glyph="&#xE715;"
+                                                                                  FontSize="14"
+                                                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                  Margin="0,0,8,0" />
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Text="{x:Bind Email}"
+                                                                                   FontSize="13"
+                                                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                   VerticalAlignment="Center"
+                                                                                   TextTrimming="CharacterEllipsis" />
+                                                                        <Button Grid.Column="2"
+                                                                                Tag="{x:Bind Email}"
+                                                                                Click="OnCopyEmailClick"
+                                                                                Background="Transparent"
+                                                                                Padding="8"
+                                                                                ToolTipService.ToolTip="Kopieren">
+                                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                                                        </Button>
+                                                                    </Grid>
+
+                                                                    <!-- Telefon -->
+                                                                    <Grid Visibility="{x:Bind Phone, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <FontIcon Grid.Column="0"
+                                                                                  Glyph="&#xE717;"
+                                                                                  FontSize="14"
+                                                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                  Margin="0,0,8,0" />
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Text="{x:Bind Phone}"
+                                                                                   FontSize="13"
+                                                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <Button Grid.Column="2"
+                                                                                Tag="{x:Bind Phone}"
+                                                                                Click="OnCopyPhoneClick"
+                                                                                Background="Transparent"
+                                                                                Padding="8"
+                                                                                ToolTipService.ToolTip="Kopieren">
+                                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                                                        </Button>
+                                                                    </Grid>
+
+                                                                    <!-- Original Link -->
+                                                                    <Grid Visibility="{x:Bind OriginalListingUrl, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <FontIcon Grid.Column="0"
+                                                                                  Glyph="&#xE71B;"
+                                                                                  FontSize="14"
+                                                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                                  Margin="0,0,8,0" />
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   Text="Original-Anzeige"
+                                                                                   FontSize="13"
+                                                                                   Foreground="{ThemeResource AccentBrush}"
+                                                                                   VerticalAlignment="Center" />
+                                                                        <Button Grid.Column="2"
+                                                                                Tag="{x:Bind OriginalListingUrl}"
+                                                                                Click="OnCopyLinkClick"
+                                                                                Background="Transparent"
+                                                                                Padding="8"
+                                                                                ToolTipService.ToolTip="Link kopieren">
+                                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                                                        </Button>
+                                                                    </Grid>
+
+                                                                    <!-- Quelle -->
+                                                                    <TextBlock Text="{x:Bind SourceName}"
+                                                                               FontSize="11"
+                                                                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                                               Opacity="0.7"
+                                                                               Visibility="{x:Bind SourceName, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </ItemsRepeater.ItemTemplate>
+                                                    </ItemsRepeater>
+
+                                                    <!-- Kopiert Feedback -->
+                                                    <TextBlock Text="{x:Bind ViewModel.CopyFeedback, Mode=OneWay}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource AccentBrush}"
+                                                               HorizontalAlignment="Center"
+                                                               Visibility="{x:Bind ViewModel.CopyFeedback, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </Grid>

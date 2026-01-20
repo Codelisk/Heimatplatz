@@ -16,5 +16,6 @@ public record PropertyListItemDto(
     SellerType SellerType,
     string SellerName,
     List<string> ImageUrls,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    InquiryType InquiryType
 );

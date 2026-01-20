@@ -1,3 +1,5 @@
+using Heimatplatz.Api.Features.Properties.Contracts.Enums;
+
 namespace Heimatplatz.Api.Features.Properties.Contracts;
 
 /// <summary>
@@ -20,7 +22,9 @@ public record PropertyDto(
     string? Description,
     List<string> Features,
     List<string> ImageUrls,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    InquiryType InquiryType,
+    List<ContactInfoDto> Contacts
 );
 
 /// <summary>
@@ -39,5 +43,6 @@ public record PropertyListItemDto(
     SellerType SellerType,
     string SellerName,
     List<string> ImageUrls,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    InquiryType InquiryType
 );

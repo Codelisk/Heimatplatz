@@ -2,6 +2,7 @@ using System.Text.Json;
 using Heimatplatz.Api.Core.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
+using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 
 namespace Heimatplatz.Api.Features.Properties.Data.Entities;
 
@@ -63,6 +64,12 @@ public class Property : BaseEntity
 
     /// <summary>Navigation property to the user (seller)</summary>
     public User User { get; set; } = null!;
+
+    /// <summary>Wie funktioniert die Anfrage zu dieser Immobilie</summary>
+    public InquiryType InquiryType { get; set; } = InquiryType.ContactData;
+
+    /// <summary>Kontaktinformationen zu dieser Immobilie</summary>
+    public List<PropertyContactInfo> Contacts { get; set; } = [];
 
     /// <summary>
     /// Gets the type-specific data deserialized to the specified type

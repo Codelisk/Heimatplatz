@@ -75,7 +75,8 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
             SellerType: (SellerType)prop.SellerType,
             SellerName: prop.SellerName,
             ImageUrls: prop.ImageUrls,
-            CreatedAt: prop.CreatedAt.DateTime
+            CreatedAt: prop.CreatedAt.DateTime,
+            InquiryType: (InquiryType)prop.InquiryType
         )).ToList();
     }
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
@@ -18,6 +19,7 @@ public partial class HomeViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
+    private readonly IFilterPreferencesService _filterPreferencesService;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -100,20 +102,78 @@ public partial class HomeViewModel : ObservableObject
 
     public Visibility IsEmpty => Properties.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-    public HomeViewModel(IAuthService authService, INavigator navigator)
+    public HomeViewModel(
+        IAuthService authService,
+        INavigator navigator,
+        IFilterPreferencesService filterPreferencesService)
     {
         _authService = authService;
         _navigator = navigator;
+        _filterPreferencesService = filterPreferencesService;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
         UpdateAuthState();
         LoadTestData();
+
+        // Load preferences if already authenticated
+        if (_authService.IsAuthenticated)
+        {
+            _ = LoadFilterPreferencesAsync();
+        }
     }
 
     private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
     {
         UpdateAuthState();
+
+        if (isAuthenticated)
+        {
+            _ = LoadFilterPreferencesAsync();
+        }
     }
+
+    private async Task LoadFilterPreferencesAsync()
+    {
+        try
+        {
+            var preferences = await _filterPreferencesService.GetPreferencesAsync();
+            if (preferences != null)
+            {
+                ApplyFilterPreferences(preferences);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[HomePage] Failed to load filter preferences: {ex.Message}");
+        }
+    }
+
+    private void ApplyFilterPreferences(FilterPreferencesDto preferences)
+    {
+        // Use SetProperty to update backing fields properly
+        SetProperty(ref _selectedOrte, preferences.SelectedOrte.ToList(), nameof(SelectedOrte));
+        SetProperty(ref _selectedAgeFilter, preferences.SelectedAgeFilter, nameof(SelectedAgeFilter));
+
+        // For ObservableProperty fields, set through generated properties
+        // but suppress filter application by using a flag
+        _isApplyingPreferences = true;
+        try
+        {
+            IsAllSelected = preferences.IsAllSelected;
+            IsHausSelected = preferences.IsHausSelected;
+            IsGrundstueckSelected = preferences.IsGrundstueckSelected;
+            IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
+        }
+        finally
+        {
+            _isApplyingPreferences = false;
+        }
+
+        // Apply filters once
+        ApplyFilters();
+    }
+
+    private bool _isApplyingPreferences;
 
     private void UpdateAuthState()
     {
@@ -195,6 +255,8 @@ public partial class HomeViewModel : ObservableObject
 
     partial void OnIsAllSelectedChanged(bool value)
     {
+        if (_isApplyingPreferences) return;
+
         if (value)
         {
             IsHausSelected = false;
@@ -206,6 +268,8 @@ public partial class HomeViewModel : ObservableObject
 
     partial void OnIsHausSelectedChanged(bool value)
     {
+        if (_isApplyingPreferences) return;
+
         if (value)
         {
             IsAllSelected = false;
@@ -215,6 +279,8 @@ public partial class HomeViewModel : ObservableObject
 
     partial void OnIsGrundstueckSelectedChanged(bool value)
     {
+        if (_isApplyingPreferences) return;
+
         if (value)
         {
             IsAllSelected = false;
@@ -224,6 +290,8 @@ public partial class HomeViewModel : ObservableObject
 
     partial void OnIsZwangsversteigerungSelectedChanged(bool value)
     {
+        if (_isApplyingPreferences) return;
+
         if (value)
         {
             IsAllSelected = false;
@@ -291,32 +359,32 @@ public partial class HomeViewModel : ObservableObject
             // Created today
             new(Guid.NewGuid(), "Einfamilienhaus in Linz-Urfahr", "Hauptstrasse 15", "Linz", 349000, 145, 520, 5, PropertyType.House, SellerType.Makler, "Mustermann Immobilien",
                 ["https://picsum.photos/seed/haus1a/800/600", "https://picsum.photos/seed/haus1b/800/600", "https://picsum.photos/seed/haus1c/800/600"],
-                now.AddHours(-2)),
+                now.AddHours(-2), InquiryType.ContactData),
 
             // Created yesterday
             new(Guid.NewGuid(), "Modernes Reihenhaus in Wels", "Ringstrasse 42", "Wels", 289000, 120, 180, 4, PropertyType.House, SellerType.Privat, "Familie Huber",
                 ["https://picsum.photos/seed/haus2a/800/600", "https://picsum.photos/seed/haus2b/800/600"],
-                now.AddHours(-20)),
+                now.AddHours(-20), InquiryType.ContactData),
 
             // Created 5 days ago
             new(Guid.NewGuid(), "Familienhaus in Steyr", "Bahnhofstrasse 67", "Steyr", 315000, 135, 450, 5, PropertyType.House, SellerType.Makler, "Immobilien Steyr",
                 ["https://picsum.photos/seed/haus3a/800/600", "https://picsum.photos/seed/haus3b/800/600", "https://picsum.photos/seed/haus3c/800/600", "https://picsum.photos/seed/haus3d/800/600"],
-                now.AddDays(-5)),
+                now.AddDays(-5), InquiryType.ContactData),
 
             // Created 2 weeks ago
             new(Guid.NewGuid(), "Baugrundstück in Wels", "Neubaugebiet Sued", "Wels", 189000, null, 850, null, PropertyType.Land, SellerType.Privat, "Familie Mueller",
                 ["https://picsum.photos/seed/grund1a/800/600", "https://picsum.photos/seed/grund1b/800/600"],
-                now.AddDays(-14)),
+                now.AddDays(-14), InquiryType.ContactData),
 
             // Created 2 months ago
             new(Guid.NewGuid(), "Sonniges Baugrundstück Linz-Land", "Am Sonnenhang 12", "Leonding", 245000, null, 720, null, PropertyType.Land, SellerType.Makler, "Grund & Boden OOe",
                 ["https://picsum.photos/seed/grund2a/800/600", "https://picsum.photos/seed/grund2b/800/600", "https://picsum.photos/seed/grund2c/800/600"],
-                now.AddMonths(-2)),
+                now.AddMonths(-2), InquiryType.ContactData),
 
             // Created 6 months ago
             new(Guid.NewGuid(), "Zwangsversteigerung: Haus in Traun", "Industriestrasse 45", "Traun", 185000, 110, 380, 4, PropertyType.Foreclosure, SellerType.Makler, "Bezirksgericht Linz",
                 ["https://picsum.photos/seed/zwang1a/800/600", "https://picsum.photos/seed/zwang1b/800/600"],
-                now.AddMonths(-6)),
+                now.AddMonths(-6), InquiryType.ContactData),
         };
 
         ApplyFilters();

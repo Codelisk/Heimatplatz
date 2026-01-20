@@ -135,7 +135,8 @@ public partial class MyPropertiesViewModel : ObservableObject
                         SellerType: (SellerType)prop.SellerType,
                         SellerName: prop.SellerName,
                         ImageUrls: prop.ImageUrls,
-                        CreatedAt: prop.CreatedAt.DateTime
+                        CreatedAt: prop.CreatedAt.DateTime,
+                        InquiryType: (InquiryType)prop.InquiryType
                     ));
                 }
                 _logger.LogInformation("[MyProperties] Final Properties.Count: {Count}", Properties.Count);

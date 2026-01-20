@@ -54,7 +54,8 @@ public class GetUserBlockedHandler(
                 b.Property.SellerType,
                 b.Property.SellerName,
                 b.Property.ImageUrls,
-                b.Property.CreatedAt
+                b.Property.CreatedAt,
+                b.Property.InquiryType
             ))
             .ToListAsync(cancellationToken);
 

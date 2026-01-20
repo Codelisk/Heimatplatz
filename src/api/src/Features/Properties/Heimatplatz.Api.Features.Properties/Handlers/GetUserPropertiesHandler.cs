@@ -53,7 +53,8 @@ public class GetUserPropertiesHandler(
                 p.SellerType,
                 p.SellerName,
                 p.ImageUrls,
-                p.CreatedAt
+                p.CreatedAt,
+                p.InquiryType
             ))
             .ToListAsync(cancellationToken);
 

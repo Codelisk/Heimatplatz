@@ -124,21 +124,21 @@ public partial class EditPropertyViewModel : ObservableObject
                 var prop = result.Result.Property;
 
                 // Fill common fields
-                Titel = prop.Titel;
-                Adresse = prop.Adresse;
-                Ort = prop.Ort;
-                Plz = prop.Plz;
-                Preis = prop.Preis.ToString();
-                Beschreibung = prop.Beschreibung ?? string.Empty;
+                Titel = prop.Title;
+                Adresse = prop.Address;
+                Ort = prop.City;
+                Plz = prop.PostalCode;
+                Preis = prop.Price.ToString();
+                Beschreibung = prop.Description ?? string.Empty;
 
                 // Optional fields
-                WohnflaecheM2 = prop.WohnflaecheM2?.ToString() ?? string.Empty;
-                GrundstuecksflaecheM2 = prop.GrundstuecksflaecheM2?.ToString() ?? string.Empty;
-                Zimmer = prop.Zimmer?.ToString() ?? string.Empty;
-                Baujahr = prop.Baujahr?.ToString() ?? string.Empty;
+                WohnflaecheM2 = prop.LivingAreaM2?.ToString() ?? string.Empty;
+                GrundstuecksflaecheM2 = prop.PlotAreaM2?.ToString() ?? string.Empty;
+                Zimmer = prop.Rooms?.ToString() ?? string.Empty;
+                Baujahr = prop.YearBuilt?.ToString() ?? string.Empty;
 
                 // Set property type
-                var typeItem = PropertyTypes.FirstOrDefault(t => (int)t.Value == (int)prop.Typ);
+                var typeItem = PropertyTypes.FirstOrDefault(t => (int)t.Value == (int)prop.Type);
                 if (typeItem != null)
                 {
                     SelectedPropertyTypeItem = typeItem;

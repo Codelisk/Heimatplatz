@@ -188,6 +188,13 @@
                                                 <FontIcon Glyph="&#xEA8F;" FontSize="14" />
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Filtereinstellungen"
+                                                        uen:Navigation.Request="FilterPreferences"
+                                                        AutomationProperties.AutomationId="HomePage_FilterPreferencesMenuItem">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xE71C;" FontSize="14" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
                                         <MenuFlyoutItem Text="Abmelden"
                                                         Command="{Binding LogoutCommand}"
                                                         AutomationProperties.AutomationId="HomePage_LogoutMenuItem">
