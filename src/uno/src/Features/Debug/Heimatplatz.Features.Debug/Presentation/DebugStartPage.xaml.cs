@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace Heimatplatz.Features.Debug.Presentation;
@@ -8,10 +9,17 @@ namespace Heimatplatz.Features.Debug.Presentation;
 /// </summary>
 public sealed partial class DebugStartPage : Page
 {
-    public DebugStartViewModel ViewModel => (DebugStartViewModel)DataContext;
+    public DebugStartViewModel? ViewModel { get; private set; }
 
     public DebugStartPage()
     {
+        this.DataContextChanged += OnDataContextChanged;
         this.InitializeComponent();
+    }
+
+    private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+    {
+        ViewModel = args.NewValue as DebugStartViewModel;
+        Bindings.Update();
     }
 }
