@@ -252,24 +252,48 @@
                 <ScrollViewer Grid.Row="2"
                               Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
                               AutomationProperties.AutomationId="HomePage_ScrollViewer">
-                    <ItemsRepeater ItemsSource="{Binding Properties}"
-                                   AutomationProperties.AutomationId="HomePage_PropertyList">
-                        <ItemsRepeater.Layout>
-                            <UniformGridLayout Orientation="Horizontal"
-                                               MinItemWidth="280"
-                                               MinItemHeight="290"
-                                               MinRowSpacing="16"
-                                               MinColumnSpacing="16"
-                                               ItemsStretch="Fill" />
-                        </ItemsRepeater.Layout>
-                        <ItemsRepeater.ItemTemplate>
-                            <DataTemplate>
-                                <controls:PropertyCard Property="{Binding}"
-                                                       CardClicked="OnPropertyCardClicked"
-                                                       AutomationProperties.AutomationId="HomePage_PropertyCard" />
-                            </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                    </ItemsRepeater>
+                    <StackPanel>
+                        <ItemsRepeater ItemsSource="{Binding Properties}"
+                                       AutomationProperties.AutomationId="HomePage_PropertyList">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout Orientation="Horizontal"
+                                                   MinItemWidth="280"
+                                                   MinItemHeight="290"
+                                                   MinRowSpacing="16"
+                                                   MinColumnSpacing="16"
+                                                   ItemsStretch="Fill" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <controls:PropertyCard Property="{Binding}"
+                                                           CardClicked="OnPropertyCardClicked"
+                                                           AutomationProperties.AutomationId="HomePage_PropertyCard" />
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
+                        <!-- Footer -->
+                        <Border Margin="0,32,0,16"
+                                Padding="0,16,0,0"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                BorderThickness="0,1,0,0"
+                                AutomationProperties.AutomationId="HomePage_Footer">
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        Spacing="24">
+                                <HyperlinkButton Content="Datenschutz"
+                                                 uen:Navigation.Request="PrivacyPolicy"
+                                                 Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                 FontSize="12"
+                                                 AutomationProperties.AutomationId="HomePage_PrivacyPolicyLink" />
+                                <TextBlock Text="Heimatplatz"
+                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                           FontSize="12"
+                                           Opacity="0.6"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </ScrollViewer>
 
                 <!-- Empty State: Schlicht -->

@@ -300,6 +300,26 @@
         }
       }
     },
+    "/api/legal/privacy-policy": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPrivacyPolicy",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPrivacyPolicyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/blocked": {
       "post": {
         "tags": [
@@ -1398,6 +1418,24 @@
           }
         }
       },
+      "GetPrivacyPolicyResponse": {
+        "required": [
+          "PrivacyPolicy"
+        ],
+        "type": "object",
+        "properties": {
+          "PrivacyPolicy": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PrivacyPolicyDto"
+              }
+            ]
+          }
+        }
+      },
       "GetPropertiesResponse": {
         "required": [
           "Immobilien",
@@ -1514,6 +1552,34 @@
           "ContactData"
         ]
       },
+      "LegalSectionDto": {
+        "required": [
+          "SortOrder",
+          "Title",
+          "Content"
+        ],
+        "type": "object",
+        "properties": {
+          "SortOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Content": {
+            "type": "string"
+          },
+          "IsVisible": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
       "LoginRequest": {
         "required": [
           "Email",
@@ -1557,6 +1623,38 @@
             "type": "string"
           },
           "ExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PrivacyPolicyDto": {
+        "required": [
+          "ResponsibleParty",
+          "Sections",
+          "Version",
+          "EffectiveDate",
+          "LastUpdated"
+        ],
+        "type": "object",
+        "properties": {
+          "ResponsibleParty": {
+            "$ref": "#/components/schemas/ResponsiblePartyDto"
+          },
+          "Sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegalSectionDto"
+            }
+          },
+          "Version": {
+            "type": "string"
+          },
+          "EffectiveDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastUpdated": {
             "type": "string",
             "format": "date-time"
           }
@@ -1973,6 +2071,49 @@
           },
           "WasRemoved": {
             "type": "boolean"
+          }
+        }
+      },
+      "ResponsiblePartyDto": {
+        "required": [
+          "CompanyName",
+          "Street",
+          "PostalCode",
+          "City",
+          "Country",
+          "Email"
+        ],
+        "type": "object",
+        "properties": {
+          "CompanyName": {
+            "type": "string"
+          },
+          "Street": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "Country": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DataProtectionOfficer": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -1,3 +1,4 @@
+using Heimatplatz.App.Presentation;
 using Heimatplatz.Core.Startup;
 using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Notifications.Presentation;
@@ -104,7 +105,8 @@ public partial class App : Application
             new ViewMap<BlockedPage, BlockedViewModel>(),
             new ViewMap<PropertyDetailPage, PropertyDetailViewModel>(),
             new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>(),
-            new ViewMap<FilterPreferencesPage, FilterPreferencesViewModel>()
+            new ViewMap<FilterPreferencesPage, FilterPreferencesViewModel>(),
+            new ViewMap<PrivacyPolicyPage, PrivacyPolicyViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
 #endif
@@ -130,7 +132,8 @@ public partial class App : Application
                     new ("Blocked", View: views.FindByViewModel<BlockedViewModel>()),
                     new ("PropertyDetail", View: views.FindByViewModel<PropertyDetailViewModel>()),
                     new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>()),
-                    new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>())
+                    new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
+                    new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>())
                 ]
             )
         );
