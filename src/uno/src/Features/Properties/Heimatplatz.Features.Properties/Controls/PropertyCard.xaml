@@ -159,7 +159,7 @@
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right"
                         Margin="12"
-                        Opacity="0.85"
+                        Opacity="0.7"
                         AutomationProperties.AutomationId="PropertyCard_MoreOptions">
                     <Button.Flyout>
                         <MenuFlyout Placement="BottomEdgeAlignedRight">
@@ -178,7 +178,7 @@
                         </MenuFlyout>
                     </Button.Flyout>
                     <FontIcon Glyph="&#xE712;"
-                              FontSize="16"
+                              FontSize="12"
                               Foreground="White" />
                 </Button>
             </Grid>

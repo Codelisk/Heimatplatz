@@ -95,11 +95,12 @@ public sealed partial class PropertyCard : UserControl
                 (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChipSelectedForegroundBrush"])
         };
 
-        // Only show HAUS and GRUND, hide other types
+        // Show HAUS, GRUND, and ZV badges
         TypeBadge.Visibility = property.Type switch
         {
             PropertyType.House => Visibility.Visible,
             PropertyType.Land => Visibility.Visible,
+            PropertyType.Foreclosure => Visibility.Visible,
             _ => Visibility.Collapsed
         };
 
