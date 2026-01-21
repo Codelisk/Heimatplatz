@@ -9,6 +9,7 @@ namespace Heimatplatz.App.Controls;
 /// ViewModel fuer den AppHeader
 /// Verwaltet den Authentifizierungsstatus und Logout-Funktionalitaet
 /// </summary>
+[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class AppHeaderViewModel : ObservableObject
 {
     private readonly IAuthService _authService;

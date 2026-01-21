@@ -1,6 +1,3 @@
-using Heimatplatz.Features.Auth.Contracts.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Heimatplatz.App.Controls;
 
 /// <summary>
@@ -9,7 +6,7 @@ namespace Heimatplatz.App.Controls;
 /// </summary>
 public sealed partial class AppHeader : UserControl
 {
-    public AppHeaderViewModel ViewModel { get; }
+    public AppHeaderViewModel? ViewModel => DataContext as AppHeaderViewModel;
 
     /// <summary>
     /// Optionaler Content fuer den mittleren Bereich (z.B. Filter)
@@ -29,24 +26,6 @@ public sealed partial class AppHeader : UserControl
 
     public AppHeader()
     {
-        // ViewModel via DI holen - App.Current als Heimatplatz.App.App casten
-        var app = (Heimatplatz.App.App)Application.Current;
-        var authService = app.Host!.Services.GetRequiredService<IAuthService>();
-        ViewModel = new AppHeaderViewModel(authService);
-
         this.InitializeComponent();
-
-        // Logout Command binden (x:Bind funktioniert nicht in Resources)
-        if (Resources.TryGetValue("ProfileMenuFlyout", out var flyoutResource) && flyoutResource is MenuFlyout menuFlyout)
-        {
-            foreach (var item in menuFlyout.Items)
-            {
-                if (item is MenuFlyoutItem menuItem && menuItem.Name == "LogoutMenuItem")
-                {
-                    menuItem.Command = ViewModel.LogoutCommand;
-                    break;
-                }
-            }
-        }
     }
 }

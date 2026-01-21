@@ -59,6 +59,7 @@
             </MenuFlyoutItem>
             <MenuFlyoutItem x:Name="LogoutMenuItem"
                             Text="Abmelden"
+                            Command="{Binding LogoutCommand}"
                             AutomationProperties.AutomationId="AppHeader_LogoutMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xF3B1;" FontSize="14" />
