@@ -1,6 +1,7 @@
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Microsoft.UI.Xaml.Controls;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -8,7 +9,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// HomePage - Hauptseite mit Immobilien-Liste
 /// ViewModel wird via Uno.Extensions.Navigation automatisch injiziert
 /// </summary>
-public sealed partial class HomePage : Page
+public sealed partial class HomePage : BasePage
 {
     public HomeViewModel ViewModel => (HomeViewModel)DataContext;
 
