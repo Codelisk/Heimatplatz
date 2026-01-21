@@ -47,3 +47,8 @@ firebase-service-account.json
 apns-auth-key.p8
 google-services.json
 GoogleService-Info.plist
+
+# App start scripts and logs
+start-app*.ps1
+app-log.txt
+nul
