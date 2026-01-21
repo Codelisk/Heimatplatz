@@ -20,10 +20,6 @@
     <Project Path="src/uno/src/Core/Heimatplatz.Core.Startup/Heimatplatz.Core.Startup.csproj" />
     <Project Path="src/uno/src/Core/Heimatplatz.Core.Styles/Heimatplatz.Core.Styles.csproj" />
   </Folder>
-  <Folder Name="/src/aspire/src/">
-    <Project Path="src/aspire/src/Heimatplatz.AppHost/Heimatplatz.AppHost.csproj" />
-    <Project Path="src/aspire/src/Heimatplatz.ServiceDefaults/Heimatplatz.ServiceDefaults.csproj" />
-  </Folder>
   <Folder Name="/src/api/src/Shared/">
     <Project Path="src/api/src/Shared/Heimatplatz.Api.Shared/Heimatplatz.Api.Shared.csproj" />
   </Folder>
