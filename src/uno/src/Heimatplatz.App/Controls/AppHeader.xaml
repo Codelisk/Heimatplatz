@@ -1,0 +1,153 @@
+<UserControl x:Class="Heimatplatz.App.Controls.AppHeader"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Heimatplatz.App.Controls"
+             xmlns:utu="using:Uno.Toolkit.UI"
+             xmlns:uen="using:Uno.Extensions.Navigation.UI">
+
+    <UserControl.Resources>
+        <!-- Profile MenuFlyout als Resource definiert -->
+        <MenuFlyout x:Key="ProfileMenuFlyout" Placement="BottomEdgeAlignedRight">
+            <MenuFlyoutItem Text="Mein Profil"
+                            AutomationProperties.AutomationId="AppHeader_ProfileMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE77B;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Meine Favoriten"
+                            uen:Navigation.Request="Favorites"
+                            AutomationProperties.AutomationId="AppHeader_FavoritesMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE734;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Blockierte Immobilien"
+                            uen:Navigation.Request="Blocked"
+                            AutomationProperties.AutomationId="AppHeader_BlockedMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE8F8;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Meine Immobilien"
+                            uen:Navigation.Request="MyProperties"
+                            AutomationProperties.AutomationId="AppHeader_MyPropertiesMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE80F;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Immobilie hinzufuegen"
+                            uen:Navigation.Request="AddProperty"
+                            AutomationProperties.AutomationId="AppHeader_AddPropertyMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE710;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Benachrichtigungen"
+                            uen:Navigation.Request="NotificationSettings"
+                            AutomationProperties.AutomationId="AppHeader_NotificationSettingsMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xEA8F;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem Text="Filtereinstellungen"
+                            uen:Navigation.Request="FilterPreferences"
+                            AutomationProperties.AutomationId="AppHeader_FilterPreferencesMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE71C;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem x:Name="LogoutMenuItem"
+                            Text="Abmelden"
+                            AutomationProperties.AutomationId="AppHeader_LogoutMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xF3B1;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+        </MenuFlyout>
+    </UserControl.Resources>
+
+    <!-- Gemeinsamer App-Header fuer alle Seiten -->
+    <Border Background="{ThemeResource SurfaceBrush}"
+            BorderBrush="{ThemeResource BorderBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="{utu:Responsive Narrowest='12,10', Normal='20,12'}"
+            AutomationProperties.AutomationId="AppHeader_Root">
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Logo: Elegant -->
+            <Button Grid.Column="0"
+                    Style="{StaticResource AppHeaderNavButtonStyle}"
+                    Padding="0"
+                    MinHeight="0"
+                    uen:Navigation.Request="-/Home"
+                    AutomationProperties.AutomationId="AppHeader_LogoButton">
+                <TextBlock Text="HEIMATPLATZ"
+                           Style="{StaticResource AppHeaderLogoStyle}"
+                           FontSize="{utu:Responsive Narrowest=12, Normal=15}"
+                           CharacterSpacing="150"
+                           AutomationProperties.AutomationId="AppHeader_Logo" />
+            </Button>
+
+            <!-- Mittlerer Bereich: Content Property fuer Page-spezifische Inhalte -->
+            <ContentPresenter Grid.Column="1"
+                              Content="{x:Bind HeaderContent, Mode=OneWay}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Margin="8,0" />
+
+            <!-- Rechte Seite: Auth Bereich -->
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="12"
+                        VerticalAlignment="Center">
+
+                <!-- Nicht eingeloggt: Anmelden + Registrieren -->
+                <StackPanel Orientation="Horizontal"
+                            Spacing="12"
+                            Visibility="{x:Bind ViewModel.IsNotAuthenticated, Mode=OneWay}"
+                            AutomationProperties.AutomationId="AppHeader_AuthButtons">
+
+                    <!-- Anmelden Button -->
+                    <Button Content="Anmelden"
+                            uen:Navigation.Request="Login"
+                            Style="{StaticResource TextButtonStyle}"
+                            FontSize="13"
+                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                            Padding="8,6"
+                            AutomationProperties.AutomationId="AppHeader_LoginButton" />
+
+                    <!-- Registrieren Button (prominent) -->
+                    <Button Content="Registrieren"
+                            uen:Navigation.Request="Register"
+                            Style="{StaticResource FilledButtonStyle}"
+                            Background="{ThemeResource PrimaryButtonBackgroundBrush}"
+                            Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Padding="12,8"
+                            CornerRadius="{StaticResource RadiusSm}"
+                            AutomationProperties.AutomationId="AppHeader_RegisterButton" />
+                </StackPanel>
+
+                <!-- Eingeloggt: Profil-Button -->
+                <Button Visibility="{x:Bind ViewModel.IsAuthenticated, Mode=OneWay}"
+                        Style="{StaticResource AppHeaderNavButtonStyle}"
+                        Flyout="{StaticResource ProfileMenuFlyout}"
+                        Padding="8"
+                        AutomationProperties.AutomationId="AppHeader_ProfileButton">
+                    <!-- Profil-Icon -->
+                    <FontIcon Glyph="&#xE77B;"
+                              FontSize="20"
+                              Foreground="{ThemeResource OnSurfaceBrush}" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

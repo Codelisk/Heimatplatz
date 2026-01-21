@@ -6,7 +6,8 @@
     <UnoSingleProject>true</UnoSingleProject>
 
     <!-- Suppress IL2026 trimming warnings for Uno.Extensions -->
-    <NoWarn>$(NoWarn);IL2026;IL2104;IL2111</NoWarn>
+    <!-- UNO0001: MenuFlyout doesn't support Style property, suppress for this element type -->
+    <NoWarn>$(NoWarn);IL2026;IL2104;IL2111;UNO0001</NoWarn>
 
     <!-- Display name -->
     <ApplicationTitle>Heimatplatz.App</ApplicationTitle>

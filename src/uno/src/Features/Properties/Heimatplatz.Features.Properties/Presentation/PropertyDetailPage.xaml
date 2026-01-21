@@ -18,18 +18,18 @@
         <uc:BusyOverlay IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
                         BusyMessage="{x:Bind ViewModel.BusyMessage, Mode=OneWay}">
 
-            <Grid utu:SafeArea.Insets="Top">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Header -->
+                <!-- Action Bar (kompakt, ohne Logo - Logo ist in Shell) -->
                 <Border Grid.Row="0"
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Padding="{utu:Responsive Narrowest='12,10', Normal='20,12'}">
+                        Padding="{utu:Responsive Narrowest='8,6', Normal='16,8'}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -56,7 +56,7 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- Titel (Mobile) / Logo (Desktop) -->
+                        <!-- Titel (nur Mobile) -->
                         <TextBlock Grid.Column="1"
                                    Text="{x:Bind ViewModel.Property.Title, Mode=OneWay}"
                                    FontSize="14"
@@ -68,26 +68,17 @@
                                    MaxLines="1"
                                    Margin="8,0"
                                    Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}" />
-                        <TextBlock Grid.Column="1"
-                                   Text="HEIMATPLATZ"
-                                   FontSize="15"
-                                   FontWeight="Bold"
-                                   CharacterSpacing="150"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}" />
 
                         <!-- Actions -->
                         <StackPanel Grid.Column="2"
                                     Orientation="Horizontal"
-                                    Spacing="{utu:Responsive Narrowest=12, Normal=20}">
+                                    Spacing="{utu:Responsive Narrowest=8, Normal=12}">
                             <Button Background="Transparent"
                                     BorderThickness="0"
                                     Padding="8"
                                     ToolTipService.ToolTip="Favorit">
                                 <FontIcon Glyph="&#xEB51;"
-                                          FontSize="20"
+                                          FontSize="18"
                                           Foreground="{ThemeResource OnSurfaceBrush}" />
                             </Button>
                             <Button Background="Transparent"
@@ -97,7 +88,7 @@
                                     Visibility="{x:Bind ViewModel.CanBlock}"
                                     ToolTipService.ToolTip="Immobilie blockieren">
                                 <FontIcon Glyph="&#xE8F8;"
-                                          FontSize="20"
+                                          FontSize="18"
                                           Foreground="{ThemeResource OnSurfaceBrush}" />
                             </Button>
                             <Button Background="Transparent"
@@ -105,7 +96,7 @@
                                     Padding="8"
                                     ToolTipService.ToolTip="Teilen">
                                 <FontIcon Glyph="&#xE72D;"
-                                          FontSize="20"
+                                          FontSize="18"
                                           Foreground="{ThemeResource OnSurfaceBrush}" />
                             </Button>
                         </StackPanel>

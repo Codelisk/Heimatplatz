@@ -23,7 +23,7 @@
                                 Orientation="Vertical"
                                 MaxWidth="600"
                                 HorizontalAlignment="Center"
-                                utu:SafeArea.Insets="Top,Bottom">
+                                utu:SafeArea.Insets="Bottom">
 
                     <!-- Header -->
                     <utu:AutoLayout Spacing="8" Orientation="Vertical">

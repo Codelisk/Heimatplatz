@@ -20,4 +20,12 @@ public sealed partial class PrivacyPolicyPage : Page
             await ViewModel.LoadAsync();
         }
     }
+
+    private void OnBackClick(object sender, RoutedEventArgs e)
+    {
+        if (Frame.CanGoBack)
+        {
+            Frame.GoBack();
+        }
+    }
 }

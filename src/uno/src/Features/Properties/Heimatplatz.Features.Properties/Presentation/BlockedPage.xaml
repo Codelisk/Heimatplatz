@@ -19,7 +19,7 @@
         <uc:BusyOverlay IsBusy="{Binding IsBusy}"
                         BusyMessage="{Binding BusyMessage}">
 
-            <Grid utu:SafeArea.Insets="Top">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />

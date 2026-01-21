@@ -2,34 +2,51 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Heimatplatz.App.Presentation"
+             xmlns:controls="using:Heimatplatz.App.Controls"
              xmlns:utu="using:Uno.Toolkit.UI">
 
-  <Border Background="{ThemeResource BackgroundBrush}"
-          AutomationProperties.AutomationId="Shell.Root">
-    <utu:ExtendedSplashScreen x:Name="Splash"
-                              AutomationProperties.AutomationId="Shell.SplashScreen"
-                              HorizontalAlignment="Stretch"
-                              VerticalAlignment="Stretch"
-                              HorizontalContentAlignment="Stretch"
-                              VerticalContentAlignment="Stretch">
-      <utu:ExtendedSplashScreen.LoadingContent>
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="2*" />
-            <RowDefinition />
-          </Grid.RowDefinitions>
+    <Border Background="{ThemeResource BackgroundBrush}"
+            AutomationProperties.AutomationId="Shell.Root">
 
-          <ProgressRing IsActive="True"
-                        AutomationProperties.AutomationId="Shell.LoadingIndicator"
-                        Style="{StaticResource LargeProgressRingStyle}"
-                        Grid.Row="1"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Gemeinsamer App-Header (wird auf Auth-Pages ausgeblendet) -->
+            <controls:AppHeader x:Name="AppHeaderControl"
+                                Grid.Row="0"
+                                utu:SafeArea.Insets="Top"
+                                AutomationProperties.AutomationId="Shell.Header" />
+
+            <!-- Content: Splash + Frame -->
+            <utu:ExtendedSplashScreen x:Name="Splash"
+                                      Grid.Row="1"
+                                      AutomationProperties.AutomationId="Shell.SplashScreen"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
+                                      HorizontalContentAlignment="Stretch"
+                                      VerticalContentAlignment="Stretch">
+                <utu:ExtendedSplashScreen.LoadingContent>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="2*" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <ProgressRing IsActive="True"
+                                      AutomationProperties.AutomationId="Shell.LoadingIndicator"
+                                      Style="{StaticResource LargeProgressRingStyle}"
+                                      Grid.Row="1"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center" />
+                    </Grid>
+                </utu:ExtendedSplashScreen.LoadingContent>
+                <utu:ExtendedSplashScreen.Content>
+                    <Frame x:Name="RootFrame" />
+                </utu:ExtendedSplashScreen.Content>
+            </utu:ExtendedSplashScreen>
         </Grid>
-      </utu:ExtendedSplashScreen.LoadingContent>
-      <utu:ExtendedSplashScreen.Content>
-        <Frame x:Name="RootFrame" />
-      </utu:ExtendedSplashScreen.Content>
-    </utu:ExtendedSplashScreen>
-  </Border>
+    </Border>
 </UserControl>

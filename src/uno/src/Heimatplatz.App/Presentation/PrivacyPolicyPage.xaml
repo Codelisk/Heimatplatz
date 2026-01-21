@@ -15,7 +15,7 @@
     <Grid Background="{ThemeResource BackgroundBrush}"
           AutomationProperties.AutomationId="PrivacyPolicyPage_Root">
 
-        <Grid utu:SafeArea.Insets="Top,Bottom">
+        <Grid utu:SafeArea.Insets="Bottom">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -37,13 +37,22 @@
 
                     <!-- Zurueck Button -->
                     <Button Grid.Column="0"
-                            Command="{x:Bind ViewModel.GoBackCommand}"
+                            Click="OnBackClick"
                             Style="{StaticResource IconButtonStyle}"
+                            Padding="8"
                             VerticalAlignment="Center"
                             AutomationProperties.AutomationId="PrivacyPolicyPage_BackButton">
-                        <FontIcon Glyph="&#xE72B;"
-                                  FontSize="16"
-                                  Foreground="{ThemeResource OnSurfaceBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE72B;"
+                                      FontSize="16"
+                                      Foreground="{ThemeResource OnSurfaceBrush}" />
+                            <TextBlock Text="Zurück"
+                                       Style="{StaticResource BodyMediumTextBlockStyle}"
+                                       FontSize="14"
+                                       Foreground="{ThemeResource OnSurfaceBrush}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}" />
+                        </StackPanel>
                     </Button>
 
                     <!-- Titel -->
@@ -94,7 +103,6 @@
             <!-- Content -->
             <ScrollViewer Grid.Row="1"
                           Padding="{utu:Responsive Narrowest='16', Normal='24,20'}"
-                          Visibility="{x:Bind ViewModel.PrivacyPolicy, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}"
                           AutomationProperties.AutomationId="PrivacyPolicyPage_ScrollViewer">
 
                 <StackPanel Spacing="24"

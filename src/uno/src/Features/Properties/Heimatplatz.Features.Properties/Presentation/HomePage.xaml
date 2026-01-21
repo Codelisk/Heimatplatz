@@ -12,6 +12,7 @@
     <!--
     HomePage - Premium Editorial Design
     Elegantes Layout mit grosszuegigem Weissraum
+    Header wurde in Shell verschoben (AppHeader Control)
     -->
 
     <Grid Background="{ThemeResource BackgroundBrush}"
@@ -21,47 +22,34 @@
                         BusyMessage="{Binding BusyMessage}"
                         AutomationProperties.AutomationId="HomePage_BusyOverlay">
 
-            <Grid utu:SafeArea.Insets="Top">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Kompakter Header -->
+                <!-- Desktop Filter (ab Wide 905px+) -->
                 <Border Grid.Row="0"
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Padding="{utu:Responsive Narrowest='12,10', Normal='20,12'}"
-                        AutomationProperties.AutomationId="HomePage_Header">
+                        Padding="20,8"
+                        Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
+                        AutomationProperties.AutomationId="HomePage_DesktopFilter">
 
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Logo: Elegant -->
-                        <TextBlock Grid.Column="0"
-                                   Text="HEIMATPLATZ"
-                                   FontSize="{utu:Responsive Narrowest=12, Normal=15}"
-                                   FontWeight="Bold"
-                                   CharacterSpacing="150"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,24,0"
-                                   AutomationProperties.AutomationId="HomePage_Logo" />
-
-                        <!-- Ort-Picker + Alters-Filter + Filter Chips (Desktop) - nur ab Widest (1440px+) -->
-                        <StackPanel Grid.Column="1"
+                        <!-- Filter Controls -->
+                        <StackPanel Grid.Column="0"
                                     Orientation="Horizontal"
                                     Spacing="8"
-                                    HorizontalAlignment="Center"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
-                                    Margin="8,0"
-                                    Visibility="{utu:Responsive Normal=Collapsed, Wide=Collapsed, Widest=Visible}"
                                     AutomationProperties.AutomationId="HomePage_FilterArea">
 
                             <!-- Ort-Picker (hierarchisch) -->
@@ -95,188 +83,36 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Rechte Seite: Counter + Navigation + Auth Bereich -->
-                        <StackPanel Grid.Column="2"
-                                    Orientation="Horizontal"
-                                    Spacing="12"
-                                    VerticalAlignment="Center">
-
-                            <!-- Ergebnis-Counter -->
-                            <TextBlock VerticalAlignment="Center"
-                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                       FontSize="{utu:Responsive Narrowest=11, Normal=13}"
-                                       AutomationProperties.AutomationId="HomePage_ResultCount">
-                                <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
-                                <Run Text=" Objekte" />
-                            </TextBlock>
-
-                            <!-- Navigation Menu Flyout (3-Punkte) -->
-                            <Button Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="0"
-                                    MinWidth="0"
-                                    MinHeight="0"
-                                    AutomationProperties.AutomationId="HomePage_NavigationMenuButton">
-                                <Button.Flyout>
-                                    <Flyout Placement="Bottom">
-                                        <StackPanel MinWidth="220"
-                                                    Spacing="4"
-                                                    Padding="8">
-                                            <!-- Nur für eingeloggte Benutzer -->
-                                            <Button Visibility="{Binding IsAuthenticated}"
-                                                    Command="{x:Bind ViewModel.NavigateToFavoritesCommand}"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Left"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Padding="8,10"
-                                                    AutomationProperties.AutomationId="HomePage_FavoritesButton">
-                                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                                    <FontIcon Glyph="&#xE734;" FontSize="16" />
-                                                    <TextBlock Text="Meine Favoriten" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                            <Button Visibility="{Binding IsAuthenticated}"
-                                                    Command="{x:Bind ViewModel.NavigateToBlockedCommand}"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Left"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Padding="8,10"
-                                                    AutomationProperties.AutomationId="HomePage_BlockedButton">
-                                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                                    <FontIcon Glyph="&#xE8F8;" FontSize="16" />
-                                                    <TextBlock Text="Blockierte Immobilien" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                            <Button Visibility="{Binding IsAuthenticated}"
-                                                    uen:Navigation.Request="MyProperties"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Left"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Padding="8,10"
-                                                    AutomationProperties.AutomationId="HomePage_MyPropertiesButton">
-                                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                                    <FontIcon Glyph="&#xE80F;" FontSize="16" />
-                                                    <TextBlock Text="Meine Immobilien" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                            <Border Height="1"
-                                                    Background="{ThemeResource BorderBrush}"
-                                                    Margin="0,4"
-                                                    Visibility="{Binding IsAuthenticated}" />
-                                            <Button uen:Navigation.Request="NotificationSettings"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Left"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Padding="8,10"
-                                                    AutomationProperties.AutomationId="HomePage_NotificationSettingsButton">
-                                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                                    <FontIcon Glyph="&#xEA8F;" FontSize="16" />
-                                                    <TextBlock Text="Benachrichtigungen" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                            <Button uen:Navigation.Request="FilterPreferences"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Left"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Padding="8,10"
-                                                    AutomationProperties.AutomationId="HomePage_FilterPreferencesButton">
-                                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                                    <FontIcon Glyph="&#xE71C;" FontSize="16" />
-                                                    <TextBlock Text="Filtereinstellungen" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </Flyout>
-                                </Button.Flyout>
-                                <!-- 3-Punkte Icon -->
-                                <FontIcon Glyph="&#xE712;"
-                                          FontSize="20"
-                                          Foreground="{ThemeResource OnSurfaceBrush}" />
-                            </Button>
-
-                            <!-- Nicht eingeloggt: Anmelden + Registrieren -->
-                            <StackPanel Orientation="Horizontal"
-                                        Spacing="12"
-                                        Visibility="{Binding IsNotAuthenticated}"
-                                        AutomationProperties.AutomationId="HomePage_AuthButtons">
-
-                                <!-- Anmelden Button -->
-                                <Button Content="Anmelden"
-                                        uen:Navigation.Request="Login"
-                                        Style="{StaticResource TextButtonStyle}"
-                                        FontSize="13"
-                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                        Padding="8,6"
-                                        AutomationProperties.AutomationId="HomePage_LoginButton" />
-
-                                <!-- Registrieren Button (prominent) -->
-                                <Button Content="Registrieren"
-                                        uen:Navigation.Request="Register"
-                                        Background="{ThemeResource PrimaryButtonBackgroundBrush}"
-                                        Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        Padding="12,8"
-                                        CornerRadius="{StaticResource RadiusSm}"
-                                        AutomationProperties.AutomationId="HomePage_RegisterButton" />
-                            </StackPanel>
-
-                            <!-- Eingeloggt: Profil-Button - Minimales Monogramm -->
-                            <Button Visibility="{Binding IsAuthenticated}"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="0"
-                                    MinWidth="0"
-                                    MinHeight="0"
-                                    AutomationProperties.AutomationId="HomePage_ProfileButton">
-                                <Button.Flyout>
-                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
-                                        <MenuFlyoutItem Text="Mein Profil"
-                                                        AutomationProperties.AutomationId="HomePage_ProfileMenuItem">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xE77B;" FontSize="14" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutItem Text="Immobilie hinzufügen"
-                                                        Command="{x:Bind ViewModel.NavigateToAddPropertyCommand}"
-                                                        AutomationProperties.AutomationId="HomePage_AddPropertyMenuItem">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xE710;" FontSize="14" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutSeparator />
-                                        <MenuFlyoutItem Text="Abmelden"
-                                                        Command="{Binding LogoutCommand}"
-                                                        AutomationProperties.AutomationId="HomePage_LogoutMenuItem">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xF3B1;" FontSize="14" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                    </MenuFlyout>
-                                </Button.Flyout>
-                                <!-- Profil-Icon -->
-                                <FontIcon Glyph="&#xE77B;"
-                                          FontSize="20"
-                                          Foreground="{ThemeResource OnSurfaceBrush}" />
-                            </Button>
-                        </StackPanel>
+                        <!-- Ergebnis-Counter -->
+                        <TextBlock Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   FontSize="13"
+                                   AutomationProperties.AutomationId="HomePage_ResultCount">
+                            <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
+                            <Run Text=" Objekte" />
+                        </TextBlock>
                     </Grid>
                 </Border>
 
-                <!-- Mobile Filter (eigene Row, bis Wide - unter 1440px) -->
+                <!-- Mobile Filter (unter 905px) -->
                 <Border Grid.Row="1"
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
                         Padding="12,8"
-                        Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Visible, Widest=Collapsed}"
+                        Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Collapsed}"
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
                     <StackPanel Spacing="8">
+                        <!-- Ergebnis-Counter Mobile -->
+                        <TextBlock Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   FontSize="12"
+                                   HorizontalAlignment="Right"
+                                   AutomationProperties.AutomationId="HomePage_MobileResultCount">
+                            <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
+                            <Run Text=" Objekte" />
+                        </TextBlock>
+
                         <!-- OrtPicker und Alters-Filter auf Mobile -->
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <controls:OrtPicker Bezirke="{Binding Bezirke}"

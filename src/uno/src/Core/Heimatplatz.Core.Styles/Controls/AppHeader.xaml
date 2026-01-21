@@ -48,4 +48,9 @@
         <Setter Property="MaxWidth" Value="400" />
     </Style>
 
+    <!-- Header Profile MenuFlyout Style -->
+    <Style x:Key="AppHeaderMenuFlyoutStyle" TargetType="MenuFlyout">
+        <Setter Property="Placement" Value="BottomEdgeAlignedRight" />
+    </Style>
+
 </ResourceDictionary>
