@@ -9,12 +9,13 @@
     Bild oben, Content darunter - optimiert fuer Grid Layout
     -->
 
-    <Border Background="{ThemeResource SurfaceBrush}"
-            CornerRadius="{StaticResource RadiusSm}"
-            Padding="0"
-            Translation="0,0,8"
-            PointerPressed="OnCardPointerPressed"
-            AutomationProperties.AutomationId="PropertyCard_Container">
+    <Grid Background="Transparent"
+          Tapped="OnCardTapped">
+        <Border Background="{ThemeResource SurfaceBrush}"
+                CornerRadius="{StaticResource RadiusSm}"
+                Padding="0"
+                Translation="0,0,8"
+                AutomationProperties.AutomationId="PropertyCard_Container">
         <Border.Shadow>
             <ThemeShadow />
         </Border.Shadow>
@@ -29,6 +30,7 @@
 
             <!-- Premium Bilder-Carousel mit Overlay -->
             <Grid Grid.Row="0"
+                  x:Name="ImageContainerGrid"
                   AutomationProperties.AutomationId="PropertyCard_ImageContainer">
 
                 <!-- Placeholder -->
@@ -114,12 +116,10 @@
                                AutomationProperties.AutomationId="PropertyCard_Price" />
                 </Border>
 
-                <!-- Transparentes Overlay für Tap-Events (über FlipView) wurde entfernt, da Tapped auf Root Grid -->
-
                 <!-- Dezente Navigations-Pfeile -->
                 <Button x:Name="PrevImageButton"
                         Click="OnPrevImageClick"
-                        PointerPressed="OnPrevImagePointerPressed"
+                        Tapped="OnPrevImageTapped"
                         Background="#40000000"
                         BorderThickness="0"
                         Padding="8,16"
@@ -135,7 +135,7 @@
 
                 <Button x:Name="NextImageButton"
                         Click="OnNextImageClick"
-                        PointerPressed="OnNextImagePointerPressed"
+                        Tapped="OnNextImageTapped"
                         Background="#40000000"
                         BorderThickness="0"
                         Padding="8,16"
@@ -255,5 +255,6 @@
                 </StackPanel>
             </Grid>
         </Grid>
-    </Border>
+        </Border>
+    </Grid>
 </UserControl>

@@ -154,7 +154,7 @@ public sealed partial class PropertyCard : UserControl
         return $"{price:N0} €";
     }
 
-    private void OnCardPointerPressed(object sender, PointerRoutedEventArgs e)
+    private void OnCardTapped(object sender, TappedRoutedEventArgs e)
     {
         if (Property != null)
         {
@@ -175,7 +175,7 @@ public sealed partial class PropertyCard : UserControl
         }
     }
 
-    private void OnPrevImagePointerPressed(object sender, PointerRoutedEventArgs e)
+    private void OnPrevImageTapped(object sender, TappedRoutedEventArgs e)
     {
         // Verhindere Navigation zur Detail-Seite
         e.Handled = true;
@@ -194,7 +194,7 @@ public sealed partial class PropertyCard : UserControl
         }
     }
 
-    private void OnNextImagePointerPressed(object sender, PointerRoutedEventArgs e)
+    private void OnNextImageTapped(object sender, TappedRoutedEventArgs e)
     {
         // Verhindere Navigation zur Detail-Seite
         e.Handled = true;

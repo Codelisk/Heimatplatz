@@ -6,7 +6,7 @@
       xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:uc="using:UnoFramework.Controls"
-      NavigationCacheMode="Required">
+      NavigationCacheMode="Disabled">
 
     <!--
     HomePage - Premium Editorial Design
