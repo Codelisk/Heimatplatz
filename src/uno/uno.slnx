@@ -7,10 +7,26 @@
     <Project Path="src/Core/Heimatplatz.Core.Startup/Heimatplatz.Core.Startup.csproj" />
     <Project Path="src/Core/Heimatplatz.Core.Styles/Heimatplatz.Core.Styles.csproj" />
   </Folder>
+  <Folder Name="/src/Features/Auth/">
+    <Project Path="src/Features/Auth/Heimatplatz.Features.Auth.Contracts/Heimatplatz.Features.Auth.Contracts.csproj" />
+    <Project Path="src/Features/Auth/Heimatplatz.Features.Auth/Heimatplatz.Features.Auth.csproj" />
+  </Folder>
+  <Folder Name="/src/Features/Debug/">
+    <Project Path="src/Features/Debug/Heimatplatz.Features.Debug/Heimatplatz.Features.Debug.csproj" />
+  </Folder>
+  <Folder Name="/src/Features/Notifications/">
+    <Project Path="src/Features/Notifications/Heimatplatz.Features.Notifications.Contracts/Heimatplatz.Features.Notifications.Contracts.csproj" />
+    <Project Path="src/Features/Notifications/Heimatplatz.Features.Notifications/Heimatplatz.Features.Notifications.csproj" />
+  </Folder>
+  <Folder Name="/src/Features/Properties/">
+    <Project Path="src/Features/Properties/Heimatplatz.Features.Properties.Contracts/Heimatplatz.Features.Properties.Contracts.csproj" />
+    <Project Path="src/Features/Properties/Heimatplatz.Features.Properties/Heimatplatz.Features.Properties.csproj" />
+  </Folder>
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/Heimatplatz.Shared/Heimatplatz.Shared.csproj" />
   </Folder>
   <Folder Name="/src/Features/" />
+  <Folder Name="/subm/" />
   <Folder Name="/subm/uno/">
     <Project Path="../../subm/uno/src/UnoFramework/UnoFramework.csproj" />
     <Project Path="../../subm/uno/src/UnoFramework.Contracts/UnoFramework.Contracts.csproj" />

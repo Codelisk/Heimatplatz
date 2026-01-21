@@ -6,7 +6,6 @@
 - **Framework:** .NET 10
 - **Frontend:** Uno Platform (nutze Uno MCP und definierte Skills)
 - **Backend:** ASP.NET (nutze Microsoft Docs MCP und definierte Skills)
-- **Orchestrierung:** .NET Aspire (AppHost + ServiceDefaults)
 - **Architektur:** Shiny Mediator Pattern ([GitHub](https://github.com/shinyorg/mediator))
 
 ## Architekturprinzip: Backend-First
@@ -73,11 +72,6 @@ Heimatplatz/
 │   │       └── Features/{Name}/
 │   │           ├── *.Api.Features.{Name}/         # Services, Data, Handlers
 │   │           └── *.Api.Features.{Name}.Contracts/
-│   │
-│   ├── aspire/                     # .NET Aspire Orchestrierung
-│   │   └── src/
-│   │       ├── *.AppHost/                         # Orchestrator
-│   │       └── *.ServiceDefaults/                 # Shared Config
 │   │
 │   └── uno/                        # Frontend (Uno Platform)
 │       └── src/

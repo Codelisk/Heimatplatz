@@ -5,6 +5,7 @@ namespace Heimatplatz.Features.Auth.Services;
 /// <summary>
 /// Service fuer die Authentifizierung und Token-Verwaltung (In-Memory)
 /// </summary>
+[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public class AuthService : IAuthService
 {
     private string? _accessToken;

@@ -10,7 +10,6 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 builder.Services.AddApiServices(builder.Configuration);
 
@@ -98,8 +97,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
-app.MapDefaultEndpoints();
 app.MapEndpoints();
 
 if (app.Environment.IsDevelopment())

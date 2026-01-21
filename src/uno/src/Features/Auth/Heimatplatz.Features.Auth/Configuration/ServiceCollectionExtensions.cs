@@ -14,9 +14,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAuthFeature(this IServiceCollection services)
     {
-        // AuthService als Singleton registrieren (Session-weite Token-Verwaltung)
-        services.AddSingleton<IAuthService, AuthService>();
 
+        services.AddShinyServiceRegistry();
         // ViewModels werden automatisch via [Service] Attribut registriert
 
         return services;

@@ -77,12 +77,26 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Logo: Elegant -->
+            <!-- Links: Hamburger-Menü (nur wenn eingeloggt) -->
             <Button Grid.Column="0"
+                    Visibility="{x:Bind ViewModel.IsAuthenticated, Mode=OneWay}"
+                    Style="{StaticResource AppHeaderNavButtonStyle}"
+                    Flyout="{StaticResource ProfileMenuFlyout}"
+                    Padding="8"
+                    AutomationProperties.AutomationId="AppHeader_MenuButton">
+                <!-- Hamburger-Icon -->
+                <FontIcon Glyph="&#xE700;"
+                          FontSize="20"
+                          Foreground="{ThemeResource OnSurfaceBrush}" />
+            </Button>
+
+            <!-- Logo: Elegant -->
+            <Button Grid.Column="1"
                     Style="{StaticResource AppHeaderNavButtonStyle}"
                     Padding="0"
                     MinHeight="0"
@@ -96,14 +110,14 @@
             </Button>
 
             <!-- Mittlerer Bereich: Content Property fuer Page-spezifische Inhalte -->
-            <ContentPresenter Grid.Column="1"
+            <ContentPresenter Grid.Column="2"
                               Content="{x:Bind HeaderContent, Mode=OneWay}"
                               HorizontalAlignment="Center"
                               VerticalAlignment="Center"
                               Margin="8,0" />
 
             <!-- Rechte Seite: Auth Bereich -->
-            <StackPanel Grid.Column="2"
+            <StackPanel Grid.Column="3"
                         Orientation="Horizontal"
                         Spacing="12"
                         VerticalAlignment="Center">
@@ -135,18 +149,6 @@
                             CornerRadius="{StaticResource RadiusSm}"
                             AutomationProperties.AutomationId="AppHeader_RegisterButton" />
                 </StackPanel>
-
-                <!-- Eingeloggt: Profil-Button -->
-                <Button Visibility="{x:Bind ViewModel.IsAuthenticated, Mode=OneWay}"
-                        Style="{StaticResource AppHeaderNavButtonStyle}"
-                        Flyout="{StaticResource ProfileMenuFlyout}"
-                        Padding="8"
-                        AutomationProperties.AutomationId="AppHeader_ProfileButton">
-                    <!-- Profil-Icon -->
-                    <FontIcon Glyph="&#xE77B;"
-                              FontSize="20"
-                              Foreground="{ThemeResource OnSurfaceBrush}" />
-                </Button>
             </StackPanel>
         </Grid>
     </Border>

@@ -33,22 +33,22 @@
                             HorizontalAlignment="Center"
                             Spacing="8">
                     <ToggleButton Content="Ausgeloggt"
-                                  IsChecked="{x:Bind ViewModel.IsLoggedOut, Mode=TwoWay}"
+                                  IsChecked="{x:Bind ViewModel.IsLoggedOut, Mode=OneWay}"
                                   MinWidth="120"
                                   Command="{x:Bind ViewModel.LogoutCommand}" />
 
                     <ToggleButton Content="Käufer"
-                                  IsChecked="{x:Bind ViewModel.IsBuyer, Mode=TwoWay}"
+                                  IsChecked="{x:Bind ViewModel.IsBuyer, Mode=OneWay}"
                                   MinWidth="120"
                                   Command="{x:Bind ViewModel.LoginAsBuyerCommand}" />
 
                     <ToggleButton Content="Verkäufer"
-                                  IsChecked="{x:Bind ViewModel.IsSeller, Mode=TwoWay}"
+                                  IsChecked="{x:Bind ViewModel.IsSeller, Mode=OneWay}"
                                   MinWidth="120"
                                   Command="{x:Bind ViewModel.LoginAsSellerCommand}" />
 
                     <ToggleButton Content="Beides"
-                                  IsChecked="{x:Bind ViewModel.IsBoth, Mode=TwoWay}"
+                                  IsChecked="{x:Bind ViewModel.IsBoth, Mode=OneWay}"
                                   MinWidth="120"
                                   Command="{x:Bind ViewModel.LoginAsBothCommand}" />
                 </StackPanel>
