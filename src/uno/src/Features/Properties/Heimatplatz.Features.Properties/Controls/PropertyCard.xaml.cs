@@ -24,6 +24,16 @@ public sealed partial class PropertyCard : UserControl
     public event EventHandler<PropertyListItemDto>? CardClicked;
 
     /// <summary>
+    /// Event wenn die Immobilie blockiert werden soll
+    /// </summary>
+    public event EventHandler<PropertyListItemDto>? PropertyBlocked;
+
+    /// <summary>
+    /// Event wenn die Immobilie favorisiert werden soll
+    /// </summary>
+    public event EventHandler<PropertyListItemDto>? PropertyFavorited;
+
+    /// <summary>
     /// Die anzuzeigende Immobilie
     /// </summary>
     public static readonly DependencyProperty PropertyProperty =
@@ -210,5 +220,30 @@ public sealed partial class PropertyCard : UserControl
     {
         // Hover-Effekt zuruecksetzen
         this.Scale = new System.Numerics.Vector3(1f, 1f, 1f);
+    }
+
+    private void OnMoreOptionsTapped(object sender, TappedRoutedEventArgs e)
+    {
+        // Verhindere Navigation zur Detail-Seite
+        e.Handled = true;
+    }
+
+    private void OnBlockClick(object sender, RoutedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnBlockClick called for: {Property?.Title}");
+        if (Property != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PropertyCard] Invoking PropertyBlocked event");
+            PropertyBlocked?.Invoke(this, Property);
+        }
+    }
+
+    private void OnFavoriteClick(object sender, RoutedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnFavoriteClick called for: {Property?.Title}");
+        if (Property != null)
+        {
+            PropertyFavorited?.Invoke(this, Property);
+        }
     }
 }

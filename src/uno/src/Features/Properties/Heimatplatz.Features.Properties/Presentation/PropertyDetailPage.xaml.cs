@@ -2,13 +2,14 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// PropertyDetailPage - Detailansicht einer Immobilie
 /// </summary>
-public sealed partial class PropertyDetailPage : Page
+public sealed partial class PropertyDetailPage : BasePage
 {
     public PropertyDetailViewModel? ViewModel => DataContext as PropertyDetailViewModel;
 
@@ -23,29 +24,6 @@ public sealed partial class PropertyDetailPage : Page
         if (ViewModel != null)
         {
             ViewModel.PropertyBlocked += OnPropertyBlocked;
-        }
-    }
-
-    protected override void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-
-        // Parameter kann Guid oder string sein
-        Guid? propertyId = e.Parameter switch
-        {
-            Guid g => g,
-            string s when Guid.TryParse(s, out var parsed) => parsed,
-            _ => null
-        };
-
-        if (propertyId.HasValue && ViewModel != null)
-        {
-            ViewModel.LoadProperty(propertyId.Value);
-        }
-        else if (ViewModel != null)
-        {
-            // Fallback: Lade Testdaten
-            ViewModel.LoadProperty(Guid.NewGuid());
         }
     }
 

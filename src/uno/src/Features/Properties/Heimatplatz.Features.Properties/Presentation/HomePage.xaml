@@ -267,6 +267,8 @@
                                 <DataTemplate>
                                     <controls:PropertyCard Property="{Binding}"
                                                            CardClicked="OnPropertyCardClicked"
+                                                           PropertyBlocked="OnPropertyBlocked"
+                                                           PropertyFavorited="OnPropertyFavorited"
                                                            AutomationProperties.AutomationId="HomePage_PropertyCard" />
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>

@@ -5,6 +5,7 @@ using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
+using UnoFramework.Contracts.Navigation;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -12,7 +13,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// ViewModel fuer die PropertyDetailPage
 /// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public partial class PropertyDetailViewModel : ObservableObject
+public partial class PropertyDetailViewModel : ObservableObject, INavigationAware
 {
     private readonly IClipboardService _clipboardService;
     private readonly IMediator _mediator;
@@ -138,6 +139,32 @@ public partial class PropertyDetailViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        // Parameter kann Guid oder string sein
+        Guid? propertyId = parameter switch
+        {
+            Guid g => g,
+            string s when Guid.TryParse(s, out var parsed) => parsed,
+            _ => null
+        };
+
+        if (propertyId.HasValue)
+        {
+            LoadProperty(propertyId.Value);
+        }
+        else
+        {
+            // Fallback: Lade Testdaten
+            LoadProperty(Guid.NewGuid());
+        }
+    }
+
+    public void OnNavigatedFrom()
+    {
+        // Cleanup if needed
     }
 
     /// <summary>

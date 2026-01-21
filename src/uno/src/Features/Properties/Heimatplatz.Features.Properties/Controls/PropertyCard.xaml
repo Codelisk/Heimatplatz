@@ -148,6 +148,39 @@
                               FontSize="14"
                               Foreground="White" />
                 </Button>
+
+                <!-- 3-Punkt Menü: Oben rechts -->
+                <Button x:Name="MoreOptionsButton"
+                        Tapped="OnMoreOptionsTapped"
+                        Background="#66000000"
+                        BorderThickness="0"
+                        Padding="8"
+                        CornerRadius="{StaticResource RadiusSm}"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Margin="12"
+                        Opacity="0.85"
+                        AutomationProperties.AutomationId="PropertyCard_MoreOptions">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                            <MenuFlyoutItem Text="Favorisieren"
+                                          Click="OnFavoriteClick">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xEB51;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Blockieren"
+                                          Click="OnBlockClick">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8F8;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <FontIcon Glyph="&#xE712;"
+                              FontSize="16"
+                              Foreground="White" />
+                </Button>
             </Grid>
 
             <!-- Content: Zwei-Spalten Layout -->
