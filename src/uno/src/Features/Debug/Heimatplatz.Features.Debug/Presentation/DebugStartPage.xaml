@@ -1,8 +1,9 @@
-<Page x:Class="Heimatplatz.Features.Debug.Presentation.DebugStartPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:utu="using:Uno.Toolkit.UI"
-      Background="{ThemeResource BackgroundBrush}">
+<ufp:BasePage x:Class="Heimatplatz.Features.Debug.Presentation.DebugStartPage"
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:utu="using:Uno.Toolkit.UI"
+              xmlns:ufp="using:UnoFramework.Pages"
+              Background="{ThemeResource BackgroundBrush}">
 
     <Grid utu:SafeArea.Insets="VisibleBounds">
         <Grid.RowDefinitions>
@@ -33,24 +34,24 @@
                             HorizontalAlignment="Center"
                             Spacing="8">
                     <ToggleButton Content="Ausgeloggt"
-                                  IsChecked="{x:Bind ViewModel.IsLoggedOut, Mode=OneWay}"
+                                  IsChecked="{Binding IsLoggedOut, Mode=OneWay}"
                                   MinWidth="120"
-                                  Command="{x:Bind ViewModel.LogoutCommand}" />
+                                  Command="{Binding LogoutCommand}" />
 
                     <ToggleButton Content="Käufer"
-                                  IsChecked="{x:Bind ViewModel.IsBuyer, Mode=OneWay}"
+                                  IsChecked="{Binding IsBuyer, Mode=OneWay}"
                                   MinWidth="120"
-                                  Command="{x:Bind ViewModel.LoginAsBuyerCommand}" />
+                                  Command="{Binding LoginAsBuyerCommand}" />
 
                     <ToggleButton Content="Verkäufer"
-                                  IsChecked="{x:Bind ViewModel.IsSeller, Mode=OneWay}"
+                                  IsChecked="{Binding IsSeller, Mode=OneWay}"
                                   MinWidth="120"
-                                  Command="{x:Bind ViewModel.LoginAsSellerCommand}" />
+                                  Command="{Binding LoginAsSellerCommand}" />
 
                     <ToggleButton Content="Beides"
-                                  IsChecked="{x:Bind ViewModel.IsBoth, Mode=OneWay}"
+                                  IsChecked="{Binding IsBoth, Mode=OneWay}"
                                   MinWidth="120"
-                                  Command="{x:Bind ViewModel.LoginAsBothCommand}" />
+                                  Command="{Binding LoginAsBothCommand}" />
                 </StackPanel>
 
                 <!-- Current User Info -->
@@ -63,14 +64,14 @@
                                    Opacity="0.7"
                                    HorizontalAlignment="Center">
                             <Run Text="User: " />
-                            <Run Text="{x:Bind ViewModel.CurrentUserEmail, Mode=OneWay}"
+                            <Run Text="{Binding CurrentUserEmail, Mode=OneWay}"
                                  FontWeight="SemiBold" />
                         </TextBlock>
                         <TextBlock FontSize="12"
                                    Opacity="0.7"
                                    HorizontalAlignment="Center">
                             <Run Text="Rollen: " />
-                            <Run Text="{x:Bind ViewModel.CurrentUserRoles, Mode=OneWay}"
+                            <Run Text="{Binding CurrentUserRoles, Mode=OneWay}"
                                  FontWeight="SemiBold" />
                         </TextBlock>
                     </StackPanel>
@@ -92,22 +93,22 @@
 
                 <!-- Main Pages -->
                 <Button Content="🏠 Home"
-                        Command="{x:Bind ViewModel.NavigateToHomeCommand}"
+                        Command="{Binding NavigateToHomeCommand}"
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
                 <Button Content="➕ Add Property"
-                        Command="{x:Bind ViewModel.NavigateToAddPropertyCommand}"
+                        Command="{Binding NavigateToAddPropertyCommand}"
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
                 <Button Content="📋 My Properties"
-                        Command="{x:Bind ViewModel.NavigateToMyPropertiesCommand}"
+                        Command="{Binding NavigateToMyPropertiesCommand}"
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
                 <Button Content="✏️ Edit First Seller Property"
-                        Command="{x:Bind ViewModel.EditFirstSellerPropertyCommand}"
+                        Command="{Binding EditFirstSellerPropertyCommand}"
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
@@ -117,16 +118,16 @@
                         Margin="0,8" />
 
                 <Button Content="🔐 Login Page"
-                        Command="{x:Bind ViewModel.NavigateToLoginCommand}"
+                        Command="{Binding NavigateToLoginCommand}"
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
                 <Button Content="📝 Register Page"
-                        Command="{x:Bind ViewModel.NavigateToRegisterCommand}"
+                        Command="{Binding NavigateToRegisterCommand}"
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
             </utu:AutoLayout>
         </ScrollViewer>
     </Grid>
-</Page>
+</ufp:BasePage>

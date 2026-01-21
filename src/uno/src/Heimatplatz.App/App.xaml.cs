@@ -49,7 +49,6 @@ public partial class App : Application
                 .ConfigureServices((context, services) =>
                 {
                     services.AddAppServices();
-                    services.AddTransient<Shell>();
                 })
                 .UseNavigation(RegisterRoutes)
             );

@@ -1,5 +1,4 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Debug.Presentation;
 
@@ -7,19 +6,12 @@ namespace Heimatplatz.Features.Debug.Presentation;
 /// Debug-Start-Page - Nur in DEBUG-Builds verfuegbar
 /// ViewModel wird via Uno.Extensions.Navigation automatisch injiziert
 /// </summary>
-public sealed partial class DebugStartPage : Page
+public sealed partial class DebugStartPage : BasePage
 {
-    public DebugStartViewModel? ViewModel { get; private set; }
+    public DebugStartViewModel ViewModel => (DebugStartViewModel)DataContext;
 
     public DebugStartPage()
     {
-        this.DataContextChanged += OnDataContextChanged;
         this.InitializeComponent();
-    }
-
-    private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
-    {
-        ViewModel = args.NewValue as DebugStartViewModel;
-        Bindings.Update();
     }
 }

@@ -17,6 +17,7 @@
             <!-- Gemeinsamer App-Header (wird auf Auth-Pages ausgeblendet) -->
             <controls:AppHeader x:Name="AppHeaderControl"
                                 Grid.Row="0"
+                                DataContext="{Binding AppHeader}"
                                 utu:SafeArea.Insets="Top"
                                 AutomationProperties.AutomationId="Shell.Header" />
 

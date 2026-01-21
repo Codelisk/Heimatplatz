@@ -1,3 +1,4 @@
+using Heimatplatz.App.Controls;
 using Heimatplatz.Features.Properties.Presentation;
 #if DEBUG
 using Heimatplatz.Features.Debug.Presentation;
@@ -9,9 +10,14 @@ public class ShellViewModel
 {
     private readonly INavigator _navigator;
 
-    public ShellViewModel(INavigator navigator)
+    public AppHeaderViewModel AppHeader { get; }
+
+    public ShellViewModel(
+        INavigator navigator,
+        AppHeaderViewModel appHeaderViewModel)
     {
         _navigator = navigator;
+        AppHeader = appHeaderViewModel;
 
         _ = Start();
     }

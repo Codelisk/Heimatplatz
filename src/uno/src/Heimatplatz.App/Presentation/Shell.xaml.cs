@@ -1,6 +1,5 @@
 using Heimatplatz.App.Controls;
 using Heimatplatz.Features.Auth.Presentation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.App.Presentation;
 
@@ -25,21 +24,6 @@ public sealed partial class Shell : UserControl, IContentControlProvider
 
         // Navigation-Events abonnieren um Header bei Auth-Pages auszublenden
         RootFrame.Navigated += OnFrameNavigated;
-
-        // ViewModel nach dem Laden zuweisen (dann ist Host verfuegbar)
-        this.Loaded += OnLoaded;
-    }
-
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        // Nur einmal initialisieren
-        if (AppHeaderControl.DataContext != null)
-            return;
-
-        // ViewModel dem AppHeader zuweisen (aus DI holen)
-        var app = (Heimatplatz.App.App)Application.Current;
-        var appHeaderViewModel = app.Host!.Services.GetRequiredService<AppHeaderViewModel>();
-        AppHeaderControl.DataContext = appHeaderViewModel;
     }
 
     private void OnFrameNavigated(object sender, NavigationEventArgs e)
