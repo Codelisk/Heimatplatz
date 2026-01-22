@@ -26,6 +26,7 @@ public sealed partial class BlockedPage : Page
     {
         if (ViewModel != null)
         {
+            ViewModel.SetupPageHeader();
             await ViewModel.OnNavigatedToAsync();
         }
     }
@@ -36,6 +37,7 @@ public sealed partial class BlockedPage : Page
 
         if (ViewModel != null)
         {
+            ViewModel.SetupPageHeader();
             await ViewModel.OnNavigatedToAsync();
         }
     }

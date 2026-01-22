@@ -12,27 +12,18 @@ public sealed partial class MyPropertiesPage : Page
     public MyPropertiesPage()
     {
         this.InitializeComponent();
-        this.Loaded += OnLoaded;
+        this.DataContextChanged += OnDataContextChanged;
     }
 
     public MyPropertiesViewModel? ViewModel => DataContext as MyPropertiesViewModel;
 
-    private async void OnLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private async void OnDataContextChanged(Microsoft.UI.Xaml.FrameworkElement sender, Microsoft.UI.Xaml.DataContextChangedEventArgs args)
     {
-        // Load data when page is loaded (ViewModel is guaranteed to be set)
         if (ViewModel != null)
         {
+            ViewModel.SetupPageHeader();
             await ViewModel.OnNavigatedToAsync();
         }
     }
 
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-
-        if (ViewModel != null)
-        {
-            await ViewModel.OnNavigatedToAsync();
-        }
-    }
 }

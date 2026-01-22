@@ -49,6 +49,7 @@
                         CompactModeThresholdWidth="640"
                         ExpandedModeThresholdWidth="1024"
                         Background="{ThemeResource BackgroundBrush}"
+                        SelectionChanged="OnNavigationViewSelectionChanged"
                         AutomationProperties.AutomationId="MainPage.NavigationView">
 
             <!-- Navigation Menu Items -->

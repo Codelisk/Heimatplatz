@@ -56,7 +56,7 @@
                           Foreground="{ThemeResource OnSurfaceBrush}" />
             </Button>
 
-            <!-- Logo: Elegant -->
+            <!-- Logo / Page Title -->
             <Button Grid.Column="1"
                     Style="{StaticResource AppHeaderNavButtonStyle}"
                     Padding="0"
@@ -64,16 +64,17 @@
                     Margin="8,0,0,0"
                     uen:Navigation.Request="-/Home"
                     AutomationProperties.AutomationId="AppHeader_LogoButton">
-                <TextBlock Text="HEIMATPLATZ"
+                <TextBlock x:Name="TitleText"
+                           Text="{Binding CurrentTitle, Mode=OneWay, FallbackValue='HEIMATPLATZ'}"
                            Style="{StaticResource AppHeaderLogoStyle}"
                            FontSize="{utu:Responsive Narrowest=12, Normal=15}"
                            CharacterSpacing="150"
-                           AutomationProperties.AutomationId="AppHeader_Logo" />
+                           AutomationProperties.AutomationId="AppHeader_Title" />
             </Button>
 
-            <!-- Mittlerer Bereich: Content Property fuer Page-spezifische Inhalte -->
+            <!-- Mittlerer Bereich: Content aus PageTitleService -->
             <ContentPresenter Grid.Column="2"
-                              Content="{x:Bind HeaderContent, Mode=OneWay}"
+                              Content="{Binding HeaderContent}"
                               HorizontalAlignment="Center"
                               VerticalAlignment="Center"
                               Margin="8,0" />
@@ -85,7 +86,7 @@
                         VerticalAlignment="Center">
 
                 <!-- Eingeloggt: User Profile Button -->
-                <Button Visibility="{Binding IsAuthenticated, Mode=OneWay}"
+                <Button Visibility="{Binding IsAuthenticated}"
                         Style="{StaticResource AppHeaderNavButtonStyle}"
                         Flyout="{StaticResource LogoutMenuFlyout}"
                         Padding="8"
@@ -98,7 +99,7 @@
                 <!-- Nicht eingeloggt: Anmelden + Registrieren -->
                 <StackPanel Orientation="Horizontal"
                             Spacing="12"
-                            Visibility="{Binding IsNotAuthenticated, Mode=OneWay}"
+                            Visibility="{Binding IsNotAuthenticated}"
                             AutomationProperties.AutomationId="AppHeader_AuthButtons">
 
                     <!-- Anmelden Button -->

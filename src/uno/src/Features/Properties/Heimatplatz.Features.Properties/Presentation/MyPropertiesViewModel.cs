@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
@@ -77,6 +78,26 @@ public partial class MyPropertiesViewModel : ObservableObject
             // Clear properties when user logs out
             Properties.Clear();
             IsEmpty = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets up page title in the AppHeader
+    /// Call this when the page is navigated to
+    /// </summary>
+    public async void SetupPageHeader()
+    {
+        _logger.LogInformation("[MyProperties] SetupPageHeader CALLED!");
+
+        try
+        {
+            _logger.LogInformation("[MyProperties] Publishing PageTitleChangedEvent with title 'Meine Immobilien'");
+            await _mediator.Publish(new PageTitleChangedEvent("Meine Immobilien"));
+            _logger.LogInformation("[MyProperties] PageTitleChangedEvent published successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[MyProperties] Error publishing PageTitleChangedEvent");
         }
     }
 

@@ -18,25 +18,8 @@
         <uc:BusyOverlay IsBusy="{Binding IsBusy}"
                         BusyMessage="{Binding BusyMessage}">
 
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <!-- Header -->
-                <Border Grid.Row="0"
-                        Background="{ThemeResource SurfaceBrush}"
-                        BorderBrush="{ThemeResource BorderBrush}"
-                        BorderThickness="0,0,0,1"
-                        Padding="{utu:Responsive Narrowest='16,12', Normal='24,16'}">
-                    <TextBlock Text="Meine Immobilien"
-                               Style="{StaticResource TitleLargeTextBlockStyle}"
-                               FontWeight="SemiBold" />
-                </Border>
-
-                <!-- Content Area -->
-                <ScrollViewer Grid.Row="1">
+            <!-- Content Area -->
+            <ScrollViewer>
                     <utu:AutoLayout Orientation="Vertical"
                                     Spacing="16"
                                     Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}">
@@ -137,8 +120,6 @@
 
                     </utu:AutoLayout>
                 </ScrollViewer>
-
-            </Grid>
 
         </uc:BusyOverlay>
 

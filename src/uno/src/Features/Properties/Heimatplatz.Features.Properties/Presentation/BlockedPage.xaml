@@ -19,61 +19,8 @@
         <uc:BusyOverlay IsBusy="{Binding IsBusy}"
                         BusyMessage="{Binding BusyMessage}">
 
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <!-- Header -->
-                <Border Grid.Row="0"
-                        Background="{ThemeResource SurfaceBrush}"
-                        BorderBrush="{ThemeResource BorderBrush}"
-                        BorderThickness="0,0,0,1"
-                        Padding="{utu:Responsive Narrowest='16,12', Normal='24,16'}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Title and selection count -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding PageTitle}"
-                                       Style="{StaticResource TitleLargeTextBlockStyle}"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Text="{Binding SelectedCountText}"
-                                       Style="{StaticResource BodyMediumTextBlockStyle}"
-                                       Foreground="{ThemeResource AccentBrush}"
-                                       VerticalAlignment="Center"
-                                       Visibility="{Binding ShowBulkUnblockButton}" />
-                        </StackPanel>
-
-                        <!-- Action buttons -->
-                        <StackPanel Grid.Column="1"
-                                    Orientation="Horizontal"
-                                    Spacing="8"
-                                    Visibility="{Binding IsNotEmpty}">
-                            <!-- Bulk unblock button -->
-                            <Button Content="Alle entblocken"
-                                    Command="{Binding BulkUnblockCommand}"
-                                    Background="{ThemeResource ErrorBrush}"
-                                    Foreground="{ThemeResource ChipSelectedForegroundBrush}"
-                                    Visibility="{Binding ShowBulkUnblockButton}"
-                                    Padding="16,8"
-                                    CornerRadius="{StaticResource ControlCornerRadius}" />
-
-                            <!-- Selection mode toggle -->
-                            <Button Content="{Binding SelectionModeButtonText}"
-                                    Command="{Binding ToggleSelectionModeCommand}"
-                                    Style="{StaticResource OutlinedButtonStyle}"
-                                    Padding="16,8" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Content Area -->
-                <ScrollViewer Grid.Row="1">
+            <!-- Content Area -->
+            <ScrollViewer>
                     <utu:AutoLayout Orientation="Vertical"
                                     Spacing="16"
                                     Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}">
@@ -179,8 +126,6 @@
 
                     </utu:AutoLayout>
                 </ScrollViewer>
-
-            </Grid>
 
         </uc:BusyOverlay>
 
