@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Xaml.Controls;
 using Uno.Extensions;
 using Uno.Extensions.Navigation;
 
@@ -11,7 +12,6 @@ namespace Heimatplatz.App.Controls;
 /// </summary>
 public sealed partial class AppHeader : UserControl
 {
-    private INavigator? _navigator;
     private ILogger<AppHeader>? _logger;
 
     public AppHeaderViewModel? ViewModel => DataContext as AppHeaderViewModel;
@@ -30,6 +30,22 @@ public sealed partial class AppHeader : UserControl
     {
         get => GetValue(HeaderContentProperty);
         set => SetValue(HeaderContentProperty, value);
+    }
+
+    /// <summary>
+    /// NavigationView Referenz fuer Hamburger-Button
+    /// </summary>
+    public static readonly DependencyProperty NavigationViewProperty =
+        DependencyProperty.Register(
+            nameof(NavigationView),
+            typeof(NavigationView),
+            typeof(AppHeader),
+            new PropertyMetadata(null));
+
+    public NavigationView? NavigationView
+    {
+        get => GetValue(NavigationViewProperty) as NavigationView;
+        set => SetValue(NavigationViewProperty, value);
     }
 
     public AppHeader()
@@ -59,36 +75,16 @@ public sealed partial class AppHeader : UserControl
         }
     }
 
-    private async void OnMenuItemClick(object sender, RoutedEventArgs e)
+    private void OnHamburgerButtonClick(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuFlyoutItem menuItem && menuItem.Tag is string route)
+        if (NavigationView != null)
         {
-            // Lazy initialize dependencies from App's Host
-            if (_navigator == null || _logger == null)
-            {
-                var serviceProvider = (Application.Current as App)?.Host?.Services;
-                if (serviceProvider != null)
-                {
-                    _navigator = serviceProvider.GetService<INavigator>();
-                    _logger = serviceProvider.GetService<ILogger<AppHeader>>();
-                }
-            }
-
-            _logger?.LogInformation("[AppHeader] Navigation zu: {Route}", route);
-            try
-            {
-                if (_navigator != null)
-                {
-                    // Use MainWindow as context instead of this UserControl
-                    object context = App.MainWindow ?? (object)this;
-                    // Use -/ prefix for navigation like in XAML Navigation.Request
-                    await _navigator.NavigateRouteAsync(context, $"-/{route}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "[AppHeader] Fehler bei Navigation zu: {Route}", route);
-            }
+            NavigationView.IsPaneOpen = !NavigationView.IsPaneOpen;
+            _logger?.LogInformation("[AppHeader] Hamburger clicked - IsPaneOpen: {IsPaneOpen}", NavigationView.IsPaneOpen);
+        }
+        else
+        {
+            _logger?.LogWarning("[AppHeader] Hamburger clicked but NavigationView is null");
         }
     }
 }

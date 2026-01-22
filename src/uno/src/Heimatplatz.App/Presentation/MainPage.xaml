@@ -2,70 +2,129 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:Heimatplatz.App.Presentation"
-      xmlns:controls="using:UnoFramework.Controls"
+      xmlns:controls="using:Heimatplatz.App.Controls"
+      xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:utu="using:Uno.Toolkit.UI"
-      NavigationCacheMode="Required">
+      NavigationCacheMode="Required"
+      Background="{ThemeResource BackgroundBrush}"
+      AutomationProperties.AutomationId="MainPage.Root">
 
     <!--
     ============================================================================
-    RESPONSIVE PAGE PATTERN
+    NAVIGATIONVIEW WITH REGIONS
     ============================================================================
-    Dieses Pattern zeigt die empfohlene Struktur fuer responsive Pages:
+    MainPage uses NavigationView for hamburger menu navigation with regions.
 
-    1. Grid mit PageRootStyle als aeusserer Container
-    2. SafeArea.Insets fuer Notch/StatusBar
-    3. AutoLayout mit responsivem Padding/Spacing
-    4. {utu:Responsive} fuer breakpoint-basierte Werte
+    NavigationView provides:
+    - Hamburger menu with adaptive behavior
+    - NavigationViewItems with Region.Name for navigation
+    - Content area that acts as a region for displaying pages
 
-    Fuer komplett unterschiedliche Layouts (Phone vs Desktop):
-    Verwende <utu:ResponsiveView> mit NarrowTemplate/WideTemplate
+    Nested routes under /Main will be displayed in the NavigationView content region.
     ============================================================================
     -->
 
-    <Grid Style="{StaticResource PageRootStyle}"
-          AutomationProperties.AutomationId="MainPage.Root">
-        <controls:BusyOverlay IsBusy="{Binding IsBusy}" BusyMessage="{Binding BusyMessage}"
-                              AutomationProperties.AutomationId="MainPage.BusyOverlay">
-            <Grid utu:SafeArea.Insets="VisibleBounds">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-                <!-- Navigation Header -->
-                <utu:NavigationBar Content="{Binding Title}"
-                                   AutomationProperties.AutomationId="MainPage.NavigationBar"
-                                   Style="{StaticResource DefaultNavigationBarStyle}" />
+        <!-- App Header -->
+        <controls:AppHeader x:Name="AppHeaderControl"
+                            Grid.Row="0"
+                            NavigationView="{x:Bind NavView}"
+                            utu:SafeArea.Insets="Top"
+                            AutomationProperties.AutomationId="MainPage.AppHeader" />
 
-                <!-- Main Content mit AutoLayout -->
-                <utu:AutoLayout Grid.Row="1"
-                                Style="{StaticResource CenteredContentAutoLayoutStyle}"
-                                Padding="{utu:Responsive Narrowest=16, Narrow=20, Normal=24, Wide=32, Widest=48}"
-                                Spacing="{utu:Responsive Narrowest=12, Narrow=14, Normal=16, Wide=20, Widest=24}">
+        <!-- NavigationView with Region-based navigation -->
+        <NavigationView x:Name="NavView"
+                        Grid.Row="1"
+                        uen:Region.Attached="True"
+                        PaneDisplayMode="Left"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        IsPaneToggleButtonVisible="False"
+                        OpenPaneLength="256"
+                        CompactModeThresholdWidth="640"
+                        ExpandedModeThresholdWidth="1024"
+                        Background="{ThemeResource BackgroundBrush}"
+                        AutomationProperties.AutomationId="MainPage.NavigationView">
 
-                    <!-- Headline -->
-                    <TextBlock Text="Welcome to Heimatplatz!"
-                               AutomationProperties.AutomationId="MainPage.HeadlineText"
-                               Style="{StaticResource HeadlineLargeCenteredTextStyle}" />
+            <!-- Navigation Menu Items -->
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Home"
+                                    uen:Region.Name="Home"
+                                    AutomationProperties.AutomationId="MainPage.NavItem.Home">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
 
-                    <!-- Subtitle -->
-                    <TextBlock Text="Full-Stack: API + Uno App with shared configuration"
-                               AutomationProperties.AutomationId="MainPage.SubtitleText"
-                               Style="{StaticResource BodyMediumCenteredSubtleTextStyle}" />
+                <NavigationViewItem Content="Meine Immobilien"
+                                    uen:Region.Name="MyProperties"
+                                    AutomationProperties.AutomationId="MainPage.NavItem.MyProperties">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
 
-                    <!-- Action Button -->
-                    <Button Content="Click Me"
-                            AutomationProperties.AutomationId="MainPage.ClickButton"
-                            Style="{StaticResource PrimaryButtonCenteredStyle}"
-                            Command="{Binding ClickCommand}" />
+                <NavigationViewItem Content="Meine Favoriten"
+                                    uen:Region.Name="Favorites"
+                                    AutomationProperties.AutomationId="MainPage.NavItem.Favorites">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE734;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
 
-                    <!-- Click Counter -->
-                    <TextBlock Text="{Binding ClickCount, Converter={StaticResource NullToCollapsedConverter}}"
-                               AutomationProperties.AutomationId="MainPage.ClickCountText"
-                               Style="{StaticResource TitleLargeCenteredTextStyle}" />
+                <NavigationViewItem Content="Blockierte Immobilien"
+                                    uen:Region.Name="Blocked"
+                                    AutomationProperties.AutomationId="MainPage.NavItem.Blocked">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8F8;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
 
-                </utu:AutoLayout>
-            </Grid>
-        </controls:BusyOverlay>
+                <NavigationViewItemSeparator />
+
+                <NavigationViewItem Content="Immobilie hinzufuegen"
+                                    uen:Region.Name="AddProperty"
+                                    AutomationProperties.AutomationId="MainPage.NavItem.AddProperty">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE710;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <!-- Footer Menu Items (Settings, etc.) -->
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Content="Benachrichtigungen"
+                                    uen:Region.Name="NotificationSettings"
+                                    AutomationProperties.AutomationId="MainPage.NavItem.NotificationSettings">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEA8F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Filtereinstellungen"
+                                    uen:Region.Name="FilterPreferences"
+                                    AutomationProperties.AutomationId="MainPage.NavItem.FilterPreferences">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE71C;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <!-- Content Region: Pages are displayed here -->
+            <NavigationView.Content>
+                <ContentControl x:Name="NavigationContent"
+                                uen:Region.Attached="True"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch"
+                                AutomationProperties.AutomationId="MainPage.ContentRegion" />
+            </NavigationView.Content>
+        </NavigationView>
     </Grid>
 </Page>

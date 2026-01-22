@@ -33,25 +33,49 @@
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Center"
                             Spacing="8">
-                    <ToggleButton Content="Ausgeloggt"
-                                  IsChecked="{Binding IsLoggedOut, Mode=OneWay}"
-                                  MinWidth="120"
-                                  Command="{Binding LogoutCommand}" />
+                    <Button MinWidth="120"
+                            Command="{Binding LogoutCommand}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Ausgeloggt"
+                                       HorizontalAlignment="Center" />
+                            <Border Height="2"
+                                    Background="#FF6B6B"
+                                    Visibility="{Binding IsLoggedOut}" />
+                        </StackPanel>
+                    </Button>
 
-                    <ToggleButton Content="Käufer"
-                                  IsChecked="{Binding IsBuyer, Mode=OneWay}"
-                                  MinWidth="120"
-                                  Command="{Binding LoginAsBuyerCommand}" />
+                    <Button MinWidth="120"
+                            Command="{Binding LoginAsBuyerCommand}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Käufer"
+                                       HorizontalAlignment="Center" />
+                            <Border Height="2"
+                                    Background="#4CAF50"
+                                    Visibility="{Binding IsBuyer}" />
+                        </StackPanel>
+                    </Button>
 
-                    <ToggleButton Content="Verkäufer"
-                                  IsChecked="{Binding IsSeller, Mode=OneWay}"
-                                  MinWidth="120"
-                                  Command="{Binding LoginAsSellerCommand}" />
+                    <Button MinWidth="120"
+                            Command="{Binding LoginAsSellerCommand}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Verkäufer"
+                                       HorizontalAlignment="Center" />
+                            <Border Height="2"
+                                    Background="#2196F3"
+                                    Visibility="{Binding IsSeller}" />
+                        </StackPanel>
+                    </Button>
 
-                    <ToggleButton Content="Beides"
-                                  IsChecked="{Binding IsBoth, Mode=OneWay}"
-                                  MinWidth="120"
-                                  Command="{Binding LoginAsBothCommand}" />
+                    <Button MinWidth="120"
+                            Command="{Binding LoginAsBothCommand}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Beides"
+                                       HorizontalAlignment="Center" />
+                            <Border Height="2"
+                                    Background="#9C27B0"
+                                    Visibility="{Binding IsBoth}" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
                 <!-- Current User Info -->

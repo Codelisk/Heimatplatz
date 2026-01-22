@@ -1,5 +1,3 @@
-using Heimatplatz.App.Controls;
-using Heimatplatz.Features.Properties.Presentation;
 #if DEBUG
 using Heimatplatz.Features.Debug.Presentation;
 #endif
@@ -10,14 +8,9 @@ public class ShellViewModel
 {
     private readonly INavigator _navigator;
 
-    public AppHeaderViewModel AppHeader { get; }
-
-    public ShellViewModel(
-        INavigator navigator,
-        AppHeaderViewModel appHeaderViewModel)
+    public ShellViewModel(INavigator navigator)
     {
         _navigator = navigator;
-        AppHeader = appHeaderViewModel;
 
         _ = Start();
     }
@@ -27,7 +20,7 @@ public class ShellViewModel
 #if DEBUG
         await _navigator.NavigateViewModelAsync<DebugStartViewModel>(this);
 #else
-        await _navigator.NavigateViewModelAsync<HomeViewModel>(this);
+        await _navigator.NavigateViewModelAsync<MainViewModel>(this);
 #endif
     }
 }

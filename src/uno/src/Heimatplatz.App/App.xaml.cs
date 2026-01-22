@@ -117,22 +117,28 @@ public partial class App : Application
                 [
 #if DEBUG
                     new ("DebugStart", View: views.FindByViewModel<DebugStartViewModel>(), IsDefault: true),
-                    new ("Home", View: views.FindByViewModel<HomeViewModel>()),
-#else
-                    new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
 #endif
-                    new ("Main", View: views.FindByViewModel<MainViewModel>()),
+                    // Main acts as a region container for app content
+                    new ("Main", View: views.FindByViewModel<MainViewModel>(),
+#if !DEBUG
+                        IsDefault: true,
+#endif
+                        Nested:
+                        [
+                            new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
+                            new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
+                            new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),
+                            new ("Blocked", View: views.FindByViewModel<BlockedViewModel>()),
+                            new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
+                            new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
+                            new ("PropertyDetail", View: views.FindByViewModel<PropertyDetailViewModel>()),
+                            new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>()),
+                            new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
+                            new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>())
+                        ]),
+                    // Auth pages remain at Shell level (not in regions)
                     new ("Register", View: views.FindByViewModel<RegisterViewModel>()),
-                    new ("Login", View: views.FindByViewModel<LoginViewModel>()),
-                    new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
-                    new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
-                    new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
-                    new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),
-                    new ("Blocked", View: views.FindByViewModel<BlockedViewModel>()),
-                    new ("PropertyDetail", View: views.FindByViewModel<PropertyDetailViewModel>()),
-                    new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>()),
-                    new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
-                    new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>())
+                    new ("Login", View: views.FindByViewModel<LoginViewModel>())
                 ]
             )
         );

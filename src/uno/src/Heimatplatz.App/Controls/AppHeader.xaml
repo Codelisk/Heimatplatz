@@ -6,8 +6,8 @@
              xmlns:uen="using:Uno.Extensions.Navigation.UI">
 
     <UserControl.Resources>
-        <!-- Profile MenuFlyout als Resource definiert -->
-        <MenuFlyout x:Key="ProfileMenuFlyout"
+        <!-- Logout MenuFlyout for authenticated users -->
+        <MenuFlyout x:Key="LogoutMenuFlyout"
                     Placement="BottomEdgeAlignedRight">
             <MenuFlyout.MenuFlyoutPresenterStyle>
                 <Style TargetType="MenuFlyoutPresenter">
@@ -18,70 +18,6 @@
                     <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
                 </Style>
             </MenuFlyout.MenuFlyoutPresenterStyle>
-            <MenuFlyoutItem Text="Mein Profil"
-                            x:Name="ProfileMenuItem"
-                            Click="OnMenuItemClick"
-                            Tag="Main"
-                            AutomationProperties.AutomationId="AppHeader_ProfileMenuItem">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xE77B;" FontSize="14" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Meine Favoriten"
-                            x:Name="FavoritesMenuItem"
-                            Click="OnMenuItemClick"
-                            Tag="Favorites"
-                            AutomationProperties.AutomationId="AppHeader_FavoritesMenuItem">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xE734;" FontSize="14" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Blockierte Immobilien"
-                            x:Name="BlockedMenuItem"
-                            Click="OnMenuItemClick"
-                            Tag="Blocked"
-                            AutomationProperties.AutomationId="AppHeader_BlockedMenuItem">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xE8F8;" FontSize="14" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Meine Immobilien"
-                            x:Name="MyPropertiesMenuItem"
-                            Click="OnMenuItemClick"
-                            Tag="MyProperties"
-                            AutomationProperties.AutomationId="AppHeader_MyPropertiesMenuItem">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xE80F;" FontSize="14" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Immobilie hinzufuegen"
-                            x:Name="AddPropertyMenuItem"
-                            Click="OnMenuItemClick"
-                            Tag="AddProperty"
-                            AutomationProperties.AutomationId="AppHeader_AddPropertyMenuItem">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xE710;" FontSize="14" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
-            <MenuFlyoutSeparator />
-            <MenuFlyoutItem Text="Benachrichtigungen"
-                            x:Name="NotificationSettingsMenuItem"
-                            Click="OnMenuItemClick"
-                            Tag="NotificationSettings"
-                            AutomationProperties.AutomationId="AppHeader_NotificationSettingsMenuItem">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xEA8F;" FontSize="14" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Filtereinstellungen"
-                            x:Name="FilterPreferencesMenuItem"
-                            Click="OnMenuItemClick"
-                            Tag="FilterPreferences"
-                            AutomationProperties.AutomationId="AppHeader_FilterPreferencesMenuItem">
-                <MenuFlyoutItem.Icon>
-                    <FontIcon Glyph="&#xE71C;" FontSize="14" />
-                </MenuFlyoutItem.Icon>
-            </MenuFlyoutItem>
             <MenuFlyoutItem x:Name="LogoutMenuItem"
                             Text="Abmelden"
                             Command="{Binding LogoutCommand}"
@@ -108,14 +44,13 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Links: Hamburger-Menü (nur wenn eingeloggt) -->
-            <Button Grid.Column="0"
-                    Visibility="{Binding IsAuthenticated, Mode=OneWay}"
+            <!-- Links: Hamburger Button (immer sichtbar) -->
+            <Button x:Name="HamburgerButton"
+                    Grid.Column="0"
                     Style="{StaticResource AppHeaderNavButtonStyle}"
-                    Flyout="{StaticResource ProfileMenuFlyout}"
                     Padding="8"
-                    AutomationProperties.AutomationId="AppHeader_MenuButton">
-                <!-- Hamburger-Icon -->
+                    Click="OnHamburgerButtonClick"
+                    AutomationProperties.AutomationId="AppHeader_HamburgerButton">
                 <FontIcon Glyph="&#xE700;"
                           FontSize="20"
                           Foreground="{ThemeResource OnSurfaceBrush}" />
@@ -126,6 +61,7 @@
                     Style="{StaticResource AppHeaderNavButtonStyle}"
                     Padding="0"
                     MinHeight="0"
+                    Margin="8,0,0,0"
                     uen:Navigation.Request="-/Home"
                     AutomationProperties.AutomationId="AppHeader_LogoButton">
                 <TextBlock Text="HEIMATPLATZ"
@@ -147,6 +83,17 @@
                         Orientation="Horizontal"
                         Spacing="12"
                         VerticalAlignment="Center">
+
+                <!-- Eingeloggt: User Profile Button -->
+                <Button Visibility="{Binding IsAuthenticated, Mode=OneWay}"
+                        Style="{StaticResource AppHeaderNavButtonStyle}"
+                        Flyout="{StaticResource LogoutMenuFlyout}"
+                        Padding="8"
+                        AutomationProperties.AutomationId="AppHeader_UserButton">
+                    <FontIcon Glyph="&#xE77B;"
+                              FontSize="20"
+                              Foreground="{ThemeResource OnSurfaceBrush}" />
+                </Button>
 
                 <!-- Nicht eingeloggt: Anmelden + Registrieren -->
                 <StackPanel Orientation="Horizontal"

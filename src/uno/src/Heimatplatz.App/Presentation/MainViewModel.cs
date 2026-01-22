@@ -1,20 +1,10 @@
 namespace Heimatplatz.App.Presentation;
 
+/// <summary>
+/// ViewModel for MainPage - Region Navigation Container
+/// MainPage acts as a transparent container for region-based navigation.
+/// Nested routes (Home, MyProperties, etc.) are displayed in the ContentRegion.
+/// </summary>
 public partial class MainViewModel(BaseServices baseServices) : PageViewModel(baseServices)
 {
-    [ObservableProperty]
-    private string _title = "Heimatplatz";
-
-    [ObservableProperty]
-    private int _clickCount;
-
-    [UnoCommand]
-    private async Task ClickAsync()
-    {
-        using (BeginBusy("Processing..."))
-        {
-            await Task.Delay(500);
-            ClickCount++;
-        }
-    }
 }

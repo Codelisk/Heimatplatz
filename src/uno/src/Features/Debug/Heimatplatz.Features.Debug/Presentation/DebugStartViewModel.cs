@@ -105,14 +105,26 @@ public partial class DebugStartViewModel : ObservableObject
 
     private async Task QuickLoginAsync(string email)
     {
-        var success = await _debugAuthService.QuickLoginAsync(email, TestPassword);
-        if (success)
+        try
         {
-            UpdateUserInfo();
+            var success = await _debugAuthService.QuickLoginAsync(email, TestPassword);
+            if (success)
+            {
+                _logger.LogInformation("[DEBUG] Login erfolgreich fuer {Email}", email);
+            }
+            else
+            {
+                _logger.LogWarning("[DEBUG] Login fehlgeschlagen fuer {Email} - API moeglicherweise nicht erreichbar", email);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogWarning("[DEBUG] Login fehlgeschlagen fuer {Email}", email);
+            _logger.LogError(ex, "[DEBUG] Exception beim Login fuer {Email}", email);
+        }
+        finally
+        {
+            // Immer UpdateUserInfo aufrufen, um UI zu aktualisieren
+            UpdateUserInfo();
         }
     }
 
@@ -120,15 +132,25 @@ public partial class DebugStartViewModel : ObservableObject
     private async Task LogoutAsync()
     {
         _logger.LogInformation("[DEBUG] Logout");
-        await _debugAuthService.LogoutAsync();
-        UpdateUserInfo();
+        try
+        {
+            await _debugAuthService.LogoutAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[DEBUG] Exception beim Logout");
+        }
+        finally
+        {
+            UpdateUserInfo();
+        }
     }
 
     [RelayCommand]
     private async Task NavigateToHomeAsync()
     {
-        _logger.LogInformation("[DEBUG] Navigation zu Home");
-        await _navigator.NavigateRouteAsync(this, "Home");
+        _logger.LogInformation("[DEBUG] Navigation zu Main (mit NavigationView)");
+        await _navigator.NavigateRouteAsync(this, "Main");
     }
 
     [RelayCommand]
