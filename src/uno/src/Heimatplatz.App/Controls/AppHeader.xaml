@@ -7,36 +7,57 @@
 
     <UserControl.Resources>
         <!-- Profile MenuFlyout als Resource definiert -->
-        <MenuFlyout x:Key="ProfileMenuFlyout" Placement="BottomEdgeAlignedRight">
+        <MenuFlyout x:Key="ProfileMenuFlyout"
+                    Placement="BottomEdgeAlignedRight">
+            <MenuFlyout.MenuFlyoutPresenterStyle>
+                <Style TargetType="MenuFlyoutPresenter">
+                    <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
+                    <Setter Property="BorderBrush" Value="{ThemeResource BorderBrush}" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="Padding" Value="0,4" />
+                    <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
+                </Style>
+            </MenuFlyout.MenuFlyoutPresenterStyle>
             <MenuFlyoutItem Text="Mein Profil"
+                            x:Name="ProfileMenuItem"
+                            Click="OnMenuItemClick"
+                            Tag="Main"
                             AutomationProperties.AutomationId="AppHeader_ProfileMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE77B;" FontSize="14" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
             <MenuFlyoutItem Text="Meine Favoriten"
-                            uen:Navigation.Request="Favorites"
+                            x:Name="FavoritesMenuItem"
+                            Click="OnMenuItemClick"
+                            Tag="Favorites"
                             AutomationProperties.AutomationId="AppHeader_FavoritesMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE734;" FontSize="14" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
             <MenuFlyoutItem Text="Blockierte Immobilien"
-                            uen:Navigation.Request="Blocked"
+                            x:Name="BlockedMenuItem"
+                            Click="OnMenuItemClick"
+                            Tag="Blocked"
                             AutomationProperties.AutomationId="AppHeader_BlockedMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE8F8;" FontSize="14" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
             <MenuFlyoutItem Text="Meine Immobilien"
-                            uen:Navigation.Request="MyProperties"
+                            x:Name="MyPropertiesMenuItem"
+                            Click="OnMenuItemClick"
+                            Tag="MyProperties"
                             AutomationProperties.AutomationId="AppHeader_MyPropertiesMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE80F;" FontSize="14" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
             <MenuFlyoutItem Text="Immobilie hinzufuegen"
-                            uen:Navigation.Request="AddProperty"
+                            x:Name="AddPropertyMenuItem"
+                            Click="OnMenuItemClick"
+                            Tag="AddProperty"
                             AutomationProperties.AutomationId="AppHeader_AddPropertyMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE710;" FontSize="14" />
@@ -44,14 +65,18 @@
             </MenuFlyoutItem>
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Benachrichtigungen"
-                            uen:Navigation.Request="NotificationSettings"
+                            x:Name="NotificationSettingsMenuItem"
+                            Click="OnMenuItemClick"
+                            Tag="NotificationSettings"
                             AutomationProperties.AutomationId="AppHeader_NotificationSettingsMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xEA8F;" FontSize="14" />
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
             <MenuFlyoutItem Text="Filtereinstellungen"
-                            uen:Navigation.Request="FilterPreferences"
+                            x:Name="FilterPreferencesMenuItem"
+                            Click="OnMenuItemClick"
+                            Tag="FilterPreferences"
                             AutomationProperties.AutomationId="AppHeader_FilterPreferencesMenuItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE71C;" FontSize="14" />
@@ -85,7 +110,7 @@
 
             <!-- Links: Hamburger-Menü (nur wenn eingeloggt) -->
             <Button Grid.Column="0"
-                    Visibility="{x:Bind ViewModel.IsAuthenticated, Mode=OneWay}"
+                    Visibility="{Binding IsAuthenticated, Mode=OneWay}"
                     Style="{StaticResource AppHeaderNavButtonStyle}"
                     Flyout="{StaticResource ProfileMenuFlyout}"
                     Padding="8"
@@ -126,7 +151,7 @@
                 <!-- Nicht eingeloggt: Anmelden + Registrieren -->
                 <StackPanel Orientation="Horizontal"
                             Spacing="12"
-                            Visibility="{x:Bind ViewModel.IsNotAuthenticated, Mode=OneWay}"
+                            Visibility="{Binding IsNotAuthenticated, Mode=OneWay}"
                             AutomationProperties.AutomationId="AppHeader_AuthButtons">
 
                     <!-- Anmelden Button -->

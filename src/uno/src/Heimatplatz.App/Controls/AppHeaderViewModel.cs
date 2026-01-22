@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 
 namespace Heimatplatz.App.Controls;
@@ -13,6 +14,7 @@ namespace Heimatplatz.App.Controls;
 public partial class AppHeaderViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
+    private readonly ILogger<AppHeaderViewModel> _logger;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotAuthenticated))]
@@ -30,23 +32,33 @@ public partial class AppHeaderViewModel : ObservableObject
     [ObservableProperty]
     private string? _userInitials;
 
-    public AppHeaderViewModel(IAuthService authService)
+    public AppHeaderViewModel(
+        IAuthService authService,
+        ILogger<AppHeaderViewModel> logger)
     {
         _authService = authService;
+        _logger = logger;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
         UpdateAuthState();
+
+        _logger.LogInformation("[AppHeader] Initialisiert - IsAuthenticated: {IsAuth}", IsAuthenticated);
     }
 
     private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
     {
+        _logger.LogInformation("[AppHeader] Auth State Changed: {IsAuth}", isAuthenticated);
         UpdateAuthState();
     }
 
     private void UpdateAuthState()
     {
+        var wasAuthenticated = IsAuthenticated;
         IsAuthenticated = _authService.IsAuthenticated ? Visibility.Visible : Visibility.Collapsed;
         UserFullName = _authService.UserFullName;
         UserInitials = GetInitials(_authService.UserFullName);
+
+        _logger.LogInformation("[AppHeader] UpdateAuthState - IsAuthenticated: {IsAuth}, IsNotAuthenticated: {IsNotAuth}, UserFullName: {Name}",
+            IsAuthenticated, IsNotAuthenticated, UserFullName);
     }
 
     private static string? GetInitials(string? fullName)
