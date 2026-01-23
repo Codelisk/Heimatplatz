@@ -34,11 +34,6 @@ public sealed partial class PropertyDetailPage : BasePage
         await this.Navigator()!.NavigateBackAsync(this);
     }
 
-    private async void OnBackClick(object sender, RoutedEventArgs e)
-    {
-        await this.Navigator()!.NavigateBackAsync(this);
-    }
-
     private void OnImageSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is FlipView flipView && ViewModel != null)

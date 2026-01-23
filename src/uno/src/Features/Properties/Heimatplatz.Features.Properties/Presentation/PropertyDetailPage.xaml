@@ -18,93 +18,8 @@
         <uc:BusyOverlay IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
                         BusyMessage="{x:Bind ViewModel.BusyMessage, Mode=OneWay}">
 
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <!-- Action Bar (kompakt, ohne Logo - Logo ist in Shell) -->
-                <Border Grid.Row="0"
-                        Background="{ThemeResource SurfaceBrush}"
-                        BorderBrush="{ThemeResource BorderBrush}"
-                        BorderThickness="0,0,0,1"
-                        Padding="{utu:Responsive Narrowest='8,6', Normal='16,8'}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Zurueck Button -->
-                        <Button Grid.Column="0"
-                                Click="OnBackClick"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Padding="8"
-                                VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE72B;"
-                                          FontSize="16"
-                                          Foreground="{ThemeResource OnSurfaceBrush}" />
-                                <TextBlock Text="Zurück"
-                                           FontSize="14"
-                                           Foreground="{ThemeResource OnSurfaceBrush}"
-                                           VerticalAlignment="Center"
-                                           Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}" />
-                            </StackPanel>
-                        </Button>
-
-                        <!-- Titel (nur Mobile) -->
-                        <TextBlock Grid.Column="1"
-                                   Text="{x:Bind ViewModel.Property.Title, Mode=OneWay}"
-                                   FontSize="14"
-                                   FontWeight="SemiBold"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   TextTrimming="CharacterEllipsis"
-                                   MaxLines="1"
-                                   Margin="8,0"
-                                   Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}" />
-
-                        <!-- Actions -->
-                        <StackPanel Grid.Column="2"
-                                    Orientation="Horizontal"
-                                    Spacing="{utu:Responsive Narrowest=8, Normal=12}">
-                            <Button Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="8"
-                                    ToolTipService.ToolTip="Favorit">
-                                <FontIcon Glyph="&#xEB51;"
-                                          FontSize="18"
-                                          Foreground="{ThemeResource OnSurfaceBrush}" />
-                            </Button>
-                            <Button Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="8"
-                                    Command="{x:Bind ViewModel.BlockPropertyCommand}"
-                                    Visibility="{x:Bind ViewModel.CanBlock}"
-                                    ToolTipService.ToolTip="Immobilie blockieren">
-                                <FontIcon Glyph="&#xE8F8;"
-                                          FontSize="18"
-                                          Foreground="{ThemeResource OnSurfaceBrush}" />
-                            </Button>
-                            <Button Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="8"
-                                    ToolTipService.ToolTip="Teilen">
-                                <FontIcon Glyph="&#xE72D;"
-                                          FontSize="18"
-                                          Foreground="{ThemeResource OnSurfaceBrush}" />
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Content -->
-                <ScrollViewer Grid.Row="1">
+                <!-- Content (kein Header - Buttons sind auf dem Bild) -->
+                <ScrollViewer>
                     <!-- Desktop: Zwei-Spalten Layout -->
                     <Grid Padding="{utu:Responsive Narrowest='0', Normal='40,24'}"
                           MaxWidth="1200"
@@ -119,8 +34,8 @@
 
                             <ScrollViewer Grid.Row="0">
                                 <StackPanel>
-                                    <!-- Hero Image -->
-                                    <Grid Height="200">
+                                    <!-- Hero Image mit Floating Buttons -->
+                                    <Grid Height="240">
                                         <Border Background="{ThemeResource PlaceholderBrush}">
                                             <FontIcon Glyph="&#xE722;"
                                                       FontSize="48"
@@ -138,11 +53,51 @@
                                             </FlipView.ItemTemplate>
                                         </FlipView>
 
+                                        <!-- Floating Action Buttons (rechts oben) -->
+                                        <StackPanel Orientation="Horizontal"
+                                                    Spacing="8"
+                                                    Margin="12"
+                                                    VerticalAlignment="Top"
+                                                    HorizontalAlignment="Right">
+                                            <Button Background="#CC000000"
+                                                    BorderThickness="0"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Width="40" Height="40"
+                                                    Padding="0"
+                                                    ToolTipService.ToolTip="Favorit">
+                                                <FontIcon Glyph="&#xEB51;"
+                                                          FontSize="18"
+                                                          Foreground="White" />
+                                            </Button>
+                                            <Button Background="#CC000000"
+                                                    BorderThickness="0"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Width="40" Height="40"
+                                                    Padding="0"
+                                                    ToolTipService.ToolTip="Teilen">
+                                                <FontIcon Glyph="&#xE72D;"
+                                                          FontSize="18"
+                                                          Foreground="White" />
+                                            </Button>
+                                            <Button Background="#CC000000"
+                                                    BorderThickness="0"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Width="40" Height="40"
+                                                    Padding="0"
+                                                    Command="{x:Bind ViewModel.BlockPropertyCommand}"
+                                                    Visibility="{x:Bind ViewModel.CanBlock}"
+                                                    ToolTipService.ToolTip="Blockieren">
+                                                <FontIcon Glyph="&#xE8F8;"
+                                                          FontSize="18"
+                                                          Foreground="White" />
+                                            </Button>
+                                        </StackPanel>
+
                                         <!-- Bild Counter -->
                                         <Border Background="#CC000000"
-                                                CornerRadius="12"
+                                                CornerRadius="{StaticResource RadiusSm}"
                                                 Padding="12,6"
-                                                Margin="16"
+                                                Margin="12"
                                                 VerticalAlignment="Bottom"
                                                 HorizontalAlignment="Left">
                                             <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="White">
@@ -171,7 +126,7 @@
 
                                             <Border Grid.Column="1"
                                                     Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                                    CornerRadius="12"
+                                                    CornerRadius="{StaticResource RadiusSm}"
                                                     Padding="10,5"
                                                     VerticalAlignment="Center">
                                                 <TextBlock Text="{x:Bind ViewModel.TypeText, Mode=OneWay}"
@@ -284,7 +239,7 @@
                                                 <ItemsRepeater.ItemTemplate>
                                                     <DataTemplate x:DataType="x:String">
                                                         <Border Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                                                CornerRadius="12"
+                                                                CornerRadius="{StaticResource RadiusSm}"
                                                                 Padding="10,5"
                                                                 HorizontalAlignment="Left">
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -505,7 +460,7 @@
 
                             <!-- Links: Bilder -->
                             <StackPanel Grid.Column="0" Spacing="16">
-                                <!-- Hauptbild -->
+                                <!-- Hauptbild mit Floating Buttons -->
                                 <Border CornerRadius="{StaticResource RadiusSm}"
                                         Height="480">
                                     <Border.Clip>
@@ -530,6 +485,78 @@
                                                 </DataTemplate>
                                             </FlipView.ItemTemplate>
                                         </FlipView>
+
+                                        <!-- Floating Action Buttons (rechts oben) -->
+                                        <StackPanel Orientation="Horizontal"
+                                                    Spacing="8"
+                                                    Margin="16"
+                                                    VerticalAlignment="Top"
+                                                    HorizontalAlignment="Right">
+                                            <Button Background="#CC000000"
+                                                    BorderThickness="0"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Height="44"
+                                                    Padding="16,0"
+                                                    ToolTipService.ToolTip="Zu Favoriten hinzufügen">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <FontIcon Glyph="&#xEB51;"
+                                                              FontSize="18"
+                                                              Foreground="White" />
+                                                    <TextBlock Text="Merken"
+                                                               FontSize="14"
+                                                               Foreground="White"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Background="#CC000000"
+                                                    BorderThickness="0"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Height="44"
+                                                    Padding="16,0"
+                                                    ToolTipService.ToolTip="Teilen">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <FontIcon Glyph="&#xE72D;"
+                                                              FontSize="18"
+                                                              Foreground="White" />
+                                                    <TextBlock Text="Teilen"
+                                                               FontSize="14"
+                                                               Foreground="White"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Background="#CC000000"
+                                                    BorderThickness="0"
+                                                    CornerRadius="{StaticResource RadiusSm}"
+                                                    Height="44"
+                                                    Padding="16,0"
+                                                    Command="{x:Bind ViewModel.BlockPropertyCommand}"
+                                                    Visibility="{x:Bind ViewModel.CanBlock}"
+                                                    ToolTipService.ToolTip="Diese Immobilie ausblenden">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <FontIcon Glyph="&#xE8F8;"
+                                                              FontSize="18"
+                                                              Foreground="White" />
+                                                    <TextBlock Text="Ausblenden"
+                                                               FontSize="14"
+                                                               Foreground="White"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+
+                                        <!-- Bild Counter -->
+                                        <Border Background="#CC000000"
+                                                CornerRadius="{StaticResource RadiusSm}"
+                                                Padding="12,6"
+                                                Margin="16"
+                                                VerticalAlignment="Bottom"
+                                                HorizontalAlignment="Left">
+                                            <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="White">
+                                                <Run Text="{x:Bind ViewModel.CurrentImageIndex, Mode=OneWay}" />
+                                                <Run Text=" / " />
+                                                <Run Text="{x:Bind ViewModel.Property.ImageUrls.Count, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </Border>
                                     </Grid>
                                 </Border>
 
@@ -784,7 +811,6 @@
                         </Grid>
                     </Grid>
                 </ScrollViewer>
-            </Grid>
         </uc:BusyOverlay>
     </Grid>
 </pages:BasePage>
