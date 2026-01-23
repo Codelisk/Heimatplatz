@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Events;
+using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
@@ -19,8 +19,9 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// ViewModel fuer die HomePage
 /// Implements INavigationAware for automatic lifecycle handling via BasePage
+/// Implements IPageInfo for header integration
 /// </summary>
-public partial class HomeViewModel : ObservableObject, INavigationAware
+public partial class HomeViewModel : ObservableObject, INavigationAware, IPageInfo
 {
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
@@ -109,6 +110,14 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
 
     public Visibility IsEmpty => Properties.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.Home;
+    public string PageTitle => "HEIMATPLATZ";
+    public Type? MainHeaderViewModel => typeof(HomeFilterBarViewModel);
+
+    #endregion
+
     public HomeViewModel(
         IAuthService authService,
         INavigator navigator,
@@ -139,37 +148,13 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
     #region INavigationAware Implementation
 
     /// <summary>
-    /// Called by BasePage when navigated to (via INavigationAware)
+    /// Called by BasePage when navigated to (via INavigationAware).
+    /// Header updates are now automatic via PageNavigatedEvent from BasePage.
     /// </summary>
-    public async void OnNavigatedTo(object? parameter)
+    public void OnNavigatedTo(object? parameter)
     {
-        await SetupPageHeaderAsync();
-    }
-
-    /// <summary>
-    /// Sets up page header via Mediator event and navigates to HeaderCenter Region
-    /// </summary>
-    private async Task SetupPageHeaderAsync()
-    {
-        // HomePage zeigt "HEIMATPLATZ" als Titel (null = Fallback)
-        await _mediator.Publish(new PageHeaderChangedEvent(null));
-
-        // Navigate to HomeFilterBar in the HeaderMain region
-        // Use absolute path from Root since HeaderMain is in a different region hierarchy
-        // Path: Root -> Main -> HeaderMain
-        try
-        {
-            System.Diagnostics.Debug.WriteLine("[HomeViewModel] Navigating to HeaderMain with absolute path...");
-            var response = await _navigator.NavigateRouteAsync(
-                this,
-                route: "HeaderMain",
-                qualifier: Qualifiers.Root + "/Main");
-            System.Diagnostics.Debug.WriteLine($"[HomeViewModel] Navigation result: Success={response?.Success}, Route={response?.Route}");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[HomeViewModel] Navigation to HeaderMain failed: {ex.Message}");
-        }
+        // No manual navigation needed - BasePage publishes PageNavigatedEvent
+        // which MainPage handles to navigate to HeaderMain with HomeFilterBarViewModel
     }
 
     /// <summary>
@@ -177,8 +162,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
     /// </summary>
     public void OnNavigatedFrom()
     {
-        // HeaderMain will be cleared/replaced when next page navigates there
-        // or stays with current content if next page doesn't navigate to HeaderMain
+        // Cleanup if needed
     }
 
     #endregion

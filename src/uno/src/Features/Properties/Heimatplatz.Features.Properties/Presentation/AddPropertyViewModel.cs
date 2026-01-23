@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Manual;
+using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
@@ -11,8 +12,9 @@ namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel for AddPropertyPage
+/// Implements IPageInfo for header integration (shows back button)
 /// </summary>
-public partial class AddPropertyViewModel : ObservableObject
+public partial class AddPropertyViewModel : ObservableObject, IPageInfo
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
@@ -162,6 +164,14 @@ public partial class AddPropertyViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _showSuccess;
+
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.Form;
+    public string PageTitle => IsEditMode ? "Immobilie bearbeiten" : "Immobilie hinzufügen";
+    public Type? MainHeaderViewModel => null;
+
+    #endregion
 
     public AddPropertyViewModel(
         IAuthService authService,

@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Events;
+using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
@@ -62,72 +62,7 @@ public partial class BlockedViewModel : PropertyCollectionViewModelBase
         ILogger<BlockedViewModel> logger)
         : base(authService, mediator, navigator, logger)
     {
-        // Update header content when selection state changes
-        PropertyChanged += (s, e) =>
-        {
-            if (e.PropertyName is nameof(IsSelectionMode) or nameof(SelectedCount) or nameof(IsEmpty))
-            {
-                // Re-publish header event with updated content
-                SetupPageHeader();
-            }
-        };
-    }
-
-    /// <summary>
-    /// Override: Creates header content with dynamic action buttons based on selection state
-    /// </summary>
-    protected override object? GetHeaderContent()
-    {
-        if (IsEmpty)
-            return null;
-
-        // Create action buttons programmatically
-        var stackPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8
-        };
-
-        // Selection count text (only visible in selection mode with selections)
-        if (IsSelectionMode && SelectedCount > 0)
-        {
-            var selectedText = new TextBlock
-            {
-                Text = SelectedCountText,
-                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"],
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 0, 8, 0)
-            };
-            selectedText.SetValue(TextBlock.StyleProperty, Application.Current.Resources["BodyMediumTextBlockStyle"]);
-            stackPanel.Children.Add(selectedText);
-        }
-
-        // Bulk unblock button (only visible when items are selected)
-        if (ShowBulkUnblockButton)
-        {
-            var bulkUnblockButton = new Button
-            {
-                Content = "Alle entblocken",
-                Command = BulkUnblockCommand,
-                Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ErrorBrush"],
-                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChipSelectedForegroundBrush"],
-                Padding = new Thickness(16, 8, 16, 8),
-                CornerRadius = (CornerRadius)Application.Current.Resources["ControlCornerRadius"]
-            };
-            stackPanel.Children.Add(bulkUnblockButton);
-        }
-
-        // Selection mode toggle button
-        var toggleButton = new Button
-        {
-            Content = SelectionModeButtonText,
-            Command = ToggleSelectionModeCommand,
-            Padding = new Thickness(16, 8, 16, 8)
-        };
-        toggleButton.SetValue(Button.StyleProperty, Application.Current.Resources["OutlinedButtonStyle"]);
-        stackPanel.Children.Add(toggleButton);
-
-        return stackPanel;
+        // Header setup is now automatic via PageNavigatedEvent from BasePage
     }
 
     /// <summary>

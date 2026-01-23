@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Events;
+using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
@@ -17,8 +17,9 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// Base ViewModel for property collection pages (Favorites, Blocked).
 /// Provides common functionality for loading, displaying, and removing properties from collections.
 /// Implements INavigationAware for automatic lifecycle handling via BasePage.
+/// Implements IPageInfo for header integration.
 /// </summary>
-public abstract partial class PropertyCollectionViewModelBase : ObservableObject, INavigationAware
+public abstract partial class PropertyCollectionViewModelBase : ObservableObject, INavigationAware, IPageInfo
 {
     protected readonly IAuthService AuthService;
     protected readonly IMediator Mediator;
@@ -39,6 +40,10 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     private bool _isEmpty = true;
 
     public bool IsNotEmpty => !IsEmpty;
+
+    // IPageInfo implementation - List pages show hamburger button
+    public virtual PageType PageType => PageType.List;
+    public virtual Type? MainHeaderViewModel => null;
 
     // Abstract properties for UI texts (to be implemented by derived classes)
     public abstract string PageTitle { get; }
@@ -112,12 +117,13 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     #region INavigationAware Implementation
 
     /// <summary>
-    /// Called by BasePage when navigated to (via INavigationAware)
+    /// Called by BasePage when navigated to (via INavigationAware).
+    /// Header setup is automatic via PageNavigatedEvent from BasePage.
     /// </summary>
     public void OnNavigatedTo(object? parameter)
     {
         Logger.LogInformation("[{PageTitle}] OnNavigatedTo called", PageTitle);
-        SetupPageHeader();
+        // Header setup is now automatic via PageNavigatedEvent from BasePage
         _ = LoadPropertiesAsync();
     }
 
@@ -137,25 +143,9 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     public async Task OnNavigatedToAsync()
     {
         Logger.LogInformation("[{PageTitle}] OnNavigatedToAsync called", PageTitle);
-        SetupPageHeader();
+        // Header setup is now automatic via PageNavigatedEvent from BasePage
         await LoadPropertiesAsync();
     }
-
-    /// <summary>
-    /// Sets up the page header by publishing a PageHeaderChangedEvent.
-    /// Override in derived classes to provide custom header content.
-    /// </summary>
-    public virtual void SetupPageHeader()
-    {
-        Logger.LogInformation("[{PageTitle}] SetupPageHeader - Publishing event", PageTitle);
-        _ = Mediator.Publish(new PageHeaderChangedEvent(PageTitle, GetHeaderContent()));
-    }
-
-    /// <summary>
-    /// Creates header content for the page. Override to provide custom content.
-    /// Default returns null (no additional header content).
-    /// </summary>
-    protected virtual object? GetHeaderContent() => null;
 
     /// <summary>
     /// Fetches properties from the API. To be implemented by derived classes.

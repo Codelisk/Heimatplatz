@@ -23,12 +23,12 @@
                       Foreground="{ThemeResource OnSurfaceBrush}" />
         </Button>
 
-        <!-- Back Button (Normal Mode) -->
+        <!-- Back Button (Detail/Form Mode) -->
         <Button x:Name="BackButton"
                 Style="{StaticResource AppHeaderNavButtonStyle}"
                 Padding="8"
                 VerticalAlignment="Center"
-                Visibility="{Binding IsNormalMode}"
+                Visibility="{Binding IsBackMode}"
                 Command="{Binding GoBackCommand}"
                 AutomationProperties.AutomationId="AppHeaderLeft_BackButton">
             <FontIcon Glyph="&#xE72B;"

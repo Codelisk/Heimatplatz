@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
@@ -11,9 +12,10 @@ namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel fuer die PropertyDetailPage
+/// Implements IPageInfo for header integration (shows back button)
 /// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public partial class PropertyDetailViewModel : ObservableObject, INavigationAware
+public partial class PropertyDetailViewModel : ObservableObject, INavigationAware, IPageInfo
 {
     private readonly IClipboardService _clipboardService;
     private readonly IMediator _mediator;
@@ -51,6 +53,14 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
 
     [ObservableProperty]
     private bool _isBlocked;
+
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.Detail;
+    public string PageTitle => Property?.Title ?? "Immobilie";
+    public Type? MainHeaderViewModel => null;
+
+    #endregion
 
     /// <summary>
     /// Event that is raised when the property has been blocked and navigation should occur

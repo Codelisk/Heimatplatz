@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Events;
+using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
@@ -17,9 +17,10 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// ViewModel for MyPropertiesPage - manages user's own properties
 /// Implements INavigationAware for automatic lifecycle handling via BasePage
+/// Implements IPageInfo for header integration
 /// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public partial class MyPropertiesViewModel : ObservableObject, INavigationAware
+public partial class MyPropertiesViewModel : ObservableObject, INavigationAware, IPageInfo
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
@@ -40,6 +41,14 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware
     private bool _isEmpty;
 
     public bool IsNotEmpty => !IsEmpty;
+
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.List;
+    public string PageTitle => "Meine Immobilien";
+    public Type? MainHeaderViewModel => null;
+
+    #endregion
 
     public MyPropertiesViewModel(
         IAuthService authService,
@@ -86,12 +95,13 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware
     #region INavigationAware Implementation
 
     /// <summary>
-    /// Called by BasePage when navigated to (via INavigationAware)
+    /// Called by BasePage when navigated to (via INavigationAware).
+    /// Header setup is automatic via PageNavigatedEvent from BasePage.
     /// </summary>
     public void OnNavigatedTo(object? parameter)
     {
         _logger.LogInformation("[MyProperties] OnNavigatedTo called");
-        SetupPageHeader();
+        // Header setup is now automatic via PageNavigatedEvent from BasePage
         _ = LoadPropertiesAsync();
     }
 
@@ -106,20 +116,12 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware
     #endregion
 
     /// <summary>
-    /// Sets up page header via Mediator event
-    /// </summary>
-    public void SetupPageHeader()
-    {
-        _logger.LogInformation("[MyProperties] SetupPageHeader - Publishing PageHeaderChangedEvent");
-        _ = _mediator.Publish(new PageHeaderChangedEvent("Meine Immobilien"));
-    }
-
-    /// <summary>
     /// Called when the page is navigated to (legacy - prefer INavigationAware)
     /// </summary>
     public async Task OnNavigatedToAsync()
     {
         _logger.LogInformation("[MyProperties] OnNavigatedToAsync called");
+        // Header setup is now automatic via PageNavigatedEvent from BasePage
         await LoadPropertiesAsync();
     }
 

@@ -105,8 +105,8 @@ public partial class App : Application, IApplicationWithServices
         views.Register(
             new ViewMap(ViewModel: typeof(ShellViewModel)),
             new ViewMap<MainPage, MainViewModel>(),
-            new ViewMap<AppHeaderLeft, AppHeaderViewModel>(),
-            new ViewMap<AppHeaderRight, AppHeaderViewModel>(),
+            new ViewMap<AppHeaderLeft, AppHeaderLeftViewModel>(),
+            new ViewMap<AppHeaderRight, AppHeaderRightViewModel>(),
             new ViewMap<HomePage, HomeViewModel>(),
             new ViewMap<RegisterPage, RegisterViewModel>(),
             new ViewMap<LoginPage, LoginViewModel>(),
