@@ -5,6 +5,7 @@ using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
 using Shiny.Mediator;
@@ -24,6 +25,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
     private readonly IFilterPreferencesService _filterPreferencesService;
+    private readonly IFilterStateService _filterStateService;
     private readonly IMediator _mediator;
 
     [ObservableProperty]
@@ -111,13 +113,18 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
         IAuthService authService,
         INavigator navigator,
         IFilterPreferencesService filterPreferencesService,
+        IFilterStateService filterStateService,
         IMediator mediator)
     {
         _authService = authService;
         _navigator = navigator;
         _filterPreferencesService = filterPreferencesService;
+        _filterStateService = filterStateService;
         _mediator = mediator;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        // Subscribe to filter state changes from HeaderFilterBar
+        _filterStateService.FilterStateChanged += OnFilterStateChanged;
 
         UpdateAuthState();
         LoadTestData();
@@ -134,18 +141,35 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
     /// <summary>
     /// Called by BasePage when navigated to (via INavigationAware)
     /// </summary>
-    public void OnNavigatedTo(object? parameter)
+    public async void OnNavigatedTo(object? parameter)
     {
-        SetupPageHeader();
+        await SetupPageHeaderAsync();
     }
 
     /// <summary>
-    /// Sets up page header via Mediator event
+    /// Sets up page header via Mediator event and navigates to HeaderCenter Region
     /// </summary>
-    public void SetupPageHeader()
+    private async Task SetupPageHeaderAsync()
     {
         // HomePage zeigt "HEIMATPLATZ" als Titel (null = Fallback)
-        _ = _mediator.Publish(new PageHeaderChangedEvent(null));
+        await _mediator.Publish(new PageHeaderChangedEvent(null));
+
+        // Navigate to HomeFilterBar in the HeaderMain region
+        // Use absolute path from Root since HeaderMain is in a different region hierarchy
+        // Path: Root -> Main -> HeaderMain
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[HomeViewModel] Navigating to HeaderMain with absolute path...");
+            var response = await _navigator.NavigateRouteAsync(
+                this,
+                route: "HeaderMain",
+                qualifier: Qualifiers.Root + "/Main");
+            System.Diagnostics.Debug.WriteLine($"[HomeViewModel] Navigation result: Success={response?.Success}, Route={response?.Route}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[HomeViewModel] Navigation to HeaderMain failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -153,6 +177,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
     /// </summary>
     public void OnNavigatedFrom()
     {
+        // HeaderMain will be cleared/replaced when next page navigates there
+        // or stays with current content if next page doesn't navigate to HeaderMain
     }
 
     #endregion
@@ -166,6 +192,31 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
             _ = LoadFilterPreferencesAsync();
         }
     }
+
+    private void OnFilterStateChanged(object? sender, EventArgs e)
+    {
+        // Sync local state from FilterStateService (when changed from HeaderFilterBar)
+        _isSyncingFromService = true;
+        try
+        {
+            var state = _filterStateService.CurrentState;
+            IsAllSelected = state.IsAllSelected;
+            IsHausSelected = state.IsHausSelected;
+            IsGrundstueckSelected = state.IsGrundstueckSelected;
+            IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
+            SelectedAgeFilter = state.SelectedAgeFilter;
+            SelectedOrte = state.SelectedOrte.ToList();
+
+            // Re-apply filters with synced state
+            ApplyFiltersInternal();
+        }
+        finally
+        {
+            _isSyncingFromService = false;
+        }
+    }
+
+    private bool _isSyncingFromService;
 
     private async Task LoadFilterPreferencesAsync()
     {
@@ -290,7 +341,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
 
     partial void OnIsAllSelectedChanged(bool value)
     {
-        if (_isApplyingPreferences) return;
+        if (_isApplyingPreferences || _isSyncingFromService) return;
 
         if (value)
         {
@@ -303,7 +354,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
 
     partial void OnIsHausSelectedChanged(bool value)
     {
-        if (_isApplyingPreferences) return;
+        if (_isApplyingPreferences || _isSyncingFromService) return;
 
         if (value)
         {
@@ -322,7 +373,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
 
     partial void OnIsGrundstueckSelectedChanged(bool value)
     {
-        if (_isApplyingPreferences) return;
+        if (_isApplyingPreferences || _isSyncingFromService) return;
 
         if (value)
         {
@@ -341,7 +392,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
 
     partial void OnIsZwangsversteigerungSelectedChanged(bool value)
     {
-        if (_isApplyingPreferences) return;
+        if (_isApplyingPreferences || _isSyncingFromService) return;
 
         if (value)
         {
@@ -359,6 +410,23 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
     }
 
     private void ApplyFilters()
+    {
+        // Update FilterStateService (if not syncing from it)
+        if (!_isSyncingFromService && !_isApplyingPreferences)
+        {
+            _filterStateService.UpdateFilters(
+                IsAllSelected,
+                IsHausSelected,
+                IsGrundstueckSelected,
+                IsZwangsversteigerungSelected,
+                SelectedAgeFilter,
+                SelectedOrte);
+        }
+
+        ApplyFiltersInternal();
+    }
+
+    private void ApplyFiltersInternal()
     {
         System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Called. SelectedOrte.Count = {SelectedOrte.Count}");
         var filtered = _allProperties.AsEnumerable();
@@ -404,6 +472,10 @@ public partial class HomeViewModel : ObservableObject, INavigationAware
         {
             Properties.Add(property);
         }
+
+        // Update result count in FilterStateService
+        _filterStateService.SetResultCount(Properties.Count);
+
         OnPropertyChanged(nameof(IsEmpty));
     }
 

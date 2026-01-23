@@ -25,78 +25,13 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Desktop Filter (ab Wide 905px+) -->
-                <Border Grid.Row="0"
-                        Background="{ThemeResource SurfaceBrush}"
-                        BorderBrush="{ThemeResource BorderBrush}"
-                        BorderThickness="0,0,0,1"
-                        Padding="20,8"
-                        Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
-                        AutomationProperties.AutomationId="HomePage_DesktopFilter">
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Filter Controls -->
-                        <StackPanel Grid.Column="0"
-                                    Orientation="Horizontal"
-                                    Spacing="8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.AutomationId="HomePage_FilterArea">
-
-                            <!-- Ort-Picker (hierarchisch) -->
-                            <controls:OrtPicker x:Name="OrtPickerControl"
-                                                MinWidth="170"
-                                                Bezirke="{Binding Bezirke}"
-                                                SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
-                                                AutomationProperties.AutomationId="HomePage_OrtPicker" />
-
-                            <!-- Alters-Filter -->
-                            <controls:AgeFilterPicker MinWidth="150"
-                                                      SelectedAgeFilter="{Binding SelectedAgeFilter, Mode=TwoWay}"
-                                                      AutomationProperties.AutomationId="HomePage_AgeFilterPicker" />
-
-                            <!-- Filter Chips -->
-                            <StackPanel Orientation="Horizontal"
-                                        Spacing="6"
-                                        AutomationProperties.AutomationId="HomePage_FilterChips">
-                                <controls:FilterChip Label="Alle"
-                                                     IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
-                                                     AutomationProperties.AutomationId="HomePage_FilterChip_All" />
-                                <controls:FilterChip Label="Haus"
-                                                     IsSelected="{Binding IsHausSelected, Mode=TwoWay}"
-                                                     AutomationProperties.AutomationId="HomePage_FilterChip_Haus" />
-                                <controls:FilterChip Label="Grund"
-                                                     IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}"
-                                                     AutomationProperties.AutomationId="HomePage_FilterChip_Grundstueck" />
-                                <controls:FilterChip Label="ZV"
-                                                     IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
-                                                     AutomationProperties.AutomationId="HomePage_FilterChip_Zwangsversteigerung" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Ergebnis-Counter -->
-                        <TextBlock Grid.Column="1"
-                                   VerticalAlignment="Center"
-                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                   FontSize="13"
-                                   AutomationProperties.AutomationId="HomePage_ResultCount">
-                            <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
-                            <Run Text=" Objekte" />
-                        </TextBlock>
-                    </Grid>
-                </Border>
+                <!-- Desktop Filter ist jetzt im AppHeader (HeaderCenter Region) -->
 
                 <!-- Mobile Filter (unter 905px) -->
-                <Border Grid.Row="1"
+                <Border Grid.Row="0"
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
@@ -139,7 +74,7 @@
                 </Border>
 
                 <!-- Content: Responsives Grid Layout -->
-                <ScrollViewer Grid.Row="2"
+                <ScrollViewer Grid.Row="1"
                               Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
                               AutomationProperties.AutomationId="HomePage_ScrollViewer">
                     <StackPanel>
@@ -189,7 +124,7 @@
                 </ScrollViewer>
 
                 <!-- Empty State: Schlicht -->
-                <StackPanel Grid.Row="2"
+                <StackPanel Grid.Row="1"
                             Visibility="{Binding IsEmpty}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"

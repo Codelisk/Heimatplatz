@@ -1,5 +1,4 @@
 using Heimatplatz.Features.Properties.Contracts.Models;
-using Heimatplatz.Features.Properties.Controls;
 using Microsoft.UI.Xaml.Controls;
 using UnoFramework.Pages;
 
@@ -8,6 +7,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// HomePage - Hauptseite mit Immobilien-Liste
 /// ViewModel wird via Uno.Extensions.Navigation automatisch injiziert
+/// Page Header wird via INavigationAware.OnNavigatedTo in HomeViewModel gesetzt
 /// </summary>
 public sealed partial class HomePage : BasePage
 {
@@ -16,13 +16,6 @@ public sealed partial class HomePage : BasePage
     public HomePage()
     {
         this.InitializeComponent();
-        this.Loaded += OnPageLoaded;
-    }
-
-    private void OnPageLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        // Directly trigger page header setup when page loads
-        ViewModel?.SetupPageHeader();
     }
 
     private void OnPropertyCardClicked(object sender, PropertyListItemDto property)

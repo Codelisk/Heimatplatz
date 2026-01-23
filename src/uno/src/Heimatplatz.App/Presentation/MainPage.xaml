@@ -10,16 +10,14 @@
 
     <!--
     ============================================================================
-    NAVIGATIONVIEW WITH REGIONS
+    LAYOUT WITH 3 HEADER REGIONS AND NAVIGATIONVIEW
     ============================================================================
-    MainPage uses NavigationView for hamburger menu navigation with regions.
+    Row 0: Header with 3 regions: HeaderLeft (Auto) | HeaderMain (*) | HeaderRight (Auto)
+    Row 1: NavigationView with content region
 
-    NavigationView provides:
-    - Hamburger menu with adaptive behavior
-    - NavigationViewItems with Region.Name for navigation
-    - Content area that acts as a region for displaying pages
-
-    Nested routes under /Main will be displayed in the NavigationView content region.
+    HeaderLeft: Hamburger/Back button + Logo/Title
+    HeaderMain: Page-specific header content (e.g., HomeFilterBar) - only visible on Wide screens
+    HeaderRight: Auth buttons (Login/Register or User Profile)
     ============================================================================
     -->
 
@@ -29,13 +27,46 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- App Header Region - Navigation erfolgt im Code-Behind, DataContext wird automatisch via ViewMap gesetzt -->
-        <ContentControl Grid.Row="0"
-                        uen:Region.Attached="True"
-                        uen:Region.Name="AppHeader"
-                        utu:SafeArea.Insets="Top"
-                        HorizontalContentAlignment="Stretch"
-                        AutomationProperties.AutomationId="MainPage.AppHeader" />
+        <!-- Row 0: Header with 3 Regions -->
+        <Border Grid.Row="0"
+                Background="{ThemeResource SurfaceBrush}"
+                BorderBrush="{ThemeResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="{utu:Responsive Narrowest='4,10', Normal='8,12'}"
+                utu:SafeArea.Insets="Top"
+                AutomationProperties.AutomationId="MainPage.HeaderContainer">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />  <!-- HeaderLeft -->
+                    <ColumnDefinition Width="*" />     <!-- HeaderMain -->
+                    <ColumnDefinition Width="Auto" />  <!-- HeaderRight -->
+                </Grid.ColumnDefinitions>
+
+                <!-- HeaderLeft Region: Hamburger/Back + Logo -->
+                <ContentControl Grid.Column="0"
+                                uen:Region.Attached="True"
+                                uen:Region.Name="HeaderLeft"
+                                VerticalContentAlignment="Center"
+                                AutomationProperties.AutomationId="MainPage.HeaderLeft" />
+
+                <!-- HeaderMain Region: Page-specific content (Wide screens only) -->
+                <ContentControl Grid.Column="1"
+                                uen:Region.Attached="True"
+                                uen:Region.Name="HeaderMain"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
+                                AutomationProperties.AutomationId="MainPage.HeaderMain" />
+
+                <!-- HeaderRight Region: Auth buttons -->
+                <ContentControl Grid.Column="2"
+                                uen:Region.Attached="True"
+                                uen:Region.Name="HeaderRight"
+                                VerticalContentAlignment="Center"
+                                AutomationProperties.AutomationId="MainPage.HeaderRight" />
+            </Grid>
+        </Border>
 
         <!-- NavigationView with Region-based navigation -->
         <NavigationView x:Name="NavView"

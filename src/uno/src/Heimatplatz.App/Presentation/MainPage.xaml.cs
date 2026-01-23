@@ -15,13 +15,14 @@ public sealed partial class MainPage : Page, IEventHandler<ToggleNavigationPaneE
     {
         this.InitializeComponent();
 
-        // Initial zur AppHeader Region navigieren - DataContext wird automatisch via ViewMap gesetzt
+        // Initial zu HeaderLeft und HeaderRight Regions navigieren - DataContext wird automatisch via ViewMap gesetzt
         Loaded += async (_, _) =>
         {
             var navigator = this.Navigator();
             if (navigator != null)
             {
-                await navigator.NavigateRouteAsync(this, "./AppHeader/AppHeader");
+                await navigator.NavigateRouteAsync(this, "./HeaderLeft/HeaderLeft");
+                await navigator.NavigateRouteAsync(this, "./HeaderRight/HeaderRight");
             }
         };
     }

@@ -1,0 +1,77 @@
+<UserControl x:Class="Heimatplatz.App.Controls.AppHeaderRight"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Heimatplatz.App.Controls"
+             xmlns:utu="using:Uno.Toolkit.UI"
+             xmlns:uen="using:Uno.Extensions.Navigation.UI">
+
+    <UserControl.Resources>
+        <!-- Logout MenuFlyout for authenticated users -->
+        <MenuFlyout x:Key="LogoutMenuFlyout"
+                    Placement="BottomEdgeAlignedRight">
+            <MenuFlyout.MenuFlyoutPresenterStyle>
+                <Style TargetType="MenuFlyoutPresenter">
+                    <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
+                    <Setter Property="BorderBrush" Value="{ThemeResource BorderBrush}" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="Padding" Value="0,4" />
+                    <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
+                </Style>
+            </MenuFlyout.MenuFlyoutPresenterStyle>
+            <MenuFlyoutItem x:Name="LogoutMenuItem"
+                            Text="Abmelden"
+                            Command="{Binding LogoutCommand}"
+                            AutomationProperties.AutomationId="AppHeaderRight_LogoutMenuItem">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xF3B1;" FontSize="14" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+        </MenuFlyout>
+    </UserControl.Resources>
+
+    <!-- Right Header: Auth Buttons -->
+    <StackPanel Orientation="Horizontal"
+                Spacing="12"
+                VerticalAlignment="Center"
+                AutomationProperties.AutomationId="AppHeaderRight_Root">
+
+        <!-- Authenticated: User Profile Button -->
+        <Button Visibility="{Binding IsAuthenticated}"
+                Style="{StaticResource AppHeaderNavButtonStyle}"
+                Flyout="{StaticResource LogoutMenuFlyout}"
+                Padding="8"
+                AutomationProperties.AutomationId="AppHeaderRight_UserButton">
+            <FontIcon Glyph="&#xE77B;"
+                      FontSize="20"
+                      Foreground="{ThemeResource OnSurfaceBrush}" />
+        </Button>
+
+        <!-- Not Authenticated: Login + Register -->
+        <StackPanel Orientation="Horizontal"
+                    Spacing="12"
+                    Visibility="{Binding IsNotAuthenticated}"
+                    AutomationProperties.AutomationId="AppHeaderRight_AuthButtons">
+
+            <!-- Login Button -->
+            <Button Content="Anmelden"
+                    uen:Navigation.Request="Login"
+                    Style="{StaticResource TextButtonStyle}"
+                    FontSize="13"
+                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                    Padding="8,6"
+                    AutomationProperties.AutomationId="AppHeaderRight_LoginButton" />
+
+            <!-- Register Button (prominent) -->
+            <Button Content="Registrieren"
+                    uen:Navigation.Request="Register"
+                    Style="{StaticResource FilledButtonStyle}"
+                    Background="{ThemeResource PrimaryButtonBackgroundBrush}"
+                    Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    Padding="12,8"
+                    CornerRadius="{StaticResource RadiusSm}"
+                    AutomationProperties.AutomationId="AppHeaderRight_RegisterButton" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

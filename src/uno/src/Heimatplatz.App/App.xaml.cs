@@ -6,16 +6,18 @@ using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Notifications.Presentation;
 using Heimatplatz.Features.Notifications.Services;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Presentation;
 using Shiny.Mediator;
 using Uno.Resizetizer;
+using UnoFramework.Contracts.Application;
 #if DEBUG
 using Heimatplatz.Features.Debug.Presentation;
 #endif
 
 namespace Heimatplatz.App;
 
-public partial class App : Application
+public partial class App : Application, IApplicationWithServices
 {
     public App()
     {
@@ -25,6 +27,12 @@ public partial class App : Application
     public static Window? MainWindow { get; private set; }
 
     public IHost? Host { get; private set; }
+
+    /// <summary>
+    /// Gets the service provider for the application.
+    /// Implements IApplicationWithServices for framework-level service access.
+    /// </summary>
+    public IServiceProvider? Services => Host?.Services;
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
@@ -97,7 +105,8 @@ public partial class App : Application
         views.Register(
             new ViewMap(ViewModel: typeof(ShellViewModel)),
             new ViewMap<MainPage, MainViewModel>(),
-            new ViewMap<AppHeader, AppHeaderViewModel>(),
+            new ViewMap<AppHeaderLeft, AppHeaderViewModel>(),
+            new ViewMap<AppHeaderRight, AppHeaderViewModel>(),
             new ViewMap<HomePage, HomeViewModel>(),
             new ViewMap<RegisterPage, RegisterViewModel>(),
             new ViewMap<LoginPage, LoginViewModel>(),
@@ -109,7 +118,8 @@ public partial class App : Application
             new ViewMap<PropertyDetailPage, PropertyDetailViewModel>(),
             new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>(),
             new ViewMap<FilterPreferencesPage, FilterPreferencesViewModel>(),
-            new ViewMap<PrivacyPolicyPage, PrivacyPolicyViewModel>()
+            new ViewMap<PrivacyPolicyPage, PrivacyPolicyViewModel>(),
+            new ViewMap<HomeFilterBar, HomeFilterBarViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
 #endif
@@ -129,8 +139,11 @@ public partial class App : Application
 #endif
                         Nested:
                         [
-                            // AppHeader als eigene Region - damit UnoEventCollector den ViewModel findet
-                            new ("AppHeader", View: views.FindByViewModel<AppHeaderViewModel>()),
+                            // Header Regions - 3-column layout: Left | Main | Right
+                            new ("HeaderLeft", View: views.FindByView<AppHeaderLeft>()),
+                            new ("HeaderRight", View: views.FindByView<AppHeaderRight>()),
+                            // HeaderMain Region - wird NUR bei expliziter Navigation geladen (e.g., HomeFilterBar)
+                            new ("HeaderMain", View: views.FindByViewModel<HomeFilterBarViewModel>()),
                             new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
                             new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
                             new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),
