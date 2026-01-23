@@ -29,11 +29,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- App Header Region - DataContext wird automatisch via ViewMap gesetzt -->
+        <!-- App Header Region - Navigation erfolgt im Code-Behind, DataContext wird automatisch via ViewMap gesetzt -->
         <ContentControl Grid.Row="0"
                         uen:Region.Attached="True"
                         uen:Region.Name="AppHeader"
-                        uen:Navigation.Request="AppHeader"
                         utu:SafeArea.Insets="Top"
                         HorizontalContentAlignment="Stretch"
                         AutomationProperties.AutomationId="MainPage.AppHeader" />

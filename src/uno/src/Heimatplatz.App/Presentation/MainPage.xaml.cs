@@ -1,6 +1,7 @@
 using Heimatplatz.Events;
 using Microsoft.UI.Xaml.Controls;
 using Shiny.Mediator;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.App.Presentation;
 
@@ -13,6 +14,16 @@ public sealed partial class MainPage : Page, IEventHandler<ToggleNavigationPaneE
     public MainPage()
     {
         this.InitializeComponent();
+
+        // Initial zur AppHeader Region navigieren - DataContext wird automatisch via ViewMap gesetzt
+        Loaded += async (_, _) =>
+        {
+            var navigator = this.Navigator();
+            if (navigator != null)
+            {
+                await navigator.NavigateRouteAsync(this, "./AppHeader/AppHeader");
+            }
+        };
     }
 
     /// <summary>
