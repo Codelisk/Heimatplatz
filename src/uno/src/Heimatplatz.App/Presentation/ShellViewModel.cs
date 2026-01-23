@@ -1,3 +1,5 @@
+using Heimatplatz.Features.Debug.Presentation;
+
 namespace Heimatplatz.App.Presentation;
 
 public class ShellViewModel
@@ -13,7 +15,12 @@ public class ShellViewModel
 
     public async Task Start()
     {
-        // Navigation zur Default-Route (Main) - IsDefault in RouteMap bestimmt die Startseite
+#if DEBUG
+        // Im Debug-Modus zur DebugStartPage navigieren für schnelles Testen
+        await _navigator.NavigateViewModelAsync<DebugStartViewModel>(this);
+#else
+        // In Release zur MainPage navigieren
         await _navigator.NavigateViewModelAsync<MainViewModel>(this);
+#endif
     }
 }
