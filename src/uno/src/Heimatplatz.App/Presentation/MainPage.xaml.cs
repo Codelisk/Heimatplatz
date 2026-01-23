@@ -12,10 +12,12 @@ namespace Heimatplatz.App.Presentation;
 /// MainPage mit NavigationView und Header Regions.
 /// Handled ToggleNavigationPaneEvent vom AppHeaderLeft fuer den Hamburger Button.
 /// Handled PageNavigatedEvent fuer MainHeader Navigation.
+/// Handled NavigateBackInContentEvent fuer Zurueck-Navigation in der Content-Region.
 /// </summary>
 public sealed partial class MainPage : Page,
     IEventHandler<ToggleNavigationPaneEvent>,
-    IEventHandler<PageNavigatedEvent>
+    IEventHandler<PageNavigatedEvent>,
+    IEventHandler<NavigateBackInContentEvent>
 {
     public MainPage()
     {
@@ -46,6 +48,25 @@ public sealed partial class MainPage : Page,
     public new Task Handle(ToggleNavigationPaneEvent @event, IMediatorContext context, CancellationToken cancellationToken)
     {
         NavView.IsPaneOpen = !NavView.IsPaneOpen;
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Handled das NavigateBackInContentEvent - navigiert zurueck in der Content-Region
+    /// </summary>
+    public new Task Handle(NavigateBackInContentEvent @event, IMediatorContext context, CancellationToken cancellationToken)
+    {
+        var dispatcherQueue = DispatcherQueue;
+        dispatcherQueue?.TryEnqueue(async () =>
+        {
+            var navViewNavigator = NavView.Navigator();
+            if (navViewNavigator != null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainPage] Navigating back in Content region");
+                await navViewNavigator.NavigateBackAsync(NavView);
+            }
+        });
+
         return Task.CompletedTask;
     }
 

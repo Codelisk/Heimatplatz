@@ -148,12 +148,12 @@ public partial class AppHeaderLeftViewModel : ObservableObject,
     }
 
     /// <summary>
-    /// Navigates back in the navigation stack
+    /// Navigates back in the Content region via Mediator event
     /// </summary>
     [RelayCommand]
     private async Task GoBack()
     {
-        _logger.LogDebug("[AppHeaderLeft] GoBack");
-        await _navigator.NavigateBackAsync(this);
+        _logger.LogDebug("[AppHeaderLeft] GoBack - Publishing NavigateBackInContentEvent");
+        await _mediator.Publish(new NavigateBackInContentEvent());
     }
 }
