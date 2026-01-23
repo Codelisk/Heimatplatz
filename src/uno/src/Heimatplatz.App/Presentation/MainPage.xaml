@@ -51,9 +51,8 @@
                                 AutomationProperties.AutomationId="MainPage.HeaderLeft" />
 
                 <!-- HeaderMain Region: Page-specific content (Wide screens only) -->
-                <ContentControl Grid.Column="1"
-                                uen:Region.Attached="True"
-                                uen:Region.Name="HeaderMain"
+                <ContentControl x:Name="HeaderMainContent"
+                                Grid.Column="1"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"

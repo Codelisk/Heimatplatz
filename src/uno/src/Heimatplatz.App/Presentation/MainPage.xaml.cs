@@ -1,4 +1,5 @@
 using Heimatplatz.Events;
+using Heimatplatz.Features.Properties.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Shiny.Mediator;
@@ -67,9 +68,26 @@ public sealed partial class MainPage : Page,
 
     private Task HandleMainHeaderNavigation(Type? mainHeaderViewModel)
     {
-        // TODO: HeaderMain Navigation temporär deaktiviert - überschreibt Content-Region
-        // Die HeaderMain Region ist nur für Wide-Screens gedacht und wird später implementiert
-        System.Diagnostics.Debug.WriteLine($"[MainPage] HeaderMain navigation skipped for: {mainHeaderViewModel?.Name ?? "null"}");
+        // HeaderMain Content direkt setzen (nicht über Navigation, da das Content-Region überschreibt)
+        if (mainHeaderViewModel == typeof(HomeFilterBarViewModel))
+        {
+            // HomeFilterBar nur setzen wenn noch nicht vorhanden
+            if (HeaderMainContent.Content is not HomeFilterBar)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainPage] Setting HeaderMain content to HomeFilterBar");
+                HeaderMainContent.Content = new HomeFilterBar();
+            }
+        }
+        else
+        {
+            // HeaderMain leeren wenn kein ViewModel
+            if (HeaderMainContent.Content != null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainPage] Clearing HeaderMain content");
+                HeaderMainContent.Content = null;
+            }
+        }
+
         return Task.CompletedTask;
     }
 }
