@@ -129,21 +129,17 @@ public partial class App : Application, IApplicationWithServices
             new RouteMap("", View: views.FindByViewModel<ShellViewModel>(),
                 Nested:
                 [
-#if DEBUG
-                    new ("DebugStart", View: views.FindByViewModel<DebugStartViewModel>(), IsDefault: true),
-#endif
                     // Main acts as a region container for app content
                     new ("Main", View: views.FindByViewModel<MainViewModel>(),
-#if !DEBUG
                         IsDefault: true,
-#endif
                         Nested:
                         [
                             // Header Regions - 3-column layout: Left | Main | Right
                             new ("HeaderLeft", View: views.FindByView<AppHeaderLeft>()),
                             new ("HeaderRight", View: views.FindByView<AppHeaderRight>()),
-                            // HeaderMain Region - wird NUR bei expliziter Navigation geladen (e.g., HomeFilterBar)
+                            // HeaderMain Route - explicitly navigated when needed
                             new ("HeaderMain", View: views.FindByViewModel<HomeFilterBarViewModel>()),
+                            // Content pages - NavigationView routes to Content region
                             new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
                             new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
                             new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),
@@ -155,6 +151,9 @@ public partial class App : Application, IApplicationWithServices
                             new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
                             new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>())
                         ]),
+#if DEBUG
+                    new ("DebugStart", View: views.FindByViewModel<DebugStartViewModel>()),
+#endif
                     // Auth pages remain at Shell level (not in regions)
                     new ("Register", View: views.FindByViewModel<RegisterViewModel>()),
                     new ("Login", View: views.FindByViewModel<LoginViewModel>())

@@ -1,5 +1,4 @@
 using Heimatplatz.Events;
-using Heimatplatz.Features.Properties.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Shiny.Mediator;
@@ -17,13 +16,11 @@ public sealed partial class MainPage : Page,
     IEventHandler<ToggleNavigationPaneEvent>,
     IEventHandler<PageNavigatedEvent>
 {
-    private Type? _currentMainHeaderViewModel;
-
     public MainPage()
     {
         this.InitializeComponent();
 
-        // Initial zu HeaderLeft und HeaderRight Regions navigieren - DataContext wird automatisch via ViewMap gesetzt
+        // Initial zu HeaderLeft, HeaderRight Regions navigieren
         Loaded += async (_, _) =>
         {
             var navigator = this.Navigator();
@@ -31,6 +28,12 @@ public sealed partial class MainPage : Page,
             {
                 await navigator.NavigateRouteAsync(this, "./HeaderLeft/HeaderLeft");
                 await navigator.NavigateRouteAsync(this, "./HeaderRight/HeaderRight");
+            }
+
+            // Home-Item auswählen um Navigation auszulösen
+            if (NavView.MenuItems.Count > 0 && NavView.SelectedItem == null)
+            {
+                NavView.SelectedItem = NavView.MenuItems[0];
             }
         };
     }
@@ -62,34 +65,11 @@ public sealed partial class MainPage : Page,
         return Task.CompletedTask;
     }
 
-    private async Task HandleMainHeaderNavigation(Type? mainHeaderViewModel)
+    private Task HandleMainHeaderNavigation(Type? mainHeaderViewModel)
     {
-        // Skip if same ViewModel type (avoid unnecessary navigation)
-        if (_currentMainHeaderViewModel == mainHeaderViewModel)
-            return;
-
-        _currentMainHeaderViewModel = mainHeaderViewModel;
-
-        var navigator = this.Navigator();
-        if (navigator == null)
-            return;
-
-        if (mainHeaderViewModel != null)
-        {
-            // Navigate to HeaderMain region with the specified ViewModel
-            // Currently we only support HomeFilterBarViewModel
-            if (mainHeaderViewModel == typeof(HomeFilterBarViewModel))
-            {
-                System.Diagnostics.Debug.WriteLine("[MainPage] Navigating to HeaderMain with HomeFilterBar");
-                await navigator.NavigateRouteAsync(this, "./HeaderMain/HeaderMain");
-            }
-        }
-        else
-        {
-            // Clear HeaderMain region by navigating to empty
-            // Note: Uno Navigation doesn't have a clear method, so we leave it as is
-            // The region will just keep the last content (hidden on non-Wide screens anyway)
-            System.Diagnostics.Debug.WriteLine("[MainPage] MainHeaderViewModel is null - HeaderMain stays as is");
-        }
+        // TODO: HeaderMain Navigation temporär deaktiviert - überschreibt Content-Region
+        // Die HeaderMain Region ist nur für Wide-Screens gedacht und wird später implementiert
+        System.Diagnostics.Debug.WriteLine($"[MainPage] HeaderMain navigation skipped for: {mainHeaderViewModel?.Name ?? "null"}");
+        return Task.CompletedTask;
     }
 }
