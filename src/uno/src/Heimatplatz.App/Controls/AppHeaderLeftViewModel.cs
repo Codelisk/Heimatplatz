@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Events;
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Shiny.Mediator;
@@ -22,6 +23,7 @@ public partial class AppHeaderLeftViewModel : ObservableObject,
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly ILogger<AppHeaderLeftViewModel> _logger;
+    private readonly IAuthService _authService;
 
     /// <summary>
     /// Current page type - determines which button to show
@@ -38,15 +40,22 @@ public partial class AppHeaderLeftViewModel : ObservableObject,
     private string _currentTitle = "HEIMATPLATZ";
 
     /// <summary>
-    /// Visibility for hamburger button (Menu mode: Home, List, Settings)
+    /// Ob der Benutzer eingeloggt ist
     /// </summary>
-    public Visibility IsMenuMode => CurrentPageType switch
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMenuMode))]
+    private bool _isAuthenticated;
+
+    /// <summary>
+    /// Visibility for hamburger button (Menu mode: Home, List, Settings - nur wenn eingeloggt)
+    /// </summary>
+    public Visibility IsMenuMode => IsAuthenticated && CurrentPageType switch
     {
-        PageType.Home => Visibility.Visible,
-        PageType.List => Visibility.Visible,
-        PageType.Settings => Visibility.Visible,
-        _ => Visibility.Collapsed
-    };
+        PageType.Home => true,
+        PageType.List => true,
+        PageType.Settings => true,
+        _ => false
+    } ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>
     /// Visibility for back button (Back mode: Detail, Form)
@@ -61,14 +70,32 @@ public partial class AppHeaderLeftViewModel : ObservableObject,
     public AppHeaderLeftViewModel(
         IMediator mediator,
         INavigator navigator,
-        ILogger<AppHeaderLeftViewModel> logger)
+        ILogger<AppHeaderLeftViewModel> logger,
+        IAuthService authService)
     {
         _mediator = mediator;
         _navigator = navigator;
         _logger = logger;
+        _authService = authService;
+
+        IsAuthenticated = _authService.IsAuthenticated;
+        _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
         _logger.LogInformation("[AppHeaderLeft] Initialisiert - PageType: {PageType}, Title: {Title}",
             CurrentPageType, CurrentTitle);
+    }
+
+    private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
+    {
+        var dispatcherQueue = App.MainWindow?.DispatcherQueue;
+        if (dispatcherQueue != null)
+        {
+            dispatcherQueue.TryEnqueue(() => IsAuthenticated = isAuthenticated);
+        }
+        else
+        {
+            IsAuthenticated = isAuthenticated;
+        }
     }
 
     /// <summary>
