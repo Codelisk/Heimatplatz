@@ -59,11 +59,13 @@ public sealed partial class MainPage : Page,
         var dispatcherQueue = DispatcherQueue;
         dispatcherQueue?.TryEnqueue(async () =>
         {
+            // Navigate back to Home within the NavigationView
+            // Using NavigateRouteAsync instead of NavigateBackAsync to stay within the Main region
             var navViewNavigator = NavView.Navigator();
             if (navViewNavigator != null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainPage] Navigating back in Content region");
-                await navViewNavigator.NavigateBackAsync(NavView);
+                System.Diagnostics.Debug.WriteLine("[MainPage] Navigating to Home in Content region");
+                await navViewNavigator.NavigateRouteAsync(NavView, "Home");
             }
         });
 
