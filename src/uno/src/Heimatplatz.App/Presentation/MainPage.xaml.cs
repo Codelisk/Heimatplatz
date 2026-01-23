@@ -21,7 +21,7 @@ public sealed partial class MainPage : Page,
     {
         this.InitializeComponent();
 
-        // Initial zu HeaderLeft, HeaderRight Regions navigieren
+        // Initial zu HeaderLeft, HeaderRight Regions navigieren und Home laden
         Loaded += async (_, _) =>
         {
             var navigator = this.Navigator();
@@ -29,12 +29,13 @@ public sealed partial class MainPage : Page,
             {
                 await navigator.NavigateRouteAsync(this, "./HeaderLeft/HeaderLeft");
                 await navigator.NavigateRouteAsync(this, "./HeaderRight/HeaderRight");
-            }
 
-            // Home-Item auswählen um Navigation auszulösen
-            if (NavView.MenuItems.Count > 0 && NavView.SelectedItem == null)
-            {
-                NavView.SelectedItem = NavView.MenuItems[0];
+                // Explizit zur Home-Route navigieren (SelectedItem setzen reicht nicht)
+                var navViewNavigator = NavView.Navigator();
+                if (navViewNavigator != null)
+                {
+                    await navViewNavigator.NavigateRouteAsync(NavView, "Home");
+                }
             }
         };
     }
