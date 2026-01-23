@@ -2,21 +2,22 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
-using Heimatplatz.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Shiny.Mediator;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.App.Controls;
 
 /// <summary>
 /// ViewModel fuer den AppHeader
-/// Verwaltet den Authentifizierungsstatus und Logout-Funktionalitaet
+/// Verwaltet den Authentifizierungsstatus, Logout-Funktionalitaet und Page-Titel
+/// Empfaengt PageHeaderChangedEvent via Shiny Mediator
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public partial class AppHeaderViewModel : ObservableObject, IEventHandler<PageTitleChangedEvent>
+public partial class AppHeaderViewModel : ObservableObject, IEventHandler<PageHeaderChangedEvent>
 {
     private readonly IAuthService _authService;
+    private readonly IMediator _mediator;
     private readonly ILogger<AppHeaderViewModel> _logger;
 
     [ObservableProperty]
@@ -49,9 +50,11 @@ public partial class AppHeaderViewModel : ObservableObject, IEventHandler<PageTi
 
     public AppHeaderViewModel(
         IAuthService authService,
+        IMediator mediator,
         ILogger<AppHeaderViewModel> logger)
     {
         _authService = authService;
+        _mediator = mediator;
         _logger = logger;
 
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
@@ -101,19 +104,43 @@ public partial class AppHeaderViewModel : ObservableObject, IEventHandler<PageTi
     }
 
     /// <summary>
-    /// Handles the PageTitleChangedEvent
+    /// Toggles the NavigationView pane (Hamburger menu) via Mediator event
     /// </summary>
-    public Task Handle(PageTitleChangedEvent @event, IMediatorContext context, CancellationToken cancellationToken)
+    [RelayCommand]
+    private async Task ToggleNavigationPane()
     {
-        _logger.LogInformation("[AppHeader] ===== PageTitleChangedEvent RECEIVED! Title: {Title} =====", @event.Title);
-        _logger.LogInformation("[AppHeader] Before - CurrentTitle: {CurrentTitle}", CurrentTitle);
+        _logger.LogDebug("[AppHeader] ToggleNavigationPane");
+        await _mediator.Publish(new ToggleNavigationPaneEvent());
+    }
 
-        // Ensure property change happens on UI thread
-        Microsoft.UI.Xaml.Window.Current?.DispatcherQueue.TryEnqueue(() =>
+    /// <summary>
+    /// Handles the new PageHeaderChangedEvent - updates both title and header content
+    /// </summary>
+    public Task Handle(PageHeaderChangedEvent @event, IMediatorContext context, CancellationToken cancellationToken)
+    {
+        var newTitle = string.IsNullOrWhiteSpace(@event.Title) ? "HEIMATPLATZ" : @event.Title;
+        _logger.LogInformation("[AppHeader] PageHeaderChangedEvent - Title: {Title}, HasContent: {HasContent}",
+            newTitle, @event.HeaderContent != null);
+
+        // Ensure property changes happen on UI thread - use App.MainWindow for Uno Platform
+        var dispatcherQueue = App.MainWindow?.DispatcherQueue;
+        if (dispatcherQueue != null)
         {
-            CurrentTitle = @event.Title;
-            _logger.LogInformation("[AppHeader] After - CurrentTitle: {CurrentTitle} (on UI thread)", CurrentTitle);
-        });
+            dispatcherQueue.TryEnqueue(() =>
+            {
+                CurrentTitle = newTitle;
+                HeaderContent = @event.HeaderContent;
+                _logger.LogInformation("[AppHeader] Updated - Title: {Title}, HeaderContent: {HasContent}",
+                    CurrentTitle, HeaderContent != null);
+            });
+        }
+        else
+        {
+            // Fallback: update directly (may work if already on UI thread)
+            _logger.LogWarning("[AppHeader] DispatcherQueue is null, updating directly");
+            CurrentTitle = newTitle;
+            HeaderContent = @event.HeaderContent;
+        }
 
         return Task.CompletedTask;
     }

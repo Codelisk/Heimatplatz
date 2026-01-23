@@ -44,12 +44,12 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Links: Hamburger Button (immer sichtbar) -->
+            <!-- Links: Hamburger Button (immer sichtbar) - toggled NavigationPane via Event -->
             <Button x:Name="HamburgerButton"
                     Grid.Column="0"
                     Style="{StaticResource AppHeaderNavButtonStyle}"
                     Padding="8"
-                    Click="OnHamburgerButtonClick"
+                    Command="{Binding ToggleNavigationPaneCommand}"
                     AutomationProperties.AutomationId="AppHeader_HamburgerButton">
                 <FontIcon Glyph="&#xE700;"
                           FontSize="20"
@@ -65,14 +65,14 @@
                     uen:Navigation.Request="-/Home"
                     AutomationProperties.AutomationId="AppHeader_LogoButton">
                 <TextBlock x:Name="TitleText"
-                           Text="{Binding CurrentTitle, Mode=OneWay, FallbackValue='HEIMATPLATZ'}"
+                           Text="{Binding CurrentTitle, FallbackValue='HEIMATPLATZ'}"
                            Style="{StaticResource AppHeaderLogoStyle}"
                            FontSize="{utu:Responsive Narrowest=12, Normal=15}"
                            CharacterSpacing="150"
                            AutomationProperties.AutomationId="AppHeader_Title" />
             </Button>
 
-            <!-- Mittlerer Bereich: Content aus PageTitleService -->
+            <!-- Mittlerer Bereich: HeaderContent via PageHeaderChangedEvent -->
             <ContentPresenter Grid.Column="2"
                               Content="{Binding HeaderContent}"
                               HorizontalAlignment="Center"
