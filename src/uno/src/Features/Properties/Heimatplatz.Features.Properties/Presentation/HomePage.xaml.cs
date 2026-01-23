@@ -1,5 +1,6 @@
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml.Controls;
+using Uno.Extensions.Navigation;
 using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -18,9 +19,9 @@ public sealed partial class HomePage : BasePage
         this.InitializeComponent();
     }
 
-    private void OnPropertyCardClicked(object sender, PropertyListItemDto property)
+    private async void OnPropertyCardClicked(object sender, PropertyListItemDto property)
     {
-        Frame.Navigate(typeof(PropertyDetailPage), property.Id);
+        await this.Navigator()!.NavigateRouteAsync(this, "PropertyDetail", data: property.Id);
     }
 
     private async void OnPropertyBlocked(object sender, PropertyListItemDto property)

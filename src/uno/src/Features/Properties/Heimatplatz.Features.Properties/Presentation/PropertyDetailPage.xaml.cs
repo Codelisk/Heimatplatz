@@ -2,6 +2,7 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Uno.Extensions.Navigation;
 using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -27,21 +28,15 @@ public sealed partial class PropertyDetailPage : BasePage
         }
     }
 
-    private void OnPropertyBlocked(object? sender, EventArgs e)
+    private async void OnPropertyBlocked(object? sender, EventArgs e)
     {
         // Navigate back after blocking - the property is now hidden from the list
-        if (Frame.CanGoBack)
-        {
-            Frame.GoBack();
-        }
+        await this.Navigator()!.NavigateBackAsync(this);
     }
 
-    private void OnBackClick(object sender, RoutedEventArgs e)
+    private async void OnBackClick(object sender, RoutedEventArgs e)
     {
-        if (Frame.CanGoBack)
-        {
-            Frame.GoBack();
-        }
+        await this.Navigator()!.NavigateBackAsync(this);
     }
 
     private void OnImageSelectionChanged(object sender, SelectionChangedEventArgs e)
