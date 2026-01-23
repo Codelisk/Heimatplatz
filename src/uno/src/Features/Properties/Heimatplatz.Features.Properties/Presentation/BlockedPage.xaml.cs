@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -11,36 +11,16 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// Page for displaying and managing user's blocked properties.
 /// Blocked properties are hidden from the main property list.
 /// Supports bulk unblock via selection mode.
+/// Erbt von BasePage fuer automatisches INavigationAware Handling.
 /// </summary>
-public sealed partial class BlockedPage : Page
+public sealed partial class BlockedPage : BasePage
 {
     public BlockedPage()
     {
         this.InitializeComponent();
-        this.Loaded += OnLoaded;
     }
 
     public BlockedViewModel? ViewModel => DataContext as BlockedViewModel;
-
-    private async void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel != null)
-        {
-            ViewModel.SetupPageHeader();
-            await ViewModel.OnNavigatedToAsync();
-        }
-    }
-
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-
-        if (ViewModel != null)
-        {
-            ViewModel.SetupPageHeader();
-            await ViewModel.OnNavigatedToAsync();
-        }
-    }
 
     private void OnPropertyCardTapped(object sender, TappedRoutedEventArgs e)
     {

@@ -16,6 +16,13 @@ public sealed partial class HomePage : BasePage
     public HomePage()
     {
         this.InitializeComponent();
+        this.Loaded += OnPageLoaded;
+    }
+
+    private void OnPageLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        // Directly trigger page header setup when page loads
+        ViewModel?.SetupPageHeader();
     }
 
     private void OnPropertyCardClicked(object sender, PropertyListItemDto property)

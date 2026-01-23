@@ -3,7 +3,6 @@ using Heimatplatz.Features.Auth.Configuration;
 using Heimatplatz.Features.Notifications.Configuration;
 using Heimatplatz.Features.Properties.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shiny.Mediator.Infrastructure;
 using UnoFramework.Mediator;
 using UnoFramework.ViewModels;
 
@@ -16,8 +15,11 @@ public static class ServiceCollectionExtensions
         // Auto-register services with [Service] attribute
         services.AddShinyServiceRegistry();
 
-        services.AddShinyMediator();
-        services.AddSingleton<IEventCollector, UnoEventCollector>();
+        // Configure Shiny Mediator with UnoEventCollector
+        services.AddShinyMediator(cfg =>
+        {
+            cfg.AddEventCollector<UnoEventCollector>();
+        });
 
         // Core Features
         services.AddApiClientFeature();

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
@@ -8,14 +9,16 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using UnoFramework.Contracts.Navigation;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// Base ViewModel for property collection pages (Favorites, Blocked).
 /// Provides common functionality for loading, displaying, and removing properties from collections.
+/// Implements INavigationAware for automatic lifecycle handling via BasePage.
 /// </summary>
-public abstract partial class PropertyCollectionViewModelBase : ObservableObject
+public abstract partial class PropertyCollectionViewModelBase : ObservableObject, INavigationAware
 {
     protected readonly IAuthService AuthService;
     protected readonly IMediator Mediator;
@@ -106,14 +109,53 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         }
     }
 
+    #region INavigationAware Implementation
+
     /// <summary>
-    /// Called when the page is navigated to
+    /// Called by BasePage when navigated to (via INavigationAware)
+    /// </summary>
+    public void OnNavigatedTo(object? parameter)
+    {
+        Logger.LogInformation("[{PageTitle}] OnNavigatedTo called", PageTitle);
+        SetupPageHeader();
+        _ = LoadPropertiesAsync();
+    }
+
+    /// <summary>
+    /// Called by BasePage when navigated from (via INavigationAware)
+    /// </summary>
+    public void OnNavigatedFrom()
+    {
+        Logger.LogInformation("[{PageTitle}] OnNavigatedFrom called", PageTitle);
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Called when the page is navigated to (legacy - prefer INavigationAware)
     /// </summary>
     public async Task OnNavigatedToAsync()
     {
         Logger.LogInformation("[{PageTitle}] OnNavigatedToAsync called", PageTitle);
+        SetupPageHeader();
         await LoadPropertiesAsync();
     }
+
+    /// <summary>
+    /// Sets up the page header by publishing a PageHeaderChangedEvent.
+    /// Override in derived classes to provide custom header content.
+    /// </summary>
+    public virtual void SetupPageHeader()
+    {
+        Logger.LogInformation("[{PageTitle}] SetupPageHeader - Publishing event", PageTitle);
+        _ = Mediator.Publish(new PageHeaderChangedEvent(PageTitle, GetHeaderContent()));
+    }
+
+    /// <summary>
+    /// Creates header content for the page. Override to provide custom content.
+    /// Default returns null (no additional header content).
+    /// </summary>
+    protected virtual object? GetHeaderContent() => null;
 
     /// <summary>
     /// Fetches properties from the API. To be implemented by derived classes.

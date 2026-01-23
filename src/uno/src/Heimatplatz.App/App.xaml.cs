@@ -1,10 +1,13 @@
+using Heimatplatz.App.Controls;
 using Heimatplatz.App.Presentation;
 using Heimatplatz.Core.Startup;
+using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Notifications.Presentation;
 using Heimatplatz.Features.Notifications.Services;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Presentation;
+using Shiny.Mediator;
 using Uno.Resizetizer;
 #if DEBUG
 using Heimatplatz.Features.Debug.Presentation;
@@ -94,6 +97,7 @@ public partial class App : Application
         views.Register(
             new ViewMap(ViewModel: typeof(ShellViewModel)),
             new ViewMap<MainPage, MainViewModel>(),
+            new ViewMap<AppHeader, AppHeaderViewModel>(),
             new ViewMap<HomePage, HomeViewModel>(),
             new ViewMap<RegisterPage, RegisterViewModel>(),
             new ViewMap<LoginPage, LoginViewModel>(),
@@ -125,6 +129,8 @@ public partial class App : Application
 #endif
                         Nested:
                         [
+                            // AppHeader als eigene Region - damit UnoEventCollector den ViewModel findet
+                            new ("AppHeader", View: views.FindByViewModel<AppHeaderViewModel>()),
                             new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
                             new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
                             new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),

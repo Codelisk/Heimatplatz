@@ -3,6 +3,9 @@ using Shiny.Mediator;
 namespace Heimatplatz.Events;
 
 /// <summary>
-/// Event that is published when the page title changes
+/// Event das bei Aenderung des Page-Headers publiziert wird.
+/// Enthaelt Titel und optionalen HeaderContent (z.B. Action Buttons).
 /// </summary>
-public record PageTitleChangedEvent(string Title) : IEvent;
+/// <param name="Title">Der anzuzeigende Titel (null/leer = "HEIMATPLATZ")</param>
+/// <param name="HeaderContent">Optionaler Content fuer den Header (z.B. StackPanel mit Buttons)</param>
+public record PageHeaderChangedEvent(string? Title, object? HeaderContent = null) : IEvent;

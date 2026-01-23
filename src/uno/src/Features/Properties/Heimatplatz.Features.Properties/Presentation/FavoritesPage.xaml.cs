@@ -1,36 +1,17 @@
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// FavoritesPage - Page for viewing favorited properties
+/// Erbt von BasePage fuer automatisches INavigationAware Handling
 /// </summary>
-public sealed partial class FavoritesPage : Page
+public sealed partial class FavoritesPage : BasePage
 {
     public FavoritesPage()
     {
         this.InitializeComponent();
-        this.Loaded += OnLoaded;
     }
 
     public FavoritesViewModel? ViewModel => DataContext as FavoritesViewModel;
-
-    private async void OnLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        if (ViewModel != null)
-        {
-            await ViewModel.OnNavigatedToAsync();
-        }
-    }
-
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-
-        if (ViewModel != null)
-        {
-            await ViewModel.OnNavigatedToAsync();
-        }
-    }
 }

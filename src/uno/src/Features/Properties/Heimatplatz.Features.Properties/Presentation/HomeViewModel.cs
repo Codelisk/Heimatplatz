@@ -1,12 +1,15 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
+using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using UnoFramework.Contracts.Navigation;
 
 // ReSharper disable InconsistentNaming
 
@@ -14,12 +17,14 @@ namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel fuer die HomePage
+/// Implements INavigationAware for automatic lifecycle handling via BasePage
 /// </summary>
-public partial class HomeViewModel : ObservableObject
+public partial class HomeViewModel : ObservableObject, INavigationAware
 {
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
     private readonly IFilterPreferencesService _filterPreferencesService;
+    private readonly IMediator _mediator;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -105,11 +110,13 @@ public partial class HomeViewModel : ObservableObject
     public HomeViewModel(
         IAuthService authService,
         INavigator navigator,
-        IFilterPreferencesService filterPreferencesService)
+        IFilterPreferencesService filterPreferencesService,
+        IMediator mediator)
     {
         _authService = authService;
         _navigator = navigator;
         _filterPreferencesService = filterPreferencesService;
+        _mediator = mediator;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
         UpdateAuthState();
@@ -121,6 +128,34 @@ public partial class HomeViewModel : ObservableObject
             _ = LoadFilterPreferencesAsync();
         }
     }
+
+    #region INavigationAware Implementation
+
+    /// <summary>
+    /// Called by BasePage when navigated to (via INavigationAware)
+    /// </summary>
+    public void OnNavigatedTo(object? parameter)
+    {
+        SetupPageHeader();
+    }
+
+    /// <summary>
+    /// Sets up page header via Mediator event
+    /// </summary>
+    public void SetupPageHeader()
+    {
+        // HomePage zeigt "HEIMATPLATZ" als Titel (null = Fallback)
+        _ = _mediator.Publish(new PageHeaderChangedEvent(null));
+    }
+
+    /// <summary>
+    /// Called by BasePage when navigated from (via INavigationAware)
+    /// </summary>
+    public void OnNavigatedFrom()
+    {
+    }
+
+    #endregion
 
     private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
     {

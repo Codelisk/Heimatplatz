@@ -1,29 +1,24 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// MyPropertiesPage - Page for managing user's own properties
+/// Erbt von BasePage fuer automatisches INavigationAware Handling
 /// </summary>
-public sealed partial class MyPropertiesPage : Page
+public sealed partial class MyPropertiesPage : BasePage
 {
     public MyPropertiesPage()
     {
         this.InitializeComponent();
-        this.DataContextChanged += OnDataContextChanged;
+        this.Loaded += OnPageLoaded;
     }
 
     public MyPropertiesViewModel? ViewModel => DataContext as MyPropertiesViewModel;
 
-    private async void OnDataContextChanged(Microsoft.UI.Xaml.FrameworkElement sender, Microsoft.UI.Xaml.DataContextChangedEventArgs args)
+    private void OnPageLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        if (ViewModel != null)
-        {
-            ViewModel.SetupPageHeader();
-            await ViewModel.OnNavigatedToAsync();
-        }
+        // Directly trigger page header setup when page loads
+        ViewModel?.SetupPageHeader();
     }
-
 }
