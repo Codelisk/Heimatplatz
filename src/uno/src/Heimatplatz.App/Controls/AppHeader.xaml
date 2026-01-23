@@ -33,7 +33,7 @@
     <Border Background="{ThemeResource SurfaceBrush}"
             BorderBrush="{ThemeResource BorderBrush}"
             BorderThickness="0,0,0,1"
-            Padding="{utu:Responsive Narrowest='12,10', Normal='20,12'}"
+            Padding="{utu:Responsive Narrowest='4,10', Normal='8,12'}"
             AutomationProperties.AutomationId="AppHeader_Root">
 
         <Grid>
@@ -49,6 +49,7 @@
                     Grid.Column="0"
                     Style="{StaticResource AppHeaderNavButtonStyle}"
                     Padding="8"
+                    VerticalAlignment="Center"
                     Command="{Binding ToggleNavigationPaneCommand}"
                     AutomationProperties.AutomationId="AppHeader_HamburgerButton">
                 <FontIcon Glyph="&#xE700;"
@@ -61,7 +62,8 @@
                     Style="{StaticResource AppHeaderNavButtonStyle}"
                     Padding="0"
                     MinHeight="0"
-                    Margin="8,0,0,0"
+                    Margin="4,0,0,0"
+                    VerticalAlignment="Center"
                     uen:Navigation.Request="-/Home"
                     AutomationProperties.AutomationId="AppHeader_LogoButton">
                 <TextBlock x:Name="TitleText"
@@ -69,6 +71,7 @@
                            Style="{StaticResource AppHeaderLogoStyle}"
                            FontSize="{utu:Responsive Narrowest=12, Normal=15}"
                            CharacterSpacing="150"
+                           VerticalAlignment="Center"
                            AutomationProperties.AutomationId="AppHeader_Title" />
             </Button>
 
