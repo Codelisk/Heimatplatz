@@ -80,7 +80,7 @@
                                        AutomationProperties.AutomationId="HomePage_PropertyList">
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout Orientation="Horizontal"
-                                                   MinItemWidth="280"
+                                                   MinItemWidth="240"
                                                    MinItemHeight="290"
                                                    MinRowSpacing="16"
                                                    MinColumnSpacing="16"

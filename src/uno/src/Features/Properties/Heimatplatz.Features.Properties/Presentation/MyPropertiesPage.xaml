@@ -25,37 +25,78 @@
                                     Spacing="16"
                                     Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}">
 
-                        <!-- Empty State -->
-                        <StackPanel Visibility="{Binding IsEmpty, FallbackValue=Collapsed}"
-                                    Spacing="16"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Padding="0,80,0,0">
+                        <!-- Empty State - Modern Card Design -->
+                        <Border Visibility="{Binding IsEmpty, FallbackValue=Collapsed}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="0,40,0,0"
+                                MaxWidth="420"
+                                Background="{ThemeResource SurfaceBrush}"
+                                CornerRadius="24"
+                                Padding="48,56"
+                                Translation="0,0,8">
+                            <Border.Shadow>
+                                <ThemeShadow />
+                            </Border.Shadow>
 
-                            <FontIcon Glyph="&#xE80F;"
-                                      FontSize="64"
-                                      Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                      HorizontalAlignment="Center" />
+                            <StackPanel Spacing="24" HorizontalAlignment="Center">
 
-                            <TextBlock Text="Noch keine Immobilien"
-                                       Style="{StaticResource TitleMediumTextBlockStyle}"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       HorizontalAlignment="Center" />
+                                <!-- Illustrative Icon Circle -->
+                                <Grid Width="120" Height="120" HorizontalAlignment="Center">
+                                    <!-- Outer Ring -->
+                                    <Ellipse Fill="{ThemeResource PrimaryContainerBrush}"
+                                             Opacity="0.3" />
+                                    <!-- Inner Circle -->
+                                    <Ellipse Width="88" Height="88"
+                                             Fill="{ThemeResource PrimaryContainerBrush}"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center" />
+                                    <!-- Icon -->
+                                    <FontIcon Glyph="&#xE80F;"
+                                              FontSize="40"
+                                              Foreground="{ThemeResource PrimaryBrush}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                                </Grid>
 
-                            <TextBlock Text="Erstellen Sie Ihr erstes Inserat"
-                                       Style="{StaticResource BodyMediumTextBlockStyle}"
-                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,0,0,24" />
+                                <!-- Text Content -->
+                                <StackPanel Spacing="8" HorizontalAlignment="Center">
+                                    <TextBlock Text="Noch keine Immobilien"
+                                               Style="{StaticResource TitleLargeTextBlockStyle}"
+                                               Foreground="{ThemeResource OnSurfaceBrush}"
+                                               HorizontalAlignment="Center"
+                                               TextAlignment="Center" />
 
-                            <Button Style="{StaticResource FilledButtonStyle}"
-                                    Command="{Binding NavigateToAddPropertyCommand}">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon Glyph="&#xE710;" FontSize="16" />
-                                    <TextBlock Text="Immobilie inserieren" />
+                                    <TextBlock Text="Inserieren Sie Ihre erste Immobilie und erreichen Sie tausende potenzielle Käufer"
+                                               Style="{StaticResource BodyMediumTextBlockStyle}"
+                                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                               HorizontalAlignment="Center"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               MaxWidth="300" />
                                 </StackPanel>
-                            </Button>
-                        </StackPanel>
+
+                                <!-- CTA Button -->
+                                <Button Style="{StaticResource FilledButtonStyle}"
+                                        Command="{Binding NavigateToAddPropertyCommand}"
+                                        HorizontalAlignment="Center"
+                                        Padding="24,14">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <FontIcon Glyph="&#xE710;" FontSize="18" />
+                                        <TextBlock Text="Erste Immobilie inserieren"
+                                                   Style="{StaticResource BodyLargeTextBlockStyle}" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Subtle Hint -->
+                                <TextBlock Text="Kostenlos und in wenigen Minuten"
+                                           Style="{StaticResource LabelSmallTextBlockStyle}"
+                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                           Opacity="0.7"
+                                           HorizontalAlignment="Center" />
+
+                            </StackPanel>
+                        </Border>
 
                         <!-- Properties Grid -->
                         <ItemsRepeater ItemsSource="{Binding Properties}"
