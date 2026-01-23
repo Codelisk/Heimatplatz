@@ -68,10 +68,12 @@
         </Border>
 
         <!-- NavigationView with Region-based navigation -->
+        <!-- IsPaneVisible nur wenn eingeloggt -->
         <NavigationView x:Name="NavView"
                         Grid.Row="1"
                         uen:Region.Attached="True"
                         PaneDisplayMode="Left"
+                        IsPaneVisible="{Binding IsAuthenticated}"
                         IsBackButtonVisible="Collapsed"
                         IsSettingsVisible="False"
                         IsPaneToggleButtonVisible="False"
