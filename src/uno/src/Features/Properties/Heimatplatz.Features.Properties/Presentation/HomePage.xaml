@@ -61,8 +61,6 @@
 
                         <!-- Filter Chips: Kurze Labels bei Mobile -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <controls:FilterChip Label="Alle"
-                                                 IsSelected="{Binding IsAllSelected, Mode=TwoWay}" />
                             <controls:FilterChip Label="Haus"
                                                  IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
                             <controls:FilterChip Label="Grund"
@@ -94,6 +92,7 @@
                                                            CardClicked="OnPropertyCardClicked"
                                                            PropertyBlocked="OnPropertyBlocked"
                                                            PropertyFavorited="OnPropertyFavorited"
+                                                           Loaded="OnPropertyCardLoaded"
                                                            AutomationProperties.AutomationId="HomePage_PropertyCard" />
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>

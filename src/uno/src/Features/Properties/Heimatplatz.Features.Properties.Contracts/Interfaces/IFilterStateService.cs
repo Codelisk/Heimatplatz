@@ -22,7 +22,6 @@ public interface IFilterStateService
     /// Aktualisiert die Filter-Einstellungen
     /// </summary>
     void UpdateFilters(
-        bool isAllSelected,
         bool isHausSelected,
         bool isGrundstueckSelected,
         bool isZwangsversteigerungSelected,
@@ -40,10 +39,9 @@ public interface IFilterStateService
 /// </summary>
 public record FilterState
 {
-    public bool IsAllSelected { get; init; } = true;
-    public bool IsHausSelected { get; init; }
-    public bool IsGrundstueckSelected { get; init; }
-    public bool IsZwangsversteigerungSelected { get; init; }
+    public bool IsHausSelected { get; init; } = true;
+    public bool IsGrundstueckSelected { get; init; } = true;
+    public bool IsZwangsversteigerungSelected { get; init; } = true;
     public AgeFilter SelectedAgeFilter { get; init; } = AgeFilter.Alle;
     public IReadOnlyList<string> SelectedOrte { get; init; } = [];
     public int ResultCount { get; init; }

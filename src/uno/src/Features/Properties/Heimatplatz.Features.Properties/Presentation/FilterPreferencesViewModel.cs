@@ -30,16 +30,13 @@ public partial class FilterPreferencesViewModel : ObservableObject
 
     // Filter Properties
     [ObservableProperty]
-    private bool _isAllSelected = true;
+    private bool _isHausSelected = true;
 
     [ObservableProperty]
-    private bool _isHausSelected;
+    private bool _isGrundstueckSelected = true;
 
     [ObservableProperty]
-    private bool _isGrundstueckSelected;
-
-    [ObservableProperty]
-    private bool _isZwangsversteigerungSelected;
+    private bool _isZwangsversteigerungSelected = true;
 
     [ObservableProperty]
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
@@ -114,7 +111,6 @@ public partial class FilterPreferencesViewModel : ObservableObject
             var preferences = new FilterPreferencesDto(
                 SelectedOrte: SelectedOrte,
                 SelectedAgeFilter: SelectedAgeFilter,
-                IsAllSelected: IsAllSelected,
                 IsHausSelected: IsHausSelected,
                 IsGrundstueckSelected: IsGrundstueckSelected,
                 IsZwangsversteigerungSelected: IsZwangsversteigerungSelected
@@ -145,48 +141,62 @@ public partial class FilterPreferencesViewModel : ObservableObject
         ShowSuccessMessage = false;
     }
 
+    private bool _isSyncing;
+
     private void ApplyPreferences(FilterPreferencesDto preferences)
     {
-        SelectedOrte = preferences.SelectedOrte.ToList();
-        SelectedAgeFilter = preferences.SelectedAgeFilter;
-        IsAllSelected = preferences.IsAllSelected;
-        IsHausSelected = preferences.IsHausSelected;
-        IsGrundstueckSelected = preferences.IsGrundstueckSelected;
-        IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
-    }
-
-    // Typ-Filter Logik (gleich wie HomePage)
-    partial void OnIsAllSelectedChanged(bool value)
-    {
-        if (value)
+        _isSyncing = true;
+        try
         {
-            IsHausSelected = false;
-            IsGrundstueckSelected = false;
-            IsZwangsversteigerungSelected = false;
+            SelectedOrte = preferences.SelectedOrte.ToList();
+            SelectedAgeFilter = preferences.SelectedAgeFilter;
+            IsHausSelected = preferences.IsHausSelected;
+            IsGrundstueckSelected = preferences.IsGrundstueckSelected;
+            IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
+        }
+        finally
+        {
+            _isSyncing = false;
         }
     }
 
+    // Typ-Filter Logik: Mindestens ein Filter muss aktiv bleiben
     partial void OnIsHausSelectedChanged(bool value)
     {
-        if (value)
+        if (_isSyncing) return;
+
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
         {
-            IsAllSelected = false;
+            _isSyncing = true;
+            IsHausSelected = true;
+            _isSyncing = false;
         }
     }
 
     partial void OnIsGrundstueckSelectedChanged(bool value)
     {
-        if (value)
+        if (_isSyncing) return;
+
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsHausSelected && !IsZwangsversteigerungSelected)
         {
-            IsAllSelected = false;
+            _isSyncing = true;
+            IsGrundstueckSelected = true;
+            _isSyncing = false;
         }
     }
 
     partial void OnIsZwangsversteigerungSelectedChanged(bool value)
     {
-        if (value)
+        if (_isSyncing) return;
+
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsHausSelected && !IsGrundstueckSelected)
         {
-            IsAllSelected = false;
+            _isSyncing = true;
+            IsZwangsversteigerungSelected = true;
+            _isSyncing = false;
         }
     }
 }

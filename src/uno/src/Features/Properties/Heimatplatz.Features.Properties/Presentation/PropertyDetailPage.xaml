@@ -64,8 +64,10 @@
                                                     CornerRadius="{StaticResource RadiusSm}"
                                                     Width="40" Height="40"
                                                     Padding="0"
-                                                    ToolTipService.ToolTip="Favorit">
-                                                <FontIcon Glyph="&#xEB51;"
+                                                    Command="{x:Bind ViewModel.ToggleFavoriteCommand}"
+                                                    Visibility="{x:Bind ViewModel.CanBlock}"
+                                                    ToolTipService.ToolTip="{x:Bind ViewModel.FavoriteButtonText, Mode=OneWay}">
+                                                <FontIcon Glyph="{x:Bind ViewModel.FavoriteButtonIcon, Mode=OneWay}"
                                                           FontSize="18"
                                                           Foreground="White" />
                                             </Button>
@@ -84,9 +86,9 @@
                                                     CornerRadius="{StaticResource RadiusSm}"
                                                     Width="40" Height="40"
                                                     Padding="0"
-                                                    Command="{x:Bind ViewModel.BlockPropertyCommand}"
+                                                    Command="{x:Bind ViewModel.ToggleBlockCommand}"
                                                     Visibility="{x:Bind ViewModel.CanBlock}"
-                                                    ToolTipService.ToolTip="Blockieren">
+                                                    ToolTipService.ToolTip="{x:Bind ViewModel.BlockButtonText, Mode=OneWay}">
                                                 <FontIcon Glyph="&#xE8F8;"
                                                           FontSize="18"
                                                           Foreground="White" />
@@ -497,12 +499,14 @@
                                                     CornerRadius="{StaticResource RadiusSm}"
                                                     Height="44"
                                                     Padding="16,0"
-                                                    ToolTipService.ToolTip="Zu Favoriten hinzufügen">
+                                                    Command="{x:Bind ViewModel.ToggleFavoriteCommand}"
+                                                    Visibility="{x:Bind ViewModel.CanBlock}"
+                                                    ToolTipService.ToolTip="{x:Bind ViewModel.FavoriteButtonText, Mode=OneWay}">
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <FontIcon Glyph="&#xEB51;"
+                                                    <FontIcon Glyph="{x:Bind ViewModel.FavoriteButtonIcon, Mode=OneWay}"
                                                               FontSize="18"
                                                               Foreground="White" />
-                                                    <TextBlock Text="Merken"
+                                                    <TextBlock Text="{x:Bind ViewModel.FavoriteButtonText, Mode=OneWay}"
                                                                FontSize="14"
                                                                Foreground="White"
                                                                VerticalAlignment="Center" />
@@ -529,14 +533,14 @@
                                                     CornerRadius="{StaticResource RadiusSm}"
                                                     Height="44"
                                                     Padding="16,0"
-                                                    Command="{x:Bind ViewModel.BlockPropertyCommand}"
+                                                    Command="{x:Bind ViewModel.ToggleBlockCommand}"
                                                     Visibility="{x:Bind ViewModel.CanBlock}"
-                                                    ToolTipService.ToolTip="Diese Immobilie ausblenden">
+                                                    ToolTipService.ToolTip="{x:Bind ViewModel.BlockButtonText, Mode=OneWay}">
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                                     <FontIcon Glyph="&#xE8F8;"
                                                               FontSize="18"
                                                               Foreground="White" />
-                                                    <TextBlock Text="Ausblenden"
+                                                    <TextBlock Text="{x:Bind ViewModel.BlockButtonText, Mode=OneWay}"
                                                                FontSize="14"
                                                                Foreground="White"
                                                                VerticalAlignment="Center" />

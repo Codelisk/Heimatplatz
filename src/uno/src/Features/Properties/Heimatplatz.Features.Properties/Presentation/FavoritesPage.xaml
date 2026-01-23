@@ -64,37 +64,11 @@
 
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
-                                        <!-- Property Card -->
-                                        <controls:PropertyCard Property="{Binding}"
-                                                               Margin="0" />
-
-                                        <!-- Remove Favorite Button Overlay -->
-                                        <Border Background="{ThemeResource SurfaceBrush}"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Top"
-                                                CornerRadius="{StaticResource ControlCornerRadius}"
-                                                Margin="8"
-                                                Padding="4"
-                                                BorderBrush="{ThemeResource OutlineBrush}"
-                                                BorderThickness="1">
-                                            <Border.Shadow>
-                                                <ThemeShadow />
-                                            </Border.Shadow>
-
-                                            <Button Style="{StaticResource IconButtonStyle}"
-                                                    Command="{Binding DataContext.RemoveFromCollectionCommand, ElementName=RootPage}"
-                                                    CommandParameter="{Binding}"
-                                                    ToolTipService.ToolTip="Aus Favoriten entfernen"
-                                                    Width="36"
-                                                    Height="36"
-                                                    Padding="0">
-                                                <FontIcon Glyph="&#xE735;"
-                                                          FontSize="16"
-                                                          Foreground="{ThemeResource ErrorBrush}" />
-                                            </Button>
-                                        </Border>
-                                    </Grid>
+                                    <controls:PropertyCard Property="{Binding}"
+                                                           Mode="Favorite"
+                                                           CardClicked="OnPropertyCardClicked"
+                                                           PropertyFavorited="OnPropertyFavorited"
+                                                           Margin="0" />
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>

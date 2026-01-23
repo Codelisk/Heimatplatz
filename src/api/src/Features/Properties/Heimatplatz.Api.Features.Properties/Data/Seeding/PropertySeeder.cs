@@ -274,10 +274,28 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
         };
 
         // UserId und CreatedAt fuer alle Properties setzen
-        foreach (var property in properties)
+        // Unterschiedliche CreatedAt-Zeiten fuer Age-Filter Tests
+        var createdDates = new[]
         {
-            property.UserId = GetNextSellerId();
-            property.CreatedAt = now;
+            now.AddHours(-2),        // Heute
+            now.AddHours(-20),       // Gestern
+            now.AddDays(-5),         // 5 Tage
+            now.AddDays(-14),        // 2 Wochen
+            now.AddMonths(-2),       // 2 Monate
+            now.AddMonths(-6),       // 6 Monate
+            now.AddDays(-3),         // 3 Tage
+            now.AddDays(-10),        // 10 Tage
+            now.AddMonths(-1),       // 1 Monat
+            now.AddDays(-1),         // 1 Tag
+            now.AddMonths(-4),       // 4 Monate
+            now.AddYears(-1).AddDays(10), // ~1 Jahr
+            now.AddDays(-7),         // 1 Woche
+        };
+
+        for (var i = 0; i < properties.Count; i++)
+        {
+            properties[i].UserId = GetNextSellerId();
+            properties[i].CreatedAt = createdDates[i % createdDates.Length];
         }
 
         // TypeSpecificData fuer alle Properties setzen

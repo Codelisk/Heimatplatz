@@ -4,6 +4,7 @@ using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using UnoFramework.Contracts.Navigation;
@@ -20,6 +21,8 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
     private readonly IClipboardService _clipboardService;
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
+    private readonly IPropertyStatusService _propertyStatusService;
+    private readonly ILogger<PropertyDetailViewModel> _logger;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -49,10 +52,31 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
     private string? _copyFeedback;
 
     [ObservableProperty]
-    private string? _blockFeedback;
+    private string? _statusFeedback;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FavoriteButtonText))]
+    [NotifyPropertyChangedFor(nameof(FavoriteButtonIcon))]
+    private bool _isFavorite;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BlockButtonText))]
     private bool _isBlocked;
+
+    /// <summary>
+    /// Text for the favorite button based on current status
+    /// </summary>
+    public string FavoriteButtonText => IsFavorite ? "Entfavorisieren" : "Favorisieren";
+
+    /// <summary>
+    /// Icon glyph for the favorite button (filled/outline heart)
+    /// </summary>
+    public string FavoriteButtonIcon => IsFavorite ? "\uEB52" : "\uEB51";
+
+    /// <summary>
+    /// Text for the block button based on current status
+    /// </summary>
+    public string BlockButtonText => IsBlocked ? "Entblockieren" : "Blockieren";
 
     #region IPageInfo Implementation
 
@@ -70,11 +94,15 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
     public PropertyDetailViewModel(
         IClipboardService clipboardService,
         IMediator mediator,
-        IAuthService authService)
+        IAuthService authService,
+        IPropertyStatusService propertyStatusService,
+        ILogger<PropertyDetailViewModel> logger)
     {
         _clipboardService = clipboardService;
         _mediator = mediator;
         _authService = authService;
+        _propertyStatusService = propertyStatusService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -134,7 +162,7 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
         OnPropertyChanged(nameof(ShowContactButton));
     }
 
-    public void LoadProperty(Guid propertyId)
+    public async Task LoadPropertyAsync(Guid propertyId)
     {
         IsBusy = true;
         BusyMessage = "Lade Immobilie...";
@@ -144,11 +172,25 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
             // TODO: API integration - mock data for now
             Property = GetMockProperty(propertyId);
             UpdateDisplayProperties();
+
+            // Load favorite and blocked status
+            if (_authService.IsAuthenticated)
+            {
+                await _propertyStatusService.RefreshStatusAsync();
+                IsFavorite = _propertyStatusService.IsFavorite(propertyId);
+                IsBlocked = _propertyStatusService.IsBlocked(propertyId);
+            }
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    // Keep synchronous version for backward compatibility
+    public void LoadProperty(Guid propertyId)
+    {
+        _ = LoadPropertyAsync(propertyId);
     }
 
     public void OnNavigatedTo(object? parameter)
@@ -195,56 +237,58 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
     }
 
     /// <summary>
-    /// Blocks the current property so it won't appear in the main list
+    /// Toggles the favorite status of the current property
     /// </summary>
     [RelayCommand]
-    private async Task BlockPropertyAsync()
+    private async Task ToggleFavoriteAsync()
     {
         if (Property == null || !CanBlock)
             return;
 
-        IsBusy = true;
-        BusyMessage = "Blockiere Immobilie...";
+        _logger.LogInformation("[PropertyDetail] Toggling favorite for {PropertyId}", Property.Id);
 
-        try
+        var wasFavorite = IsFavorite;
+        IsFavorite = await _propertyStatusService.ToggleFavoriteAsync(Property.Id);
+
+        // Show feedback
+        StatusFeedback = IsFavorite ? "Zu Favoriten hinzugefuegt" : "Aus Favoriten entfernt";
+        await Task.Delay(1500);
+        StatusFeedback = null;
+    }
+
+    /// <summary>
+    /// Toggles the blocked status of the current property
+    /// </summary>
+    [RelayCommand]
+    private async Task ToggleBlockAsync()
+    {
+        if (Property == null || !CanBlock)
+            return;
+
+        _logger.LogInformation("[PropertyDetail] Toggling block for {PropertyId}", Property.Id);
+
+        var wasBlocked = IsBlocked;
+        IsBlocked = await _propertyStatusService.ToggleBlockedAsync(Property.Id);
+
+        if (IsBlocked && !wasBlocked)
         {
-            var result = await _mediator.Request(
-                new Heimatplatz.Core.ApiClient.Generated.AddBlockedHttpRequest
-                {
-                    Body = new Heimatplatz.Core.ApiClient.Generated.AddBlockedRequest
-                    {
-                        PropertyId = Property.Id
-                    }
-                }
-            );
-
-            if (result.Result?.Success == true)
+            // Property was blocked - also remove from favorites if it was favorited
+            if (IsFavorite)
             {
-                IsBlocked = true;
-                BlockFeedback = result.Result.WasRemovedFromFavorites
-                    ? "Blockiert und aus Favoriten entfernt"
-                    : "Blockiert";
+                IsFavorite = false;
+            }
 
-                // Notify that the property was blocked - page should navigate back
-                PropertyBlocked?.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                BlockFeedback = result.Result?.Message ?? "Fehler beim Blockieren";
-                await Task.Delay(2000);
-                BlockFeedback = null;
-            }
+            StatusFeedback = "Blockiert";
+
+            // Notify that the property was blocked - page should navigate back
+            PropertyBlocked?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception)
+        else if (!IsBlocked && wasBlocked)
         {
-            BlockFeedback = "Fehler beim Blockieren";
-            await Task.Delay(2000);
-            BlockFeedback = null;
-        }
-        finally
-        {
-            IsBusy = false;
-            BusyMessage = null;
+            // Property was unblocked
+            StatusFeedback = "Blockierung aufgehoben";
+            await Task.Delay(1500);
+            StatusFeedback = null;
         }
     }
 

@@ -7,10 +7,12 @@ using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using UnoFramework.Contracts.Navigation;
+using Heimatplatz.Features.Properties.Services;
 
 // ReSharper disable InconsistentNaming
 
@@ -28,6 +30,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private readonly IFilterPreferencesService _filterPreferencesService;
     private readonly IFilterStateService _filterStateService;
     private readonly IMediator _mediator;
+    private readonly ILogger<HomeViewModel> _logger;
+    private readonly IPropertyStatusService _propertyStatusService;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -39,16 +43,13 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private ObservableCollection<PropertyListItemDto> _properties = new();
 
     [ObservableProperty]
-    private bool _isAllSelected = true;
+    private bool _isHausSelected = true;
 
     [ObservableProperty]
-    private bool _isHausSelected;
+    private bool _isGrundstueckSelected = true;
 
     [ObservableProperty]
-    private bool _isGrundstueckSelected;
-
-    [ObservableProperty]
-    private bool _isZwangsversteigerungSelected;
+    private bool _isZwangsversteigerungSelected = true;
 
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
     public AgeFilter SelectedAgeFilter
@@ -123,25 +124,32 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         INavigator navigator,
         IFilterPreferencesService filterPreferencesService,
         IFilterStateService filterStateService,
-        IMediator mediator)
+        IMediator mediator,
+        ILogger<HomeViewModel> logger,
+        IPropertyStatusService propertyStatusService)
     {
         _authService = authService;
         _navigator = navigator;
         _filterPreferencesService = filterPreferencesService;
         _filterStateService = filterStateService;
         _mediator = mediator;
+        _logger = logger;
+        _propertyStatusService = propertyStatusService;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
         // Subscribe to filter state changes from HeaderFilterBar
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
 
         UpdateAuthState();
-        LoadTestData();
 
-        // Load preferences if already authenticated
+        // Load properties from API
+        _ = LoadPropertiesAsync();
+
+        // Load preferences and property status if already authenticated
         if (_authService.IsAuthenticated)
         {
             _ = LoadFilterPreferencesAsync();
+            _ = _propertyStatusService.RefreshStatusAsync();
         }
     }
 
@@ -153,8 +161,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// </summary>
     public void OnNavigatedTo(object? parameter)
     {
-        // No manual navigation needed - BasePage publishes PageNavigatedEvent
-        // which MainPage handles to navigate to HeaderMain with HomeFilterBarViewModel
+        // Reload properties when navigating to the page (to get fresh data)
+        _ = LoadPropertiesAsync();
     }
 
     /// <summary>
@@ -171,6 +179,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     {
         UpdateAuthState();
 
+        // Reload properties when auth state changes (blocked properties filter depends on auth)
+        _ = LoadPropertiesAsync();
+
         if (isAuthenticated)
         {
             _ = LoadFilterPreferencesAsync();
@@ -184,7 +195,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         try
         {
             var state = _filterStateService.CurrentState;
-            IsAllSelected = state.IsAllSelected;
             IsHausSelected = state.IsHausSelected;
             IsGrundstueckSelected = state.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
@@ -229,7 +239,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         _isApplyingPreferences = true;
         try
         {
-            IsAllSelected = preferences.IsAllSelected;
             IsHausSelected = preferences.IsHausSelected;
             IsGrundstueckSelected = preferences.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
@@ -323,35 +332,19 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         await _navigator.NavigateViewModelAsync<BlockedViewModel>(this);
     }
 
-    partial void OnIsAllSelectedChanged(bool value)
-    {
-        if (_isApplyingPreferences || _isSyncingFromService) return;
-
-        if (value)
-        {
-            IsHausSelected = false;
-            IsGrundstueckSelected = false;
-            IsZwangsversteigerungSelected = false;
-            ApplyFilters();
-        }
-    }
-
     partial void OnIsHausSelectedChanged(bool value)
     {
         if (_isApplyingPreferences || _isSyncingFromService) return;
 
-        if (value)
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
         {
-            IsAllSelected = false;
+            _isSyncingFromService = true;
+            IsHausSelected = true;
+            _isSyncingFromService = false;
+            return;
         }
-        else
-        {
-            // Wenn alle deselektiert sind, setze "Alle" zurück
-            if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
-            {
-                IsAllSelected = true;
-            }
-        }
+
         ApplyFilters();
     }
 
@@ -359,18 +352,15 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     {
         if (_isApplyingPreferences || _isSyncingFromService) return;
 
-        if (value)
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsHausSelected && !IsZwangsversteigerungSelected)
         {
-            IsAllSelected = false;
+            _isSyncingFromService = true;
+            IsGrundstueckSelected = true;
+            _isSyncingFromService = false;
+            return;
         }
-        else
-        {
-            // Wenn alle deselektiert sind, setze "Alle" zurück
-            if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
-            {
-                IsAllSelected = true;
-            }
-        }
+
         ApplyFilters();
     }
 
@@ -378,18 +368,15 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     {
         if (_isApplyingPreferences || _isSyncingFromService) return;
 
-        if (value)
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsHausSelected && !IsGrundstueckSelected)
         {
-            IsAllSelected = false;
+            _isSyncingFromService = true;
+            IsZwangsversteigerungSelected = true;
+            _isSyncingFromService = false;
+            return;
         }
-        else
-        {
-            // Wenn alle deselektiert sind, setze "Alle" zurück
-            if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
-            {
-                IsAllSelected = true;
-            }
-        }
+
         ApplyFilters();
     }
 
@@ -399,7 +386,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         if (!_isSyncingFromService && !_isApplyingPreferences)
         {
             _filterStateService.UpdateFilters(
-                IsAllSelected,
                 IsHausSelected,
                 IsGrundstueckSelected,
                 IsZwangsversteigerungSelected,
@@ -465,43 +451,96 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
 
     private List<PropertyListItemDto> _allProperties = new();
 
-    private void LoadTestData()
+    /// <summary>
+    /// Loads properties from the API
+    /// </summary>
+    private async Task LoadPropertiesAsync()
     {
-        var now = DateTime.Now;
+        IsBusy = true;
+        BusyMessage = "Lade Immobilien...";
 
-        _allProperties = new List<PropertyListItemDto>
+        try
         {
-            // Created today
-            new(Guid.NewGuid(), "Einfamilienhaus in Linz-Urfahr", "Hauptstrasse 15", "Linz", 349000, 145, 520, 5, PropertyType.House, SellerType.Makler, "Mustermann Immobilien",
-                ["https://picsum.photos/seed/haus1a/800/600", "https://picsum.photos/seed/haus1b/800/600", "https://picsum.photos/seed/haus1c/800/600"],
-                now.AddHours(-2), InquiryType.ContactData),
+            _logger.LogInformation("[HomePage] Starting to load properties from API");
 
-            // Created yesterday
-            new(Guid.NewGuid(), "Modernes Reihenhaus in Wels", "Ringstrasse 42", "Wels", 289000, 120, 180, 4, PropertyType.House, SellerType.Privat, "Familie Huber",
-                ["https://picsum.photos/seed/haus2a/800/600", "https://picsum.photos/seed/haus2b/800/600"],
-                now.AddHours(-20), InquiryType.ContactData),
+            // Build API request with server-side filters (PropertyType)
+            var request = new Heimatplatz.Core.ApiClient.Generated.GetPropertiesHttpRequest
+            {
+                Take = 100 // Load more properties for local filtering
+            };
 
-            // Created 5 days ago
-            new(Guid.NewGuid(), "Familienhaus in Steyr", "Bahnhofstrasse 67", "Steyr", 315000, 135, 450, 5, PropertyType.House, SellerType.Makler, "Immobilien Steyr",
-                ["https://picsum.photos/seed/haus3a/800/600", "https://picsum.photos/seed/haus3b/800/600", "https://picsum.photos/seed/haus3c/800/600", "https://picsum.photos/seed/haus3d/800/600"],
-                now.AddDays(-5), InquiryType.ContactData),
+            // Apply type filter if only one type is selected (server-side optimization)
+            // API supports only one type at a time, so we'll filter locally for multi-select
+            if (IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
+            {
+                request.Typ = Heimatplatz.Core.ApiClient.Generated.PropertyType.House;
+            }
+            else if (IsGrundstueckSelected && !IsHausSelected && !IsZwangsversteigerungSelected)
+            {
+                request.Typ = Heimatplatz.Core.ApiClient.Generated.PropertyType.Land;
+            }
+            else if (IsZwangsversteigerungSelected && !IsHausSelected && !IsGrundstueckSelected)
+            {
+                request.Typ = Heimatplatz.Core.ApiClient.Generated.PropertyType.Foreclosure;
+            }
 
-            // Created 2 weeks ago
-            new(Guid.NewGuid(), "Baugrundstück in Wels", "Neubaugebiet Sued", "Wels", 189000, null, 850, null, PropertyType.Land, SellerType.Privat, "Familie Mueller",
-                ["https://picsum.photos/seed/grund1a/800/600", "https://picsum.photos/seed/grund1b/800/600"],
-                now.AddDays(-14), InquiryType.ContactData),
+            // Apply city filter if only one city is selected
+            if (SelectedOrte.Count == 1)
+            {
+                request.Ort = SelectedOrte[0];
+            }
 
-            // Created 2 months ago
-            new(Guid.NewGuid(), "Sonniges Baugrundstück Linz-Land", "Am Sonnenhang 12", "Leonding", 245000, null, 720, null, PropertyType.Land, SellerType.Makler, "Grund & Boden OOe",
-                ["https://picsum.photos/seed/grund2a/800/600", "https://picsum.photos/seed/grund2b/800/600", "https://picsum.photos/seed/grund2c/800/600"],
-                now.AddMonths(-2), InquiryType.ContactData),
+            var (context, response) = await _mediator.Request(request);
 
-            // Created 6 months ago
-            new(Guid.NewGuid(), "Zwangsversteigerung: Haus in Traun", "Industriestrasse 45", "Traun", 185000, 110, 380, 4, PropertyType.Foreclosure, SellerType.Makler, "Bezirksgericht Linz",
-                ["https://picsum.photos/seed/zwang1a/800/600", "https://picsum.photos/seed/zwang1b/800/600"],
-                now.AddMonths(-6), InquiryType.ContactData),
-        };
+            _logger.LogInformation("[HomePage] Response received. Properties count: {Count}", response?.Immobilien?.Count ?? 0);
 
-        ApplyFilters();
+            // Clear and reload all properties
+            _allProperties.Clear();
+
+            if (response?.Immobilien != null)
+            {
+                foreach (var prop in response.Immobilien)
+                {
+                    _allProperties.Add(new PropertyListItemDto(
+                        Id: prop.Id,
+                        Title: prop.Title,
+                        Address: prop.Address,
+                        City: prop.City,
+                        Price: (decimal)prop.Price,
+                        LivingAreaM2: prop.LivingAreaM2,
+                        PlotAreaM2: prop.PlotAreaM2,
+                        Rooms: prop.Rooms,
+                        Type: (PropertyType)prop.Type,
+                        SellerType: (SellerType)prop.SellerType,
+                        SellerName: prop.SellerName,
+                        ImageUrls: prop.ImageUrls,
+                        CreatedAt: prop.CreatedAt.DateTime,
+                        InquiryType: (InquiryType)prop.InquiryType
+                    ));
+                }
+            }
+
+            // Apply local filters (for multi-select types, age filter, multi-city)
+            ApplyFiltersInternal();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HomePage] Error loading properties from API");
+            // Keep existing properties on error
+        }
+        finally
+        {
+            IsBusy = false;
+            BusyMessage = null;
+        }
+    }
+
+    /// <summary>
+    /// Reloads properties from API (called when filters change that require server-side filtering)
+    /// </summary>
+    [RelayCommand]
+    private async Task RefreshPropertiesAsync()
+    {
+        await LoadPropertiesAsync();
     }
 }

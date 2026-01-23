@@ -31,9 +31,6 @@
         <StackPanel Orientation="Horizontal"
                     Spacing="6"
                     AutomationProperties.AutomationId="HomeFilterBar_FilterChips">
-            <local:FilterChip Label="Alle"
-                              IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
-                              AutomationProperties.AutomationId="HomeFilterBar_FilterChip_All" />
             <local:FilterChip Label="Haus"
                               IsSelected="{Binding IsHausSelected, Mode=TwoWay}"
                               AutomationProperties.AutomationId="HomeFilterBar_FilterChip_Haus" />

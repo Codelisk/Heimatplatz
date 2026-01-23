@@ -18,16 +18,13 @@ public partial class HomeFilterBarViewModel : ObservableObject
     private readonly IFilterStateService _filterStateService;
 
     [ObservableProperty]
-    private bool _isAllSelected = true;
+    private bool _isHausSelected = true;
 
     [ObservableProperty]
-    private bool _isHausSelected;
+    private bool _isGrundstueckSelected = true;
 
     [ObservableProperty]
-    private bool _isGrundstueckSelected;
-
-    [ObservableProperty]
-    private bool _isZwangsversteigerungSelected;
+    private bool _isZwangsversteigerungSelected = true;
 
     [ObservableProperty]
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
@@ -73,7 +70,6 @@ public partial class HomeFilterBarViewModel : ObservableObject
         try
         {
             var state = _filterStateService.CurrentState;
-            IsAllSelected = state.IsAllSelected;
             IsHausSelected = state.IsHausSelected;
             IsGrundstueckSelected = state.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
@@ -87,26 +83,18 @@ public partial class HomeFilterBarViewModel : ObservableObject
         }
     }
 
-    partial void OnIsAllSelectedChanged(bool value)
-    {
-        if (_isSyncing) return;
-
-        if (value)
-        {
-            IsHausSelected = false;
-            IsGrundstueckSelected = false;
-            IsZwangsversteigerungSelected = false;
-        }
-        UpdateFilterState();
-    }
-
     partial void OnIsHausSelectedChanged(bool value)
     {
         if (_isSyncing) return;
 
-        if (value) IsAllSelected = false;
-        else if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
-            IsAllSelected = true;
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
+        {
+            _isSyncing = true;
+            IsHausSelected = true;
+            _isSyncing = false;
+            return;
+        }
 
         UpdateFilterState();
     }
@@ -115,9 +103,14 @@ public partial class HomeFilterBarViewModel : ObservableObject
     {
         if (_isSyncing) return;
 
-        if (value) IsAllSelected = false;
-        else if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
-            IsAllSelected = true;
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsHausSelected && !IsZwangsversteigerungSelected)
+        {
+            _isSyncing = true;
+            IsGrundstueckSelected = true;
+            _isSyncing = false;
+            return;
+        }
 
         UpdateFilterState();
     }
@@ -126,9 +119,14 @@ public partial class HomeFilterBarViewModel : ObservableObject
     {
         if (_isSyncing) return;
 
-        if (value) IsAllSelected = false;
-        else if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
-            IsAllSelected = true;
+        // Mindestens ein Filter muss aktiv bleiben
+        if (!value && !IsHausSelected && !IsGrundstueckSelected)
+        {
+            _isSyncing = true;
+            IsZwangsversteigerungSelected = true;
+            _isSyncing = false;
+            return;
+        }
 
         UpdateFilterState();
     }
@@ -148,7 +146,6 @@ public partial class HomeFilterBarViewModel : ObservableObject
     private void UpdateFilterState()
     {
         _filterStateService.UpdateFilters(
-            IsAllSelected,
             IsHausSelected,
             IsGrundstueckSelected,
             IsZwangsversteigerungSelected,

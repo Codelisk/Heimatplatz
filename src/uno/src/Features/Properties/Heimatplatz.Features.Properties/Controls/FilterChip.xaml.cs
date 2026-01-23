@@ -12,6 +12,14 @@ public sealed partial class FilterChip : UserControl
     public FilterChip()
     {
         this.InitializeComponent();
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // Initialisiere Zustand nach dem Laden (wenn Binding bereits gesetzt wurde)
+        ChipButton.IsChecked = IsSelected;
+        ChipLabel.Text = Label ?? string.Empty;
         UpdateVisualState();
     }
 
@@ -39,7 +47,7 @@ public sealed partial class FilterChip : UserControl
             nameof(IsSelected),
             typeof(bool),
             typeof(FilterChip),
-            new PropertyMetadata(false, OnIsSelectedChanged));
+            new PropertyMetadata(true, OnIsSelectedChanged));
 
     public bool IsSelected
     {
@@ -64,15 +72,32 @@ public sealed partial class FilterChip : UserControl
     {
         if (d is FilterChip chip)
         {
-            chip.ChipButton.IsChecked = (bool)e.NewValue;
+            // Immer den Button-Zustand synchronisieren, auch wenn vom ViewModel geändert
+            var newValue = (bool)e.NewValue;
+            if (chip.ChipButton.IsChecked != newValue)
+            {
+                chip.ChipButton.IsChecked = newValue;
+            }
             chip.UpdateVisualState();
         }
     }
 
     private void OnChipClick(object sender, RoutedEventArgs e)
     {
-        IsSelected = ChipButton.IsChecked ?? false;
-        SelectionChanged?.Invoke(this, IsSelected);
+        var newValue = ChipButton.IsChecked ?? false;
+        IsSelected = newValue;
+        SelectionChanged?.Invoke(this, newValue);
+
+        // Nach dem Setzen: Prüfe ob das ViewModel den Wert zurückgesetzt hat
+        // (z.B. wenn mindestens ein Filter aktiv bleiben muss)
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (ChipButton.IsChecked != IsSelected)
+            {
+                ChipButton.IsChecked = IsSelected;
+                UpdateVisualState();
+            }
+        });
     }
 
     private void UpdateVisualState()

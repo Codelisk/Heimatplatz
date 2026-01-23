@@ -65,62 +65,11 @@
 
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Tapped="OnPropertyCardTapped">
-                                        <!-- Property Card -->
-                                        <controls:PropertyCard Property="{Binding}"
-                                                               Margin="0" />
-
-                                        <!-- Selection Toggle Button (visible in selection mode) -->
-                                        <Button x:Name="SelectionButton"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Top"
-                                                Margin="8"
-                                                Width="36"
-                                                Height="36"
-                                                Padding="0"
-                                                CornerRadius="18"
-                                                Command="{Binding DataContext.TogglePropertySelectionCommand, ElementName=RootPage}"
-                                                CommandParameter="{Binding}"
-                                                Visibility="{Binding DataContext.IsSelectionMode, ElementName=RootPage}">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
-                                                    <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
-                                                    <Setter Property="BorderBrush" Value="{ThemeResource OutlineBrush}" />
-                                                    <Setter Property="BorderThickness" Value="2" />
-                                                </Style>
-                                            </Button.Style>
-                                            <FontIcon Glyph="&#xE739;"
-                                                      FontSize="16"
-                                                      Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                        </Button>
-
-                                        <!-- Unblock Button Overlay (hidden in selection mode) -->
-                                        <Border Background="{ThemeResource SurfaceBrush}"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Top"
-                                                CornerRadius="{StaticResource ControlCornerRadius}"
-                                                Margin="8"
-                                                Padding="4"
-                                                BorderBrush="{ThemeResource OutlineBrush}"
-                                                BorderThickness="1"
-                                                Visibility="{Binding DataContext.IsNotSelectionMode, ElementName=RootPage}">
-                                            <Border.Shadow>
-                                                <ThemeShadow />
-                                            </Border.Shadow>
-
-                                            <Button Style="{StaticResource IconButtonStyle}"
-                                                    Command="{Binding DataContext.RemoveFromCollectionCommand, ElementName=RootPage}"
-                                                    CommandParameter="{Binding}"
-                                                    ToolTipService.ToolTip="Blockierung aufheben"
-                                                    Width="36"
-                                                    Height="36"
-                                                    Padding="0">
-                                                <FontIcon Glyph="&#xE711;"
-                                                          FontSize="16"
-                                                          Foreground="{ThemeResource OnSurfaceBrush}" />
-                                            </Button>
-                                        </Border>
-                                    </Grid>
+                                    <controls:PropertyCard Property="{Binding}"
+                                                           Mode="Blocked"
+                                                           CardClicked="OnPropertyCardClicked"
+                                                           PropertyBlocked="OnPropertyBlocked"
+                                                           Margin="0" />
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>

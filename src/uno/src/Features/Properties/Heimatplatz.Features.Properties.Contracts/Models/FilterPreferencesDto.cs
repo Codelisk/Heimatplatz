@@ -3,27 +3,25 @@ namespace Heimatplatz.Features.Properties.Contracts.Models;
 /// <summary>
 /// DTO fuer die Filtereinstellungen eines Benutzers.
 /// Enthaelt: SelectedOrte (Liste der ausgewaehlten Orte),
-/// SelectedAgeFilter (Zeitfilter), IsAllSelected (alle Typen),
+/// SelectedAgeFilter (Zeitfilter),
 /// IsHausSelected, IsGrundstueckSelected, IsZwangsversteigerungSelected (Immobilientypen)
 /// </summary>
 public record FilterPreferencesDto(
     List<string> SelectedOrte,
     AgeFilter SelectedAgeFilter,
-    bool IsAllSelected,
     bool IsHausSelected,
     bool IsGrundstueckSelected,
     bool IsZwangsversteigerungSelected
 )
 {
     /// <summary>
-    /// Erstellt leere Standard-Filtereinstellungen
+    /// Erstellt leere Standard-Filtereinstellungen (alle 3 Typen selektiert)
     /// </summary>
     public static FilterPreferencesDto Default => new(
         SelectedOrte: [],
         SelectedAgeFilter: AgeFilter.Alle,
-        IsAllSelected: true,
-        IsHausSelected: false,
-        IsGrundstueckSelected: false,
-        IsZwangsversteigerungSelected: false
+        IsHausSelected: true,
+        IsGrundstueckSelected: true,
+        IsZwangsversteigerungSelected: true
     );
 }

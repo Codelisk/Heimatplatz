@@ -89,9 +89,6 @@
                             <StackPanel Orientation="Horizontal"
                                         Spacing="8"
                                         AutomationProperties.AutomationId="FilterPreferences_FilterChips">
-                                <controls:FilterChip Label="Alle"
-                                                     IsSelected="{Binding IsAllSelected, Mode=TwoWay}"
-                                                     AutomationProperties.AutomationId="FilterPreferences_Chip_All" />
                                 <controls:FilterChip Label="Haus"
                                                      IsSelected="{Binding IsHausSelected, Mode=TwoWay}"
                                                      AutomationProperties.AutomationId="FilterPreferences_Chip_Haus" />

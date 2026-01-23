@@ -2,7 +2,6 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace Heimatplatz.Features.Properties.Controls;
 
@@ -11,11 +10,34 @@ namespace Heimatplatz.Features.Properties.Controls;
 /// </summary>
 public sealed partial class PropertyCard : UserControl
 {
+    private MenuFlyoutItem? _favoriteMenuItem;
+    private MenuFlyoutItem? _blockMenuItem;
+
     public PropertyCard()
     {
         this.InitializeComponent();
         this.PointerEntered += OnCardPointerEntered;
         this.PointerExited += OnCardPointerExited;
+        this.Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // Get references to menu items for dynamic text updates
+        if (MoreOptionsButton.Flyout is MenuFlyout menuFlyout)
+        {
+            foreach (var item in menuFlyout.Items)
+            {
+                if (item is MenuFlyoutItem menuItem)
+                {
+                    if (menuItem.Text.Contains("avorisieren"))
+                        _favoriteMenuItem = menuItem;
+                    else if (menuItem.Text.Contains("lockieren"))
+                        _blockMenuItem = menuItem;
+                }
+            }
+        }
+        UpdateMenuTexts();
     }
 
     /// <summary>
@@ -24,12 +46,12 @@ public sealed partial class PropertyCard : UserControl
     public event EventHandler<PropertyListItemDto>? CardClicked;
 
     /// <summary>
-    /// Event wenn die Immobilie blockiert werden soll
+    /// Event wenn die Immobilie blockiert/entblockiert werden soll (Toggle)
     /// </summary>
     public event EventHandler<PropertyListItemDto>? PropertyBlocked;
 
     /// <summary>
-    /// Event wenn die Immobilie favorisiert werden soll
+    /// Event wenn die Immobilie favorisiert/entfavorisiert werden soll (Toggle)
     /// </summary>
     public event EventHandler<PropertyListItemDto>? PropertyFavorited;
 
@@ -49,11 +71,124 @@ public sealed partial class PropertyCard : UserControl
         set => SetValue(PropertyProperty, value);
     }
 
+    /// <summary>
+    /// Ob diese Immobilie favorisiert ist
+    /// </summary>
+    public static readonly DependencyProperty IsFavoriteProperty =
+        DependencyProperty.Register(
+            nameof(IsFavorite),
+            typeof(bool),
+            typeof(PropertyCard),
+            new PropertyMetadata(false, OnStatusChanged));
+
+    public bool IsFavorite
+    {
+        get => (bool)GetValue(IsFavoriteProperty);
+        set => SetValue(IsFavoriteProperty, value);
+    }
+
+    /// <summary>
+    /// Ob diese Immobilie blockiert ist
+    /// </summary>
+    public static readonly DependencyProperty IsBlockedProperty =
+        DependencyProperty.Register(
+            nameof(IsBlocked),
+            typeof(bool),
+            typeof(PropertyCard),
+            new PropertyMetadata(false, OnStatusChanged));
+
+    public bool IsBlocked
+    {
+        get => (bool)GetValue(IsBlockedProperty);
+        set => SetValue(IsBlockedProperty, value);
+    }
+
+    /// <summary>
+    /// Ob der More-Button angezeigt werden soll (false fuer Favoriten/Blockierte Seiten)
+    /// </summary>
+    public static readonly DependencyProperty ShowMoreButtonProperty =
+        DependencyProperty.Register(
+            nameof(ShowMoreButton),
+            typeof(bool),
+            typeof(PropertyCard),
+            new PropertyMetadata(true, OnShowMoreButtonChanged));
+
+    public bool ShowMoreButton
+    {
+        get => (bool)GetValue(ShowMoreButtonProperty);
+        set => SetValue(ShowMoreButtonProperty, value);
+    }
+
+    /// <summary>
+    /// Der Anzeigemodus der Card (Default, Favorite, Blocked)
+    /// </summary>
+    public static readonly DependencyProperty ModeProperty =
+        DependencyProperty.Register(
+            nameof(Mode),
+            typeof(CardMode),
+            typeof(PropertyCard),
+            new PropertyMetadata(CardMode.Default, OnModeChanged));
+
+    public CardMode Mode
+    {
+        get => (CardMode)GetValue(ModeProperty);
+        set => SetValue(ModeProperty, value);
+    }
+
     private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is PropertyCard card && e.NewValue is PropertyListItemDto property)
         {
             card.UpdateDisplay(property);
+        }
+    }
+
+    private static void OnStatusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyCard card)
+        {
+            card.UpdateMenuTexts();
+        }
+    }
+
+    private static void OnShowMoreButtonChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyCard card)
+        {
+            card.MoreOptionsButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    private static void OnModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyCard card)
+        {
+            card.UpdateActionButtonVisibility();
+        }
+    }
+
+    private void UpdateActionButtonVisibility()
+    {
+        MoreOptionsButton.Visibility = Mode == CardMode.Default ? Visibility.Visible : Visibility.Collapsed;
+        FavoriteActionButton.Visibility = Mode == CardMode.Favorite ? Visibility.Visible : Visibility.Collapsed;
+        BlockedActionButton.Visibility = Mode == CardMode.Blocked ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void UpdateMenuTexts()
+    {
+        if (_favoriteMenuItem != null)
+        {
+            _favoriteMenuItem.Text = IsFavorite ? "Entfavorisieren" : "Favorisieren";
+            if (_favoriteMenuItem.Icon is FontIcon favIcon)
+            {
+                // Filled heart when favorited, outline when not
+                favIcon.Glyph = IsFavorite ? "\uEB52" : "\uEB51";
+            }
+        }
+
+        if (_blockMenuItem != null)
+        {
+            _blockMenuItem.Text = IsBlocked ? "Entblockieren" : "Blockieren";
         }
     }
 
@@ -245,6 +380,30 @@ public sealed partial class PropertyCard : UserControl
         if (Property != null)
         {
             PropertyFavorited?.Invoke(this, Property);
+        }
+    }
+
+    private void OnActionButtonTapped(object sender, TappedRoutedEventArgs e)
+    {
+        // Verhindere Navigation zur Detail-Seite
+        e.Handled = true;
+    }
+
+    private void OnFavoriteActionClick(object sender, RoutedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnFavoriteActionClick (remove from favorites) called for: {Property?.Title}");
+        if (Property != null)
+        {
+            PropertyFavorited?.Invoke(this, Property);
+        }
+    }
+
+    private void OnBlockedActionClick(object sender, RoutedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnBlockedActionClick (unblock) called for: {Property?.Title}");
+        if (Property != null)
+        {
+            PropertyBlocked?.Invoke(this, Property);
         }
     }
 }

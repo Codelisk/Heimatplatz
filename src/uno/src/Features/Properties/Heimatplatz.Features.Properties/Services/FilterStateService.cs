@@ -18,7 +18,6 @@ public class FilterStateService : IFilterStateService
     public event EventHandler? FilterStateChanged;
 
     public void UpdateFilters(
-        bool isAllSelected,
         bool isHausSelected,
         bool isGrundstueckSelected,
         bool isZwangsversteigerungSelected,
@@ -27,7 +26,6 @@ public class FilterStateService : IFilterStateService
     {
         _currentState = _currentState with
         {
-            IsAllSelected = isAllSelected,
             IsHausSelected = isHausSelected,
             IsGrundstueckSelected = isGrundstueckSelected,
             IsZwangsversteigerungSelected = isZwangsversteigerungSelected,

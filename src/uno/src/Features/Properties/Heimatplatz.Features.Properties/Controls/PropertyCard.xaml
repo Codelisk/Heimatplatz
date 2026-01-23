@@ -149,7 +149,9 @@
                               Foreground="White" />
                 </Button>
 
-                <!-- 3-Punkt Menü: Oben rechts -->
+                <!-- Action Buttons: Oben rechts (je nach CardMode) -->
+
+                <!-- Default Mode: 3-Punkt Menü -->
                 <Button x:Name="MoreOptionsButton"
                         Tapped="OnMoreOptionsTapped"
                         Background="#66000000"
@@ -179,6 +181,46 @@
                     </Button.Flyout>
                     <FontIcon Glyph="&#xE712;"
                               FontSize="12"
+                              Foreground="White" />
+                </Button>
+
+                <!-- Favorite Mode: Herz-Icon zum Entfavorisieren -->
+                <Button x:Name="FavoriteActionButton"
+                        Tapped="OnActionButtonTapped"
+                        Click="OnFavoriteActionClick"
+                        Background="#66000000"
+                        BorderThickness="0"
+                        Padding="8"
+                        CornerRadius="{StaticResource RadiusSm}"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Margin="12"
+                        Opacity="0.85"
+                        Visibility="Collapsed"
+                        ToolTipService.ToolTip="Aus Favoriten entfernen"
+                        AutomationProperties.AutomationId="PropertyCard_FavoriteAction">
+                    <FontIcon Glyph="&#xEB52;"
+                              FontSize="14"
+                              Foreground="#FF6B6B" />
+                </Button>
+
+                <!-- Blocked Mode: X-Icon zum Entblockieren -->
+                <Button x:Name="BlockedActionButton"
+                        Tapped="OnActionButtonTapped"
+                        Click="OnBlockedActionClick"
+                        Background="#66000000"
+                        BorderThickness="0"
+                        Padding="8"
+                        CornerRadius="{StaticResource RadiusSm}"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Margin="12"
+                        Opacity="0.85"
+                        Visibility="Collapsed"
+                        ToolTipService.ToolTip="Blockierung aufheben"
+                        AutomationProperties.AutomationId="PropertyCard_BlockedAction">
+                    <FontIcon Glyph="&#xE711;"
+                              FontSize="14"
                               Foreground="White" />
                 </Button>
             </Grid>

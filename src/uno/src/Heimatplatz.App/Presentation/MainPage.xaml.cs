@@ -1,5 +1,6 @@
 using Heimatplatz.Events;
 using Heimatplatz.Features.Properties.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Shiny.Mediator;
@@ -99,7 +100,13 @@ public sealed partial class MainPage : Page,
             if (HeaderMainContent.Content is not HomeFilterBar)
             {
                 System.Diagnostics.Debug.WriteLine("[MainPage] Setting HeaderMain content to HomeFilterBar");
-                HeaderMainContent.Content = new HomeFilterBar();
+                var filterBar = new HomeFilterBar();
+                // ViewModel aus DI-Container holen und als DataContext setzen
+                if (Application.Current is App app && app.Services != null)
+                {
+                    filterBar.DataContext = app.Services.GetRequiredService<HomeFilterBarViewModel>();
+                }
+                HeaderMainContent.Content = filterBar;
             }
         }
         else
