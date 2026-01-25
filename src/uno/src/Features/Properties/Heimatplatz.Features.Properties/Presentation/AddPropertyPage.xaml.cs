@@ -1,14 +1,14 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// Seite zum Hinzufügen einer neuen Immobilie
+/// Erbt von BasePage fuer automatisches INavigationAware Handling und PageNavigatedEvent
 /// </summary>
-public sealed partial class AddPropertyPage : Page
+public sealed partial class AddPropertyPage : BasePage
 {
-    public AddPropertyViewModel ViewModel => (AddPropertyViewModel)DataContext;
+    public AddPropertyViewModel? ViewModel => DataContext as AddPropertyViewModel;
 
     public AddPropertyPage()
     {

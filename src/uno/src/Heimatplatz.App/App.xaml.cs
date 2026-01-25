@@ -59,7 +59,7 @@ public partial class App : Application, IApplicationWithServices
                 .UseLocalization()
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddAppServices();
+                    services.AddAppServices(context.Configuration);
                 })
                 .UseNavigation(RegisterRoutes)
             );
@@ -115,7 +115,7 @@ public partial class App : Application, IApplicationWithServices
             new ViewMap<MyPropertiesPage, MyPropertiesViewModel>(),
             new ViewMap<FavoritesPage, FavoritesViewModel>(),
             new ViewMap<BlockedPage, BlockedViewModel>(),
-            new ViewMap<PropertyDetailPage, PropertyDetailViewModel>(),
+            new DataViewMap<PropertyDetailPage, PropertyDetailViewModel, PropertyDetailData>(),
             new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>(),
             new ViewMap<FilterPreferencesPage, FilterPreferencesViewModel>(),
             new ViewMap<PrivacyPolicyPage, PrivacyPolicyViewModel>(),

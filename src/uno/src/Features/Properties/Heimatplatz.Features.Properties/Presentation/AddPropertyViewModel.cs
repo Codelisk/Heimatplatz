@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Manual;
+using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
@@ -13,8 +14,9 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// ViewModel for AddPropertyPage
 /// Implements IPageInfo for header integration (shows back button)
+/// Implements INavigationAware to trigger PageNavigatedEvent for header updates
 /// </summary>
-public partial class AddPropertyViewModel : ObservableObject, IPageInfo
+public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
@@ -167,8 +169,8 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo
 
     #region IPageInfo Implementation
 
-    public PageType PageType => PageType.Form;
-    public string PageTitle => IsEditMode ? "Immobilie bearbeiten" : "Immobilie hinzufügen";
+    public PageType PageType => PageType.Settings;
+    public string PageTitle => "Immobilie hinzufügen";
     public Type? MainHeaderViewModel => null;
 
     #endregion
@@ -447,4 +449,20 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo
 
         ShowSuccess = false;
     }
+
+    #region INavigationAware Implementation
+
+    /// <inheritdoc />
+    public void OnNavigatedTo(object? parameter)
+    {
+        // Navigation parameter handling if needed
+    }
+
+    /// <inheritdoc />
+    public void OnNavigatedFrom()
+    {
+        // Cleanup if needed
+    }
+
+    #endregion
 }

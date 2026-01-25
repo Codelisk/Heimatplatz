@@ -305,6 +305,11 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
         SetContactData(properties);
 
         dbContext.Set<Property>().AddRange(properties);
+
+        // Explizit alle Contacts zum DbContext hinzufuegen (EF Core Cascade-Fix)
+        var allContacts = properties.SelectMany(p => p.Contacts).ToList();
+        dbContext.Set<PropertyContactInfo>().AddRange(allContacts);
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 

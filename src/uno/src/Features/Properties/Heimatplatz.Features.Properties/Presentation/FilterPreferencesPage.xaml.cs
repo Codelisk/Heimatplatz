@@ -1,25 +1,17 @@
-using Microsoft.UI.Xaml.Controls;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// Seite fuer die Konfiguration von Benutzer-Filtereinstellungen
+/// Inherits from BasePage for automatic header handling
 /// </summary>
-public sealed partial class FilterPreferencesPage : Page
+public sealed partial class FilterPreferencesPage : BasePage
 {
-    public FilterPreferencesViewModel? ViewModel { get; set; }
+    public FilterPreferencesViewModel? ViewModel => DataContext as FilterPreferencesViewModel;
 
     public FilterPreferencesPage()
     {
         this.InitializeComponent();
-        this.Loaded += OnLoaded;
-    }
-
-    private async void OnLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        if (ViewModel != null)
-        {
-            await ViewModel.LoadPreferencesCommand.ExecuteAsync(null);
-        }
     }
 }

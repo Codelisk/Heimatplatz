@@ -99,6 +99,56 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsGrundstueckSelected")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsHausSelected")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsZwangsversteigerungSelected")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("SelectedAgeFilter")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("SelectedOrtesJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("[]");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserFilterPreferences");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -621,6 +671,17 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
+                        .WithOne()
+                        .HasForeignKey("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

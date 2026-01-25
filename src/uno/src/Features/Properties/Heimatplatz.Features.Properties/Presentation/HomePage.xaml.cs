@@ -31,7 +31,7 @@ public sealed partial class HomePage : BasePage
 
     private async void OnPropertyCardClicked(object sender, PropertyListItemDto property)
     {
-        await this.Navigator()!.NavigateRouteAsync(this, "PropertyDetail", data: property.Id);
+        await this.Navigator()!.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
     }
 
     private async void OnPropertyBlocked(object sender, PropertyListItemDto property)

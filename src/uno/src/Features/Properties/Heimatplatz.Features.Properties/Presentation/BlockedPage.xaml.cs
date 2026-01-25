@@ -19,7 +19,7 @@ public sealed partial class BlockedPage : BasePage
 
     private void OnPropertyCardClicked(object sender, PropertyListItemDto property)
     {
-        // Optional: Navigation to property details
+        ViewModel?.ViewPropertyDetailsCommand.Execute(property);
     }
 
     private void OnPropertyBlocked(object sender, PropertyListItemDto property)

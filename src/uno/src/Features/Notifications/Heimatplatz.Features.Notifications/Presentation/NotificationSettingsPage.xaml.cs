@@ -1,15 +1,17 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Notifications.Presentation;
 
 /// <summary>
 /// Notification settings page
+/// Inherits from BasePage for automatic header handling
 /// </summary>
-public sealed partial class NotificationSettingsPage : Page
+public sealed partial class NotificationSettingsPage : BasePage
 {
-    public NotificationSettingsViewModel? ViewModel { get; set; }
+    public NotificationSettingsViewModel? ViewModel => DataContext as NotificationSettingsViewModel;
 
     public NotificationSettingsPage()
     {

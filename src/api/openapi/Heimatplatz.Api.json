@@ -300,6 +300,54 @@
         }
       }
     },
+    "/api/auth/filter-preferences": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetUserFilterPreferences",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserFilterPreferencesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SaveUserFilterPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveUserFilterPreferencesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveUserFilterPreferencesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/legal/privacy-policy": {
       "get": {
         "tags": [
@@ -1505,6 +1553,41 @@
           }
         }
       },
+      "GetUserFilterPreferencesResponse": {
+        "required": [
+          "SelectedOrtes",
+          "SelectedAgeFilter",
+          "IsHausSelected",
+          "IsGrundstueckSelected",
+          "IsZwangsversteigerungSelected"
+        ],
+        "type": "object",
+        "properties": {
+          "SelectedOrtes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "SelectedAgeFilter": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "IsHausSelected": {
+            "type": "boolean"
+          },
+          "IsGrundstueckSelected": {
+            "type": "boolean"
+          },
+          "IsZwangsversteigerungSelected": {
+            "type": "boolean"
+          }
+        }
+      },
       "GetUserPropertiesResponse": {
         "required": [
           "Properties"
@@ -1692,7 +1775,8 @@
           "ImageUrls",
           "CreatedAt",
           "InquiryType",
-          "Contacts"
+          "Contacts",
+          "TypeSpecificData"
         ],
         "type": "object",
         "properties": {
@@ -1795,6 +1879,12 @@
             "items": {
               "$ref": "#/components/schemas/ContactInfoDto"
             }
+          },
+          "TypeSpecificData": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2114,6 +2204,52 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SaveUserFilterPreferencesRequest": {
+        "required": [
+          "SelectedOrtes",
+          "SelectedAgeFilter",
+          "IsHausSelected",
+          "IsGrundstueckSelected",
+          "IsZwangsversteigerungSelected"
+        ],
+        "type": "object",
+        "properties": {
+          "SelectedOrtes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "SelectedAgeFilter": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "IsHausSelected": {
+            "type": "boolean"
+          },
+          "IsGrundstueckSelected": {
+            "type": "boolean"
+          },
+          "IsZwangsversteigerungSelected": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SaveUserFilterPreferencesResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
           }
         }
       },

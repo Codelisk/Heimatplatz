@@ -226,8 +226,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             {
                 Properties.Remove(property);
                 IsEmpty = !Properties.Any();
-
-                await ShowSuccessDialogAsync(RemoveSuccessTitle, GetRemoveSuccessMessage(message));
+                // Success dialog removed per user request - immediate feedback through UI update is sufficient
             }
         }
         catch (Exception ex)

@@ -8,6 +8,7 @@ public record PropertyDetailDto(
     string Title,
     string Address,
     string City,
+    string PostalCode,
     decimal Price,
     int? LivingAreaM2,
     int? PlotAreaM2,
@@ -20,5 +21,7 @@ public record PropertyDetailDto(
     string? Description,
     List<string> Features,
     InquiryType InquiryType,
-    List<ContactInfoDto> Contacts
+    List<ContactInfoDto> Contacts,
+    DateTimeOffset CreatedAt,
+    string? TypeSpecificData
 );

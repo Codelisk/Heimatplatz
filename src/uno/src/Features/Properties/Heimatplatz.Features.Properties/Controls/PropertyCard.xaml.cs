@@ -1,7 +1,10 @@
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using UnoFramework.Contracts.Application;
 
 namespace Heimatplatz.Features.Properties.Controls;
 
@@ -19,6 +22,12 @@ public sealed partial class PropertyCard : UserControl
         this.PointerEntered += OnCardPointerEntered;
         this.PointerExited += OnCardPointerExited;
         this.Loaded += OnLoaded;
+
+        // Update menu texts when flyout opens (ensures correct state)
+        if (MoreOptionsButton.Flyout is MenuFlyout menuFlyout)
+        {
+            menuFlyout.Opening += OnMenuFlyoutOpening;
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -37,6 +46,41 @@ public sealed partial class PropertyCard : UserControl
                 }
             }
         }
+        UpdateMenuTexts();
+    }
+
+    private void OnMenuFlyoutOpening(object? sender, object e)
+    {
+        // Always update menu texts when flyout opens to ensure correct state
+        if (_favoriteMenuItem == null || _blockMenuItem == null)
+        {
+            // Re-acquire references if needed
+            if (MoreOptionsButton.Flyout is MenuFlyout menuFlyout)
+            {
+                foreach (var item in menuFlyout.Items)
+                {
+                    if (item is MenuFlyoutItem menuItem)
+                    {
+                        if (menuItem.Text.Contains("avorisieren"))
+                            _favoriteMenuItem = menuItem;
+                        else if (menuItem.Text.Contains("lockieren"))
+                            _blockMenuItem = menuItem;
+                    }
+                }
+            }
+        }
+
+        // Get fresh status from service when menu opens
+        if (Property != null && Application.Current is IApplicationWithServices appWithServices && appWithServices.Services != null)
+        {
+            var statusService = appWithServices.Services.GetService<IPropertyStatusService>();
+            if (statusService != null)
+            {
+                IsFavorite = statusService.IsFavorite(Property.Id);
+                IsBlocked = statusService.IsBlocked(Property.Id);
+            }
+        }
+
         UpdateMenuTexts();
     }
 

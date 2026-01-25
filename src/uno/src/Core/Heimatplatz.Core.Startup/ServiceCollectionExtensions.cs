@@ -2,6 +2,7 @@ using Heimatplatz.Core.ApiClient.Configuration;
 using Heimatplatz.Features.Auth.Configuration;
 using Heimatplatz.Features.Notifications.Configuration;
 using Heimatplatz.Features.Properties.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using UnoFramework.Mediator;
 using UnoFramework.ViewModels;
@@ -10,7 +11,7 @@ namespace Heimatplatz.Core.Startup;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAppServices(this IServiceCollection services)
+    public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Auto-register services with [Service] attribute
         services.AddShinyServiceRegistry();
@@ -27,7 +28,7 @@ public static class ServiceCollectionExtensions
         // Features
         services.AddAuthFeature();
         services.AddNotificationsFeature();
-        services.AddPropertiesFeature();
+        services.AddPropertiesFeature(configuration);
 
         return services;
     }

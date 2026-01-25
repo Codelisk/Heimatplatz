@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
@@ -21,11 +22,23 @@ public abstract class BaseIntegrationTest
     protected IServiceCollection Services { get; private set; } = null!;
 
     /// <summary>
+    /// Die Konfiguration fuer den Test.
+    /// </summary>
+    protected IConfiguration Configuration { get; private set; } = null!;
+
+    /// <summary>
     /// Wird vor jedem Test aufgerufen.
     /// </summary>
     [SetUp]
     public virtual void SetUp()
     {
+        Configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Mediator:Http:Heimatplatz.Core.ApiClient.Generated.*"] = "http://localhost:5292"
+            })
+            .Build();
+
         Services = new ServiceCollection();
         ConfigureServices(Services);
         ServiceProvider = Services.BuildServiceProvider();

@@ -24,7 +24,8 @@ public record PropertyDto(
     List<string> ImageUrls,
     DateTimeOffset CreatedAt,
     InquiryType InquiryType,
-    List<ContactInfoDto> Contacts
+    List<ContactInfoDto> Contacts,
+    string? TypeSpecificData
 );
 
 /// <summary>

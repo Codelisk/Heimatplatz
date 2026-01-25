@@ -1,97 +1,146 @@
-using System.Text.Json;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
-using Shiny.Extensions.DependencyInjection;
-using Windows.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace Heimatplatz.Features.Properties.Services;
 
 /// <summary>
 /// Service fuer das Laden und Speichern von Benutzer-Filtereinstellungen.
-/// Verwendet lokalen Speicher (ApplicationData.LocalSettings) als Fallback,
-/// bis die API-Endpoints verfuegbar sind.
+/// Verwendet die API-Endpoints zum Speichern in der Datenbank.
+/// Registriert via AddHttpClient in ServiceCollectionExtensions.
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public class FilterPreferencesService : IFilterPreferencesService
+public class FilterPreferencesService(
+    HttpClient httpClient,
+    IAuthService authService,
+    ILogger<FilterPreferencesService> logger
+) : IFilterPreferencesService
 {
-    private const string StorageKey = "FilterPreferences";
-    private readonly IAuthService _authService;
+    private const string ApiEndpoint = "/api/auth/filter-preferences";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    /// <summary>
+    /// Sets the Authorization header with the current access token.
+    /// </summary>
+    private void SetAuthorizationHeader()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
-
-    public FilterPreferencesService(IAuthService authService)
-    {
-        _authService = authService;
+        if (authService.IsAuthenticated && !string.IsNullOrEmpty(authService.AccessToken))
+        {
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", authService.AccessToken);
+        }
     }
 
     /// <inheritdoc />
-    public Task<FilterPreferencesDto?> GetPreferencesAsync(CancellationToken ct = default)
+    public async Task<FilterPreferencesDto?> GetPreferencesAsync(CancellationToken ct = default)
     {
-        if (!_authService.IsAuthenticated || _authService.UserId == null)
+        if (!authService.IsAuthenticated || authService.UserId == null)
         {
-            return Task.FromResult<FilterPreferencesDto?>(null);
+            return null;
         }
 
-        var key = GetUserStorageKey();
-        var settings = ApplicationData.Current.LocalSettings;
-
-        if (settings.Values.TryGetValue(key, out var value) && value is string json)
+        try
         {
-            try
-            {
-                var preferences = JsonSerializer.Deserialize<FilterPreferencesDto>(json, JsonOptions);
-                return Task.FromResult(preferences);
-            }
-            catch (JsonException)
-            {
-                // Corrupted data - return null
-                return Task.FromResult<FilterPreferencesDto?>(null);
-            }
-        }
+            SetAuthorizationHeader();
 
-        return Task.FromResult<FilterPreferencesDto?>(null);
+            var response = await httpClient.GetFromJsonAsync<GetUserFilterPreferencesResponse>(
+                ApiEndpoint,
+                ct);
+
+            if (response == null)
+            {
+                logger.LogWarning("Failed to get filter preferences - null response");
+                return FilterPreferencesDto.Default;
+            }
+
+            return new FilterPreferencesDto(
+                SelectedOrte: response.SelectedOrtes,
+                SelectedAgeFilter: (AgeFilter)response.SelectedAgeFilter,
+                IsHausSelected: response.IsHausSelected,
+                IsGrundstueckSelected: response.IsGrundstueckSelected,
+                IsZwangsversteigerungSelected: response.IsZwangsversteigerungSelected
+            );
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "HTTP error getting filter preferences");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting filter preferences");
+            return null;
+        }
     }
 
     /// <inheritdoc />
-    public Task SavePreferencesAsync(FilterPreferencesDto preferences, CancellationToken ct = default)
+    public async Task SavePreferencesAsync(FilterPreferencesDto preferences, CancellationToken ct = default)
     {
-        if (!_authService.IsAuthenticated || _authService.UserId == null)
+        logger.LogInformation(
+            "SavePreferencesAsync called. IsAuthenticated: {IsAuth}, UserId: {UserId}, AccessToken: {HasToken}",
+            authService.IsAuthenticated,
+            authService.UserId,
+            !string.IsNullOrEmpty(authService.AccessToken));
+
+        if (!authService.IsAuthenticated || authService.UserId == null)
         {
-            return Task.CompletedTask;
+            logger.LogWarning("User not authenticated - skipping save");
+            return;
         }
 
-        var key = GetUserStorageKey();
-        var json = JsonSerializer.Serialize(preferences, JsonOptions);
-        var settings = ApplicationData.Current.LocalSettings;
+        try
+        {
+            SetAuthorizationHeader();
 
-        settings.Values[key] = json;
+            var request = new SaveUserFilterPreferencesRequest(
+                SelectedOrtes: preferences.SelectedOrte,
+                SelectedAgeFilter: (int)preferences.SelectedAgeFilter,
+                IsHausSelected: preferences.IsHausSelected,
+                IsGrundstueckSelected: preferences.IsGrundstueckSelected,
+                IsZwangsversteigerungSelected: preferences.IsZwangsversteigerungSelected
+            );
 
-        return Task.CompletedTask;
+            var response = await httpClient.PostAsJsonAsync(ApiEndpoint, request, ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("Failed to save filter preferences - Status: {StatusCode}", response.StatusCode);
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "HTTP error saving filter preferences");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error saving filter preferences");
+            throw;
+        }
     }
 
     /// <inheritdoc />
     public Task ClearPreferencesAsync(CancellationToken ct = default)
     {
-        if (!_authService.IsAuthenticated || _authService.UserId == null)
-        {
-            return Task.CompletedTask;
-        }
-
-        var key = GetUserStorageKey();
-        var settings = ApplicationData.Current.LocalSettings;
-
-        settings.Values.Remove(key);
-
-        return Task.CompletedTask;
-    }
-
-    private string GetUserStorageKey()
-    {
-        return $"{StorageKey}_{_authService.UserId}";
+        // Clearing means saving default preferences
+        return SavePreferencesAsync(FilterPreferencesDto.Default, ct);
     }
 }
+
+// DTOs matching API contracts
+internal record GetUserFilterPreferencesResponse(
+    List<string> SelectedOrtes,
+    int SelectedAgeFilter,
+    bool IsHausSelected,
+    bool IsGrundstueckSelected,
+    bool IsZwangsversteigerungSelected
+);
+
+internal record SaveUserFilterPreferencesRequest(
+    List<string> SelectedOrtes,
+    int SelectedAgeFilter,
+    bool IsHausSelected,
+    bool IsGrundstueckSelected,
+    bool IsZwangsversteigerungSelected
+);

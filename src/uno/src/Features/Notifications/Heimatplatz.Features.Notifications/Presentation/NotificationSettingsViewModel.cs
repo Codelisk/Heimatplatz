@@ -3,16 +3,44 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Notifications.Contracts.Models;
 using Heimatplatz.Features.Notifications.Services;
 using Microsoft.Extensions.Logging;
+using UnoFramework.Contracts.Navigation;
+using UnoFramework.Contracts.Pages;
 
 namespace Heimatplatz.Features.Notifications.Presentation;
 
 /// <summary>
 /// ViewModel for NotificationSettings page using MVVM pattern
+/// Implements INavigationAware to trigger PageNavigatedEvent for header updates
 /// </summary>
-public partial class NotificationSettingsViewModel : ObservableObject
+public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly INotificationService _notificationService;
     private readonly ILogger<NotificationSettingsViewModel> _logger;
+
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.Settings;
+    public string PageTitle => "Benachrichtigungen";
+    public Type? MainHeaderViewModel => null;
+
+    #endregion
+
+    #region INavigationAware Implementation
+
+    /// <inheritdoc />
+    public void OnNavigatedTo(object? parameter)
+    {
+        // Load preferences when navigated to
+        _ = LoadPreferencesAsync();
+    }
+
+    /// <inheritdoc />
+    public void OnNavigatedFrom()
+    {
+        // Cleanup if needed
+    }
+
+    #endregion
 
     [ObservableProperty]
     private bool _isBusy;

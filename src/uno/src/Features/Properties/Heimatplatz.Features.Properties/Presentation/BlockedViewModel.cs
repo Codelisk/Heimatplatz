@@ -287,8 +287,7 @@ public partial class BlockedViewModel : PropertyCollectionViewModelBase
     {
         if (property == null) return;
 
-        // Navigate to property details page (to be implemented)
         Logger.LogInformation("[Blocked] Navigating to property details for ID: {PropertyId}", property.Id);
-        // TODO: Implement navigation to property details page
+        await Navigator.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
     }
 }

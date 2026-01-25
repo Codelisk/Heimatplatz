@@ -17,7 +17,7 @@ public class DependencyInjectionTests : BaseIntegrationTest
     protected override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
-        services.AddAppServices();
+        services.AddAppServices(Configuration);
     }
 
     [Test]

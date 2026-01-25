@@ -3,15 +3,43 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
+using UnoFramework.Contracts.Navigation;
+using UnoFramework.Contracts.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel fuer die FilterPreferencesPage
+/// Implements INavigationAware to trigger PageNavigatedEvent for header updates
 /// </summary>
-public partial class FilterPreferencesViewModel : ObservableObject
+public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IFilterPreferencesService _filterPreferencesService;
+
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.Settings;
+    public string PageTitle => "Filtereinstellungen";
+    public Type? MainHeaderViewModel => null;
+
+    #endregion
+
+    #region INavigationAware Implementation
+
+    /// <inheritdoc />
+    public void OnNavigatedTo(object? parameter)
+    {
+        // Load preferences when navigated to
+        _ = LoadPreferencesAsync();
+    }
+
+    /// <inheritdoc />
+    public void OnNavigatedFrom()
+    {
+        // Cleanup if needed
+    }
+
+    #endregion
 
     [ObservableProperty]
     private bool _isBusy;

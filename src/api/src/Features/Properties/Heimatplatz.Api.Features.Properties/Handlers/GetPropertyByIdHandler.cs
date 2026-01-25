@@ -54,7 +54,8 @@ public class GetPropertyByIdHandler(AppDbContext dbContext) : IRequestHandler<Ge
                         c.SourceName,
                         c.DisplayOrder
                     ))
-                    .ToList()
+                    .ToList(),
+                p.TypeSpecificData
             ))
             .FirstOrDefaultAsync(cancellationToken);
 

@@ -19,88 +19,90 @@
         <uc:BusyOverlay IsBusy="{Binding IsBusy}"
                         BusyMessage="{Binding BusyMessage}">
 
-            <!-- Content Area -->
-            <ScrollViewer>
+            <Grid>
+                <!-- Empty State - Modern Card Design (Full screen centered) -->
+                <Grid Visibility="{Binding IsEmpty, FallbackValue=Collapsed}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <Border HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            MaxWidth="420"
+                            Background="{ThemeResource SurfaceBrush}"
+                            CornerRadius="24"
+                            Padding="48,56"
+                            Translation="0,0,8">
+                        <Border.Shadow>
+                            <ThemeShadow />
+                        </Border.Shadow>
+
+                        <StackPanel Spacing="24" HorizontalAlignment="Center">
+
+                            <!-- Illustrative Icon Circle -->
+                            <Grid Width="120" Height="120" HorizontalAlignment="Center">
+                                <!-- Outer Ring -->
+                                <Ellipse Fill="{ThemeResource PrimaryContainerBrush}"
+                                         Opacity="0.3" />
+                                <!-- Inner Circle -->
+                                <Ellipse Width="88" Height="88"
+                                         Fill="{ThemeResource PrimaryContainerBrush}"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" />
+                                <!-- Icon -->
+                                <FontIcon Glyph="&#xE80F;"
+                                          FontSize="40"
+                                          Foreground="{ThemeResource PrimaryBrush}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Grid>
+
+                            <!-- Text Content -->
+                            <StackPanel Spacing="8" HorizontalAlignment="Center">
+                                <TextBlock Text="Noch keine Immobilien"
+                                           Style="{StaticResource TitleLargeTextBlockStyle}"
+                                           Foreground="{ThemeResource OnSurfaceBrush}"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center" />
+
+                                <TextBlock Text="Inserieren Sie Ihre erste Immobilie und erreichen Sie tausende potenzielle Käufer"
+                                           Style="{StaticResource BodyMediumTextBlockStyle}"
+                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           MaxWidth="300" />
+                            </StackPanel>
+
+                            <!-- CTA Button -->
+                            <Button Style="{StaticResource FilledButtonStyle}"
+                                    Command="{Binding NavigateToAddPropertyCommand}"
+                                    HorizontalAlignment="Center"
+                                    Padding="24,14">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE710;" FontSize="18" />
+                                    <TextBlock Text="Erste Immobilie inserieren"
+                                               Style="{StaticResource BodyLargeTextBlockStyle}" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Subtle Hint -->
+                            <TextBlock Text="Kostenlos und in wenigen Minuten"
+                                       Style="{StaticResource LabelSmallTextBlockStyle}"
+                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                       Opacity="0.7"
+                                       HorizontalAlignment="Center" />
+
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Content Area with Properties -->
+                <ScrollViewer Visibility="{Binding IsNotEmpty, FallbackValue=Collapsed}">
                     <utu:AutoLayout Orientation="Vertical"
                                     Spacing="16"
                                     Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}">
 
-                        <!-- Empty State - Modern Card Design -->
-                        <Border Visibility="{Binding IsEmpty, FallbackValue=Collapsed}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Margin="0,40,0,0"
-                                MaxWidth="420"
-                                Background="{ThemeResource SurfaceBrush}"
-                                CornerRadius="24"
-                                Padding="48,56"
-                                Translation="0,0,8">
-                            <Border.Shadow>
-                                <ThemeShadow />
-                            </Border.Shadow>
-
-                            <StackPanel Spacing="24" HorizontalAlignment="Center">
-
-                                <!-- Illustrative Icon Circle -->
-                                <Grid Width="120" Height="120" HorizontalAlignment="Center">
-                                    <!-- Outer Ring -->
-                                    <Ellipse Fill="{ThemeResource PrimaryContainerBrush}"
-                                             Opacity="0.3" />
-                                    <!-- Inner Circle -->
-                                    <Ellipse Width="88" Height="88"
-                                             Fill="{ThemeResource PrimaryContainerBrush}"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Center" />
-                                    <!-- Icon -->
-                                    <FontIcon Glyph="&#xE80F;"
-                                              FontSize="40"
-                                              Foreground="{ThemeResource PrimaryBrush}"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center" />
-                                </Grid>
-
-                                <!-- Text Content -->
-                                <StackPanel Spacing="8" HorizontalAlignment="Center">
-                                    <TextBlock Text="Noch keine Immobilien"
-                                               Style="{StaticResource TitleLargeTextBlockStyle}"
-                                               Foreground="{ThemeResource OnSurfaceBrush}"
-                                               HorizontalAlignment="Center"
-                                               TextAlignment="Center" />
-
-                                    <TextBlock Text="Inserieren Sie Ihre erste Immobilie und erreichen Sie tausende potenzielle Käufer"
-                                               Style="{StaticResource BodyMediumTextBlockStyle}"
-                                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                               HorizontalAlignment="Center"
-                                               TextAlignment="Center"
-                                               TextWrapping="Wrap"
-                                               MaxWidth="300" />
-                                </StackPanel>
-
-                                <!-- CTA Button -->
-                                <Button Style="{StaticResource FilledButtonStyle}"
-                                        Command="{Binding NavigateToAddPropertyCommand}"
-                                        HorizontalAlignment="Center"
-                                        Padding="24,14">
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <FontIcon Glyph="&#xE710;" FontSize="18" />
-                                        <TextBlock Text="Erste Immobilie inserieren"
-                                                   Style="{StaticResource BodyLargeTextBlockStyle}" />
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- Subtle Hint -->
-                                <TextBlock Text="Kostenlos und in wenigen Minuten"
-                                           Style="{StaticResource LabelSmallTextBlockStyle}"
-                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                           Opacity="0.7"
-                                           HorizontalAlignment="Center" />
-
-                            </StackPanel>
-                        </Border>
-
                         <!-- Properties Grid -->
-                        <ItemsRepeater ItemsSource="{Binding Properties}"
-                                       Visibility="{Binding IsNotEmpty, FallbackValue=Collapsed}">
+                        <ItemsRepeater ItemsSource="{Binding Properties}">
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout MinItemWidth="{utu:Responsive Narrowest=300, Normal=320, Wide=340}"
                                                    ItemsStretch="Fill"
@@ -162,6 +164,7 @@
 
                     </utu:AutoLayout>
                 </ScrollViewer>
+            </Grid>
 
         </uc:BusyOverlay>
 

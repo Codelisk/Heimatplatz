@@ -74,6 +74,7 @@
                         uen:Region.Attached="True"
                         PaneDisplayMode="Left"
                         IsPaneVisible="{Binding IsAuthenticated}"
+                        IsPaneOpen="False"
                         IsBackButtonVisible="Collapsed"
                         IsSettingsVisible="False"
                         IsPaneToggleButtonVisible="False"

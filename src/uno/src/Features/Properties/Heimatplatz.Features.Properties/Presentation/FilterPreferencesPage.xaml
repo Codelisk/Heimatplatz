@@ -1,10 +1,13 @@
-<Page x:Class="Heimatplatz.Features.Properties.Presentation.FilterPreferencesPage"
+<pages:BasePage x:Class="Heimatplatz.Features.Properties.Presentation.FilterPreferencesPage"
+      x:Name="RootPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
       xmlns:controls="using:Heimatplatz.Features.Properties.Controls"
       xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:uc="using:UnoFramework.Controls"
+      xmlns:pages="using:UnoFramework.Pages"
+      NavigationCacheMode="Disabled"
       Background="{ThemeResource BackgroundBrush}">
 
     <!--
@@ -25,20 +28,16 @@
                                 HorizontalAlignment="Center"
                                 utu:SafeArea.Insets="Bottom">
 
-                    <!-- Header -->
-                    <utu:AutoLayout Spacing="8" Orientation="Vertical">
-                        <TextBlock Text="Filtereinstellungen"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   AutomationProperties.AutomationId="FilterPreferences_Title" />
-                        <TextBlock Text="Konfigurieren Sie Ihre Standard-Filtereinstellungen. Diese werden automatisch angewendet, wenn Sie die Startseite besuchen."
-                                   Style="{StaticResource BodyTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                   TextWrapping="Wrap"
-                                   AutomationProperties.AutomationId="FilterPreferences_Description" />
-                    </utu:AutoLayout>
+                    <!-- Description -->
+                    <TextBlock Text="Konfigurieren Sie Ihre Standard-Filtereinstellungen. Diese werden automatisch angewendet, wenn Sie die Startseite besuchen."
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                               TextWrapping="Wrap"
+                               AutomationProperties.AutomationId="FilterPreferences_Description" />
 
                     <!-- Ort-Filter Card -->
-                    <utu:Card AutomationProperties.AutomationId="FilterPreferences_OrtCard">
+                    <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                            AutomationProperties.AutomationId="FilterPreferences_OrtCard">
                         <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
                             <utu:AutoLayout Spacing="4" Orientation="Vertical">
                                 <TextBlock Text="Orte"
@@ -54,10 +53,11 @@
                                                 HorizontalAlignment="Stretch"
                                                 AutomationProperties.AutomationId="FilterPreferences_OrtPicker" />
                         </utu:AutoLayout>
-                    </utu:Card>
+                    </utu:CardContentControl>
 
                     <!-- Zeitraum-Filter Card -->
-                    <utu:Card AutomationProperties.AutomationId="FilterPreferences_AgeCard">
+                    <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                            AutomationProperties.AutomationId="FilterPreferences_AgeCard">
                         <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
                             <utu:AutoLayout Spacing="4" Orientation="Vertical">
                                 <TextBlock Text="Zeitraum"
@@ -72,10 +72,11 @@
                                                       HorizontalAlignment="Stretch"
                                                       AutomationProperties.AutomationId="FilterPreferences_AgeFilterPicker" />
                         </utu:AutoLayout>
-                    </utu:Card>
+                    </utu:CardContentControl>
 
                     <!-- Immobilientyp-Filter Card -->
-                    <utu:Card AutomationProperties.AutomationId="FilterPreferences_TypeCard">
+                    <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                            AutomationProperties.AutomationId="FilterPreferences_TypeCard">
                         <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
                             <utu:AutoLayout Spacing="4" Orientation="Vertical">
                                 <TextBlock Text="Immobilientyp"
@@ -100,7 +101,7 @@
                                                      AutomationProperties.AutomationId="FilterPreferences_Chip_ZV" />
                             </StackPanel>
                         </utu:AutoLayout>
-                    </utu:Card>
+                    </utu:CardContentControl>
 
                     <!-- Success Message -->
                     <Border Background="{ThemeResource SuccessBackgroundBrush}"
@@ -176,4 +177,4 @@
             </ScrollViewer>
         </uc:BusyOverlay>
     </Grid>
-</Page>
+</pages:BasePage>

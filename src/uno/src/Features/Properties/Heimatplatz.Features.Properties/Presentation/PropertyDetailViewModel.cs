@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
@@ -7,22 +8,21 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
-using UnoFramework.Contracts.Navigation;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
-/// ViewModel fuer die PropertyDetailPage
-/// Implements IPageInfo for header integration (shows back button)
+/// ViewModel fuer die PropertyDetailPage (Immoscout Style)
 /// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public partial class PropertyDetailViewModel : ObservableObject, INavigationAware, IPageInfo
+public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IClipboardService _clipboardService;
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
     private readonly IPropertyStatusService _propertyStatusService;
     private readonly ILogger<PropertyDetailViewModel> _logger;
+    private readonly Guid _propertyId;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -40,43 +40,40 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
     private string _formattedPrice = string.Empty;
 
     [ObservableProperty]
-    private string _detailsText = string.Empty;
+    private string _pricePerSqmText = "-";
 
     [ObservableProperty]
-    private string _typeText = string.Empty;
+    private string _plotAreaText = "-";
 
     [ObservableProperty]
-    private string _featuresText = "Keine Angaben";
+    private string _yearBuiltText = "-";
+
+    [ObservableProperty]
+    private string _addressText = string.Empty;
+
+    [ObservableProperty]
+    private string _contactPersonText = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasContactPerson;
 
     [ObservableProperty]
     private string? _copyFeedback;
-
-    [ObservableProperty]
-    private string? _statusFeedback;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FavoriteButtonText))]
     [NotifyPropertyChangedFor(nameof(FavoriteButtonIcon))]
     private bool _isFavorite;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BlockButtonText))]
-    private bool _isBlocked;
-
     /// <summary>
     /// Text for the favorite button based on current status
     /// </summary>
-    public string FavoriteButtonText => IsFavorite ? "Entfavorisieren" : "Favorisieren";
+    public string FavoriteButtonText => IsFavorite ? "Gemerkt" : "Merken";
 
     /// <summary>
     /// Icon glyph for the favorite button (filled/outline heart)
     /// </summary>
     public string FavoriteButtonIcon => IsFavorite ? "\uEB52" : "\uEB51";
-
-    /// <summary>
-    /// Text for the block button based on current status
-    /// </summary>
-    public string BlockButtonText => IsBlocked ? "Entblockieren" : "Blockieren";
 
     #region IPageInfo Implementation
 
@@ -86,80 +83,84 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
 
     #endregion
 
-    /// <summary>
-    /// Event that is raised when the property has been blocked and navigation should occur
-    /// </summary>
-    public event EventHandler? PropertyBlocked;
-
     public PropertyDetailViewModel(
         IClipboardService clipboardService,
         IMediator mediator,
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
-        ILogger<PropertyDetailViewModel> logger)
+        ILogger<PropertyDetailViewModel> logger,
+        PropertyDetailData data)
     {
         _clipboardService = clipboardService;
         _mediator = mediator;
         _authService = authService;
         _propertyStatusService = propertyStatusService;
         _logger = logger;
-    }
+        _propertyId = data.PropertyId;
 
-    /// <summary>
-    /// Indicates if the user can block properties (must be authenticated)
-    /// </summary>
-    public bool CanBlock => _authService.IsAuthenticated;
+        // Load property data immediately
+        _ = LoadPropertyAsync(_propertyId);
+    }
 
     /// <summary>
     /// Gibt an, ob Kontaktdaten verfuegbar sind
     /// </summary>
     public bool HasContacts => Property?.Contacts?.Count > 0;
 
-    /// <summary>
-    /// Gibt an, ob der Kontakt-Button angezeigt werden soll
-    /// </summary>
-    public bool ShowContactButton => Property?.InquiryType == InquiryType.ContactData && HasContacts;
-
     private void UpdateDisplayProperties()
     {
         if (Property == null)
         {
             FormattedPrice = string.Empty;
-            DetailsText = string.Empty;
-            TypeText = string.Empty;
-            FeaturesText = "Keine Angaben";
+            PricePerSqmText = "-";
+            PlotAreaText = "-";
+            YearBuiltText = "-";
+            AddressText = string.Empty;
+            ContactPersonText = string.Empty;
+            HasContactPerson = false;
             return;
         }
 
-        // Format price
-        FormattedPrice = $"€ {Property.Price:N0}".Replace(",", ".");
+        // Format price: "3.590.000 €"
+        FormattedPrice = $"{Property.Price:N0} €".Replace(",", ".");
 
-        // Build details text
-        var parts = new List<string>();
-        if (Property.LivingAreaM2.HasValue)
-            parts.Add($"{Property.LivingAreaM2} m²");
-        if (Property.Rooms.HasValue)
-            parts.Add($"{Property.Rooms} Zimmer");
-        if (Property.YearBuilt.HasValue)
-            parts.Add($"Baujahr {Property.YearBuilt}");
-        DetailsText = string.Join(" · ", parts);
-
-        // Type text
-        TypeText = Property.Type switch
+        // Price per square meter
+        if (Property.LivingAreaM2.HasValue && Property.LivingAreaM2.Value > 0)
         {
-            PropertyType.House => "HAUS",
-            PropertyType.Land => "GRUNDSTÜCK",
-            PropertyType.Foreclosure => "ZWANGSVERSTEIGERUNG",
-            _ => string.Empty
-        };
+            var pricePerSqm = Property.Price / Property.LivingAreaM2.Value;
+            PricePerSqmText = $"{pricePerSqm:N2} €".Replace(",", ".");
+        }
+        else
+        {
+            PricePerSqmText = "-";
+        }
 
-        // Features
-        FeaturesText = Property.Features?.Count > 0
-            ? string.Join("  ", Property.Features.Select(a => $"✓ {a}"))
-            : "Keine Angaben";
+        // Plot area
+        PlotAreaText = Property.PlotAreaM2.HasValue
+            ? $"{Property.PlotAreaM2:N0} m²".Replace(",", ".")
+            : "-";
 
+        // Year built
+        YearBuiltText = Property.YearBuilt?.ToString() ?? "-";
+
+        // Full address: "Strasse, PLZ Ort"
+        AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
+
+        // Contact person (first contact name if available)
+        var firstContact = Property.Contacts?.FirstOrDefault();
+        if (firstContact != null)
+        {
+            ContactPersonText = $"Herr/Frau {firstContact.Name}";
+            HasContactPerson = true;
+        }
+        else
+        {
+            ContactPersonText = string.Empty;
+            HasContactPerson = false;
+        }
+
+        // Notify all computed properties
         OnPropertyChanged(nameof(HasContacts));
-        OnPropertyChanged(nameof(ShowContactButton));
     }
 
     public async Task LoadPropertyAsync(Guid propertyId)
@@ -169,54 +170,75 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
 
         try
         {
-            // TODO: API integration - mock data for now
-            Property = GetMockProperty(propertyId);
+            _logger.LogInformation("[PropertyDetail] Loading property {PropertyId} from API", propertyId);
+
+            var request = new Heimatplatz.Core.ApiClient.Generated.GetPropertyByIdHttpRequest
+            {
+                Id = propertyId
+            };
+
+            var (context, response) = await _mediator.Request(request);
+
+            if (response?.Property != null)
+            {
+                var prop = response.Property;
+                Property = new PropertyDetailDto(
+                    Id: prop.Id,
+                    Title: prop.Title,
+                    Address: prop.Address,
+                    City: prop.City,
+                    PostalCode: prop.PostalCode,
+                    Price: (decimal)prop.Price,
+                    LivingAreaM2: prop.LivingAreaM2,
+                    PlotAreaM2: prop.PlotAreaM2,
+                    Rooms: prop.Rooms,
+                    YearBuilt: prop.YearBuilt,
+                    Type: Enum.Parse<PropertyType>(prop.Type.ToString()),
+                    SellerType: Enum.Parse<SellerType>(prop.SellerType.ToString()),
+                    SellerName: prop.SellerName,
+                    ImageUrls: prop.ImageUrls,
+                    Description: prop.Description,
+                    Features: prop.Features,
+                    InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString()),
+                    Contacts: prop.Contacts?.Select(c => new ContactInfoDto(
+                        Id: c.Id,
+                        Type: Enum.Parse<ContactType>(c.Type.ToString()),
+                        Source: Enum.Parse<ContactSource>(c.Source.ToString()),
+                        Name: c.Name,
+                        Email: c.Email,
+                        Phone: c.Phone,
+                        OriginalListingUrl: c.OriginalListingUrl,
+                        SourceName: c.SourceName,
+                        DisplayOrder: c.DisplayOrder
+                    )).ToList() ?? [],
+                    CreatedAt: prop.CreatedAt,
+                    TypeSpecificData: prop.TypeSpecificData
+                );
+
+                _logger.LogInformation("[PropertyDetail] Property loaded: {Title}", Property.Title);
+            }
+            else
+            {
+                _logger.LogWarning("[PropertyDetail] Property {PropertyId} not found", propertyId);
+            }
+
             UpdateDisplayProperties();
 
-            // Load favorite and blocked status
+            // Load favorite status
             if (_authService.IsAuthenticated)
             {
                 await _propertyStatusService.RefreshStatusAsync();
                 IsFavorite = _propertyStatusService.IsFavorite(propertyId);
-                IsBlocked = _propertyStatusService.IsBlocked(propertyId);
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[PropertyDetail] Error loading property {PropertyId}", propertyId);
         }
         finally
         {
             IsBusy = false;
         }
-    }
-
-    // Keep synchronous version for backward compatibility
-    public void LoadProperty(Guid propertyId)
-    {
-        _ = LoadPropertyAsync(propertyId);
-    }
-
-    public void OnNavigatedTo(object? parameter)
-    {
-        // Parameter kann Guid oder string sein
-        Guid? propertyId = parameter switch
-        {
-            Guid g => g,
-            string s when Guid.TryParse(s, out var parsed) => parsed,
-            _ => null
-        };
-
-        if (propertyId.HasValue)
-        {
-            LoadProperty(propertyId.Value);
-        }
-        else
-        {
-            // Fallback: Lade Testdaten
-            LoadProperty(Guid.NewGuid());
-        }
-    }
-
-    public void OnNavigatedFrom()
-    {
-        // Cleanup if needed
     }
 
     /// <summary>
@@ -242,120 +264,27 @@ public partial class PropertyDetailViewModel : ObservableObject, INavigationAwar
     [RelayCommand]
     private async Task ToggleFavoriteAsync()
     {
-        if (Property == null || !CanBlock)
+        if (Property == null || !_authService.IsAuthenticated)
             return;
 
         _logger.LogInformation("[PropertyDetail] Toggling favorite for {PropertyId}", Property.Id);
 
-        var wasFavorite = IsFavorite;
         IsFavorite = await _propertyStatusService.ToggleFavoriteAsync(Property.Id);
-
-        // Show feedback
-        StatusFeedback = IsFavorite ? "Zu Favoriten hinzugefuegt" : "Aus Favoriten entfernt";
-        await Task.Delay(1500);
-        StatusFeedback = null;
     }
 
-    /// <summary>
-    /// Toggles the blocked status of the current property
-    /// </summary>
-    [RelayCommand]
-    private async Task ToggleBlockAsync()
+    #region INavigationAware Implementation
+
+    /// <inheritdoc />
+    public void OnNavigatedTo(object? parameter)
     {
-        if (Property == null || !CanBlock)
-            return;
-
-        _logger.LogInformation("[PropertyDetail] Toggling block for {PropertyId}", Property.Id);
-
-        var wasBlocked = IsBlocked;
-        IsBlocked = await _propertyStatusService.ToggleBlockedAsync(Property.Id);
-
-        if (IsBlocked && !wasBlocked)
-        {
-            // Property was blocked - also remove from favorites if it was favorited
-            if (IsFavorite)
-            {
-                IsFavorite = false;
-            }
-
-            StatusFeedback = "Blockiert";
-
-            // Notify that the property was blocked - page should navigate back
-            PropertyBlocked?.Invoke(this, EventArgs.Empty);
-        }
-        else if (!IsBlocked && wasBlocked)
-        {
-            // Property was unblocked
-            StatusFeedback = "Blockierung aufgehoben";
-            await Task.Delay(1500);
-            StatusFeedback = null;
-        }
+        _logger.LogDebug("[PropertyDetail] OnNavigatedTo");
     }
 
-    /// <summary>
-    /// Gibt den Anzeigenamen fuer einen ContactType zurueck
-    /// </summary>
-    public static string GetContactTypeName(ContactType type) => type switch
+    /// <inheritdoc />
+    public void OnNavigatedFrom()
     {
-        ContactType.Seller => "Eigentümer",
-        ContactType.Agent => "Makler",
-        ContactType.PropertyManager => "Hausverwaltung",
-        _ => "Kontakt"
-    };
-
-    private PropertyDetailDto GetMockProperty(Guid propertyId)
-    {
-        // Mock data with new Contacts structure
-        return new PropertyDetailDto(
-            Id: propertyId,
-            Title: "Einfamilienhaus in Linz-Urfahr",
-            Address: "Hauptstrasse 15",
-            City: "Linz",
-            Price: 349000,
-            LivingAreaM2: 145,
-            PlotAreaM2: 520,
-            Rooms: 5,
-            YearBuilt: 2018,
-            Type: PropertyType.House,
-            SellerType: SellerType.Makler,
-            SellerName: "Mustermann Immobilien",
-            ImageUrls:
-            [
-                "https://picsum.photos/seed/haus1a/800/600",
-                "https://picsum.photos/seed/haus1b/800/600",
-                "https://picsum.photos/seed/haus1c/800/600"
-            ],
-            Description: "Wunderschönes Einfamilienhaus mit großem Garten in ruhiger Lage. " +
-                         "Das Haus wurde 2018 erbaut und befindet sich in einem ausgezeichneten Zustand. " +
-                         "Die hochwertige Ausstattung und die durchdachte Raumaufteilung machen dieses Objekt " +
-                         "zu einem idealen Zuhause für Familien.",
-            Features: ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"],
-            InquiryType: InquiryType.ContactData,
-            Contacts:
-            [
-                new ContactInfoDto(
-                    Id: Guid.NewGuid(),
-                    Type: ContactType.Agent,
-                    Source: ContactSource.Manual,
-                    Name: "Mustermann Immobilien",
-                    Email: "info@mustermann-immo.at",
-                    Phone: "+43 732 123456",
-                    OriginalListingUrl: null,
-                    SourceName: null,
-                    DisplayOrder: 0
-                ),
-                new ContactInfoDto(
-                    Id: Guid.NewGuid(),
-                    Type: ContactType.Seller,
-                    Source: ContactSource.Manual,
-                    Name: "Herr Huber",
-                    Email: null,
-                    Phone: "+43 664 9876543",
-                    OriginalListingUrl: null,
-                    SourceName: null,
-                    DisplayOrder: 1
-                )
-            ]
-        );
+        _logger.LogDebug("[PropertyDetail] OnNavigatedFrom");
     }
+
+    #endregion
 }
