@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         // Handler werden automatisch via [MediatorScoped] Attribut und AddMediatorRegistry() registriert
 
         // Seeder registrieren
+        services.AddSeeder<SellerSourceSeeder>();
         services.AddSeeder<PropertySeeder>();
         services.AddSeeder<FavoriteSeeder>();
         services.AddSeeder<BlockedSeeder>();

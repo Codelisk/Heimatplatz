@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
@@ -51,6 +52,22 @@ public class GetNotificationPreferencesHandler(
             .Distinct()
             .ToList();
 
-        return new GetNotificationPreferencesResponse(isEnabled, locations);
+        // Get seller type preferences from the first preference entry (they are the same across all locations)
+        var firstPref = preferences.FirstOrDefault();
+        var isPrivateSelected = firstPref?.IsPrivateSelected ?? true;
+        var isBrokerSelected = firstPref?.IsBrokerSelected ?? true;
+        var isPortalSelected = firstPref?.IsPortalSelected ?? true;
+        var excludedSellerSourceIds = firstPref != null
+            ? JsonSerializer.Deserialize<List<Guid>>(firstPref.ExcludedSellerSourceIdsJson) ?? []
+            : new List<Guid>();
+
+        return new GetNotificationPreferencesResponse(
+            isEnabled,
+            locations,
+            isPrivateSelected,
+            isBrokerSelected,
+            isPortalSelected,
+            excludedSellerSourceIds
+        );
     }
 }

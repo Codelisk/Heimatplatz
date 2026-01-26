@@ -7,5 +7,9 @@ namespace Heimatplatz.Features.Notifications.Contracts.Models;
 /// <param name="Locations">List of locations user wants notifications for</param>
 public record NotificationPreferenceDto(
     bool IsEnabled,
-    List<string> Locations
+    List<string> Locations,
+    bool IsPrivateSelected = true,
+    bool IsBrokerSelected = true,
+    bool IsPortalSelected = true,
+    List<Guid>? ExcludedSellerSourceIds = null
 );

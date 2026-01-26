@@ -59,7 +59,11 @@ public class FilterPreferencesService(
                 SelectedAgeFilter: (AgeFilter)response.SelectedAgeFilter,
                 IsHausSelected: response.IsHausSelected,
                 IsGrundstueckSelected: response.IsGrundstueckSelected,
-                IsZwangsversteigerungSelected: response.IsZwangsversteigerungSelected
+                IsZwangsversteigerungSelected: response.IsZwangsversteigerungSelected,
+                IsPrivateSelected: response.IsPrivateSelected,
+                IsBrokerSelected: response.IsBrokerSelected,
+                IsPortalSelected: response.IsPortalSelected,
+                ExcludedSellerSourceIds: response.ExcludedSellerSourceIds
             );
         }
         catch (HttpRequestException ex)
@@ -98,7 +102,11 @@ public class FilterPreferencesService(
                 SelectedAgeFilter: (int)preferences.SelectedAgeFilter,
                 IsHausSelected: preferences.IsHausSelected,
                 IsGrundstueckSelected: preferences.IsGrundstueckSelected,
-                IsZwangsversteigerungSelected: preferences.IsZwangsversteigerungSelected
+                IsZwangsversteigerungSelected: preferences.IsZwangsversteigerungSelected,
+                IsPrivateSelected: preferences.IsPrivateSelected,
+                IsBrokerSelected: preferences.IsBrokerSelected,
+                IsPortalSelected: preferences.IsPortalSelected,
+                ExcludedSellerSourceIds: preferences.ExcludedSellerSourceIds
             );
 
             var response = await httpClient.PostAsJsonAsync(ApiEndpoint, request, ct);
@@ -134,7 +142,11 @@ internal record GetUserFilterPreferencesResponse(
     int SelectedAgeFilter,
     bool IsHausSelected,
     bool IsGrundstueckSelected,
-    bool IsZwangsversteigerungSelected
+    bool IsZwangsversteigerungSelected,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid> ExcludedSellerSourceIds
 );
 
 internal record SaveUserFilterPreferencesRequest(
@@ -142,5 +154,9 @@ internal record SaveUserFilterPreferencesRequest(
     int SelectedAgeFilter,
     bool IsHausSelected,
     bool IsGrundstueckSelected,
-    bool IsZwangsversteigerungSelected
+    bool IsZwangsversteigerungSelected,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid> ExcludedSellerSourceIds
 );

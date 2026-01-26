@@ -54,6 +54,15 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
     [ObservableProperty]
     private string _newLocation = string.Empty;
 
+    [ObservableProperty]
+    private bool _isPrivateSelected = true;
+
+    [ObservableProperty]
+    private bool _isBrokerSelected = true;
+
+    [ObservableProperty]
+    private bool _isPortalSelected = true;
+
     public NotificationSettingsViewModel(
         INotificationService notificationService,
         ILogger<NotificationSettingsViewModel> logger)
@@ -73,6 +82,9 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
             var preferences = await _notificationService.GetPreferencesAsync(CancellationToken.None);
             IsEnabled = preferences.IsEnabled;
             Locations = new List<string>(preferences.Locations);
+            IsPrivateSelected = preferences.IsPrivateSelected;
+            IsBrokerSelected = preferences.IsBrokerSelected;
+            IsPortalSelected = preferences.IsPortalSelected;
         }
         catch (Exception ex)
         {
@@ -128,7 +140,12 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
         try
         {
             IsBusy = true;
-            var success = await _notificationService.UpdatePreferencesAsync(isEnabled, locations);
+            var success = await _notificationService.UpdatePreferencesAsync(
+                isEnabled,
+                locations,
+                IsPrivateSelected,
+                IsBrokerSelected,
+                IsPortalSelected);
             if (success)
             {
                 _logger.LogInformation("Notification preferences saved successfully");

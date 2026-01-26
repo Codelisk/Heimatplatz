@@ -25,6 +25,15 @@ public partial class HomeFilterBarViewModel : ObservableObject
     private bool _isZwangsversteigerungSelected = true;
 
     [ObservableProperty]
+    private bool _isPrivateSelected = true;
+
+    [ObservableProperty]
+    private bool _isBrokerSelected = true;
+
+    [ObservableProperty]
+    private bool _isPortalSelected = true;
+
+    [ObservableProperty]
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
 
     [ObservableProperty]
@@ -71,6 +80,9 @@ public partial class HomeFilterBarViewModel : ObservableObject
             IsHausSelected = state.IsHausSelected;
             IsGrundstueckSelected = state.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
+            IsPrivateSelected = state.IsPrivateSelected;
+            IsBrokerSelected = state.IsBrokerSelected;
+            IsPortalSelected = state.IsPortalSelected;
             SelectedAgeFilter = state.SelectedAgeFilter;
             SelectedOrte = state.SelectedOrte.ToList();
             ResultCount = state.ResultCount;
@@ -129,6 +141,54 @@ public partial class HomeFilterBarViewModel : ObservableObject
         UpdateFilterState();
     }
 
+    partial void OnIsPrivateSelectedChanged(bool value)
+    {
+        if (_isSyncing) return;
+
+        // Mindestens ein SellerType muss aktiv bleiben
+        if (!value && !IsBrokerSelected && !IsPortalSelected)
+        {
+            _isSyncing = true;
+            IsPrivateSelected = true;
+            _isSyncing = false;
+            return;
+        }
+
+        UpdateFilterState();
+    }
+
+    partial void OnIsBrokerSelectedChanged(bool value)
+    {
+        if (_isSyncing) return;
+
+        // Mindestens ein SellerType muss aktiv bleiben
+        if (!value && !IsPrivateSelected && !IsPortalSelected)
+        {
+            _isSyncing = true;
+            IsBrokerSelected = true;
+            _isSyncing = false;
+            return;
+        }
+
+        UpdateFilterState();
+    }
+
+    partial void OnIsPortalSelectedChanged(bool value)
+    {
+        if (_isSyncing) return;
+
+        // Mindestens ein SellerType muss aktiv bleiben
+        if (!value && !IsPrivateSelected && !IsBrokerSelected)
+        {
+            _isSyncing = true;
+            IsPortalSelected = true;
+            _isSyncing = false;
+            return;
+        }
+
+        UpdateFilterState();
+    }
+
     partial void OnSelectedAgeFilterChanged(AgeFilter value)
     {
         if (_isSyncing) return;
@@ -148,6 +208,9 @@ public partial class HomeFilterBarViewModel : ObservableObject
             IsGrundstueckSelected,
             IsZwangsversteigerungSelected,
             SelectedAgeFilter,
-            SelectedOrte);
+            SelectedOrte,
+            IsPrivateSelected,
+            IsBrokerSelected,
+            IsPortalSelected);
     }
 }

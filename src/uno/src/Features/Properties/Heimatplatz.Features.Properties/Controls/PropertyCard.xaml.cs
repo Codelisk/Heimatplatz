@@ -294,7 +294,12 @@ public sealed partial class PropertyCard : UserControl
         }
 
         // Seller (compact)
-        SellerBadgeText.Text = property.SellerType == SellerType.Privat ? "Privat" : property.SellerName;
+        SellerBadgeText.Text = property.SellerType switch
+        {
+            SellerType.Private => "Privat",
+            SellerType.Portal => $"Portal: {property.SellerName}",
+            _ => property.SellerName
+        };
 
         // Load images (FlipView for swipe)
         // Detach previous handler to prevent accumulation

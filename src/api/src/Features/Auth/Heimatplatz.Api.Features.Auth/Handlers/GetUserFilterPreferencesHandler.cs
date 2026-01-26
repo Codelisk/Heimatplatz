@@ -41,19 +41,28 @@ public class GetUserFilterPreferencesHandler(
                 SelectedAgeFilter: 0,
                 IsHausSelected: true,
                 IsGrundstueckSelected: true,
-                IsZwangsversteigerungSelected: true
+                IsZwangsversteigerungSelected: true,
+                IsPrivateSelected: true,
+                IsBrokerSelected: true,
+                IsPortalSelected: true,
+                ExcludedSellerSourceIds: []
             );
         }
 
         // JSON zu Liste konvertieren
         var selectedOrtes = JsonSerializer.Deserialize<List<string>>(preferences.SelectedOrtesJson) ?? [];
+        var excludedSellerSourceIds = JsonSerializer.Deserialize<List<Guid>>(preferences.ExcludedSellerSourceIdsJson) ?? [];
 
         return new GetUserFilterPreferencesResponse(
             SelectedOrtes: selectedOrtes,
             SelectedAgeFilter: preferences.SelectedAgeFilter,
             IsHausSelected: preferences.IsHausSelected,
             IsGrundstueckSelected: preferences.IsGrundstueckSelected,
-            IsZwangsversteigerungSelected: preferences.IsZwangsversteigerungSelected
+            IsZwangsversteigerungSelected: preferences.IsZwangsversteigerungSelected,
+            IsPrivateSelected: preferences.IsPrivateSelected,
+            IsBrokerSelected: preferences.IsBrokerSelected,
+            IsPortalSelected: preferences.IsPortalSelected,
+            ExcludedSellerSourceIds: excludedSellerSourceIds
         );
     }
 

@@ -27,23 +27,42 @@ public class NotificationService(
             if (response == null)
             {
                 logger.LogWarning("Failed to get notification preferences - null response");
-                return new NotificationPreferenceDto(false, new List<string>());
+                return new NotificationPreferenceDto(false, []);
             }
 
-            return new NotificationPreferenceDto(response.IsEnabled, response.Locations);
+            return new NotificationPreferenceDto(
+                response.IsEnabled,
+                response.Locations,
+                response.IsPrivateSelected,
+                response.IsBrokerSelected,
+                response.IsPortalSelected,
+                response.ExcludedSellerSourceIds);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting notification preferences");
-            return new NotificationPreferenceDto(false, new List<string>());
+            return new NotificationPreferenceDto(false, []);
         }
     }
 
-    public async Task<bool> UpdatePreferencesAsync(bool isEnabled, List<string> locations, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdatePreferencesAsync(
+        bool isEnabled,
+        List<string> locations,
+        bool isPrivateSelected = true,
+        bool isBrokerSelected = true,
+        bool isPortalSelected = true,
+        List<Guid>? excludedSellerSourceIds = null,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            var request = new UpdateNotificationPreferencesRequest(isEnabled, locations);
+            var request = new UpdateNotificationPreferencesRequest(
+                isEnabled,
+                locations,
+                isPrivateSelected,
+                isBrokerSelected,
+                isPortalSelected,
+                excludedSellerSourceIds ?? []);
             var response = await httpClient.PutAsJsonAsync(
                 "/api/notifications/preferences",
                 request,
@@ -79,6 +98,18 @@ public class NotificationService(
 }
 
 // DTOs matching API contracts
-internal record GetNotificationPreferencesResponse(bool IsEnabled, List<string> Locations);
-internal record UpdateNotificationPreferencesRequest(bool IsEnabled, List<string> Locations);
+internal record GetNotificationPreferencesResponse(
+    bool IsEnabled,
+    List<string> Locations,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid> ExcludedSellerSourceIds);
+internal record UpdateNotificationPreferencesRequest(
+    bool IsEnabled,
+    List<string> Locations,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid> ExcludedSellerSourceIds);
 internal record RegisterDeviceRequest(string DeviceToken, string Platform);

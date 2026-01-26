@@ -62,7 +62,7 @@
                                                       AutomationProperties.AutomationId="HomePage_MobileAgeFilterPicker" />
                         </StackPanel>
 
-                        <!-- Filter Chips: Kurze Labels bei Mobile -->
+                        <!-- Filter Chips: Immobilientyp -->
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <controls:FilterChip Label="Haus"
                                                  IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
@@ -70,6 +70,16 @@
                                                  IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
                             <controls:FilterChip Label="ZV"
                                                  IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <!-- Filter Chips: Anbietertyp -->
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <controls:FilterChip Label="Privat"
+                                                 IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="Makler"
+                                                 IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}" />
+                            <controls:FilterChip Label="Portal"
+                                                 IsSelected="{Binding IsPortalSelected, Mode=TwoWay}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>

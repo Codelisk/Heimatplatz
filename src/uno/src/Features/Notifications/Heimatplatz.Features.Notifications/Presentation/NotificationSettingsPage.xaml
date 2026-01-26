@@ -138,6 +138,42 @@
                 </utu:AutoLayout>
             </utu:Card>
 
+            <!-- Anbietertyp-Filter Card -->
+            <utu:Card>
+                <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                    <utu:AutoLayout Spacing="4" Orientation="Vertical">
+                        <TextBlock
+                            Text="Anbietertyp"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock
+                            Text="Wählen Sie die Anbietertypen, für die Sie Benachrichtigungen erhalten möchten."
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            TextWrapping="Wrap" />
+                    </utu:AutoLayout>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                AutomationProperties.AutomationId="NotificationSettings_SellerTypeChips">
+                        <ToggleButton x:Name="PrivateChip"
+                                      Content="Privat"
+                                      IsChecked="{x:Bind ViewModel.IsPrivateSelected, Mode=TwoWay}"
+                                      Style="{StaticResource FilterChipBaseStyle}"
+                                      AutomationProperties.AutomationId="NotificationSettings_Chip_Private" />
+                        <ToggleButton x:Name="BrokerChip"
+                                      Content="Makler"
+                                      IsChecked="{x:Bind ViewModel.IsBrokerSelected, Mode=TwoWay}"
+                                      Style="{StaticResource FilterChipBaseStyle}"
+                                      AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
+                        <ToggleButton x:Name="PortalChip"
+                                      Content="Portal"
+                                      IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
+                                      Style="{StaticResource FilterChipBaseStyle}"
+                                      AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
+                    </StackPanel>
+                </utu:AutoLayout>
+            </utu:Card>
+
             <!-- Info Card -->
             <utu:Card Background="{ThemeResource SystemFillColorAttentionBackgroundBrush}">
                 <utu:AutoLayout Padding="16" Spacing="12" Orientation="Horizontal">

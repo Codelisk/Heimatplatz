@@ -17,6 +17,18 @@ public class NotificationPreference : BaseEntity
     /// <summary>Whether notifications are enabled for this location</summary>
     public bool IsEnabled { get; set; } = true;
 
+    /// <summary>Whether private sellers are included in notifications</summary>
+    public bool IsPrivateSelected { get; set; } = true;
+
+    /// <summary>Whether broker sellers are included in notifications</summary>
+    public bool IsBrokerSelected { get; set; } = true;
+
+    /// <summary>Whether portal sources are included in notifications</summary>
+    public bool IsPortalSelected { get; set; } = true;
+
+    /// <summary>JSON array of excluded SellerSource IDs for notifications</summary>
+    public string ExcludedSellerSourceIdsJson { get; set; } = "[]";
+
     /// <summary>Navigation property to User</summary>
     public User User { get; set; } = null!;
 }

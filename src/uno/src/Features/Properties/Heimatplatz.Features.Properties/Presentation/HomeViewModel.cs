@@ -55,6 +55,15 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private bool _isZwangsversteigerungSelected = true;
 
+    [ObservableProperty]
+    private bool _isPrivateSelected = true;
+
+    [ObservableProperty]
+    private bool _isBrokerSelected = true;
+
+    [ObservableProperty]
+    private bool _isPortalSelected = true;
+
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
     public AgeFilter SelectedAgeFilter
     {
@@ -211,6 +220,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsHausSelected = state.IsHausSelected;
             IsGrundstueckSelected = state.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
+            IsPrivateSelected = state.IsPrivateSelected;
+            IsBrokerSelected = state.IsBrokerSelected;
+            IsPortalSelected = state.IsPortalSelected;
             SelectedAgeFilter = state.SelectedAgeFilter;
             SelectedOrte = state.SelectedOrte.ToList();
 
@@ -255,6 +267,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsHausSelected = preferences.IsHausSelected;
             IsGrundstueckSelected = preferences.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
+            IsPrivateSelected = preferences.IsPrivateSelected;
+            IsBrokerSelected = preferences.IsBrokerSelected;
+            IsPortalSelected = preferences.IsPortalSelected;
         }
         finally
         {
@@ -393,6 +408,54 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         ApplyFilters();
     }
 
+    partial void OnIsPrivateSelectedChanged(bool value)
+    {
+        if (_isApplyingPreferences || _isSyncingFromService) return;
+
+        // Mindestens ein SellerType muss aktiv bleiben
+        if (!value && !IsBrokerSelected && !IsPortalSelected)
+        {
+            _isSyncingFromService = true;
+            IsPrivateSelected = true;
+            _isSyncingFromService = false;
+            return;
+        }
+
+        ApplyFilters();
+    }
+
+    partial void OnIsBrokerSelectedChanged(bool value)
+    {
+        if (_isApplyingPreferences || _isSyncingFromService) return;
+
+        // Mindestens ein SellerType muss aktiv bleiben
+        if (!value && !IsPrivateSelected && !IsPortalSelected)
+        {
+            _isSyncingFromService = true;
+            IsBrokerSelected = true;
+            _isSyncingFromService = false;
+            return;
+        }
+
+        ApplyFilters();
+    }
+
+    partial void OnIsPortalSelectedChanged(bool value)
+    {
+        if (_isApplyingPreferences || _isSyncingFromService) return;
+
+        // Mindestens ein SellerType muss aktiv bleiben
+        if (!value && !IsPrivateSelected && !IsBrokerSelected)
+        {
+            _isSyncingFromService = true;
+            IsPortalSelected = true;
+            _isSyncingFromService = false;
+            return;
+        }
+
+        ApplyFilters();
+    }
+
     private void ApplyFilters()
     {
         // Update FilterStateService (if not syncing from it)
@@ -403,7 +466,10 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
                 IsGrundstueckSelected,
                 IsZwangsversteigerungSelected,
                 SelectedAgeFilter,
-                SelectedOrte);
+                SelectedOrte,
+                IsPrivateSelected,
+                IsBrokerSelected,
+                IsPortalSelected);
         }
 
         ApplyFiltersInternal();
@@ -446,6 +512,18 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         {
             System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by types: {string.Join(", ", selectedTypes)}");
             filtered = filtered.Where(p => selectedTypes.Contains(p.Type));
+        }
+
+        // SellerType filter (Multi-Select mit OR-Logik)
+        var selectedSellerTypes = new List<SellerType>();
+        if (IsPrivateSelected) selectedSellerTypes.Add(SellerType.Private);
+        if (IsBrokerSelected) selectedSellerTypes.Add(SellerType.Broker);
+        if (IsPortalSelected) selectedSellerTypes.Add(SellerType.Portal);
+
+        if (selectedSellerTypes.Count > 0 && selectedSellerTypes.Count < 3)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by seller types: {string.Join(", ", selectedSellerTypes)}");
+            filtered = filtered.Where(p => selectedSellerTypes.Contains(p.SellerType));
         }
 
         var filteredList = filtered.ToList();

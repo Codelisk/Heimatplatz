@@ -103,6 +103,35 @@
                         </utu:AutoLayout>
                     </utu:CardContentControl>
 
+                    <!-- Anbietertyp-Filter Card -->
+                    <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                            AutomationProperties.AutomationId="FilterPreferences_SellerTypeCard">
+                        <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                            <utu:AutoLayout Spacing="4" Orientation="Vertical">
+                                <TextBlock Text="Anbietertyp"
+                                           Style="{StaticResource SubtitleTextBlockStyle}" />
+                                <TextBlock Text="Waehlen Sie die Anbietertypen, die standardmaessig angezeigt werden sollen."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                           TextWrapping="Wrap" />
+                            </utu:AutoLayout>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="8"
+                                        AutomationProperties.AutomationId="FilterPreferences_SellerTypeChips">
+                                <controls:FilterChip Label="Privat"
+                                                     IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}"
+                                                     AutomationProperties.AutomationId="FilterPreferences_Chip_Private" />
+                                <controls:FilterChip Label="Makler"
+                                                     IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}"
+                                                     AutomationProperties.AutomationId="FilterPreferences_Chip_Broker" />
+                                <controls:FilterChip Label="Portal"
+                                                     IsSelected="{Binding IsPortalSelected, Mode=TwoWay}"
+                                                     AutomationProperties.AutomationId="FilterPreferences_Chip_Portal" />
+                            </StackPanel>
+                        </utu:AutoLayout>
+                    </utu:CardContentControl>
+
                     <!-- Success Message -->
                     <Border Background="{ThemeResource SuccessBackgroundBrush}"
                             CornerRadius="8"
