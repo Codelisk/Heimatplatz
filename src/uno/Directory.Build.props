@@ -7,7 +7,7 @@
     <!-- UNO_SINGLE_TARGET: desktop, wasm, oder false für alle Targets -->
     <!-- Standardmäßig 'desktop' auf Windows für schnellere lokale Builds -->
     <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == '' AND '$(OS)' == 'Windows_NT'">desktop</UNO_SINGLE_TARGET>
-    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == ''">false</UNO_SINGLE_TARGET>
+    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == ''">wasm</UNO_SINGLE_TARGET>
 
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'false'">$(NetVersion)-android;$(NetVersion)-ios;$(NetVersion)-desktop;$(NetVersion)-browserwasm;$(NetVersion)</UnoFrameworks>
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'desktop'">$(NetVersion)-desktop</UnoFrameworks>
@@ -23,7 +23,7 @@
       NETSDK1201: Warning that specifying RID won't create self containing app
       PRI257: Ignore default language (en) not being one of the included resources
     -->
-    <NoWarn>$(NoWarn);NU1507;NETSDK1201;PRI257</NoWarn>
+    <NoWarn>$(NoWarn);NU1507;NETSDK1201;PRI257;IL2026;IL2104;IL2111</NoWarn>
     <!-- Define UNO for platform-specific code -->
     <DefineConstants>$(DefineConstants);UNO</DefineConstants>
     <!-- Define LINUX_FRAMEBUFFER for framebuffer-specific code -->

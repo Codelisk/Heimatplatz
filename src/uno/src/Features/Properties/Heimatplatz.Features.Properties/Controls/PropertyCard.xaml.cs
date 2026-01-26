@@ -391,13 +391,13 @@ public sealed partial class PropertyCard : UserControl
     private void OnCardPointerEntered(object sender, PointerRoutedEventArgs e)
     {
         // Hover-Effekt: Leichte Skalierung
-        this.Scale = new System.Numerics.Vector3(1.02f, 1.02f, 1f);
+        this.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform { ScaleX = 1.02, ScaleY = 1.02 };
     }
 
     private void OnCardPointerExited(object sender, PointerRoutedEventArgs e)
     {
         // Hover-Effekt zuruecksetzen
-        this.Scale = new System.Numerics.Vector3(1f, 1f, 1f);
+        this.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform { ScaleX = 1, ScaleY = 1 };
     }
 
     private void OnMoreOptionsTapped(object sender, TappedRoutedEventArgs e)

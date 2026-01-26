@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+    <OutputType>Library</OutputType>
+
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
   </PropertyGroup>
 
   <ItemGroup>

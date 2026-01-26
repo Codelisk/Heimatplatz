@@ -21,7 +21,6 @@
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="CharacterSpacing" Value="20" />
     </Style>
 
     <!-- Filter Chip Container: Mehr Spacing -->

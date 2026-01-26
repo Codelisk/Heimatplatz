@@ -60,7 +60,6 @@
     <Style x:Key="PropertyTypeBadgeTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="10" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="CharacterSpacing" Value="80" />
         <Setter Property="Foreground" Value="White" />
     </Style>
 

@@ -2,7 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+    <OutputType>Library</OutputType>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
   </PropertyGroup>
 
   <ItemGroup>
