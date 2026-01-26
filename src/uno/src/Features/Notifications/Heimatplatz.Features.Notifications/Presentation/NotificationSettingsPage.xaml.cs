@@ -45,6 +45,14 @@ public sealed partial class NotificationSettingsPage : BasePage
         await ViewModel.ToggleEnabledCommand.ExecuteAsync(null);
     }
 
+    private async void OnCustomFilterChanged(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel == null)
+            return;
+
+        await ViewModel.SavePreferencesCommand.ExecuteAsync(null);
+    }
+
     private async void OnLocationKeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter)

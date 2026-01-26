@@ -125,7 +125,9 @@ public class CreatePropertyHandler(
             property.Id,
             property.Title,
             property.City,
-            property.Price
+            property.Price,
+            property.Type,
+            property.SellerType
         );
         await mediator.Publish(propertyCreatedEvent, cancellationToken);
 

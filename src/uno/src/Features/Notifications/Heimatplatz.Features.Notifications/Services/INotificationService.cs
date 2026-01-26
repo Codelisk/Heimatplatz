@@ -17,7 +17,11 @@ public interface INotificationService
     /// </summary>
     Task<bool> UpdatePreferencesAsync(
         bool isEnabled,
+        NotificationFilterMode filterMode,
         List<string> locations,
+        bool isHausSelected = true,
+        bool isGrundstueckSelected = true,
+        bool isZwangsversteigerungSelected = true,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         bool isPortalSelected = true,

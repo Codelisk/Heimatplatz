@@ -581,33 +581,33 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             // API supports only one type at a time, so we'll filter locally for multi-select
             if (IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
             {
-                request.Typ = Heimatplatz.Core.ApiClient.Generated.PropertyType.House;
+                request.Type = Heimatplatz.Core.ApiClient.Generated.PropertyType.House;
             }
             else if (IsGrundstueckSelected && !IsHausSelected && !IsZwangsversteigerungSelected)
             {
-                request.Typ = Heimatplatz.Core.ApiClient.Generated.PropertyType.Land;
+                request.Type = Heimatplatz.Core.ApiClient.Generated.PropertyType.Land;
             }
             else if (IsZwangsversteigerungSelected && !IsHausSelected && !IsGrundstueckSelected)
             {
-                request.Typ = Heimatplatz.Core.ApiClient.Generated.PropertyType.Foreclosure;
+                request.Type = Heimatplatz.Core.ApiClient.Generated.PropertyType.Foreclosure;
             }
 
             // Apply city filter if only one city is selected
             if (SelectedOrte.Count == 1)
             {
-                request.Ort = SelectedOrte[0];
+                request.City = SelectedOrte[0];
             }
 
             var (context, response) = await _mediator.Request(request);
 
-            _logger.LogInformation("[HomePage] Response received. Properties count: {Count}", response?.Immobilien?.Count ?? 0);
+            _logger.LogInformation("[HomePage] Response received. Properties count: {Count}", response?.Properties?.Count ?? 0);
 
             // Clear and reload all properties
             _allProperties.Clear();
 
-            if (response?.Immobilien != null)
+            if (response?.Properties != null)
             {
-                foreach (var prop in response.Immobilien)
+                foreach (var prop in response.Properties)
                 {
                     _allProperties.Add(new PropertyListItemDto(
                         Id: prop.Id,

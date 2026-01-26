@@ -10,11 +10,13 @@ public record GetNotificationPreferencesRequest : IRequest<GetNotificationPrefer
 /// <summary>
 /// Response containing user's notification preferences
 /// </summary>
-/// <param name="IsEnabled">Whether notifications are enabled</param>
-/// <param name="Locations">List of locations user wants notifications for</param>
 public record GetNotificationPreferencesResponse(
     bool IsEnabled,
+    NotificationFilterMode FilterMode,
     List<string> Locations,
+    bool IsHausSelected,
+    bool IsGrundstueckSelected,
+    bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     bool IsPortalSelected,
