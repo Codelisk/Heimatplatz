@@ -96,6 +96,7 @@
 
                 <NavigationViewItem Content="Meine Immobilien"
                                     uen:Region.Name="MyProperties"
+                                    Visibility="{Binding IsSeller}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.MyProperties">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE80F;" />
@@ -122,6 +123,7 @@
 
                 <NavigationViewItem Content="Immobilie hinzufuegen"
                                     uen:Region.Name="AddProperty"
+                                    Visibility="{Binding IsSeller}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.AddProperty">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE710;" />

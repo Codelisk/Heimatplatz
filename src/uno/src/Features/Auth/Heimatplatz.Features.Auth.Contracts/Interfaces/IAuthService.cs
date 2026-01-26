@@ -31,6 +31,16 @@ public interface IAuthService
     string? UserFullName { get; }
 
     /// <summary>
+    /// Gibt an, ob der Benutzer die Rolle Verkaeufer hat
+    /// </summary>
+    bool IsSeller { get; }
+
+    /// <summary>
+    /// Gibt an, ob der Benutzer die Rolle Kaeufer hat
+    /// </summary>
+    bool IsBuyer { get; }
+
+    /// <summary>
     /// Speichert die Login-Daten nach erfolgreicher Authentifizierung
     /// </summary>
     void SetAuthenticatedUser(
