@@ -65,6 +65,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     [NotifyPropertyChangedFor(nameof(FavoriteButtonIcon))]
     private bool _isFavorite;
 
+    [ObservableProperty]
+    private bool _isHouseType;
+
+    [ObservableProperty]
+    private string _typeBadgeText = string.Empty;
+
     /// <summary>
     /// Text for the favorite button based on current status
     /// </summary>
@@ -118,8 +124,23 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             AddressText = string.Empty;
             ContactPersonText = string.Empty;
             HasContactPerson = false;
+            IsHouseType = false;
+            TypeBadgeText = string.Empty;
             return;
         }
+
+        // House type: Show living area, rooms, year built only for House or Foreclosure with building data
+        IsHouseType = Property.Type == PropertyType.House ||
+                      (Property.Type == PropertyType.Foreclosure && (Property.LivingAreaM2.HasValue || Property.Rooms.HasValue));
+
+        // Type badge text
+        TypeBadgeText = Property.Type switch
+        {
+            PropertyType.House => "HAUS",
+            PropertyType.Land => "GRUND",
+            PropertyType.Foreclosure => "ZV",
+            _ => "IMM"
+        };
 
         // Format price: "3.590.000 €"
         FormattedPrice = $"{Property.Price:N0} €".Replace(",", ".");
@@ -148,16 +169,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
 
         // Contact person (first contact name if available)
         var firstContact = Property.Contacts?.FirstOrDefault();
-        if (firstContact != null)
-        {
-            ContactPersonText = $"Herr/Frau {firstContact.Name}";
-            HasContactPerson = true;
-        }
-        else
-        {
-            ContactPersonText = string.Empty;
-            HasContactPerson = false;
-        }
+        HasContactPerson = firstContact != null;
+        ContactPersonText = firstContact != null ? $"Herr/Frau {firstContact.Name}" : string.Empty;
 
         // Notify all computed properties
         OnPropertyChanged(nameof(HasContacts));

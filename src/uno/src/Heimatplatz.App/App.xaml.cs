@@ -116,6 +116,7 @@ public partial class App : Application, IApplicationWithServices
             new ViewMap<FavoritesPage, FavoritesViewModel>(),
             new ViewMap<BlockedPage, BlockedViewModel>(),
             new DataViewMap<PropertyDetailPage, PropertyDetailViewModel, PropertyDetailData>(),
+            new DataViewMap<ForeclosureDetailPage, ForeclosureDetailViewModel, ForeclosureDetailData>(),
             new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>(),
             new ViewMap<FilterPreferencesPage, FilterPreferencesViewModel>(),
             new ViewMap<PrivacyPolicyPage, PrivacyPolicyViewModel>(),
@@ -147,6 +148,7 @@ public partial class App : Application, IApplicationWithServices
                             new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
                             new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
                             new ("PropertyDetail", View: views.FindByViewModel<PropertyDetailViewModel>()),
+                            new ("ForeclosureDetail", View: views.FindByViewModel<ForeclosureDetailViewModel>()),
                             new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>()),
                             new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
                             new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>())

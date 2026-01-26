@@ -167,12 +167,12 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
                         LivingAreaM2: prop.LivingAreaM2,
                         PlotAreaM2: prop.PlotAreaM2,
                         Rooms: prop.Rooms,
-                        Type: (PropertyType)prop.Type,
-                        SellerType: (SellerType)prop.SellerType,
+                        Type: Enum.Parse<PropertyType>(prop.Type.ToString()),
+                        SellerType: Enum.Parse<SellerType>(prop.SellerType.ToString()),
                         SellerName: prop.SellerName,
                         ImageUrls: prop.ImageUrls,
                         CreatedAt: prop.CreatedAt.DateTime,
-                        InquiryType: (InquiryType)prop.InquiryType
+                        InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
                     ));
                 }
                 _logger.LogInformation("[MyProperties] Final Properties.Count: {Count}", Properties.Count);

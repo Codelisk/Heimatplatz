@@ -31,7 +31,15 @@ public sealed partial class HomePage : BasePage
 
     private async void OnPropertyCardClicked(object sender, PropertyListItemDto property)
     {
-        await this.Navigator()!.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
+        // Navigate to ForeclosureDetail for foreclosure properties, PropertyDetail otherwise
+        if (property.Type == PropertyType.Foreclosure)
+        {
+            await this.Navigator()!.NavigateRouteAsync(this, "ForeclosureDetail", data: new ForeclosureDetailData(property.Id));
+        }
+        else
+        {
+            await this.Navigator()!.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
+        }
     }
 
     private async void OnPropertyBlocked(object sender, PropertyListItemDto property)

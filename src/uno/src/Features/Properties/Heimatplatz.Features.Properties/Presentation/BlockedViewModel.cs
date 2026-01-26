@@ -256,12 +256,12 @@ public partial class BlockedViewModel : PropertyCollectionViewModelBase
             LivingAreaM2: prop.LivingAreaM2,
             PlotAreaM2: prop.PlotAreaM2,
             Rooms: prop.Rooms,
-            Type: (PropertyType)prop.Type,
-            SellerType: (SellerType)prop.SellerType,
+            Type: Enum.Parse<PropertyType>(prop.Type.ToString()),
+            SellerType: Enum.Parse<SellerType>(prop.SellerType.ToString()),
             SellerName: prop.SellerName,
             ImageUrls: prop.ImageUrls,
             CreatedAt: prop.CreatedAt.DateTime,
-            InquiryType: (InquiryType)prop.InquiryType
+            InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
         )).ToList();
     }
 
@@ -288,6 +288,15 @@ public partial class BlockedViewModel : PropertyCollectionViewModelBase
         if (property == null) return;
 
         Logger.LogInformation("[Blocked] Navigating to property details for ID: {PropertyId}", property.Id);
-        await Navigator.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
+
+        // Navigate to ForeclosureDetail for foreclosure properties, PropertyDetail otherwise
+        if (property.Type == PropertyType.Foreclosure)
+        {
+            await Navigator.NavigateRouteAsync(this, "ForeclosureDetail", data: new ForeclosureDetailData(property.Id));
+        }
+        else
+        {
+            await Navigator.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
+        }
     }
 }

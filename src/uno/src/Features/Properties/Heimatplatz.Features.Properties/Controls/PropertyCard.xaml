@@ -7,14 +7,17 @@
     <!--
     PropertyCard - Vertikales Grid Card Design
     Bild oben, Content darunter - optimiert fuer Grid Layout
+    Redesign: Verbesserte visuelle Hierarchie und Tiefe
     -->
 
     <Grid Background="Transparent"
           Tapped="OnCardTapped">
         <Border Background="{ThemeResource SurfaceBrush}"
-                CornerRadius="{StaticResource RadiusSm}"
+                CornerRadius="{StaticResource RadiusMd}"
                 Padding="0"
-                Translation="0,0,8"
+                Translation="0,0,16"
+                BorderBrush="{ThemeResource BorderBrush}"
+                BorderThickness="0.5"
                 AutomationProperties.AutomationId="PropertyCard_Container">
         <Border.Shadow>
             <ThemeShadow />
@@ -23,7 +26,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <!-- Bild: Oben, prominenter Bereich -->
-                <RowDefinition Height="180" />
+                <RowDefinition Height="200" />
                 <!-- Content: Darunter -->
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
@@ -35,22 +38,23 @@
 
                 <!-- Placeholder -->
                 <Border Background="{ThemeResource PlaceholderBrush}"
-                        CornerRadius="{StaticResource RadiusSmTop}"
+                        CornerRadius="8,8,0,0"
                         IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_ImagePlaceholder">
                     <FontIcon Glyph="&#xE722;"
-                              FontSize="36"
+                              FontSize="40"
                               Foreground="{ThemeResource DetailsBrush}"
                               HorizontalAlignment="Center"
-                              VerticalAlignment="Center" />
+                              VerticalAlignment="Center"
+                              Opacity="0.5" />
                 </Border>
 
                 <!-- FlipView fuer Bilder-Swipe -->
-                <Border CornerRadius="{StaticResource RadiusSmTop}"
+                <Border CornerRadius="8,8,0,0"
                         IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_ImageBorder">
                     <Border.Clip>
-                        <RectangleGeometry Rect="0,0,10000,180" />
+                        <RectangleGeometry Rect="0,0,10000,200" />
                     </Border.Clip>
                     <FlipView x:Name="ImageFlipView"
                               Background="Transparent"
@@ -66,10 +70,23 @@
                     </FlipView>
                 </Border>
 
+                <!-- Gradient Overlay fuer bessere Lesbarkeit -->
+                <Border CornerRadius="8,8,0,0"
+                        IsHitTestVisible="False">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#40000000" Offset="0" />
+                            <GradientStop Color="#00000000" Offset="0.3" />
+                            <GradientStop Color="#00000000" Offset="0.6" />
+                            <GradientStop Color="#60000000" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
                 <!-- Bild-Counter unten links -->
                 <Border x:Name="ImageCounterBadge"
-                        Background="#99000000"
-                        CornerRadius="{StaticResource RadiusSm}"
+                        Background="#80000000"
+                        CornerRadius="4"
                         Padding="8,4"
                         Margin="12"
                         VerticalAlignment="Bottom"
@@ -77,40 +94,46 @@
                         Visibility="Collapsed"
                         IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_ImageCounter">
-                    <TextBlock x:Name="ImageCounterText"
-                               FontSize="11"
-                               Foreground="White" />
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE8B9;"
+                                  FontSize="10"
+                                  Foreground="White" />
+                        <TextBlock x:Name="ImageCounterText"
+                                   FontSize="11"
+                                   FontWeight="Medium"
+                                   Foreground="White" />
+                    </StackPanel>
                 </Border>
 
-                <!-- Typ-Badge: Oben links -->
+                <!-- Typ-Badge: Oben links - Pill Design -->
                 <Border x:Name="TypeBadge"
                         Background="{ThemeResource AccentBrush}"
-                        CornerRadius="{StaticResource RadiusSm}"
-                        Padding="10,5"
+                        CornerRadius="12"
+                        Padding="12,6"
                         Margin="12"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Left"
                         IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_TypeBadge">
                     <TextBlock x:Name="TypeBadgeText"
-                               FontSize="11"
-                               FontWeight="Bold"
-                               CharacterSpacing="60"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               CharacterSpacing="80"
                                Foreground="{ThemeResource ChipSelectedForegroundBrush}"
                                AutomationProperties.AutomationId="PropertyCard_TypeBadgeText" />
                 </Border>
 
-                <!-- Preis: Unten rechts auf dem Bild -->
-                <Border Background="#E6000000"
-                        CornerRadius="{StaticResource RadiusSm}"
-                        Padding="12,6"
+                <!-- Preis: Unten rechts auf dem Bild - Prominenter -->
+                <Border Background="#E8000000"
+                        CornerRadius="6"
+                        Padding="14,8"
                         Margin="12"
                         VerticalAlignment="Bottom"
                         HorizontalAlignment="Right"
                         IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_PriceOverlay">
                     <TextBlock x:Name="PriceText"
-                               FontSize="18"
+                               FontSize="20"
                                FontWeight="Bold"
                                Foreground="White"
                                AutomationProperties.AutomationId="PropertyCard_Price" />
@@ -120,48 +143,49 @@
                 <Button x:Name="PrevImageButton"
                         Click="OnPrevImageClick"
                         Tapped="OnPrevImageTapped"
-                        Background="#40000000"
+                        Background="#50000000"
                         BorderThickness="0"
-                        Padding="8,16"
-                        CornerRadius="{StaticResource RadiusSmRight}"
+                        Padding="10,20"
+                        CornerRadius="0,6,6,0"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Left"
                         Visibility="Collapsed"
-                        Opacity="0.7">
+                        Opacity="0.8">
                     <FontIcon Glyph="&#xE76B;"
-                              FontSize="14"
+                              FontSize="12"
                               Foreground="White" />
                 </Button>
 
                 <Button x:Name="NextImageButton"
                         Click="OnNextImageClick"
                         Tapped="OnNextImageTapped"
-                        Background="#40000000"
+                        Background="#50000000"
                         BorderThickness="0"
-                        Padding="8,16"
-                        CornerRadius="{StaticResource RadiusSmLeft}"
+                        Padding="10,20"
+                        CornerRadius="6,0,0,6"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
                         Visibility="Collapsed"
-                        Opacity="0.7">
+                        Opacity="0.8">
                     <FontIcon Glyph="&#xE76C;"
-                              FontSize="14"
+                              FontSize="12"
                               Foreground="White" />
                 </Button>
 
                 <!-- Action Buttons: Oben rechts (je nach CardMode) -->
 
-                <!-- Default Mode: 3-Punkt Menü -->
+                <!-- Default Mode: 3-Punkt Menü - Circular Design -->
                 <Button x:Name="MoreOptionsButton"
                         Tapped="OnMoreOptionsTapped"
-                        Background="#66000000"
+                        Background="#70000000"
                         BorderThickness="0"
-                        Padding="8"
-                        CornerRadius="{StaticResource RadiusSm}"
+                        Padding="0"
+                        Width="36"
+                        Height="36"
+                        CornerRadius="18"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right"
                         Margin="12"
-                        Opacity="0.7"
                         AutomationProperties.AutomationId="PropertyCard_MoreOptions">
                     <Button.Flyout>
                         <MenuFlyout Placement="BottomEdgeAlignedRight">
@@ -180,7 +204,7 @@
                         </MenuFlyout>
                     </Button.Flyout>
                     <FontIcon Glyph="&#xE712;"
-                              FontSize="12"
+                              FontSize="14"
                               Foreground="White" />
                 </Button>
 
@@ -188,19 +212,20 @@
                 <Button x:Name="FavoriteActionButton"
                         Tapped="OnActionButtonTapped"
                         Click="OnFavoriteActionClick"
-                        Background="#66000000"
+                        Background="#70000000"
                         BorderThickness="0"
-                        Padding="8"
-                        CornerRadius="{StaticResource RadiusSm}"
+                        Padding="0"
+                        Width="36"
+                        Height="36"
+                        CornerRadius="18"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right"
                         Margin="12"
-                        Opacity="0.85"
                         Visibility="Collapsed"
                         ToolTipService.ToolTip="Aus Favoriten entfernen"
                         AutomationProperties.AutomationId="PropertyCard_FavoriteAction">
                     <FontIcon Glyph="&#xEB52;"
-                              FontSize="14"
+                              FontSize="16"
                               Foreground="#FF6B6B" />
                 </Button>
 
@@ -208,26 +233,27 @@
                 <Button x:Name="BlockedActionButton"
                         Tapped="OnActionButtonTapped"
                         Click="OnBlockedActionClick"
-                        Background="#66000000"
+                        Background="#70000000"
                         BorderThickness="0"
-                        Padding="8"
-                        CornerRadius="{StaticResource RadiusSm}"
+                        Padding="0"
+                        Width="36"
+                        Height="36"
+                        CornerRadius="18"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right"
                         Margin="12"
-                        Opacity="0.85"
                         Visibility="Collapsed"
                         ToolTipService.ToolTip="Blockierung aufheben"
                         AutomationProperties.AutomationId="PropertyCard_BlockedAction">
                     <FontIcon Glyph="&#xE711;"
-                              FontSize="14"
+                              FontSize="16"
                               Foreground="White" />
                 </Button>
             </Grid>
 
-            <!-- Content: Zwei-Spalten Layout -->
+            <!-- Content: Zwei-Spalten Layout - Verbesserte Hierarchie -->
             <Grid Grid.Row="1"
-                  Padding="14,12"
+                  Padding="16,14,16,16"
                   AutomationProperties.AutomationId="PropertyCard_Content">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -236,12 +262,12 @@
 
                 <!-- Links: Ort, Adresse, Titel, Anbieter -->
                 <StackPanel Grid.Column="0"
-                            Spacing="4"
+                            Spacing="3"
                             VerticalAlignment="Center">
 
                     <!-- Ort (prominent) -->
                     <TextBlock AutomationProperties.AutomationId="PropertyCard_Location"
-                               FontSize="15"
+                               FontSize="16"
                                FontWeight="SemiBold"
                                Foreground="{ThemeResource OnSurfaceBrush}"
                                TextTrimming="CharacterEllipsis"
@@ -251,7 +277,7 @@
 
                     <!-- Adresse -->
                     <TextBlock AutomationProperties.AutomationId="PropertyCard_Address"
-                               FontSize="12"
+                               FontSize="13"
                                Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                TextTrimming="CharacterEllipsis"
                                MaxLines="1">
@@ -260,40 +286,49 @@
 
                     <!-- Titel (max 2 Zeilen) -->
                     <TextBlock x:Name="TitleText"
-                               FontSize="11"
+                               FontSize="12"
                                Foreground="{ThemeResource DetailsBrush}"
                                TextWrapping="Wrap"
                                TextTrimming="CharacterEllipsis"
                                MaxLines="2"
+                               Margin="0,4,0,0"
                                AutomationProperties.AutomationId="PropertyCard_Title" />
 
-                    <!-- Anbieter -->
-                    <TextBlock x:Name="SellerBadgeText"
-                               FontSize="10"
-                               Foreground="{ThemeResource DetailsBrush}"
-                               FontStyle="Italic"
-                               Margin="0,2,0,0"
-                               AutomationProperties.AutomationId="PropertyCard_Seller" />
+                    <!-- Anbieter mit Icon -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="4"
+                                Margin="0,4,0,0">
+                        <FontIcon Glyph="&#xE77B;"
+                                  FontSize="10"
+                                  Foreground="{ThemeResource DetailsBrush}" />
+                        <TextBlock x:Name="SellerBadgeText"
+                                   FontSize="11"
+                                   Foreground="{ThemeResource DetailsBrush}"
+                                   AutomationProperties.AutomationId="PropertyCard_Seller" />
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- Rechts: m² und Tags -->
                 <StackPanel Grid.Column="1"
-                            Spacing="6"
+                            Spacing="8"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Right"
-                            Margin="12,0,0,0">
+                            Margin="16,0,0,0">
 
                     <!-- Grundstuecksflaeche prominent -->
-                    <TextBlock HorizontalAlignment="Right"
-                               AutomationProperties.AutomationId="PropertyCard_Area">
-                        <Run x:Name="GrundstueckText"
-                             FontSize="22"
-                             FontWeight="Bold"
-                             Foreground="{ThemeResource OnSurfaceBrush}" />
-                        <Run Text=" m²"
-                             FontSize="12"
-                             Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                    </TextBlock>
+                    <StackPanel HorizontalAlignment="Right">
+                        <TextBlock HorizontalAlignment="Right"
+                                   AutomationProperties.AutomationId="PropertyCard_Area">
+                            <Run x:Name="GrundstueckText"
+                                 FontSize="24"
+                                 FontWeight="Bold"
+                                 Foreground="{ThemeResource OnSurfaceBrush}" />
+                        </TextBlock>
+                        <TextBlock Text="m² Grund"
+                                   FontSize="11"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   HorizontalAlignment="Right" />
+                    </StackPanel>
 
                     <!-- Tags: Wfl und Zimmer -->
                     <StackPanel Orientation="Horizontal"
@@ -304,26 +339,26 @@
                         <!-- Wohnflaeche -->
                         <Border x:Name="WohnflaechePanel"
                                 Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                CornerRadius="{StaticResource RadiusSm}"
-                                Padding="6,3">
-                            <TextBlock FontSize="10"
+                                CornerRadius="4"
+                                Padding="8,4">
+                            <TextBlock FontSize="11"
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                        AutomationProperties.AutomationId="PropertyCard_Wohnflaeche">
                                 <Run x:Name="WohnflaecheText" FontWeight="SemiBold" />
-                                <Run Text=" Wfl." />
+                                <Run Text=" Wfl" />
                             </TextBlock>
                         </Border>
 
                         <!-- Zimmer -->
                         <Border x:Name="RoomsPanel"
                                 Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                CornerRadius="{StaticResource RadiusSm}"
-                                Padding="6,3">
-                            <TextBlock FontSize="10"
+                                CornerRadius="4"
+                                Padding="8,4">
+                            <TextBlock FontSize="11"
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                        AutomationProperties.AutomationId="PropertyCard_Rooms">
                                 <Run x:Name="RoomsText" FontWeight="SemiBold" />
-                                <Run Text=" Zi." />
+                                <Run Text=" Zi" />
                             </TextBlock>
                         </Border>
                     </StackPanel>

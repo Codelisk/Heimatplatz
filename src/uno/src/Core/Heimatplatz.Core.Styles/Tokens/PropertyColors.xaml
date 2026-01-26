@@ -39,4 +39,10 @@
     <SolidColorBrush x:Key="GewerbeLightBrush" Color="#4A6FA5" Opacity="0.15" />
     <SolidColorBrush x:Key="GewerbeHoverBrush" Color="#4A6FA5" Opacity="0.8" />
 
+    <!-- Zwangsversteigerung - Deep Red (urgent, legal, formal) -->
+    <Color x:Key="ZwangsversteigerungColor">#B22222</Color>
+    <SolidColorBrush x:Key="ZwangsversteigerungBrush" Color="{StaticResource ZwangsversteigerungColor}" />
+    <SolidColorBrush x:Key="ZwangsversteigerungLightBrush" Color="#B22222" Opacity="0.15" />
+    <SolidColorBrush x:Key="ZwangsversteigerungHoverBrush" Color="#B22222" Opacity="0.8" />
+
 </ResourceDictionary>

@@ -1,0 +1,823 @@
+<pages:BasePage x:Class="Heimatplatz.Features.Properties.Presentation.ForeclosureDetailPage"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
+                xmlns:utu="using:Uno.Toolkit.UI"
+                xmlns:uc="using:UnoFramework.Controls"
+                xmlns:pages="using:UnoFramework.Pages"
+                x:Name="RootPage"
+                NavigationCacheMode="Disabled">
+
+    <!--
+    ForeclosureDetailPage - Zwangsversteigerung Detailansicht
+    Zeigt alle relevanten Informationen zu einer Zwangsversteigerung
+    -->
+
+    <Grid Background="{ThemeResource BackgroundBrush}">
+        <uc:BusyOverlay IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                        BusyMessage="{x:Bind ViewModel.BusyMessage, Mode=OneWay}">
+
+            <ScrollViewer>
+                <Grid Padding="{utu:Responsive Narrowest='0', Normal='40,24'}"
+                      MaxWidth="1200"
+                      HorizontalAlignment="Center">
+
+                    <!-- Mobile Layout -->
+                    <StackPanel Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}">
+
+                        <!-- Hero Image -->
+                        <Grid Height="280">
+                            <Border Background="{ThemeResource PlaceholderBrush}">
+                                <FontIcon Glyph="&#xE8A9;"
+                                          FontSize="48"
+                                          Foreground="{ThemeResource DetailsBrush}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Border>
+                            <FlipView x:Name="MobileImageFlipView"
+                                      ItemsSource="{x:Bind ViewModel.Property.ImageUrls, Mode=OneWay}"
+                                      SelectionChanged="OnImageSelectionChanged">
+                                <FlipView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding}"
+                                               Stretch="UniformToFill" />
+                                    </DataTemplate>
+                                </FlipView.ItemTemplate>
+                            </FlipView>
+
+                            <!-- ZV Badge (links oben) -->
+                            <Border Background="#D32F2F"
+                                    CornerRadius="4"
+                                    Padding="12,6"
+                                    Margin="12"
+                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="ZWANGSVERSTEIGERUNG"
+                                           FontSize="11"
+                                           FontWeight="Bold"
+                                           Foreground="White" />
+                            </Border>
+
+                            <!-- Image Counter (rechts unten) -->
+                            <Border Background="#99000000"
+                                    CornerRadius="4"
+                                    Padding="10,6"
+                                    Margin="12"
+                                    VerticalAlignment="Bottom"
+                                    HorizontalAlignment="Right">
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="White">
+                                    <Run Text="{x:Bind ViewModel.CurrentImageIndex, Mode=OneWay}" />
+                                    <Run Text="/" />
+                                    <Run Text="{x:Bind ViewModel.Property.ImageUrls.Count, Mode=OneWay}" />
+                                </TextBlock>
+                            </Border>
+
+                            <!-- Merken Button (rechts oben) -->
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="8"
+                                        Margin="12"
+                                        VerticalAlignment="Top"
+                                        HorizontalAlignment="Right">
+                                <Button Background="#CC000000"
+                                        BorderThickness="0"
+                                        Padding="10,6"
+                                        CornerRadius="4"
+                                        Command="{x:Bind ViewModel.ToggleFavoriteCommand}">
+                                    <FontIcon Glyph="{x:Bind ViewModel.FavoriteButtonIcon, Mode=OneWay}"
+                                              FontSize="16"
+                                              Foreground="White" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Content Section -->
+                        <StackPanel Padding="16" Spacing="20" Background="{ThemeResource SurfaceBrush}">
+
+                            <!-- Titel und Status -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{x:Bind ViewModel.Property.Title, Mode=OneWay}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource OnSurfaceBrush}"
+                                           TextWrapping="Wrap" />
+                                <Border Background="{ThemeResource TertiaryBrush}"
+                                        CornerRadius="4"
+                                        Padding="8,4"
+                                        HorizontalAlignment="Left">
+                                    <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnTertiaryBrush}" />
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Versteigerungstermin - WICHTIG -->
+                            <Border Background="{ThemeResource ErrorContainerBrush}"
+                                    CornerRadius="8"
+                                    Padding="16">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Versteigerungstermin"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnErrorContainerBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.AuctionDateText, Mode=OneWay}"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="{ThemeResource OnErrorContainerBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Preise -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="8"
+                                    Padding="16">
+                                <Grid ColumnSpacing="16" RowSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Column="0" Grid.Row="0" Spacing="2">
+                                        <TextBlock Text="Schaetzwert"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.EstimatedValueText, Mode=OneWay}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Spacing="2">
+                                        <TextBlock Text="Mindestgebot"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.MinimumBidText, Mode=OneWay}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{ThemeResource PrimaryBrush}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Gericht und Aktenzeichen -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="8"
+                                    Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Rechtliche Informationen"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="Gericht"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.CourtText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="Aktenzeichen"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.CaseNumberText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Adresse -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Adresse"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE707;"
+                                              FontSize="16"
+                                              Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.AddressText, Mode=OneWay}"
+                                               FontSize="14"
+                                               Foreground="{ThemeResource OnSurfaceBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Grundbuch-Daten -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="8"
+                                    Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Grundbuchdaten"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <Grid ColumnSpacing="16" RowSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Grid.Column="0" Grid.Row="0" Spacing="2">
+                                            <TextBlock Text="Einlagezahl (EZ)"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.RegistrationNumberText, Mode=OneWay}"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Grid.Row="0" Spacing="2">
+                                            <TextBlock Text="Katastralgemeinde"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.CadastralMunicipalityText, Mode=OneWay}"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="0" Grid.Row="1" Spacing="2">
+                                            <TextBlock Text="Grundstuecksnummer"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.PlotNumberText, Mode=OneWay}"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Grid.Row="1" Spacing="2">
+                                            <TextBlock Text="Flächenwidmung"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.ZoningDesignationText, Mode=OneWay}"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Flaechendaten -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="8"
+                                    Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Flaechendaten"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="Gesamtflaeche"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.TotalAreaText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="Grundstueck"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.PlotAreaText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Spacing="2">
+                                            <TextBlock Text="Bebaut"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.BuildingAreaText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Gebaeude-Details (wenn vorhanden) -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="8"
+                                    Padding="16"
+                                    Visibility="{x:Bind ViewModel.HasRoomInfo, Mode=OneWay}">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Gebaeudedetails"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="Zimmer"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.NumberOfRoomsText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="Baujahr"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.YearBuiltText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Spacing="2">
+                                            <TextBlock Text="Zustand"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.BuildingConditionText, Mode=OneWay}"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Termine -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="8"
+                                    Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Termine"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="Besichtigung"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.ViewingDateText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="Gebotsfrist"
+                                                       FontSize="12"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.BiddingDeadlineText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Hinweise -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Hinweise"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.NotesText, Mode=OneWay}"
+                                           FontSize="14"
+                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <!-- Dokumente -->
+                            <StackPanel Spacing="12"
+                                        Visibility="{x:Bind ViewModel.HasDocuments, Mode=OneWay}">
+                                <TextBlock Text="Dokumente"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                <StackPanel Spacing="8">
+                                    <Button Content="Edikt anzeigen"
+                                            HorizontalAlignment="Stretch"
+                                            Visibility="{x:Bind ViewModel.EdictUrl, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}" />
+                                    <Button Content="Grundriss (PDF)"
+                                            HorizontalAlignment="Stretch"
+                                            Visibility="{x:Bind ViewModel.FloorPlanUrl, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}" />
+                                    <Button Content="Lageplan (PDF)"
+                                            HorizontalAlignment="Stretch"
+                                            Visibility="{x:Bind ViewModel.SitePlanUrl, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}" />
+                                    <Button Content="Langgutachten (PDF)"
+                                            HorizontalAlignment="Stretch"
+                                            Visibility="{x:Bind ViewModel.LongAppraisalUrl, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}" />
+                                    <Button Content="Kurzgutachten (PDF)"
+                                            HorizontalAlignment="Stretch"
+                                            Visibility="{x:Bind ViewModel.ShortAppraisalUrl, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Anbieter -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="8"
+                                    Padding="16"
+                                    Margin="0,8,0,0">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Anbieter"
+                                               FontSize="13"
+                                               Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.Property.SellerName, Mode=OneWay}"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Spacer at bottom -->
+                            <Border Height="32" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Desktop Layout (wider screens) -->
+                    <Grid Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
+                          ColumnSpacing="32">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="380" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left Column: Images and Main Info -->
+                        <StackPanel Grid.Column="0" Spacing="24">
+
+                            <!-- Hero Image -->
+                            <Grid Height="400" CornerRadius="12">
+                                <Border Background="{ThemeResource PlaceholderBrush}"
+                                        CornerRadius="12">
+                                    <FontIcon Glyph="&#xE8A9;"
+                                              FontSize="64"
+                                              Foreground="{ThemeResource DetailsBrush}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                                </Border>
+                                <FlipView x:Name="DesktopImageFlipView"
+                                          ItemsSource="{x:Bind ViewModel.Property.ImageUrls, Mode=OneWay}"
+                                          SelectionChanged="OnImageSelectionChanged"
+                                          CornerRadius="12">
+                                    <FlipView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Image Source="{Binding}"
+                                                   Stretch="UniformToFill" />
+                                        </DataTemplate>
+                                    </FlipView.ItemTemplate>
+                                </FlipView>
+
+                                <!-- ZV Badge -->
+                                <Border Background="#D32F2F"
+                                        CornerRadius="4"
+                                        Padding="12,6"
+                                        Margin="16"
+                                        VerticalAlignment="Top"
+                                        HorizontalAlignment="Left">
+                                    <TextBlock Text="ZWANGSVERSTEIGERUNG"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               Foreground="White" />
+                                </Border>
+
+                                <!-- Image Counter -->
+                                <Border Background="#99000000"
+                                        CornerRadius="4"
+                                        Padding="12,8"
+                                        Margin="16"
+                                        VerticalAlignment="Bottom"
+                                        HorizontalAlignment="Right">
+                                    <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White">
+                                        <Run Text="{x:Bind ViewModel.CurrentImageIndex, Mode=OneWay}" />
+                                        <Run Text="/" />
+                                        <Run Text="{x:Bind ViewModel.Property.ImageUrls.Count, Mode=OneWay}" />
+                                    </TextBlock>
+                                </Border>
+                            </Grid>
+
+                            <!-- Titel -->
+                            <TextBlock Text="{x:Bind ViewModel.Property.Title, Mode=OneWay}"
+                                       FontSize="28"
+                                       FontWeight="Bold"
+                                       Foreground="{ThemeResource OnSurfaceBrush}"
+                                       TextWrapping="Wrap" />
+
+                            <!-- Grundbuch und Flaechen -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="12"
+                                    Padding="24">
+                                <StackPanel Spacing="20">
+                                    <TextBlock Text="Grundbuchdaten"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <Grid ColumnSpacing="24" RowSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="Einlagezahl (EZ)"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.RegistrationNumberText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <TextBlock Text="Katastralgemeinde"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.CadastralMunicipalityText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Spacing="4">
+                                            <TextBlock Text="Grundstuecksnummer"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.PlotNumberText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="3" Spacing="4">
+                                            <TextBlock Text="Flächenwidmung"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.ZoningDesignationText, Mode=OneWay}"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Flaechendaten -->
+                            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                                    CornerRadius="12"
+                                    Padding="24">
+                                <StackPanel Spacing="20">
+                                    <TextBlock Text="Flaechendaten"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <Grid ColumnSpacing="24">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="Gesamtflaeche"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.TotalAreaText, Mode=OneWay}"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <TextBlock Text="Grundstueck"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.PlotAreaText, Mode=OneWay}"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Spacing="4">
+                                            <TextBlock Text="Bebaut"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.BuildingAreaText, Mode=OneWay}"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Hinweise -->
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Hinweise"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.NotesText, Mode=OneWay}"
+                                           FontSize="15"
+                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Right Column: Auction Info Card -->
+                        <StackPanel Grid.Column="1" Spacing="16">
+
+                            <!-- Versteigerung Card -->
+                            <Border Background="{ThemeResource SurfaceBrush}"
+                                    CornerRadius="16"
+                                    Padding="24"
+                                    BorderBrush="{ThemeResource OutlineBrush}"
+                                    BorderThickness="1"
+                                    Translation="0,0,8">
+                                <Border.Shadow>
+                                    <ThemeShadow />
+                                </Border.Shadow>
+                                <StackPanel Spacing="20">
+
+                                    <!-- Status -->
+                                    <Border Background="{ThemeResource TertiaryBrush}"
+                                            CornerRadius="4"
+                                            Padding="12,6"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                                                   FontSize="13"
+                                                   FontWeight="Bold"
+                                                   Foreground="{ThemeResource OnTertiaryBrush}" />
+                                    </Border>
+
+                                    <!-- Versteigerungstermin -->
+                                    <Border Background="{ThemeResource ErrorContainerBrush}"
+                                            CornerRadius="8"
+                                            Padding="16">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Versteigerungstermin"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnErrorContainerBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.AuctionDateText, Mode=OneWay}"
+                                                       FontSize="22"
+                                                       FontWeight="Bold"
+                                                       Foreground="{ThemeResource OnErrorContainerBrush}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Preise -->
+                                    <StackPanel Spacing="16">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Schaetzwert"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.EstimatedValueText, Mode=OneWay}"
+                                                       FontSize="24"
+                                                       FontWeight="Bold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Mindestgebot"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.MinimumBidText, Mode=OneWay}"
+                                                       FontSize="24"
+                                                       FontWeight="Bold"
+                                                       Foreground="{ThemeResource PrimaryBrush}" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Buttons -->
+                                    <StackPanel Spacing="12">
+                                        <Button Content="{x:Bind ViewModel.FavoriteButtonText, Mode=OneWay}"
+                                                Command="{x:Bind ViewModel.ToggleFavoriteCommand}"
+                                                HorizontalAlignment="Stretch"
+                                                Style="{ThemeResource FilledTonalButtonStyle}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Gericht Card -->
+                            <Border Background="{ThemeResource SurfaceBrush}"
+                                    CornerRadius="12"
+                                    Padding="20"
+                                    BorderBrush="{ThemeResource OutlineBrush}"
+                                    BorderThickness="1">
+                                <StackPanel Spacing="16">
+                                    <TextBlock Text="Rechtliche Informationen"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Gericht"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.CourtText, Mode=OneWay}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Aktenzeichen"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.CaseNumberText, Mode=OneWay}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Adresse Card -->
+                            <Border Background="{ThemeResource SurfaceBrush}"
+                                    CornerRadius="12"
+                                    Padding="20"
+                                    BorderBrush="{ThemeResource OutlineBrush}"
+                                    BorderThickness="1">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Adresse"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <FontIcon Glyph="&#xE707;"
+                                                  FontSize="18"
+                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.AddressText, Mode=OneWay}"
+                                                   FontSize="14"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Termine Card -->
+                            <Border Background="{ThemeResource SurfaceBrush}"
+                                    CornerRadius="12"
+                                    Padding="20"
+                                    BorderBrush="{ThemeResource OutlineBrush}"
+                                    BorderThickness="1">
+                                <StackPanel Spacing="16">
+                                    <TextBlock Text="Termine"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Besichtigung"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ViewingDateText, Mode=OneWay}"
+                                                   FontSize="14"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Gebotsfrist"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.BiddingDeadlineText, Mode=OneWay}"
+                                                   FontSize="14"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </ScrollViewer>
+        </uc:BusyOverlay>
+    </Grid>
+</pages:BasePage>

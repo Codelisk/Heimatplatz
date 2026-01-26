@@ -5,49 +5,96 @@
 
     <!--
     ============================================================================
-    PROPERTY CARD STYLES
+    PROPERTY CARD STYLES - Heimatplatz Design System
     ============================================================================
-    Styles fuer die Immobilien-Karten in der Listenansicht.
+    Konsistente Styles fuer die Immobilien-Karten in der Listenansicht.
+    Basierend auf dem Swiss Editorial Minimalism Design System.
     ============================================================================
     -->
+
+    <!-- ========== Container Styles ========== -->
 
     <!-- Property Card Container -->
     <Style x:Key="PropertyCardContainerStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusSm}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderThickness" Value="0.5" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderBrush}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
+
+    <!-- Property Card Content Container -->
+    <Style x:Key="PropertyCardContentStyle" TargetType="StackPanel">
+        <Setter Property="Padding" Value="16,14,16,16" />
+        <Setter Property="Spacing" Value="4" />
+    </Style>
+
+    <!-- ========== Image Styles ========== -->
 
     <!-- Property Card Image -->
     <Style x:Key="PropertyCardImageStyle" TargetType="Image">
         <Setter Property="Stretch" Value="UniformToFill" />
-        <Setter Property="Height" Value="180" />
+        <Setter Property="Height" Value="200" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
 
     <!-- Property Card Image Placeholder -->
     <Style x:Key="PropertyCardImagePlaceholderStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource PlaceholderBrush}" />
-        <Setter Property="Height" Value="180" />
+        <Setter Property="Height" Value="200" />
+        <Setter Property="CornerRadius" Value="8,8,0,0" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
 
-    <!-- Property Card Content Container -->
-    <Style x:Key="PropertyCardContentStyle" TargetType="StackPanel">
-        <Setter Property="Padding" Value="16" />
-        <Setter Property="Spacing" Value="8" />
+    <!-- ========== Badge Styles ========== -->
+
+    <!-- Type Badge Base Style -->
+    <Style x:Key="PropertyTypeBadgeStyle" TargetType="Border">
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Top" />
     </Style>
+
+    <!-- Type Badge Text Style -->
+    <Style x:Key="PropertyTypeBadgeTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CharacterSpacing" Value="80" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- Image Counter Badge -->
+    <Style x:Key="PropertyImageCounterStyle" TargetType="Border">
+        <Setter Property="Background" Value="#80000000" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Margin" Value="12" />
+    </Style>
+
+    <!-- Price Overlay Badge -->
+    <Style x:Key="PropertyPriceOverlayStyle" TargetType="Border">
+        <Setter Property="Background" Value="#E8000000" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Margin" Value="12" />
+    </Style>
+
+    <!-- ========== Text Styles ========== -->
 
     <!-- Property Card Price Text -->
     <Style x:Key="PropertyCardPriceStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{ThemeResource PriceBrush}" />
+        <Setter Property="Foreground" Value="White" />
         <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="Bold" />
     </Style>
 
-    <!-- Property Card Title Text -->
-    <Style x:Key="PropertyCardTitleStyle" TargetType="TextBlock">
+    <!-- Property Card Location Text (City) -->
+    <Style x:Key="PropertyCardLocationStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{ThemeResource OnSurfaceBrush}" />
         <Setter Property="FontSize" Value="16" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -57,28 +104,76 @@
 
     <!-- Property Card Address Text -->
     <Style x:Key="PropertyCardAddressStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{ThemeResource AddressBrush}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceVariantBrush}" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         <Setter Property="MaxLines" Value="1" />
+    </Style>
+
+    <!-- Property Card Title Text -->
+    <Style x:Key="PropertyCardTitleStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource DetailsBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="MaxLines" Value="2" />
     </Style>
 
     <!-- Property Card Details Text -->
     <Style x:Key="PropertyCardDetailsStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{ThemeResource DetailsBrush}" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="11" />
     </Style>
 
-    <!-- Property Card Details Container -->
-    <Style x:Key="PropertyCardDetailsContainerStyle" TargetType="StackPanel">
-        <Setter Property="Orientation" Value="Horizontal" />
-        <Setter Property="Spacing" Value="12" />
+    <!-- Property Card Area Text (prominenter) -->
+    <Style x:Key="PropertyCardAreaStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceBrush}" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
+
+    <!-- ========== Tag/Chip Styles ========== -->
+
+    <!-- Property Detail Tag Container -->
+    <Style x:Key="PropertyDetailTagStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource SolidBackgroundFillColorSecondary}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <!-- Property Detail Tag Text -->
+    <Style x:Key="PropertyDetailTagTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource OnSurfaceVariantBrush}" />
+        <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- ========== Button Styles ========== -->
+
+    <!-- Circular Action Button (for image overlays) -->
+    <Style x:Key="PropertyCardCircularButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#70000000" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="CornerRadius" Value="18" />
+    </Style>
+
+    <!-- Navigation Arrow Button -->
+    <Style x:Key="PropertyCardNavButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#50000000" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="10,20" />
+        <Setter Property="Opacity" Value="0.8" />
+    </Style>
+
+    <!-- ========== Seller Badge Styles ========== -->
 
     <!-- Seller Badge Container -->
     <Style x:Key="SellerBadgeStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource SellerBadgeBackgroundBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusSm}" />
+        <Setter Property="CornerRadius" Value="4" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>

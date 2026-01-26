@@ -32,56 +32,51 @@ public sealed partial class PropertyCard : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Get references to menu items for dynamic text updates
-        if (MoreOptionsButton.Flyout is MenuFlyout menuFlyout)
-        {
-            foreach (var item in menuFlyout.Items)
-            {
-                if (item is MenuFlyoutItem menuItem)
-                {
-                    if (menuItem.Text.Contains("avorisieren"))
-                        _favoriteMenuItem = menuItem;
-                    else if (menuItem.Text.Contains("lockieren"))
-                        _blockMenuItem = menuItem;
-                }
-            }
-        }
+        AcquireMenuItemReferences();
         UpdateMenuTexts();
     }
 
     private void OnMenuFlyoutOpening(object? sender, object e)
     {
-        // Always update menu texts when flyout opens to ensure correct state
-        if (_favoriteMenuItem == null || _blockMenuItem == null)
-        {
-            // Re-acquire references if needed
-            if (MoreOptionsButton.Flyout is MenuFlyout menuFlyout)
-            {
-                foreach (var item in menuFlyout.Items)
-                {
-                    if (item is MenuFlyoutItem menuItem)
-                    {
-                        if (menuItem.Text.Contains("avorisieren"))
-                            _favoriteMenuItem = menuItem;
-                        else if (menuItem.Text.Contains("lockieren"))
-                            _blockMenuItem = menuItem;
-                    }
-                }
-            }
-        }
-
-        // Get fresh status from service when menu opens
-        if (Property != null && Application.Current is IApplicationWithServices appWithServices && appWithServices.Services != null)
-        {
-            var statusService = appWithServices.Services.GetService<IPropertyStatusService>();
-            if (statusService != null)
-            {
-                IsFavorite = statusService.IsFavorite(Property.Id);
-                IsBlocked = statusService.IsBlocked(Property.Id);
-            }
-        }
-
+        AcquireMenuItemReferences();
+        RefreshStatusFromService();
         UpdateMenuTexts();
+    }
+
+    private void AcquireMenuItemReferences()
+    {
+        if (_favoriteMenuItem != null && _blockMenuItem != null)
+            return;
+
+        if (MoreOptionsButton.Flyout is not MenuFlyout menuFlyout)
+            return;
+
+        foreach (var item in menuFlyout.Items)
+        {
+            if (item is not MenuFlyoutItem menuItem)
+                continue;
+
+            if (menuItem.Text.Contains("avorisieren"))
+                _favoriteMenuItem = menuItem;
+            else if (menuItem.Text.Contains("lockieren"))
+                _blockMenuItem = menuItem;
+        }
+    }
+
+    private void RefreshStatusFromService()
+    {
+        if (Property == null)
+            return;
+
+        if (Application.Current is not IApplicationWithServices { Services: not null } appWithServices)
+            return;
+
+        var statusService = appWithServices.Services.GetService<IPropertyStatusService>();
+        if (statusService == null)
+            return;
+
+        IsFavorite = statusService.IsFavorite(Property.Id);
+        IsBlocked = statusService.IsBlocked(Property.Id);
     }
 
     /// <summary>
@@ -248,7 +243,7 @@ public sealed partial class PropertyCard : UserControl
         // Title
         TitleText.Text = property.Title;
 
-        // Type badge text and color
+        // Type badge text and color - using theme resources for consistency
         TypeBadgeText.Text = property.Type switch
         {
             PropertyType.House => "HAUS",
@@ -257,31 +252,20 @@ public sealed partial class PropertyCard : UserControl
             _ => "IMM"
         };
 
-        // Type-specific colors: HAUS=black, GRUND=green, ZV=red
-        (TypeBadge.Background, TypeBadgeText.Foreground) = property.Type switch
+        // Type-specific colors from design system
+        TypeBadge.Background = property.Type switch
         {
-            PropertyType.House => (
-                new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 45, 55, 72)),
-                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
-            PropertyType.Land => (
-                new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 34, 139, 34)),
-                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
-            PropertyType.Foreclosure => (
-                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Firebrick),
-                new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White)),
-            _ => (
-                (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"],
-                (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChipSelectedForegroundBrush"])
+            PropertyType.House => GetThemeResourceOrFallback("HausBrush", "#2D5F4C"),
+            PropertyType.Land => GetThemeResourceOrFallback("GrundstueckBrush", "#B8860B"),
+            PropertyType.Foreclosure => GetThemeResourceOrFallback("ZwangsversteigerungBrush", "#B22222"),
+            _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"]
         };
+        TypeBadgeText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
 
-        // Show HAUS, GRUND, and ZV badges
-        TypeBadge.Visibility = property.Type switch
-        {
-            PropertyType.House => Visibility.Visible,
-            PropertyType.Land => Visibility.Visible,
-            PropertyType.Foreclosure => Visibility.Visible,
-            _ => Visibility.Collapsed
-        };
+        // Show type badge for House, Land, and Foreclosure
+        TypeBadge.Visibility = property.Type is PropertyType.House or PropertyType.Land or PropertyType.Foreclosure
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
         // Plot area
         GrundstueckText.Text = property.PlotAreaM2?.ToString("N0") ?? "—";
@@ -344,6 +328,24 @@ public sealed partial class PropertyCard : UserControl
         return $"{price:N0} €";
     }
 
+    private static Microsoft.UI.Xaml.Media.Brush GetThemeResourceOrFallback(string resourceKey, string fallbackColor)
+    {
+        if (Application.Current.Resources.TryGetValue(resourceKey, out var resource) && resource is Microsoft.UI.Xaml.Media.Brush brush)
+        {
+            return brush;
+        }
+        return new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(fallbackColor));
+    }
+
+    private static Windows.UI.Color ParseColor(string hex)
+    {
+        hex = hex.TrimStart('#');
+        var r = byte.Parse(hex[..2], System.Globalization.NumberStyles.HexNumber);
+        var g = byte.Parse(hex[2..4], System.Globalization.NumberStyles.HexNumber);
+        var b = byte.Parse(hex[4..6], System.Globalization.NumberStyles.HexNumber);
+        return Windows.UI.Color.FromArgb(255, r, g, b);
+    }
+
     private void OnCardTapped(object sender, TappedRoutedEventArgs e)
     {
         if (Property != null)
@@ -354,39 +356,35 @@ public sealed partial class PropertyCard : UserControl
 
     private void OnPrevImageClick(object sender, RoutedEventArgs e)
     {
-        if (ImageFlipView.SelectedIndex > 0)
-        {
-            ImageFlipView.SelectedIndex--;
-        }
-        else if (ImageFlipView.Items.Count > 0)
-        {
-            // Wrap zum letzten Bild
-            ImageFlipView.SelectedIndex = ImageFlipView.Items.Count - 1;
-        }
+        var count = ImageFlipView.Items.Count;
+        if (count == 0)
+            return;
+
+        // Wrap to last image when at beginning
+        ImageFlipView.SelectedIndex = ImageFlipView.SelectedIndex > 0
+            ? ImageFlipView.SelectedIndex - 1
+            : count - 1;
     }
 
     private void OnPrevImageTapped(object sender, TappedRoutedEventArgs e)
     {
-        // Verhindere Navigation zur Detail-Seite
         e.Handled = true;
     }
 
     private void OnNextImageClick(object sender, RoutedEventArgs e)
     {
-        if (ImageFlipView.SelectedIndex < ImageFlipView.Items.Count - 1)
-        {
-            ImageFlipView.SelectedIndex++;
-        }
-        else
-        {
-            // Wrap zum ersten Bild
-            ImageFlipView.SelectedIndex = 0;
-        }
+        var count = ImageFlipView.Items.Count;
+        if (count == 0)
+            return;
+
+        // Wrap to first image when at end
+        ImageFlipView.SelectedIndex = ImageFlipView.SelectedIndex < count - 1
+            ? ImageFlipView.SelectedIndex + 1
+            : 0;
     }
 
     private void OnNextImageTapped(object sender, TappedRoutedEventArgs e)
     {
-        // Verhindere Navigation zur Detail-Seite
         e.Handled = true;
     }
 
@@ -410,17 +408,14 @@ public sealed partial class PropertyCard : UserControl
 
     private void OnBlockClick(object sender, RoutedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnBlockClick called for: {Property?.Title}");
         if (Property != null)
         {
-            System.Diagnostics.Debug.WriteLine($"[PropertyCard] Invoking PropertyBlocked event");
             PropertyBlocked?.Invoke(this, Property);
         }
     }
 
     private void OnFavoriteClick(object sender, RoutedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnFavoriteClick called for: {Property?.Title}");
         if (Property != null)
         {
             PropertyFavorited?.Invoke(this, Property);
@@ -435,7 +430,6 @@ public sealed partial class PropertyCard : UserControl
 
     private void OnFavoriteActionClick(object sender, RoutedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnFavoriteActionClick (remove from favorites) called for: {Property?.Title}");
         if (Property != null)
         {
             PropertyFavorited?.Invoke(this, Property);
@@ -444,7 +438,6 @@ public sealed partial class PropertyCard : UserControl
 
     private void OnBlockedActionClick(object sender, RoutedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"[PropertyCard] OnBlockedActionClick (unblock) called for: {Property?.Title}");
         if (Property != null)
         {
             PropertyBlocked?.Invoke(this, Property);

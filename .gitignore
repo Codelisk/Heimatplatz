@@ -41,6 +41,7 @@ MSBuild_Logs/
 # Screenshots and temp files
 screenshots/
 temp_*.png
+/*.png
 
 # Push Notification Secrets (Firebase + APNs)
 firebase-service-account.json
