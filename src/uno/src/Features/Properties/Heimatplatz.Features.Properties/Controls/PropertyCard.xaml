@@ -27,8 +27,8 @@
             <Grid.RowDefinitions>
                 <!-- Bild: Oben, prominenter Bereich -->
                 <RowDefinition Height="200" />
-                <!-- Content: Darunter -->
-                <RowDefinition Height="*" />
+                <!-- Content: Darunter, Auto-Hoehe fuer vollstaendige Anzeige -->
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Premium Bilder-Carousel mit Overlay -->

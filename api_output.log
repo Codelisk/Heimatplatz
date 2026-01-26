@@ -1,0 +1,137 @@
+﻿Using launch settings from C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Properties\launchSettings.json...
+Building...
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Core.Startup, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Core.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Core.Data.Seeding, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Auth.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Legal.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Properties.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.ForeclosureAuctions.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model[10632]
+      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Notifications.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'Property.Features' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'Property.ImageUrls' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-01-26 06:43:34.8504629+00:00');
+      SELECT changes();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+          "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+          "ProductVersion" TEXT NOT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Migrations[20405]
+      No migrations were applied. The database is already up to date.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DELETE FROM "__EFMigrationsLock";
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running 8 seeders
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: UserSeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Users" AS "u")
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder UserSeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: LegalSettingsSeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "LegalSettings" AS "l"
+          WHERE "l"."SettingType" = 'PrivacyPolicy')
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder LegalSettingsSeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: PropertySeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Properties" AS "p")
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder PropertySeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: FavoriteSeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Favorites" AS "f")
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder FavoriteSeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: BlockedSeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "BlockedProperties" AS "b")
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder BlockedSeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: ForeclosureAuctionSeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "ForeclosureAuctions" AS "f")
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder ForeclosureAuctionSeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: NotificationsSeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "NotificationPreferences" AS "n")
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder NotificationsSeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Running seeder: NotificationsSeeder
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "NotificationPreferences" AS "n")
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      Seeder NotificationsSeeder completed
+info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
+      All seeders completed
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5292
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api

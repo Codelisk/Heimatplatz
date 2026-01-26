@@ -366,18 +366,41 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                     break;
 
                 case PropertyType.Foreclosure:
-                    // Realistic foreclosure data
+                    // Realistic foreclosure data with all fields populated
+                    var estimatedValue = property.Price * 1.2m; // Estimated value higher than minimum bid
+                    var auctionDate = DateTime.Now.AddDays(30 + Random.Shared.Next(0, 60));
                     var foreclosureData = new ForeclosurePropertyData(
                         CourtName: property.SellerName,
-                        AuctionDate: DateTime.Now.AddDays(30 + Random.Shared.Next(0, 60)),
+                        AuctionDate: auctionDate,
                         MinimumBid: property.Price * 0.7m, // 70% of market value
+                        EstimatedValue: estimatedValue,
                         Encumbrances:
                         [
                             new Encumbrance("Hypothek Bank Austria", property.Price * 0.5m, "Bank Austria"),
                             new Encumbrance("Grundsteuer", 2500, "Finanzamt")
                         ],
                         Status: LegalStatus.Scheduled,
-                        FileNumber: $"AZ-{Random.Shared.Next(1000, 9999)}/{DateTime.Now.Year}"
+                        FileNumber: $"{Random.Shared.Next(100, 999)} E {Random.Shared.Next(100, 999)}/{DateTime.Now.Year % 100}",
+                        RegistrationNumber: $"EZ {Random.Shared.Next(1000, 9999)}/{DateTime.Now.Year}",
+                        CadastralMunicipality: property.City,
+                        PlotNumber: $"{Random.Shared.Next(100, 999)}/{Random.Shared.Next(1, 20)}",
+                        TotalArea: property.PlotAreaSquareMeters ?? 500,
+                        BuildingArea: property.LivingAreaSquareMeters ?? 0,
+                        ZoningDesignation: "Bauland-Wohngebiet",
+                        BuildingCondition: property.YearBuilt switch
+                        {
+                            >= 2010 => "Gut erhalten",
+                            >= 2000 => "Gepflegt, teilweise modernisiert",
+                            >= 1990 => "Sanierungsbedarf",
+                            _ => "Renovierungsbedürftig"
+                        },
+                        NumberOfRooms: property.Rooms,
+                        YearBuilt: property.YearBuilt,
+                        ViewingDate: auctionDate.AddDays(-7),
+                        BiddingDeadline: auctionDate.AddDays(-1),
+                        OwnershipShare: "1/1",
+                        Notes: "Besichtigung nach Voranmeldung beim Gericht möglich. Weitere Informationen im Edikt.",
+                        EdictUrl: $"https://edikte.justiz.gv.at/sample-{property.City.ToLower().Replace(" ", "-")}.odt"
                     );
                     property.SetTypedData(foreclosureData);
                     break;

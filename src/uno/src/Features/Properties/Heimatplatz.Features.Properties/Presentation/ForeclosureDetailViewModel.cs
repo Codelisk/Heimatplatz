@@ -225,21 +225,24 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
             if (data.TryGetProperty("MinimumBid", out var minBid) && minBid.TryGetDecimal(out var mb))
                 MinimumBidText = $"{mb:N0} €".Replace(",", ".");
 
-            // Court
-            if (data.TryGetProperty("Court", out var court))
+            // Court (JSON property name: CourtName)
+            if (data.TryGetProperty("CourtName", out var court))
                 CourtText = court.GetString() ?? "-";
 
-            // Case number
-            if (data.TryGetProperty("CaseNumber", out var caseNum))
+            // Case number (JSON property name: FileNumber)
+            if (data.TryGetProperty("FileNumber", out var caseNum))
                 CaseNumberText = caseNum.GetString() ?? "-";
 
             // Category
             if (data.TryGetProperty("Category", out var category))
                 CategoryText = category.GetString() ?? "-";
 
-            // Status
+            // Status - translate to German
             if (data.TryGetProperty("Status", out var status))
-                StatusText = status.GetString() ?? "-";
+            {
+                var statusValue = status.GetString() ?? "";
+                StatusText = TranslateStatus(statusValue);
+            }
 
             // Registration number (EZ)
             if (data.TryGetProperty("RegistrationNumber", out var regNum))
@@ -278,7 +281,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
 
             // Year built
             if (data.TryGetProperty("YearBuilt", out var yearBuilt) && yearBuilt.TryGetInt32(out var yb))
+            {
                 YearBuiltText = yb.ToString();
+                HasRoomInfo = true;
+            }
 
             // Viewing date
             if (data.TryGetProperty("ViewingDate", out var viewingDate))
@@ -328,6 +334,23 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         {
             _logger.LogError(ex, "[ForeclosureDetail] Error parsing TypeSpecificData");
         }
+    }
+
+    /// <summary>
+    /// Translates English status values to German
+    /// </summary>
+    private static string TranslateStatus(string status)
+    {
+        return status switch
+        {
+            "Pending" => "Anhängig",
+            "Scheduled" => "Termin angesetzt",
+            "InProgress" => "Laufend",
+            "Completed" => "Abgeschlossen",
+            "Cancelled" => "Abgebrochen",
+            "Suspended" => "Ausgesetzt",
+            _ => status
+        };
     }
 
     public async Task LoadPropertyAsync(Guid propertyId)
