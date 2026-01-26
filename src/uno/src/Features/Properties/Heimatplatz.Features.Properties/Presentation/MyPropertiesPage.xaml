@@ -104,10 +104,12 @@
                         <!-- Properties Grid -->
                         <ItemsRepeater ItemsSource="{Binding Properties}">
                             <ItemsRepeater.Layout>
-                                <UniformGridLayout MinItemWidth="{utu:Responsive Narrowest=300, Normal=320, Wide=340}"
-                                                   ItemsStretch="Fill"
+                                <UniformGridLayout Orientation="Horizontal"
+                                                   MinItemWidth="240"
+                                                   MinItemHeight="300"
                                                    MinRowSpacing="16"
-                                                   MinColumnSpacing="16" />
+                                                   MinColumnSpacing="16"
+                                                   ItemsStretch="Fill" />
                             </ItemsRepeater.Layout>
 
                             <ItemsRepeater.ItemTemplate>
