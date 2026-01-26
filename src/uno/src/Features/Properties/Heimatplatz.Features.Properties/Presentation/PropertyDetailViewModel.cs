@@ -6,15 +6,14 @@ using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel fuer die PropertyDetailPage (Immoscout Style)
+/// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IClipboardService _clipboardService;

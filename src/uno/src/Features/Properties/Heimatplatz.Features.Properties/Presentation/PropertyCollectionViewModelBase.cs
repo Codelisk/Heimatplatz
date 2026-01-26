@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Collections;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
@@ -26,14 +27,17 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     protected readonly INavigator Navigator;
     protected readonly ILogger Logger;
 
+    private bool _isLoading;
+
     [ObservableProperty]
     private bool _isBusy;
 
     [ObservableProperty]
     private string? _busyMessage;
 
-    [ObservableProperty]
-    private ObservableCollection<PropertyListItemDto> _properties = new();
+    // Stable collection reference — never replace, only update contents in-place.
+    private readonly BatchObservableCollection<PropertyListItemDto> _properties = new();
+    public BatchObservableCollection<PropertyListItemDto> Properties => _properties;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotEmpty))]
@@ -123,8 +127,12 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     public void OnNavigatedTo(object? parameter)
     {
         Logger.LogInformation("[{PageTitle}] OnNavigatedTo called", PageTitle);
-        // Header setup is now automatic via PageNavigatedEvent from BasePage
-        _ = LoadPropertiesAsync();
+        // Skip reload if we already have data — avoids _properties.Reset() triggering
+        // CollectionChanged on both old and new page instances (StackOverflow).
+        if (Properties.Count == 0)
+        {
+            _ = LoadPropertiesAsync();
+        }
     }
 
     /// <summary>
@@ -164,6 +172,13 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// </summary>
     private async Task LoadPropertiesAsync()
     {
+        if (_isLoading)
+        {
+            Logger.LogInformation("[{PageTitle}] LoadPropertiesAsync skipped - already loading", PageTitle);
+            return;
+        }
+
+        _isLoading = true;
         IsBusy = true;
         BusyMessage = LoadingMessage;
 
@@ -175,20 +190,11 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
             Logger.LogInformation("[{PageTitle}] Response received. Properties count: {Count}", PageTitle, properties?.Count ?? 0);
 
-            Properties.Clear();
-
-            IsEmpty = properties == null || !properties.Any();
-            Logger.LogInformation("[{PageTitle}] IsEmpty set to: {IsEmpty}", PageTitle, IsEmpty);
-
-            if (properties != null)
-            {
-                Logger.LogInformation("[{PageTitle}] Adding {Count} properties to collection", PageTitle, properties.Count);
-                foreach (var prop in properties)
-                {
-                    Properties.Add(prop);
-                }
-                Logger.LogInformation("[{PageTitle}] Final Properties.Count: {Count}", PageTitle, Properties.Count);
-            }
+            // Batch-replace all items with a single Reset notification to avoid StackOverflow
+            var newProperties = properties ?? new List<PropertyListItemDto>();
+            _properties.Reset(newProperties);
+            IsEmpty = newProperties.Count == 0;
+            Logger.LogInformation("[{PageTitle}] Properties replaced. Count: {Count}, IsEmpty: {IsEmpty}", PageTitle, newProperties.Count, IsEmpty);
         }
         catch (Exception ex)
         {
@@ -200,6 +206,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         {
             IsBusy = false;
             BusyMessage = null;
+            _isLoading = false;
         }
     }
 

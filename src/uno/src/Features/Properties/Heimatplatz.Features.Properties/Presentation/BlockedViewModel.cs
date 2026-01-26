@@ -8,7 +8,6 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
@@ -35,8 +34,8 @@ public partial class SelectablePropertyItem : ObservableObject
 /// Blocked properties are hidden from the main property list.
 /// Extends PropertyCollectionViewModelBase for shared collection functionality.
 /// Supports bulk unblock via selection mode.
+/// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class BlockedViewModel : PropertyCollectionViewModelBase
 {
     [ObservableProperty]

@@ -20,6 +20,7 @@ public class PropertyStatusService : IPropertyStatusService
     private readonly HashSet<Guid> _favoriteIds = new();
     private readonly HashSet<Guid> _blockedIds = new();
     private bool _isLoaded;
+    private bool _isRefreshing;
 
     public event EventHandler? StatusChanged;
 
@@ -181,6 +182,15 @@ public class PropertyStatusService : IPropertyStatusService
             return;
         }
 
+        // Reentrancy guard: prevent recursive calls from StatusChanged event handlers
+        // that trigger EnsureLoadedAsync → RefreshStatusAsync again
+        if (_isRefreshing)
+        {
+            _logger.LogInformation("[PropertyStatus] RefreshStatusAsync skipped - already refreshing");
+            return;
+        }
+
+        _isRefreshing = true;
         try
         {
             _logger.LogInformation("[PropertyStatus] Loading user favorites and blocked...");
@@ -215,11 +225,17 @@ public class PropertyStatusService : IPropertyStatusService
             _logger.LogInformation("[PropertyStatus] Loaded {FavoriteCount} favorites, {BlockedCount} blocked",
                 _favoriteIds.Count, _blockedIds.Count);
 
-            StatusChanged?.Invoke(this, EventArgs.Empty);
+            // StatusChanged intentionally NOT fired here to avoid recursive binding cascade.
+            // PropertyCards query status on-demand via RefreshStatusFromService() on flyout opening
+            // and via OnPropertyCardLoaded in the page code-behind.
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyStatus] Error loading user status");
+        }
+        finally
+        {
+            _isRefreshing = false;
         }
     }
 
@@ -228,7 +244,7 @@ public class PropertyStatusService : IPropertyStatusService
         _favoriteIds.Clear();
         _blockedIds.Clear();
         _isLoaded = false;
-        StatusChanged?.Invoke(this, EventArgs.Empty);
+        // StatusChanged intentionally NOT fired here to avoid recursive binding cascade.
     }
 
     public async Task EnsureLoadedAsync()

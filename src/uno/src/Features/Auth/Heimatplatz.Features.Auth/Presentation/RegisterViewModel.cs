@@ -1,16 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
-using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Features.Auth.Presentation;
 
 /// <summary>
 /// ViewModel fuer die Registrierungsseite
+/// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class RegisterViewModel : ObservableObject
 {
     private readonly IMediator _mediator;

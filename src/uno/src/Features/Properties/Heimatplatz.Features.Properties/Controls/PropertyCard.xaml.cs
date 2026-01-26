@@ -15,6 +15,7 @@ public sealed partial class PropertyCard : UserControl
 {
     private MenuFlyoutItem? _favoriteMenuItem;
     private MenuFlyoutItem? _blockMenuItem;
+    private List<string>? _currentImageUrls;
 
     public PropertyCard()
     {
@@ -296,9 +297,13 @@ public sealed partial class PropertyCard : UserControl
         SellerBadgeText.Text = property.SellerType == SellerType.Privat ? "Privat" : property.SellerName;
 
         // Load images (FlipView for swipe)
+        // Detach previous handler to prevent accumulation
+        ImageFlipView.SelectionChanged -= OnImageFlipViewSelectionChanged;
+
         if (property.ImageUrls?.Count > 0)
         {
             var imageUrls = property.ImageUrls.Where(url => !string.IsNullOrEmpty(url)).ToList();
+            _currentImageUrls = imageUrls;
             ImageFlipView.ItemsSource = imageUrls;
 
             // Show counter and arrows when multiple images
@@ -311,11 +316,30 @@ public sealed partial class PropertyCard : UserControl
                 PrevImageButton.Visibility = Visibility.Visible;
                 NextImageButton.Visibility = Visibility.Visible;
 
-                ImageFlipView.SelectionChanged += (s, e) =>
-                {
-                    ImageCounterText.Text = $"{ImageFlipView.SelectedIndex + 1}/{imageUrls.Count}";
-                };
+                ImageFlipView.SelectionChanged += OnImageFlipViewSelectionChanged;
             }
+            else
+            {
+                ImageCounterBadge.Visibility = Visibility.Collapsed;
+                PrevImageButton.Visibility = Visibility.Collapsed;
+                NextImageButton.Visibility = Visibility.Collapsed;
+            }
+        }
+        else
+        {
+            _currentImageUrls = null;
+            ImageFlipView.ItemsSource = null;
+            ImageCounterBadge.Visibility = Visibility.Collapsed;
+            PrevImageButton.Visibility = Visibility.Collapsed;
+            NextImageButton.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void OnImageFlipViewSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_currentImageUrls != null)
+        {
+            ImageCounterText.Text = $"{ImageFlipView.SelectedIndex + 1}/{_currentImageUrls.Count}";
         }
     }
 

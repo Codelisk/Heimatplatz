@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Generated;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
@@ -11,8 +10,8 @@ namespace Heimatplatz.Features.Auth.Presentation;
 
 /// <summary>
 /// ViewModel fuer die Anmeldeseite
+/// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class LoginViewModel : ObservableObject
 {
     private readonly IMediator _mediator;

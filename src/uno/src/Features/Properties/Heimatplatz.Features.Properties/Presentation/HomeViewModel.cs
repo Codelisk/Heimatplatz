@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Collections;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
@@ -8,11 +9,9 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.UI.Xaml;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using UnoFramework.Contracts.Navigation;
-using Heimatplatz.Features.Properties.Services;
 
 // ReSharper disable InconsistentNaming
 
@@ -31,7 +30,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private readonly IFilterStateService _filterStateService;
     private readonly IMediator _mediator;
     private readonly ILogger<HomeViewModel> _logger;
-    private readonly IPropertyStatusService _propertyStatusService;
+
+    private bool _isLoading;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -39,8 +39,12 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private string? _busyMessage;
 
-    [ObservableProperty]
-    private ObservableCollection<PropertyListItemDto> _properties = new();
+    // Use a stable collection reference to avoid StackOverflow from binding system
+    // when both old (being torn down) and new page instances react to PropertyChanged.
+    // Singleton ViewModel + NavigationCacheMode="Disabled" means the old page's bindings
+    // may still be alive when Properties is reassigned, causing recursive cascades.
+    private readonly BatchObservableCollection<PropertyListItemDto> _properties = new();
+    public BatchObservableCollection<PropertyListItemDto> Properties => _properties;
 
     [ObservableProperty]
     private bool _isHausSelected = true;
@@ -109,7 +113,11 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         new BezirkModel("Steyr-Land", "Steyr", "Sierning", "Garsten"),
     ];
 
-    public Visibility IsEmpty => Properties.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    [ObservableProperty]
+    private bool _isEmpty;
+
+    [ObservableProperty]
+    private string _resultCountText = "0 Objekte";
 
     #region IPageInfo Implementation
 
@@ -125,8 +133,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         IFilterPreferencesService filterPreferencesService,
         IFilterStateService filterStateService,
         IMediator mediator,
-        ILogger<HomeViewModel> logger,
-        IPropertyStatusService propertyStatusService)
+        ILogger<HomeViewModel> logger)
     {
         _authService = authService;
         _navigator = navigator;
@@ -134,7 +141,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         _filterStateService = filterStateService;
         _mediator = mediator;
         _logger = logger;
-        _propertyStatusService = propertyStatusService;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
         // Subscribe to filter state changes from HeaderFilterBar
@@ -145,11 +151,11 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Load properties from API
         _ = LoadPropertiesAsync();
 
-        // Load preferences and property status if already authenticated
+        // Load preferences if already authenticated
+        // PropertyStatusService is loaded lazily via EnsureLoadedAsync() in OnPropertyCardLoaded
         if (_authService.IsAuthenticated)
         {
             _ = LoadFilterPreferencesAsync();
-            _ = _propertyStatusService.RefreshStatusAsync();
         }
     }
 
@@ -161,8 +167,15 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// </summary>
     public void OnNavigatedTo(object? parameter)
     {
-        // Reload properties when navigating to the page (to get fresh data)
-        _ = LoadPropertiesAsync();
+        // Only reload if we don't have data yet.
+        // Re-navigating back to an already-loaded Home page should NOT trigger
+        // _properties.Reset() because the old page's ItemsRepeater is still alive
+        // and bound to the same collection (singleton ViewModel), which would cause
+        // both old and new pages to rebuild their PropertyCards simultaneously → StackOverflow.
+        if (_allProperties.Count == 0)
+        {
+            _ = LoadPropertiesAsync();
+        }
     }
 
     /// <summary>
@@ -435,18 +448,28 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             filtered = filtered.Where(p => selectedTypes.Contains(p.Type));
         }
 
-        Properties.Clear();
         var filteredList = filtered.ToList();
         System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Result count: {filteredList.Count}");
-        foreach (var property in filteredList)
-        {
-            Properties.Add(property);
-        }
+
+        // Batch-replace all items with a single Reset notification.
+        // Individual Add() calls would fire N CollectionChanged events, each triggering
+        // a full ItemsRepeater render cycle through Uno's DependencyProperty invalidation,
+        // which cascades into a StackOverflow.
+        _properties.Reset(filteredList);
+
+        // Update IsEmpty explicitly — using a bool [ObservableProperty] instead of a computed
+        // Visibility property avoids the binding system subscribing to CollectionChanged on
+        // Properties.Count, which would create a self-referential loop.
+        IsEmpty = filteredList.Count == 0;
+
+        // Update the result count text for XAML binding.
+        // IMPORTANT: Do NOT bind directly to Properties.Count in XAML — that subscribes the
+        // binding system to CollectionChanged, creating a recursive cascade through
+        // DependencyObjectStore → BindingExpression → OnValueChanged → StackOverflow.
+        ResultCountText = $"{filteredList.Count} Objekte";
 
         // Update result count in FilterStateService
-        _filterStateService.SetResultCount(Properties.Count);
-
-        OnPropertyChanged(nameof(IsEmpty));
+        _filterStateService.SetResultCount(filteredList.Count);
     }
 
     private List<PropertyListItemDto> _allProperties = new();
@@ -456,6 +479,13 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// </summary>
     private async Task LoadPropertiesAsync()
     {
+        if (_isLoading)
+        {
+            _logger.LogInformation("[HomePage] LoadPropertiesAsync skipped - already loading");
+            return;
+        }
+
+        _isLoading = true;
         IsBusy = true;
         BusyMessage = "Lade Immobilien...";
 
@@ -532,6 +562,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         {
             IsBusy = false;
             BusyMessage = null;
+            _isLoading = false;
         }
     }
 

@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
@@ -11,8 +10,8 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// ViewModel for FavoritesPage - manages user's favorited properties.
 /// Extends PropertyCollectionViewModelBase for shared collection functionality.
+/// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class FavoritesViewModel : PropertyCollectionViewModelBase
 {
     public FavoritesViewModel(

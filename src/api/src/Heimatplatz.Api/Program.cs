@@ -13,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddApiServices(builder.Configuration);
 
+// CORS fuer Uno WASM Frontend
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // JWT Authentication konfigurieren
 var jwtKey = builder.Configuration["Authentication:Jwt:Key"]
     ?? throw new InvalidOperationException("JWT Key nicht konfiguriert");
@@ -91,6 +102,7 @@ var app = builder.Build();
 app.Services.EnsureDatabaseCreated();
 await app.RunSeedersAsync();
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 // Authentication und Authorization Middleware

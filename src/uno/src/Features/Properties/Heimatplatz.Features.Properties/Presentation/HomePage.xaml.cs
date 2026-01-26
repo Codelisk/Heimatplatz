@@ -80,16 +80,10 @@ public sealed partial class HomePage : BasePage
         }
     }
 
-    private async void OnPropertyCardLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        if (sender is PropertyCard card && card.Property != null)
-        {
-            // Ensure status is loaded before checking
-            await PropertyStatusService.EnsureLoadedAsync();
-
-            // Set the favorite and blocked status from the service
-            card.IsFavorite = PropertyStatusService.IsFavorite(card.Property.Id);
-            card.IsBlocked = PropertyStatusService.IsBlocked(card.Property.Id);
-        }
-    }
+    // NOTE: OnPropertyCardLoaded was intentionally removed.
+    // Setting DependencyProperties (IsFavorite/IsBlocked) on PropertyCard during
+    // ItemsRepeater rendering triggered a synchronous recursive cascade through
+    // Uno's DependencyObjectStore → BindingExpression → OnValueChanged → StackOverflow.
+    // Favorite/blocked status is now loaded on-demand in PropertyCard.OnMenuFlyoutOpening
+    // via RefreshStatusFromService().
 }

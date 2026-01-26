@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Collections;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using UnoFramework.Contracts.Navigation;
@@ -18,8 +18,8 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// ViewModel for MyPropertiesPage - manages user's own properties
 /// Implements INavigationAware for automatic lifecycle handling via BasePage
 /// Implements IPageInfo for header integration
+/// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class MyPropertiesViewModel : ObservableObject, INavigationAware, IPageInfo
 {
     private readonly IAuthService _authService;
@@ -27,14 +27,19 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     private readonly INavigator _navigator;
     private readonly ILogger<MyPropertiesViewModel> _logger;
 
+    private bool _isLoading;
+
     [ObservableProperty]
     private bool _isBusy;
 
     [ObservableProperty]
     private string? _busyMessage;
 
-    [ObservableProperty]
-    private ObservableCollection<PropertyListItemDto> _properties = new();
+    // Stable collection reference — never replace, only update contents in-place.
+    // Replacing the reference triggers OnPropertyChanged("Properties") which causes
+    // ItemsRepeater.OnItemsSourceChanged on both old and new page instances (StackOverflow).
+    private readonly BatchObservableCollection<PropertyListItemDto> _properties = new();
+    public BatchObservableCollection<PropertyListItemDto> Properties => _properties;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotEmpty))]
@@ -101,8 +106,12 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     public void OnNavigatedTo(object? parameter)
     {
         _logger.LogInformation("[MyProperties] OnNavigatedTo called");
-        // Header setup is now automatic via PageNavigatedEvent from BasePage
-        _ = LoadPropertiesAsync();
+        // Skip reload if we already have data — avoids _properties.Reset() triggering
+        // CollectionChanged on both old and new page instances (StackOverflow).
+        if (Properties.Count == 0)
+        {
+            _ = LoadPropertiesAsync();
+        }
     }
 
     /// <summary>
@@ -130,6 +139,13 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     /// </summary>
     private async Task LoadPropertiesAsync()
     {
+        if (_isLoading)
+        {
+            _logger.LogInformation("[MyProperties] LoadPropertiesAsync skipped - already loading");
+            return;
+        }
+
+        _isLoading = true;
         IsBusy = true;
         BusyMessage = "Lade Immobilien...";
 
@@ -146,19 +162,15 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
             _logger.LogInformation("[MyProperties] Properties null: {IsNull}", response?.Properties == null);
             _logger.LogInformation("[MyProperties] Properties count: {Count}", response?.Properties?.Count ?? 0);
 
-            // Clear existing properties
-            Properties.Clear();
-
-            // Update empty state immediately after clearing
-            IsEmpty = response?.Properties == null || !response.Properties.Any();
-            _logger.LogInformation("[MyProperties] IsEmpty set to: {IsEmpty}", IsEmpty);
+            // Build new list to replace collection atomically
+            var newProperties = new List<PropertyListItemDto>();
 
             if (response?.Properties != null)
             {
-                _logger.LogInformation("[MyProperties] Adding {Count} properties to collection", response.Properties.Count);
+                _logger.LogInformation("[MyProperties] Mapping {Count} properties", response.Properties.Count);
                 foreach (var prop in response.Properties)
                 {
-                    Properties.Add(new PropertyListItemDto(
+                    newProperties.Add(new PropertyListItemDto(
                         Id: prop.Id,
                         Title: prop.Title,
                         Address: prop.Address,
@@ -175,8 +187,12 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
                         InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
                     ));
                 }
-                _logger.LogInformation("[MyProperties] Final Properties.Count: {Count}", Properties.Count);
             }
+
+            // Batch-replace all items with a single Reset notification to avoid StackOverflow
+            _properties.Reset(newProperties);
+            IsEmpty = newProperties.Count == 0;
+            _logger.LogInformation("[MyProperties] Properties replaced. Count: {Count}, IsEmpty: {IsEmpty}", newProperties.Count, IsEmpty);
         }
         catch (Exception ex)
         {
@@ -188,6 +204,7 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
         {
             IsBusy = false;
             BusyMessage = null;
+            _isLoading = false;
         }
     }
 

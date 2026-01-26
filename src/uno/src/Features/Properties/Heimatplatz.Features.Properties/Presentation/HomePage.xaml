@@ -40,13 +40,16 @@
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
                     <StackPanel Spacing="8">
                         <!-- Ergebnis-Counter Mobile -->
-                        <TextBlock Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                        <!-- IMPORTANT: Do NOT bind to Properties.Count — that subscribes
+                             the binding system to CollectionChanged, creating a recursive
+                             cascade through DependencyObjectStore → StackOverflow.
+                             Use the pre-formatted ResultCountText property instead. -->
+                        <TextBlock Text="{Binding ResultCountText}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
                                    FontSize="12"
                                    HorizontalAlignment="Right"
-                                   AutomationProperties.AutomationId="HomePage_MobileResultCount">
-                            <Run Text="{Binding Properties.Count}" FontWeight="SemiBold" Foreground="{ThemeResource OnSurfaceBrush}" />
-                            <Run Text=" Objekte" />
-                        </TextBlock>
+                                   AutomationProperties.AutomationId="HomePage_MobileResultCount" />
 
                         <!-- OrtPicker und Alters-Filter auf Mobile -->
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -88,11 +91,16 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
+                                    <!-- DO NOT add Loaded="OnPropertyCardLoaded" here.
+                                         Setting DependencyProperties (IsFavorite/IsBlocked) during
+                                         ItemsRepeater rendering triggers a synchronous recursive cascade
+                                         through Uno's DependencyObjectStore → BindingExpression →
+                                         OnValueChanged → StackOverflow.
+                                         Status is loaded on-demand in PropertyCard.OnMenuFlyoutOpening. -->
                                     <controls:PropertyCard Property="{Binding}"
                                                            CardClicked="OnPropertyCardClicked"
                                                            PropertyBlocked="OnPropertyBlocked"
                                                            PropertyFavorited="OnPropertyFavorited"
-                                                           Loaded="OnPropertyCardLoaded"
                                                            AutomationProperties.AutomationId="HomePage_PropertyCard" />
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>

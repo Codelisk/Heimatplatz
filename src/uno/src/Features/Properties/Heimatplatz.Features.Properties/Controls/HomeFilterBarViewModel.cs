@@ -4,15 +4,13 @@ using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.UI.Xaml;
-using Shiny.Extensions.DependencyInjection;
-
 namespace Heimatplatz.Features.Properties.Controls;
 
 /// <summary>
 /// ViewModel für die HomeFilterBar im AppHeader.
 /// Synchronisiert Filter-State mit dem zentralen FilterStateService.
+/// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public partial class HomeFilterBarViewModel : ObservableObject
 {
     private readonly IFilterStateService _filterStateService;
