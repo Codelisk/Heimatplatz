@@ -562,33 +562,21 @@
         "operationId": "GetProperties",
         "parameters": [
           {
-            "name": "Typ",
+            "name": "Type",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/PropertyType"
             }
           },
           {
-            "name": "AnbieterTyp",
+            "name": "SellerTypesJson",
             "in": "query",
             "schema": {
-              "$ref": "#/components/schemas/SellerType"
+              "type": "string"
             }
           },
           {
-            "name": "PreisMin",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-              "type": [
-                "number",
-                "string"
-              ],
-              "format": "double"
-            }
-          },
-          {
-            "name": "PreisMax",
+            "name": "PriceMin",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
@@ -600,7 +588,19 @@
             }
           },
           {
-            "name": "FlaecheMin",
+            "name": "PriceMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "AreaMin",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
@@ -612,7 +612,7 @@
             }
           },
           {
-            "name": "FlaecheMax",
+            "name": "AreaMax",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
@@ -624,7 +624,7 @@
             }
           },
           {
-            "name": "ZimmerMin",
+            "name": "RoomsMin",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
@@ -636,7 +636,14 @@
             }
           },
           {
-            "name": "Ort",
+            "name": "City",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ExcludedSellerSourceIdsJson",
             "in": "query",
             "schema": {
               "type": "string"
@@ -784,6 +791,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetUserPropertiesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seller-sources": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetSellerSources",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSellerSourcesResponse"
                 }
               }
             }
@@ -1451,7 +1478,11 @@
       "GetNotificationPreferencesResponse": {
         "required": [
           "IsEnabled",
-          "Locations"
+          "Locations",
+          "IsPrivateSelected",
+          "IsBrokerSelected",
+          "IsPortalSelected",
+          "ExcludedSellerSourceIds"
         ],
         "type": "object",
         "properties": {
@@ -1462,6 +1493,22 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "IsPrivateSelected": {
+            "type": "boolean"
+          },
+          "IsBrokerSelected": {
+            "type": "boolean"
+          },
+          "IsPortalSelected": {
+            "type": "boolean"
+          },
+          "ExcludedSellerSourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         }
@@ -1486,18 +1533,18 @@
       },
       "GetPropertiesResponse": {
         "required": [
-          "Immobilien",
-          "Gesamt"
+          "Properties",
+          "Total"
         ],
         "type": "object",
         "properties": {
-          "Immobilien": {
+          "Properties": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PropertyListItemDto"
             }
           },
-          "Gesamt": {
+          "Total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -1522,6 +1569,20 @@
                 "$ref": "#/components/schemas/PropertyDto"
               }
             ]
+          }
+        }
+      },
+      "GetSellerSourcesResponse": {
+        "required": [
+          "Sources"
+        ],
+        "type": "object",
+        "properties": {
+          "Sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SellerSourceDto"
+            }
           }
         }
       },
@@ -1559,7 +1620,11 @@
           "SelectedAgeFilter",
           "IsHausSelected",
           "IsGrundstueckSelected",
-          "IsZwangsversteigerungSelected"
+          "IsZwangsversteigerungSelected",
+          "IsPrivateSelected",
+          "IsBrokerSelected",
+          "IsPortalSelected",
+          "ExcludedSellerSourceIds"
         ],
         "type": "object",
         "properties": {
@@ -1585,6 +1650,22 @@
           },
           "IsZwangsversteigerungSelected": {
             "type": "boolean"
+          },
+          "IsPrivateSelected": {
+            "type": "boolean"
+          },
+          "IsBrokerSelected": {
+            "type": "boolean"
+          },
+          "IsPortalSelected": {
+            "type": "boolean"
+          },
+          "ExcludedSellerSourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
@@ -2213,7 +2294,11 @@
           "SelectedAgeFilter",
           "IsHausSelected",
           "IsGrundstueckSelected",
-          "IsZwangsversteigerungSelected"
+          "IsZwangsversteigerungSelected",
+          "IsPrivateSelected",
+          "IsBrokerSelected",
+          "IsPortalSelected",
+          "ExcludedSellerSourceIds"
         ],
         "type": "object",
         "properties": {
@@ -2239,6 +2324,25 @@
           },
           "IsZwangsversteigerungSelected": {
             "type": "boolean"
+          },
+          "IsPrivateSelected": {
+            "type": "boolean"
+          },
+          "IsBrokerSelected": {
+            "type": "boolean"
+          },
+          "IsPortalSelected": {
+            "type": "boolean"
+          },
+          "ExcludedSellerSourceIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
@@ -2253,16 +2357,41 @@
           }
         }
       },
+      "SellerSourceDto": {
+        "required": [
+          "Id",
+          "Name",
+          "SellerType"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          }
+        }
+      },
       "SellerType": {
         "enum": [
-          "Privat",
-          "Makler"
+          "Private",
+          "Broker",
+          "Portal"
         ]
       },
       "UpdateNotificationPreferencesRequest": {
         "required": [
           "IsEnabled",
-          "Locations"
+          "Locations",
+          "IsPrivateSelected",
+          "IsBrokerSelected",
+          "IsPortalSelected",
+          "ExcludedSellerSourceIds"
         ],
         "type": "object",
         "properties": {
@@ -2273,6 +2402,25 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "IsPrivateSelected": {
+            "type": "boolean"
+          },
+          "IsBrokerSelected": {
+            "type": "boolean"
+          },
+          "IsPortalSelected": {
+            "type": "boolean"
+          },
+          "ExcludedSellerSourceIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         }

@@ -22,7 +22,11 @@ public class FilterStateService : IFilterStateService
         bool isGrundstueckSelected,
         bool isZwangsversteigerungSelected,
         AgeFilter selectedAgeFilter,
-        List<string> selectedOrte)
+        List<string> selectedOrte,
+        bool isPrivateSelected = true,
+        bool isBrokerSelected = true,
+        bool isPortalSelected = true,
+        List<Guid>? excludedSellerSourceIds = null)
     {
         _currentState = _currentState with
         {
@@ -30,7 +34,11 @@ public class FilterStateService : IFilterStateService
             IsGrundstueckSelected = isGrundstueckSelected,
             IsZwangsversteigerungSelected = isZwangsversteigerungSelected,
             SelectedAgeFilter = selectedAgeFilter,
-            SelectedOrte = selectedOrte
+            SelectedOrte = selectedOrte,
+            IsPrivateSelected = isPrivateSelected,
+            IsBrokerSelected = isBrokerSelected,
+            IsPortalSelected = isPortalSelected,
+            ExcludedSellerSourceIds = excludedSellerSourceIds ?? []
         };
 
         FilterStateChanged?.Invoke(this, EventArgs.Empty);

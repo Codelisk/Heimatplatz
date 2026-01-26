@@ -15,7 +15,14 @@ public interface INotificationService
     /// <summary>
     /// Updates the user's notification preferences
     /// </summary>
-    Task<bool> UpdatePreferencesAsync(bool isEnabled, List<string> locations, CancellationToken cancellationToken = default);
+    Task<bool> UpdatePreferencesAsync(
+        bool isEnabled,
+        List<string> locations,
+        bool isPrivateSelected = true,
+        bool isBrokerSelected = true,
+        bool isPortalSelected = true,
+        List<Guid>? excludedSellerSourceIds = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers the current device for push notifications

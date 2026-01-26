@@ -26,7 +26,11 @@ public interface IFilterStateService
         bool isGrundstueckSelected,
         bool isZwangsversteigerungSelected,
         AgeFilter selectedAgeFilter,
-        List<string> selectedOrte);
+        List<string> selectedOrte,
+        bool isPrivateSelected = true,
+        bool isBrokerSelected = true,
+        bool isPortalSelected = true,
+        List<Guid>? excludedSellerSourceIds = null);
 
     /// <summary>
     /// Setzt die Ergebnis-Anzahl
@@ -44,5 +48,9 @@ public record FilterState
     public bool IsZwangsversteigerungSelected { get; init; } = true;
     public AgeFilter SelectedAgeFilter { get; init; } = AgeFilter.Alle;
     public IReadOnlyList<string> SelectedOrte { get; init; } = [];
+    public bool IsPrivateSelected { get; init; } = true;
+    public bool IsBrokerSelected { get; init; } = true;
+    public bool IsPortalSelected { get; init; } = true;
+    public IReadOnlyList<Guid> ExcludedSellerSourceIds { get; init; } = [];
     public int ResultCount { get; init; }
 }

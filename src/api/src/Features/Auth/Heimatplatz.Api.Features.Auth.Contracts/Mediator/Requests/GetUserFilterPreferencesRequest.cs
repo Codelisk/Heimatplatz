@@ -20,5 +20,9 @@ public record GetUserFilterPreferencesResponse(
     int SelectedAgeFilter,
     bool IsHausSelected,
     bool IsGrundstueckSelected,
-    bool IsZwangsversteigerungSelected
+    bool IsZwangsversteigerungSelected,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid> ExcludedSellerSourceIds
 );

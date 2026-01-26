@@ -62,7 +62,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 5,
                 YearBuilt = 2018,
                 Type = PropertyType.House,
-                SellerType = SellerType.Makler,
+                SellerType = SellerType.Broker,
                 SellerName = "Mustermann Immobilien",
                 Description = "Wunderschoenes Einfamilienhaus mit grossem Garten in ruhiger Lage. Hochwertige Ausstattung, Fussbodenheizung, Photovoltaikanlage.",
                 Features = ["Garage", "Garten", "Terrasse", "Keller", "Fussbodenheizung", "Photovoltaik"],
@@ -81,7 +81,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 4,
                 YearBuilt = 2020,
                 Type = PropertyType.House,
-                SellerType = SellerType.Privat,
+                SellerType = SellerType.Private,
                 SellerName = "Familie Huber",
                 Description = "Neuwertiges Reihenhaus in zentraler Lage. Perfekt fuer junge Familien. Kurze Wege zu Schulen und Geschaeften.",
                 Features = ["Carport", "Terrasse", "Keller", "Fussbodenheizung"],
@@ -100,7 +100,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 7,
                 YearBuilt = 2015,
                 Type = PropertyType.House,
-                SellerType = SellerType.Makler,
+                SellerType = SellerType.Broker,
                 SellerName = "Luxus Immobilien GmbH",
                 Description = "Exklusive Villa mit direktem Seezugang. Panoramablick auf den Traunsee. Hochwertigste Ausstattung.",
                 Features = ["Doppelgarage", "Pool", "Sauna", "Seezugang", "Smarthome", "Klimaanlage"],
@@ -119,7 +119,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 5,
                 YearBuilt = 1998,
                 Type = PropertyType.House,
-                SellerType = SellerType.Privat,
+                SellerType = SellerType.Private,
                 SellerName = "Herr Maier",
                 Description = "Charmantes Landhaus im Salzkammergut. Renoviert mit Liebe zum Detail. Idealer Rueckzugsort.",
                 Features = ["Garage", "Garten", "Kachelofen", "Keller", "Dachboden"],
@@ -138,7 +138,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 5,
                 YearBuilt = 2010,
                 Type = PropertyType.House,
-                SellerType = SellerType.Makler,
+                SellerType = SellerType.Broker,
                 SellerName = "Immobilien Steyr",
                 Description = "Gepflegtes Einfamilienhaus in guter Lage. Nahe Stadtzentrum und Naturgebiet.",
                 Features = ["Garage", "Garten", "Terrasse", "Keller"],
@@ -156,7 +156,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Price = 189000,
                 PlotAreaSquareMeters = 850,
                 Type = PropertyType.Land,
-                SellerType = SellerType.Privat,
+                SellerType = SellerType.Private,
                 SellerName = "Familie Mueller",
                 Description = "Voll erschlossenes Baugrundstuck in ruhiger Wohnlage. Alle Anschluesse vorhanden.",
                 Features = ["Erschlossen", "Strom", "Wasser", "Kanal", "Gas"],
@@ -172,7 +172,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Price = 245000,
                 PlotAreaSquareMeters = 720,
                 Type = PropertyType.Land,
-                SellerType = SellerType.Makler,
+                SellerType = SellerType.Broker,
                 SellerName = "Grund & Boden OOe",
                 Description = "Suedhanglage mit herrlichem Ausblick. Bebauungsplan liegt vor.",
                 Features = ["Erschlossen", "Suedlage", "Aussicht"],
@@ -188,7 +188,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Price = 95000,
                 PlotAreaSquareMeters = 1200,
                 Type = PropertyType.Land,
-                SellerType = SellerType.Privat,
+                SellerType = SellerType.Private,
                 SellerName = "Gemeinde Freistadt",
                 Description = "Guenstiges Baugrundstuck im schoenen Muehlviertel. Ruhige Lage, gute Infrastruktur.",
                 Features = ["Teilerschlossen", "Strom", "Wasser"],
@@ -209,7 +209,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 4,
                 YearBuilt = 1985,
                 Type = PropertyType.Foreclosure,
-                SellerType = SellerType.Makler,
+                SellerType = SellerType.Broker,
                 SellerName = "Bezirksgericht Linz",
                 Description = "Aelteres Haus mit Renovierungsbedarf. Versteigerungstermin: naechsten Monat. Besichtigung moeglich.",
                 Features = ["Garage", "Keller"],
@@ -225,7 +225,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Price = 68000,
                 PlotAreaSquareMeters = 650,
                 Type = PropertyType.Foreclosure,
-                SellerType = SellerType.Makler,
+                SellerType = SellerType.Broker,
                 SellerName = "Bezirksgericht Steyr",
                 Description = "Baugrundstuck aus Zwangsversteigerung. Gute Lage, erschlossen.",
                 Features = ["Erschlossen"],
@@ -246,7 +246,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 3,
                 YearBuilt = 2005,
                 Type = PropertyType.House,
-                SellerType = SellerType.Privat,
+                SellerType = SellerType.Private,
                 SellerName = "Ehepaar Schmidt",
                 Description = "Barrierefreier Bungalow, ideal fuer Senioren. Pflegeleichter Garten.",
                 Features = ["Carport", "Garten", "Barrierefrei", "Fussbodenheizung"],
@@ -265,11 +265,83 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Rooms = 4,
                 YearBuilt = 2019,
                 Type = PropertyType.House,
-                SellerType = SellerType.Makler,
+                SellerType = SellerType.Broker,
                 SellerName = "Hausfreund Immobilien",
                 Description = "Neuwertige Doppelhaushaelfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
                 Features = ["Garage", "Garten", "Terrasse", "Fussbodenheizung", "Waermepumpe"],
                 ImageUrls = ["https://picsum.photos/seed/doppel1/800/600"]
+            },
+
+            // Portal-Properties (from real estate platforms)
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Einfamilienhaus Leonding - Willhaben",
+                Address = "Birkenweg 5",
+                City = "Leonding",
+                PostalCode = "4060",
+                Price = 379000,
+                LivingAreaSquareMeters = 140,
+                PlotAreaSquareMeters = 480,
+                Rooms = 5,
+                YearBuilt = 2016,
+                Type = PropertyType.House,
+                SellerType = SellerType.Portal,
+                SellerName = "Willhaben",
+                Description = "Gepflegtes Einfamilienhaus mit Garten, gefunden auf Willhaben. Ruhige Wohnlage nahe Linz.",
+                Features = ["Garage", "Garten", "Terrasse", "Fussbodenheizung"],
+                ImageUrls = ["https://picsum.photos/seed/portal1/800/600"]
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Baugrundstück Ansfelden - ImmoScout24",
+                Address = "Feldgasse 12",
+                City = "Ansfelden",
+                PostalCode = "4052",
+                Price = 198000,
+                PlotAreaSquareMeters = 720,
+                Type = PropertyType.Land,
+                SellerType = SellerType.Portal,
+                SellerName = "ImmoScout24",
+                Description = "Voll erschlossenes Baugrundstuck, gefunden auf ImmoScout24. Perfekte Lage fuer Familien.",
+                Features = ["Erschlossen", "Strom", "Wasser", "Kanal"],
+                ImageUrls = ["https://picsum.photos/seed/portal2/800/600"]
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Modernes Haus Traun - ImmobilienNET",
+                Address = "Linzer Strasse 88",
+                City = "Traun",
+                PostalCode = "4050",
+                Price = 329000,
+                LivingAreaSquareMeters = 130,
+                PlotAreaSquareMeters = 350,
+                Rooms = 4,
+                YearBuilt = 2021,
+                Type = PropertyType.House,
+                SellerType = SellerType.Portal,
+                SellerName = "ImmobilienNET",
+                Description = "Neubau-Haus mit moderner Ausstattung. Listing von ImmobilienNET.",
+                Features = ["Carport", "Garten", "Terrasse", "Waermepumpe", "Photovoltaik"],
+                ImageUrls = ["https://picsum.photos/seed/portal3/800/600"]
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Grundstück Pasching - FindMyHome",
+                Address = "Wiesenstrasse 3",
+                City = "Pasching",
+                PostalCode = "4061",
+                Price = 265000,
+                PlotAreaSquareMeters = 640,
+                Type = PropertyType.Land,
+                SellerType = SellerType.Portal,
+                SellerName = "FindMyHome",
+                Description = "Sonniges Baugrundstuck in begehrter Lage. Via FindMyHome gefunden.",
+                Features = ["Erschlossen", "Strom", "Wasser", "Kanal", "Suedlage"],
+                ImageUrls = ["https://picsum.photos/seed/portal4/800/600"]
             }
         };
 
@@ -420,10 +492,17 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
         {
             property.InquiryType = InquiryType.ContactData;
 
-            // Hauptkontakt basierend auf SellerType
-            var contactType = property.SellerType == SellerType.Makler
-                ? ContactType.Agent
-                : ContactType.Seller;
+            // Main contact based on SellerType
+            var contactType = property.SellerType switch
+            {
+                SellerType.Broker => ContactType.Agent,
+                SellerType.Portal => ContactType.Agent,
+                _ => ContactType.Seller
+            };
+
+            var contactSource = property.SellerType == SellerType.Portal
+                ? ContactSource.Import
+                : ContactSource.Manual;
 
             var nameParts = property.SellerName.Split(' ');
             var emailName = nameParts.Length > 1
@@ -435,10 +514,14 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Id = Guid.NewGuid(),
                 PropertyId = property.Id,
                 Type = contactType,
-                Source = ContactSource.Manual,
+                Source = contactSource,
                 Name = property.SellerName,
                 Email = $"{emailName}@{emailDomains[Random.Shared.Next(emailDomains.Length)]}",
                 Phone = $"{phonePrefix[Random.Shared.Next(phonePrefix.Length)]} {Random.Shared.Next(1000000, 9999999)}",
+                OriginalListingUrl = property.SellerType == SellerType.Portal
+                    ? $"https://www.{property.SellerName.ToLower().Replace(" ", "")}.at/expose/{Random.Shared.Next(100000, 999999)}"
+                    : null,
+                SourceName = property.SellerType == SellerType.Portal ? property.SellerName : null,
                 DisplayOrder = 0,
                 CreatedAt = property.CreatedAt
             };
@@ -446,7 +529,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
             property.Contacts.Add(mainContact);
 
             // Bei Maklern: zusaetzlich Eigentuemer als zweiten Kontakt (50% Chance)
-            if (property.SellerType == SellerType.Makler && Random.Shared.Next(2) == 0)
+            if (property.SellerType == SellerType.Broker && Random.Shared.Next(2) == 0)
             {
                 var ownerNames = new[] { "Herr Mueller", "Frau Schmidt", "Familie Weber", "Herr Huber", "Frau Maier" };
                 var ownerName = ownerNames[Random.Shared.Next(ownerNames.Length)];

@@ -9,7 +9,11 @@ namespace Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 /// <param name="Locations">List of locations to filter notifications by</param>
 public record UpdateNotificationPreferencesRequest(
     bool IsEnabled,
-    List<string> Locations
+    List<string> Locations,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid>? ExcludedSellerSourceIds
 ) : IRequest<UpdateNotificationPreferencesResponse>;
 
 /// <summary>

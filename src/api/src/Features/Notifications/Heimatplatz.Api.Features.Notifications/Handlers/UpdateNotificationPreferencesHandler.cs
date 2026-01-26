@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
@@ -47,6 +48,8 @@ public class UpdateNotificationPreferencesHandler(
         dbContext.Set<NotificationPreference>().RemoveRange(existingPreferences);
 
         // Add new preferences
+        var excludedSourcesJson = JsonSerializer.Serialize(request.ExcludedSellerSourceIds ?? []);
+
         if (request.IsEnabled && request.Locations.Any())
         {
             foreach (var location in request.Locations.Distinct())
@@ -57,6 +60,10 @@ public class UpdateNotificationPreferencesHandler(
                     UserId = userId,
                     Location = location.Trim(),
                     IsEnabled = true,
+                    IsPrivateSelected = request.IsPrivateSelected,
+                    IsBrokerSelected = request.IsBrokerSelected,
+                    IsPortalSelected = request.IsPortalSelected,
+                    ExcludedSellerSourceIdsJson = excludedSourcesJson,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 

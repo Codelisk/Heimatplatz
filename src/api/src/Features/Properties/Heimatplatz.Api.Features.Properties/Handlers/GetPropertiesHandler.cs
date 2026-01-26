@@ -13,8 +13,8 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Properties.Handlers;
 
 /// <summary>
-/// Handler fuer GetPropertiesRequest - gibt gefilterte Immobilien-Liste zurueck
-/// Blockierte Properties werden fuer authentifizierte Benutzer automatisch ausgeblendet
+/// Handler for GetPropertiesRequest - returns a filtered list of properties.
+/// Blocked properties are automatically excluded for authenticated users.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/properties")]
@@ -43,37 +43,51 @@ public class GetPropertiesHandler(
             }
         }
 
-        // Filter anwenden
-        if (request.Typ.HasValue)
-            query = query.Where(p => p.Type == request.Typ.Value);
+        // Apply filters
+        if (request.Type.HasValue)
+            query = query.Where(p => p.Type == request.Type.Value);
 
-        if (request.AnbieterTyp.HasValue)
-            query = query.Where(p => p.SellerType == request.AnbieterTyp.Value);
+        var sellerTypes = request.GetSellerTypes();
+        if (sellerTypes.Count > 0)
+            query = query.Where(p => sellerTypes.Contains(p.SellerType));
 
-        if (request.PreisMin.HasValue)
-            query = query.Where(p => p.Price >= request.PreisMin.Value);
+        if (request.PriceMin.HasValue)
+            query = query.Where(p => p.Price >= request.PriceMin.Value);
 
-        if (request.PreisMax.HasValue)
-            query = query.Where(p => p.Price <= request.PreisMax.Value);
+        if (request.PriceMax.HasValue)
+            query = query.Where(p => p.Price <= request.PriceMax.Value);
 
-        if (request.FlaecheMin.HasValue)
-            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) >= request.FlaecheMin.Value);
+        if (request.AreaMin.HasValue)
+            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) >= request.AreaMin.Value);
 
-        if (request.FlaecheMax.HasValue)
-            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) <= request.FlaecheMax.Value);
+        if (request.AreaMax.HasValue)
+            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) <= request.AreaMax.Value);
 
-        if (request.ZimmerMin.HasValue)
-            query = query.Where(p => p.Rooms >= request.ZimmerMin.Value);
+        if (request.RoomsMin.HasValue)
+            query = query.Where(p => p.Rooms >= request.RoomsMin.Value);
 
-        if (!string.IsNullOrWhiteSpace(request.Ort))
-            query = query.Where(p => p.City.Contains(request.Ort) || p.PostalCode.StartsWith(request.Ort));
+        if (!string.IsNullOrWhiteSpace(request.City))
+            query = query.Where(p => p.City.Contains(request.City) || p.PostalCode.StartsWith(request.City));
 
-        // Gesamtanzahl fuer Paging
-        var gesamt = await query.CountAsync(cancellationToken);
+        // Exclude specific seller sources by name lookup
+        var excludedSourceIds = request.GetExcludedSellerSourceIds();
+        if (excludedSourceIds.Count > 0)
+        {
+            var excludedNames = await dbContext.Set<SellerSource>()
+                .Where(ss => excludedSourceIds.Contains(ss.Id))
+                .Select(ss => ss.Name)
+                .ToListAsync(cancellationToken);
 
-        // Laden, Sortierung im Speicher (SQLite unterstuetzt DateTimeOffset nicht in ORDER BY), dann Paging
+            if (excludedNames.Count > 0)
+                query = query.Where(p => !excludedNames.Contains(p.SellerName));
+        }
+
+        // Total count for paging
+        var total = await query.CountAsync(cancellationToken);
+
+        // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);
-        var immobilien = entities
+        var properties = entities
             .OrderByDescending(p => p.CreatedAt)
             .Skip(request.Skip)
             .Take(request.Take)
@@ -95,6 +109,6 @@ public class GetPropertiesHandler(
             ))
             .ToList();
 
-        return new GetPropertiesResponse(immobilien, gesamt);
+        return new GetPropertiesResponse(properties, total);
     }
 }

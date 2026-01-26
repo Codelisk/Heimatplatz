@@ -11,17 +11,25 @@ public record FilterPreferencesDto(
     AgeFilter SelectedAgeFilter,
     bool IsHausSelected,
     bool IsGrundstueckSelected,
-    bool IsZwangsversteigerungSelected
+    bool IsZwangsversteigerungSelected,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid> ExcludedSellerSourceIds
 )
 {
     /// <summary>
-    /// Erstellt leere Standard-Filtereinstellungen (alle 3 Typen selektiert)
+    /// Erstellt leere Standard-Filtereinstellungen (alle Typen selektiert)
     /// </summary>
     public static FilterPreferencesDto Default => new(
         SelectedOrte: [],
         SelectedAgeFilter: AgeFilter.Alle,
         IsHausSelected: true,
         IsGrundstueckSelected: true,
-        IsZwangsversteigerungSelected: true
+        IsZwangsversteigerungSelected: true,
+        IsPrivateSelected: true,
+        IsBrokerSelected: true,
+        IsPortalSelected: true,
+        ExcludedSellerSourceIds: []
     );
 }

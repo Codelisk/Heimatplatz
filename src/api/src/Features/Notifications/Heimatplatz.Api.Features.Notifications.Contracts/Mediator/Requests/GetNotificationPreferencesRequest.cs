@@ -14,5 +14,9 @@ public record GetNotificationPreferencesRequest : IRequest<GetNotificationPrefer
 /// <param name="Locations">List of locations user wants notifications for</param>
 public record GetNotificationPreferencesResponse(
     bool IsEnabled,
-    List<string> Locations
+    List<string> Locations,
+    bool IsPrivateSelected,
+    bool IsBrokerSelected,
+    bool IsPortalSelected,
+    List<Guid> ExcludedSellerSourceIds
 );

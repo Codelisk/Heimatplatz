@@ -42,4 +42,24 @@ public class UserFilterPreferences : BaseEntity
     /// Ob Zwangsversteigerungen im Filter selektiert sind
     /// </summary>
     public bool IsZwangsversteigerungSelected { get; set; } = true;
+
+    /// <summary>
+    /// Whether private sellers are included in filter results
+    /// </summary>
+    public bool IsPrivateSelected { get; set; } = true;
+
+    /// <summary>
+    /// Whether broker sellers are included in filter results
+    /// </summary>
+    public bool IsBrokerSelected { get; set; } = true;
+
+    /// <summary>
+    /// Whether portal sources are included in filter results
+    /// </summary>
+    public bool IsPortalSelected { get; set; } = true;
+
+    /// <summary>
+    /// JSON array of excluded SellerSource IDs (specific brokers/portals to exclude)
+    /// </summary>
+    public string ExcludedSellerSourceIdsJson { get; set; } = "[]";
 }

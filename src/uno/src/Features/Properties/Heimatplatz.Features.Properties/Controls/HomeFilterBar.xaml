@@ -27,7 +27,7 @@
                                SelectedAgeFilter="{Binding SelectedAgeFilter, Mode=TwoWay}"
                                AutomationProperties.AutomationId="HomeFilterBar_AgeFilterPicker" />
 
-        <!-- Filter Chips -->
+        <!-- Filter Chips: Immobilientyp -->
         <StackPanel Orientation="Horizontal"
                     Spacing="6"
                     AutomationProperties.AutomationId="HomeFilterBar_FilterChips">
@@ -40,6 +40,24 @@
             <local:FilterChip Label="ZV"
                               IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
                               AutomationProperties.AutomationId="HomeFilterBar_FilterChip_ZV" />
+        </StackPanel>
+
+        <!-- Separator -->
+        <Border Width="1" Height="20" Background="{ThemeResource BorderBrush}" Margin="4,0" />
+
+        <!-- Filter Chips: Anbietertyp -->
+        <StackPanel Orientation="Horizontal"
+                    Spacing="6"
+                    AutomationProperties.AutomationId="HomeFilterBar_SellerTypeChips">
+            <local:FilterChip Label="Privat"
+                              IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}"
+                              AutomationProperties.AutomationId="HomeFilterBar_FilterChip_Private" />
+            <local:FilterChip Label="Makler"
+                              IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}"
+                              AutomationProperties.AutomationId="HomeFilterBar_FilterChip_Broker" />
+            <local:FilterChip Label="Portal"
+                              IsSelected="{Binding IsPortalSelected, Mode=TwoWay}"
+                              AutomationProperties.AutomationId="HomeFilterBar_FilterChip_Portal" />
         </StackPanel>
 
         <!-- Ergebnis-Counter -->

@@ -33,8 +33,9 @@ public class SaveUserFilterPreferencesHandler(
         var preferences = await dbContext.Set<UserFilterPreferences>()
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
-        // Liste zu JSON konvertieren
+        // Listen zu JSON konvertieren
         var ortesJson = JsonSerializer.Serialize(request.SelectedOrtes ?? []);
+        var excludedSourcesJson = JsonSerializer.Serialize(request.ExcludedSellerSourceIds ?? []);
 
         if (preferences == null)
         {
@@ -48,6 +49,10 @@ public class SaveUserFilterPreferencesHandler(
                 IsHausSelected = request.IsHausSelected,
                 IsGrundstueckSelected = request.IsGrundstueckSelected,
                 IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected,
+                IsPrivateSelected = request.IsPrivateSelected,
+                IsBrokerSelected = request.IsBrokerSelected,
+                IsPortalSelected = request.IsPortalSelected,
+                ExcludedSellerSourceIdsJson = excludedSourcesJson,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
@@ -61,6 +66,10 @@ public class SaveUserFilterPreferencesHandler(
             preferences.IsHausSelected = request.IsHausSelected;
             preferences.IsGrundstueckSelected = request.IsGrundstueckSelected;
             preferences.IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected;
+            preferences.IsPrivateSelected = request.IsPrivateSelected;
+            preferences.IsBrokerSelected = request.IsBrokerSelected;
+            preferences.IsPortalSelected = request.IsPortalSelected;
+            preferences.ExcludedSellerSourceIdsJson = excludedSourcesJson;
             preferences.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
