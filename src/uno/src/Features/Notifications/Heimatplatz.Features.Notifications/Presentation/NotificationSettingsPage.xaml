@@ -39,7 +39,7 @@
                 TextWrapping="Wrap" />
 
             <!-- Enable/Disable Toggle -->
-            <utu:Card>
+            <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
                 <utu:AutoLayout Padding="16" Spacing="12" Orientation="Horizontal">
                     <FontIcon
                         Glyph="&#xEA8F;"
@@ -60,10 +60,10 @@
                         Toggled="OnNotificationsToggled"
                         VerticalAlignment="Center" />
                 </utu:AutoLayout>
-            </utu:Card>
+            </utu:CardContentControl>
 
             <!-- Filter Mode Selection -->
-            <utu:Card>
+            <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
                 <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
                     <utu:AutoLayout Spacing="4" Orientation="Vertical">
                         <TextBlock
@@ -130,7 +130,7 @@
                         </utu:AutoLayout>
                     </RadioButton>
                 </utu:AutoLayout>
-            </utu:Card>
+            </utu:CardContentControl>
 
             <!-- Custom Filter Section (only visible when Custom mode is selected) -->
             <utu:AutoLayout
@@ -139,7 +139,7 @@
                 Visibility="{x:Bind ViewModel.IsCustomFilterVisible, Mode=OneWay}">
 
                 <!-- Immobilientyp Filter -->
-                <utu:Card>
+                <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
                     <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
                         <utu:AutoLayout Spacing="4" Orientation="Vertical">
                             <TextBlock
@@ -175,10 +175,10 @@
                                 AutomationProperties.AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
                         </StackPanel>
                     </utu:AutoLayout>
-                </utu:Card>
+                </utu:CardContentControl>
 
                 <!-- Anbietertyp Filter -->
-                <utu:Card>
+                <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
                     <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
                         <utu:AutoLayout Spacing="4" Orientation="Vertical">
                             <TextBlock
@@ -214,10 +214,10 @@
                                 AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
                         </StackPanel>
                     </utu:AutoLayout>
-                </utu:Card>
+                </utu:CardContentControl>
 
                 <!-- Location Filters -->
-                <utu:Card>
+                <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
                     <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
                         <utu:AutoLayout Spacing="8" Orientation="Vertical">
                             <TextBlock
@@ -281,26 +281,26 @@
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
                     </utu:AutoLayout>
-                </utu:Card>
+                </utu:CardContentControl>
             </utu:AutoLayout>
 
             <!-- Info Card -->
-            <utu:Card Background="{ThemeResource SystemFillColorAttentionBackgroundBrush}">
-                <utu:AutoLayout Padding="16" Spacing="12" Orientation="Horizontal">
+            <Border Background="{ThemeResource SurfaceVariantBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon
                         Glyph="&#xE946;"
                         FontSize="20"
-                        Foreground="{ThemeResource SystemAccentColor}"
+                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                         VerticalAlignment="Top" />
                     <TextBlock
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie erstellt wird, die Ihren Filtereinstellungen entspricht."
+                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                         TextWrapping="Wrap"
-                        VerticalAlignment="Center">
-                        <Run Text="Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie erstellt wird, die Ihren Filtereinstellungen entspricht." />
-                    </TextBlock>
-                </utu:AutoLayout>
-            </utu:Card>
+                        Style="{StaticResource CaptionTextBlockStyle}" />
+                </StackPanel>
+            </Border>
         </utu:AutoLayout>
     </ScrollViewer>
 </pages:BasePage>

@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Shiny.Mediator" />
     <PackageReference Include="Shiny.Push" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="CommunityToolkit.Mvvm" />

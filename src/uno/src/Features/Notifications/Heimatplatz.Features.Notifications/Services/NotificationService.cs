@@ -1,18 +1,18 @@
-using System.Net.Http.Json;
 using Heimatplatz;
-using Heimatplatz.Core.ApiClient;
 using Heimatplatz.Features.Notifications.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
+using Shiny.Mediator;
+using ApiGenerated = Heimatplatz.Core.ApiClient.Generated;
 
 namespace Heimatplatz.Features.Notifications.Services;
 
 /// <summary>
-/// Implementation of notification service
+/// Implementation of notification service using Shiny Mediator generated API client requests
 /// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public class NotificationService(
-    HttpClient httpClient,
+    IMediator mediator,
     ILogger<NotificationService> logger
 ) : INotificationService
 {
@@ -20,8 +20,8 @@ public class NotificationService(
     {
         try
         {
-            var response = await httpClient.GetFromJsonAsync<GetNotificationPreferencesResponse>(
-                "/api/notifications/preferences",
+            var (context, response) = await mediator.Request(
+                new ApiGenerated.GetNotificationPreferencesHttpRequest(),
                 cancellationToken);
 
             if (response == null)
@@ -32,15 +32,15 @@ public class NotificationService(
 
             return new NotificationPreferenceDto(
                 response.IsEnabled,
-                response.FilterMode,
-                response.Locations,
+                MapFilterMode(response.FilterMode),
+                response.Locations?.ToList() ?? [],
                 response.IsHausSelected,
                 response.IsGrundstueckSelected,
                 response.IsZwangsversteigerungSelected,
                 response.IsPrivateSelected,
                 response.IsBrokerSelected,
                 response.IsPortalSelected,
-                response.ExcludedSellerSourceIds);
+                response.ExcludedSellerSourceIds?.ToList() ?? []);
         }
         catch (Exception ex)
         {
@@ -64,23 +64,26 @@ public class NotificationService(
     {
         try
         {
-            var request = new UpdateNotificationPreferencesRequest(
-                isEnabled,
-                filterMode,
-                locations,
-                isHausSelected,
-                isGrundstueckSelected,
-                isZwangsversteigerungSelected,
-                isPrivateSelected,
-                isBrokerSelected,
-                isPortalSelected,
-                excludedSellerSourceIds ?? []);
-            var response = await httpClient.PutAsJsonAsync(
-                "/api/notifications/preferences",
-                request,
+            var (context, response) = await mediator.Request(
+                new ApiGenerated.UpdateNotificationPreferencesHttpRequest
+                {
+                    Body = new ApiGenerated.UpdateNotificationPreferencesRequest
+                    {
+                        IsEnabled = isEnabled,
+                        FilterMode = MapFilterModeToApi(filterMode),
+                        Locations = locations,
+                        IsHausSelected = isHausSelected,
+                        IsGrundstueckSelected = isGrundstueckSelected,
+                        IsZwangsversteigerungSelected = isZwangsversteigerungSelected,
+                        IsPrivateSelected = isPrivateSelected,
+                        IsBrokerSelected = isBrokerSelected,
+                        IsPortalSelected = isPortalSelected,
+                        ExcludedSellerSourceIds = excludedSellerSourceIds ?? []
+                    }
+                },
                 cancellationToken);
 
-            return response.IsSuccessStatusCode;
+            return response?.Success ?? false;
         }
         catch (Exception ex)
         {
@@ -93,13 +96,18 @@ public class NotificationService(
     {
         try
         {
-            var request = new RegisterDeviceRequest(deviceToken, platform);
-            var response = await httpClient.PostAsJsonAsync(
-                "/api/notifications/register-device",
-                request,
+            var (context, response) = await mediator.Request(
+                new ApiGenerated.RegisterDeviceHttpRequest
+                {
+                    Body = new ApiGenerated.RegisterDeviceRequest
+                    {
+                        DeviceToken = deviceToken,
+                        Platform = platform
+                    }
+                },
                 cancellationToken);
 
-            return response.IsSuccessStatusCode;
+            return response?.Success ?? false;
         }
         catch (Exception ex)
         {
@@ -107,29 +115,22 @@ public class NotificationService(
             return false;
         }
     }
-}
 
-// DTOs matching API contracts
-internal record GetNotificationPreferencesResponse(
-    bool IsEnabled,
-    NotificationFilterMode FilterMode,
-    List<string> Locations,
-    bool IsHausSelected,
-    bool IsGrundstueckSelected,
-    bool IsZwangsversteigerungSelected,
-    bool IsPrivateSelected,
-    bool IsBrokerSelected,
-    bool IsPortalSelected,
-    List<Guid> ExcludedSellerSourceIds);
-internal record UpdateNotificationPreferencesRequest(
-    bool IsEnabled,
-    NotificationFilterMode FilterMode,
-    List<string> Locations,
-    bool IsHausSelected,
-    bool IsGrundstueckSelected,
-    bool IsZwangsversteigerungSelected,
-    bool IsPrivateSelected,
-    bool IsBrokerSelected,
-    bool IsPortalSelected,
-    List<Guid> ExcludedSellerSourceIds);
-internal record RegisterDeviceRequest(string DeviceToken, string Platform);
+    private static NotificationFilterMode MapFilterMode(ApiGenerated.NotificationFilterMode apiMode) =>
+        apiMode switch
+        {
+            ApiGenerated.NotificationFilterMode.All => NotificationFilterMode.All,
+            ApiGenerated.NotificationFilterMode.SameAsSearch => NotificationFilterMode.SameAsSearch,
+            ApiGenerated.NotificationFilterMode.Custom => NotificationFilterMode.Custom,
+            _ => NotificationFilterMode.All
+        };
+
+    private static ApiGenerated.NotificationFilterMode MapFilterModeToApi(NotificationFilterMode mode) =>
+        mode switch
+        {
+            NotificationFilterMode.All => ApiGenerated.NotificationFilterMode.All,
+            NotificationFilterMode.SameAsSearch => ApiGenerated.NotificationFilterMode.SameAsSearch,
+            NotificationFilterMode.Custom => ApiGenerated.NotificationFilterMode.Custom,
+            _ => ApiGenerated.NotificationFilterMode.All
+        };
+}
