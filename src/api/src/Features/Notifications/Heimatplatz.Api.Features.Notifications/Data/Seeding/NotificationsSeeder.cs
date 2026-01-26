@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
+using Heimatplatz.Api.Features.Notifications.Contracts;
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Shiny.Extensions.DependencyInjection;
@@ -33,23 +35,29 @@ public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
         // Cities to use for preferences (matching PropertySeeder)
         var cities = new[] { "Linz", "Wels", "Gmunden", "Bad Ischl", "Steyr", "Leonding", "Freistadt", "Traun" };
 
-        // Create notification preferences for users
-        foreach (var user in users.Take(5)) // First 5 users get preferences
+        // Create notification preferences for users - one preference per user
+        var filterModes = new[] { NotificationFilterMode.All, NotificationFilterMode.SameAsSearch, NotificationFilterMode.Custom };
+
+        foreach (var (user, index) in users.Take(5).Select((u, i) => (u, i)))
         {
-            // Each user gets 1-3 random city preferences
+            var filterMode = filterModes[index % filterModes.Length];
             var userCities = cities.OrderBy(_ => Guid.NewGuid()).Take(Random.Shared.Next(1, 4)).ToList();
 
-            foreach (var city in userCities)
+            preferences.Add(new NotificationPreference
             {
-                preferences.Add(new NotificationPreference
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = user.Id,
-                    Location = city,
-                    IsEnabled = true,
-                    CreatedAt = DateTimeOffset.UtcNow.AddDays(-Random.Shared.Next(1, 30))
-                });
-            }
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                FilterMode = filterMode,
+                IsEnabled = true,
+                SelectedLocationsJson = JsonSerializer.Serialize(userCities),
+                IsHausSelected = true,
+                IsGrundstueckSelected = true,
+                IsZwangsversteigerungSelected = index % 2 == 0,
+                IsPrivateSelected = true,
+                IsBrokerSelected = true,
+                IsPortalSelected = index % 3 != 0,
+                CreatedAt = DateTimeOffset.UtcNow.AddDays(-Random.Shared.Next(1, 30))
+            });
 
             // Create push subscription for this user
             subscriptions.Add(new PushSubscription

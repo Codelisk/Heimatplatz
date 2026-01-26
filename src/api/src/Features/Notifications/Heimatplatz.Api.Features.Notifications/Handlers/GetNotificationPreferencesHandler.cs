@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Notifications.Contracts;
 using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
 using Microsoft.AspNetCore.Http;
@@ -40,34 +40,41 @@ public class GetNotificationPreferencesHandler(
             throw new UnauthorizedAccessException("Invalid User ID in token");
         }
 
-        // Get user's notification preferences
-        var preferences = await dbContext.Set<NotificationPreference>()
-            .Where(np => np.UserId == userId)
-            .ToListAsync(cancellationToken);
+        // Get user's single notification preference row
+        var preference = await dbContext.Set<NotificationPreference>()
+            .FirstOrDefaultAsync(np => np.UserId == userId, cancellationToken);
 
-        var isEnabled = preferences.Any(p => p.IsEnabled);
-        var locations = preferences
-            .Where(p => p.IsEnabled)
-            .Select(p => p.Location)
-            .Distinct()
-            .ToList();
+        if (preference == null)
+        {
+            // Default: notifications disabled, no filter
+            return new GetNotificationPreferencesResponse(
+                IsEnabled: false,
+                FilterMode: NotificationFilterMode.All,
+                Locations: [],
+                IsHausSelected: true,
+                IsGrundstueckSelected: true,
+                IsZwangsversteigerungSelected: true,
+                IsPrivateSelected: true,
+                IsBrokerSelected: true,
+                IsPortalSelected: true,
+                ExcludedSellerSourceIds: []
+            );
+        }
 
-        // Get seller type preferences from the first preference entry (they are the same across all locations)
-        var firstPref = preferences.FirstOrDefault();
-        var isPrivateSelected = firstPref?.IsPrivateSelected ?? true;
-        var isBrokerSelected = firstPref?.IsBrokerSelected ?? true;
-        var isPortalSelected = firstPref?.IsPortalSelected ?? true;
-        var excludedSellerSourceIds = firstPref != null
-            ? JsonSerializer.Deserialize<List<Guid>>(firstPref.ExcludedSellerSourceIdsJson) ?? []
-            : new List<Guid>();
+        var locations = JsonSerializer.Deserialize<List<string>>(preference.SelectedLocationsJson) ?? [];
+        var excludedSellerSourceIds = JsonSerializer.Deserialize<List<Guid>>(preference.ExcludedSellerSourceIdsJson) ?? [];
 
         return new GetNotificationPreferencesResponse(
-            isEnabled,
-            locations,
-            isPrivateSelected,
-            isBrokerSelected,
-            isPortalSelected,
-            excludedSellerSourceIds
+            IsEnabled: preference.IsEnabled,
+            FilterMode: preference.FilterMode,
+            Locations: locations,
+            IsHausSelected: preference.IsHausSelected,
+            IsGrundstueckSelected: preference.IsGrundstueckSelected,
+            IsZwangsversteigerungSelected: preference.IsZwangsversteigerungSelected,
+            IsPrivateSelected: preference.IsPrivateSelected,
+            IsBrokerSelected: preference.IsBrokerSelected,
+            IsPortalSelected: preference.IsPortalSelected,
+            ExcludedSellerSourceIds: excludedSellerSourceIds
         );
     }
 }

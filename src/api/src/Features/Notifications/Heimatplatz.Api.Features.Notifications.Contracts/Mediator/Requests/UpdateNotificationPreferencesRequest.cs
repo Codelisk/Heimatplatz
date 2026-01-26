@@ -5,11 +5,13 @@ namespace Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 /// <summary>
 /// Request to update user's notification preferences
 /// </summary>
-/// <param name="IsEnabled">Enable/disable notifications</param>
-/// <param name="Locations">List of locations to filter notifications by</param>
 public record UpdateNotificationPreferencesRequest(
     bool IsEnabled,
-    List<string> Locations,
+    NotificationFilterMode FilterMode,
+    List<string>? Locations,
+    bool IsHausSelected,
+    bool IsGrundstueckSelected,
+    bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     bool IsPortalSelected,

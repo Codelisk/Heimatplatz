@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
@@ -13,7 +12,7 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Notifications.Handlers;
 
 /// <summary>
-/// Handler to update user's notification preferences
+/// Handler to update user's notification preferences (upsert single row per user)
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/notifications")]
@@ -40,36 +39,35 @@ public class UpdateNotificationPreferencesHandler(
             throw new UnauthorizedAccessException("Invalid User ID in token");
         }
 
-        // Remove all existing preferences for this user
-        var existingPreferences = await dbContext.Set<NotificationPreference>()
-            .Where(np => np.UserId == userId)
-            .ToListAsync(cancellationToken);
-
-        dbContext.Set<NotificationPreference>().RemoveRange(existingPreferences);
-
-        // Add new preferences
+        var locationsJson = JsonSerializer.Serialize(request.Locations ?? []);
         var excludedSourcesJson = JsonSerializer.Serialize(request.ExcludedSellerSourceIds ?? []);
 
-        if (request.IsEnabled && request.Locations.Any())
-        {
-            foreach (var location in request.Locations.Distinct())
-            {
-                var preference = new NotificationPreference
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    Location = location.Trim(),
-                    IsEnabled = true,
-                    IsPrivateSelected = request.IsPrivateSelected,
-                    IsBrokerSelected = request.IsBrokerSelected,
-                    IsPortalSelected = request.IsPortalSelected,
-                    ExcludedSellerSourceIdsJson = excludedSourcesJson,
-                    CreatedAt = DateTimeOffset.UtcNow
-                };
+        // Upsert: find existing or create new
+        var preference = await dbContext.Set<NotificationPreference>()
+            .FirstOrDefaultAsync(np => np.UserId == userId, cancellationToken);
 
-                dbContext.Set<NotificationPreference>().Add(preference);
-            }
+        if (preference == null)
+        {
+            preference = new NotificationPreference
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+            dbContext.Set<NotificationPreference>().Add(preference);
         }
+
+        preference.IsEnabled = request.IsEnabled;
+        preference.FilterMode = request.FilterMode;
+        preference.SelectedLocationsJson = locationsJson;
+        preference.IsHausSelected = request.IsHausSelected;
+        preference.IsGrundstueckSelected = request.IsGrundstueckSelected;
+        preference.IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected;
+        preference.IsPrivateSelected = request.IsPrivateSelected;
+        preference.IsBrokerSelected = request.IsBrokerSelected;
+        preference.IsPortalSelected = request.IsPortalSelected;
+        preference.ExcludedSellerSourceIdsJson = excludedSourcesJson;
+        preference.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -27,12 +27,16 @@ public class NotificationService(
             if (response == null)
             {
                 logger.LogWarning("Failed to get notification preferences - null response");
-                return new NotificationPreferenceDto(false, []);
+                return new NotificationPreferenceDto(false, NotificationFilterMode.All, []);
             }
 
             return new NotificationPreferenceDto(
                 response.IsEnabled,
+                response.FilterMode,
                 response.Locations,
+                response.IsHausSelected,
+                response.IsGrundstueckSelected,
+                response.IsZwangsversteigerungSelected,
                 response.IsPrivateSelected,
                 response.IsBrokerSelected,
                 response.IsPortalSelected,
@@ -41,13 +45,17 @@ public class NotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting notification preferences");
-            return new NotificationPreferenceDto(false, []);
+            return new NotificationPreferenceDto(false, NotificationFilterMode.All, []);
         }
     }
 
     public async Task<bool> UpdatePreferencesAsync(
         bool isEnabled,
+        NotificationFilterMode filterMode,
         List<string> locations,
+        bool isHausSelected = true,
+        bool isGrundstueckSelected = true,
+        bool isZwangsversteigerungSelected = true,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         bool isPortalSelected = true,
@@ -58,7 +66,11 @@ public class NotificationService(
         {
             var request = new UpdateNotificationPreferencesRequest(
                 isEnabled,
+                filterMode,
                 locations,
+                isHausSelected,
+                isGrundstueckSelected,
+                isZwangsversteigerungSelected,
                 isPrivateSelected,
                 isBrokerSelected,
                 isPortalSelected,
@@ -100,14 +112,22 @@ public class NotificationService(
 // DTOs matching API contracts
 internal record GetNotificationPreferencesResponse(
     bool IsEnabled,
+    NotificationFilterMode FilterMode,
     List<string> Locations,
+    bool IsHausSelected,
+    bool IsGrundstueckSelected,
+    bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     bool IsPortalSelected,
     List<Guid> ExcludedSellerSourceIds);
 internal record UpdateNotificationPreferencesRequest(
     bool IsEnabled,
+    NotificationFilterMode FilterMode,
     List<string> Locations,
+    bool IsHausSelected,
+    bool IsGrundstueckSelected,
+    bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     bool IsPortalSelected,

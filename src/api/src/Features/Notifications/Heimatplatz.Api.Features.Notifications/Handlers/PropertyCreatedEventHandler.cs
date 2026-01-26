@@ -19,15 +19,19 @@ public class PropertyCreatedEventHandler(
     public async Task Handle(PropertyCreatedEvent @event, IMediatorContext context, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Processing PropertyCreatedEvent for property {PropertyId} in {City}",
+            "Processing PropertyCreatedEvent for property {PropertyId} in {City} (Type={Type}, SellerType={SellerType})",
             @event.PropertyId,
-            @event.City);
+            @event.City,
+            @event.Type,
+            @event.SellerType);
 
         await pushNotificationService.SendPropertyNotificationAsync(
             @event.PropertyId,
             @event.Title,
             @event.City,
             @event.Price,
+            @event.Type,
+            @event.SellerType,
             cancellationToken);
     }
 }

@@ -1,10 +1,14 @@
+using System.Text.Json;
 using Fitomad.Apns;
 using Fitomad.Apns.Entities.Notification;
 using FirebaseAdmin.Messaging;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Notifications.Configuration;
+using Heimatplatz.Api.Features.Notifications.Contracts;
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,7 +17,8 @@ using Shiny.Extensions.DependencyInjection;
 namespace Heimatplatz.Api.Features.Notifications.Services;
 
 /// <summary>
-/// Implementation of push notification service using Firebase (Android) and APNs (iOS)
+/// Implementation of push notification service using Firebase (Android) and APNs (iOS).
+/// Supports 3 filter modes: All, SameAsSearch, Custom.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class PushNotificationService(
@@ -31,35 +36,79 @@ public class PushNotificationService(
         string title,
         string city,
         decimal price,
+        PropertyType propertyType,
+        SellerType sellerType,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            // Find all users with notification preferences matching this city
-            var matchingPreferences = await dbContext.Set<NotificationPreference>()
-                .Where(np => np.Location.ToLower() == city.ToLower() && np.IsEnabled)
-                .Select(np => np.UserId)
-                .Distinct()
+            // Step 1: Load all enabled notification preferences
+            var enabledPreferences = await dbContext.Set<NotificationPreference>()
+                .Where(np => np.IsEnabled)
                 .ToListAsync(cancellationToken);
 
-            if (matchingPreferences.Count == 0)
+            if (enabledPreferences.Count == 0)
             {
-                logger.LogInformation("No users have notification preferences for city: {City}", city);
+                logger.LogInformation("No enabled notification preferences found");
                 return;
             }
 
-            // Get push subscriptions for these users
+            // Step 2: Filter users based on their FilterMode
+            var matchingUserIds = new List<Guid>();
+
+            // Collect SameAsSearch user IDs to batch-load their filter preferences
+            var sameAsSearchUserIds = enabledPreferences
+                .Where(p => p.FilterMode == NotificationFilterMode.SameAsSearch)
+                .Select(p => p.UserId)
+                .ToList();
+
+            // Batch-load UserFilterPreferences for SameAsSearch users
+            Dictionary<Guid, UserFilterPreferences> userFilterPrefs = new();
+            if (sameAsSearchUserIds.Count > 0)
+            {
+                userFilterPrefs = await dbContext.Set<UserFilterPreferences>()
+                    .Where(ufp => sameAsSearchUserIds.Contains(ufp.UserId))
+                    .ToDictionaryAsync(ufp => ufp.UserId, cancellationToken);
+            }
+
+            foreach (var pref in enabledPreferences)
+            {
+                bool matches = pref.FilterMode switch
+                {
+                    NotificationFilterMode.All => true,
+                    NotificationFilterMode.SameAsSearch => MatchesSameAsSearch(
+                        userFilterPrefs.GetValueOrDefault(pref.UserId), city, propertyType, sellerType),
+                    NotificationFilterMode.Custom => MatchesCustomFilter(
+                        pref, city, propertyType, sellerType),
+                    _ => false
+                };
+
+                if (matches)
+                {
+                    matchingUserIds.Add(pref.UserId);
+                }
+            }
+
+            if (matchingUserIds.Count == 0)
+            {
+                logger.LogInformation(
+                    "No users match notification filters for property in {City} (Type={PropertyType}, Seller={SellerType})",
+                    city, propertyType, sellerType);
+                return;
+            }
+
+            // Step 3: Get push subscriptions for matching users
             var subscriptions = await dbContext.Set<PushSubscription>()
-                .Where(ps => matchingPreferences.Contains(ps.UserId))
+                .Where(ps => matchingUserIds.Contains(ps.UserId))
                 .ToListAsync(cancellationToken);
 
             if (subscriptions.Count == 0)
             {
-                logger.LogInformation("No push subscriptions found for {Count} matching users", matchingPreferences.Count);
+                logger.LogInformation("No push subscriptions found for {Count} matching users", matchingUserIds.Count);
                 return;
             }
 
-            // Format notification message
+            // Step 4: Send notifications
             var notificationTitle = "Neue Immobilie verfügbar!";
             var notificationBody = $"{title} in {city} - CHF {price:N0}";
             var data = new Dictionary<string, string>
@@ -68,7 +117,6 @@ public class PushNotificationService(
                 ["action"] = "openProperty"
             };
 
-            // Group subscriptions by platform
             var androidSubscriptions = subscriptions
                 .Where(s => AndroidPlatforms.Contains(s.Platform, StringComparer.OrdinalIgnoreCase))
                 .ToList();
@@ -79,31 +127,20 @@ public class PushNotificationService(
 
             var invalidTokens = new List<PushSubscription>();
 
-            // Send to Android via Firebase
             if (androidSubscriptions.Count > 0)
             {
                 var fcmInvalidTokens = await SendFirebaseNotificationsAsync(
-                    androidSubscriptions,
-                    notificationTitle,
-                    notificationBody,
-                    data,
-                    cancellationToken);
+                    androidSubscriptions, notificationTitle, notificationBody, data, cancellationToken);
                 invalidTokens.AddRange(fcmInvalidTokens);
             }
 
-            // Send to iOS/macOS via APNs
             if (appleSubscriptions.Count > 0)
             {
                 var apnsInvalidTokens = await SendApnsNotificationsAsync(
-                    appleSubscriptions,
-                    notificationTitle,
-                    notificationBody,
-                    data,
-                    cancellationToken);
+                    appleSubscriptions, notificationTitle, notificationBody, data, cancellationToken);
                 invalidTokens.AddRange(apnsInvalidTokens);
             }
 
-            // Remove invalid tokens from database
             if (invalidTokens.Count > 0)
             {
                 dbContext.RemoveRange(invalidTokens);
@@ -112,16 +149,109 @@ public class PushNotificationService(
             }
 
             logger.LogInformation(
-                "Sent push notifications for property {PropertyId} in {City}: {AndroidCount} Android, {AppleCount} Apple",
-                propertyId,
-                city,
-                androidSubscriptions.Count,
-                appleSubscriptions.Count);
+                "Sent push notifications for property {PropertyId} in {City}: {MatchCount} matching users, {AndroidCount} Android, {AppleCount} Apple",
+                propertyId, city, matchingUserIds.Count, androidSubscriptions.Count, appleSubscriptions.Count);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error sending push notifications for property {PropertyId}", propertyId);
         }
+    }
+
+    /// <summary>
+    /// Checks if a property matches the user's search filter (SameAsSearch mode)
+    /// </summary>
+    private bool MatchesSameAsSearch(
+        UserFilterPreferences? filterPrefs,
+        string city,
+        PropertyType propertyType,
+        SellerType sellerType)
+    {
+        // If user has no saved filter preferences, match all (like default filter)
+        if (filterPrefs == null)
+            return true;
+
+        // Check location filter
+        var selectedOrtes = JsonSerializer.Deserialize<List<string>>(filterPrefs.SelectedOrtesJson) ?? [];
+        if (selectedOrtes.Count > 0 &&
+            !selectedOrtes.Any(o => o.Equals(city, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        // Check PropertyType filter
+        if (!MatchesPropertyType(propertyType,
+            filterPrefs.IsHausSelected, filterPrefs.IsGrundstueckSelected, filterPrefs.IsZwangsversteigerungSelected))
+        {
+            return false;
+        }
+
+        // Check SellerType filter
+        if (!MatchesSellerType(sellerType,
+            filterPrefs.IsPrivateSelected, filterPrefs.IsBrokerSelected, filterPrefs.IsPortalSelected))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if a property matches the custom notification filter
+    /// </summary>
+    private bool MatchesCustomFilter(
+        NotificationPreference pref,
+        string city,
+        PropertyType propertyType,
+        SellerType sellerType)
+    {
+        // Check location filter
+        var selectedLocations = JsonSerializer.Deserialize<List<string>>(pref.SelectedLocationsJson) ?? [];
+        if (selectedLocations.Count > 0 &&
+            !selectedLocations.Any(l => l.Equals(city, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        // Check PropertyType filter
+        if (!MatchesPropertyType(propertyType,
+            pref.IsHausSelected, pref.IsGrundstueckSelected, pref.IsZwangsversteigerungSelected))
+        {
+            return false;
+        }
+
+        // Check SellerType filter
+        if (!MatchesSellerType(sellerType,
+            pref.IsPrivateSelected, pref.IsBrokerSelected, pref.IsPortalSelected))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool MatchesPropertyType(
+        PropertyType type, bool isHaus, bool isGrundstueck, bool isZwangsversteigerung)
+    {
+        return type switch
+        {
+            PropertyType.House => isHaus,
+            PropertyType.Land => isGrundstueck,
+            PropertyType.Foreclosure => isZwangsversteigerung,
+            _ => true
+        };
+    }
+
+    private static bool MatchesSellerType(
+        SellerType type, bool isPrivate, bool isBroker, bool isPortal)
+    {
+        return type switch
+        {
+            SellerType.Private => isPrivate,
+            SellerType.Broker => isBroker,
+            SellerType.Portal => isPortal,
+            _ => true
+        };
     }
 
     private async Task<List<PushSubscription>> SendFirebaseNotificationsAsync(
@@ -169,7 +299,6 @@ public class PushNotificationService(
                 response.SuccessCount,
                 subscriptions.Count);
 
-            // Collect invalid tokens for removal
             for (int i = 0; i < response.Responses.Count; i++)
             {
                 if (!response.Responses[i].IsSuccess)
@@ -229,8 +358,6 @@ public class PushNotificationService(
             {
                 try
                 {
-                    // Use Category for action type and ThreadId for propertyId
-                    // Client will parse these to handle navigation
                     var notification = new NotificationBuilder()
                         .WithAlert(alert)
                         .WithCategory(data["action"])

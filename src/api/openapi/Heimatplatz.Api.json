@@ -1478,7 +1478,11 @@
       "GetNotificationPreferencesResponse": {
         "required": [
           "IsEnabled",
+          "FilterMode",
           "Locations",
+          "IsHausSelected",
+          "IsGrundstueckSelected",
+          "IsZwangsversteigerungSelected",
           "IsPrivateSelected",
           "IsBrokerSelected",
           "IsPortalSelected",
@@ -1489,11 +1493,23 @@
           "IsEnabled": {
             "type": "boolean"
           },
+          "FilterMode": {
+            "$ref": "#/components/schemas/NotificationFilterMode"
+          },
           "Locations": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "IsHausSelected": {
+            "type": "boolean"
+          },
+          "IsGrundstueckSelected": {
+            "type": "boolean"
+          },
+          "IsZwangsversteigerungSelected": {
+            "type": "boolean"
           },
           "IsPrivateSelected": {
             "type": "boolean"
@@ -1791,6 +1807,13 @@
             "format": "date-time"
           }
         }
+      },
+      "NotificationFilterMode": {
+        "enum": [
+          "All",
+          "SameAsSearch",
+          "Custom"
+        ]
       },
       "PrivacyPolicyDto": {
         "required": [
@@ -2387,7 +2410,11 @@
       "UpdateNotificationPreferencesRequest": {
         "required": [
           "IsEnabled",
+          "FilterMode",
           "Locations",
+          "IsHausSelected",
+          "IsGrundstueckSelected",
+          "IsZwangsversteigerungSelected",
           "IsPrivateSelected",
           "IsBrokerSelected",
           "IsPortalSelected",
@@ -2398,11 +2425,26 @@
           "IsEnabled": {
             "type": "boolean"
           },
+          "FilterMode": {
+            "$ref": "#/components/schemas/NotificationFilterMode"
+          },
           "Locations": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string"
             }
+          },
+          "IsHausSelected": {
+            "type": "boolean"
+          },
+          "IsGrundstueckSelected": {
+            "type": "boolean"
+          },
+          "IsZwangsversteigerungSelected": {
+            "type": "boolean"
           },
           "IsPrivateSelected": {
             "type": "boolean"

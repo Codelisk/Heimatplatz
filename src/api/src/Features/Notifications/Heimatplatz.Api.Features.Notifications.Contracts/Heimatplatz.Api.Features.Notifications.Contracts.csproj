@@ -10,4 +10,8 @@
     <PackageReference Include="Shiny.Mediator.Contracts" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../Properties/Heimatplatz.Api.Features.Properties.Contracts/Heimatplatz.Api.Features.Properties.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>

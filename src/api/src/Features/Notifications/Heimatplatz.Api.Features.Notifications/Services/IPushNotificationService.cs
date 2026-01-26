@@ -1,3 +1,5 @@
+using Heimatplatz.Api.Features.Properties.Contracts;
+
 namespace Heimatplatz.Api.Features.Notifications.Services;
 
 /// <summary>
@@ -6,17 +8,14 @@ namespace Heimatplatz.Api.Features.Notifications.Services;
 public interface IPushNotificationService
 {
     /// <summary>
-    /// Sends a push notification about a new property to users with matching location preferences
+    /// Sends a push notification about a new property to users whose notification filter matches
     /// </summary>
-    /// <param name="propertyId">ID of the created property</param>
-    /// <param name="title">Property title</param>
-    /// <param name="city">City/location of the property</param>
-    /// <param name="price">Price of the property</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     Task SendPropertyNotificationAsync(
         Guid propertyId,
         string title,
         string city,
         decimal price,
+        PropertyType propertyType,
+        SellerType sellerType,
         CancellationToken cancellationToken = default);
 }
