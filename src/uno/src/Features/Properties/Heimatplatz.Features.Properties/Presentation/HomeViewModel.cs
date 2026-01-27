@@ -128,6 +128,15 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private string _resultCountText = "0 Objekte";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FilterToggleGlyph))]
+    private bool _isFilterExpanded;
+
+    /// <summary>
+    /// Chevron-Glyph fuer den Filter-Toggle-Button
+    /// </summary>
+    public string FilterToggleGlyph => IsFilterExpanded ? "\uE70E" : "\uE70D";
+
     #region IPageInfo Implementation
 
     public PageType PageType => PageType.Home;
@@ -334,6 +343,12 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
 
         // Format: "M. Nachname"
         return $"{parts[0][0]}. {parts[^1]}";
+    }
+
+    [RelayCommand]
+    private void ToggleFilterExpanded()
+    {
+        IsFilterExpanded = !IsFilterExpanded;
     }
 
     [RelayCommand]
