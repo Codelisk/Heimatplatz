@@ -20,6 +20,8 @@
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->
     <Description>AIRoutine FullStack Uno Platform App</Description>
+    <!-- Android minimum SDK version (required by Firebase) -->
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
 
     <!--
       UnoFeatures are used to quickly add and manage features enabled for your app.

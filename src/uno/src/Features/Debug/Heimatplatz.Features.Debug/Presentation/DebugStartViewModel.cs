@@ -131,10 +131,11 @@ public partial class DebugStartViewModel : ObservableObject
     [RelayCommand]
     private async Task LogoutAsync()
     {
-        _logger.LogInformation("[DEBUG] Logout");
+        _logger.LogInformation("[DEBUG] Logout - Publishing LogoutRequestedEvent");
         try
         {
-            await _debugAuthService.LogoutAsync();
+            // Publish LogoutRequestedEvent which ShellViewModel handles
+            await _mediator.Publish(new Heimatplatz.Events.LogoutRequestedEvent());
         }
         catch (Exception ex)
         {

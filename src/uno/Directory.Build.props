@@ -4,14 +4,17 @@
 
   <PropertyGroup>
     <!-- Uno Platform Target Frameworks -->
-    <!-- UNO_SINGLE_TARGET: desktop, wasm, oder false für alle Targets -->
-    <!-- Standardmäßig 'desktop' auf Windows für schnellere lokale Builds -->
-    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == '' AND '$(OS)' == 'Windows_NT'">desktop</UNO_SINGLE_TARGET>
-    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == ''">wasm</UNO_SINGLE_TARGET>
+    <!-- UNO_SINGLE_TARGET wird zentral in Directory.Build.props (Root) definiert -->
+    <!-- Mögliche Werte: android, ios, desktop, wasm, framebuffer, false (alle) -->
+
+    <!-- Fix für AAPT2 Pfadlängen-Problem auf Windows (nur bei Android Single Target) -->
+    <BaseIntermediateOutputPath Condition="'$(UNO_SINGLE_TARGET)' == 'android' AND '$(OS)' == 'Windows_NT'">C:\i\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
 
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'false'">$(NetVersion)-android;$(NetVersion)-ios;$(NetVersion)-desktop;$(NetVersion)-browserwasm;$(NetVersion)</UnoFrameworks>
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'desktop'">$(NetVersion)-desktop</UnoFrameworks>
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'wasm'">$(NetVersion)-browserwasm</UnoFrameworks>
+    <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'android'">$(NetVersion)-android</UnoFrameworks>
+    <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'ios'">$(NetVersion)-ios</UnoFrameworks>
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'framebuffer'">$(NetVersion)-desktop</UnoFrameworks>
 
     <!-- Contracts use only NetVersion (no platform-specific TFMs) -->

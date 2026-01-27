@@ -15,14 +15,15 @@ public class PushNotificationDelegate(
     /// <summary>
     /// Called when user taps on a push notification
     /// </summary>
-    public async Task OnEntry(PushNotificationResponse response)
+    public async Task OnEntry(PushNotification notification)
     {
-        Logger.LogInformation("Push notification tapped: {Title}", response.Notification?.Title);
+        var title = GetDataValue(notification.Data, "title") ?? "Notification";
+        Logger.LogInformation("Push notification tapped: {Title}", title);
 
         // TODO: Navigate to property detail page if notification contains propertyId
-        if (response.Notification?.Data?.ContainsKey("propertyId") == true)
+        var propertyId = GetDataValue(notification.Data, "propertyId");
+        if (propertyId is not null)
         {
-            var propertyId = response.Notification.Data["propertyId"];
             Logger.LogInformation("Navigate to property: {PropertyId}", propertyId);
             // Navigation will be implemented in next step
         }
@@ -35,13 +36,17 @@ public class PushNotificationDelegate(
     /// </summary>
     public async Task OnReceived(PushNotification notification)
     {
-        Logger.LogInformation("Push notification received: {Title} - {Message}",
-            notification.Title, notification.Message);
+        var title = GetDataValue(notification.Data, "title") ?? "Notification";
+        var message = GetDataValue(notification.Data, "body") ?? string.Empty;
+        Logger.LogInformation("Push notification received: {Title} - {Message}", title, message);
 
         // Show local notification if app is in foreground
         // This allows users to see the notification even when the app is active
         await Task.CompletedTask;
     }
+
+    private static string? GetDataValue(IDictionary<string, string>? data, string key)
+        => data is not null && data.TryGetValue(key, out var value) ? value : null;
 
     /// <summary>
     /// Called when the device token changes
@@ -74,9 +79,9 @@ public class PushNotificationDelegate(
     /// <summary>
     /// Called when push notifications are unregistered
     /// </summary>
-    public Task OnUnRegistered()
+    public Task OnUnRegistered(string token)
     {
-        Logger.LogInformation("Push notifications unregistered");
+        Logger.LogInformation("Push notifications unregistered for token: {Token}", token);
         return Task.CompletedTask;
     }
 
