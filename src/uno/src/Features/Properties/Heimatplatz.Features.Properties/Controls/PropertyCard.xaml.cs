@@ -144,6 +144,22 @@ public sealed partial class PropertyCard : UserControl
     }
 
     /// <summary>
+    /// Ob der Benutzer eingeloggt ist (steuert Sichtbarkeit des 3-Punkte-Menüs)
+    /// </summary>
+    public static readonly DependencyProperty IsAuthenticatedProperty =
+        DependencyProperty.Register(
+            nameof(IsAuthenticated),
+            typeof(bool),
+            typeof(PropertyCard),
+            new PropertyMetadata(false, OnIsAuthenticatedChanged));
+
+    public bool IsAuthenticated
+    {
+        get => (bool)GetValue(IsAuthenticatedProperty);
+        set => SetValue(IsAuthenticatedProperty, value);
+    }
+
+    /// <summary>
     /// Ob der More-Button angezeigt werden soll (false fuer Favoriten/Blockierte Seiten)
     /// </summary>
     public static readonly DependencyProperty ShowMoreButtonProperty =
@@ -199,6 +215,14 @@ public sealed partial class PropertyCard : UserControl
         }
     }
 
+    private static void OnIsAuthenticatedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyCard card)
+        {
+            card.UpdateActionButtonVisibility();
+        }
+    }
+
     private static void OnModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is PropertyCard card)
@@ -209,7 +233,7 @@ public sealed partial class PropertyCard : UserControl
 
     private void UpdateActionButtonVisibility()
     {
-        MoreOptionsButton.Visibility = Mode == CardMode.Default ? Visibility.Visible : Visibility.Collapsed;
+        MoreOptionsButton.Visibility = Mode == CardMode.Default && IsAuthenticated ? Visibility.Visible : Visibility.Collapsed;
         FavoriteActionButton.Visibility = Mode == CardMode.Favorite ? Visibility.Visible : Visibility.Collapsed;
         BlockedActionButton.Visibility = Mode == CardMode.Blocked ? Visibility.Visible : Visibility.Collapsed;
     }

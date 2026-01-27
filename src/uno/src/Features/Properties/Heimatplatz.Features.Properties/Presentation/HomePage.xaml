@@ -15,7 +15,8 @@
     Header wurde in Shell verschoben (AppHeader Control)
     -->
 
-    <Grid Background="{ThemeResource BackgroundBrush}"
+    <Grid x:Name="RootGrid"
+          Background="{ThemeResource BackgroundBrush}"
           AutomationProperties.AutomationId="HomePage_Root">
 
         <uc:BusyOverlay IsBusy="{Binding IsBusy}"
@@ -108,6 +109,7 @@
                                          OnValueChanged → StackOverflow.
                                          Status is loaded on-demand in PropertyCard.OnMenuFlyoutOpening. -->
                                     <controls:PropertyCard Property="{Binding}"
+                                                           IsAuthenticated="{Binding DataContext.IsAuthenticated, ElementName=RootGrid}"
                                                            CardClicked="OnPropertyCardClicked"
                                                            PropertyBlocked="OnPropertyBlocked"
                                                            PropertyFavorited="OnPropertyFavorited"
