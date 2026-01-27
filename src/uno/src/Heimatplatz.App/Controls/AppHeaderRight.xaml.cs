@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace Heimatplatz.App.Controls;
@@ -12,5 +13,13 @@ public sealed partial class AppHeaderRight : UserControl
     public AppHeaderRight()
     {
         this.InitializeComponent();
+    }
+
+    private async void LogoutMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is AppHeaderRightViewModel viewModel)
+        {
+            await viewModel.LogoutAsync();
+        }
     }
 }
