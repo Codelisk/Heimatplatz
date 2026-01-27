@@ -1,0 +1,102 @@
+<ufp:BasePage x:Class="Heimatplatz.Features.Debug.Presentation.TestPushPage"
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:utu="using:Uno.Toolkit.UI"
+              xmlns:ufp="using:UnoFramework.Pages"
+              Background="{ThemeResource BackgroundBrush}">
+
+    <Grid utu:SafeArea.Insets="VisibleBounds">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0"
+                    Padding="24,32,24,24"
+                    Spacing="16">
+
+            <TextBlock Text="TEST PUSH"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       Foreground="#FF6B6B"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="Sende Test-Push-Notifications an alle registrierten Android-Geraete"
+                       FontSize="14"
+                       Opacity="0.7"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center" />
+        </StackPanel>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <utu:AutoLayout Padding="24"
+                            Spacing="16"
+                            PrimaryAxisAlignment="Start">
+
+                <!-- Title Input -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Titel"
+                               FontSize="14"
+                               FontWeight="SemiBold" />
+                    <TextBox x:Name="TitleTextBox"
+                             Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Notification Titel eingeben..."
+                             MinWidth="300" />
+                </StackPanel>
+
+                <!-- Body Input -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Nachricht"
+                               FontSize="14"
+                               FontWeight="SemiBold" />
+                    <TextBox x:Name="BodyTextBox"
+                             Text="{Binding Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Notification Nachricht eingeben..."
+                             MinWidth="300"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             MinHeight="100" />
+                </StackPanel>
+
+                <!-- Send Button -->
+                <Button Content="Push senden"
+                        Command="{Binding SendPushCommand}"
+                        HorizontalAlignment="Stretch"
+                        MinWidth="300"
+                        MinHeight="48"
+                        Margin="0,16,0,0" />
+
+                <!-- Status -->
+                <Border Background="#20FFFFFF"
+                        Padding="16"
+                        CornerRadius="8"
+                        Visibility="{Binding HasResult}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Ergebnis"
+                                   FontSize="14"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding ResultMessage}"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.9" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Loading -->
+                <ProgressRing IsActive="{Binding IsLoading}"
+                              Visibility="{Binding IsLoading}"
+                              HorizontalAlignment="Center" />
+
+                <!-- Back Button -->
+                <Button Content="Zurueck zur Debug-Startseite"
+                        Command="{Binding GoBackCommand}"
+                        HorizontalAlignment="Stretch"
+                        MinWidth="300"
+                        Margin="0,24,0,0" />
+
+            </utu:AutoLayout>
+        </ScrollViewer>
+    </Grid>
+</ufp:BasePage>

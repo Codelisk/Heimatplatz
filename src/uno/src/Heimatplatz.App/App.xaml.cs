@@ -103,6 +103,7 @@ public partial class App : Application, IApplicationWithServices
             new ViewMap<HomeFilterBar, HomeFilterBarViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
+            , new ViewMap<TestPushPage, TestPushViewModel>()
 #endif
         );
 
@@ -135,6 +136,7 @@ public partial class App : Application, IApplicationWithServices
                         ]),
 #if DEBUG
                     new ("DebugStart", View: views.FindByViewModel<DebugStartViewModel>()),
+                    new ("TestPush", View: views.FindByViewModel<TestPushViewModel>()),
 #endif
                     // Auth pages remain at Shell level (not in regions)
                     new ("Register", View: views.FindByViewModel<RegisterViewModel>()),
