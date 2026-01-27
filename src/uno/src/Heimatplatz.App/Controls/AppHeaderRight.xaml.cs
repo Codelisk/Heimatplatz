@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.App.Controls;
 
@@ -13,6 +14,11 @@ public sealed partial class AppHeaderRight : UserControl
     public AppHeaderRight()
     {
         this.InitializeComponent();
+    }
+
+    private void ProfileMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        _ = this.Navigator()?.NavigateRouteAsync(this, "UserProfile");
     }
 
     private async void LogoutMenuItem_Click(object sender, RoutedEventArgs e)

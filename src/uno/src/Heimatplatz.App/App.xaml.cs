@@ -100,7 +100,8 @@ public partial class App : Application, IApplicationWithServices
             new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>(),
             new ViewMap<FilterPreferencesPage, FilterPreferencesViewModel>(),
             new ViewMap<PrivacyPolicyPage, PrivacyPolicyViewModel>(),
-            new ViewMap<HomeFilterBar, HomeFilterBarViewModel>()
+            new ViewMap<HomeFilterBar, HomeFilterBarViewModel>(),
+            new ViewMap<UserProfilePage, UserProfileViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
 #endif
@@ -131,7 +132,8 @@ public partial class App : Application, IApplicationWithServices
                             new ("ForeclosureDetail", View: views.FindByViewModel<ForeclosureDetailViewModel>()),
                             new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>()),
                             new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
-                            new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>())
+                            new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>()),
+                            new ("UserProfile", View: views.FindByViewModel<UserProfileViewModel>())
                         ]),
 #if DEBUG
                     new ("DebugStart", View: views.FindByViewModel<DebugStartViewModel>()),
