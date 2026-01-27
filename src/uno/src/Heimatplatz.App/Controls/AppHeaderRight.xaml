@@ -27,6 +27,15 @@
                             <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
                         </Style>
                     </MenuFlyout.MenuFlyoutPresenterStyle>
+                    <MenuFlyoutItem x:Name="ProfileMenuItem"
+                                    Text="Mein Profil"
+                                    Click="ProfileMenuItem_Click"
+                                    AutomationProperties.AutomationId="AppHeaderRight_ProfileMenuItem">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE77B;" FontSize="14" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator />
                     <MenuFlyoutItem x:Name="LogoutMenuItem"
                                     Text="Abmelden"
                                     Click="LogoutMenuItem_Click"
