@@ -22,6 +22,30 @@
     -->
 
     <Grid uen:Region.Attached="True">
+        <!-- Responsive PaneDisplayMode:
+             Unter 600px (Handy): LeftMinimal - Sidebar versteckt, nur ueber Hamburger
+             Ab 600px (Tablet/Desktop): Left - volle Sidebar sichtbar -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="NavigationPaneStates">
+                <VisualState x:Name="PhoneState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="NavView.PaneDisplayMode" Value="LeftMinimal" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="TabletDesktopState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="600" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="NavView.PaneDisplayMode" Value="Left" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -72,15 +96,13 @@
         <NavigationView x:Name="NavView"
                         Grid.Row="1"
                         uen:Region.Attached="True"
-                        PaneDisplayMode="Left"
+                        PaneDisplayMode="LeftMinimal"
                         IsPaneVisible="{Binding IsAuthenticated}"
                         IsPaneOpen="False"
                         IsBackButtonVisible="Collapsed"
                         IsSettingsVisible="False"
                         IsPaneToggleButtonVisible="False"
                         OpenPaneLength="256"
-                        CompactModeThresholdWidth="640"
-                        ExpandedModeThresholdWidth="1024"
                         Background="{ThemeResource BackgroundBrush}"
                         AutomationProperties.AutomationId="MainPage.NavigationView">
 

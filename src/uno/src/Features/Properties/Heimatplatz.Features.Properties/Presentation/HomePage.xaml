@@ -39,56 +39,56 @@
                         Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Collapsed}"
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
                     <StackPanel>
-                        <!-- Filter Header: Immer sichtbar — ResultCount + Toggle -->
-                        <Grid Padding="12,8"
-                              AutomationProperties.AutomationId="HomePage_MobileFilterHeader">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                        <!-- Filter Header: Immer sichtbar — ganzer Bereich klickbar -->
+                        <Button Command="{Binding ToggleFilterExpandedCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Padding="12,8"
+                                MinHeight="44"
+                                AutomationProperties.AutomationId="HomePage_MobileFilterToggle">
+                            <Grid AutomationProperties.AutomationId="HomePage_MobileFilterHeader">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <!-- Filter-Icon + Label -->
-                            <StackPanel Grid.Column="0"
-                                        Orientation="Horizontal"
-                                        Spacing="6"
-                                        VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE71C;"
-                                          FontSize="14"
-                                          Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                <TextBlock Text="Filter"
-                                           FontSize="13"
+                                <!-- Filter-Icon + Label -->
+                                <StackPanel Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            Spacing="6"
+                                            VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE71C;"
+                                              FontSize="14"
+                                              Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                    <TextBlock Text="Filter"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource OnSurfaceBrush}"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- Ergebnis-Counter -->
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding ResultCountText}"
                                            FontWeight="SemiBold"
-                                           Foreground="{ThemeResource OnSurfaceBrush}"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
+                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                           FontSize="12"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0"
+                                           AutomationProperties.AutomationId="HomePage_MobileResultCount" />
 
-                            <!-- Ergebnis-Counter -->
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding ResultCountText}"
-                                       FontWeight="SemiBold"
-                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                       FontSize="12"
-                                       HorizontalAlignment="Right"
-                                       VerticalAlignment="Center"
-                                       Margin="0,0,8,0"
-                                       AutomationProperties.AutomationId="HomePage_MobileResultCount" />
-
-                            <!-- Toggle-Button: Auf/Zuklappen -->
-                            <Button Grid.Column="2"
-                                    Command="{Binding ToggleFilterExpandedCommand}"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="8,4"
-                                    MinWidth="0"
-                                    MinHeight="0"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.AutomationId="HomePage_MobileFilterToggle">
-                                <FontIcon Glyph="{Binding FilterToggleGlyph}"
+                                <!-- Chevron-Icon: Auf/Zuklappen -->
+                                <FontIcon Grid.Column="2"
+                                          Glyph="{Binding FilterToggleGlyph}"
                                           FontSize="12"
-                                          Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                            </Button>
-                        </Grid>
+                                          Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                          VerticalAlignment="Center" />
+                            </Grid>
+                        </Button>
 
                         <!-- Filter Body: Einklappbar -->
                         <StackPanel Spacing="8"
