@@ -15,10 +15,14 @@ public partial class MainViewModel : PageViewModel
     [ObservableProperty]
     private bool _isAuthenticated;
 
+    [ObservableProperty]
+    private bool _isSeller;
+
     public MainViewModel(BaseServices baseServices, IAuthService authService) : base(baseServices)
     {
         _authService = authService;
         IsAuthenticated = _authService.IsAuthenticated;
+        IsSeller = _authService.IsSeller;
 
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
     }
@@ -26,5 +30,6 @@ public partial class MainViewModel : PageViewModel
     private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
     {
         IsAuthenticated = isAuthenticated;
+        IsSeller = _authService.IsSeller;
     }
 }
