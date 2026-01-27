@@ -31,56 +31,101 @@
 
                 <!-- Desktop Filter ist jetzt im AppHeader (HeaderCenter Region) -->
 
-                <!-- Mobile Filter (unter 905px) -->
+                <!-- Mobile Filter (unter 905px) — einklappbar -->
                 <Border Grid.Row="0"
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Padding="12,8"
                         Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Collapsed}"
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
-                    <StackPanel Spacing="8">
-                        <!-- Ergebnis-Counter Mobile -->
-                        <!-- IMPORTANT: Do NOT bind to Properties.Count — that subscribes
-                             the binding system to CollectionChanged, creating a recursive
-                             cascade through DependencyObjectStore → StackOverflow.
-                             Use the pre-formatted ResultCountText property instead. -->
-                        <TextBlock Text="{Binding ResultCountText}"
-                                   FontWeight="SemiBold"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   FontSize="12"
-                                   HorizontalAlignment="Right"
-                                   AutomationProperties.AutomationId="HomePage_MobileResultCount" />
+                    <StackPanel>
+                        <!-- Filter Header: Immer sichtbar — ResultCount + Toggle -->
+                        <Grid Padding="12,8"
+                              AutomationProperties.AutomationId="HomePage_MobileFilterHeader">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <!-- OrtPicker und Alters-Filter auf Mobile -->
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <controls:OrtPicker Bezirke="{Binding Bezirke}"
-                                                SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
-                                                HorizontalAlignment="Stretch"
-                                                AutomationProperties.AutomationId="HomePage_MobileOrtPicker" />
-                            <controls:AgeFilterPicker SelectedAgeFilter="{Binding SelectedAgeFilter, Mode=TwoWay}"
-                                                      HorizontalAlignment="Stretch"
-                                                      AutomationProperties.AutomationId="HomePage_MobileAgeFilterPicker" />
-                        </StackPanel>
+                            <!-- Filter-Icon + Label -->
+                            <StackPanel Grid.Column="0"
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE71C;"
+                                          FontSize="14"
+                                          Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                <TextBlock Text="Filter"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource OnSurfaceBrush}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
 
-                        <!-- Filter Chips: Immobilientyp -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <controls:FilterChip Label="Haus"
-                                                 IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
-                            <controls:FilterChip Label="Grund"
-                                                 IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
-                            <controls:FilterChip Label="ZV"
-                                                 IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
-                        </StackPanel>
+                            <!-- Ergebnis-Counter -->
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding ResultCountText}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                       FontSize="12"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"
+                                       AutomationProperties.AutomationId="HomePage_MobileResultCount" />
 
-                        <!-- Filter Chips: Anbietertyp -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <controls:FilterChip Label="Privat"
-                                                 IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}" />
-                            <controls:FilterChip Label="Makler"
-                                                 IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}" />
-                            <controls:FilterChip Label="Portal"
-                                                 IsSelected="{Binding IsPortalSelected, Mode=TwoWay}" />
+                            <!-- Toggle-Button: Auf/Zuklappen -->
+                            <Button Grid.Column="2"
+                                    Command="{Binding ToggleFilterExpandedCommand}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="8,4"
+                                    MinWidth="0"
+                                    MinHeight="0"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.AutomationId="HomePage_MobileFilterToggle">
+                                <FontIcon Glyph="{Binding FilterToggleGlyph}"
+                                          FontSize="12"
+                                          Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Filter Body: Einklappbar -->
+                        <StackPanel Spacing="8"
+                                    Padding="12,0,12,8"
+                                    Visibility="{Binding IsFilterExpanded}"
+                                    AutomationProperties.AutomationId="HomePage_MobileFilterBody">
+
+                            <!-- OrtPicker und Alters-Filter -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <controls:OrtPicker Bezirke="{Binding Bezirke}"
+                                                    SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
+                                                    HorizontalAlignment="Stretch"
+                                                    AutomationProperties.AutomationId="HomePage_MobileOrtPicker" />
+                                <controls:AgeFilterPicker SelectedAgeFilter="{Binding SelectedAgeFilter, Mode=TwoWay}"
+                                                          HorizontalAlignment="Stretch"
+                                                          AutomationProperties.AutomationId="HomePage_MobileAgeFilterPicker" />
+                            </StackPanel>
+
+                            <!-- Filter Chips: Immobilientyp -->
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <controls:FilterChip Label="Haus"
+                                                     IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
+                                <controls:FilterChip Label="Grund"
+                                                     IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
+                                <controls:FilterChip Label="ZV"
+                                                     IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
+                            </StackPanel>
+
+                            <!-- Filter Chips: Anbietertyp -->
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <controls:FilterChip Label="Privat"
+                                                     IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}" />
+                                <controls:FilterChip Label="Makler"
+                                                     IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}" />
+                                <controls:FilterChip Label="Portal"
+                                                     IsSelected="{Binding IsPortalSelected, Mode=TwoWay}" />
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </Border>
