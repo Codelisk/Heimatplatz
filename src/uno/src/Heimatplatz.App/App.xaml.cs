@@ -54,6 +54,9 @@ public partial class App : Application, IApplicationWithServices
                 .UseConfiguration(configure: configBuilder =>
                     configBuilder
                         .EmbeddedSource<App>()
+#if __ANDROID__
+                        .EmbeddedSource<App>("android")
+#endif
                         .Section<AppConfig>()
                 )
                 .UseLocalization()
