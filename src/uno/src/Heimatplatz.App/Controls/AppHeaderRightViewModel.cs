@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
+using Shiny.Mediator;
 
 namespace Heimatplatz.App.Controls;
 
@@ -15,6 +16,7 @@ namespace Heimatplatz.App.Controls;
 public partial class AppHeaderRightViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
+    private readonly IMediator _mediator;
     private readonly ILogger<AppHeaderRightViewModel> _logger;
 
     /// <summary>
@@ -38,9 +40,11 @@ public partial class AppHeaderRightViewModel : ObservableObject
 
     public AppHeaderRightViewModel(
         IAuthService authService,
+        IMediator mediator,
         ILogger<AppHeaderRightViewModel> logger)
     {
         _authService = authService;
+        _mediator = mediator;
         _logger = logger;
 
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
@@ -91,12 +95,11 @@ public partial class AppHeaderRightViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Logout command
+    /// Publishes logout event. ShellViewModel handles the navigation at Shell level.
     /// </summary>
-    [RelayCommand]
-    private void Logout()
+    public async Task LogoutAsync()
     {
-        _logger.LogInformation("[AppHeaderRight] Logout initiated");
-        _authService.ClearAuthentication();
+        _logger.LogInformation("[AppHeaderRight] Publishing LogoutRequestedEvent");
+        await _mediator.Publish(new LogoutRequestedEvent());
     }
 }
