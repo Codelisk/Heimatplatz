@@ -12,9 +12,14 @@
 
   <ItemGroup>
     <PackageReference Include="Shiny.Mediator" />
-    <PackageReference Include="Shiny.Push" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <!-- Firebase Messaging for Android only -->
+  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+    <PackageReference Include="Xamarin.Firebase.Messaging" />
+    <GoogleServicesJson Include="..\..\..\..\Heimatplatz.App\Platforms\Android\google-services.json" Link="google-services.json" />
   </ItemGroup>
 
   <ItemGroup>

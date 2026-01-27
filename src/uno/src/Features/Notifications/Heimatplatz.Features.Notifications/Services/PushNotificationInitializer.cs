@@ -1,8 +1,4 @@
 using Microsoft.Extensions.Logging;
-#if __ANDROID__ || __IOS__ || __MACCATALYST__
-using Shiny;
-using Shiny.Push;
-#endif
 
 namespace Heimatplatz.Features.Notifications.Services;
 
@@ -16,19 +12,19 @@ public interface IPushNotificationInitializer
     /// </summary>
     Task InitializeAsync(CancellationToken cancellationToken = default);
 
-#if __ANDROID__ || __IOS__ || __MACCATALYST__
     /// <summary>
     /// Gets the current push notification status
     /// </summary>
-    Task<AccessState> GetStatusAsync();
-#endif
+    Task<PushAccessState> GetStatusAsync();
 }
 
-#if __ANDROID__ || __IOS__ || __MACCATALYST__
+/// <summary>
+/// Push notification initializer using Firebase (Android) or native providers (iOS)
+/// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public class PushNotificationInitializer(
-    IPushManager PushManager,
-    ILogger<PushNotificationInitializer> Logger) : IPushNotificationInitializer
+    IFirebasePushManager pushManager,
+    ILogger<PushNotificationInitializer> logger) : IPushNotificationInitializer
 {
     /// <summary>
     /// Initializes push notifications and requests access
@@ -37,75 +33,59 @@ public class PushNotificationInitializer(
     {
         try
         {
-            Logger.LogInformation("Initializing push notifications...");
+            logger.LogInformation("Initializing push notifications...");
 
             // Request push notification permissions
-            var result = await PushManager.RequestAccess(cancellationToken);
+            var result = await pushManager.RequestAccessAsync(cancellationToken);
 
             switch (result.Status)
             {
-                case AccessState.Available:
-                    Logger.LogInformation("Push notifications enabled. Token: {Token}",
+                case PushAccessState.Available:
+                    logger.LogInformation("Push notifications enabled. Token: {Token}",
                         result.RegistrationToken);
                     break;
 
-                case AccessState.Denied:
-                    Logger.LogWarning("Push notification permission denied by user");
+                case PushAccessState.Denied:
+                    logger.LogWarning("Push notification permission denied by user");
                     break;
 
-                case AccessState.Disabled:
-                    Logger.LogWarning("Push notifications are disabled on this device");
+                case PushAccessState.Disabled:
+                    logger.LogWarning("Push notifications are disabled on this device");
                     break;
 
-                case AccessState.NotSetup:
-                    Logger.LogWarning("Push notifications are not properly configured");
+                case PushAccessState.NotSupported:
+                    logger.LogWarning("Push notifications are not supported on this platform");
                     break;
 
-                case AccessState.NotSupported:
-                    Logger.LogWarning("Push notifications are not supported on this platform");
-                    break;
-
-                case AccessState.Restricted:
-                    Logger.LogWarning("Push notifications are restricted (parental controls?)");
+                case PushAccessState.Restricted:
+                    logger.LogWarning("Push notifications are restricted (parental controls?)");
                     break;
 
                 default:
-                    Logger.LogWarning("Unknown push notification status: {Status}", result.Status);
+                    logger.LogWarning("Unknown push notification status: {Status}", result.Status);
                     break;
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Failed to initialize push notifications");
+            logger.LogError(ex, "Failed to initialize push notifications");
         }
     }
 
     /// <summary>
     /// Gets the current push notification status
     /// </summary>
-    public async Task<AccessState> GetStatusAsync()
+    public async Task<PushAccessState> GetStatusAsync()
     {
         try
         {
-            var result = await PushManager.RequestAccess();
+            var result = await pushManager.RequestAccessAsync();
             return result.Status;
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Failed to get push notification status");
-            return AccessState.Unknown;
+            logger.LogError(ex, "Failed to get push notification status");
+            return PushAccessState.Unknown;
         }
     }
 }
-#else
-// Desktop/WebAssembly stub implementation - push notifications not supported
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public class PushNotificationInitializer(ILogger<PushNotificationInitializer> Logger) : IPushNotificationInitializer
-{
-    public Task InitializeAsync(CancellationToken cancellationToken = default)
-    {
-        Logger.LogInformation("Push notifications are not supported on this platform (Desktop/WebAssembly)");
-        return Task.CompletedTask;
-    }
-}
-#endif
