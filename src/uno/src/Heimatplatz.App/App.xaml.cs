@@ -75,33 +75,10 @@ public partial class App : Application, IApplicationWithServices
 
         Host = await builder.NavigateAsync<Shell>();
 
-#if __ANDROID__ || __IOS__ || __MACCATALYST__
-        // Initialize push notifications after app startup (mobile platforms only)
-        _ = InitializePushNotificationsAsync();
-#endif
+        // Resolve the push notification initializer so its constructor
+        // subscribes to AuthenticationStateChanged (registration happens on login)
+        Host?.Services.GetService<IPushNotificationInitializer>();
     }
-
-#if __ANDROID__ || __IOS__ || __MACCATALYST__
-    private async Task InitializePushNotificationsAsync()
-    {
-        try
-        {
-            // Wait a bit to let the app finish startup
-            await Task.Delay(1000);
-
-            var pushInitializer = Host?.Services.GetService<IPushNotificationInitializer>();
-            if (pushInitializer != null)
-            {
-                await pushInitializer.InitializeAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            // Log error but don't crash the app
-            System.Diagnostics.Debug.WriteLine($"Failed to initialize push notifications: {ex}");
-        }
-    }
-#endif
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
     {
