@@ -183,6 +183,13 @@ public partial class DebugStartViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task NavigateToTestPushAsync()
+    {
+        _logger.LogInformation("[DEBUG] Navigation zu TestPush");
+        await _navigator.NavigateRouteAsync(this, "TestPush");
+    }
+
+    [RelayCommand]
     private async Task EditFirstSellerPropertyAsync()
     {
         _logger.LogInformation("[DEBUG] Navigation zu EditProperty mit erster Seller-Property");

@@ -108,7 +108,14 @@ public class PushNotificationInitializer : IPushNotificationInitializer
 #else
 // Desktop/WebAssembly stub implementation - push notifications not supported
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public class PushNotificationInitializer(ILogger<PushNotificationInitializer> Logger) : IPushNotificationInitializer
+public class PushNotificationInitializer(ILogger<PushNotificationInitializer> logger) : IPushNotificationInitializer
 {
+    // Log once at construction to indicate push is not supported on this platform
+    private readonly ILogger<PushNotificationInitializer> _logger = logger;
+
+    public void LogPlatformNotSupported()
+    {
+        _logger.LogInformation("Push notifications are not supported on this platform (Desktop/WebAssembly)");
+    }
 }
 #endif
