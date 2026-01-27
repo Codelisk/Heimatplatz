@@ -1,3 +1,4 @@
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,7 @@ public sealed partial class PropertyCard : UserControl
     {
         AcquireMenuItemReferences();
         UpdateMenuTexts();
+        UpdateActionButtonVisibility();
     }
 
     private void OnMenuFlyoutOpening(object? sender, object e)
@@ -195,7 +197,8 @@ public sealed partial class PropertyCard : UserControl
     {
         if (d is PropertyCard card)
         {
-            card.MoreOptionsButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
+            var show = (bool)e.NewValue && IsUserAuthenticated();
+            card.MoreOptionsButton.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
@@ -209,9 +212,19 @@ public sealed partial class PropertyCard : UserControl
 
     private void UpdateActionButtonVisibility()
     {
-        MoreOptionsButton.Visibility = Mode == CardMode.Default ? Visibility.Visible : Visibility.Collapsed;
+        var isAuthenticated = IsUserAuthenticated();
+        MoreOptionsButton.Visibility = Mode == CardMode.Default && isAuthenticated ? Visibility.Visible : Visibility.Collapsed;
         FavoriteActionButton.Visibility = Mode == CardMode.Favorite ? Visibility.Visible : Visibility.Collapsed;
         BlockedActionButton.Visibility = Mode == CardMode.Blocked ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static bool IsUserAuthenticated()
+    {
+        if (Application.Current is not IApplicationWithServices { Services: not null } appWithServices)
+            return false;
+
+        var authService = appWithServices.Services.GetService<IAuthService>();
+        return authService?.IsAuthenticated ?? false;
     }
 
     private void UpdateMenuTexts()
