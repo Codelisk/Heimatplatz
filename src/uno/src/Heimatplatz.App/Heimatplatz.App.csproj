@@ -59,6 +59,8 @@
   <!-- Android: Download from Firebase Console -> Project Settings -> Your Apps -> Android -->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
     <GoogleServicesJson Include="Platforms\Android\google-services.json" Condition="Exists('Platforms\Android\google-services.json')" />
+    <!-- Shiny.Core provides AndroidPlatform for push notifications -->
+    <PackageReference Include="Shiny.Core" />
   </ItemGroup>
   <!-- iOS: Download from Firebase Console -> Project Settings -> Your Apps -> iOS -->
   <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
