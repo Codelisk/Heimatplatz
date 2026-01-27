@@ -18,7 +18,8 @@ namespace Heimatplatz.App.Presentation;
 public sealed partial class MainPage : Page,
     IEventHandler<ToggleNavigationPaneEvent>,
     IEventHandler<PageNavigatedEvent>,
-    IEventHandler<NavigateBackInContentEvent>
+    IEventHandler<NavigateBackInContentEvent>,
+    IEventHandler<NavigateToRouteInContentEvent>
 {
     public MainPage()
     {
@@ -87,6 +88,27 @@ public sealed partial class MainPage : Page,
                 await HandleMainHeaderNavigation(@event.MainHeaderViewModel);
             });
         }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Handled das NavigateToRouteInContentEvent - navigiert zu einer Route in der Content-Region.
+    /// Ermoeglicht Controls ausserhalb der NavigationView (z.B. HeaderRight) die Navigation
+    /// innerhalb der Content-Region auszuloesen.
+    /// </summary>
+    public new Task Handle(NavigateToRouteInContentEvent @event, IMediatorContext context, CancellationToken cancellationToken)
+    {
+        var dispatcherQueue = DispatcherQueue;
+        dispatcherQueue?.TryEnqueue(async () =>
+        {
+            var navViewNavigator = NavView.Navigator();
+            if (navViewNavigator != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainPage] Navigating to {@event.Route} in Content region");
+                await navViewNavigator.NavigateRouteAsync(NavView, @event.Route);
+            }
+        });
 
         return Task.CompletedTask;
     }
