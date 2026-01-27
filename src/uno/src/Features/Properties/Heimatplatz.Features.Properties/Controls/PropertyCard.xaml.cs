@@ -1,4 +1,3 @@
-using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +35,6 @@ public sealed partial class PropertyCard : UserControl
     {
         AcquireMenuItemReferences();
         UpdateMenuTexts();
-        UpdateActionButtonVisibility();
     }
 
     private void OnMenuFlyoutOpening(object? sender, object e)
@@ -146,6 +144,22 @@ public sealed partial class PropertyCard : UserControl
     }
 
     /// <summary>
+    /// Ob der Benutzer eingeloggt ist (steuert Sichtbarkeit des 3-Punkte-Menüs)
+    /// </summary>
+    public static readonly DependencyProperty IsAuthenticatedProperty =
+        DependencyProperty.Register(
+            nameof(IsAuthenticated),
+            typeof(bool),
+            typeof(PropertyCard),
+            new PropertyMetadata(false, OnIsAuthenticatedChanged));
+
+    public bool IsAuthenticated
+    {
+        get => (bool)GetValue(IsAuthenticatedProperty);
+        set => SetValue(IsAuthenticatedProperty, value);
+    }
+
+    /// <summary>
     /// Ob der More-Button angezeigt werden soll (false fuer Favoriten/Blockierte Seiten)
     /// </summary>
     public static readonly DependencyProperty ShowMoreButtonProperty =
@@ -197,8 +211,15 @@ public sealed partial class PropertyCard : UserControl
     {
         if (d is PropertyCard card)
         {
-            var show = (bool)e.NewValue && IsUserAuthenticated();
-            card.MoreOptionsButton.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            card.MoreOptionsButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    private static void OnIsAuthenticatedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyCard card)
+        {
+            card.UpdateActionButtonVisibility();
         }
     }
 
@@ -212,19 +233,9 @@ public sealed partial class PropertyCard : UserControl
 
     private void UpdateActionButtonVisibility()
     {
-        var isAuthenticated = IsUserAuthenticated();
-        MoreOptionsButton.Visibility = Mode == CardMode.Default && isAuthenticated ? Visibility.Visible : Visibility.Collapsed;
+        MoreOptionsButton.Visibility = Mode == CardMode.Default && IsAuthenticated ? Visibility.Visible : Visibility.Collapsed;
         FavoriteActionButton.Visibility = Mode == CardMode.Favorite ? Visibility.Visible : Visibility.Collapsed;
         BlockedActionButton.Visibility = Mode == CardMode.Blocked ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    private static bool IsUserAuthenticated()
-    {
-        if (Application.Current is not IApplicationWithServices { Services: not null } appWithServices)
-            return false;
-
-        var authService = appWithServices.Services.GetService<IAuthService>();
-        return authService?.IsAuthenticated ?? false;
     }
 
     private void UpdateMenuTexts()
