@@ -105,7 +105,6 @@
 
                 <NavigationViewItem Content="Meine Favoriten"
                                     uen:Region.Name="Favorites"
-                                    Visibility="{Binding IsAuthenticated}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.Favorites">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE734;" />
@@ -114,7 +113,6 @@
 
                 <NavigationViewItem Content="Blockierte Immobilien"
                                     uen:Region.Name="Blocked"
-                                    Visibility="{Binding IsAuthenticated}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.Blocked">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8F8;" />
@@ -137,7 +135,6 @@
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem Content="Benachrichtigungen"
                                     uen:Region.Name="NotificationSettings"
-                                    Visibility="{Binding IsAuthenticated}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.NotificationSettings">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xEA8F;" />
@@ -146,7 +143,6 @@
 
                 <NavigationViewItem Content="Filtereinstellungen"
                                     uen:Region.Name="FilterPreferences"
-                                    Visibility="{Binding IsAuthenticated}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.FilterPreferences">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE71C;" />
