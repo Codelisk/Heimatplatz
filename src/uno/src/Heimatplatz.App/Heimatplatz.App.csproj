@@ -4,6 +4,7 @@
 
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
+    <UnoSingleTarget>desktop</UnoSingleTarget>
 
     <!-- Suppress IL2026 trimming warnings for Uno.Extensions -->
     <!-- UNO0001: MenuFlyout doesn't support Style property, suppress for this element type -->
