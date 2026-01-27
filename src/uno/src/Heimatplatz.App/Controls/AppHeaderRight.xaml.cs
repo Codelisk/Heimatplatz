@@ -1,6 +1,9 @@
+using Heimatplatz.Events;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Uno.Extensions.Navigation;
+using Shiny.Mediator;
+using UnoFramework.Contracts.Application;
 
 namespace Heimatplatz.App.Controls;
 
@@ -16,9 +19,12 @@ public sealed partial class AppHeaderRight : UserControl
         this.InitializeComponent();
     }
 
-    private void ProfileMenuItem_Click(object sender, RoutedEventArgs e)
+    private async void ProfileMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        _ = this.Navigator()?.NavigateRouteAsync(this, "UserProfile");
+        // Navigate via Mediator event so MainPage handles it within the NavigationView content region.
+        // Direct navigation from HeaderRight would navigate in the wrong region context.
+        var mediator = ((IApplicationWithServices)Application.Current).Services!.GetRequiredService<IMediator>();
+        await mediator.Publish(new NavigateToRouteInContentEvent("UserProfile"));
     }
 
     private async void LogoutMenuItem_Click(object sender, RoutedEventArgs e)
