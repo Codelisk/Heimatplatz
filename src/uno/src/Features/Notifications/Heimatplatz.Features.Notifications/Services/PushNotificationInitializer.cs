@@ -1,3 +1,4 @@
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
@@ -7,15 +8,11 @@ using Shiny.Push;
 namespace Heimatplatz.Features.Notifications.Services;
 
 /// <summary>
-/// Initializes push notifications and requests permissions
+/// Initializes push notifications and requests permissions.
+/// Listens to AuthenticationStateChanged and only registers when a user logs in.
 /// </summary>
 public interface IPushNotificationInitializer
 {
-    /// <summary>
-    /// Initializes push notifications and requests access
-    /// </summary>
-    Task InitializeAsync(CancellationToken cancellationToken = default);
-
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
     /// <summary>
     /// Gets the current push notification status
@@ -26,57 +23,68 @@ public interface IPushNotificationInitializer
 
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
-public class PushNotificationInitializer(
-    IPushManager PushManager,
-    ILogger<PushNotificationInitializer> Logger) : IPushNotificationInitializer
+public class PushNotificationInitializer : IPushNotificationInitializer
 {
-    /// <summary>
-    /// Initializes push notifications and requests access
-    /// </summary>
-    public async Task InitializeAsync(CancellationToken cancellationToken = default)
+    private readonly IPushManager _pushManager;
+    private readonly ILogger<PushNotificationInitializer> _logger;
+
+    public PushNotificationInitializer(
+        IPushManager pushManager,
+        IAuthService authService,
+        ILogger<PushNotificationInitializer> logger)
     {
+        _pushManager = pushManager;
+        _logger = logger;
+
+        authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    }
+
+    private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
+    {
+        if (!isAuthenticated)
+            return;
+
         try
         {
-            Logger.LogInformation("Initializing push notifications...");
+            _logger.LogInformation("User logged in — initializing push notifications...");
 
-            // Request push notification permissions
-            var result = await PushManager.RequestAccess(cancellationToken);
+            var result = await _pushManager.RequestAccess();
 
             switch (result.Status)
             {
                 case AccessState.Available:
-                    Logger.LogInformation("Push notifications enabled. Token: {Token}",
+                    _logger.LogInformation("Push notifications enabled. Token: {Token}",
                         result.RegistrationToken);
                     break;
 
                 case AccessState.Denied:
-                    Logger.LogWarning("Push notification permission denied by user");
+                    _logger.LogWarning("Push notification permission denied by user");
                     break;
 
                 case AccessState.Disabled:
-                    Logger.LogWarning("Push notifications are disabled on this device");
+                    _logger.LogWarning("Push notifications are disabled on this device");
                     break;
 
                 case AccessState.NotSetup:
-                    Logger.LogWarning("Push notifications are not properly configured");
+                    _logger.LogWarning("Push notifications are not properly configured");
                     break;
 
                 case AccessState.NotSupported:
-                    Logger.LogWarning("Push notifications are not supported on this platform");
+                    _logger.LogWarning("Push notifications are not supported on this platform");
                     break;
 
                 case AccessState.Restricted:
-                    Logger.LogWarning("Push notifications are restricted (parental controls?)");
+                    _logger.LogWarning("Push notifications are restricted (parental controls?)");
                     break;
 
                 default:
-                    Logger.LogWarning("Unknown push notification status: {Status}", result.Status);
+                    _logger.LogWarning("Unknown push notification status: {Status}", result.Status);
                     break;
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Failed to initialize push notifications");
+            _logger.LogError(ex, "Failed to initialize push notifications after login");
         }
     }
 
@@ -87,12 +95,12 @@ public class PushNotificationInitializer(
     {
         try
         {
-            var result = await PushManager.RequestAccess();
+            var result = await _pushManager.RequestAccess();
             return result.Status;
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Failed to get push notification status");
+            _logger.LogError(ex, "Failed to get push notification status");
             return AccessState.Unknown;
         }
     }
@@ -102,10 +110,5 @@ public class PushNotificationInitializer(
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public class PushNotificationInitializer(ILogger<PushNotificationInitializer> Logger) : IPushNotificationInitializer
 {
-    public Task InitializeAsync(CancellationToken cancellationToken = default)
-    {
-        Logger.LogInformation("Push notifications are not supported on this platform (Desktop/WebAssembly)");
-        return Task.CompletedTask;
-    }
 }
 #endif
