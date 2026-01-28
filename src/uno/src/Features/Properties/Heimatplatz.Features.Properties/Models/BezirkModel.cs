@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace Heimatplatz.Features.Properties.Models;
 
 /// <summary>
-/// Gemeinde innerhalb eines Bezirks (vormals OrtModel)
+/// Gemeinde innerhalb eines Bezirks
 /// </summary>
 public partial class GemeindeModel : ObservableObject
 {
@@ -23,7 +23,7 @@ public partial class GemeindeModel : ObservableObject
 }
 
 /// <summary>
-/// Bezirk mit untergeordneten Gemeinden
+/// Bezirk mit untergeordneten Gemeinden (aufklappbar)
 /// </summary>
 public partial class BezirkModel : ObservableObject
 {
@@ -40,28 +40,5 @@ public partial class BezirkModel : ObservableObject
         Id = id;
         Name = name;
         Gemeinden = gemeinden;
-    }
-}
-
-/// <summary>
-/// Bundesland mit untergeordneten Bezirken
-/// </summary>
-public partial class BundeslandModel : ObservableObject
-{
-    public Guid Id { get; }
-    public string Key { get; }
-    public string Name { get; }
-
-    [ObservableProperty]
-    private bool _isExpanded;
-
-    public List<BezirkModel> Bezirke { get; }
-
-    public BundeslandModel(Guid id, string key, string name, List<BezirkModel> bezirke)
-    {
-        Id = id;
-        Key = key;
-        Name = name;
-        Bezirke = bezirke;
     }
 }

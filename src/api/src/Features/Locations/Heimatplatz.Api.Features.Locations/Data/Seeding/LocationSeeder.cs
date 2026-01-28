@@ -10,7 +10,7 @@ namespace Heimatplatz.Api.Features.Locations.Data.Seeding;
 
 /// <summary>
 /// Seeder der Location-Daten (Bundesland, Bezirke, Gemeinden) von der OpenPLZ API importiert.
-/// Aktuell nur Oberoesterreich (Key "4").
+/// Importiert alle 9 oesterreichischen Bundeslaender.
 /// </summary>
 public class LocationSeeder(
     AppDbContext dbContext,
@@ -38,7 +38,7 @@ public class LocationSeeder(
 
         var httpClient = httpClientFactory.CreateClient();
 
-        // Oberoesterreich importieren (Key "4")
+        // Nur Oberoesterreich importieren (Key "4")
         await ImportFederalProvinceAsync(httpClient, "4", cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);

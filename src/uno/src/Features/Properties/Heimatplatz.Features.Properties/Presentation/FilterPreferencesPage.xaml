@@ -48,7 +48,7 @@
                                            TextWrapping="Wrap" />
                             </utu:AutoLayout>
 
-                            <controls:OrtPicker Bundeslaender="{Binding Bundeslaender}"
+                            <controls:OrtPicker Bezirke="{Binding Bezirke}"
                                                 SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
                                                 HorizontalAlignment="Stretch"
                                                 AutomationProperties.AutomationId="FilterPreferences_OrtPicker" />

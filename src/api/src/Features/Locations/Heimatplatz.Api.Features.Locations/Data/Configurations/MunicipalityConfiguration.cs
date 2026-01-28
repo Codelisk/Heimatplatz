@@ -31,8 +31,8 @@ public class MunicipalityConfiguration : IEntityTypeConfiguration<Municipality>
         builder.Property(m => m.Status)
             .HasMaxLength(50);
 
-        builder.HasIndex(m => m.Key)
-            .IsUnique();
+        // Index fuer schnelles Suchen nach Key (nicht unique, da Duplikate moeglich)
+        builder.HasIndex(m => m.Key);
 
         builder.HasIndex(m => m.DistrictId);
 

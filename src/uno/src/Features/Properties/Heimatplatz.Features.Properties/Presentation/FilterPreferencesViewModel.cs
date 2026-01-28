@@ -83,10 +83,10 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     private List<string> _selectedOrte = [];
 
     /// <summary>
-    /// Hierarchische Bundesland/Bezirk/Gemeinde-Struktur (von API geladen)
+    /// Liste der Bezirke (von API geladen)
     /// </summary>
     [ObservableProperty]
-    private List<BundeslandModel> _bundeslaender = [];
+    private List<BezirkModel> _bezirke = [];
 
     public FilterPreferencesViewModel(IFilterPreferencesService filterPreferencesService, ILocationService locationService)
     {
@@ -106,15 +106,14 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
 
         try
         {
-            // Locations von API laden
+            // Bezirke mit Gemeinden von API laden
             var locations = await _locationService.GetLocationsAsync();
-            Bundeslaender = locations
-                .Select(bl => new BundeslandModel(
-                    bl.Id, bl.Key, bl.Name,
-                    bl.Bezirke.Select(b => new BezirkModel(
-                        b.Id, b.Name,
-                        b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
-                    )).ToList()
+            Bezirke = locations
+                .SelectMany(bl => bl.Bezirke)
+                .Select(b => new BezirkModel(
+                    b.Id,
+                    b.Name,
+                    b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
                 ))
                 .ToList();
 

@@ -113,10 +113,10 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     }
 
     /// <summary>
-    /// Hierarchische Bundesland/Bezirk/Gemeinde-Struktur (von API geladen)
+    /// Liste der Bezirke (von API geladen)
     /// </summary>
     [ObservableProperty]
-    private List<BundeslandModel> _bundeslaender = [];
+    private List<BezirkModel> _bezirke = [];
 
     [ObservableProperty]
     private bool _isEmpty;
@@ -252,13 +252,12 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         try
         {
             var locations = await _locationService.GetLocationsAsync();
-            Bundeslaender = locations
-                .Select(bl => new BundeslandModel(
-                    bl.Id, bl.Key, bl.Name,
-                    bl.Bezirke.Select(b => new BezirkModel(
-                        b.Id, b.Name,
-                        b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
-                    )).ToList()
+            Bezirke = locations
+                .SelectMany(bl => bl.Bezirke)
+                .Select(b => new BezirkModel(
+                    b.Id,
+                    b.Name,
+                    b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
                 ))
                 .ToList();
         }
