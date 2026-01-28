@@ -924,6 +924,36 @@
           }
         }
       }
+    },
+    "/api/notifications/test-push": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SendTestPush",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendTestPushRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendTestPushResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2552,6 +2582,41 @@
           "Broker",
           "Portal"
         ]
+      },
+      "SendTestPushRequest": {
+        "required": [
+          "Title",
+          "Body"
+        ],
+        "type": "object",
+        "properties": {
+          "Title": {
+            "type": "string"
+          },
+          "Body": {
+            "type": "string"
+          }
+        }
+      },
+      "SendTestPushResponse": {
+        "required": [
+          "SentCount",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "SentCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Message": {
+            "type": "string"
+          }
+        }
       },
       "UpdateNotificationPreferencesRequest": {
         "required": [

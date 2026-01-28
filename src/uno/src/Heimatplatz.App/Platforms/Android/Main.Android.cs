@@ -16,5 +16,7 @@ public class Application : Microsoft.UI.Xaml.NativeApplication
     public Application(IntPtr javaReference, JniHandleOwnership transfer)
         : base(() => new App(), javaReference, transfer)
     {
+        // Shiny 4.0.0-beta doesn't expose AndroidShinyHost publicly
+        // Activity tracking will be handled through AddShinyCoreServices()
     }
 }

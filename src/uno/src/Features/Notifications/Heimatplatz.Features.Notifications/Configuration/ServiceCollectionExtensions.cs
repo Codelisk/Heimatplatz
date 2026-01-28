@@ -1,10 +1,9 @@
+using Heimatplatz.Features.Notifications.Contracts.Interfaces;
+using Heimatplatz.Features.Notifications.Services;
 using Microsoft.Extensions.DependencyInjection;
-#if __ANDROID__
-using Heimatplatz.Features.Notifications.Services;
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
-#elif __IOS__ || __MACCATALYST__
-using Heimatplatz.Features.Notifications.Services;
-using Shiny;
+using Shiny.Extensions.Stores;
 #endif
 
 namespace Heimatplatz.Features.Notifications.Configuration;
@@ -14,24 +13,29 @@ namespace Heimatplatz.Features.Notifications.Configuration;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+
     /// <summary>
     /// Adds Notifications feature services to the dependency injection container
     /// </summary>
     public static IServiceCollection AddNotificationsFeature(this IServiceCollection services)
     {
-        // Services are registered automatically via [Service] attributes
-        // ViewModels and Pages are registered via MVUX source generation
+        // Register notification services
+        services.AddSingleton<INotificationService, NotificationService>();
+        services.AddSingleton<IPushNotificationInitializer, PushNotificationInitializer>();
 
 #if __ANDROID__
-        // Register AndroidPlatform for Shiny.Push (required dependency)
-        // Shiny 4.0 requires this to be registered manually when not using Shiny.Hosting.Maui
-        services.AddSingleton<AndroidPlatform>();
-
-        // Register Shiny.Push with Firebase (uses google-services.json in Platforms/Android/)
+        // Register Shiny Stores (required for Shiny.Notifications - provides ISerializer)
+        services.AddShinyStores();
+        // Register Shiny Push for Android
         services.AddPush<PushNotificationDelegate>();
+        // Register Shiny Notifications for local notifications
+        services.AddNotifications();
 #elif __IOS__ || __MACCATALYST__
-        // Register Shiny.Push with native APNs
+        // Register Shiny Stores (required for Shiny.Notifications - provides ISerializer)
+        services.AddShinyStores();
         services.AddPush<PushNotificationDelegate>();
+        // Register Shiny Notifications for local notifications
+        services.AddNotifications();
 #endif
 
         return services;

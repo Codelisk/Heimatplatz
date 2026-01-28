@@ -16,9 +16,10 @@
     <PackageVersion Include="Shiny.Mediator.AspNet" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Mediator.Contracts" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Extensions.DependencyInjection" Version="2.0.0-beta-0001" />
-    <PackageVersion Include="Shiny.Core" Version="$(ShinyPushVersion)" />
-    <PackageVersion Include="Shiny.Push" Version="$(ShinyPushVersion)" />
+    <PackageVersion Include="Shiny.Extensions.Stores" Version="2.0.0-beta-0001" />
     <PackageVersion Include="Shiny.Hosting.Native" Version="$(ShinyPushVersion)" />
+    <PackageVersion Include="Shiny.Reflector" Version="1.7.1" />
+    <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 

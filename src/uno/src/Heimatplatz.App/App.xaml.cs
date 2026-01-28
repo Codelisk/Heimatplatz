@@ -4,13 +4,15 @@ using Heimatplatz.Core.Startup;
 using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Notifications.Presentation;
-using Heimatplatz.Features.Notifications.Services;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Presentation;
 using Shiny.Mediator;
 using Uno.Resizetizer;
 using UnoFramework.Contracts.Application;
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+using Shiny;
+#endif
 #if DEBUG
 using Heimatplatz.Features.Debug.Presentation;
 #endif
@@ -75,9 +77,21 @@ public partial class App : Application, IApplicationWithServices
 
         Host = await builder.NavigateAsync<Shell>();
 
-        // Resolve the push notification initializer so its constructor
-        // subscribes to AuthenticationStateChanged (registration happens on login)
-        Host?.Services.GetService<IPushNotificationInitializer>();
+#if __ANDROID__
+        // Initialize Shiny for Android push notifications
+        if (Android.App.Application.Context is Android.App.Application app && Host?.Services != null)
+        {
+            // Get current activity from Uno Platform
+            var currentActivity = Uno.UI.ContextHelper.Current as Android.App.Activity;
+            AndroidShinyHost.Init(app, Host.Services, currentActivity);
+        }
+#elif __IOS__ || __MACCATALYST__
+        // Initialize Shiny for iOS/Mac push notifications
+        if (Host?.Services != null)
+        {
+            IosShinyHost.Init(Host.Services);
+        }
+#endif
     }
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
@@ -104,6 +118,7 @@ public partial class App : Application, IApplicationWithServices
             new ViewMap<UserProfilePage, UserProfileViewModel>()
 #if DEBUG
             , new ViewMap<DebugStartPage, DebugStartViewModel>()
+            , new ViewMap<TestPushPage, TestPushViewModel>()
 #endif
         );
 
@@ -137,6 +152,7 @@ public partial class App : Application, IApplicationWithServices
                         ]),
 #if DEBUG
                     new ("DebugStart", View: views.FindByViewModel<DebugStartViewModel>()),
+                    new ("TestPush", View: views.FindByViewModel<TestPushViewModel>()),
 #endif
                     // Auth pages remain at Shell level (not in regions)
                     new ("Register", View: views.FindByViewModel<RegisterViewModel>()),

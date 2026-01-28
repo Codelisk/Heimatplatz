@@ -151,6 +151,22 @@
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
+                <!-- Debug Tools -->
+                <Border Height="1"
+                        Background="#30FFFFFF"
+                        Margin="0,8" />
+
+                <TextBlock Text="Debug Tools"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Opacity="0.7"
+                           HorizontalAlignment="Center" />
+
+                <Button Content="🔔 Test Push Notifications"
+                        Command="{Binding NavigateToTestPushCommand}"
+                        HorizontalAlignment="Stretch"
+                        MinWidth="300" />
+
             </utu:AutoLayout>
         </ScrollViewer>
     </Grid>
