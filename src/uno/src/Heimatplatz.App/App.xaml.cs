@@ -10,7 +10,7 @@ using Heimatplatz.Features.Properties.Presentation;
 using Shiny.Mediator;
 using Uno.Resizetizer;
 using UnoFramework.Contracts.Application;
-#if __ANDROID__
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
 #endif
 #if DEBUG
@@ -84,6 +84,12 @@ public partial class App : Application, IApplicationWithServices
             // Get current activity from Uno Platform
             var currentActivity = Uno.UI.ContextHelper.Current as Android.App.Activity;
             AndroidShinyHost.Init(app, Host.Services, currentActivity);
+        }
+#elif __IOS__ || __MACCATALYST__
+        // Initialize Shiny for iOS/Mac push notifications
+        if (Host?.Services != null)
+        {
+            IosShinyHost.Init(Host.Services);
         }
 #endif
     }

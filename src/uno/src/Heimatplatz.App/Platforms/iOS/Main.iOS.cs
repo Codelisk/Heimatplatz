@@ -8,7 +8,7 @@ public class EntryPoint
     {
         var host = UnoPlatformHostBuilder.Create()
             .App(() => new App())
-            .UseAppleUIKit()
+            .UseAppleUIKit(builder => builder.UseUIApplicationDelegate<ShinyAppDelegate>())
             .Build();
 
         host.Run();

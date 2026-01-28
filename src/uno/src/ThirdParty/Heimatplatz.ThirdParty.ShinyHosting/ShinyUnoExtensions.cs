@@ -16,14 +16,22 @@ public static class ShinyUnoExtensions
     /// <remarks>
     /// On Android, you MUST also call AndroidShinyHost.Init(app, services) in your
     /// Application class constructor BEFORE this is called.
+    /// On iOS/Mac, you MUST also call IosShinyHost.Init(services) in OnLaunched.
     /// </remarks>
     public static IServiceCollection AddShinyUno(this IServiceCollection services)
     {
+#if __ANDROID__
         // Add platform implementation - register as both interface and concrete type
         // PushManager needs AndroidPlatform directly (not IPlatform)
         var platform = new AndroidPlatform();
         services.TryAddSingleton(platform);
         services.TryAddSingleton<IPlatform>(platform);
+#elif __IOS__ || __MACCATALYST__
+        // Add platform implementation for iOS/Mac
+        var platform = new ApplePlatform();
+        services.TryAddSingleton(platform);
+        services.TryAddSingleton<IPlatform>(platform);
+#endif
         return services;
     }
 }
