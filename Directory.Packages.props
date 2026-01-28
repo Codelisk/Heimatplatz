@@ -66,6 +66,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
 
