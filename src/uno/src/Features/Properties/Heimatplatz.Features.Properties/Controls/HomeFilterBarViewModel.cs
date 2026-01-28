@@ -43,10 +43,10 @@ public partial class HomeFilterBarViewModel : ObservableObject
     private int _resultCount;
 
     /// <summary>
-    /// Hierarchische Bundesland/Bezirk/Gemeinde-Struktur (von API geladen)
+    /// Liste der Bezirke (von API geladen)
     /// </summary>
     [ObservableProperty]
-    private List<BundeslandModel> _bundeslaender = [];
+    private List<BezirkModel> _bezirke = [];
 
     public HomeFilterBarViewModel(IFilterStateService filterStateService, ILocationService locationService)
     {
@@ -67,13 +67,13 @@ public partial class HomeFilterBarViewModel : ObservableObject
     {
         var locations = await _locationService.GetLocationsAsync();
 
-        Bundeslaender = locations
-            .Select(bl => new BundeslandModel(
-                bl.Id, bl.Key, bl.Name,
-                bl.Bezirke.Select(b => new BezirkModel(
-                    b.Id, b.Name,
-                    b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
-                )).ToList()
+        // Alle Bezirke mit Gemeinden aus allen Bundeslaendern extrahieren
+        Bezirke = locations
+            .SelectMany(bl => bl.Bezirke)
+            .Select(b => new BezirkModel(
+                b.Id,
+                b.Name,
+                b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
             ))
             .ToList();
     }

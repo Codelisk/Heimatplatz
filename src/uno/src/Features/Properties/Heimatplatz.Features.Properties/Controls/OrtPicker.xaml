@@ -10,7 +10,7 @@
     </UserControl.Resources>
 
     <!--
-    OrtPicker - Hierarchischer Bundesland/Bezirk/Gemeinde Picker mit Checkboxen
+    OrtPicker - Bezirk/Gemeinde Picker mit Checkboxen (ohne Bundesland-Ebene)
     -->
 
     <Grid>
@@ -79,20 +79,20 @@
                                           HorizontalAlignment="Center"
                                           Visibility="Collapsed" />
 
-                            <!-- Bundeslaender Liste -->
+                            <!-- Bezirke Liste (aufklappbar mit Gemeinden) -->
                             <ScrollViewer MaxHeight="340"
                                           VerticalScrollBarVisibility="Auto">
-                                <ItemsRepeater x:Name="BundeslaenderRepeater"
-                                               ItemsSource="{x:Bind Bundeslaender, Mode=OneWay}">
+                                <ItemsRepeater x:Name="BezirkeRepeater"
+                                               ItemsSource="{x:Bind Bezirke, Mode=OneWay}">
                                     <ItemsRepeater.ItemTemplate>
-                                        <DataTemplate x:DataType="models:BundeslandModel">
-                                            <StackPanel Margin="0,4">
-                                                <!-- Bundesland Header -->
+                                        <DataTemplate x:DataType="models:BezirkModel">
+                                            <StackPanel Margin="0,2">
+                                                <!-- Bezirk Header (aufklappbar) -->
                                                 <Button HorizontalAlignment="Stretch"
                                                         HorizontalContentAlignment="Left"
                                                         Background="Transparent"
                                                         Padding="4"
-                                                        Click="BundeslandHeader_Click"
+                                                        Click="BezirkHeader_Click"
                                                         Tag="{x:Bind}">
                                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                                         <FontIcon Glyph="{x:Bind IsExpanded, Mode=OneWay, Converter={StaticResource ExpanderGlyphConverter}}"
@@ -100,50 +100,21 @@
                                                                   Foreground="{ThemeResource PrimaryBrush}" />
                                                         <TextBlock Text="{x:Bind Name}"
                                                                    FontSize="14"
-                                                                   FontWeight="Bold"
+                                                                   FontWeight="SemiBold"
                                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
                                                     </StackPanel>
                                                 </Button>
 
-                                                <!-- Bezirke (wenn Bundesland expanded) -->
-                                                <ItemsRepeater ItemsSource="{x:Bind Bezirke}"
+                                                <!-- Gemeinden (wenn Bezirk expanded) -->
+                                                <ItemsRepeater ItemsSource="{x:Bind Gemeinden}"
                                                                Visibility="{x:Bind IsExpanded, Mode=OneWay}"
-                                                               Margin="16,0,0,0">
+                                                               Margin="20,0,0,0">
                                                     <ItemsRepeater.ItemTemplate>
-                                                        <DataTemplate x:DataType="models:BezirkModel">
-                                                            <StackPanel Margin="0,2">
-                                                                <!-- Bezirk Header (aufklappbar) -->
-                                                                <Button HorizontalAlignment="Stretch"
-                                                                        HorizontalContentAlignment="Left"
-                                                                        Background="Transparent"
-                                                                        Padding="4"
-                                                                        Click="BezirkHeader_Click"
-                                                                        Tag="{x:Bind}">
-                                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                                        <FontIcon Glyph="{x:Bind IsExpanded, Mode=OneWay, Converter={StaticResource ExpanderGlyphConverter}}"
-                                                                                  FontSize="10"
-                                                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                                                        <TextBlock Text="{x:Bind Name}"
-                                                                                   FontSize="13"
-                                                                                   FontWeight="SemiBold"
-                                                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
-                                                                    </StackPanel>
-                                                                </Button>
-
-                                                                <!-- Gemeinden (wenn Bezirk expanded) -->
-                                                                <ItemsRepeater ItemsSource="{x:Bind Gemeinden}"
-                                                                               Visibility="{x:Bind IsExpanded, Mode=OneWay}"
-                                                                               Margin="24,0,0,0">
-                                                                    <ItemsRepeater.ItemTemplate>
-                                                                        <DataTemplate x:DataType="models:GemeindeModel">
-                                                                            <CheckBox Content="{x:Bind Name}"
-                                                                                      IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                                                                      Margin="0,2"
-                                                                                      FontSize="13" />
-                                                                        </DataTemplate>
-                                                                    </ItemsRepeater.ItemTemplate>
-                                                                </ItemsRepeater>
-                                                            </StackPanel>
+                                                        <DataTemplate x:DataType="models:GemeindeModel">
+                                                            <CheckBox Content="{x:Bind Name}"
+                                                                      IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                                      Margin="0,2"
+                                                                      FontSize="13" />
                                                         </DataTemplate>
                                                     </ItemsRepeater.ItemTemplate>
                                                 </ItemsRepeater>

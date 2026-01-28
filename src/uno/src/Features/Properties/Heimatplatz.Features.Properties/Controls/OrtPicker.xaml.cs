@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 namespace Heimatplatz.Features.Properties.Controls;
 
 /// <summary>
-/// Hierarchischer Ort-Picker mit Bundeslaendern, Bezirken und Gemeinden
+/// Bezirk/Gemeinde Picker mit aufklappbaren Bezirken und Gemeinde-Checkboxen
 /// </summary>
 public sealed partial class OrtPicker : UserControl
 {
@@ -15,19 +15,19 @@ public sealed partial class OrtPicker : UserControl
     }
 
     /// <summary>
-    /// Liste der Bundeslaender mit Bezirken und Gemeinden
+    /// Liste der Bezirke mit Gemeinden
     /// </summary>
-    public static readonly DependencyProperty BundeslaenderProperty =
+    public static readonly DependencyProperty BezirkeProperty =
         DependencyProperty.Register(
-            nameof(Bundeslaender),
-            typeof(IList<BundeslandModel>),
+            nameof(Bezirke),
+            typeof(IList<BezirkModel>),
             typeof(OrtPicker),
-            new PropertyMetadata(null, OnBundeslaenderChanged));
+            new PropertyMetadata(null, OnBezirkeChanged));
 
-    public IList<BundeslandModel>? Bundeslaender
+    public IList<BezirkModel>? Bezirke
     {
-        get => (IList<BundeslandModel>?)GetValue(BundeslaenderProperty);
-        set => SetValue(BundeslaenderProperty, value);
+        get => (IList<BezirkModel>?)GetValue(BezirkeProperty);
+        set => SetValue(BezirkeProperty, value);
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public sealed partial class OrtPicker : UserControl
         LoadingRing.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private static void OnBundeslaenderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnBezirkeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is OrtPicker picker)
         {
@@ -71,24 +71,21 @@ public sealed partial class OrtPicker : UserControl
 
     private void SubscribeToSelectionChanges()
     {
-        if (Bundeslaender == null) return;
+        if (Bezirke == null) return;
 
-        foreach (var bundesland in Bundeslaender)
+        foreach (var bezirk in Bezirke)
         {
-            foreach (var bezirk in bundesland.Bezirke)
+            foreach (var gemeinde in bezirk.Gemeinden)
             {
-                foreach (var gemeinde in bezirk.Gemeinden)
+                gemeinde.PropertyChanged += (s, e) =>
                 {
-                    gemeinde.PropertyChanged += (s, e) =>
+                    if (e.PropertyName == nameof(GemeindeModel.IsSelected))
                     {
-                        if (e.PropertyName == nameof(GemeindeModel.IsSelected))
-                        {
-                            UpdateSelectionText();
-                            UpdateSelectedOrte();
-                            SelectionChanged?.Invoke(this, EventArgs.Empty);
-                        }
-                    };
-                }
+                        UpdateSelectionText();
+                        UpdateSelectedOrte();
+                        SelectionChanged?.Invoke(this, EventArgs.Empty);
+                    }
+                };
             }
         }
     }
@@ -100,14 +97,13 @@ public sealed partial class OrtPicker : UserControl
 
     private void UpdateSelectionText()
     {
-        if (Bundeslaender == null)
+        if (Bezirke == null)
         {
             SelectionText.Text = "Ort auswählen";
             return;
         }
 
-        var selectedGemeinden = Bundeslaender
-            .SelectMany(bl => bl.Bezirke)
+        var selectedGemeinden = Bezirke
             .SelectMany(b => b.Gemeinden)
             .Where(g => g.IsSelected)
             .ToList();
@@ -129,14 +125,6 @@ public sealed partial class OrtPicker : UserControl
         }
     }
 
-    private void BundeslandHeader_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.Tag is BundeslandModel bundesland)
-        {
-            bundesland.IsExpanded = !bundesland.IsExpanded;
-        }
-    }
-
     private void BezirkHeader_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is BezirkModel bezirk)
@@ -147,16 +135,13 @@ public sealed partial class OrtPicker : UserControl
 
     private void ClearAllButton_Click(object sender, RoutedEventArgs e)
     {
-        if (Bundeslaender == null) return;
+        if (Bezirke == null) return;
 
-        foreach (var bundesland in Bundeslaender)
+        foreach (var bezirk in Bezirke)
         {
-            foreach (var bezirk in bundesland.Bezirke)
+            foreach (var gemeinde in bezirk.Gemeinden)
             {
-                foreach (var gemeinde in bezirk.Gemeinden)
-                {
-                    gemeinde.IsSelected = false;
-                }
+                gemeinde.IsSelected = false;
             }
         }
     }
@@ -166,10 +151,9 @@ public sealed partial class OrtPicker : UserControl
     /// </summary>
     public List<string> GetSelectedOrte()
     {
-        if (Bundeslaender == null) return new List<string>();
+        if (Bezirke == null) return new List<string>();
 
-        return Bundeslaender
-            .SelectMany(bl => bl.Bezirke)
+        return Bezirke
             .SelectMany(b => b.Gemeinden)
             .Where(g => g.IsSelected)
             .Select(g => g.Name)

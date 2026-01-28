@@ -16,9 +16,9 @@
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="HomeFilterBar_Root">
 
-        <!-- Ort-Picker (hierarchisch) -->
+        <!-- Bezirk-Picker -->
         <local:OrtPicker MinWidth="150"
-                         Bundeslaender="{Binding Bundeslaender}"
+                         Bezirke="{Binding Bezirke}"
                          SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
                          AutomationProperties.AutomationId="HomeFilterBar_OrtPicker" />
 

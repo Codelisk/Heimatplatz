@@ -24,8 +24,8 @@ public class DistrictConfiguration : IEntityTypeConfiguration<District>
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.HasIndex(d => d.Key)
-            .IsUnique();
+        // Index fuer schnelles Suchen nach Key (nicht unique, da Duplikate moeglich)
+        builder.HasIndex(d => d.Key);
 
         builder.HasIndex(d => d.FederalProvinceId);
 

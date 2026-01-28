@@ -98,7 +98,7 @@
 
                             <!-- OrtPicker und Alters-Filter -->
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <controls:OrtPicker Bundeslaender="{Binding Bundeslaender}"
+                                <controls:OrtPicker Bezirke="{Binding Bezirke}"
                                                     SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
                                                     HorizontalAlignment="Stretch"
                                                     AutomationProperties.AutomationId="HomePage_MobileOrtPicker" />
