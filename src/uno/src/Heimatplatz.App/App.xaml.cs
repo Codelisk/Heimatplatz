@@ -4,7 +4,6 @@ using Heimatplatz.Core.Startup;
 using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Notifications.Presentation;
-using Heimatplatz.Features.Notifications.Services;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Presentation;
@@ -74,10 +73,6 @@ public partial class App : Application, IApplicationWithServices
         MainWindow.SetWindowIcon();
 
         Host = await builder.NavigateAsync<Shell>();
-
-        // Resolve the push notification initializer so its constructor
-        // subscribes to AuthenticationStateChanged (registration happens on login)
-        Host?.Services.GetService<IPushNotificationInitializer>();
     }
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)

@@ -4,6 +4,7 @@ using Heimatplatz.Features.Notifications.Configuration;
 using Heimatplatz.Features.Properties.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shiny;
 using UnoFramework.Mediator;
 using UnoFramework.ViewModels;
 
@@ -21,6 +22,10 @@ public static class ServiceCollectionExtensions
         {
             cfg.AddEventCollector<UnoEventCollector>();
         });
+
+        // Initialize Shiny Core (IPlatform, IKeyValueStore, etc.)
+        // Must be called before AddNotificationsFeature which uses Shiny.Push
+        services.AddShinyUno();
 
         // Core Features
         services.AddApiClientFeature();

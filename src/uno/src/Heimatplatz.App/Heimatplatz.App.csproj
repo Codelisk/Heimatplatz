@@ -59,9 +59,15 @@
   <!-- Android: Download from Firebase Console -> Project Settings -> Your Apps -> Android -->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
     <GoogleServicesJson Include="Platforms\Android\google-services.json" Condition="Exists('Platforms\Android\google-services.json')" />
-    <!-- Shiny.Core provides AndroidPlatform for push notifications -->
-    <PackageReference Include="Shiny.Core" />
+    <!-- Shiny packages for push notifications -->
+    <PackageReference Include="Shiny.Hosting.Native" />
+    <ProjectReference Include="..\..\..\..\subm\shiny\src\Shiny.Core\Shiny.Core.csproj" />
   </ItemGroup>
+
+  <!-- Asset fallback for Shiny packages (built for net9.0) when targeting net10.0 -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
+    <AssetTargetFallback>$(AssetTargetFallback);net9.0-android35.0</AssetTargetFallback>
+  </PropertyGroup>
   <!-- iOS: Download from Firebase Console -> Project Settings -> Your Apps -> iOS -->
   <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
     <BundleResource Include="Platforms\iOS\GoogleService-Info.plist" Condition="Exists('Platforms\iOS\GoogleService-Info.plist')" />
@@ -71,6 +77,8 @@
     <!-- Core Projects -->
     <ProjectReference Include="..\Core\Heimatplatz.Core.Startup\Heimatplatz.Core.Startup.csproj" />
     <ProjectReference Include="..\Core\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
+    <!-- ThirdParty -->
+    <ProjectReference Include="..\ThirdParty\Heimatplatz.ThirdParty.ShinyHosting\Heimatplatz.ThirdParty.ShinyHosting.csproj" />
     <!-- Features -->
     <ProjectReference Include="..\Features\Auth\Heimatplatz.Features.Auth\Heimatplatz.Features.Auth.csproj" />
     <ProjectReference Include="..\Features\Auth\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />
@@ -81,7 +89,6 @@
     <ProjectReference Include="..\Features\Debug\Heimatplatz.Features.Debug\Heimatplatz.Features.Debug.csproj" Condition="'$(Configuration)' == 'Debug'" />
     <!-- Framework References -->
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
-    <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework.Contracts\UnoFramework.Contracts.csproj" />
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework.Generators\UnoFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

@@ -1,9 +1,7 @@
+using Heimatplatz.Features.Notifications.Contracts.Interfaces;
+using Heimatplatz.Features.Notifications.Services;
 using Microsoft.Extensions.DependencyInjection;
-#if __ANDROID__
-using Heimatplatz.Features.Notifications.Services;
-using Shiny;
-#elif __IOS__ || __MACCATALYST__
-using Heimatplatz.Features.Notifications.Services;
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
 #endif
 
@@ -19,18 +17,16 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddNotificationsFeature(this IServiceCollection services)
     {
-        // Services are registered automatically via [Service] attributes
-        // ViewModels and Pages are registered via MVUX source generation
+        // Explicitly register services
+        services.AddSingleton<INotificationService, NotificationService>();
+        services.AddSingleton<IPushNotificationInitializer, PushNotificationInitializer>();
 
-#if __ANDROID__
-        // Register AndroidPlatform for Shiny.Push (required dependency)
-        // Shiny 4.0 requires this to be registered manually when not using Shiny.Hosting.Maui
-        services.AddSingleton<AndroidPlatform>();
-
-        // Register Shiny.Push with Firebase (uses google-services.json in Platforms/Android/)
-        services.AddPush<PushNotificationDelegate>();
-#elif __IOS__ || __MACCATALYST__
-        // Register Shiny.Push with native APNs
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+        // Register Shiny Push with our delegate for handling notifications
+        // This uses Shiny 4.0's simplified API that automatically registers:
+        // - IPlatform (AndroidPlatform/ApplePlatform)
+        // - IPushManager (PushManager)
+        // - FirebaseConfig (from google-services.json on Android)
         services.AddPush<PushNotificationDelegate>();
 #endif
 

@@ -4,7 +4,7 @@
     <NetVersion>net10.0</NetVersion>
 
     <!-- Uno Platform Single Target: android, ios, desktop, wasm, false (alle) -->
-    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == ''">desktop</UNO_SINGLE_TARGET>
+    <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == ''">android</UNO_SINGLE_TARGET>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

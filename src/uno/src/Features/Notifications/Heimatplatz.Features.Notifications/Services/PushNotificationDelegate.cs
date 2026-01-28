@@ -6,8 +6,8 @@ namespace Heimatplatz.Features.Notifications.Services;
 
 /// <summary>
 /// Handles push notification events from Shiny.Push (mobile platforms only)
+/// Registered via AddPush&lt;PushNotificationDelegate&gt;() - no [Service] attribute needed
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public class PushNotificationDelegate(
     ILogger<PushNotificationDelegate> Logger,
     INotificationService NotificationService) : IPushDelegate

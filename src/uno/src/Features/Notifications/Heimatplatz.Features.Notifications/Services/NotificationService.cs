@@ -1,7 +1,5 @@
-using Heimatplatz;
 using Heimatplatz.Features.Notifications.Contracts.Models;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using ApiGenerated = Heimatplatz.Core.ApiClient.Generated;
 
@@ -9,8 +7,8 @@ namespace Heimatplatz.Features.Notifications.Services;
 
 /// <summary>
 /// Implementation of notification service using Shiny Mediator generated API client requests
+/// Explicitly registered in ServiceCollectionExtensions
 /// </summary>
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public class NotificationService(
     IMediator mediator,
     ILogger<NotificationService> logger

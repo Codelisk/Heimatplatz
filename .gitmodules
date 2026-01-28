@@ -4,3 +4,7 @@
 [submodule "subm/cli"]
 	path = subm/cli
 	url = https://github.com/AIRoutine/Automation.Cli.git
+[submodule "subm/shiny"]
+	path = subm/shiny
+	url = https://github.com/Codelisk/shiny-push.git
+	branch = 4.0.0-push-only
