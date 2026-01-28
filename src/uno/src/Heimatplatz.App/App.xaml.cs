@@ -10,6 +10,9 @@ using Heimatplatz.Features.Properties.Presentation;
 using Shiny.Mediator;
 using Uno.Resizetizer;
 using UnoFramework.Contracts.Application;
+#if __ANDROID__
+using Shiny;
+#endif
 #if DEBUG
 using Heimatplatz.Features.Debug.Presentation;
 #endif
@@ -73,6 +76,16 @@ public partial class App : Application, IApplicationWithServices
         MainWindow.SetWindowIcon();
 
         Host = await builder.NavigateAsync<Shell>();
+
+#if __ANDROID__
+        // Initialize Shiny for Android push notifications
+        if (Android.App.Application.Context is Android.App.Application app && Host?.Services != null)
+        {
+            // Get current activity from Uno Platform
+            var currentActivity = Uno.UI.ContextHelper.Current as Android.App.Activity;
+            AndroidShinyHost.Init(app, Host.Services, currentActivity);
+        }
+#endif
     }
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)

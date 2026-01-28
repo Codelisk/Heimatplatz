@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Shiny;
 
@@ -18,8 +19,11 @@ public static class ShinyUnoExtensions
     /// </remarks>
     public static IServiceCollection AddShinyUno(this IServiceCollection services)
     {
-        // Add platform implementation
-        services.AddSingleton<IPlatform, AndroidPlatform>();
+        // Add platform implementation - register as both interface and concrete type
+        // PushManager needs AndroidPlatform directly (not IPlatform)
+        var platform = new AndroidPlatform();
+        services.TryAddSingleton(platform);
+        services.TryAddSingleton<IPlatform>(platform);
         return services;
     }
 }
