@@ -12,10 +12,10 @@
 
   <ItemGroup>
     <PackageReference Include="Shiny.Mediator" />
-    <PackageReference Include="Shiny.Extensions.Stores" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <ProjectReference Include="..\..\..\..\..\..\subm\shiny\src\Shiny.Push\Shiny.Push.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\subm\shiny\src\Shiny.Notifications\Shiny.Notifications.csproj" />
   </ItemGroup>
 
   <ItemGroup>

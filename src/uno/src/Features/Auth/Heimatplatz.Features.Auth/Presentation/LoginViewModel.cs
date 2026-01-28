@@ -144,6 +144,8 @@ public partial class LoginViewModel : ObservableObject
     {
         try
         {
+            _logger.LogInformation("[LoginViewModel] Attempting to resolve IPushManager...");
+
             // Resolve IPushManager lazily to avoid DI issues during ViewModel construction
             var pushManager = _serviceProvider.GetService<IPushManager>();
             if (pushManager == null)
@@ -152,23 +154,32 @@ public partial class LoginViewModel : ObservableObject
                 return;
             }
 
-            _logger.LogInformation("[LoginViewModel] Initializing push notifications after login...");
-            var accessResult = await pushManager.RequestAccess();
+            _logger.LogInformation("[LoginViewModel] IPushManager resolved successfully, requesting access...");
 
-            switch (accessResult.Status)
+            // Request push access - wrapped in try-catch to prevent app crash
+            try
             {
-                case AccessState.Available:
-                    _logger.LogInformation("[LoginViewModel] Push notifications enabled. Token: {Token}",
-                        accessResult.RegistrationToken);
-                    break;
+                var accessResult = await pushManager.RequestAccess().ConfigureAwait(false);
 
-                case AccessState.Denied:
-                    _logger.LogWarning("[LoginViewModel] Push notification permission denied by user");
-                    break;
+                switch (accessResult.Status)
+                {
+                    case AccessState.Available:
+                        _logger.LogInformation("[LoginViewModel] Push notifications enabled. Token: {Token}",
+                            accessResult.RegistrationToken);
+                        break;
 
-                default:
-                    _logger.LogWarning("[LoginViewModel] Push notification status: {Status}", accessResult.Status);
-                    break;
+                    case AccessState.Denied:
+                        _logger.LogWarning("[LoginViewModel] Push notification permission denied by user");
+                        break;
+
+                    default:
+                        _logger.LogWarning("[LoginViewModel] Push notification status: {Status}", accessResult.Status);
+                        break;
+                }
+            }
+            catch (Exception innerEx)
+            {
+                _logger.LogError(innerEx, "[LoginViewModel] Push RequestAccess failed - this is non-fatal");
             }
         }
         catch (Exception ex)
