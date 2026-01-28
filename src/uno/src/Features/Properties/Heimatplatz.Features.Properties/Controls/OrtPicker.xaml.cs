@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 namespace Heimatplatz.Features.Properties.Controls;
 
 /// <summary>
-/// Hierarchischer Ort-Picker mit Bezirken und Orten
+/// Hierarchischer Ort-Picker mit Bundeslaendern, Bezirken und Gemeinden
 /// </summary>
 public sealed partial class OrtPicker : UserControl
 {
@@ -15,23 +15,23 @@ public sealed partial class OrtPicker : UserControl
     }
 
     /// <summary>
-    /// Liste der Bezirke mit Orten
+    /// Liste der Bundeslaender mit Bezirken und Gemeinden
     /// </summary>
-    public static readonly DependencyProperty BezirkeProperty =
+    public static readonly DependencyProperty BundeslaenderProperty =
         DependencyProperty.Register(
-            nameof(Bezirke),
-            typeof(IList<BezirkModel>),
+            nameof(Bundeslaender),
+            typeof(IList<BundeslandModel>),
             typeof(OrtPicker),
-            new PropertyMetadata(null, OnBezirkeChanged));
+            new PropertyMetadata(null, OnBundeslaenderChanged));
 
-    public IList<BezirkModel>? Bezirke
+    public IList<BundeslandModel>? Bundeslaender
     {
-        get => (IList<BezirkModel>?)GetValue(BezirkeProperty);
-        set => SetValue(BezirkeProperty, value);
+        get => (IList<BundeslandModel>?)GetValue(BundeslaenderProperty);
+        set => SetValue(BundeslaenderProperty, value);
     }
 
     /// <summary>
-    /// Bindable list of selected Ort names (output property)
+    /// Bindable list of selected Gemeinde names (output property)
     /// </summary>
     public static readonly DependencyProperty SelectedOrteProperty =
         DependencyProperty.Register(
@@ -47,11 +47,20 @@ public sealed partial class OrtPicker : UserControl
     }
 
     /// <summary>
-    /// Event wenn sich die Auswahl ändert
+    /// Event wenn sich die Auswahl aendert
     /// </summary>
     public event EventHandler? SelectionChanged;
 
-    private static void OnBezirkeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    /// <summary>
+    /// Zeigt Loading-State an
+    /// </summary>
+    public void SetLoading(bool isLoading)
+    {
+        LoadingRing.IsActive = isLoading;
+        LoadingRing.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static void OnBundeslaenderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is OrtPicker picker)
         {
@@ -62,21 +71,24 @@ public sealed partial class OrtPicker : UserControl
 
     private void SubscribeToSelectionChanges()
     {
-        if (Bezirke == null) return;
+        if (Bundeslaender == null) return;
 
-        foreach (var bezirk in Bezirke)
+        foreach (var bundesland in Bundeslaender)
         {
-            foreach (var ort in bezirk.Orte)
+            foreach (var bezirk in bundesland.Bezirke)
             {
-                ort.PropertyChanged += (s, e) =>
+                foreach (var gemeinde in bezirk.Gemeinden)
                 {
-                    if (e.PropertyName == nameof(OrtModel.IsSelected))
+                    gemeinde.PropertyChanged += (s, e) =>
                     {
-                        UpdateSelectionText();
-                        UpdateSelectedOrte();
-                        SelectionChanged?.Invoke(this, EventArgs.Empty);
-                    }
-                };
+                        if (e.PropertyName == nameof(GemeindeModel.IsSelected))
+                        {
+                            UpdateSelectionText();
+                            UpdateSelectedOrte();
+                            SelectionChanged?.Invoke(this, EventArgs.Empty);
+                        }
+                    };
+                }
             }
         }
     }
@@ -88,31 +100,40 @@ public sealed partial class OrtPicker : UserControl
 
     private void UpdateSelectionText()
     {
-        if (Bezirke == null)
+        if (Bundeslaender == null)
         {
             SelectionText.Text = "Ort auswählen";
             return;
         }
 
-        var selectedOrte = Bezirke
-            .SelectMany(b => b.Orte)
-            .Where(o => o.IsSelected)
+        var selectedGemeinden = Bundeslaender
+            .SelectMany(bl => bl.Bezirke)
+            .SelectMany(b => b.Gemeinden)
+            .Where(g => g.IsSelected)
             .ToList();
 
-        if (selectedOrte.Count == 0)
+        if (selectedGemeinden.Count == 0)
         {
             SelectionText.Text = "Ort auswählen";
             SelectionText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["OnSurfaceVariantBrush"];
         }
-        else if (selectedOrte.Count == 1)
+        else if (selectedGemeinden.Count == 1)
         {
-            SelectionText.Text = selectedOrte[0].Name;
+            SelectionText.Text = selectedGemeinden[0].Name;
             SelectionText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["OnSurfaceBrush"];
         }
         else
         {
-            SelectionText.Text = $"{selectedOrte.Count} Orte ausgewählt";
+            SelectionText.Text = $"{selectedGemeinden.Count} Orte ausgewählt";
             SelectionText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["OnSurfaceBrush"];
+        }
+    }
+
+    private void BundeslandHeader_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is BundeslandModel bundesland)
+        {
+            bundesland.IsExpanded = !bundesland.IsExpanded;
         }
     }
 
@@ -126,28 +147,32 @@ public sealed partial class OrtPicker : UserControl
 
     private void ClearAllButton_Click(object sender, RoutedEventArgs e)
     {
-        if (Bezirke == null) return;
+        if (Bundeslaender == null) return;
 
-        foreach (var bezirk in Bezirke)
+        foreach (var bundesland in Bundeslaender)
         {
-            foreach (var ort in bezirk.Orte)
+            foreach (var bezirk in bundesland.Bezirke)
             {
-                ort.IsSelected = false;
+                foreach (var gemeinde in bezirk.Gemeinden)
+                {
+                    gemeinde.IsSelected = false;
+                }
             }
         }
     }
 
     /// <summary>
-    /// Gibt die Liste der ausgewählten Ortsnamen zurück
+    /// Gibt die Liste der ausgewaehlten Gemeindenamen zurueck
     /// </summary>
     public List<string> GetSelectedOrte()
     {
-        if (Bezirke == null) return new List<string>();
+        if (Bundeslaender == null) return new List<string>();
 
-        return Bezirke
-            .SelectMany(b => b.Orte)
-            .Where(o => o.IsSelected)
-            .Select(o => o.Name)
+        return Bundeslaender
+            .SelectMany(bl => bl.Bezirke)
+            .SelectMany(b => b.Gemeinden)
+            .Where(g => g.IsSelected)
+            .Select(g => g.Name)
             .ToList();
     }
 }

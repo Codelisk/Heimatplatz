@@ -20,6 +20,8 @@
     <!-- Features -->
     <ProjectReference Include="..\..\Features\Auth\Heimatplatz.Api.Features.Auth\Heimatplatz.Api.Features.Auth.csproj" />
     <ProjectReference Include="..\..\Features\Auth\Heimatplatz.Api.Features.Auth.Contracts\Heimatplatz.Api.Features.Auth.Contracts.csproj" />
+    <ProjectReference Include="..\..\Features\Locations\Heimatplatz.Api.Features.Locations\Heimatplatz.Api.Features.Locations.csproj" />
+    <ProjectReference Include="..\..\Features\Locations\Heimatplatz.Api.Features.Locations.Contracts\Heimatplatz.Api.Features.Locations.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Legal\Heimatplatz.Api.Features.Legal\Heimatplatz.Api.Features.Legal.csproj" />
     <ProjectReference Include="..\..\Features\Legal\Heimatplatz.Api.Features.Legal.Contracts\Heimatplatz.Api.Features.Legal.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Properties\Heimatplatz.Api.Features.Properties\Heimatplatz.Api.Features.Properties.csproj" />

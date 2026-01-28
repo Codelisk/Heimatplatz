@@ -18,7 +18,7 @@
 
         <!-- Ort-Picker (hierarchisch) -->
         <local:OrtPicker MinWidth="150"
-                         Bezirke="{Binding Bezirke}"
+                         Bundeslaender="{Binding Bundeslaender}"
                          SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
                          AutomationProperties.AutomationId="HomeFilterBar_OrtPicker" />
 

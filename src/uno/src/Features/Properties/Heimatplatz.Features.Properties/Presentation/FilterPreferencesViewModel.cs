@@ -15,6 +15,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IFilterPreferencesService _filterPreferencesService;
+    private readonly ILocationService _locationService;
 
     #region IPageInfo Implementation
 
@@ -82,19 +83,15 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     private List<string> _selectedOrte = [];
 
     /// <summary>
-    /// Hierarchische Bezirk/Ort-Struktur (gleich wie HomePage)
+    /// Hierarchische Bundesland/Bezirk/Gemeinde-Struktur (von API geladen)
     /// </summary>
-    public List<BezirkModel> Bezirke { get; } =
-    [
-        new BezirkModel("Linz-Land", "Traun", "Leonding", "Ansfelden", "Pasching", "Hörsching"),
-        new BezirkModel("Linz-Stadt", "Linz", "Urfahr"),
-        new BezirkModel("Wels-Land", "Wels", "Marchtrenk", "Gunskirchen"),
-        new BezirkModel("Steyr-Land", "Steyr", "Sierning", "Garsten"),
-    ];
+    [ObservableProperty]
+    private List<BundeslandModel> _bundeslaender = [];
 
-    public FilterPreferencesViewModel(IFilterPreferencesService filterPreferencesService)
+    public FilterPreferencesViewModel(IFilterPreferencesService filterPreferencesService, ILocationService locationService)
     {
         _filterPreferencesService = filterPreferencesService;
+        _locationService = locationService;
     }
 
     /// <summary>
@@ -109,6 +106,18 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
 
         try
         {
+            // Locations von API laden
+            var locations = await _locationService.GetLocationsAsync();
+            Bundeslaender = locations
+                .Select(bl => new BundeslandModel(
+                    bl.Id, bl.Key, bl.Name,
+                    bl.Bezirke.Select(b => new BezirkModel(
+                        b.Id, b.Name,
+                        b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
+                    )).ToList()
+                ))
+                .ToList();
+
             var preferences = await _filterPreferencesService.GetPreferencesAsync();
 
             if (preferences != null)

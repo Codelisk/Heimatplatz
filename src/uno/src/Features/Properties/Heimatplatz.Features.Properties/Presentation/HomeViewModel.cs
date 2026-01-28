@@ -29,6 +29,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private readonly IFilterPreferencesService _filterPreferencesService;
     private readonly IFilterStateService _filterStateService;
     private readonly IMediator _mediator;
+    private readonly ILocationService _locationService;
     private readonly ILogger<HomeViewModel> _logger;
 
     private bool _isLoading;
@@ -112,15 +113,10 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     }
 
     /// <summary>
-    /// Hierarchische Bezirk/Ort-Struktur für OÖ
+    /// Hierarchische Bundesland/Bezirk/Gemeinde-Struktur (von API geladen)
     /// </summary>
-    public List<BezirkModel> Bezirke { get; } =
-    [
-        new BezirkModel("Linz-Land", "Traun", "Leonding", "Ansfelden", "Pasching", "Hörsching"),
-        new BezirkModel("Linz-Stadt", "Linz", "Urfahr"),
-        new BezirkModel("Wels-Land", "Wels", "Marchtrenk", "Gunskirchen"),
-        new BezirkModel("Steyr-Land", "Steyr", "Sierning", "Garsten"),
-    ];
+    [ObservableProperty]
+    private List<BundeslandModel> _bundeslaender = [];
 
     [ObservableProperty]
     private bool _isEmpty;
@@ -151,6 +147,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         IFilterPreferencesService filterPreferencesService,
         IFilterStateService filterStateService,
         IMediator mediator,
+        ILocationService locationService,
         ILogger<HomeViewModel> logger)
     {
         _authService = authService;
@@ -158,6 +155,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         _filterPreferencesService = filterPreferencesService;
         _filterStateService = filterStateService;
         _mediator = mediator;
+        _locationService = locationService;
         _logger = logger;
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
@@ -165,6 +163,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
 
         UpdateAuthState();
+
+        // Load locations from API
+        _ = LoadLocationsAsync();
 
         // Load properties from API
         _ = LoadPropertiesAsync();
@@ -245,6 +246,27 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     }
 
     private bool _isSyncingFromService;
+
+    private async Task LoadLocationsAsync()
+    {
+        try
+        {
+            var locations = await _locationService.GetLocationsAsync();
+            Bundeslaender = locations
+                .Select(bl => new BundeslandModel(
+                    bl.Id, bl.Key, bl.Name,
+                    bl.Bezirke.Select(b => new BezirkModel(
+                        b.Id, b.Name,
+                        b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
+                    )).ToList()
+                ))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HomePage] Failed to load locations from API");
+        }
+    }
 
     private async Task LoadFilterPreferencesAsync()
     {
