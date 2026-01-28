@@ -368,6 +368,35 @@
         }
       }
     },
+    "/api/locations": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetLocations",
+        "parameters": [
+          {
+            "name": "FederalProvinceKey",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetLocationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/blocked": {
       "post": {
         "tags": [
@@ -1222,6 +1251,69 @@
           }
         }
       },
+      "DistrictDto": {
+        "required": [
+          "Id",
+          "Key",
+          "Code",
+          "Name",
+          "FederalProvinceId",
+          "Municipalities"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Key": {
+            "type": "string"
+          },
+          "Code": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "FederalProvinceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Municipalities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MunicipalityDto"
+            }
+          }
+        }
+      },
+      "FederalProvinceDto": {
+        "required": [
+          "Id",
+          "Key",
+          "Name",
+          "Districts"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Key": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Districts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DistrictDto"
+            }
+          }
+        }
+      },
       "ForeclosureAuctionDto": {
         "required": [
           "Id",
@@ -1471,6 +1563,20 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ForeclosureAuctionDto"
+            }
+          }
+        }
+      },
+      "GetLocationsResponse": {
+        "required": [
+          "FederalProvinces"
+        ],
+        "type": "object",
+        "properties": {
+          "FederalProvinces": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FederalProvinceDto"
             }
           }
         }
@@ -1805,6 +1911,46 @@
           "ExpiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "MunicipalityDto": {
+        "required": [
+          "Id",
+          "Key",
+          "Code",
+          "Name",
+          "PostalCode",
+          "Status",
+          "DistrictId"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Key": {
+            "type": "string"
+          },
+          "Code": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "Status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DistrictId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },

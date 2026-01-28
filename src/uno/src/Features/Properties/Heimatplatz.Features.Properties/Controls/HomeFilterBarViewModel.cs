@@ -1,19 +1,19 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
-using Microsoft.UI.Xaml;
+
 namespace Heimatplatz.Features.Properties.Controls;
 
 /// <summary>
-/// ViewModel für die HomeFilterBar im AppHeader.
+/// ViewModel fuer die HomeFilterBar im AppHeader.
 /// Synchronisiert Filter-State mit dem zentralen FilterStateService.
 /// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
 public partial class HomeFilterBarViewModel : ObservableObject
 {
     private readonly IFilterStateService _filterStateService;
+    private readonly ILocationService _locationService;
 
     [ObservableProperty]
     private bool _isHausSelected = true;
@@ -43,25 +43,39 @@ public partial class HomeFilterBarViewModel : ObservableObject
     private int _resultCount;
 
     /// <summary>
-    /// Hierarchische Bezirk/Ort-Struktur für OÖ
+    /// Hierarchische Bundesland/Bezirk/Gemeinde-Struktur (von API geladen)
     /// </summary>
-    public List<BezirkModel> Bezirke { get; } =
-    [
-        new("Linz-Land", "Traun", "Leonding", "Ansfelden", "Pasching", "Hörsching"),
-        new("Linz-Stadt", "Linz", "Urfahr"),
-        new("Wels-Land", "Wels", "Marchtrenk", "Gunskirchen"),
-        new("Steyr-Land", "Steyr", "Sierning", "Garsten"),
-    ];
+    [ObservableProperty]
+    private List<BundeslandModel> _bundeslaender = [];
 
-    public HomeFilterBarViewModel(IFilterStateService filterStateService)
+    public HomeFilterBarViewModel(IFilterStateService filterStateService, ILocationService locationService)
     {
         _filterStateService = filterStateService;
+        _locationService = locationService;
 
         // Subscribe to filter state changes
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
 
         // Initialize from current state
         SyncFromFilterState();
+
+        // Load locations from API
+        _ = LoadLocationsAsync();
+    }
+
+    private async Task LoadLocationsAsync()
+    {
+        var locations = await _locationService.GetLocationsAsync();
+
+        Bundeslaender = locations
+            .Select(bl => new BundeslandModel(
+                bl.Id, bl.Key, bl.Name,
+                bl.Bezirke.Select(b => new BezirkModel(
+                    b.Id, b.Name,
+                    b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
+                )).ToList()
+            ))
+            .ToList();
     }
 
     private void OnFilterStateChanged(object? sender, EventArgs e)
