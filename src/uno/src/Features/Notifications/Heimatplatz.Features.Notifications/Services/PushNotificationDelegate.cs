@@ -38,6 +38,25 @@ public class PushNotificationDelegate(
     /// </summary>
     public async Task OnReceived(PushNotification notification)
     {
+        Logger.LogInformation("=== PUSH RECEIVED START ===");
+
+        // Debug: Log raw notification data
+        Logger.LogInformation("Push notification raw - Notification object: Title={NotifTitle}, Message={NotifMessage}",
+            notification.Notification?.Title ?? "(null)",
+            notification.Notification?.Message ?? "(null)");
+
+        if (notification.Data != null)
+        {
+            foreach (var kvp in notification.Data)
+            {
+                Logger.LogInformation("Push notification data: {Key}={Value}", kvp.Key, kvp.Value);
+            }
+        }
+        else
+        {
+            Logger.LogInformation("Push notification data dictionary is null");
+        }
+
         var (title, message) = ExtractNotificationContent(notification);
         Logger.LogInformation("Push notification received: {Title} - {Message}", title, message);
 
@@ -79,6 +98,9 @@ public class PushNotificationDelegate(
     {
         try
         {
+            // Ensure default channel exists (Shiny ComponentStart may not be called in Uno)
+            EnsureDefaultChannelExists();
+
             // Use Shiny.Notifications to show local notification
             var notification = new Shiny.Notifications.Notification
             {
@@ -93,6 +115,27 @@ public class PushNotificationDelegate(
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to show local notification");
+        }
+    }
+
+    private bool _channelInitialized;
+    private void EnsureDefaultChannelExists()
+    {
+        if (_channelInitialized) return;
+
+        try
+        {
+            var existingChannel = ShinyNotificationManager.GetChannel(Shiny.Notifications.Channel.Default.Identifier);
+            if (existingChannel == null)
+            {
+                ShinyNotificationManager.AddChannel(Shiny.Notifications.Channel.Default);
+                Logger.LogInformation("Default notification channel created");
+            }
+            _channelInitialized = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to create default notification channel");
         }
     }
 
