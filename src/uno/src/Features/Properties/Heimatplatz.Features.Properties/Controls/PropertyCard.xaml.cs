@@ -325,6 +325,9 @@ public sealed partial class PropertyCard : UserControl
             _ => property.SellerName
         };
 
+        // Created date (relative)
+        CreatedAtText.Text = FormatRelativeDate(property.CreatedAt);
+
         // Load images (FlipView for swipe)
         // Detach previous handler to prevent accumulation
         ImageFlipView.SelectionChanged -= OnImageFlipViewSelectionChanged;
@@ -379,6 +382,11 @@ public sealed partial class PropertyCard : UserControl
         if (price >= 1_000)
             return $"{price / 1_000:0} T€";
         return $"{price:N0} €";
+    }
+
+    private static string FormatRelativeDate(DateTime createdAt)
+    {
+        return createdAt.ToString("dd.MM.yyyy");
     }
 
     private static Microsoft.UI.Xaml.Media.Brush GetThemeResourceOrFallback(string resourceKey, string fallbackColor)

@@ -305,6 +305,19 @@
                                    Foreground="{ThemeResource DetailsBrush}"
                                    AutomationProperties.AutomationId="PropertyCard_Seller" />
                     </StackPanel>
+
+                    <!-- Datum hinzugefuegt -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="4"
+                                Margin="0,2,0,0">
+                        <FontIcon Glyph="&#xE787;"
+                                  FontSize="9"
+                                  Foreground="{ThemeResource DetailsBrush}" />
+                        <TextBlock x:Name="CreatedAtText"
+                                   FontSize="10"
+                                   Foreground="{ThemeResource DetailsBrush}"
+                                   AutomationProperties.AutomationId="PropertyCard_CreatedAt" />
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- Rechts: m² und Tags -->

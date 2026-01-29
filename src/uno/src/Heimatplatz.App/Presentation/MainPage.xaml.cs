@@ -1,4 +1,5 @@
 using Heimatplatz.Events;
+using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
@@ -21,6 +22,8 @@ public sealed partial class MainPage : Page,
     IEventHandler<NavigateBackInContentEvent>,
     IEventHandler<NavigateToRouteInContentEvent>
 {
+    private IAuthService? _authService;
+
     public MainPage()
     {
         this.InitializeComponent();
@@ -41,7 +44,39 @@ public sealed partial class MainPage : Page,
                     await navViewNavigator.NavigateRouteAsync(NavView, "Home");
                 }
             }
+
+            // Subscribe to auth changes to update PaneDisplayMode
+            if (Application.Current is App app && app.Services != null)
+            {
+                _authService = app.Services.GetService<IAuthService>();
+                if (_authService != null)
+                {
+                    _authService.AuthenticationStateChanged += OnAuthStateChanged;
+                    UpdatePaneDisplayMode(_authService.IsAuthenticated);
+                }
+            }
         };
+
+        SizeChanged += (_, _) => UpdatePaneDisplayMode(_authService?.IsAuthenticated ?? false);
+    }
+
+    private void OnAuthStateChanged(object? sender, bool isAuthenticated)
+    {
+        DispatcherQueue?.TryEnqueue(() => UpdatePaneDisplayMode(isAuthenticated));
+    }
+
+    private void UpdatePaneDisplayMode(bool isAuthenticated)
+    {
+        // Only show full pane (Left) when authenticated AND wide screen
+        // Otherwise always use LeftMinimal
+        if (isAuthenticated && ActualWidth >= 600)
+        {
+            NavView.PaneDisplayMode = NavigationViewPaneDisplayMode.Left;
+        }
+        else
+        {
+            NavView.PaneDisplayMode = NavigationViewPaneDisplayMode.LeftMinimal;
+        }
     }
 
     /// <summary>
