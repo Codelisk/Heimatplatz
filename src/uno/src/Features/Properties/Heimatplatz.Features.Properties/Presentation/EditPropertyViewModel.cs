@@ -232,8 +232,9 @@ public partial class EditPropertyViewModel : ObservableObject
 
             ShowSuccess = true;
 
-            // Wait a bit to show success message
+            // Wait a bit to show success message, then navigate back
             await Task.Delay(1500);
+            await _navigator.NavigateBackAsync(this);
         }
         catch (Exception ex)
         {

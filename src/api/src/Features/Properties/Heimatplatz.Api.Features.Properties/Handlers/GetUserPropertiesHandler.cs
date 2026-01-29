@@ -37,9 +37,10 @@ public class GetUserPropertiesHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Query properties for the authenticated user
+        // Query properties for the authenticated user, newest first
         var properties = await dbContext.Set<Property>()
             .Where(p => p.UserId == userId)
+            .OrderByDescending(p => p.CreatedAt)
             .Select(p => new PropertyListItemDto(
                 p.Id,
                 p.Title,

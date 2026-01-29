@@ -26,7 +26,7 @@
 
                 <TextBlock x:Name="SelectionText"
                            Grid.Column="0"
-                           Text="Älter als..."
+                           Text="Zeitraum"
                            FontSize="14"
                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
                            VerticalAlignment="Center"

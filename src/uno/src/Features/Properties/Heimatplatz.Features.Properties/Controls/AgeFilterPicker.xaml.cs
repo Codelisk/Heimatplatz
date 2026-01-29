@@ -67,12 +67,12 @@ public sealed partial class AgeFilterPicker : UserControl
     {
         var text = SelectedAgeFilter switch
         {
-            AgeFilter.Alle => "Älter als...",
+            AgeFilter.Alle => "Zeitraum",
             AgeFilter.EinTag => "1 Tag",
             AgeFilter.EineWoche => "1 Woche",
             AgeFilter.EinMonat => "1 Monat",
             AgeFilter.EinJahr => "1 Jahr",
-            _ => "Älter als..."
+            _ => "Zeitraum"
         };
 
         SelectionText.Text = text;

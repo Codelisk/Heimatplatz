@@ -364,10 +364,17 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 
             ShowSuccess = true;
 
-            // Formular zurücksetzen (nur bei Create)
-            if (!IsEditMode)
+            // Wait a bit to show success message
+            await Task.Delay(1500);
+
+            if (IsEditMode)
             {
-                await Task.Delay(1500);
+                // Navigate back after successful update
+                await _navigator.NavigateBackAsync(this);
+            }
+            else
+            {
+                // Reset form for next entry
                 ResetForm();
             }
         }
