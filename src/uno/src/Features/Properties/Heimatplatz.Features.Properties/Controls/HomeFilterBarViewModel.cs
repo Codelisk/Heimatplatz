@@ -25,16 +25,13 @@ public partial class HomeFilterBarViewModel : ObservableObject
     private bool _isZwangsversteigerungSelected = true;
 
     [ObservableProperty]
-    private bool _isPrivateSelected = true;
-
-    [ObservableProperty]
-    private bool _isBrokerSelected = true;
-
-    [ObservableProperty]
-    private bool _isPortalSelected = true;
-
-    [ObservableProperty]
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
+
+    /// <summary>
+    /// Liste der Anbietertypen fuer den SellerTypePicker
+    /// </summary>
+    [ObservableProperty]
+    private List<SellerTypeModel> _sellerTypes = SellerTypeModel.CreateDefaultList();
 
     [ObservableProperty]
     private List<string> _selectedOrte = [];
@@ -55,6 +52,9 @@ public partial class HomeFilterBarViewModel : ObservableObject
 
         // Subscribe to filter state changes
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
+
+        // Subscribe to SellerType changes
+        SubscribeToSellerTypeChanges();
 
         // Initialize from current state
         SyncFromFilterState();
@@ -94,16 +94,30 @@ public partial class HomeFilterBarViewModel : ObservableObject
             IsHausSelected = state.IsHausSelected;
             IsGrundstueckSelected = state.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
-            IsPrivateSelected = state.IsPrivateSelected;
-            IsBrokerSelected = state.IsBrokerSelected;
-            IsPortalSelected = state.IsPortalSelected;
             SelectedAgeFilter = state.SelectedAgeFilter;
             SelectedOrte = state.SelectedOrte.ToList();
             ResultCount = state.ResultCount;
+
+            // SellerTypes synchronisieren
+            UpdateSellerTypesFromState(state.IsPrivateSelected, state.IsBrokerSelected, state.IsPortalSelected);
         }
         finally
         {
             _isSyncing = false;
+        }
+    }
+
+    private void UpdateSellerTypesFromState(bool isPrivateSelected, bool isBrokerSelected, bool isPortalSelected)
+    {
+        foreach (var sellerType in SellerTypes)
+        {
+            sellerType.IsSelected = sellerType.Type switch
+            {
+                SellerType.Private => isPrivateSelected,
+                SellerType.Broker => isBrokerSelected,
+                SellerType.Portal => isPortalSelected,
+                _ => true
+            };
         }
     }
 
@@ -155,52 +169,25 @@ public partial class HomeFilterBarViewModel : ObservableObject
         UpdateFilterState();
     }
 
-    partial void OnIsPrivateSelectedChanged(bool value)
+    partial void OnSellerTypesChanged(List<SellerTypeModel> value)
     {
-        if (_isSyncing) return;
-
-        // Mindestens ein SellerType muss aktiv bleiben
-        if (!value && !IsBrokerSelected && !IsPortalSelected)
-        {
-            _isSyncing = true;
-            IsPrivateSelected = true;
-            _isSyncing = false;
-            return;
-        }
-
-        UpdateFilterState();
+        // Bei SellerTypes-Aenderung auf PropertyChanged der einzelnen Items subscriben
+        SubscribeToSellerTypeChanges();
     }
 
-    partial void OnIsBrokerSelectedChanged(bool value)
+    private void SubscribeToSellerTypeChanges()
     {
-        if (_isSyncing) return;
-
-        // Mindestens ein SellerType muss aktiv bleiben
-        if (!value && !IsPrivateSelected && !IsPortalSelected)
+        foreach (var sellerType in SellerTypes)
         {
-            _isSyncing = true;
-            IsBrokerSelected = true;
-            _isSyncing = false;
-            return;
+            sellerType.PropertyChanged += (s, e) =>
+            {
+                if (_isSyncing) return;
+                if (e.PropertyName == nameof(SellerTypeModel.IsSelected))
+                {
+                    UpdateFilterState();
+                }
+            };
         }
-
-        UpdateFilterState();
-    }
-
-    partial void OnIsPortalSelectedChanged(bool value)
-    {
-        if (_isSyncing) return;
-
-        // Mindestens ein SellerType muss aktiv bleiben
-        if (!value && !IsPrivateSelected && !IsBrokerSelected)
-        {
-            _isSyncing = true;
-            IsPortalSelected = true;
-            _isSyncing = false;
-            return;
-        }
-
-        UpdateFilterState();
     }
 
     partial void OnSelectedAgeFilterChanged(AgeFilter value)
@@ -217,14 +204,25 @@ public partial class HomeFilterBarViewModel : ObservableObject
 
     private void UpdateFilterState()
     {
+        var (isPrivate, isBroker, isPortal) = GetSellerTypeSelection();
+
         _filterStateService.UpdateFilters(
             IsHausSelected,
             IsGrundstueckSelected,
             IsZwangsversteigerungSelected,
             SelectedAgeFilter,
             SelectedOrte,
-            IsPrivateSelected,
-            IsBrokerSelected,
-            IsPortalSelected);
+            isPrivate,
+            isBroker,
+            isPortal);
+    }
+
+    private (bool IsPrivate, bool IsBroker, bool IsPortal) GetSellerTypeSelection()
+    {
+        return (
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Private)?.IsSelected ?? true,
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true,
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Portal)?.IsSelected ?? true
+        );
     }
 }
