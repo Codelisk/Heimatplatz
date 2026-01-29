@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
     <!-- Core -->
     <ProjectReference Include="..\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj" />
+    <ProjectReference Include="..\Heimatplatz.Core.DeepLink\Heimatplatz.Core.DeepLink.csproj" />
     <!-- ThirdParty -->
     <ProjectReference Include="..\..\ThirdParty\Heimatplatz.ThirdParty.ShinyHosting\Heimatplatz.ThirdParty.ShinyHosting.csproj" />
     <!-- Framework -->
