@@ -140,7 +140,7 @@
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout Orientation="Horizontal"
                                                    MinItemWidth="240"
-                                                   MinItemHeight="300"
+                                                   MinItemHeight="330"
                                                    MinRowSpacing="16"
                                                    MinColumnSpacing="16"
                                                    ItemsStretch="Fill" />
