@@ -17,6 +17,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IClipboardService _clipboardService;
+    private readonly IShareService _shareService;
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
     private readonly IPropertyStatusService _propertyStatusService;
@@ -90,6 +91,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
 
     public PropertyDetailViewModel(
         IClipboardService clipboardService,
+        IShareService shareService,
         IMediator mediator,
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
@@ -97,6 +99,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         PropertyDetailData data)
     {
         _clipboardService = clipboardService;
+        _shareService = shareService;
         _mediator = mediator;
         _authService = authService;
         _propertyStatusService = propertyStatusService;
@@ -282,6 +285,33 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         _logger.LogInformation("[PropertyDetail] Toggling favorite for {PropertyId}", Property.Id);
 
         IsFavorite = await _propertyStatusService.ToggleFavoriteAsync(Property.Id);
+    }
+
+    /// <summary>
+    /// Teilt die Immobilie ueber nativen Share-Dialog oder Zwischenablage
+    /// </summary>
+    [RelayCommand]
+    private async Task SharePropertyAsync()
+    {
+        if (Property == null)
+            return;
+
+        _logger.LogInformation("[PropertyDetail] Sharing property {PropertyId}", Property.Id);
+
+        // Build share URL for the property
+        var propertyUrl = new Uri($"https://heimatplatz.at/immobilie/{Property.Id}");
+
+        var description = $"{Property.Title}\n" +
+                          $"{FormattedPrice}\n" +
+                          $"{AddressText}";
+
+        var success = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
+        if (success)
+        {
+            CopyFeedback = "Geteilt!";
+            await Task.Delay(2000);
+            CopyFeedback = null;
+        }
     }
 
     #region INavigationAware Implementation

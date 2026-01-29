@@ -18,6 +18,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IClipboardService _clipboardService;
+    private readonly IShareService _shareService;
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
     private readonly IPropertyStatusService _propertyStatusService;
@@ -156,6 +157,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
 
     public ForeclosureDetailViewModel(
         IClipboardService clipboardService,
+        IShareService shareService,
         IMediator mediator,
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
@@ -163,6 +165,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         ForeclosureDetailData data)
     {
         _clipboardService = clipboardService;
+        _shareService = shareService;
         _mediator = mediator;
         _authService = authService;
         _propertyStatusService = propertyStatusService;
@@ -459,6 +462,34 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         _logger.LogInformation("[ForeclosureDetail] Toggling favorite for {PropertyId}", Property.Id);
 
         IsFavorite = await _propertyStatusService.ToggleFavoriteAsync(Property.Id);
+    }
+
+    /// <summary>
+    /// Teilt die Zwangsversteigerung ueber nativen Share-Dialog oder Zwischenablage
+    /// </summary>
+    [RelayCommand]
+    private async Task SharePropertyAsync()
+    {
+        if (Property == null)
+            return;
+
+        _logger.LogInformation("[ForeclosureDetail] Sharing property {PropertyId}", Property.Id);
+
+        // Build share URL for the foreclosure
+        var propertyUrl = new Uri($"https://heimatplatz.at/zwangsversteigerung/{Property.Id}");
+
+        var description = $"Zwangsversteigerung: {Property.Title}\n" +
+                          $"Termin: {AuctionDateText}\n" +
+                          $"Mindestgebot: {MinimumBidText}\n" +
+                          $"Standort: {AddressText}";
+
+        var success = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
+        if (success)
+        {
+            CopyFeedback = "Geteilt!";
+            await Task.Delay(2000);
+            CopyFeedback = null;
+        }
     }
 
     #region INavigationAware Implementation
