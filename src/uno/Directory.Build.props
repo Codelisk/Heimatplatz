@@ -7,8 +7,8 @@
     <!-- UNO_SINGLE_TARGET wird zentral in Directory.Build.props (Root) definiert -->
     <!-- Mögliche Werte: android, ios, desktop, wasm, framebuffer, false (alle) -->
 
-    <!-- Fix für AAPT2 Pfadlängen-Problem auf Windows (nur bei Android Single Target) -->
-    <BaseIntermediateOutputPath Condition="'$(UNO_SINGLE_TARGET)' == 'android' AND '$(OS)' == 'Windows_NT'">C:\i\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <!-- Fix für AAPT2 Pfadlängen-Problem auf Windows -->
+    <BaseIntermediateOutputPath Condition="'$(OS)' == 'Windows_NT'">C:\i\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
 
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'false'">$(NetVersion)-android;$(NetVersion)-ios;$(NetVersion)-desktop;$(NetVersion)-browserwasm;$(NetVersion)</UnoFrameworks>
     <UnoFrameworks Condition="'$(UNO_SINGLE_TARGET)' == 'desktop'">$(NetVersion)-desktop</UnoFrameworks>
