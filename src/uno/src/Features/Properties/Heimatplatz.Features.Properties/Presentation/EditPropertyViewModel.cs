@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Core.ApiClient.Manual;
+using Heimatplatz.Core.ApiClient.Generated;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
@@ -16,7 +16,6 @@ public partial class EditPropertyViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
-    private readonly UpdatePropertyManualClient _updatePropertyClient;
     private readonly INavigator _navigator;
 
     // Property ID being edited
@@ -30,11 +29,11 @@ public partial class EditPropertyViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(SelectedTyp), nameof(IsHouseType), nameof(IsLandType))]
     private PropertyTypeItem? _selectedPropertyTypeItem;
 
-    public PropertyType SelectedTyp => SelectedPropertyTypeItem?.Value ?? PropertyType.House;
+    public Features.Properties.Contracts.Models.PropertyType SelectedTyp => SelectedPropertyTypeItem?.Value ?? Features.Properties.Contracts.Models.PropertyType.House;
 
     // Visibility properties based on selected property type
-    public bool IsHouseType => SelectedTyp == PropertyType.House;
-    public bool IsLandType => SelectedTyp == PropertyType.Land;
+    public bool IsHouseType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.House;
+    public bool IsLandType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.Land;
 
     // Common Fields
     [ObservableProperty]
@@ -83,13 +82,11 @@ public partial class EditPropertyViewModel : ObservableObject
     public EditPropertyViewModel(
         IAuthService authService,
         IMediator mediator,
-        UpdatePropertyManualClient updatePropertyClient,
         INavigator navigator,
         EditPropertyData data)
     {
         _authService = authService;
         _mediator = mediator;
-        _updatePropertyClient = updatePropertyClient;
         _navigator = navigator;
 
         PropertyId = data.PropertyId;
@@ -113,7 +110,7 @@ public partial class EditPropertyViewModel : ObservableObject
         {
             // Load property details using GetPropertyByIdHttpRequest
             var result = await _mediator.Request(
-                new Heimatplatz.Core.ApiClient.Generated.GetPropertyByIdHttpRequest
+                new GetPropertyByIdHttpRequest
                 {
                     Id = propertyId
                 }
@@ -209,30 +206,29 @@ public partial class EditPropertyViewModel : ObservableObject
 
             // Get seller info from auth service
             var sellerName = _authService.UserFullName ?? "Unbekannt";
-            var sellerType = 0; // Privat (default for all users)
 
-            // Update property using manual client
-            // WORKAROUND: Using manual client due to Shiny Mediator OpenAPI generator bug
-            // See: https://github.com/shinyorg/mediator/issues/54
-            var updateRequest = new UpdatePropertyRequestDto
+            // Update property using generated Mediator request
+            await _mediator.Request(new UpdatePropertyHttpRequest
             {
-                Title = Titel.Trim(),
-                Address = Adresse.Trim(),
-                City = Ort.Trim(),
-                PostalCode = Plz.Trim(),
-                Price = preisValue,
-                Type = (int)SelectedTyp,
-                SellerType = sellerType,
-                SellerName = sellerName,
-                Description = Beschreibung.Trim(),
-                LivingAreaSquareMeters = wohnflaecheValue,
-                PlotAreaSquareMeters = grundstuecksValue,
-                Rooms = zimmerValue,
-                YearBuilt = baujahrValue,
-                TypeSpecificData = null
-            };
-
-            await _updatePropertyClient.UpdatePropertyAsync(PropertyId, updateRequest);
+                Body = new UpdatePropertyRequest
+                {
+                    Id = PropertyId,
+                    Title = Titel.Trim(),
+                    Address = Adresse.Trim(),
+                    City = Ort.Trim(),
+                    PostalCode = Plz.Trim(),
+                    Price = (double)preisValue,
+                    Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
+                    SellerType = Core.ApiClient.Generated.SellerType.Private,
+                    SellerName = sellerName,
+                    Description = Beschreibung.Trim(),
+                    LivingAreaSquareMeters = wohnflaecheValue,
+                    PlotAreaSquareMeters = grundstuecksValue,
+                    Rooms = zimmerValue,
+                    YearBuilt = baujahrValue,
+                    TypeSpecificData = null
+                }
+            });
 
             ShowSuccess = true;
 

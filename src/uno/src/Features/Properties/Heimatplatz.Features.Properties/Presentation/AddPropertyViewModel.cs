@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Core.ApiClient.Manual;
+using Heimatplatz.Core.ApiClient.Generated;
 using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
@@ -20,7 +20,6 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
-    private readonly UpdatePropertyManualClient _updatePropertyClient;
     private readonly INavigator _navigator;
 
     // Edit Mode - Property ID if editing existing property
@@ -36,12 +35,12 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [NotifyPropertyChangedFor(nameof(SelectedTyp), nameof(IsHouseType), nameof(IsLandType), nameof(IsForeclosureType))]
     private PropertyTypeItem? _selectedPropertyTypeItem;
 
-    public PropertyType SelectedTyp => SelectedPropertyTypeItem?.Value ?? PropertyType.House;
+    public Features.Properties.Contracts.Models.PropertyType SelectedTyp => SelectedPropertyTypeItem?.Value ?? Features.Properties.Contracts.Models.PropertyType.House;
 
     // Visibility properties based on selected property type
-    public bool IsHouseType => SelectedTyp == PropertyType.House;
-    public bool IsLandType => SelectedTyp == PropertyType.Land;
-    public bool IsForeclosureType => SelectedTyp == PropertyType.Foreclosure;
+    public bool IsHouseType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.House;
+    public bool IsLandType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.Land;
+    public bool IsForeclosureType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.Foreclosure;
 
     // Common Fields
     [ObservableProperty]
@@ -76,7 +75,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 
     // Foreclosure-Specific Fields
     [ObservableProperty]
-    private PropertyCategory _selectedPropertyCategory = PropertyCategory.Einfamilienhaus;
+    private Features.Properties.Contracts.Models.PropertyCategory _selectedPropertyCategory = Features.Properties.Contracts.Models.PropertyCategory.Einfamilienhaus;
 
     [ObservableProperty]
     private DateTimeOffset _auctionDate = DateTimeOffset.Now.AddDays(30);
@@ -178,12 +177,10 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     public AddPropertyViewModel(
         IAuthService authService,
         IMediator mediator,
-        UpdatePropertyManualClient updatePropertyClient,
         INavigator navigator)
     {
         _authService = authService;
         _mediator = mediator;
-        _updatePropertyClient = updatePropertyClient;
         _navigator = navigator;
 
         // Set default property type
@@ -214,7 +211,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         {
             // Load property details using GetPropertyByIdHttpRequest
             var result = await _mediator.Request(
-                new Heimatplatz.Core.ApiClient.Generated.GetPropertyByIdHttpRequest
+                new GetPropertyByIdHttpRequest
                 {
                     Id = propertyId
                 }
@@ -311,52 +308,49 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 
             // Get seller info from auth service
             var sellerName = _authService.UserFullName ?? "Unbekannt";
-            var sellerType = 0; // Privat (default for all users)
 
             // TypeSpecificData for future use
             Dictionary<string, object>? typeSpecificData = null;
 
             if (IsEditMode)
             {
-                // Update existing property using manual client
-                // WORKAROUND: Using manual client due to Shiny Mediator OpenAPI generator bug
-                // See: https://github.com/shinyorg/mediator/issues/54
-                var updateRequest = new Heimatplatz.Core.ApiClient.Manual.UpdatePropertyRequestDto
+                // Update existing property using generated Mediator request
+                await _mediator.Request(new UpdatePropertyHttpRequest
                 {
-                    Title = Titel.Trim(),
-                    Address = Adresse.Trim(),
-                    City = Ort.Trim(),
-                    PostalCode = Plz.Trim(),
-                    Price = preisValue,
-                    Type = (int)SelectedTyp,
-                    SellerType = sellerType,
-                    SellerName = sellerName,
-                    Description = Beschreibung.Trim(),
-                    LivingAreaSquareMeters = wohnflaecheValue,
-                    PlotAreaSquareMeters = grundstuecksValue,
-                    Rooms = zimmerValue,
-                    YearBuilt = baujahrValue,
-                    TypeSpecificData = typeSpecificData
-                };
-
-                await _updatePropertyClient.UpdatePropertyAsync(
-                    PropertyId!.Value,
-                    updateRequest);
+                    Body = new UpdatePropertyRequest
+                    {
+                        Id = PropertyId!.Value,
+                        Title = Titel.Trim(),
+                        Address = Adresse.Trim(),
+                        City = Ort.Trim(),
+                        PostalCode = Plz.Trim(),
+                        Price = (double)preisValue,
+                        Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
+                        SellerType = Core.ApiClient.Generated.SellerType.Private,
+                        SellerName = sellerName,
+                        Description = Beschreibung.Trim(),
+                        LivingAreaSquareMeters = wohnflaecheValue,
+                        PlotAreaSquareMeters = grundstuecksValue,
+                        Rooms = zimmerValue,
+                        YearBuilt = baujahrValue,
+                        TypeSpecificData = typeSpecificData
+                    }
+                });
             }
             else
             {
                 // Create new property using generated client
-                var response = await _mediator.Request(new Heimatplatz.Core.ApiClient.Generated.CreatePropertyHttpRequest
+                var response = await _mediator.Request(new CreatePropertyHttpRequest
                 {
-                    Body = new Heimatplatz.Core.ApiClient.Generated.CreatePropertyRequest
+                    Body = new CreatePropertyRequest
                     {
                         Title = Titel.Trim(),
                         Address = Adresse.Trim(),
                         City = Ort.Trim(),
                         PostalCode = Plz.Trim(),
                         Price = (double)preisValue,
-                        Type = (Heimatplatz.Core.ApiClient.Generated.PropertyType)SelectedTyp,
-                        SellerType = (Heimatplatz.Core.ApiClient.Generated.SellerType)sellerType,
+                        Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
+                        SellerType = Core.ApiClient.Generated.SellerType.Private,
                         SellerName = sellerName,
                         Description = Beschreibung.Trim(),
                         LivingAreaSquareMeters = wohnflaecheValue,
@@ -411,7 +405,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
 
         // Reset foreclosure fields
-        SelectedPropertyCategory = PropertyCategory.Einfamilienhaus;
+        SelectedPropertyCategory = Features.Properties.Contracts.Models.PropertyCategory.Einfamilienhaus;
         AuctionDate = DateTimeOffset.Now.AddDays(30);
         EstimatedValue = string.Empty;
         MinimumBid = string.Empty;
