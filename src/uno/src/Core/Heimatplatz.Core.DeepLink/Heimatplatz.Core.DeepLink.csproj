@@ -1,0 +1,15 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
+
+    <UnoFeatures>
+      Navigation;
+      Logging;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
+    <ProjectReference Include="..\..\Features\Properties\Heimatplatz.Features.Properties.Contracts\Heimatplatz.Features.Properties.Contracts.csproj" />
+  </ItemGroup>
+</Project>

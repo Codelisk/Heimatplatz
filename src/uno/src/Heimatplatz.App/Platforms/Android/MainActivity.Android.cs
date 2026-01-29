@@ -10,11 +10,26 @@ namespace Heimatplatz.App.Droid;
 [Activity(
     MainLauncher = true,
     ConfigurationChanges = global::Uno.UI.ActivityHelper.AllConfigChanges,
-    WindowSoftInputMode = SoftInput.AdjustNothing | SoftInput.StateHidden
+    WindowSoftInputMode = SoftInput.AdjustNothing | SoftInput.StateHidden,
+    Exported = true
 )]
 [IntentFilter(
     ["SHINY_PUSH_NOTIFICATION_CLICK"],
     Categories = ["android.intent.category.DEFAULT"]
+)]
+// Deep Link: heimatplatz://property/{guid}
+[IntentFilter(
+    [Intent.ActionView],
+    Categories = [Intent.CategoryDefault, Intent.CategoryBrowsable],
+    DataScheme = "heimatplatz",
+    DataHost = "property"
+)]
+// Deep Link: heimatplatz://foreclosure/{guid}
+[IntentFilter(
+    [Intent.ActionView],
+    Categories = [Intent.CategoryDefault, Intent.CategoryBrowsable],
+    DataScheme = "heimatplatz",
+    DataHost = "foreclosure"
 )]
 public class MainActivity : Microsoft.UI.Xaml.ApplicationActivity
 {
