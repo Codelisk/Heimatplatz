@@ -1,4 +1,5 @@
 
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using Heimatplatz.Api.Authorization;
@@ -99,8 +100,13 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
-app.Services.EnsureDatabaseCreated();
-await app.RunSeedersAsync();
+// Skip database initialization during OpenAPI build-time document generation
+// The GetDocument.Insider assembly is used by Microsoft.Extensions.ApiDescription.Server
+if (Assembly.GetEntryAssembly()?.GetName().Name != "GetDocument.Insider")
+{
+    app.Services.EnsureDatabaseCreated();
+    await app.RunSeedersAsync();
+}
 
 app.UseCors();
 app.UseHttpsRedirection();
