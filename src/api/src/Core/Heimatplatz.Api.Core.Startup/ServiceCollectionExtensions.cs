@@ -1,3 +1,4 @@
+using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Core.Data.Seeding.Configuration;
@@ -7,7 +8,10 @@ using Heimatplatz.Api.Features.Locations.Configuration;
 using Heimatplatz.Api.Features.Properties.Configuration;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Configuration;
 using Heimatplatz.Api.Features.Notifications.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 // Feature endpoint namespaces
 using Heimatplatz.Api.Features.Auth;
@@ -58,10 +62,81 @@ public static class ServiceCollectionExtensions
         return app;
     }
 
-    public static async Task RunSeedersAsync(this WebApplication app)
+    /// <summary>
+    /// Initialisiert die Datenbank und führt optional Seeding aus.
+    /// Basiert auf den DatabaseOptions aus appsettings.{Environment}.json.
+    /// </summary>
+    public static async Task InitializeDatabaseAsync(this WebApplication app)
     {
-        using var scope = app.Services.CreateScope();
-        var seederRunner = scope.ServiceProvider.GetRequiredService<SeederRunner>();
-        await seederRunner.RunAllSeedersAsync();
+        var options = app.Services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+        var configuration = app.Services.GetRequiredService<IConfiguration>();
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseInitialization");
+
+        // Skip database initialization wenn weder Migration noch Seeding aktiviert sind
+        // (z.B. für Build-Tools wie OpenAPI Generator die ohne echte DB laufen)
+        if (!options.AutoMigrate && !options.EnableSeeding)
+        {
+            logger.LogDebug("Database initialization skipped (AutoMigrate=false, EnableSeeding=false).");
+            return;
+        }
+
+        // Validierung: Connection String muss zur Laufzeit konfiguriert sein
+        // :memory: ist nur für Build-Tools erlaubt, nicht für echte Anwendungen
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "Data Source=:memory:")
+        {
+            logger.LogCritical(
+                "Connection string 'DefaultConnection' is not configured or uses in-memory placeholder. " +
+                "Please set it in appsettings.{{Environment}}.json or via environment variable " +
+                "'ConnectionStrings__DefaultConnection'.");
+            throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' is not configured. " +
+                "Please set it in appsettings.{Environment}.json or via environment variable " +
+                "'ConnectionStrings__DefaultConnection'.");
+        }
+
+        logger.LogInformation("Database initialization started. AutoMigrate={AutoMigrate}, EnableSeeding={EnableSeeding}",
+            options.AutoMigrate, options.EnableSeeding);
+
+        // Auto-Migration wenn aktiviert (Development)
+        if (options.AutoMigrate)
+        {
+            logger.LogInformation("Running database migrations...");
+            await using var scope = app.Services.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            // Prüfen ob die Datenbank existiert - wenn nicht, nutze EnsureCreated
+            // Dies ist nötig da EnsureCreated kein Migration-Tracking macht
+            if (!await dbContext.Database.CanConnectAsync())
+            {
+                logger.LogInformation("Database does not exist, creating with EnsureCreated...");
+                await dbContext.Database.EnsureCreatedAsync();
+            }
+            else
+            {
+                // Bei existierender DB versuche Migrations anzuwenden
+                try
+                {
+                    await dbContext.Database.MigrateAsync();
+                }
+                catch (Exception ex) when (ex.Message.Contains("PendingModelChanges"))
+                {
+                    logger.LogWarning("Pending model changes detected. For Development, recreating database...");
+                    await dbContext.Database.EnsureDeletedAsync();
+                    await dbContext.Database.EnsureCreatedAsync();
+                }
+            }
+            logger.LogInformation("Database migrations completed.");
+        }
+
+        // Seeding wenn aktiviert (Development)
+        if (options.EnableSeeding)
+        {
+            logger.LogInformation("Running database seeders...");
+            using var scope = app.Services.CreateScope();
+            var seederRunner = scope.ServiceProvider.GetRequiredService<SeederRunner>();
+            await seederRunner.RunAllSeedersAsync();
+            logger.LogInformation("Database seeding completed.");
+        }
     }
 }

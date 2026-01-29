@@ -99,8 +99,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
-app.Services.EnsureDatabaseCreated();
-await app.RunSeedersAsync();
+// Datenbank initialisieren (Migration + Seeding basierend auf DatabaseOptions)
+await app.InitializeDatabaseAsync();
 
 app.UseCors();
 app.UseHttpsRedirection();
