@@ -74,5 +74,21 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasIndex(p => p.Price);
         builder.HasIndex(p => p.CreatedAt);
         builder.HasIndex(p => p.UserId);
+
+        // Import-Tracking Felder
+        builder.Property(p => p.SourceName)
+            .HasMaxLength(100);
+
+        builder.Property(p => p.SourceId)
+            .HasMaxLength(200);
+
+        builder.Property(p => p.SourceUrl)
+            .HasMaxLength(2000);
+
+        // Unique Index fuer Import-Duplikat-Erkennung (nur wenn beide Felder gesetzt sind)
+        // SQLite verwendet andere Syntax als SQL Server
+        builder.HasIndex(p => new { p.SourceName, p.SourceId })
+            .IsUnique()
+            .HasFilter("\"SourceName\" IS NOT NULL AND \"SourceId\" IS NOT NULL");
     }
 }

@@ -71,6 +71,20 @@ public class Property : BaseEntity
     /// <summary>Kontaktinformationen zu dieser Immobilie</summary>
     public List<PropertyContactInfo> Contacts { get; set; } = [];
 
+    // === Import-Tracking Felder ===
+
+    /// <summary>Name des Quellsystems (z.B. "ImmoScout24", "Willhaben")</summary>
+    public string? SourceName { get; set; }
+
+    /// <summary>Externe ID im Quellsystem</summary>
+    public string? SourceId { get; set; }
+
+    /// <summary>Original-URL beim Quellsystem</summary>
+    public string? SourceUrl { get; set; }
+
+    /// <summary>Letzte Aktualisierung beim Quellsystem</summary>
+    public DateTimeOffset? SourceLastUpdated { get; set; }
+
     /// <summary>
     /// Gets the type-specific data deserialized to the specified type
     /// </summary>

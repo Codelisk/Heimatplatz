@@ -954,6 +954,36 @@
           }
         }
       }
+    },
+    "/api/import/properties": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ImportProperties",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportPropertiesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPropertiesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1861,6 +1891,285 @@
             "type": "boolean"
           }
         }
+      },
+      "ImportContactDto": {
+        "required": [
+          "Type"
+        ],
+        "type": "object",
+        "properties": {
+          "Type": {
+            "$ref": "#/components/schemas/ContactType"
+          },
+          "Name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ImportPropertiesRequest": {
+        "required": [
+          "Properties"
+        ],
+        "type": "object",
+        "properties": {
+          "Properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportPropertyDto"
+            }
+          },
+          "UpdateExisting": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "ImportPropertiesResponse": {
+        "required": [
+          "TotalReceived",
+          "Created",
+          "Updated",
+          "Skipped",
+          "Failed",
+          "Results"
+        ],
+        "type": "object",
+        "properties": {
+          "TotalReceived": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Created": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Updated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Skipped": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Failed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportResultItem"
+            }
+          }
+        }
+      },
+      "ImportPropertyDto": {
+        "required": [
+          "SourceName",
+          "SourceId",
+          "SourceUrl",
+          "Title",
+          "Address",
+          "City",
+          "PostalCode",
+          "Price",
+          "Type",
+          "SellerType",
+          "SellerName"
+        ],
+        "type": "object",
+        "properties": {
+          "SourceName": {
+            "type": "string"
+          },
+          "SourceId": {
+            "type": "string"
+          },
+          "SourceUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "SellerName": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LivingAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PlotAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "YearBuilt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Features": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "ImageUrls": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "TypeSpecificData": {
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "Contacts": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ImportContactDto"
+            }
+          },
+          "InquiryType": {
+            "$ref": "#/components/schemas/InquiryType"
+          }
+        }
+      },
+      "ImportResultItem": {
+        "required": [
+          "SourceId",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "SourceId": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/ImportResultStatus"
+          },
+          "PropertyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "ErrorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ImportResultStatus": {
+        "enum": [
+          "Created",
+          "Updated",
+          "Skipped",
+          "Failed"
+        ]
       },
       "InquiryType": {
         "enum": [
