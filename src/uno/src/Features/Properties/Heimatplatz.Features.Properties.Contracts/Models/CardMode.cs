@@ -18,5 +18,10 @@ public enum CardMode
     /// <summary>
     /// Blockiert-Modus: Zeigt X-Icon zum Entblockieren
     /// </summary>
-    Blocked
+    Blocked,
+
+    /// <summary>
+    /// Owner-Modus: Zeigt X-Icon zum Löschen der eigenen Immobilie
+    /// </summary>
+    Owner
 }

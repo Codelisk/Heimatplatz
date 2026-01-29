@@ -1,3 +1,4 @@
+using WinInput = System.Windows.Input;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,6 +97,11 @@ public sealed partial class PropertyCard : UserControl
     public event EventHandler<PropertyListItemDto>? PropertyFavorited;
 
     /// <summary>
+    /// Event wenn die eigene Immobilie gelöscht werden soll (Owner-Modus)
+    /// </summary>
+    public event EventHandler<PropertyListItemDto>? PropertyDeleted;
+
+    /// <summary>
     /// Die anzuzeigende Immobilie
     /// </summary>
     public static readonly DependencyProperty PropertyProperty =
@@ -191,6 +197,38 @@ public sealed partial class PropertyCard : UserControl
         set => SetValue(ModeProperty, value);
     }
 
+    /// <summary>
+    /// Command das beim Klick auf die Card ausgeführt wird (Alternative zu CardClicked Event)
+    /// </summary>
+    public static readonly DependencyProperty CardClickedCommandProperty =
+        DependencyProperty.Register(
+            nameof(CardClickedCommand),
+            typeof(WinInput.ICommand),
+            typeof(PropertyCard),
+            new PropertyMetadata(null));
+
+    public WinInput.ICommand? CardClickedCommand
+    {
+        get => (WinInput.ICommand?)GetValue(CardClickedCommandProperty);
+        set => SetValue(CardClickedCommandProperty, value);
+    }
+
+    /// <summary>
+    /// Command das beim Löschen der Immobilie ausgeführt wird (Alternative zu PropertyDeleted Event)
+    /// </summary>
+    public static readonly DependencyProperty DeleteCommandProperty =
+        DependencyProperty.Register(
+            nameof(DeleteCommand),
+            typeof(WinInput.ICommand),
+            typeof(PropertyCard),
+            new PropertyMetadata(null));
+
+    public WinInput.ICommand? DeleteCommand
+    {
+        get => (WinInput.ICommand?)GetValue(DeleteCommandProperty);
+        set => SetValue(DeleteCommandProperty, value);
+    }
+
     private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is PropertyCard card && e.NewValue is PropertyListItemDto property)
@@ -233,9 +271,16 @@ public sealed partial class PropertyCard : UserControl
 
     private void UpdateActionButtonVisibility()
     {
-        MoreOptionsButton.Visibility = Mode == CardMode.Default && IsAuthenticated ? Visibility.Visible : Visibility.Collapsed;
-        FavoriteActionButton.Visibility = Mode == CardMode.Favorite ? Visibility.Visible : Visibility.Collapsed;
-        BlockedActionButton.Visibility = Mode == CardMode.Blocked ? Visibility.Visible : Visibility.Collapsed;
+        // Null-Checks nötig, da diese Methode von DependencyProperty-Callbacks aufgerufen wird,
+        // bevor InitializeComponent() abgeschlossen ist
+        if (MoreOptionsButton != null)
+            MoreOptionsButton.Visibility = Mode == CardMode.Default && IsAuthenticated ? Visibility.Visible : Visibility.Collapsed;
+        if (FavoriteActionButton != null)
+            FavoriteActionButton.Visibility = Mode == CardMode.Favorite ? Visibility.Visible : Visibility.Collapsed;
+        if (BlockedActionButton != null)
+            BlockedActionButton.Visibility = Mode == CardMode.Blocked ? Visibility.Visible : Visibility.Collapsed;
+        if (OwnerDeleteButton != null)
+            OwnerDeleteButton.Visibility = Mode == CardMode.Owner ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void UpdateMenuTexts()
@@ -411,7 +456,14 @@ public sealed partial class PropertyCard : UserControl
     {
         if (Property != null)
         {
+            // Invoke event (for code-behind handlers)
             CardClicked?.Invoke(this, Property);
+
+            // Invoke command (for MVVM binding)
+            if (CardClickedCommand?.CanExecute(Property) == true)
+            {
+                CardClickedCommand.Execute(Property);
+            }
         }
     }
 
@@ -502,6 +554,21 @@ public sealed partial class PropertyCard : UserControl
         if (Property != null)
         {
             PropertyBlocked?.Invoke(this, Property);
+        }
+    }
+
+    private void OnOwnerDeleteClick(object sender, RoutedEventArgs e)
+    {
+        if (Property != null)
+        {
+            // Invoke event (for code-behind handlers)
+            PropertyDeleted?.Invoke(this, Property);
+
+            // Invoke command (for MVVM binding)
+            if (DeleteCommand?.CanExecute(Property) == true)
+            {
+                DeleteCommand.Execute(Property);
+            }
         }
     }
 }

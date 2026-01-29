@@ -106,7 +106,7 @@
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout Orientation="Horizontal"
                                                    MinItemWidth="240"
-                                                   MinItemHeight="300"
+                                                   MinItemHeight="330"
                                                    MinRowSpacing="16"
                                                    MinColumnSpacing="16"
                                                    ItemsStretch="Fill" />
@@ -114,52 +114,11 @@
 
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
-                                        <!-- Property Card -->
-                                        <controls:PropertyCard Property="{Binding}"
-                                                               Margin="0" />
-
-                                        <!-- Action Buttons Overlay -->
-                                        <Border Background="{ThemeResource SurfaceBrush}"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Top"
-                                                CornerRadius="{StaticResource ControlCornerRadius}"
-                                                Margin="8"
-                                                Padding="4"
-                                                BorderBrush="{ThemeResource OutlineBrush}"
-                                                BorderThickness="1">
-                                            <Border.Shadow>
-                                                <ThemeShadow />
-                                            </Border.Shadow>
-
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <!-- Edit Button -->
-                                                <Button Style="{StaticResource IconButtonStyle}"
-                                                        Command="{Binding DataContext.EditPropertyCommand, ElementName=RootPage}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTipService.ToolTip="Bearbeiten"
-                                                        Width="36"
-                                                        Height="36"
-                                                        Padding="0">
-                                                    <FontIcon Glyph="&#xE70F;"
-                                                              FontSize="16" />
-                                                </Button>
-
-                                                <!-- Delete Button -->
-                                                <Button Style="{StaticResource IconButtonStyle}"
-                                                        Command="{Binding DataContext.DeletePropertyCommand, ElementName=RootPage}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTipService.ToolTip="Löschen"
-                                                        Width="36"
-                                                        Height="36"
-                                                        Padding="0">
-                                                    <FontIcon Glyph="&#xE74D;"
-                                                              FontSize="16"
-                                                              Foreground="{ThemeResource ErrorBrush}" />
-                                                </Button>
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
+                                    <controls:PropertyCard Property="{Binding}"
+                                                           Mode="Owner"
+                                                           CardClickedCommand="{Binding DataContext.EditPropertyCommand, ElementName=RootPage}"
+                                                           DeleteCommand="{Binding DataContext.DeletePropertyCommand, ElementName=RootPage}"
+                                                           Margin="0" />
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
