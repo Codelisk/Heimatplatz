@@ -71,6 +71,12 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private bool _isPortalSelected = true;
 
+    /// <summary>
+    /// Liste der Anbietertypen fuer den SellerTypePicker (Mobile)
+    /// </summary>
+    [ObservableProperty]
+    private List<SellerTypeModel> _sellerTypes = SellerTypeModel.CreateDefaultList();
+
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
     public AgeFilter SelectedAgeFilter
     {
@@ -192,6 +198,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Subscribe to filter state changes from HeaderFilterBar
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
 
+        // Subscribe to SellerType changes from SellerTypePicker
+        SubscribeToSellerTypeChanges();
+
         UpdateAuthState();
 
         // Load locations from API
@@ -275,6 +284,10 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
                 .ToList();
             SetProperty(ref _selectedMunicipalityIds, ids, nameof(SelectedMunicipalityIds));
 
+            // Sync SellerTypes list from bools (while _isSyncingFromService is true,
+            // so the SellerType PropertyChanged subscription won't re-trigger)
+            UpdateSellerTypesFromBools();
+
             // Reload with new filters (server-side)
             _ = ReloadPropertiesAsync();
         }
@@ -285,6 +298,52 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     }
 
     private bool _isSyncingFromService;
+
+    private void SubscribeToSellerTypeChanges()
+    {
+        foreach (var sellerType in SellerTypes)
+        {
+            sellerType.PropertyChanged += (s, e) =>
+            {
+                if (_isSyncingFromService || _isApplyingPreferences) return;
+                if (e.PropertyName == nameof(SellerTypeModel.IsSelected))
+                {
+                    SyncBoolsFromSellerTypes();
+                }
+            };
+        }
+    }
+
+    private void SyncBoolsFromSellerTypes()
+    {
+        _isSyncingFromService = true;
+        try
+        {
+            IsPrivateSelected = SellerTypes.FirstOrDefault(st => st.Type == SellerType.Private)?.IsSelected ?? true;
+            IsBrokerSelected = SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true;
+            IsPortalSelected = SellerTypes.FirstOrDefault(st => st.Type == SellerType.Portal)?.IsSelected ?? true;
+        }
+        finally
+        {
+            _isSyncingFromService = false;
+        }
+
+        OnFiltersChanged();
+    }
+
+    private void UpdateSellerTypesFromBools()
+    {
+        foreach (var sellerType in SellerTypes)
+        {
+            sellerType.IsSelected = sellerType.Type switch
+            {
+                SellerType.Private => IsPrivateSelected,
+                SellerType.Broker => IsBrokerSelected,
+                SellerType.Portal => IsPortalSelected,
+                _ => true
+            };
+        }
+    }
 
     private async Task LoadLocationsAsync()
     {
@@ -347,6 +406,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsPrivateSelected = preferences.IsPrivateSelected;
             IsBrokerSelected = preferences.IsBrokerSelected;
             IsPortalSelected = preferences.IsPortalSelected;
+
+            // Sync SellerTypes list from preference bools
+            UpdateSellerTypesFromBools();
         }
         finally
         {

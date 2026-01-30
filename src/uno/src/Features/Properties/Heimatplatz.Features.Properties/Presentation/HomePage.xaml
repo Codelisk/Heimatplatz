@@ -117,15 +117,9 @@
                                                      IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
                             </StackPanel>
 
-                            <!-- Filter Chips: Anbietertyp -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <controls:FilterChip Label="Privat"
-                                                     IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}" />
-                                <controls:FilterChip Label="Makler"
-                                                     IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}" />
-                                <controls:FilterChip Label="Portal"
-                                                     IsSelected="{Binding IsPortalSelected, Mode=TwoWay}" />
-                            </StackPanel>
+                            <!-- Anbietertyp Picker -->
+                            <controls:SellerTypePicker SellerTypes="{Binding SellerTypes}"
+                                                       AutomationProperties.AutomationId="HomePage_MobileSellerTypePicker" />
                         </StackPanel>
                     </StackPanel>
                 </Border>

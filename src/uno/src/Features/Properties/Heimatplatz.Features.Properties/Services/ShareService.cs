@@ -111,7 +111,9 @@ public class ShareService : IShareService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in DataRequested handler");
+#if WINDOWS
             args.Request.FailWithDisplayText("Fehler beim Teilen");
+#endif
         }
         finally
         {

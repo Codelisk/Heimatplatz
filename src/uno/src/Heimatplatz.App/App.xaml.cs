@@ -38,7 +38,7 @@ public partial class App : Application, IApplicationWithServices
     /// </summary>
     public IServiceProvider? Services => Host?.Services;
 
-    protected async override void OnLaunched(LaunchActivatedEventArgs args)
+    protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         var builder = this.CreateBuilder(args)
             .UseToolkitNavigation()

@@ -1,7 +1,9 @@
 using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Auth.Presentation;
+#if DEBUG
 using Heimatplatz.Features.Debug.Presentation;
+#endif
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
