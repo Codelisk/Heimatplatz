@@ -74,8 +74,7 @@ public class UpdatePropertyHandler(
         // Update property fields
         property.Title = request.Title.Trim();
         property.Address = request.Address.Trim();
-        property.City = request.City.Trim();
-        property.PostalCode = request.PostalCode.Trim();
+        property.MunicipalityId = request.MunicipalityId;
         property.Price = request.Price;
         property.Type = request.Type;
         property.SellerType = request.SellerType;

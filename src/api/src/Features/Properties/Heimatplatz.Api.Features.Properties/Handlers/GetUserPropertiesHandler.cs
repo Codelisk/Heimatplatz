@@ -39,13 +39,16 @@ public class GetUserPropertiesHandler(
 
         // Query properties for the authenticated user, newest first
         var properties = await dbContext.Set<Property>()
+            .Include(p => p.Municipality)
             .Where(p => p.UserId == userId)
             .OrderByDescending(p => p.CreatedAt)
             .Select(p => new PropertyListItemDto(
                 p.Id,
                 p.Title,
                 p.Address,
-                p.City,
+                p.MunicipalityId,
+                p.Municipality.Name,
+                p.Municipality.PostalCode,
                 p.Price,
                 p.LivingAreaSquareMeters,
                 p.PlotAreaSquareMeters,

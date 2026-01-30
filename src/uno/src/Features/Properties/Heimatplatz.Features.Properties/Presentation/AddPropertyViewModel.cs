@@ -4,6 +4,7 @@ using Heimatplatz.Core.ApiClient.Generated;
 using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Shiny.Mediator;
@@ -21,6 +22,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
+    private readonly ILocationService _locationService;
 
     // Edit Mode - Property ID if editing existing property
     [ObservableProperty]
@@ -177,11 +179,13 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     public AddPropertyViewModel(
         IAuthService authService,
         IMediator mediator,
-        INavigator navigator)
+        INavigator navigator,
+        ILocationService locationService)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
+        _locationService = locationService;
 
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
@@ -312,6 +316,20 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
             // TypeSpecificData for future use
             Dictionary<string, object>? typeSpecificData = null;
 
+            // Resolve MunicipalityId from Ort and Plz
+            var municipalityId = await _locationService.ResolveMunicipalityIdAsync(Ort.Trim(), Plz.Trim());
+            if (municipalityId == null)
+            {
+                // Fallback: Try to get first municipality
+                var municipalities = await _locationService.GetAllMunicipalitiesAsync();
+                municipalityId = municipalities.FirstOrDefault()?.Id;
+                if (municipalityId == null)
+                {
+                    ErrorMessage = "Konnte keine passende Gemeinde für den angegebenen Ort finden";
+                    return;
+                }
+            }
+
             if (IsEditMode)
             {
                 // Update existing property using generated Mediator request
@@ -322,8 +340,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
                         Id = PropertyId!.Value,
                         Title = Titel.Trim(),
                         Address = Adresse.Trim(),
-                        City = Ort.Trim(),
-                        PostalCode = Plz.Trim(),
+                        MunicipalityId = municipalityId.Value,
                         Price = (double)preisValue,
                         Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
                         SellerType = Core.ApiClient.Generated.SellerType.Private,
@@ -346,8 +363,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
                     {
                         Title = Titel.Trim(),
                         Address = Adresse.Trim(),
-                        City = Ort.Trim(),
-                        PostalCode = Plz.Trim(),
+                        MunicipalityId = municipalityId.Value,
                         Price = (double)preisValue,
                         Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
                         SellerType = Core.ApiClient.Generated.SellerType.Private,

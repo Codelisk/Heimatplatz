@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Generated;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Shiny.Mediator;
@@ -17,6 +18,7 @@ public partial class EditPropertyViewModel : ObservableObject
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
+    private readonly ILocationService _locationService;
 
     // Property ID being edited
     [ObservableProperty]
@@ -83,11 +85,13 @@ public partial class EditPropertyViewModel : ObservableObject
         IAuthService authService,
         IMediator mediator,
         INavigator navigator,
+        ILocationService locationService,
         EditPropertyData data)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
+        _locationService = locationService;
 
         PropertyId = data.PropertyId;
 
@@ -207,6 +211,20 @@ public partial class EditPropertyViewModel : ObservableObject
             // Get seller info from auth service
             var sellerName = _authService.UserFullName ?? "Unbekannt";
 
+            // Resolve MunicipalityId from Ort and Plz
+            var municipalityId = await _locationService.ResolveMunicipalityIdAsync(Ort.Trim(), Plz.Trim());
+            if (municipalityId == null)
+            {
+                // Fallback: Try to get first municipality
+                var municipalities = await _locationService.GetAllMunicipalitiesAsync();
+                municipalityId = municipalities.FirstOrDefault()?.Id;
+                if (municipalityId == null)
+                {
+                    ErrorMessage = "Konnte keine passende Gemeinde für den angegebenen Ort finden";
+                    return;
+                }
+            }
+
             // Update property using generated Mediator request
             await _mediator.Request(new UpdatePropertyHttpRequest
             {
@@ -215,8 +233,7 @@ public partial class EditPropertyViewModel : ObservableObject
                     Id = PropertyId,
                     Title = Titel.Trim(),
                     Address = Adresse.Trim(),
-                    City = Ort.Trim(),
-                    PostalCode = Plz.Trim(),
+                    MunicipalityId = municipalityId.Value,
                     Price = (double)preisValue,
                     Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
                     SellerType = Core.ApiClient.Generated.SellerType.Private,

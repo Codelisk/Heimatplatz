@@ -84,4 +84,47 @@ public class LocationService(
             _loadSemaphore.Release();
         }
     }
+
+    public async Task<Guid?> ResolveMunicipalityIdAsync(string? cityName, string? postalCode, CancellationToken ct = default)
+    {
+        var municipalities = await GetAllMunicipalitiesAsync(ct);
+
+        // Try exact match by PostalCode first
+        if (!string.IsNullOrWhiteSpace(postalCode))
+        {
+            var byPostalCode = municipalities.FirstOrDefault(m =>
+                m.PostalCode.Equals(postalCode.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (byPostalCode != null)
+                return byPostalCode.Id;
+        }
+
+        // Try exact match by city name
+        if (!string.IsNullOrWhiteSpace(cityName))
+        {
+            var trimmedCity = cityName.Trim();
+            var byCityName = municipalities.FirstOrDefault(m =>
+                m.Name.Equals(trimmedCity, StringComparison.OrdinalIgnoreCase));
+            if (byCityName != null)
+                return byCityName.Id;
+
+            // Try partial match
+            var partialMatch = municipalities.FirstOrDefault(m =>
+                m.Name.Contains(trimmedCity, StringComparison.OrdinalIgnoreCase) ||
+                trimmedCity.Contains(m.Name, StringComparison.OrdinalIgnoreCase));
+            if (partialMatch != null)
+                return partialMatch.Id;
+        }
+
+        // No match found
+        return null;
+    }
+
+    public async Task<List<LocationGemeindeDto>> GetAllMunicipalitiesAsync(CancellationToken ct = default)
+    {
+        var locations = await GetLocationsAsync(ct);
+        return locations
+            .SelectMany(bl => bl.Bezirke)
+            .SelectMany(bz => bz.Gemeinden)
+            .ToList();
+    }
 }

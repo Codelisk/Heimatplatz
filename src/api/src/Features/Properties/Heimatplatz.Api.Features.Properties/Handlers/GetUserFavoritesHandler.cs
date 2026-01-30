@@ -37,15 +37,18 @@ public class GetUserFavoritesHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Query favorited properties
+        // Query favorited properties with Municipality
         var properties = await dbContext.Set<Favorite>()
             .Where(f => f.UserId == userId)
             .Include(f => f.Property)
+                .ThenInclude(p => p.Municipality)
             .Select(f => new PropertyListItemDto(
                 f.Property.Id,
                 f.Property.Title,
                 f.Property.Address,
-                f.Property.City,
+                f.Property.MunicipalityId,
+                f.Property.Municipality.Name,
+                f.Property.Municipality.PostalCode,
                 f.Property.Price,
                 f.Property.LivingAreaSquareMeters,
                 f.Property.PlotAreaSquareMeters,

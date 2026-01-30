@@ -37,15 +37,18 @@ public class GetUserBlockedHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Query blocked properties
+        // Query blocked properties with Municipality
         var properties = await dbContext.Set<Blocked>()
             .Where(b => b.UserId == userId)
             .Include(b => b.Property)
+                .ThenInclude(p => p.Municipality)
             .Select(b => new PropertyListItemDto(
                 b.Property.Id,
                 b.Property.Title,
                 b.Property.Address,
-                b.Property.City,
+                b.Property.MunicipalityId,
+                b.Property.Municipality.Name,
+                b.Property.Municipality.PostalCode,
                 b.Property.Price,
                 b.Property.LivingAreaSquareMeters,
                 b.Property.PlotAreaSquareMeters,

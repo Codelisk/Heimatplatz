@@ -591,10 +591,36 @@
         "operationId": "GetProperties",
         "parameters": [
           {
-            "name": "Type",
+            "name": "Page",
             "in": "query",
             "schema": {
-              "$ref": "#/components/schemas/PropertyType"
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "PropertyTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -602,6 +628,21 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "MunicipalityIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CreatedAfter",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           },
           {
@@ -665,43 +706,10 @@
             }
           },
           {
-            "name": "City",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "ExcludedSellerSourceIdsJson",
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "Skip",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32",
-              "default": 0
-            }
-          },
-          {
-            "name": "Take",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32",
-              "default": 20
             }
           }
         ],
@@ -1169,8 +1177,7 @@
         "required": [
           "Title",
           "Address",
-          "City",
-          "PostalCode",
+          "MunicipalityId",
           "Price",
           "Type",
           "SellerType",
@@ -1184,11 +1191,9 @@
           "Address": {
             "type": "string"
           },
-          "City": {
-            "type": "string"
-          },
-          "PostalCode": {
-            "type": "string"
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
           },
           "Price": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
@@ -1716,7 +1721,10 @@
       "GetPropertiesResponse": {
         "required": [
           "Properties",
-          "Total"
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1733,6 +1741,25 @@
               "string"
             ],
             "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
@@ -2349,6 +2376,7 @@
           "Id",
           "Title",
           "Address",
+          "MunicipalityId",
           "City",
           "PostalCode",
           "Price",
@@ -2378,6 +2406,10 @@
           },
           "Address": {
             "type": "string"
+          },
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
           },
           "City": {
             "type": "string"
@@ -2482,7 +2514,9 @@
           "Id",
           "Title",
           "Address",
+          "MunicipalityId",
           "City",
+          "PostalCode",
           "Price",
           "LivingAreaM2",
           "PlotAreaM2",
@@ -2506,7 +2540,14 @@
           "Address": {
             "type": "string"
           },
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "City": {
+            "type": "string"
+          },
+          "PostalCode": {
             "type": "string"
           },
           "Price": {
@@ -3011,11 +3052,9 @@
           "Address": {
             "type": "string"
           },
-          "City": {
-            "type": "string"
-          },
-          "PostalCode": {
-            "type": "string"
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
           },
           "Price": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",

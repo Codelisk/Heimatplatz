@@ -21,13 +21,15 @@ public class GetPropertyByIdHandler(AppDbContext dbContext) : IRequestHandler<Ge
     public async Task<GetPropertyByIdResponse> Handle(GetPropertyByIdRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var property = await dbContext.Set<Property>()
+            .Include(p => p.Municipality)
             .Where(p => p.Id == request.Id)
             .Select(p => new PropertyDto(
                 p.Id,
                 p.Title,
                 p.Address,
-                p.City,
-                p.PostalCode,
+                p.MunicipalityId,
+                p.Municipality.Name,
+                p.Municipality.PostalCode,
                 p.Price,
                 p.LivingAreaSquareMeters,
                 p.PlotAreaSquareMeters,
