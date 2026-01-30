@@ -102,7 +102,8 @@
                                     Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}">
 
                         <!-- Properties Grid -->
-                        <ItemsRepeater ItemsSource="{Binding Properties}">
+                        <ItemsRepeater ItemsSource="{Binding Properties}"
+                                       utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True">
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout Orientation="Horizontal"
                                                    MinItemWidth="240"
@@ -122,6 +123,14 @@
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
+
+                        <!-- Loading Indicator for Pagination -->
+                        <ProgressRing IsActive="{Binding Properties.IsLoading}"
+                                      Visibility="{Binding Properties.HasMoreItems}"
+                                      Width="32"
+                                      Height="32"
+                                      Margin="0,16,0,0"
+                                      HorizontalAlignment="Center" />
 
                     </utu:AutoLayout>
                 </ScrollViewer>

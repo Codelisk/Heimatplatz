@@ -37,11 +37,20 @@ public class GetUserBlockedHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Query blocked properties with Municipality
-        var properties = await dbContext.Set<Blocked>()
+        // Base query for blocked properties
+        var query = dbContext.Set<Blocked>()
             .Where(b => b.UserId == userId)
             .Include(b => b.Property)
-                .ThenInclude(p => p.Municipality)
+                .ThenInclude(p => p.Municipality);
+
+        // Get total count
+        var total = await query.CountAsync(cancellationToken);
+
+        // Apply pagination and project to DTO
+        var properties = await query
+            .OrderByDescending(b => b.CreatedAt)
+            .Skip(request.Page * request.PageSize)
+            .Take(request.PageSize)
             .Select(b => new PropertyListItemDto(
                 b.Property.Id,
                 b.Property.Title,
@@ -62,6 +71,14 @@ public class GetUserBlockedHandler(
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetUserBlockedResponse(properties);
+        var hasMore = (request.Page + 1) * request.PageSize < total;
+
+        return new GetUserBlockedResponse(
+            properties,
+            total,
+            request.PageSize,
+            request.Page,
+            hasMore
+        );
     }
 }

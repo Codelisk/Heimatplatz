@@ -52,16 +52,22 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
 
     #region Abstract Method Implementations
 
-    protected override async Task<List<PropertyListItemDto>?> FetchPropertiesAsync()
+    protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> FetchPageAsync(
+        int page, int pageSize, CancellationToken ct)
     {
         var (context, response) = await Mediator.Request(
-            new Heimatplatz.Core.ApiClient.Generated.GetUserFavoritesHttpRequest()
+            new Heimatplatz.Core.ApiClient.Generated.GetUserFavoritesHttpRequest
+            {
+                Page = page,
+                PageSize = pageSize
+            },
+            ct
         );
 
         if (response?.Properties == null)
-            return null;
+            return (Enumerable.Empty<PropertyListItemDto>(), false);
 
-        return response.Properties.Select(prop => new PropertyListItemDto(
+        var items = response.Properties.Select(prop => new PropertyListItemDto(
             Id: prop.Id,
             Title: prop.Title,
             Address: prop.Address,
@@ -78,7 +84,9 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
             ImageUrls: prop.ImageUrls,
             CreatedAt: prop.CreatedAt.DateTime,
             InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
-        )).ToList();
+        ));
+
+        return (items, response.HasMore);
     }
 
     protected override async Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId)

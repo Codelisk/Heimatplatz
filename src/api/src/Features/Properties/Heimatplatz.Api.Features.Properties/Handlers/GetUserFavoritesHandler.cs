@@ -37,11 +37,20 @@ public class GetUserFavoritesHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Query favorited properties with Municipality
-        var properties = await dbContext.Set<Favorite>()
+        // Base query for favorited properties
+        var query = dbContext.Set<Favorite>()
             .Where(f => f.UserId == userId)
             .Include(f => f.Property)
-                .ThenInclude(p => p.Municipality)
+                .ThenInclude(p => p.Municipality);
+
+        // Get total count
+        var total = await query.CountAsync(cancellationToken);
+
+        // Apply pagination and project to DTO
+        var properties = await query
+            .OrderByDescending(f => f.CreatedAt)
+            .Skip(request.Page * request.PageSize)
+            .Take(request.PageSize)
             .Select(f => new PropertyListItemDto(
                 f.Property.Id,
                 f.Property.Title,
@@ -62,6 +71,14 @@ public class GetUserFavoritesHandler(
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetUserFavoritesResponse(properties);
+        var hasMore = (request.Page + 1) * request.PageSize < total;
+
+        return new GetUserFavoritesResponse(
+            properties,
+            total,
+            request.PageSize,
+            request.Page,
+            hasMore
+        );
     }
 }

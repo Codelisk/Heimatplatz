@@ -17,6 +17,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// Base ViewModel for property collection pages (Favorites, Blocked).
 /// Provides common functionality for loading, displaying, and removing properties from collections.
+/// Uses PaginatedObservableCollection for automatic incremental loading.
 /// Implements INavigationAware for automatic lifecycle handling via BasePage.
 /// Implements IPageInfo for header integration.
 /// </summary>
@@ -27,7 +28,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     protected readonly INavigator Navigator;
     protected readonly ILogger Logger;
 
-    private bool _isLoading;
+    protected const int PageSize = 20;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -35,9 +36,10 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     [ObservableProperty]
     private string? _busyMessage;
 
-    // Stable collection reference — never replace, only update contents in-place.
-    private readonly BatchObservableCollection<PropertyListItemDto> _properties = new();
-    public BatchObservableCollection<PropertyListItemDto> Properties => _properties;
+    // Paginated collection for automatic incremental loading
+    private PaginatedObservableCollection<PropertyListItemDto>? _properties;
+    public PaginatedObservableCollection<PropertyListItemDto> Properties =>
+        _properties ??= CreatePaginatedCollection();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotEmpty))]
@@ -100,8 +102,19 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         // Load properties immediately if user is authenticated
         if (AuthService.IsAuthenticated)
         {
-            _ = LoadPropertiesAsync();
+            _ = Properties.ResetAndReloadAsync();
         }
+    }
+
+    /// <summary>
+    /// Creates the paginated collection with the load function
+    /// </summary>
+    private PaginatedObservableCollection<PropertyListItemDto> CreatePaginatedCollection()
+    {
+        return new PaginatedObservableCollection<PropertyListItemDto>(
+            LoadPageAsync,
+            pageSize: PageSize
+        );
     }
 
     private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
@@ -109,7 +122,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         Logger.LogInformation("[{PageTitle}] Auth state changed. IsAuthenticated: {IsAuthenticated}", PageTitle, isAuthenticated);
         if (isAuthenticated)
         {
-            await LoadPropertiesAsync();
+            await Properties.ResetAndReloadAsync();
         }
         else
         {
@@ -127,11 +140,11 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     public void OnNavigatedTo(object? parameter)
     {
         Logger.LogInformation("[{PageTitle}] OnNavigatedTo called", PageTitle);
-        // Skip reload if we already have data — avoids _properties.Reset() triggering
+        // Skip reload if we already have data — avoids triggering
         // CollectionChanged on both old and new page instances (StackOverflow).
         if (Properties.Count == 0)
         {
-            _ = LoadPropertiesAsync();
+            _ = Properties.ResetAndReloadAsync();
         }
     }
 
@@ -152,14 +165,15 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     {
         Logger.LogInformation("[{PageTitle}] OnNavigatedToAsync called", PageTitle);
         // Header setup is now automatic via PageNavigatedEvent from BasePage
-        await LoadPropertiesAsync();
+        await Properties.ResetAndReloadAsync();
     }
 
     /// <summary>
-    /// Fetches properties from the API. To be implemented by derived classes.
+    /// Fetches a page of properties from the API. To be implemented by derived classes.
     /// </summary>
-    /// <returns>List of properties or null if fetch failed</returns>
-    protected abstract Task<List<PropertyListItemDto>?> FetchPropertiesAsync();
+    /// <returns>Tuple with items and hasMore flag</returns>
+    protected abstract Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> FetchPageAsync(
+        int page, int pageSize, CancellationToken ct);
 
     /// <summary>
     /// Removes a property from the collection via API. To be implemented by derived classes.
@@ -168,45 +182,39 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     protected abstract Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId);
 
     /// <summary>
-    /// Loads all properties for the current user
+    /// Loads a page of properties - called by PaginatedObservableCollection
     /// </summary>
-    private async Task LoadPropertiesAsync()
+    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> LoadPageAsync(
+        int page, int pageSize, CancellationToken ct)
     {
-        if (_isLoading)
-        {
-            Logger.LogInformation("[{PageTitle}] LoadPropertiesAsync skipped - already loading", PageTitle);
-            return;
-        }
-
-        _isLoading = true;
-        IsBusy = true;
-        BusyMessage = LoadingMessage;
+        Logger.LogInformation("[{PageTitle}] Loading page {Page} with pageSize {PageSize}", PageTitle, page, pageSize);
 
         try
         {
-            Logger.LogInformation("[{PageTitle}] Starting to load properties", PageTitle);
+            var (items, hasMore) = await FetchPageAsync(page, pageSize, ct);
+            var itemsList = items.ToList();
 
-            var properties = await FetchPropertiesAsync();
+            Logger.LogInformation("[{PageTitle}] Page {Page} loaded. Items: {Count}, HasMore: {HasMore}",
+                PageTitle, page, itemsList.Count, hasMore);
 
-            Logger.LogInformation("[{PageTitle}] Response received. Properties count: {Count}", PageTitle, properties?.Count ?? 0);
+            // Update IsEmpty based on whether we have any items at all
+            if (page == 0)
+            {
+                IsEmpty = itemsList.Count == 0;
+            }
+            else if (itemsList.Count > 0)
+            {
+                IsEmpty = false;
+            }
 
-            // Batch-replace all items with a single Reset notification to avoid StackOverflow
-            var newProperties = properties ?? new List<PropertyListItemDto>();
-            _properties.Reset(newProperties);
-            IsEmpty = newProperties.Count == 0;
-            Logger.LogInformation("[{PageTitle}] Properties replaced. Count: {Count}, IsEmpty: {IsEmpty}", PageTitle, newProperties.Count, IsEmpty);
+            return (itemsList, hasMore);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "[{PageTitle}] Error loading properties", PageTitle);
-            await ShowErrorDialogAsync(LoadErrorTitle, GetLoadErrorMessage(ex.Message));
-            IsEmpty = true;
-        }
-        finally
-        {
-            IsBusy = false;
-            BusyMessage = null;
-            _isLoading = false;
+            Logger.LogError(ex, "[{PageTitle}] Error loading page {Page}", PageTitle, page);
+            // Show error dialog on UI thread
+            _ = ShowErrorDialogAsync(LoadErrorTitle, GetLoadErrorMessage(ex.Message));
+            return (Enumerable.Empty<PropertyListItemDto>(), false);
         }
     }
 

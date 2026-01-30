@@ -431,6 +431,34 @@
           "Heimatplatz.Api"
         ],
         "operationId": "GetUserBlocked",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -510,6 +538,34 @@
           "Heimatplatz.Api"
         ],
         "operationId": "GetUserFavorites",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -821,6 +877,34 @@
           "Heimatplatz.Api"
         ],
         "operationId": "GetUserProperties",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1797,7 +1881,11 @@
       },
       "GetUserBlockedResponse": {
         "required": [
-          "Properties"
+          "Properties",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1806,12 +1894,43 @@
             "items": {
               "$ref": "#/components/schemas/PropertyListItemDto"
             }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
       "GetUserFavoritesResponse": {
         "required": [
-          "Properties"
+          "Properties",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1820,6 +1939,33 @@
             "items": {
               "$ref": "#/components/schemas/PropertyListItemDto"
             }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
@@ -1880,7 +2026,11 @@
       },
       "GetUserPropertiesResponse": {
         "required": [
-          "Properties"
+          "Properties",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1889,6 +2039,33 @@
             "items": {
               "$ref": "#/components/schemas/PropertyListItemDto"
             }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
