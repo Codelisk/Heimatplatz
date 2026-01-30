@@ -36,7 +36,7 @@
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Collapsed}"
+                        Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Visible, Widest=Collapsed}"
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
                     <StackPanel>
                         <!-- Filter Header: Immer sichtbar — ganzer Bereich klickbar -->

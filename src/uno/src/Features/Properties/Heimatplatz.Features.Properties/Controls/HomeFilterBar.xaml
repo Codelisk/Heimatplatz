@@ -11,7 +11,7 @@
     -->
 
     <StackPanel Orientation="Horizontal"
-                Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
+                Visibility="{utu:Responsive Normal=Collapsed, Widest=Visible}"
                 Spacing="8"
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="HomeFilterBar_Root">

@@ -57,7 +57,7 @@
                                 Grid.Column="1"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
+                                Visibility="{utu:Responsive Normal=Collapsed, Widest=Visible}"
                                 AutomationProperties.AutomationId="MainPage.HeaderMain" />
 
                 <!-- HeaderRight Region: Auth buttons -->
