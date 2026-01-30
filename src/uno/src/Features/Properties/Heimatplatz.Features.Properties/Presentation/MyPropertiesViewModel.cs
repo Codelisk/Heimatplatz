@@ -16,6 +16,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel for MyPropertiesPage - manages user's own properties
+/// Uses PaginatedObservableCollection for automatic incremental loading.
 /// Implements INavigationAware for automatic lifecycle handling via BasePage
 /// Implements IPageInfo for header integration
 /// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
@@ -27,7 +28,7 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     private readonly INavigator _navigator;
     private readonly ILogger<MyPropertiesViewModel> _logger;
 
-    private bool _isLoading;
+    private const int PageSize = 20;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -35,11 +36,10 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     [ObservableProperty]
     private string? _busyMessage;
 
-    // Stable collection reference — never replace, only update contents in-place.
-    // Replacing the reference triggers OnPropertyChanged("Properties") which causes
-    // ItemsRepeater.OnItemsSourceChanged on both old and new page instances (StackOverflow).
-    private readonly BatchObservableCollection<PropertyListItemDto> _properties = new();
-    public BatchObservableCollection<PropertyListItemDto> Properties => _properties;
+    // Paginated collection for automatic incremental loading
+    private PaginatedObservableCollection<PropertyListItemDto>? _properties;
+    public PaginatedObservableCollection<PropertyListItemDto> Properties =>
+        _properties ??= CreatePaginatedCollection();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotEmpty))]
@@ -77,8 +77,19 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
         // Load properties immediately if user is authenticated
         if (_authService.IsAuthenticated)
         {
-            _ = LoadPropertiesAsync();
+            _ = Properties.ResetAndReloadAsync();
         }
+    }
+
+    /// <summary>
+    /// Creates the paginated collection with the load function
+    /// </summary>
+    private PaginatedObservableCollection<PropertyListItemDto> CreatePaginatedCollection()
+    {
+        return new PaginatedObservableCollection<PropertyListItemDto>(
+            LoadPageAsync,
+            pageSize: PageSize
+        );
     }
 
     private async void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
@@ -87,7 +98,7 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
         if (isAuthenticated)
         {
             // Reload properties when user logs in
-            await LoadPropertiesAsync();
+            await Properties.ResetAndReloadAsync();
         }
         else
         {
@@ -106,11 +117,11 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     public void OnNavigatedTo(object? parameter)
     {
         _logger.LogInformation("[MyProperties] OnNavigatedTo called");
-        // Skip reload if we already have data — avoids _properties.Reset() triggering
+        // Skip reload if we already have data — avoids triggering
         // CollectionChanged on both old and new page instances (StackOverflow).
         if (Properties.Count == 0)
         {
-            _ = LoadPropertiesAsync();
+            _ = Properties.ResetAndReloadAsync();
         }
     }
 
@@ -131,80 +142,74 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     {
         _logger.LogInformation("[MyProperties] OnNavigatedToAsync called");
         // Header setup is now automatic via PageNavigatedEvent from BasePage
-        await LoadPropertiesAsync();
+        await Properties.ResetAndReloadAsync();
     }
 
     /// <summary>
-    /// Loads all properties for the current user
+    /// Loads a page of properties - called by PaginatedObservableCollection
     /// </summary>
-    private async Task LoadPropertiesAsync()
+    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> LoadPageAsync(
+        int page, int pageSize, CancellationToken ct)
     {
-        if (_isLoading)
-        {
-            _logger.LogInformation("[MyProperties] LoadPropertiesAsync skipped - already loading");
-            return;
-        }
-
-        _isLoading = true;
-        IsBusy = true;
-        BusyMessage = "Lade Immobilien...";
+        _logger.LogInformation("[MyProperties] Loading page {Page} with pageSize {PageSize}", page, pageSize);
 
         try
         {
-            _logger.LogInformation("[MyProperties] Starting to load properties");
-
-            // Der GetUserPropertiesHttpRequest wird automatisch aus der OpenAPI-Spec generiert
             var (context, response) = await _mediator.Request(
-                new Heimatplatz.Core.ApiClient.Generated.GetUserPropertiesHttpRequest()
+                new Heimatplatz.Core.ApiClient.Generated.GetUserPropertiesHttpRequest
+                {
+                    Page = page,
+                    PageSize = pageSize
+                },
+                ct
             );
 
-            _logger.LogInformation("[MyProperties] Response received. Response null: {IsNull}", response == null);
-            _logger.LogInformation("[MyProperties] Properties null: {IsNull}", response?.Properties == null);
-            _logger.LogInformation("[MyProperties] Properties count: {Count}", response?.Properties?.Count ?? 0);
-
-            // Build new list to replace collection atomically
-            var newProperties = new List<PropertyListItemDto>();
-
-            if (response?.Properties != null)
+            if (response?.Properties == null)
             {
-                _logger.LogInformation("[MyProperties] Mapping {Count} properties", response.Properties.Count);
-                foreach (var prop in response.Properties)
-                {
-                    newProperties.Add(new PropertyListItemDto(
-                        Id: prop.Id,
-                        Title: prop.Title,
-                        Address: prop.Address,
-                        City: prop.City,
-                        Price: (decimal)prop.Price,
-                        LivingAreaM2: prop.LivingAreaM2,
-                        PlotAreaM2: prop.PlotAreaM2,
-                        Rooms: prop.Rooms,
-                        Type: Enum.Parse<PropertyType>(prop.Type.ToString()),
-                        SellerType: Enum.Parse<SellerType>(prop.SellerType.ToString()),
-                        SellerName: prop.SellerName,
-                        ImageUrls: prop.ImageUrls,
-                        CreatedAt: prop.CreatedAt.DateTime,
-                        InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
-                    ));
-                }
+                _logger.LogInformation("[MyProperties] Response was null or empty");
+                if (page == 0) IsEmpty = true;
+                return (Enumerable.Empty<PropertyListItemDto>(), false);
             }
 
-            // Batch-replace all items with a single Reset notification to avoid StackOverflow
-            _properties.Reset(newProperties);
-            IsEmpty = newProperties.Count == 0;
-            _logger.LogInformation("[MyProperties] Properties replaced. Count: {Count}, IsEmpty: {IsEmpty}", newProperties.Count, IsEmpty);
+            _logger.LogInformation("[MyProperties] Page {Page} loaded. Items: {Count}, HasMore: {HasMore}",
+                page, response.Properties.Count, response.HasMore);
+
+            var items = response.Properties.Select(prop => new PropertyListItemDto(
+                Id: prop.Id,
+                Title: prop.Title,
+                Address: prop.Address,
+                MunicipalityId: prop.MunicipalityId,
+                City: prop.City,
+                PostalCode: prop.PostalCode,
+                Price: (decimal)prop.Price,
+                LivingAreaM2: prop.LivingAreaM2,
+                PlotAreaM2: prop.PlotAreaM2,
+                Rooms: prop.Rooms,
+                Type: Enum.Parse<PropertyType>(prop.Type.ToString()),
+                SellerType: Enum.Parse<SellerType>(prop.SellerType.ToString()),
+                SellerName: prop.SellerName,
+                ImageUrls: prop.ImageUrls,
+                CreatedAt: prop.CreatedAt.DateTime,
+                InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
+            ));
+
+            // Update IsEmpty based on whether we have any items
+            if (page == 0)
+            {
+                IsEmpty = response.Properties.Count == 0;
+            }
+            else if (response.Properties.Count > 0)
+            {
+                IsEmpty = false;
+            }
+
+            return (items, response.HasMore);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[MyProperties] Error loading properties");
-            await ShowErrorDialogAsync("Fehler beim Laden", $"Die Immobilien konnten nicht geladen werden: {ex.Message}");
-            IsEmpty = true;
-        }
-        finally
-        {
-            IsBusy = false;
-            BusyMessage = null;
-            _isLoading = false;
+            _logger.LogError(ex, "[MyProperties] Error loading page {Page}", page);
+            _ = ShowErrorDialogAsync("Fehler beim Laden", $"Die Immobilien konnten nicht geladen werden: {ex.Message}");
+            return (Enumerable.Empty<PropertyListItemDto>(), false);
         }
     }
 

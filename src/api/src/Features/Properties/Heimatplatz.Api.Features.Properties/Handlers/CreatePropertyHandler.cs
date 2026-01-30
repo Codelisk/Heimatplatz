@@ -8,8 +8,10 @@ using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 
@@ -63,8 +65,7 @@ public class CreatePropertyHandler(
             Id = Guid.NewGuid(),
             Title = request.Title.Trim(),
             Address = request.Address.Trim(),
-            City = request.City.Trim(),
-            PostalCode = request.PostalCode.Trim(),
+            MunicipalityId = request.MunicipalityId,
             Price = request.Price,
             Type = request.Type,
             SellerType = request.SellerType,
@@ -120,11 +121,15 @@ public class CreatePropertyHandler(
         dbContext.Set<Property>().Add(property);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        // Load Municipality for City name
+        var municipality = await dbContext.Set<Municipality>()
+            .FirstOrDefaultAsync(m => m.Id == property.MunicipalityId, cancellationToken);
+
         // Publish PropertyCreatedEvent for notification system
         var propertyCreatedEvent = new PropertyCreatedEvent(
             property.Id,
             property.Title,
-            property.City,
+            municipality?.Name ?? "Unknown",
             property.Price,
             property.Type,
             property.SellerType

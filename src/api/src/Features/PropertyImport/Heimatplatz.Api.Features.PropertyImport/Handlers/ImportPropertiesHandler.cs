@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.PropertyImport.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
 using Microsoft.AspNetCore.Http;
@@ -126,8 +127,11 @@ public class ImportPropertiesHandler(
                 );
             }
 
+            // Resolve MunicipalityId for update
+            var updateMunicipalityId = await ResolveMunicipalityIdAsync(importDto.City, importDto.PostalCode, cancellationToken);
+
             // Update existierende Property
-            UpdateProperty(existingProperty, importDto);
+            UpdateProperty(existingProperty, importDto, updateMunicipalityId);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return new ImportResultItem(
@@ -137,8 +141,11 @@ public class ImportPropertiesHandler(
             );
         }
 
+        // Resolve MunicipalityId from City/PostalCode
+        var municipalityId = await ResolveMunicipalityIdAsync(importDto.City, importDto.PostalCode, cancellationToken);
+
         // Neue Property erstellen
-        var newProperty = CreateProperty(importDto, userId);
+        var newProperty = CreateProperty(importDto, userId, municipalityId);
         dbContext.Set<Property>().Add(newProperty);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -146,7 +153,7 @@ public class ImportPropertiesHandler(
         var propertyCreatedEvent = new PropertyCreatedEvent(
             newProperty.Id,
             newProperty.Title,
-            newProperty.City,
+            importDto.City,  // Use City from import DTO for event
             newProperty.Price,
             newProperty.Type,
             newProperty.SellerType
@@ -158,6 +165,37 @@ public class ImportPropertiesHandler(
             ImportResultStatus.Created,
             PropertyId: newProperty.Id
         );
+    }
+
+    /// <summary>
+    /// Resolves MunicipalityId from City and PostalCode
+    /// </summary>
+    private async Task<Guid> ResolveMunicipalityIdAsync(string city, string postalCode, CancellationToken cancellationToken)
+    {
+        // Try exact match by PostalCode first
+        var municipality = await dbContext.Set<Municipality>()
+            .FirstOrDefaultAsync(m => m.PostalCode == postalCode, cancellationToken);
+
+        if (municipality != null)
+            return municipality.Id;
+
+        // Try match by City name (case-insensitive)
+        municipality = await dbContext.Set<Municipality>()
+            .FirstOrDefaultAsync(m => m.Name.ToLower() == city.ToLower(), cancellationToken);
+
+        if (municipality != null)
+            return municipality.Id;
+
+        // Try partial match
+        municipality = await dbContext.Set<Municipality>()
+            .FirstOrDefaultAsync(m => m.Name.ToLower().Contains(city.ToLower()) || city.ToLower().Contains(m.Name.ToLower()), cancellationToken);
+
+        if (municipality != null)
+            return municipality.Id;
+
+        // Fallback: Return first municipality (should not happen in production)
+        municipality = await dbContext.Set<Municipality>().FirstOrDefaultAsync(cancellationToken);
+        return municipality?.Id ?? throw new InvalidOperationException($"No municipality found for City={city}, PostalCode={postalCode}");
     }
 
     private static void ValidateImportDto(ImportPropertyDto dto)
@@ -207,15 +245,14 @@ public class ImportPropertiesHandler(
         }
     }
 
-    private Property CreateProperty(ImportPropertyDto dto, Guid userId)
+    private static Property CreateProperty(ImportPropertyDto dto, Guid userId, Guid municipalityId)
     {
         var property = new Property
         {
             Id = Guid.NewGuid(),
             Title = dto.Title.Trim(),
             Address = dto.Address.Trim(),
-            City = dto.City.Trim(),
-            PostalCode = dto.PostalCode.Trim(),
+            MunicipalityId = municipalityId,
             Price = dto.Price,
             Type = dto.Type,
             SellerType = dto.SellerType,
@@ -247,12 +284,11 @@ public class ImportPropertiesHandler(
         return property;
     }
 
-    private void UpdateProperty(Property property, ImportPropertyDto dto)
+    private void UpdateProperty(Property property, ImportPropertyDto dto, Guid municipalityId)
     {
         property.Title = dto.Title.Trim();
         property.Address = dto.Address.Trim();
-        property.City = dto.City.Trim();
-        property.PostalCode = dto.PostalCode.Trim();
+        property.MunicipalityId = municipalityId;
         property.Price = dto.Price;
         property.Type = dto.Type;
         property.SellerType = dto.SellerType;

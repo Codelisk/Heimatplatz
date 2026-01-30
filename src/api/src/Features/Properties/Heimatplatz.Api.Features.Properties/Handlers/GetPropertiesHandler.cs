@@ -26,7 +26,10 @@ public class GetPropertiesHandler(
     [MediatorHttpGet("/", OperationId = "GetProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
-        var query = dbContext.Set<Property>().AsQueryable();
+        // Include Municipality for City/PostalCode values
+        var query = dbContext.Set<Property>()
+            .Include(p => p.Municipality)
+            .AsQueryable();
 
         // Exclude blocked properties for authenticated users
         var httpContext = httpContextAccessor.HttpContext;
@@ -43,33 +46,44 @@ public class GetPropertiesHandler(
             }
         }
 
-        // Apply filters
-        if (request.Type.HasValue)
-            query = query.Where(p => p.Type == request.Type.Value);
+        // Filter: PropertyTypes (Multi-Select)
+        var propertyTypes = request.GetPropertyTypes();
+        if (propertyTypes.Count > 0)
+            query = query.Where(p => propertyTypes.Contains(p.Type));
 
+        // Filter: SellerTypes (Multi-Select)
         var sellerTypes = request.GetSellerTypes();
         if (sellerTypes.Count > 0)
             query = query.Where(p => sellerTypes.Contains(p.SellerType));
 
+        // Filter: MunicipalityIds (Multi-Select)
+        var municipalityIds = request.GetMunicipalityIds();
+        if (municipalityIds.Count > 0)
+            query = query.Where(p => municipalityIds.Contains(p.MunicipalityId));
+
+        // Filter: CreatedAfter (Age filter)
+        if (request.CreatedAfter.HasValue)
+            query = query.Where(p => p.CreatedAt >= request.CreatedAfter.Value);
+
+        // Filter: Price range
         if (request.PriceMin.HasValue)
             query = query.Where(p => p.Price >= request.PriceMin.Value);
 
         if (request.PriceMax.HasValue)
             query = query.Where(p => p.Price <= request.PriceMax.Value);
 
+        // Filter: Area range (use LivingArea if available, otherwise PlotArea)
         if (request.AreaMin.HasValue)
             query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) >= request.AreaMin.Value);
 
         if (request.AreaMax.HasValue)
             query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) <= request.AreaMax.Value);
 
+        // Filter: Minimum rooms
         if (request.RoomsMin.HasValue)
             query = query.Where(p => p.Rooms >= request.RoomsMin.Value);
 
-        if (!string.IsNullOrWhiteSpace(request.City))
-            query = query.Where(p => p.City.Contains(request.City) || p.PostalCode.StartsWith(request.City));
-
-        // Exclude specific seller sources by name lookup
+        // Filter: Exclude specific seller sources by name lookup
         var excludedSourceIds = request.GetExcludedSellerSourceIds();
         if (excludedSourceIds.Count > 0)
         {
@@ -82,20 +96,26 @@ public class GetPropertiesHandler(
                 query = query.Where(p => !excludedNames.Contains(p.SellerName));
         }
 
-        // Total count for paging
+        // Total count for paging (before applying pagination)
         var total = await query.CountAsync(cancellationToken);
+
+        // Calculate pagination
+        var skip = request.Page * request.PageSize;
+        var hasMore = (request.Page + 1) * request.PageSize < total;
 
         // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);
         var properties = entities
             .OrderByDescending(p => p.CreatedAt)
-            .Skip(request.Skip)
-            .Take(request.Take)
+            .Skip(skip)
+            .Take(request.PageSize)
             .Select(p => new PropertyListItemDto(
                 p.Id,
                 p.Title,
                 p.Address,
-                p.City,
+                p.MunicipalityId,
+                p.Municipality.Name,
+                p.Municipality.PostalCode,
                 p.Price,
                 p.LivingAreaSquareMeters,
                 p.PlotAreaSquareMeters,
@@ -109,6 +129,12 @@ public class GetPropertiesHandler(
             ))
             .ToList();
 
-        return new GetPropertiesResponse(properties, total);
+        return new GetPropertiesResponse(
+            properties,
+            total,
+            request.PageSize,
+            request.Page,
+            hasMore
+        );
     }
 }

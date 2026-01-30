@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Collections;
@@ -34,7 +35,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private readonly ILogger<HomeViewModel> _logger;
 
     private DispatcherQueue? _dispatcher;
-    private bool _isLoading;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -42,12 +42,16 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private string? _busyMessage;
 
-    // Use a stable collection reference to avoid StackOverflow from binding system
-    // when both old (being torn down) and new page instances react to PropertyChanged.
-    // Singleton ViewModel + NavigationCacheMode="Disabled" means the old page's bindings
-    // may still be alive when Properties is reassigned, causing recursive cascades.
-    private readonly BatchObservableCollection<PropertyListItemDto> _properties = new();
-    public BatchObservableCollection<PropertyListItemDto> Properties => _properties;
+    // Paginated collection for automatic incremental loading
+    // Uses ISupportIncrementalLoading for ItemsRepeater/ListView
+    private PaginatedObservableCollection<PropertyListItemDto>? _properties;
+    public PaginatedObservableCollection<PropertyListItemDto> Properties =>
+        _properties ??= CreatePaginatedCollection();
+
+    /// <summary>
+    /// Page size for pagination
+    /// </summary>
+    private const int PageSize = 20;
 
     [ObservableProperty]
     private bool _isHausSelected = true;
@@ -75,7 +79,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         {
             if (SetProperty(ref _selectedAgeFilter, value))
             {
-                ApplyFilters();
+                _ = ReloadPropertiesAsync();
             }
         }
     }
@@ -101,6 +105,24 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private string? _userDisplayName;
 
+    private List<Guid> _selectedMunicipalityIds = new();
+    /// <summary>
+    /// Selected municipality IDs for filtering (replaces SelectedOrte strings)
+    /// </summary>
+    public List<Guid> SelectedMunicipalityIds
+    {
+        get => _selectedMunicipalityIds;
+        set
+        {
+            if (SetProperty(ref _selectedMunicipalityIds, value))
+            {
+                _ = ReloadPropertiesAsync();
+            }
+        }
+    }
+
+    // Keep SelectedOrte for backward compatibility with UI that uses string names
+    // This property is synced from SelectedMunicipalityIds
     private List<string> _selectedOrte = new();
     public List<string> SelectedOrte
     {
@@ -109,7 +131,13 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         {
             if (SetProperty(ref _selectedOrte, value))
             {
-                ApplyFilters();
+                // Convert names to IDs using Bezirke lookup
+                var ids = Bezirke
+                    .SelectMany(b => b.Gemeinden)
+                    .Where(g => value.Contains(g.Name))
+                    .Select(g => g.Id)
+                    .ToList();
+                SelectedMunicipalityIds = ids;
             }
         }
     }
@@ -169,7 +197,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Load locations from API
         _ = LoadLocationsAsync();
 
-        // Properties are loaded in OnNavigatedTo (guaranteed UI thread for dispatcher access)
+        // Properties are loaded lazily via PaginatedObservableCollection when first accessed
+        // Initial load triggered in OnNavigatedTo
 
         // Load preferences if already authenticated
         // PropertyStatusService is loaded lazily via EnsureLoadedAsync() in OnPropertyCardLoaded
@@ -190,14 +219,12 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Capture UI dispatcher (OnNavigatedTo always runs on the UI thread)
         _dispatcher ??= DispatcherQueue.GetForCurrentThread();
 
-        // Only reload if we don't have data yet.
-        // Re-navigating back to an already-loaded Home page should NOT trigger
-        // _properties.Reset() because the old page's ItemsRepeater is still alive
-        // and bound to the same collection (singleton ViewModel), which would cause
-        // both old and new pages to rebuild their PropertyCards simultaneously → StackOverflow.
-        if (_allProperties.Count == 0)
+        // Trigger initial load if collection is empty
+        // The PaginatedObservableCollection loads data lazily when accessed
+        if (Properties.Count == 0 && !Properties.IsLoading)
         {
-            _ = LoadPropertiesAsync();
+            // Trigger first page load
+            _ = Properties.LoadMoreItemsAsync(PageSize);
         }
     }
 
@@ -216,7 +243,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         UpdateAuthState();
 
         // Reload properties when auth state changes (blocked properties filter depends on auth)
-        _ = LoadPropertiesAsync();
+        _ = ReloadPropertiesAsync();
 
         if (isAuthenticated)
         {
@@ -237,11 +264,19 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsPrivateSelected = state.IsPrivateSelected;
             IsBrokerSelected = state.IsBrokerSelected;
             IsPortalSelected = state.IsPortalSelected;
-            SelectedAgeFilter = state.SelectedAgeFilter;
-            SelectedOrte = state.SelectedOrte.ToList();
+            SetProperty(ref _selectedAgeFilter, state.SelectedAgeFilter, nameof(SelectedAgeFilter));
+            SetProperty(ref _selectedOrte, state.SelectedOrte.ToList(), nameof(SelectedOrte));
 
-            // Re-apply filters with synced state
-            ApplyFiltersInternal();
+            // Convert names to IDs for server-side filtering
+            var ids = Bezirke
+                .SelectMany(b => b.Gemeinden)
+                .Where(g => state.SelectedOrte.Contains(g.Name))
+                .Select(g => g.Id)
+                .ToList();
+            SetProperty(ref _selectedMunicipalityIds, ids, nameof(SelectedMunicipalityIds));
+
+            // Reload with new filters (server-side)
+            _ = ReloadPropertiesAsync();
         }
         finally
         {
@@ -293,6 +328,14 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         SetProperty(ref _selectedOrte, preferences.SelectedOrte.ToList(), nameof(SelectedOrte));
         SetProperty(ref _selectedAgeFilter, preferences.SelectedAgeFilter, nameof(SelectedAgeFilter));
 
+        // Convert names to IDs for server-side filtering
+        var ids = Bezirke
+            .SelectMany(b => b.Gemeinden)
+            .Where(g => preferences.SelectedOrte.Contains(g.Name))
+            .Select(g => g.Id)
+            .ToList();
+        SetProperty(ref _selectedMunicipalityIds, ids, nameof(SelectedMunicipalityIds));
+
         // For ObservableProperty fields, set through generated properties
         // but suppress filter application by using a flag
         _isApplyingPreferences = true;
@@ -310,8 +353,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             _isApplyingPreferences = false;
         }
 
-        // Apply filters once
-        ApplyFilters();
+        // Reload with new filters (server-side)
+        _ = ReloadPropertiesAsync();
     }
 
     private bool _isApplyingPreferences;
@@ -413,7 +456,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             return;
         }
 
-        ApplyFilters();
+        OnFiltersChanged();
     }
 
     partial void OnIsGrundstueckSelectedChanged(bool value)
@@ -429,7 +472,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             return;
         }
 
-        ApplyFilters();
+        OnFiltersChanged();
     }
 
     partial void OnIsZwangsversteigerungSelectedChanged(bool value)
@@ -445,7 +488,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             return;
         }
 
-        ApplyFilters();
+        OnFiltersChanged();
     }
 
     partial void OnIsPrivateSelectedChanged(bool value)
@@ -461,7 +504,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             return;
         }
 
-        ApplyFilters();
+        OnFiltersChanged();
     }
 
     partial void OnIsBrokerSelectedChanged(bool value)
@@ -477,7 +520,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             return;
         }
 
-        ApplyFilters();
+        OnFiltersChanged();
     }
 
     partial void OnIsPortalSelectedChanged(bool value)
@@ -493,10 +536,13 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             return;
         }
 
-        ApplyFilters();
+        OnFiltersChanged();
     }
 
-    private void ApplyFilters()
+    /// <summary>
+    /// Called when any filter changes - updates FilterStateService and triggers server reload
+    /// </summary>
+    private void OnFiltersChanged()
     {
         // Update FilterStateService (if not syncing from it)
         if (!_isSyncingFromService && !_isApplyingPreferences)
@@ -512,192 +558,159 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
                 IsPortalSelected);
         }
 
-        ApplyFiltersInternal();
+        // Trigger server-side reload with new filters
+        _ = ReloadPropertiesAsync();
     }
-
-    private void ApplyFiltersInternal()
-    {
-        System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Called. SelectedOrte.Count = {SelectedOrte.Count}");
-        var filtered = _allProperties.AsEnumerable();
-
-        // City filter (Multi-Select)
-        if (SelectedOrte.Count > 0)
-        {
-            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by cities: {string.Join(", ", SelectedOrte)}");
-            filtered = filtered.Where(p => SelectedOrte.Contains(p.City));
-        }
-
-        // Age filter
-        if (SelectedAgeFilter != AgeFilter.Alle)
-        {
-            var cutoffDate = SelectedAgeFilter switch
-            {
-                AgeFilter.EinTag => DateTime.Now.AddDays(-1),
-                AgeFilter.EineWoche => DateTime.Now.AddDays(-7),
-                AgeFilter.EinMonat => DateTime.Now.AddMonths(-1),
-                AgeFilter.EinJahr => DateTime.Now.AddYears(-1),
-                _ => DateTime.MinValue
-            };
-            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by age: {SelectedAgeFilter}, cutoff: {cutoffDate}");
-            filtered = filtered.Where(p => p.CreatedAt >= cutoffDate);
-        }
-
-        // Type filter (Multi-Select mit OR-Logik)
-        var selectedTypes = new List<PropertyType>();
-        if (IsHausSelected) selectedTypes.Add(PropertyType.House);
-        if (IsGrundstueckSelected) selectedTypes.Add(PropertyType.Land);
-        if (IsZwangsversteigerungSelected) selectedTypes.Add(PropertyType.Foreclosure);
-
-        if (selectedTypes.Count > 0)
-        {
-            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by types: {string.Join(", ", selectedTypes)}");
-            filtered = filtered.Where(p => selectedTypes.Contains(p.Type));
-        }
-
-        // SellerType filter (Multi-Select mit OR-Logik)
-        var selectedSellerTypes = new List<SellerType>();
-        if (IsPrivateSelected) selectedSellerTypes.Add(SellerType.Private);
-        if (IsBrokerSelected) selectedSellerTypes.Add(SellerType.Broker);
-        if (IsPortalSelected) selectedSellerTypes.Add(SellerType.Portal);
-
-        if (selectedSellerTypes.Count > 0 && selectedSellerTypes.Count < 3)
-        {
-            System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Filtering by seller types: {string.Join(", ", selectedSellerTypes)}");
-            filtered = filtered.Where(p => selectedSellerTypes.Contains(p.SellerType));
-        }
-
-        var filteredList = filtered.ToList();
-        System.Diagnostics.Debug.WriteLine($"[ApplyFilters] Result count: {filteredList.Count}");
-
-        // Batch-replace all items with a single Reset notification.
-        // Individual Add() calls would fire N CollectionChanged events, each triggering
-        // a full ItemsRepeater render cycle through Uno's DependencyProperty invalidation,
-        // which cascades into a StackOverflow.
-        _properties.Reset(filteredList);
-
-        // Update IsEmpty explicitly — using a bool [ObservableProperty] instead of a computed
-        // Visibility property avoids the binding system subscribing to CollectionChanged on
-        // Properties.Count, which would create a self-referential loop.
-        IsEmpty = filteredList.Count == 0;
-
-        // Update the result count text for XAML binding.
-        // IMPORTANT: Do NOT bind directly to Properties.Count in XAML — that subscribes the
-        // binding system to CollectionChanged, creating a recursive cascade through
-        // DependencyObjectStore → BindingExpression → OnValueChanged → StackOverflow.
-        ResultCountText = $"{filteredList.Count} Objekte";
-
-        // Update result count in FilterStateService
-        _filterStateService.SetResultCount(filteredList.Count);
-    }
-
-    private List<PropertyListItemDto> _allProperties = new();
 
     /// <summary>
-    /// Loads properties from the API
+    /// Creates the paginated collection with the load function
     /// </summary>
-    private async Task LoadPropertiesAsync()
+    private PaginatedObservableCollection<PropertyListItemDto> CreatePaginatedCollection()
     {
-        if (_isLoading)
-        {
-            _logger.LogInformation("[HomePage] LoadPropertiesAsync skipped - already loading");
-            return;
-        }
+        var collection = new PaginatedObservableCollection<PropertyListItemDto>(
+            LoadPageAsync,
+            PageSize
+        );
 
-        _isLoading = true;
-
-        DispatchToUI(() =>
-        {
-            IsBusy = true;
-            BusyMessage = "Lade Immobilien...";
-        });
-
-        try
-        {
-            _logger.LogInformation("[HomePage] Starting to load properties from API");
-
-            // Build API request with server-side filters (PropertyType)
-            var request = new Heimatplatz.Core.ApiClient.Generated.GetPropertiesHttpRequest
-            {
-                Take = 100 // Load more properties for local filtering
-            };
-
-            // Apply type filter if only one type is selected (server-side optimization)
-            // API supports only one type at a time, so we'll filter locally for multi-select
-            if (IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
-            {
-                request.Type = Heimatplatz.Core.ApiClient.Generated.PropertyType.House;
-            }
-            else if (IsGrundstueckSelected && !IsHausSelected && !IsZwangsversteigerungSelected)
-            {
-                request.Type = Heimatplatz.Core.ApiClient.Generated.PropertyType.Land;
-            }
-            else if (IsZwangsversteigerungSelected && !IsHausSelected && !IsGrundstueckSelected)
-            {
-                request.Type = Heimatplatz.Core.ApiClient.Generated.PropertyType.Foreclosure;
-            }
-
-            // Apply city filter if only one city is selected
-            if (SelectedOrte.Count == 1)
-            {
-                request.City = SelectedOrte[0];
-            }
-
-            var (context, response) = await _mediator.Request(request);
-
-            _logger.LogInformation("[HomePage] Response received. Properties count: {Count}", response?.Properties?.Count ?? 0);
-
-            // Clear and reload all properties (plain List, not UI-bound)
-            _allProperties.Clear();
-
-            if (response?.Properties != null)
-            {
-                foreach (var prop in response.Properties)
-                {
-                    _allProperties.Add(new PropertyListItemDto(
-                        Id: prop.Id,
-                        Title: prop.Title,
-                        Address: prop.Address,
-                        City: prop.City,
-                        Price: (decimal)prop.Price,
-                        LivingAreaM2: prop.LivingAreaM2,
-                        PlotAreaM2: prop.PlotAreaM2,
-                        Rooms: prop.Rooms,
-                        Type: Enum.Parse<PropertyType>(prop.Type.ToString()),
-                        SellerType: Enum.Parse<SellerType>(prop.SellerType.ToString()),
-                        SellerName: prop.SellerName,
-                        ImageUrls: prop.ImageUrls,
-                        CreatedAt: prop.CreatedAt.DateTime,
-                        InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
-                    ));
-                }
-            }
-
-            // Apply local filters on UI thread (updates bound collections and properties)
-            DispatchToUI(ApplyFiltersInternal);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[HomePage] Error loading properties from API");
-            // Keep existing properties on error
-        }
-        finally
+        // Subscribe to loading state changes
+        collection.IsLoadingChanged += (s, e) =>
         {
             DispatchToUI(() =>
             {
-                IsBusy = false;
-                BusyMessage = null;
+                IsBusy = collection.IsLoading;
+                BusyMessage = collection.IsLoading ? "Lade Immobilien..." : null;
             });
-            _isLoading = false;
+        };
+
+        return collection;
+    }
+
+    /// <summary>
+    /// Loads a page of properties from the API
+    /// </summary>
+    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> LoadPageAsync(
+        int page, int pageSize, CancellationToken ct)
+    {
+        _logger.LogInformation("[HomePage] Loading page {Page} with pageSize {PageSize}", page, pageSize);
+
+        try
+        {
+            // Build API request with all server-side filters
+            var request = new Heimatplatz.Core.ApiClient.Generated.GetPropertiesHttpRequest
+            {
+                Page = page,
+                PageSize = pageSize
+            };
+
+            // PropertyTypes filter (multi-select as JSON array)
+            var selectedPropertyTypes = new List<string>();
+            if (IsHausSelected) selectedPropertyTypes.Add("House");
+            if (IsGrundstueckSelected) selectedPropertyTypes.Add("Land");
+            if (IsZwangsversteigerungSelected) selectedPropertyTypes.Add("Foreclosure");
+            if (selectedPropertyTypes.Count > 0 && selectedPropertyTypes.Count < 3)
+            {
+                request.PropertyTypesJson = JsonSerializer.Serialize(selectedPropertyTypes);
+            }
+
+            // SellerTypes filter (multi-select as JSON array)
+            var selectedSellerTypes = new List<string>();
+            if (IsPrivateSelected) selectedSellerTypes.Add("Private");
+            if (IsBrokerSelected) selectedSellerTypes.Add("Broker");
+            if (IsPortalSelected) selectedSellerTypes.Add("Portal");
+            if (selectedSellerTypes.Count > 0 && selectedSellerTypes.Count < 3)
+            {
+                request.SellerTypesJson = JsonSerializer.Serialize(selectedSellerTypes);
+            }
+
+            // MunicipalityIds filter (multi-select as JSON array)
+            if (SelectedMunicipalityIds.Count > 0)
+            {
+                request.MunicipalityIdsJson = JsonSerializer.Serialize(SelectedMunicipalityIds);
+            }
+
+            // CreatedAfter filter (age filter)
+            if (SelectedAgeFilter != AgeFilter.Alle)
+            {
+                var cutoffDate = SelectedAgeFilter switch
+                {
+                    AgeFilter.EinTag => DateTime.UtcNow.AddDays(-1),
+                    AgeFilter.EineWoche => DateTime.UtcNow.AddDays(-7),
+                    AgeFilter.EinMonat => DateTime.UtcNow.AddMonths(-1),
+                    AgeFilter.EinJahr => DateTime.UtcNow.AddYears(-1),
+                    _ => DateTime.MinValue
+                };
+                request.CreatedAfter = cutoffDate;
+            }
+
+            var (_, response) = await _mediator.Request(request, ct);
+
+            _logger.LogInformation("[HomePage] Response received. Properties count: {Count}, HasMore: {HasMore}",
+                response?.Properties?.Count ?? 0, response?.HasMore ?? false);
+
+            // Map API response to DTOs
+            var items = response?.Properties?.Select(prop => new PropertyListItemDto(
+                Id: prop.Id,
+                Title: prop.Title,
+                Address: prop.Address,
+                MunicipalityId: prop.MunicipalityId,
+                City: prop.City,
+                PostalCode: prop.PostalCode,
+                Price: (decimal)prop.Price,
+                LivingAreaM2: prop.LivingAreaM2,
+                PlotAreaM2: prop.PlotAreaM2,
+                Rooms: prop.Rooms,
+                Type: Enum.Parse<PropertyType>(prop.Type.ToString()),
+                SellerType: Enum.Parse<SellerType>(prop.SellerType.ToString()),
+                SellerName: prop.SellerName,
+                ImageUrls: prop.ImageUrls,
+                CreatedAt: prop.CreatedAt.DateTime,
+                InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
+            )) ?? Enumerable.Empty<PropertyListItemDto>();
+
+            var hasMore = response?.HasMore ?? false;
+
+            // Update UI state after loading
+            DispatchToUI(UpdateResultCount);
+
+            return (items, hasMore);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HomePage] Error loading page {Page}", page);
+            return (Enumerable.Empty<PropertyListItemDto>(), false);
         }
     }
 
     /// <summary>
-    /// Reloads properties from API (called when filters change that require server-side filtering)
+    /// Reloads properties from API (resets collection and loads first page with current filters)
+    /// </summary>
+    private async Task ReloadPropertiesAsync()
+    {
+        if (_properties == null) return;
+
+        _logger.LogInformation("[HomePage] Reloading properties with current filters");
+        await Properties.ResetAndReloadAsync();
+        DispatchToUI(UpdateResultCount);
+    }
+
+    /// <summary>
+    /// Updates the result count text and empty state
+    /// </summary>
+    private void UpdateResultCount()
+    {
+        var count = Properties.Count;
+        IsEmpty = count == 0;
+        ResultCountText = $"{count} Objekte";
+        _filterStateService.SetResultCount(count);
+    }
+
+    /// <summary>
+    /// Reloads properties from API (command for UI binding)
     /// </summary>
     [RelayCommand]
     private async Task RefreshPropertiesAsync()
     {
-        await LoadPropertiesAsync();
+        await ReloadPropertiesAsync();
     }
 
     /// <summary>
