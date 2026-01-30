@@ -56,8 +56,11 @@
                     <Border.Clip>
                         <RectangleGeometry Rect="0,0,10000,200" />
                     </Border.Clip>
+                    <!-- IsHitTestVisible="False" verhindert, dass FlipView Mausrad-Events konsumiert
+                         und damit den Parent ScrollViewer blockiert (Desktop Skia) -->
                     <FlipView x:Name="ImageFlipView"
                               Background="Transparent"
+                              IsHitTestVisible="False"
                               AutomationProperties.AutomationId="PropertyCard_FlipView">
                         <FlipView.ItemTemplate>
                             <DataTemplate>
