@@ -10,6 +10,7 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Dispatching;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using UnoFramework.Contracts.Navigation;
@@ -32,6 +33,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private readonly IMediator _mediator;
     private readonly ILocationService _locationService;
     private readonly ILogger<HomeViewModel> _logger;
+
+    private DispatcherQueue? _dispatcher;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -213,6 +216,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// </summary>
     public void OnNavigatedTo(object? parameter)
     {
+        // Capture UI dispatcher (OnNavigatedTo always runs on the UI thread)
+        _dispatcher ??= DispatcherQueue.GetForCurrentThread();
+
         // Trigger initial load if collection is empty
         // The PaginatedObservableCollection loads data lazily when accessed
         if (Properties.Count == 0 && !Properties.IsLoading)
@@ -569,8 +575,11 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Subscribe to loading state changes
         collection.IsLoadingChanged += (s, e) =>
         {
-            IsBusy = collection.IsLoading;
-            BusyMessage = collection.IsLoading ? "Lade Immobilien..." : null;
+            DispatchToUI(() =>
+            {
+                IsBusy = collection.IsLoading;
+                BusyMessage = collection.IsLoading ? "Lade Immobilien..." : null;
+            });
         };
 
         return collection;
@@ -661,7 +670,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             var hasMore = response?.HasMore ?? false;
 
             // Update UI state after loading
-            UpdateResultCount();
+            DispatchToUI(UpdateResultCount);
 
             return (items, hasMore);
         }
@@ -681,7 +690,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
 
         _logger.LogInformation("[HomePage] Reloading properties with current filters");
         await Properties.ResetAndReloadAsync();
-        UpdateResultCount();
+        DispatchToUI(UpdateResultCount);
     }
 
     /// <summary>
@@ -702,5 +711,18 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private async Task RefreshPropertiesAsync()
     {
         await ReloadPropertiesAsync();
+    }
+
+    /// <summary>
+    /// Dispatches an action to the UI thread. Falls back to direct invocation
+    /// if dispatcher is not yet available.
+    /// </summary>
+    private void DispatchToUI(Action action)
+    {
+        var dq = _dispatcher;
+        if (dq is not null)
+            dq.TryEnqueue(() => action());
+        else
+            action();
     }
 }

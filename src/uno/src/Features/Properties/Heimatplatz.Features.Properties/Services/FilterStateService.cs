@@ -16,6 +16,7 @@ public class FilterStateService : IFilterStateService
     public FilterState CurrentState => _currentState;
 
     public event EventHandler? FilterStateChanged;
+    public event EventHandler? ResultCountChanged;
 
     public void UpdateFilters(
         bool isHausSelected,
@@ -49,7 +50,7 @@ public class FilterStateService : IFilterStateService
         if (_currentState.ResultCount != count)
         {
             _currentState = _currentState with { ResultCount = count };
-            FilterStateChanged?.Invoke(this, EventArgs.Empty);
+            ResultCountChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

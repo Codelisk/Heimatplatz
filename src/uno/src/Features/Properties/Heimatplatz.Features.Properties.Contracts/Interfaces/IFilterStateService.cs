@@ -33,6 +33,12 @@ public interface IFilterStateService
         List<Guid>? excludedSellerSourceIds = null);
 
     /// <summary>
+    /// Event wenn sich die Ergebnis-Anzahl aendert (separat von FilterStateChanged
+    /// um rekursive Schleifen zu vermeiden)
+    /// </summary>
+    event EventHandler? ResultCountChanged;
+
+    /// <summary>
     /// Setzt die Ergebnis-Anzahl
     /// </summary>
     void SetResultCount(int count);

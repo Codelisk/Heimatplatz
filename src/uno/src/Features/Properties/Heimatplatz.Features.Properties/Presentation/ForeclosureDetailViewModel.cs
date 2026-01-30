@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Dispatching;
 using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
@@ -24,6 +25,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
     private readonly IPropertyStatusService _propertyStatusService;
     private readonly ILogger<ForeclosureDetailViewModel> _logger;
     private readonly Guid _propertyId;
+    private DispatcherQueue? _dispatcher;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -172,8 +174,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         _logger = logger;
         _propertyId = data.PropertyId;
 
-        // Load property data immediately
-        _ = LoadPropertyAsync(_propertyId);
+        // Property data is loaded in OnNavigatedTo (guaranteed UI thread for dispatcher access)
     }
 
     private void UpdateDisplayProperties()
@@ -357,8 +358,11 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
 
     public async Task LoadPropertyAsync(Guid propertyId)
     {
-        IsBusy = true;
-        BusyMessage = "Lade Zwangsversteigerung...";
+        DispatchToUI(() =>
+        {
+            IsBusy = true;
+            BusyMessage = "Lade Zwangsversteigerung...";
+        });
 
         try
         {
@@ -371,10 +375,11 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
 
             var (context, response) = await _mediator.Request(request);
 
+            PropertyDetailDto? loadedProperty = null;
             if (response?.Property != null)
             {
                 var prop = response.Property;
-                Property = new PropertyDetailDto(
+                loadedProperty = new PropertyDetailDto(
                     Id: prop.Id,
                     Title: prop.Title,
                     Address: prop.Address,
@@ -407,21 +412,28 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
                     TypeSpecificData: prop.TypeSpecificData
                 );
 
-                _logger.LogInformation("[ForeclosureDetail] Property loaded: {Title}", Property.Title);
+                _logger.LogInformation("[ForeclosureDetail] Property loaded: {Title}", loadedProperty.Title);
             }
             else
             {
                 _logger.LogWarning("[ForeclosureDetail] Property {PropertyId} not found", propertyId);
             }
 
-            UpdateDisplayProperties();
-
-            // Load favorite status
+            // Load favorite status (can run on any thread)
+            var isFavorite = false;
             if (_authService.IsAuthenticated)
             {
                 await _propertyStatusService.RefreshStatusAsync();
-                IsFavorite = _propertyStatusService.IsFavorite(propertyId);
+                isFavorite = _propertyStatusService.IsFavorite(propertyId);
             }
+
+            // Update all UI-bound properties on the UI thread
+            DispatchToUI(() =>
+            {
+                Property = loadedProperty;
+                UpdateDisplayProperties();
+                IsFavorite = isFavorite;
+            });
         }
         catch (Exception ex)
         {
@@ -429,7 +441,11 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         }
         finally
         {
-            IsBusy = false;
+            DispatchToUI(() =>
+            {
+                IsBusy = false;
+                BusyMessage = null;
+            });
         }
     }
 
@@ -498,6 +514,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
     public void OnNavigatedTo(object? parameter)
     {
         _logger.LogDebug("[ForeclosureDetail] OnNavigatedTo");
+        _dispatcher ??= DispatcherQueue.GetForCurrentThread();
+        _ = LoadPropertyAsync(_propertyId);
     }
 
     /// <inheritdoc />
@@ -507,4 +525,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
     }
 
     #endregion
+
+    private void DispatchToUI(Action action)
+    {
+        var dq = _dispatcher;
+        if (dq is not null)
+            dq.TryEnqueue(() => action());
+        else
+            action();
+    }
 }
