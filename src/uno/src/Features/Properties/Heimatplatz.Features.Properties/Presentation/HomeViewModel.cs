@@ -9,6 +9,7 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Dispatching;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using UnoFramework.Contracts.Navigation;
@@ -32,6 +33,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private readonly ILocationService _locationService;
     private readonly ILogger<HomeViewModel> _logger;
 
+    private DispatcherQueue? _dispatcher;
     private bool _isLoading;
 
     [ObservableProperty]
@@ -167,8 +169,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Load locations from API
         _ = LoadLocationsAsync();
 
-        // Load properties from API
-        _ = LoadPropertiesAsync();
+        // Properties are loaded in OnNavigatedTo (guaranteed UI thread for dispatcher access)
 
         // Load preferences if already authenticated
         // PropertyStatusService is loaded lazily via EnsureLoadedAsync() in OnPropertyCardLoaded
@@ -186,6 +187,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// </summary>
     public void OnNavigatedTo(object? parameter)
     {
+        // Capture UI dispatcher (OnNavigatedTo always runs on the UI thread)
+        _dispatcher ??= DispatcherQueue.GetForCurrentThread();
+
         // Only reload if we don't have data yet.
         // Re-navigating back to an already-loaded Home page should NOT trigger
         // _properties.Reset() because the old page's ItemsRepeater is still alive
@@ -600,8 +604,12 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         }
 
         _isLoading = true;
-        IsBusy = true;
-        BusyMessage = "Lade Immobilien...";
+
+        DispatchToUI(() =>
+        {
+            IsBusy = true;
+            BusyMessage = "Lade Immobilien...";
+        });
 
         try
         {
@@ -638,7 +646,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
 
             _logger.LogInformation("[HomePage] Response received. Properties count: {Count}", response?.Properties?.Count ?? 0);
 
-            // Clear and reload all properties
+            // Clear and reload all properties (plain List, not UI-bound)
             _allProperties.Clear();
 
             if (response?.Properties != null)
@@ -664,8 +672,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
                 }
             }
 
-            // Apply local filters (for multi-select types, age filter, multi-city)
-            ApplyFiltersInternal();
+            // Apply local filters on UI thread (updates bound collections and properties)
+            DispatchToUI(ApplyFiltersInternal);
         }
         catch (Exception ex)
         {
@@ -674,8 +682,11 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         }
         finally
         {
-            IsBusy = false;
-            BusyMessage = null;
+            DispatchToUI(() =>
+            {
+                IsBusy = false;
+                BusyMessage = null;
+            });
             _isLoading = false;
         }
     }
@@ -687,5 +698,18 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     private async Task RefreshPropertiesAsync()
     {
         await LoadPropertiesAsync();
+    }
+
+    /// <summary>
+    /// Dispatches an action to the UI thread. Falls back to direct invocation
+    /// if dispatcher is not yet available.
+    /// </summary>
+    private void DispatchToUI(Action action)
+    {
+        var dq = _dispatcher;
+        if (dq is not null)
+            dq.TryEnqueue(() => action());
+        else
+            action();
     }
 }

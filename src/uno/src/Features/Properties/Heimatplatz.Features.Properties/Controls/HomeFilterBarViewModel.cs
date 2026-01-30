@@ -52,6 +52,7 @@ public partial class HomeFilterBarViewModel : ObservableObject
 
         // Subscribe to filter state changes
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
+        _filterStateService.ResultCountChanged += OnResultCountChanged;
 
         // Subscribe to SellerType changes
         SubscribeToSellerTypeChanges();
@@ -81,6 +82,11 @@ public partial class HomeFilterBarViewModel : ObservableObject
     private void OnFilterStateChanged(object? sender, EventArgs e)
     {
         SyncFromFilterState();
+    }
+
+    private void OnResultCountChanged(object? sender, EventArgs e)
+    {
+        ResultCount = _filterStateService.CurrentState.ResultCount;
     }
 
     private bool _isSyncing;
