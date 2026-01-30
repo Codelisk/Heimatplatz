@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Controls;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using UnoFramework.Contracts.Pages;
+using Windows.UI.Core;
 
 namespace Heimatplatz.App.Presentation;
 
@@ -23,10 +24,14 @@ public sealed partial class MainPage : Page,
     IEventHandler<NavigateToRouteInContentEvent>
 {
     private IAuthService? _authService;
+    private PageType _currentPageType = PageType.Home;
 
     public MainPage()
     {
         this.InitializeComponent();
+
+        // Handle hardware back button (Android, browser)
+        SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
 
         // Initial zu HeaderLeft, HeaderRight Regions navigieren und Home laden
         Loaded += async (_, _) =>
@@ -110,10 +115,33 @@ public sealed partial class MainPage : Page,
     }
 
     /// <summary>
+    /// Handles the hardware back button (Android, browser).
+    /// Navigates back to Home when on a Detail or Form page.
+    /// </summary>
+    private void OnBackRequested(object? sender, BackRequestedEventArgs e)
+    {
+        if (_currentPageType is PageType.Detail or PageType.Form)
+        {
+            e.Handled = true;
+            DispatcherQueue?.TryEnqueue(async () =>
+            {
+                var navViewNavigator = NavView.Navigator();
+                if (navViewNavigator != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainPage] Hardware back - Navigating to Home");
+                    await navViewNavigator.NavigateRouteAsync(NavView, "Home");
+                }
+            });
+        }
+    }
+
+    /// <summary>
     /// Handled das PageNavigatedEvent - navigiert zur HeaderMain Region wenn MainHeaderViewModel gesetzt
     /// </summary>
     public new Task Handle(PageNavigatedEvent @event, IMediatorContext context, CancellationToken cancellationToken)
     {
+        _currentPageType = @event.PageType;
+
         // Ensure UI updates happen on UI thread
         var dispatcherQueue = DispatcherQueue;
         if (dispatcherQueue != null)
