@@ -21,8 +21,6 @@ public sealed partial class PropertyCard : UserControl
     public PropertyCard()
     {
         this.InitializeComponent();
-        this.PointerEntered += OnCardPointerEntered;
-        this.PointerExited += OnCardPointerExited;
         this.Loaded += OnLoaded;
 
         // Update menu texts when flyout opens (ensures correct state)
@@ -501,17 +499,6 @@ public sealed partial class PropertyCard : UserControl
         e.Handled = true;
     }
 
-    private void OnCardPointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        // Hover-Effekt: Leichte Skalierung
-        this.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform { ScaleX = 1.02, ScaleY = 1.02 };
-    }
-
-    private void OnCardPointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        // Hover-Effekt zuruecksetzen
-        this.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform { ScaleX = 1, ScaleY = 1 };
-    }
 
     private void OnMoreOptionsTapped(object sender, TappedRoutedEventArgs e)
     {
