@@ -1,0 +1,178 @@
+# Fastfile for Heimatplatz App
+# https://docs.fastlane.tools
+
+default_platform(:ios)
+
+platform :android do
+  desc "Deploy to Play Store internal test track"
+  lane :internal do
+    # Support both APK and AAB uploads
+    if ENV["SUPPLY_APK"]
+      supply(
+        track: "internal",
+        apk: ENV["SUPPLY_APK"],
+        json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
+        package_name: ENV["SUPPLY_PACKAGE_NAME"] || "com.heimatplatz.app",
+        skip_upload_metadata: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true
+      )
+    else
+      supply(
+        track: "internal",
+        aab: ENV["SUPPLY_AAB"] || "../artifacts/android/*.aab",
+        json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
+        package_name: ENV["SUPPLY_PACKAGE_NAME"] || "com.heimatplatz.app",
+        skip_upload_metadata: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true
+      )
+    end
+  end
+
+  desc "Deploy to Play Store production"
+  lane :production do
+    supply(
+      track: "production",
+      aab: ENV["SUPPLY_AAB"] || "../artifacts/android/*.aab",
+      json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
+      package_name: ENV["SUPPLY_PACKAGE_NAME"] || "com.heimatplatz.app",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
+
+platform :ios do
+  desc "Create App ID in Developer Portal"
+  lane :create_app do
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+    )
+    produce(
+      app_identifier: "com.heimatplatz.app",
+      app_name: "Heimatplatz",
+      team_id: ENV["APPLE_TEAM_ID"],
+      skip_itc: true
+    )
+  end
+
+  desc "Initialize match repository (run once to setup certificate repo)"
+  lane :match_init do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+    )
+
+    # Create App Store distribution certificates
+    match(
+      type: "appstore",
+      app_identifier: "com.heimatplatz.app",
+      team_id: ENV["APPLE_TEAM_ID"],
+      git_url: ENV["MATCH_GIT_URL"],
+      api_key: api_key,
+      readonly: false,
+      force: false,
+      verbose: true
+    )
+
+    # Create development certificates
+    match(
+      type: "development",
+      app_identifier: "com.heimatplatz.app",
+      team_id: ENV["APPLE_TEAM_ID"],
+      git_url: ENV["MATCH_GIT_URL"],
+      api_key: api_key,
+      readonly: false,
+      force: false,
+      verbose: true
+    )
+  end
+
+  desc "Setup/refresh App Store certificates"
+  lane :setup_match do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+    )
+    match(
+      type: "appstore",
+      app_identifier: "com.heimatplatz.app",
+      team_id: ENV["APPLE_TEAM_ID"],
+      git_url: ENV["MATCH_GIT_URL"],
+      api_key: api_key,
+      readonly: false,
+      force: true
+    )
+  end
+
+  desc "Sync certificates and provisioning profiles (readonly)"
+  lane :certificates do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+    )
+    match(
+      type: "appstore",
+      app_identifier: "com.heimatplatz.app",
+      team_id: ENV["APPLE_TEAM_ID"],
+      git_url: ENV["MATCH_GIT_URL"],
+      api_key: api_key,
+      readonly: true
+    )
+  end
+
+  desc "Deploy to TestFlight"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+    )
+
+    pilot(
+      api_key: api_key,
+      ipa: ENV["PILOT_IPA"] || "../artifacts/ios/*.ipa",
+      skip_waiting_for_build_processing: true,
+      skip_submission: true,
+      distribute_external: false,
+      notify_external_testers: false,
+      app_identifier: "com.heimatplatz.app"
+    )
+  end
+
+  desc "Deploy to App Store"
+  lane :release do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+    )
+
+    # Sync certificates first
+    match(
+      type: "appstore",
+      app_identifier: "com.heimatplatz.app",
+      team_id: ENV["APPLE_TEAM_ID"],
+      git_url: ENV["MATCH_GIT_URL"],
+      api_key: api_key,
+      readonly: true
+    )
+
+    deliver(
+      api_key: api_key,
+      ipa: ENV["DELIVER_IPA"] || "../artifacts/ios/*.ipa",
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false,
+      automatic_release: false,
+      app_identifier: "com.heimatplatz.app"
+    )
+  end
+end
