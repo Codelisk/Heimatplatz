@@ -10,7 +10,7 @@
     </UnoFeatures>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.Contains('-android')) OR $(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))">
     <ProjectReference Include="..\..\..\..\..\..\subm\shiny\src\Shiny.Push\Shiny.Push.csproj" />
   </ItemGroup>
 
