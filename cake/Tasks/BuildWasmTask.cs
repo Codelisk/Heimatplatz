@@ -36,7 +36,7 @@ public sealed class BuildWasmTask : FrostingTask<BuildContext>
         }
 
         // Force single-target mode so MSBuild only resolves WASM dependencies
-        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "browserwasm");
+        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "wasm");
 
         var settings = new DotNetPublishSettings
         {
