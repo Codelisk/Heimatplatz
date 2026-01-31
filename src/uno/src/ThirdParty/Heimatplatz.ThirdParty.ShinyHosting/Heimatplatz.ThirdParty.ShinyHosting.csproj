@@ -10,7 +10,7 @@
     <AssetTargetFallback>$(AssetTargetFallback);net9.0-android35.0</AssetTargetFallback>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.Contains('-android')) OR $(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))">
     <PackageReference Include="Shiny.Hosting.Native" />
     <ProjectReference Include="..\..\..\..\..\subm\shiny\src\Shiny.Core\Shiny.Core.csproj" />
   </ItemGroup>
