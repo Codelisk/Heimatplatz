@@ -9,6 +9,7 @@
     <UnoFeatures>
       Navigation;
       Logging;
+      SkiaRenderer;
     </UnoFeatures>
   </PropertyGroup>
 
