@@ -80,7 +80,7 @@ jobs:
           dotnet-quality: ${{ env.DOTNET_QUALITY }}
 
       - name: Install Uno Workloads
-        run: dotnet workload install android
+        run: dotnet workload install android maui-android
         working-directory: .
 
       - name: Decode Android Keystore
