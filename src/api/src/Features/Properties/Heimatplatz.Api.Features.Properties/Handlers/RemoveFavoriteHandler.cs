@@ -21,7 +21,7 @@ public class RemoveFavoriteHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<RemoveFavoriteRequest, RemoveFavoriteResponse>
 {
-    [MediatorHttpDelete("/{PropertyId}", OperationId = "RemoveFavorite", AuthorizationPolicies = [AuthorizationPolicies.RequireBuyer])]
+    [MediatorHttpDelete("/{PropertyId}", OperationId = "RemoveFavorite", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<RemoveFavoriteResponse> Handle(RemoveFavoriteRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token

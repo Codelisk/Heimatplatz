@@ -77,6 +77,10 @@ public sealed class BuildIosTask : FrostingTask<BuildContext>
         processInfo.Environment["MATCH_GIT_URL"] = context.MatchGitUrl;
         processInfo.Environment["MATCH_PASSWORD"] = context.MatchPassword;
         processInfo.Environment["MATCH_APP_IDENTIFIER"] = context.IosBundleId;
+        processInfo.Environment["APPLE_TEAM_ID"] = context.IosTeamId;
+        processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_ID"] = context.AppStoreConnectApiKeyId;
+        processInfo.Environment["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] = context.AppStoreConnectIssuerId;
+        processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] = context.AppStoreConnectKeyPath;
 
         using var process = Process.Start(processInfo);
         if (process == null)
