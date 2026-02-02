@@ -37,17 +37,17 @@ public sealed class BuildIosTask : FrostingTask<BuildContext>
             context.Warning("MATCH_GIT_URL not configured. Using local signing identity.");
         }
 
-        // Set UNO_SINGLE_TARGET to false so UnoFrameworks includes all platforms
-        // This ensures project.assets.json contains all target frameworks including net10.0-ios
-        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "false");
+        // Set UNO_SINGLE_TARGET to ios so UnoFrameworks resolves to net10.0-ios only
+        // This ensures project.assets.json contains the correct target framework
+        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "ios");
 
-        // Explicit restore for all frameworks to ensure project.assets.json is complete
+        // Explicit restore for ios framework to ensure project.assets.json is correct
         // Use root nuget.config to avoid conflicts with submodule configs
-        context.Information("Restoring packages for all frameworks...");
+        context.Information("Restoring packages for net10.0-ios...");
         var restoreSettings = new DotNetRestoreSettings();
         restoreSettings.ConfigFile = Path.Combine(context.ProjectDirectory, "nuget.config");
         restoreSettings.MSBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
-        restoreSettings.MSBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "false" };
+        restoreSettings.MSBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "ios" };
         context.DotNetRestore(context.CsprojPath, restoreSettings);
 
         var outputDir = Path.Combine(context.ProjectDirectory, "artifacts", "ios");
@@ -55,7 +55,7 @@ public sealed class BuildIosTask : FrostingTask<BuildContext>
 
         var msBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
         // Ensure UNO_SINGLE_TARGET is set for publish as well (in case it triggers implicit restore)
-        msBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "false" };
+        msBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "ios" };
         msBuildSettings.Properties["RuntimeIdentifier"] = new[] { "ios-arm64" };
         msBuildSettings.Properties["ArchiveOnBuild"] = new[] { "true" };
 
