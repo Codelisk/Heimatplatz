@@ -15,19 +15,25 @@ public sealed class BuildAndroidTask : FrostingTask<BuildContext>
         context.Information("=== Build Android Task ===");
         context.Information($"Building project: {context.CsprojPath}");
 
-        // Explicit restore for the specific framework to ensure project.assets.json is correct
+        // Set UNO_SINGLE_TARGET to false so UnoFrameworks includes all platforms
+        // This ensures project.assets.json contains all target frameworks including net10.0-android
+        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "false");
+
+        // Explicit restore for all frameworks to ensure project.assets.json is complete
         // Use root nuget.config to avoid conflicts with submodule configs
-        context.Information("Restoring packages for net10.0-android...");
+        context.Information("Restoring packages for all frameworks...");
         var restoreSettings = new DotNetRestoreSettings();
         restoreSettings.ConfigFile = Path.Combine(context.ProjectDirectory, "nuget.config");
         restoreSettings.MSBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
-        restoreSettings.MSBuildSettings.Properties["TargetFramework"] = new[] { "net10.0-android" };
+        restoreSettings.MSBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "false" };
         context.DotNetRestore(context.CsprojPath, restoreSettings);
 
         var outputDir = Path.Combine(context.ProjectDirectory, "artifacts", "android");
         Directory.CreateDirectory(outputDir);
 
         var msBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
+        // Ensure UNO_SINGLE_TARGET is set for publish as well (in case it triggers implicit restore)
+        msBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "false" };
         // Use APK format for apps not enrolled in Play App Signing
         msBuildSettings.Properties["AndroidPackageFormat"] = new[] { "apk" };
 

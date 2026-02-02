@@ -36,23 +36,29 @@ public sealed class BuildWasmTask : FrostingTask<BuildContext>
             }
         }
 
-        // Force single-target mode so MSBuild only resolves WASM dependencies
-        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "wasm");
+        // Set UNO_SINGLE_TARGET to false so UnoFrameworks includes all platforms
+        // This ensures project.assets.json contains all target frameworks including net10.0-browserwasm
+        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "false");
 
-        // Explicit restore for the specific framework to ensure project.assets.json is correct
+        // Explicit restore for all frameworks to ensure project.assets.json is complete
         // Use root nuget.config to avoid conflicts with submodule configs
-        context.Information("Restoring packages for net10.0-browserwasm...");
+        context.Information("Restoring packages for all frameworks...");
         var restoreSettings = new DotNetRestoreSettings();
         restoreSettings.ConfigFile = Path.Combine(context.ProjectDirectory, "nuget.config");
         restoreSettings.MSBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
-        restoreSettings.MSBuildSettings.Properties["TargetFramework"] = new[] { "net10.0-browserwasm" };
+        restoreSettings.MSBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "false" };
         context.DotNetRestore(context.CsprojPath, restoreSettings);
+
+        var msBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
+        // Ensure UNO_SINGLE_TARGET is set for publish as well (in case it triggers implicit restore)
+        msBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "false" };
 
         var settings = new DotNetPublishSettings
         {
             Configuration = "Release",
             Framework = "net10.0-browserwasm",
-            OutputDirectory = outputDir
+            OutputDirectory = outputDir,
+            MSBuildSettings = msBuildSettings
         };
 
         context.DotNetPublish(context.CsprojPath, settings);
