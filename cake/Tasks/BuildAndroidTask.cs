@@ -17,10 +17,10 @@ public sealed class BuildAndroidTask : FrostingTask<BuildContext>
 
         // Explicit restore for the specific framework to ensure project.assets.json is correct
         context.Information("Restoring packages for net10.0-android...");
-        context.DotNetRestore(context.CsprojPath, new DotNetRestoreSettings
-        {
-            Runtime = "android-arm64"
-        });
+        var restoreSettings = new DotNetRestoreSettings();
+        restoreSettings.MSBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
+        restoreSettings.MSBuildSettings.Properties["TargetFramework"] = new[] { "net10.0-android" };
+        context.DotNetRestore(context.CsprojPath, restoreSettings);
 
         var outputDir = Path.Combine(context.ProjectDirectory, "artifacts", "android");
         Directory.CreateDirectory(outputDir);

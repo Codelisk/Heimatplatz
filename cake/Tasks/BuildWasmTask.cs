@@ -41,7 +41,10 @@ public sealed class BuildWasmTask : FrostingTask<BuildContext>
 
         // Explicit restore for the specific framework to ensure project.assets.json is correct
         context.Information("Restoring packages for net10.0-browserwasm...");
-        context.DotNetRestore(context.CsprojPath, new DotNetRestoreSettings());
+        var restoreSettings = new DotNetRestoreSettings();
+        restoreSettings.MSBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
+        restoreSettings.MSBuildSettings.Properties["TargetFramework"] = new[] { "net10.0-browserwasm" };
+        context.DotNetRestore(context.CsprojPath, restoreSettings);
 
         var settings = new DotNetPublishSettings
         {
