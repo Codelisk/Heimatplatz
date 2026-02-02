@@ -1,6 +1,7 @@
 using Cake.Common.Diagnostics;
 using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Publish;
+using Cake.Common.Tools.DotNet.Restore;
 using Cake.Frosting;
 
 namespace Build.Tasks;
@@ -37,6 +38,10 @@ public sealed class BuildWasmTask : FrostingTask<BuildContext>
 
         // Force single-target mode so MSBuild only resolves WASM dependencies
         Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "wasm");
+
+        // Explicit restore for the specific framework to ensure project.assets.json is correct
+        context.Information("Restoring packages for net10.0-browserwasm...");
+        context.DotNetRestore(context.CsprojPath, new DotNetRestoreSettings());
 
         var settings = new DotNetPublishSettings
         {
