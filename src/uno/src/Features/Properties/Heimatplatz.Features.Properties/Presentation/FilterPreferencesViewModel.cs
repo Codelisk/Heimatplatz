@@ -68,16 +68,13 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     private bool _isZwangsversteigerungSelected = true;
 
     [ObservableProperty]
-    private bool _isPrivateSelected = true;
-
-    [ObservableProperty]
-    private bool _isBrokerSelected = true;
-
-    [ObservableProperty]
-    private bool _isPortalSelected = true;
-
-    [ObservableProperty]
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
+
+    /// <summary>
+    /// Liste der Anbietertypen fuer den SellerTypePicker
+    /// </summary>
+    [ObservableProperty]
+    private List<SellerTypeModel> _sellerTypes = SellerTypeModel.CreateDefaultList();
 
     [ObservableProperty]
     private List<string> _selectedOrte = [];
@@ -153,15 +150,17 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
 
         try
         {
+            var (isPrivate, isBroker, isPortal) = GetSellerTypeSelection();
+
             var preferences = new FilterPreferencesDto(
                 SelectedOrte: SelectedOrte,
                 SelectedAgeFilter: SelectedAgeFilter,
                 IsHausSelected: IsHausSelected,
                 IsGrundstueckSelected: IsGrundstueckSelected,
                 IsZwangsversteigerungSelected: IsZwangsversteigerungSelected,
-                IsPrivateSelected: IsPrivateSelected,
-                IsBrokerSelected: IsBrokerSelected,
-                IsPortalSelected: IsPortalSelected,
+                IsPrivateSelected: isPrivate,
+                IsBrokerSelected: isBroker,
+                IsPortalSelected: isPortal,
                 ExcludedSellerSourceIds: []
             );
 
@@ -202,14 +201,40 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             IsHausSelected = preferences.IsHausSelected;
             IsGrundstueckSelected = preferences.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
-            IsPrivateSelected = preferences.IsPrivateSelected;
-            IsBrokerSelected = preferences.IsBrokerSelected;
-            IsPortalSelected = preferences.IsPortalSelected;
+
+            // SellerTypes synchronisieren
+            UpdateSellerTypesFromPreferences(
+                preferences.IsPrivateSelected,
+                preferences.IsBrokerSelected,
+                preferences.IsPortalSelected);
         }
         finally
         {
             _isSyncing = false;
         }
+    }
+
+    private void UpdateSellerTypesFromPreferences(bool isPrivateSelected, bool isBrokerSelected, bool isPortalSelected)
+    {
+        foreach (var sellerType in SellerTypes)
+        {
+            sellerType.IsSelected = sellerType.Type switch
+            {
+                SellerType.Private => isPrivateSelected,
+                SellerType.Broker => isBrokerSelected,
+                SellerType.Portal => isPortalSelected,
+                _ => true
+            };
+        }
+    }
+
+    private (bool IsPrivate, bool IsBroker, bool IsPortal) GetSellerTypeSelection()
+    {
+        return (
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Private)?.IsSelected ?? true,
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true,
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Portal)?.IsSelected ?? true
+        );
     }
 
     // Typ-Filter Logik: Mindestens ein Filter muss aktiv bleiben
@@ -252,39 +277,4 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
         }
     }
 
-    partial void OnIsPrivateSelectedChanged(bool value)
-    {
-        if (_isSyncing) return;
-
-        if (!value && !IsBrokerSelected && !IsPortalSelected)
-        {
-            _isSyncing = true;
-            IsPrivateSelected = true;
-            _isSyncing = false;
-        }
-    }
-
-    partial void OnIsBrokerSelectedChanged(bool value)
-    {
-        if (_isSyncing) return;
-
-        if (!value && !IsPrivateSelected && !IsPortalSelected)
-        {
-            _isSyncing = true;
-            IsBrokerSelected = true;
-            _isSyncing = false;
-        }
-    }
-
-    partial void OnIsPortalSelectedChanged(bool value)
-    {
-        if (_isSyncing) return;
-
-        if (!value && !IsPrivateSelected && !IsBrokerSelected)
-        {
-            _isSyncing = true;
-            IsPortalSelected = true;
-            _isSyncing = false;
-        }
-    }
 }

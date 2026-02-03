@@ -12,8 +12,7 @@ public class UpdatePropertyRequest : IRequest<UpdatePropertyResponse>
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string PostalCode { get; set; } = string.Empty;
+    public Guid MunicipalityId { get; set; }
     public decimal Price { get; set; }
     public PropertyType Type { get; set; }
     public SellerType SellerType { get; set; }

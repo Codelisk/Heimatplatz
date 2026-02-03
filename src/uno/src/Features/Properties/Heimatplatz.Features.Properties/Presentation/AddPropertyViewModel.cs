@@ -1,13 +1,20 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Core.ApiClient.Manual;
+using Heimatplatz.Core.ApiClient.Generated;
 using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -20,8 +27,9 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
-    private readonly UpdatePropertyManualClient _updatePropertyClient;
     private readonly INavigator _navigator;
+    private readonly ILocationService _locationService;
+    private readonly ILogger<AddPropertyViewModel> _logger;
 
     // Edit Mode - Property ID if editing existing property
     [ObservableProperty]
@@ -36,12 +44,12 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [NotifyPropertyChangedFor(nameof(SelectedTyp), nameof(IsHouseType), nameof(IsLandType), nameof(IsForeclosureType))]
     private PropertyTypeItem? _selectedPropertyTypeItem;
 
-    public PropertyType SelectedTyp => SelectedPropertyTypeItem?.Value ?? PropertyType.House;
+    public Features.Properties.Contracts.Models.PropertyType SelectedTyp => SelectedPropertyTypeItem?.Value ?? Features.Properties.Contracts.Models.PropertyType.House;
 
     // Visibility properties based on selected property type
-    public bool IsHouseType => SelectedTyp == PropertyType.House;
-    public bool IsLandType => SelectedTyp == PropertyType.Land;
-    public bool IsForeclosureType => SelectedTyp == PropertyType.Foreclosure;
+    public bool IsHouseType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.House;
+    public bool IsLandType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.Land;
+    public bool IsForeclosureType => SelectedTyp == Features.Properties.Contracts.Models.PropertyType.Foreclosure;
 
     // Common Fields
     [ObservableProperty]
@@ -76,7 +84,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 
     // Foreclosure-Specific Fields
     [ObservableProperty]
-    private PropertyCategory _selectedPropertyCategory = PropertyCategory.Einfamilienhaus;
+    private Features.Properties.Contracts.Models.PropertyCategory _selectedPropertyCategory = Features.Properties.Contracts.Models.PropertyCategory.Einfamilienhaus;
 
     [ObservableProperty]
     private DateTimeOffset _auctionDate = DateTimeOffset.Now.AddDays(30);
@@ -167,6 +175,18 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [ObservableProperty]
     private bool _showSuccess;
 
+    // Bilder
+    public ObservableCollection<ImageItem> Images { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasImages), nameof(HasNoImages))]
+    private int _imageCount;
+
+    public bool HasImages => ImageCount > 0;
+    public bool HasNoImages => ImageCount == 0;
+
+    private const int MaxImages = 20;
+
     #region IPageInfo Implementation
 
     public PageType PageType => PageType.Settings;
@@ -178,13 +198,15 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     public AddPropertyViewModel(
         IAuthService authService,
         IMediator mediator,
-        UpdatePropertyManualClient updatePropertyClient,
-        INavigator navigator)
+        INavigator navigator,
+        ILocationService locationService,
+        ILogger<AddPropertyViewModel> logger)
     {
         _authService = authService;
         _mediator = mediator;
-        _updatePropertyClient = updatePropertyClient;
         _navigator = navigator;
+        _locationService = locationService;
+        _logger = logger;
 
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
@@ -214,7 +236,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         {
             // Load property details using GetPropertyByIdHttpRequest
             var result = await _mediator.Request(
-                new Heimatplatz.Core.ApiClient.Generated.GetPropertyByIdHttpRequest
+                new GetPropertyByIdHttpRequest
                 {
                     Id = propertyId
                 }
@@ -258,10 +280,78 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 
 
     [RelayCommand]
+    private async Task AddPhotosAsync()
+    {
+        try
+        {
+            if (Images.Count >= MaxImages)
+            {
+                ErrorMessage = $"Maximal {MaxImages} Bilder erlaubt";
+                return;
+            }
+
+            var picker = new FileOpenPicker();
+            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".jpg");
+            picker.FileTypeFilter.Add(".jpeg");
+            picker.FileTypeFilter.Add(".png");
+            picker.FileTypeFilter.Add(".webp");
+
+            var files = await picker.PickMultipleFilesAsync();
+            if (files == null || files.Count == 0)
+                return;
+
+            var remaining = MaxImages - Images.Count;
+            var filesToAdd = files.Take(remaining);
+
+            foreach (var file in filesToAdd)
+            {
+                using var fileStream = await file.OpenStreamForReadAsync();
+                var contentType = file.ContentType;
+                if (string.IsNullOrEmpty(contentType))
+                    contentType = "image/jpeg";
+
+                // Read entire file into a MemoryStream (seekable, reusable for upload)
+                var memoryStream = new MemoryStream();
+                await fileStream.CopyToAsync(memoryStream);
+
+                // Create thumbnail from the MemoryStream
+                var thumbnail = new BitmapImage();
+                memoryStream.Position = 0;
+                await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
+
+                // Reset position for later upload use
+                memoryStream.Position = 0;
+
+                Images.Add(new ImageItem(file.Name, contentType, memoryStream, thumbnail));
+            }
+
+            ImageCount = Images.Count;
+
+            if (files.Count > remaining)
+            {
+                ErrorMessage = $"Nur {remaining} weitere Bilder konnten hinzugefügt werden (max. {MaxImages})";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Auswählen von Bildern");
+            ErrorMessage = $"Fehler beim Auswählen von Bildern: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveImage(ImageItem image)
+    {
+        image.Stream.Dispose();
+        Images.Remove(image);
+        ImageCount = Images.Count;
+    }
+
+    [RelayCommand]
     private async Task SavePropertyAsync()
     {
         ErrorMessage = null;
-        ShowSuccess = false;
 
         // Validation
         if (string.IsNullOrWhiteSpace(Titel) || Titel.Length < 10)
@@ -289,6 +379,8 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         }
 
         IsBusy = true;
+        var isEdit = IsEditMode;
+        var saveSucceeded = false;
 
         try
         {
@@ -311,71 +403,104 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 
             // Get seller info from auth service
             var sellerName = _authService.UserFullName ?? "Unbekannt";
-            var sellerType = 0; // Privat (default for all users)
 
             // TypeSpecificData for future use
             Dictionary<string, object>? typeSpecificData = null;
 
-            if (IsEditMode)
+            // Resolve MunicipalityId from Ort and Plz
+            var municipalityId = await _locationService.ResolveMunicipalityIdAsync(Ort.Trim(), Plz.Trim());
+            if (municipalityId == null)
             {
-                // Update existing property using manual client
-                // WORKAROUND: Using manual client due to Shiny Mediator OpenAPI generator bug
-                // See: https://github.com/shinyorg/mediator/issues/54
-                var updateRequest = new Heimatplatz.Core.ApiClient.Manual.UpdatePropertyRequestDto
+                // Fallback: Try to get first municipality
+                var municipalities = await _locationService.GetAllMunicipalitiesAsync();
+                municipalityId = municipalities.FirstOrDefault()?.Id;
+                if (municipalityId == null)
                 {
-                    Title = Titel.Trim(),
-                    Address = Adresse.Trim(),
-                    City = Ort.Trim(),
-                    PostalCode = Plz.Trim(),
-                    Price = preisValue,
-                    Type = (int)SelectedTyp,
-                    SellerType = sellerType,
-                    SellerName = sellerName,
-                    Description = Beschreibung.Trim(),
-                    LivingAreaSquareMeters = wohnflaecheValue,
-                    PlotAreaSquareMeters = grundstuecksValue,
-                    Rooms = zimmerValue,
-                    YearBuilt = baujahrValue,
-                    TypeSpecificData = typeSpecificData
-                };
-
-                await _updatePropertyClient.UpdatePropertyAsync(
-                    PropertyId!.Value,
-                    updateRequest);
+                    ErrorMessage = "Konnte keine passende Gemeinde für den angegebenen Ort finden";
+                    return;
+                }
             }
-            else
+
+            // Upload images first to get URLs
+            List<string>? imageUrls = null;
+            if (Images.Count > 0)
             {
-                // Create new property using generated client
-                var response = await _mediator.Request(new Heimatplatz.Core.ApiClient.Generated.CreatePropertyHttpRequest
+                try
                 {
-                    Body = new Heimatplatz.Core.ApiClient.Generated.CreatePropertyRequest
+                    foreach (var img in Images)
+                        img.Stream.Position = 0;
+
+                    var imageFiles = Images.Select(img => new ImageFileData(
+                        img.FileName,
+                        img.ContentType,
+                        img.Stream
+                    )).ToList();
+
+                    var (_, uploadResult) = await _mediator.Request(
+                        new UploadPropertyImagesRequest(imageFiles));
+
+                    imageUrls = uploadResult?.ImageUrls;
+                    _logger.LogInformation("{Count} Bilder hochgeladen: {Urls}",
+                        imageUrls?.Count ?? 0,
+                        string.Join(", ", imageUrls ?? []));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Fehler beim Hochladen der Bilder");
+                }
+            }
+
+            if (isEdit)
+            {
+                // Update existing property using generated Mediator request
+                await _mediator.Request(new UpdatePropertyHttpRequest
+                {
+                    Body = new UpdatePropertyRequest
                     {
+                        Id = PropertyId!.Value,
                         Title = Titel.Trim(),
                         Address = Adresse.Trim(),
-                        City = Ort.Trim(),
-                        PostalCode = Plz.Trim(),
+                        MunicipalityId = municipalityId.Value,
                         Price = (double)preisValue,
-                        Type = (Heimatplatz.Core.ApiClient.Generated.PropertyType)SelectedTyp,
-                        SellerType = (Heimatplatz.Core.ApiClient.Generated.SellerType)sellerType,
+                        Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
+                        SellerType = Core.ApiClient.Generated.SellerType.Private,
                         SellerName = sellerName,
                         Description = Beschreibung.Trim(),
                         LivingAreaSquareMeters = wohnflaecheValue,
                         PlotAreaSquareMeters = grundstuecksValue,
                         Rooms = zimmerValue,
                         YearBuilt = baujahrValue,
+                        ImageUrls = imageUrls,
+                        TypeSpecificData = typeSpecificData
+                    }
+                });
+            }
+            else
+            {
+                // Create new property with image URLs included
+                var response = await _mediator.Request(new CreatePropertyHttpRequest
+                {
+                    Body = new CreatePropertyRequest
+                    {
+                        Title = Titel.Trim(),
+                        Address = Adresse.Trim(),
+                        MunicipalityId = municipalityId.Value,
+                        Price = (double)preisValue,
+                        Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
+                        SellerType = Core.ApiClient.Generated.SellerType.Private,
+                        SellerName = sellerName,
+                        Description = Beschreibung.Trim(),
+                        LivingAreaSquareMeters = wohnflaecheValue,
+                        PlotAreaSquareMeters = grundstuecksValue,
+                        Rooms = zimmerValue,
+                        YearBuilt = baujahrValue,
+                        ImageUrls = imageUrls,
                         TypeSpecificData = typeSpecificData
                     }
                 });
             }
 
-            ShowSuccess = true;
-
-            // Formular zurücksetzen (nur bei Create)
-            if (!IsEditMode)
-            {
-                await Task.Delay(1500);
-                ResetForm();
-            }
+            saveSucceeded = true;
         }
         catch (Exception ex)
         {
@@ -385,6 +510,22 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         {
             IsBusy = false;
         }
+
+        // Navigate AFTER IsBusy is false and try-finally has completed
+        // Use NavigateToRouteInContentEvent so MainPage navigates via NavigationView,
+        // which properly updates the NavigationView's selected item
+        if (saveSucceeded)
+        {
+            try
+            {
+                _logger.LogInformation("Navigating to MyProperties after {Mode}", isEdit ? "edit" : "create");
+                await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Navigation nach dem Speichern fehlgeschlagen");
+            }
+        }
     }
 
     /// <summary>
@@ -393,7 +534,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [RelayCommand]
     private async Task CancelAsync()
     {
-        await _navigator.NavigateBackAsync(this);
+        await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
     }
 
     private void ResetForm()
@@ -411,7 +552,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
 
         // Reset foreclosure fields
-        SelectedPropertyCategory = PropertyCategory.Einfamilienhaus;
+        SelectedPropertyCategory = Features.Properties.Contracts.Models.PropertyCategory.Einfamilienhaus;
         AuctionDate = DateTimeOffset.Now.AddDays(30);
         EstimatedValue = string.Empty;
         MinimumBid = string.Empty;
@@ -447,6 +588,12 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         LongAppraisalUrl = string.Empty;
         ShortAppraisalUrl = string.Empty;
 
+        // Reset Bilder
+        foreach (var img in Images)
+            img.Stream.Dispose();
+        Images.Clear();
+        ImageCount = 0;
+
         ShowSuccess = false;
     }
 
@@ -455,8 +602,39 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     /// <inheritdoc />
     public void OnNavigatedTo(object? parameter)
     {
-        // Navigation parameter handling if needed
+#if DEBUG
+        // Auto-load test image since file picker can't be used via automation
+        if (!IsEditMode)
+            _ = LoadTestImageAsync();
+#endif
     }
+
+#if DEBUG
+    private async Task LoadTestImageAsync()
+    {
+        try
+        {
+            var testImagePath = @"C:\Users\Daniel\Pictures\profilbild.jpg";
+            if (!File.Exists(testImagePath))
+                return;
+
+            var fileBytes = await File.ReadAllBytesAsync(testImagePath);
+            var memoryStream = new MemoryStream(fileBytes);
+
+            var thumbnail = new BitmapImage();
+            memoryStream.Position = 0;
+            await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
+
+            memoryStream.Position = 0;
+            Images.Add(new ImageItem("profilbild.jpg", "image/jpeg", memoryStream, thumbnail));
+            ImageCount = Images.Count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not load test image");
+        }
+    }
+#endif
 
     /// <inheritdoc />
     public void OnNavigatedFrom()

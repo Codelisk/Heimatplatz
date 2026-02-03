@@ -87,11 +87,11 @@
                       DisplayMemberPath="DisplayName" />
 
             <TextBox Header="Titel *"
-                     Text="{Binding Titel, Mode=TwoWay}"
+                     Text="{Binding Titel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="z.B. Schöne 3-Zimmer Wohnung" />
 
             <TextBox Header="Beschreibung *"
-                     Text="{Binding Beschreibung, Mode=TwoWay}"
+                     Text="{Binding Beschreibung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="Detaillierte Beschreibung (mind. 50 Zeichen)"
                      TextWrapping="Wrap"
                      AcceptsReturn="True"
@@ -114,7 +114,7 @@
                          Grid.Row="0"
                          Grid.Column="0"
                          Header="Adresse *"
-                         Text="{Binding Adresse, Mode=TwoWay}"
+                         Text="{Binding Adresse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="Straße und Hausnummer"
                          HorizontalAlignment="Stretch" />
 
@@ -122,7 +122,7 @@
                          Grid.Row="0"
                          Grid.Column="1"
                          Header="Ort *"
-                         Text="{Binding Ort, Mode=TwoWay}"
+                         Text="{Binding Ort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="z.B. Linz"
                          HorizontalAlignment="Stretch" />
 
@@ -130,7 +130,7 @@
                          Grid.Row="0"
                          Grid.Column="2"
                          Header="PLZ *"
-                         Text="{Binding Plz, Mode=TwoWay}"
+                         Text="{Binding Plz, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="4020"
                          InputScope="Number"
                          HorizontalAlignment="Stretch" />
@@ -138,7 +138,7 @@
 
             <!-- Preis -->
             <TextBox Header="Preis (€) *"
-                     Text="{Binding Preis, Mode=TwoWay}"
+                     Text="{Binding Preis, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="z.B. 350000"
                      InputScope="Number" />
 
@@ -160,7 +160,7 @@
                          Grid.Row="0"
                          Grid.Column="0"
                          Header="Wohnfläche (m²)"
-                         Text="{Binding WohnflaecheM2, Mode=TwoWay}"
+                         Text="{Binding WohnflaecheM2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="90"
                          InputScope="Number"
                          HorizontalAlignment="Stretch" />
@@ -169,7 +169,7 @@
                          Grid.Row="0"
                          Grid.Column="1"
                          Header="Grundstücksfläche (m²)"
-                         Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay}"
+                         Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="500"
                          InputScope="Number"
                          HorizontalAlignment="Stretch" />
@@ -178,7 +178,7 @@
                          Grid.Row="1"
                          Grid.Column="0"
                          Header="Zimmer"
-                         Text="{Binding Zimmer, Mode=TwoWay}"
+                         Text="{Binding Zimmer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="3"
                          InputScope="Number"
                          HorizontalAlignment="Stretch" />
@@ -187,7 +187,7 @@
                          Grid.Row="1"
                          Grid.Column="1"
                          Header="Baujahr"
-                         Text="{Binding Baujahr, Mode=TwoWay}"
+                         Text="{Binding Baujahr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="2005"
                          InputScope="Number"
                          HorizontalAlignment="Stretch" />
@@ -197,10 +197,95 @@
             <StackPanel Spacing="8"
                         Visibility="{Binding IsLandType, Mode=OneWay}">
                 <TextBox Header="Grundstücksfläche (m²)"
-                         Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay}"
+                         Text="{Binding GrundstuecksflaecheM2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="500"
                          InputScope="Number"
                          MinWidth="150" />
+            </StackPanel>
+
+            <!-- Fotos -->
+            <StackPanel Spacing="8" Margin="0,8,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Style="{StaticResource BodyStrongTextBlockStyle}"
+                               VerticalAlignment="Center">
+                        <Run Text="Fotos" />
+                        <Run Text="{Binding ImageCount, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Run Text="/ 20" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </TextBlock>
+                    <Button Grid.Column="1"
+                            Command="{Binding AddPhotosCommand}"
+                            Style="{StaticResource TextButtonStyle}"
+                            CornerRadius="{StaticResource RadiusSm}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE710;" FontSize="14" />
+                            <TextBlock Text="Fotos hinzufügen" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Image List -->
+                <ItemsRepeater ItemsSource="{Binding Images}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout MinItemWidth="140"
+                                           MinItemHeight="120"
+                                           MinColumnSpacing="8"
+                                           MinRowSpacing="8"
+                                           ItemsStretch="Fill" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="{StaticResource RadiusSm}"
+                                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                <Grid>
+                                    <Image Source="{Binding DisplaySource}"
+                                           Stretch="UniformToFill"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                                    <Button HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Padding="4"
+                                            Margin="4"
+                                            MinWidth="0"
+                                            MinHeight="0"
+                                            Command="{Binding DataContext.RemoveImageCommand, ElementName=RootPage}"
+                                            CommandParameter="{Binding}"
+                                            Background="Transparent"
+                                            BorderThickness="0">
+                                        <FontIcon Glyph="&#xE711;" FontSize="12"
+                                                  Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+
+                <!-- Empty State -->
+                <Border Visibility="{Binding HasNoImages, Mode=OneWay}"
+                        CornerRadius="{StaticResource RadiusSm}"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        Padding="24"
+                        HorizontalAlignment="Stretch">
+                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                        <FontIcon Glyph="&#xE722;"
+                                  FontSize="32"
+                                  HorizontalAlignment="Center"
+                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <TextBlock Text="Noch keine Fotos hinzugefügt"
+                                   HorizontalAlignment="Center"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
             <!-- Action Buttons -->

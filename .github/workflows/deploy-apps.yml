@@ -1,0 +1,141 @@
+name: Deploy Apps (Cake)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Deploy target'
+        required: true
+        type: choice
+        options:
+          - DeployAll
+          - DeployIos
+          - DeployAndroid
+          - DeployWasm
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_QUALITY: 'preview'
+
+jobs:
+  deploy-ios:
+    if: inputs.target == 'DeployIos' || inputs.target == 'DeployAll'
+    runs-on: macos-latest
+    name: Deploy iOS
+    defaults:
+      run:
+        working-directory: cake
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: ${{ env.DOTNET_QUALITY }}
+
+      - name: Install Uno Workloads
+        run: dotnet workload install ios maui
+        working-directory: .
+
+      - name: Decode App Store Connect Key
+        run: echo "${{ secrets.ASC_KEY_BASE64 }}" | base64 --decode > AuthKey.p8
+
+      - name: Run Cake Deploy
+        env:
+          ASC_KEY_PATH: AuthKey.p8
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: dotnet run -- --target=DeployIos
+
+      - name: Cleanup Key
+        if: always()
+        run: rm -f AuthKey.p8
+
+  deploy-android:
+    if: inputs.target == 'DeployAndroid' || inputs.target == 'DeployAll'
+    runs-on: ubuntu-latest
+    name: Deploy Android
+    defaults:
+      run:
+        working-directory: cake
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: ${{ env.DOTNET_QUALITY }}
+
+      - name: Install Uno Workloads
+        run: dotnet workload install android maui-android
+        working-directory: .
+
+      - name: Decode Android Keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > heimatplatz.keystore
+
+      - name: Decode Play Store JSON Key
+        run: echo "${{ secrets.PLAY_STORE_JSON_KEY_BASE64 }}" | base64 --decode > play-store-key.json
+
+      - name: Run Cake Deploy
+        env:
+          ANDROID_KEYSTORE_PATH: heimatplatz.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          PLAY_STORE_JSON_KEY_PATH: play-store-key.json
+        run: dotnet run -- --target=DeployAndroid
+
+      - name: Cleanup Keys
+        if: always()
+        run: rm -f heimatplatz.keystore play-store-key.json
+
+  deploy-wasm:
+    if: inputs.target == 'DeployWasm' || inputs.target == 'DeployAll'
+    runs-on: ubuntu-latest
+    name: Deploy WebAssembly
+    defaults:
+      run:
+        working-directory: cake
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: ${{ env.DOTNET_QUALITY }}
+
+      - name: Install Uno Workloads
+        run: dotnet workload install wasm-tools
+        working-directory: .
+
+      - name: Install Azure SWA CLI
+        run: npm install -g @azure/static-web-apps-cli
+        working-directory: .
+
+      - name: Run Cake Deploy
+        env:
+          AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WITTY_POND_02CCD4D0F }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        run: dotnet run -- --target=DeployWasm
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf ../artifacts/

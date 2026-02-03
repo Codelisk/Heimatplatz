@@ -1,0 +1,33 @@
+name: Init iOS Certificates (Match)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  init-certificates:
+    runs-on: macos-latest
+    name: Initialize iOS Certificates
+    defaults:
+      run:
+        working-directory: cake/fastlane
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decode App Store Connect Key
+        run: echo "${{ secrets.ASC_KEY_BASE64 }}" | base64 --decode > AuthKey.p8
+
+      - name: Run Fastlane Match Init
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: AuthKey.p8
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: fastlane ios match_init
+
+      - name: Cleanup Key
+        if: always()
+        run: rm -f AuthKey.p8

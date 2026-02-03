@@ -1,3 +1,4 @@
+using Heimatplatz.Features.Properties.Contracts.Models;
 using UnoFramework.Pages;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -14,4 +15,16 @@ public sealed partial class MyPropertiesPage : BasePage
     }
 
     public MyPropertiesViewModel? ViewModel => DataContext as MyPropertiesViewModel;
+
+    private void OnPropertyCardClicked(object sender, PropertyListItemDto property)
+    {
+        // Card-Klick öffnet Bearbeiten
+        ViewModel?.EditPropertyCommand.Execute(property);
+    }
+
+    private void OnPropertyDeleted(object sender, PropertyListItemDto property)
+    {
+        // X-Button löscht die Immobilie
+        ViewModel?.DeletePropertyCommand.Execute(property);
+    }
 }

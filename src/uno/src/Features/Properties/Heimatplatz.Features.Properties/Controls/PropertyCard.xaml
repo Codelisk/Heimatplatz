@@ -56,8 +56,11 @@
                     <Border.Clip>
                         <RectangleGeometry Rect="0,0,10000,200" />
                     </Border.Clip>
+                    <!-- IsHitTestVisible="False" verhindert, dass FlipView Mausrad-Events konsumiert
+                         und damit den Parent ScrollViewer blockiert (Desktop Skia) -->
                     <FlipView x:Name="ImageFlipView"
                               Background="Transparent"
+                              IsHitTestVisible="False"
                               AutomationProperties.AutomationId="PropertyCard_FlipView">
                         <FlipView.ItemTemplate>
                             <DataTemplate>
@@ -245,6 +248,27 @@
                         Visibility="Collapsed"
                         ToolTipService.ToolTip="Blockierung aufheben"
                         AutomationProperties.AutomationId="PropertyCard_BlockedAction">
+                    <FontIcon Glyph="&#xE711;"
+                              FontSize="16"
+                              Foreground="White" />
+                </Button>
+
+                <!-- Owner Mode: X-Icon zum Löschen -->
+                <Button x:Name="OwnerDeleteButton"
+                        Tapped="OnActionButtonTapped"
+                        Click="OnOwnerDeleteClick"
+                        Background="#70000000"
+                        BorderThickness="0"
+                        Padding="0"
+                        Width="36"
+                        Height="36"
+                        CornerRadius="18"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Margin="12"
+                        Visibility="Collapsed"
+                        ToolTipService.ToolTip="Immobilie löschen"
+                        AutomationProperties.AutomationId="PropertyCard_OwnerDelete">
                     <FontIcon Glyph="&#xE711;"
                               FontSize="16"
                               Foreground="White" />

@@ -22,7 +22,7 @@ public class GetUserFavoritesHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<GetUserFavoritesRequest, GetUserFavoritesResponse>
 {
-    [MediatorHttpGet("", OperationId = "GetUserFavorites", AuthorizationPolicies = [AuthorizationPolicies.RequireBuyer])]
+    [MediatorHttpGet("", OperationId = "GetUserFavorites", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetUserFavoritesResponse> Handle(GetUserFavoritesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token
@@ -37,15 +37,27 @@ public class GetUserFavoritesHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Query favorited properties
-        var properties = await dbContext.Set<Favorite>()
+        // Base query for favorited properties
+        var query = dbContext.Set<Favorite>()
             .Where(f => f.UserId == userId)
             .Include(f => f.Property)
+                .ThenInclude(p => p.Municipality);
+
+        // Get total count
+        var total = await query.CountAsync(cancellationToken);
+
+        // Apply pagination and project to DTO
+        var properties = await query
+            .OrderByDescending(f => f.CreatedAt)
+            .Skip(request.Page * request.PageSize)
+            .Take(request.PageSize)
             .Select(f => new PropertyListItemDto(
                 f.Property.Id,
                 f.Property.Title,
                 f.Property.Address,
-                f.Property.City,
+                f.Property.MunicipalityId,
+                f.Property.Municipality.Name,
+                f.Property.Municipality.PostalCode,
                 f.Property.Price,
                 f.Property.LivingAreaSquareMeters,
                 f.Property.PlotAreaSquareMeters,
@@ -59,6 +71,14 @@ public class GetUserFavoritesHandler(
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetUserFavoritesResponse(properties);
+        var hasMore = (request.Page + 1) * request.PageSize < total;
+
+        return new GetUserFavoritesResponse(
+            properties,
+            total,
+            request.PageSize,
+            request.Page,
+            hasMore
+        );
     }
 }

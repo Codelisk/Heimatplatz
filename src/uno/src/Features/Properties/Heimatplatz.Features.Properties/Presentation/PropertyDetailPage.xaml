@@ -117,7 +117,8 @@
                                                 Padding="0"
                                                 Width="40"
                                                 Height="40"
-                                                CornerRadius="20">
+                                                CornerRadius="20"
+                                                Command="{x:Bind ViewModel.SharePropertyCommand}">
                                             <FontIcon Glyph="&#xE72D;"
                                                       FontSize="18"
                                                       Foreground="White" />
@@ -493,7 +494,8 @@
                                         <Button Background="#80000000"
                                                 BorderThickness="0"
                                                 Padding="16,10"
-                                                CornerRadius="20">
+                                                CornerRadius="20"
+                                                Command="{x:Bind ViewModel.SharePropertyCommand}">
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <FontIcon Glyph="&#xE72D;"
                                                           FontSize="16"

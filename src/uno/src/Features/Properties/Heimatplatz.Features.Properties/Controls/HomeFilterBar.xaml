@@ -11,7 +11,7 @@
     -->
 
     <StackPanel Orientation="Horizontal"
-                Visibility="{utu:Responsive Normal=Collapsed, Wide=Visible}"
+                Visibility="{utu:Responsive Normal=Collapsed, Widest=Visible}"
                 Spacing="8"
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="HomeFilterBar_Root">
@@ -45,20 +45,10 @@
         <!-- Separator -->
         <Border Width="1" Height="20" Background="{ThemeResource BorderBrush}" Margin="4,0" />
 
-        <!-- Filter Chips: Anbietertyp -->
-        <StackPanel Orientation="Horizontal"
-                    Spacing="6"
-                    AutomationProperties.AutomationId="HomeFilterBar_SellerTypeChips">
-            <local:FilterChip Label="Privat"
-                              IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}"
-                              AutomationProperties.AutomationId="HomeFilterBar_FilterChip_Private" />
-            <local:FilterChip Label="Makler"
-                              IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}"
-                              AutomationProperties.AutomationId="HomeFilterBar_FilterChip_Broker" />
-            <local:FilterChip Label="Portal"
-                              IsSelected="{Binding IsPortalSelected, Mode=TwoWay}"
-                              AutomationProperties.AutomationId="HomeFilterBar_FilterChip_Portal" />
-        </StackPanel>
+        <!-- Anbietertyp Picker -->
+        <local:SellerTypePicker MinWidth="150"
+                                SellerTypes="{Binding SellerTypes}"
+                                AutomationProperties.AutomationId="HomeFilterBar_SellerTypePicker" />
 
         <!-- Ergebnis-Counter -->
         <TextBlock VerticalAlignment="Center"

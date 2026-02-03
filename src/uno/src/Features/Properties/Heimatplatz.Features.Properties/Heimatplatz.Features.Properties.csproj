@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Shiny.Mediator" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Heimatplatz.Features.Properties.Contracts\Heimatplatz.Features.Properties.Contracts.csproj" />
     <ProjectReference Include="..\..\Auth\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj" />

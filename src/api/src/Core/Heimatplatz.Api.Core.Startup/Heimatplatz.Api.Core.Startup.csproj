@@ -30,6 +30,8 @@
     <ProjectReference Include="..\..\Features\ForeclosureAuctions\Heimatplatz.Api.Features.ForeclosureAuctions.Contracts\Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Notifications\Heimatplatz.Api.Features.Notifications\Heimatplatz.Api.Features.Notifications.csproj" />
     <ProjectReference Include="..\..\Features\Notifications\Heimatplatz.Api.Features.Notifications.Contracts\Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
+    <ProjectReference Include="..\..\Features\PropertyImport\Heimatplatz.Api.Features.PropertyImport\Heimatplatz.Api.Features.PropertyImport.csproj" />
+    <ProjectReference Include="..\..\Features\PropertyImport\Heimatplatz.Api.Features.PropertyImport.Contracts\Heimatplatz.Api.Features.PropertyImport.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

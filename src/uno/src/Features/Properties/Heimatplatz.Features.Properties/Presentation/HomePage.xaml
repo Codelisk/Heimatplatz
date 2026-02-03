@@ -36,7 +36,7 @@
                         Background="{ThemeResource SurfaceBrush}"
                         BorderBrush="{ThemeResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Collapsed}"
+                        Visibility="{utu:Responsive Narrowest=Visible, Narrow=Visible, Normal=Visible, Wide=Visible, Widest=Collapsed}"
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
                     <StackPanel>
                         <!-- Filter Header: Immer sichtbar — ganzer Bereich klickbar -->
@@ -117,15 +117,9 @@
                                                      IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
                             </StackPanel>
 
-                            <!-- Filter Chips: Anbietertyp -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <controls:FilterChip Label="Privat"
-                                                     IsSelected="{Binding IsPrivateSelected, Mode=TwoWay}" />
-                                <controls:FilterChip Label="Makler"
-                                                     IsSelected="{Binding IsBrokerSelected, Mode=TwoWay}" />
-                                <controls:FilterChip Label="Portal"
-                                                     IsSelected="{Binding IsPortalSelected, Mode=TwoWay}" />
-                            </StackPanel>
+                            <!-- Anbietertyp Picker -->
+                            <controls:SellerTypePicker SellerTypes="{Binding SellerTypes}"
+                                                       AutomationProperties.AutomationId="HomePage_MobileSellerTypePicker" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -136,6 +130,7 @@
                               AutomationProperties.AutomationId="HomePage_ScrollViewer">
                     <StackPanel>
                         <ItemsRepeater ItemsSource="{Binding Properties}"
+                                       utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True"
                                        AutomationProperties.AutomationId="HomePage_PropertyList">
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout Orientation="Horizontal"
@@ -162,6 +157,15 @@
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
+
+                        <!-- Loading Indicator for Pagination -->
+                        <ProgressRing IsActive="{Binding Properties.IsLoading}"
+                                      Visibility="{Binding Properties.HasMoreItems}"
+                                      Width="32"
+                                      Height="32"
+                                      Margin="0,16,0,0"
+                                      HorizontalAlignment="Center"
+                                      AutomationProperties.AutomationId="HomePage_LoadingIndicator" />
 
                         <!-- Footer -->
                         <Border Margin="0,32,0,16"

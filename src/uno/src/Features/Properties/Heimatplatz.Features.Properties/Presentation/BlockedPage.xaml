@@ -55,11 +55,12 @@
 
                         <!-- Blocked Properties Grid -->
                         <ItemsRepeater ItemsSource="{Binding Properties}"
+                                       utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True"
                                        Visibility="{Binding IsNotEmpty, FallbackValue=Collapsed}">
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout Orientation="Horizontal"
                                                    MinItemWidth="240"
-                                                   MinItemHeight="300"
+                                                   MinItemHeight="330"
                                                    MinRowSpacing="16"
                                                    MinColumnSpacing="16"
                                                    ItemsStretch="Fill" />
@@ -75,6 +76,14 @@
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
+
+                        <!-- Loading Indicator for Pagination -->
+                        <ProgressRing IsActive="{Binding Properties.IsLoading}"
+                                      Visibility="{Binding Properties.HasMoreItems}"
+                                      Width="32"
+                                      Height="32"
+                                      Margin="0,16,0,0"
+                                      HorizontalAlignment="Center" />
 
                     </utu:AutoLayout>
                 </ScrollViewer>

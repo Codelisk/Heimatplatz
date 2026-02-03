@@ -80,8 +80,8 @@
     <!-- Core Projects -->
     <ProjectReference Include="..\Core\Heimatplatz.Core.Startup\Heimatplatz.Core.Startup.csproj" />
     <ProjectReference Include="..\Core\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
-    <!-- ThirdParty -->
-    <ProjectReference Include="..\ThirdParty\Heimatplatz.ThirdParty.ShinyHosting\Heimatplatz.ThirdParty.ShinyHosting.csproj" />
+    <!-- ThirdParty (Shiny only on mobile platforms) -->
+    <ProjectReference Condition="$(TargetFramework.Contains('-android')) OR $(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))" Include="..\ThirdParty\Heimatplatz.ThirdParty.ShinyHosting\Heimatplatz.ThirdParty.ShinyHosting.csproj" />
     <!-- Features -->
     <ProjectReference Include="..\Features\Auth\Heimatplatz.Features.Auth\Heimatplatz.Features.Auth.csproj" />
     <ProjectReference Include="..\Features\Auth\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />

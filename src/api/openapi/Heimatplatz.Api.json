@@ -300,6 +300,32 @@
         }
       }
     },
+    "/api/properties/images": {
+      "post": {
+        "tags": [
+          "Properties"
+        ],
+        "operationId": "UploadPropertyImages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPropertyImagesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/auth/filter-preferences": {
       "get": {
         "tags": [
@@ -431,6 +457,34 @@
           "Heimatplatz.Api"
         ],
         "operationId": "GetUserBlocked",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -510,6 +564,34 @@
           "Heimatplatz.Api"
         ],
         "operationId": "GetUserFavorites",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -591,10 +673,36 @@
         "operationId": "GetProperties",
         "parameters": [
           {
-            "name": "Type",
+            "name": "Page",
             "in": "query",
             "schema": {
-              "$ref": "#/components/schemas/PropertyType"
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "PropertyTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -602,6 +710,21 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "MunicipalityIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CreatedAfter",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           },
           {
@@ -665,43 +788,10 @@
             }
           },
           {
-            "name": "City",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "ExcludedSellerSourceIdsJson",
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "Skip",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32",
-              "default": 0
-            }
-          },
-          {
-            "name": "Take",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32",
-              "default": 20
             }
           }
         ],
@@ -813,6 +903,34 @@
           "Heimatplatz.Api"
         ],
         "operationId": "GetUserProperties",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -948,6 +1066,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SendTestPushResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import/properties": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ImportProperties",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportPropertiesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPropertiesResponse"
                 }
               }
             }
@@ -1139,8 +1287,7 @@
         "required": [
           "Title",
           "Address",
-          "City",
-          "PostalCode",
+          "MunicipalityId",
           "Price",
           "Type",
           "SellerType",
@@ -1154,11 +1301,9 @@
           "Address": {
             "type": "string"
           },
-          "City": {
-            "type": "string"
-          },
-          "PostalCode": {
-            "type": "string"
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
           },
           "Price": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
@@ -1686,7 +1831,10 @@
       "GetPropertiesResponse": {
         "required": [
           "Properties",
-          "Total"
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1703,6 +1851,25 @@
               "string"
             ],
             "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
@@ -1740,7 +1907,11 @@
       },
       "GetUserBlockedResponse": {
         "required": [
-          "Properties"
+          "Properties",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1749,12 +1920,43 @@
             "items": {
               "$ref": "#/components/schemas/PropertyListItemDto"
             }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
       "GetUserFavoritesResponse": {
         "required": [
-          "Properties"
+          "Properties",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1763,6 +1965,33 @@
             "items": {
               "$ref": "#/components/schemas/PropertyListItemDto"
             }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
@@ -1823,7 +2052,11 @@
       },
       "GetUserPropertiesResponse": {
         "required": [
-          "Properties"
+          "Properties",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
         ],
         "type": "object",
         "properties": {
@@ -1832,6 +2065,33 @@
             "items": {
               "$ref": "#/components/schemas/PropertyListItemDto"
             }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
           }
         }
       },
@@ -1861,6 +2121,285 @@
             "type": "boolean"
           }
         }
+      },
+      "ImportContactDto": {
+        "required": [
+          "Type"
+        ],
+        "type": "object",
+        "properties": {
+          "Type": {
+            "$ref": "#/components/schemas/ContactType"
+          },
+          "Name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ImportPropertiesRequest": {
+        "required": [
+          "Properties"
+        ],
+        "type": "object",
+        "properties": {
+          "Properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportPropertyDto"
+            }
+          },
+          "UpdateExisting": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "ImportPropertiesResponse": {
+        "required": [
+          "TotalReceived",
+          "Created",
+          "Updated",
+          "Skipped",
+          "Failed",
+          "Results"
+        ],
+        "type": "object",
+        "properties": {
+          "TotalReceived": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Created": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Updated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Skipped": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Failed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportResultItem"
+            }
+          }
+        }
+      },
+      "ImportPropertyDto": {
+        "required": [
+          "SourceName",
+          "SourceId",
+          "SourceUrl",
+          "Title",
+          "Address",
+          "City",
+          "PostalCode",
+          "Price",
+          "Type",
+          "SellerType",
+          "SellerName"
+        ],
+        "type": "object",
+        "properties": {
+          "SourceName": {
+            "type": "string"
+          },
+          "SourceId": {
+            "type": "string"
+          },
+          "SourceUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "SellerName": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LivingAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PlotAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "YearBuilt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Features": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "ImageUrls": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "TypeSpecificData": {
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "Contacts": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ImportContactDto"
+            }
+          },
+          "InquiryType": {
+            "$ref": "#/components/schemas/InquiryType"
+          }
+        }
+      },
+      "ImportResultItem": {
+        "required": [
+          "SourceId",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "SourceId": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/ImportResultStatus"
+          },
+          "PropertyId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "ErrorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ImportResultStatus": {
+        "enum": [
+          "Created",
+          "Updated",
+          "Skipped",
+          "Failed"
+        ]
       },
       "InquiryType": {
         "enum": [
@@ -2040,6 +2579,7 @@
           "Id",
           "Title",
           "Address",
+          "MunicipalityId",
           "City",
           "PostalCode",
           "Price",
@@ -2069,6 +2609,10 @@
           },
           "Address": {
             "type": "string"
+          },
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
           },
           "City": {
             "type": "string"
@@ -2173,7 +2717,9 @@
           "Id",
           "Title",
           "Address",
+          "MunicipalityId",
           "City",
+          "PostalCode",
           "Price",
           "LivingAreaM2",
           "PlotAreaM2",
@@ -2197,7 +2743,14 @@
           "Address": {
             "type": "string"
           },
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "City": {
+            "type": "string"
+          },
+          "PostalCode": {
             "type": "string"
           },
           "Price": {
@@ -2702,11 +3255,9 @@
           "Address": {
             "type": "string"
           },
-          "City": {
-            "type": "string"
-          },
-          "PostalCode": {
-            "type": "string"
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
           },
           "Price": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
@@ -2817,6 +3368,20 @@
           }
         }
       },
+      "UploadPropertyImagesResponse": {
+        "required": [
+          "ImageUrls"
+        ],
+        "type": "object",
+        "properties": {
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "UserRoleType": {
         "enum": [
           "Buyer",
@@ -2828,6 +3393,9 @@
   "tags": [
     {
       "name": "Heimatplatz.Api"
+    },
+    {
+      "name": "Properties"
     }
   ]
 }

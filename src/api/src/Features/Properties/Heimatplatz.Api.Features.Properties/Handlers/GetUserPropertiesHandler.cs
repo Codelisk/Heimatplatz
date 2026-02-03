@@ -37,14 +37,27 @@ public class GetUserPropertiesHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Query properties for the authenticated user
-        var properties = await dbContext.Set<Property>()
-            .Where(p => p.UserId == userId)
+        // Base query for user's properties
+        var query = dbContext.Set<Property>()
+            .Include(p => p.Municipality)
+            .Where(p => p.UserId == userId);
+
+        // Get total count
+        var total = await query.CountAsync(cancellationToken);
+
+        // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
+        var entities = await query.ToListAsync(cancellationToken);
+        var properties = entities
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip(request.Page * request.PageSize)
+            .Take(request.PageSize)
             .Select(p => new PropertyListItemDto(
                 p.Id,
                 p.Title,
                 p.Address,
-                p.City,
+                p.MunicipalityId,
+                p.Municipality.Name,
+                p.Municipality.PostalCode,
                 p.Price,
                 p.LivingAreaSquareMeters,
                 p.PlotAreaSquareMeters,
@@ -56,8 +69,16 @@ public class GetUserPropertiesHandler(
                 p.CreatedAt,
                 p.InquiryType
             ))
-            .ToListAsync(cancellationToken);
+            .ToList();
 
-        return new GetUserPropertiesResponse(properties);
+        var hasMore = (request.Page + 1) * request.PageSize < total;
+
+        return new GetUserPropertiesResponse(
+            properties,
+            total,
+            request.PageSize,
+            request.Page,
+            hasMore
+        );
     }
 }

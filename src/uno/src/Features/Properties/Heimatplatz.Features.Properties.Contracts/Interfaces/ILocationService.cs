@@ -10,6 +10,17 @@ public interface ILocationService
     /// Laedt die Location-Hierarchie (cached nach erstem Aufruf)
     /// </summary>
     Task<List<LocationBundeslandDto>> GetLocationsAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Resolves a MunicipalityId from city name and/or postal code.
+    /// Returns null if no match found.
+    /// </summary>
+    Task<Guid?> ResolveMunicipalityIdAsync(string? cityName, string? postalCode, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets all municipalities (Gemeinden) flattened from the location hierarchy.
+    /// </summary>
+    Task<List<LocationGemeindeDto>> GetAllMunicipalitiesAsync(CancellationToken ct = default);
 }
 
 /// <summary>

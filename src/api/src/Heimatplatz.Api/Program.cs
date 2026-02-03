@@ -1,4 +1,3 @@
-
 using System.Text;
 using System.Text.Json.Serialization;
 using Heimatplatz.Api.Authorization;
@@ -103,6 +102,7 @@ var app = builder.Build();
 await app.InitializeDatabaseAsync();
 
 app.UseCors();
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 // Authentication und Authorization Middleware

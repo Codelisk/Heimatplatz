@@ -1,139 +1,41 @@
-Using launch settings from Properties\launchSettings.json...
+Using launch settings from C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Properties\launchSettings.json...
 Building...
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.ServiceDefaults, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Core.Startup, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Core.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Core.Data.Seeding, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Auth.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Legal.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Properties.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.ForeclosureAuctions.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model[10632]
-      No instantiatable types implementing `IEntityTypeConfiguration` were found while scanning assembly 'Heimatplatz.Api.Features.Notifications.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
-warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
-      The property 'Property.Features' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
-warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
-      The property 'Property.ImageUrls' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
-info: Microsoft.EntityFrameworkCore.Migrations[20411]
-      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-01-21 10:58:32.840823+00:00');
-      SELECT changes();
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
-          "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
-          "ProductVersion" TEXT NOT NULL
-      );
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT "MigrationId", "ProductVersion"
-      FROM "__EFMigrationsHistory"
-      ORDER BY "MigrationId";
-info: Microsoft.EntityFrameworkCore.Migrations[20405]
-      No migrations were applied. The database is already up to date.
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      DELETE FROM "__EFMigrationsLock";
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running 8 seeders
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: UserSeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "Users" AS "u")
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder UserSeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: LegalSettingsSeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "LegalSettings" AS "l"
-          WHERE "l"."SettingType" = 'PrivacyPolicy')
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder LegalSettingsSeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: PropertySeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "Properties" AS "p")
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder PropertySeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: FavoriteSeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "Favorites" AS "f")
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder FavoriteSeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: BlockedSeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "BlockedProperties" AS "b")
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder BlockedSeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: ForeclosureAuctionSeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "ForeclosureAuctions" AS "f")
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder ForeclosureAuctionSeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: NotificationsSeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "NotificationPreferences" AS "n")
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder NotificationsSeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Running seeder: NotificationsSeeder
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT EXISTS (
-          SELECT 1
-          FROM "NotificationPreferences" AS "n")
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      Seeder NotificationsSeeder completed
-info: Heimatplatz.Api.Core.Data.Seeding.SeederRunner[0]
-      All seeders completed
-info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://localhost:5292
-info: Microsoft.Hosting.Lifetime[0]
-      Application started. Press Ctrl+C to shut down.
-info: Microsoft.Hosting.Lifetime[0]
-      Hosting environment: Development
-info: Microsoft.Hosting.Lifetime[0]
-      Content root path: C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api
+---> Microsoft.Data.Sqlite.SqliteException (0x80004005) : SQLite error 19: 'UNIQUE constraint failed: Districts.Key'. [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+---> Microsoft.Data.Sqlite.SqliteException (0x80004005) : SQLite error 19: 'UNIQUE constraint failed: Districts.Key'. [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+---> Microsoft.Data.Sqlite.SqliteException (0x80004005) : SQLite error 19: 'UNIQUE constraint failed: Districts.Key'. [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error : System.AggregateException: One or more errors occurred. (An error occurred while saving the entity changes. See the inner exception for details.) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :  ---> Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details. [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :  ---> Microsoft.Data.Sqlite.SqliteException (0x80004005): SQLite Error 19: 'UNIQUE constraint failed: Districts.Key'. [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.Data.Sqlite.SqliteDataReader.NextResult() [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    --- End of inner exception stack trace --- [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Heimatplatz.Api.Features.Locations.Data.Seeding.LocationSeeder.SeedAsync(CancellationToken cancellationToken) in C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Features\Locations\Heimatplatz.Api.Features.Locations\Data\Seeding\LocationSeeder.cs:line 51 [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Heimatplatz.Api.Core.Data.Seeding.SeederRunner.RunAllSeedersAsync(CancellationToken cancellationToken) in C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Core\Heimatplatz.Api.Core.Data.Seeding\SeederRunner.cs:line 33 [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Heimatplatz.Api.Core.Startup.ServiceCollectionExtensions.RunSeedersAsync(WebApplication app) in C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Core\Heimatplatz.Api.Core.Startup\ServiceCollectionExtensions.cs:line 65 [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Program.<Main>$(String[] args) in C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Program.cs:line 103 [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Program.<Main>(String[] args) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    --- End of inner exception stack trace --- [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at System.Threading.Tasks.Task.ThrowIfExceptional(Boolean includeTaskCanceledExceptions) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at System.Threading.Tasks.Task.Wait(Int32 millisecondsTimeout, CancellationToken cancellationToken) [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at System.Threading.Tasks.Task.Wait() [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error :    at Microsoft.Extensions.ApiDescription.Tool.Commands.GetDocumentCommandWorker.Process() [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\Microsoft.Extensions.ApiDescription.Server.targets(67,5): error MSB3073: The command "dotnet "C:\Users\Daniel\.nuget\packages\microsoft.extensions.apidescription.server\10.0.2\build\../tools/dotnet-getdocument.dll" --assembly "C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\bin\Debug\net10.0\Heimatplatz.Api.dll" --file-list "obj\Heimatplatz.Api.OpenApiFiles.cache" --framework ".NETCoreApp,Version=v10.0" --output "C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\openapi" --project "Heimatplatz.Api" --assets-file "C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\obj\project.assets.json" --platform "AnyCPU" " exited with code 11. [C:\Users\Daniel\source\repos\ai\projects\Heimatplatz\src\api\src\Heimatplatz.Api\Heimatplatz.Api.csproj]
+
+The build failed. Fix the build errors and run again.

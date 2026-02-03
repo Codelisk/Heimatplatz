@@ -9,8 +9,7 @@ namespace Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 public record CreatePropertyRequest(
     string Title,
     string Address,
-    string City,
-    string PostalCode,
+    Guid MunicipalityId,
     decimal Price,
     PropertyType Type,
     SellerType SellerType,

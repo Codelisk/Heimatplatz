@@ -399,6 +399,125 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("LegalSettings", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.District", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("FederalProvinceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FederalProvinceId");
+
+                    b.HasIndex("Key");
+
+                    b.ToTable("Districts", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.FederalProvince", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("FederalProvinces", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.Municipality", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("DistrictId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DistrictId");
+
+                    b.HasIndex("Key");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Municipalities", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Notifications.Data.Entities.NotificationPreference", b =>
                 {
                     b.Property<Guid>("Id")
@@ -587,11 +706,6 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -613,13 +727,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<int?>("LivingAreaSquareMeters")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("MunicipalityId")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("PlotAreaSquareMeters")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("PostalCode")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(12, 2)
@@ -635,6 +747,21 @@ namespace Heimatplatz.Api.Core.Data.Migrations
 
                     b.Property<int>("SellerType")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("SourceId")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("SourceLastUpdated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -659,15 +786,19 @@ namespace Heimatplatz.Api.Core.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("City");
-
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("MunicipalityId");
 
                     b.HasIndex("Price");
 
                     b.HasIndex("Type");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("SourceName", "SourceId")
+                        .IsUnique()
+                        .HasFilter("\"SourceName\" IS NOT NULL AND \"SourceId\" IS NOT NULL");
 
                     b.ToTable("Properties", (string)null);
                 });
@@ -799,6 +930,28 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.District", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Locations.Data.Entities.FederalProvince", "FederalProvince")
+                        .WithMany("Districts")
+                        .HasForeignKey("FederalProvinceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FederalProvince");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.Municipality", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Locations.Data.Entities.District", "District")
+                        .WithMany("Municipalities")
+                        .HasForeignKey("DistrictId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("District");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Notifications.Data.Entities.NotificationPreference", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
@@ -861,11 +1014,19 @@ namespace Heimatplatz.Api.Core.Data.Migrations
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.Property", b =>
                 {
+                    b.HasOne("Heimatplatz.Api.Features.Locations.Data.Entities.Municipality", "Municipality")
+                        .WithMany()
+                        .HasForeignKey("MunicipalityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Municipality");
 
                     b.Navigation("User");
                 });
@@ -884,6 +1045,16 @@ namespace Heimatplatz.Api.Core.Data.Migrations
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.User", b =>
                 {
                     b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.District", b =>
+                {
+                    b.Navigation("Municipalities");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.FederalProvince", b =>
+                {
+                    b.Navigation("Districts");
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.Property", b =>

@@ -23,13 +23,14 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(p => p.City)
-            .IsRequired()
-            .HasMaxLength(100);
+        // FK to Municipality (replaces City and PostalCode strings)
+        builder.Property(p => p.MunicipalityId)
+            .IsRequired();
 
-        builder.Property(p => p.PostalCode)
-            .IsRequired()
-            .HasMaxLength(10);
+        builder.HasOne(p => p.Municipality)
+            .WithMany()
+            .HasForeignKey(p => p.MunicipalityId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(p => p.Price)
             .HasPrecision(12, 2);
@@ -70,9 +71,25 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
 
         // Indizes fuer haeufige Abfragen
         builder.HasIndex(p => p.Type);
-        builder.HasIndex(p => p.City);
+        builder.HasIndex(p => p.MunicipalityId);
         builder.HasIndex(p => p.Price);
         builder.HasIndex(p => p.CreatedAt);
         builder.HasIndex(p => p.UserId);
+
+        // Import-Tracking Felder
+        builder.Property(p => p.SourceName)
+            .HasMaxLength(100);
+
+        builder.Property(p => p.SourceId)
+            .HasMaxLength(200);
+
+        builder.Property(p => p.SourceUrl)
+            .HasMaxLength(2000);
+
+        // Unique Index fuer Import-Duplikat-Erkennung (nur wenn beide Felder gesetzt sind)
+        // SQLite verwendet andere Syntax als SQL Server
+        builder.HasIndex(p => new { p.SourceName, p.SourceId })
+            .IsUnique()
+            .HasFilter("\"SourceName\" IS NOT NULL AND \"SourceId\" IS NOT NULL");
     }
 }

@@ -2,6 +2,7 @@ using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
+using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
@@ -36,6 +37,32 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
             return;
         }
 
+        // Municipalities laden fuer FK-Zuordnung
+        var municipalities = await dbContext.Set<Municipality>()
+            .ToDictionaryAsync(m => m.Name.ToLowerInvariant(), m => m.Id, cancellationToken);
+
+        if (municipalities.Count == 0)
+        {
+            // Keine Municipalities vorhanden - Seeding ueberspringen
+            return;
+        }
+
+        // Helper: Municipality ID by Name (case-insensitive, partial match)
+        Guid GetMunicipalityId(string cityName)
+        {
+            var key = cityName.ToLowerInvariant();
+            if (municipalities.TryGetValue(key, out var id))
+                return id;
+
+            // Partial match (e.g. "Braunau am Inn" -> "Braunau")
+            var partialMatch = municipalities.Keys.FirstOrDefault(k => k.Contains(key) || key.Contains(k));
+            if (partialMatch != null)
+                return municipalities[partialMatch];
+
+            // Fallback: erste Municipality
+            return municipalities.Values.First();
+        }
+
         // Properties gleichmaessig auf Seller verteilen
         var sellerIndex = 0;
         Guid GetNextSellerId()
@@ -49,300 +76,105 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
         var properties = new List<Property>
         {
             // Haeuser
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Einfamilienhaus in Linz-Urfahr",
-                Address = "Hauptstrasse 15",
-                City = "Linz",
-                PostalCode = "4040",
-                Price = 349000,
-                LivingAreaSquareMeters = 145,
-                PlotAreaSquareMeters = 520,
-                Rooms = 5,
-                YearBuilt = 2018,
-                Type = PropertyType.House,
-                SellerType = SellerType.Broker,
-                SellerName = "Mustermann Immobilien",
-                Description = "Wunderschoenes Einfamilienhaus mit grossem Garten in ruhiger Lage. Hochwertige Ausstattung, Fussbodenheizung, Photovoltaikanlage.",
-                Features = ["Garage", "Garten", "Terrasse", "Keller", "Fussbodenheizung", "Photovoltaik"],
-                ImageUrls = ["https://picsum.photos/seed/haus1/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Modernes Reihenhaus in Wels",
-                Address = "Ringstrasse 42",
-                City = "Wels",
-                PostalCode = "4600",
-                Price = 289000,
-                LivingAreaSquareMeters = 120,
-                PlotAreaSquareMeters = 180,
-                Rooms = 4,
-                YearBuilt = 2020,
-                Type = PropertyType.House,
-                SellerType = SellerType.Private,
-                SellerName = "Familie Huber",
-                Description = "Neuwertiges Reihenhaus in zentraler Lage. Perfekt fuer junge Familien. Kurze Wege zu Schulen und Geschaeften.",
-                Features = ["Carport", "Terrasse", "Keller", "Fussbodenheizung"],
-                ImageUrls = ["https://picsum.photos/seed/haus2/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Villa am Traunsee",
-                Address = "Seeuferweg 8",
-                City = "Gmunden",
-                PostalCode = "4810",
-                Price = 890000,
-                LivingAreaSquareMeters = 220,
-                PlotAreaSquareMeters = 1200,
-                Rooms = 7,
-                YearBuilt = 2015,
-                Type = PropertyType.House,
-                SellerType = SellerType.Broker,
-                SellerName = "Luxus Immobilien GmbH",
-                Description = "Exklusive Villa mit direktem Seezugang. Panoramablick auf den Traunsee. Hochwertigste Ausstattung.",
-                Features = ["Doppelgarage", "Pool", "Sauna", "Seezugang", "Smarthome", "Klimaanlage"],
-                ImageUrls = ["https://picsum.photos/seed/villa1/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Landhaus in Bad Ischl",
-                Address = "Kaiserweg 23",
-                City = "Bad Ischl",
-                PostalCode = "4820",
-                Price = 425000,
-                LivingAreaSquareMeters = 165,
-                PlotAreaSquareMeters = 850,
-                Rooms = 5,
-                YearBuilt = 1998,
-                Type = PropertyType.House,
-                SellerType = SellerType.Private,
-                SellerName = "Herr Maier",
-                Description = "Charmantes Landhaus im Salzkammergut. Renoviert mit Liebe zum Detail. Idealer Rueckzugsort.",
-                Features = ["Garage", "Garten", "Kachelofen", "Keller", "Dachboden"],
-                ImageUrls = ["https://picsum.photos/seed/landhaus1/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Familienhaus in Steyr",
-                Address = "Bahnhofstrasse 67",
-                City = "Steyr",
-                PostalCode = "4400",
-                Price = 315000,
-                LivingAreaSquareMeters = 135,
-                PlotAreaSquareMeters = 450,
-                Rooms = 5,
-                YearBuilt = 2010,
-                Type = PropertyType.House,
-                SellerType = SellerType.Broker,
-                SellerName = "Immobilien Steyr",
-                Description = "Gepflegtes Einfamilienhaus in guter Lage. Nahe Stadtzentrum und Naturgebiet.",
-                Features = ["Garage", "Garten", "Terrasse", "Keller"],
-                ImageUrls = ["https://picsum.photos/seed/haus3/800/600"]
-            },
+            CreateProperty("Einfamilienhaus in Linz-Urfahr", "Hauptstrasse 15", "Linz", 349000,
+                145, 520, 5, 2018, PropertyType.House, SellerType.Broker, "Mustermann Immobilien",
+                "Wunderschoenes Einfamilienhaus mit grossem Garten in ruhiger Lage. Hochwertige Ausstattung, Fussbodenheizung, Photovoltaikanlage.",
+                ["Garage", "Garten", "Terrasse", "Keller", "Fussbodenheizung", "Photovoltaik"],
+                "https://picsum.photos/seed/haus1/800/600", GetMunicipalityId),
+
+            CreateProperty("Modernes Reihenhaus in Wels", "Ringstrasse 42", "Wels", 289000,
+                120, 180, 4, 2020, PropertyType.House, SellerType.Private, "Familie Huber",
+                "Neuwertiges Reihenhaus in zentraler Lage. Perfekt fuer junge Familien. Kurze Wege zu Schulen und Geschaeften.",
+                ["Carport", "Terrasse", "Keller", "Fussbodenheizung"],
+                "https://picsum.photos/seed/haus2/800/600", GetMunicipalityId),
+
+            CreateProperty("Villa am Traunsee", "Seeuferweg 8", "Gmunden", 890000,
+                220, 1200, 7, 2015, PropertyType.House, SellerType.Broker, "Luxus Immobilien GmbH",
+                "Exklusive Villa mit direktem Seezugang. Panoramablick auf den Traunsee. Hochwertigste Ausstattung.",
+                ["Doppelgarage", "Pool", "Sauna", "Seezugang", "Smarthome", "Klimaanlage"],
+                "https://picsum.photos/seed/villa1/800/600", GetMunicipalityId),
+
+            CreateProperty("Landhaus in Bad Ischl", "Kaiserweg 23", "Bad Ischl", 425000,
+                165, 850, 5, 1998, PropertyType.House, SellerType.Private, "Herr Maier",
+                "Charmantes Landhaus im Salzkammergut. Renoviert mit Liebe zum Detail. Idealer Rueckzugsort.",
+                ["Garage", "Garten", "Kachelofen", "Keller", "Dachboden"],
+                "https://picsum.photos/seed/landhaus1/800/600", GetMunicipalityId),
+
+            CreateProperty("Familienhaus in Steyr", "Bahnhofstrasse 67", "Steyr", 315000,
+                135, 450, 5, 2010, PropertyType.House, SellerType.Broker, "Immobilien Steyr",
+                "Gepflegtes Einfamilienhaus in guter Lage. Nahe Stadtzentrum und Naturgebiet.",
+                ["Garage", "Garten", "Terrasse", "Keller"],
+                "https://picsum.photos/seed/haus3/800/600", GetMunicipalityId),
 
             // Grundstuecke
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Baugrundstück in Wels",
-                Address = "Neubaugebiet Sued",
-                City = "Wels",
-                PostalCode = "4600",
-                Price = 189000,
-                PlotAreaSquareMeters = 850,
-                Type = PropertyType.Land,
-                SellerType = SellerType.Private,
-                SellerName = "Familie Mueller",
-                Description = "Voll erschlossenes Baugrundstuck in ruhiger Wohnlage. Alle Anschluesse vorhanden.",
-                Features = ["Erschlossen", "Strom", "Wasser", "Kanal", "Gas"],
-                ImageUrls = ["https://picsum.photos/seed/grund1/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Sonniges Baugrundstück Linz-Land",
-                Address = "Am Sonnenhang 12",
-                City = "Leonding",
-                PostalCode = "4060",
-                Price = 245000,
-                PlotAreaSquareMeters = 720,
-                Type = PropertyType.Land,
-                SellerType = SellerType.Broker,
-                SellerName = "Grund & Boden OOe",
-                Description = "Suedhanglage mit herrlichem Ausblick. Bebauungsplan liegt vor.",
-                Features = ["Erschlossen", "Suedlage", "Aussicht"],
-                ImageUrls = ["https://picsum.photos/seed/grund2/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Grosses Baugrundstück Muehlviertel",
-                Address = "Dorfstrasse",
-                City = "Freistadt",
-                PostalCode = "4240",
-                Price = 95000,
-                PlotAreaSquareMeters = 1200,
-                Type = PropertyType.Land,
-                SellerType = SellerType.Private,
-                SellerName = "Gemeinde Freistadt",
-                Description = "Guenstiges Baugrundstuck im schoenen Muehlviertel. Ruhige Lage, gute Infrastruktur.",
-                Features = ["Teilerschlossen", "Strom", "Wasser"],
-                ImageUrls = ["https://picsum.photos/seed/grund3/800/600"]
-            },
+            CreateProperty("Baugrundstück in Wels", "Neubaugebiet Sued", "Wels", 189000,
+                null, 850, null, null, PropertyType.Land, SellerType.Private, "Familie Mueller",
+                "Voll erschlossenes Baugrundstuck in ruhiger Wohnlage. Alle Anschluesse vorhanden.",
+                ["Erschlossen", "Strom", "Wasser", "Kanal", "Gas"],
+                "https://picsum.photos/seed/grund1/800/600", GetMunicipalityId),
+
+            CreateProperty("Sonniges Baugrundstück Linz-Land", "Am Sonnenhang 12", "Leonding", 245000,
+                null, 720, null, null, PropertyType.Land, SellerType.Broker, "Grund & Boden OOe",
+                "Suedhanglage mit herrlichem Ausblick. Bebauungsplan liegt vor.",
+                ["Erschlossen", "Suedlage", "Aussicht"],
+                "https://picsum.photos/seed/grund2/800/600", GetMunicipalityId),
+
+            CreateProperty("Grosses Baugrundstück Muehlviertel", "Dorfstrasse", "Freistadt", 95000,
+                null, 1200, null, null, PropertyType.Land, SellerType.Private, "Gemeinde Freistadt",
+                "Guenstiges Baugrundstuck im schoenen Muehlviertel. Ruhige Lage, gute Infrastruktur.",
+                ["Teilerschlossen", "Strom", "Wasser"],
+                "https://picsum.photos/seed/grund3/800/600", GetMunicipalityId),
 
             // Zwangsversteigerungen
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Zwangsversteigerung: Haus in Traun",
-                Address = "Industriestrasse 45",
-                City = "Traun",
-                PostalCode = "4050",
-                Price = 185000,
-                LivingAreaSquareMeters = 110,
-                PlotAreaSquareMeters = 380,
-                Rooms = 4,
-                YearBuilt = 1985,
-                Type = PropertyType.Foreclosure,
-                SellerType = SellerType.Broker,
-                SellerName = "Bezirksgericht Linz",
-                Description = "Aelteres Haus mit Renovierungsbedarf. Versteigerungstermin: naechsten Monat. Besichtigung moeglich.",
-                Features = ["Garage", "Keller"],
-                ImageUrls = ["https://picsum.photos/seed/zwang1/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Zwangsversteigerung: Grundstück Enns",
-                Address = "Feldweg 3",
-                City = "Enns",
-                PostalCode = "4470",
-                Price = 68000,
-                PlotAreaSquareMeters = 650,
-                Type = PropertyType.Foreclosure,
-                SellerType = SellerType.Broker,
-                SellerName = "Bezirksgericht Steyr",
-                Description = "Baugrundstuck aus Zwangsversteigerung. Gute Lage, erschlossen.",
-                Features = ["Erschlossen"],
-                ImageUrls = ["https://picsum.photos/seed/zwang2/800/600"]
-            },
+            CreateProperty("Zwangsversteigerung: Haus in Traun", "Industriestrasse 45", "Traun", 185000,
+                110, 380, 4, 1985, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Linz",
+                "Aelteres Haus mit Renovierungsbedarf. Versteigerungstermin: naechsten Monat. Besichtigung moeglich.",
+                ["Garage", "Keller"],
+                "https://picsum.photos/seed/zwang1/800/600", GetMunicipalityId),
+
+            CreateProperty("Zwangsversteigerung: Grundstück Enns", "Feldweg 3", "Enns", 68000,
+                null, 650, null, null, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Steyr",
+                "Baugrundstuck aus Zwangsversteigerung. Gute Lage, erschlossen.",
+                ["Erschlossen"],
+                "https://picsum.photos/seed/zwang2/800/600", GetMunicipalityId),
 
             // Weitere Haeuser
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Bungalow in Braunau",
-                Address = "Gartenstrasse 18",
-                City = "Braunau am Inn",
-                PostalCode = "5280",
-                Price = 275000,
-                LivingAreaSquareMeters = 95,
-                PlotAreaSquareMeters = 600,
-                Rooms = 3,
-                YearBuilt = 2005,
-                Type = PropertyType.House,
-                SellerType = SellerType.Private,
-                SellerName = "Ehepaar Schmidt",
-                Description = "Barrierefreier Bungalow, ideal fuer Senioren. Pflegeleichter Garten.",
-                Features = ["Carport", "Garten", "Barrierefrei", "Fussbodenheizung"],
-                ImageUrls = ["https://picsum.photos/seed/bungalow1/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Doppelhaushälfte Vöcklabruck",
-                Address = "Schulweg 7",
-                City = "Voecklabruck",
-                PostalCode = "4840",
-                Price = 298000,
-                LivingAreaSquareMeters = 125,
-                PlotAreaSquareMeters = 280,
-                Rooms = 4,
-                YearBuilt = 2019,
-                Type = PropertyType.House,
-                SellerType = SellerType.Broker,
-                SellerName = "Hausfreund Immobilien",
-                Description = "Neuwertige Doppelhaushaelfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
-                Features = ["Garage", "Garten", "Terrasse", "Fussbodenheizung", "Waermepumpe"],
-                ImageUrls = ["https://picsum.photos/seed/doppel1/800/600"]
-            },
+            CreateProperty("Bungalow in Braunau", "Gartenstrasse 18", "Braunau am Inn", 275000,
+                95, 600, 3, 2005, PropertyType.House, SellerType.Private, "Ehepaar Schmidt",
+                "Barrierefreier Bungalow, ideal fuer Senioren. Pflegeleichter Garten.",
+                ["Carport", "Garten", "Barrierefrei", "Fussbodenheizung"],
+                "https://picsum.photos/seed/bungalow1/800/600", GetMunicipalityId),
+
+            CreateProperty("Doppelhaushälfte Vöcklabruck", "Schulweg 7", "Voecklabruck", 298000,
+                125, 280, 4, 2019, PropertyType.House, SellerType.Broker, "Hausfreund Immobilien",
+                "Neuwertige Doppelhaushaelfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
+                ["Garage", "Garten", "Terrasse", "Fussbodenheizung", "Waermepumpe"],
+                "https://picsum.photos/seed/doppel1/800/600", GetMunicipalityId),
 
             // Portal-Properties (from real estate platforms)
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Einfamilienhaus Leonding - Willhaben",
-                Address = "Birkenweg 5",
-                City = "Leonding",
-                PostalCode = "4060",
-                Price = 379000,
-                LivingAreaSquareMeters = 140,
-                PlotAreaSquareMeters = 480,
-                Rooms = 5,
-                YearBuilt = 2016,
-                Type = PropertyType.House,
-                SellerType = SellerType.Portal,
-                SellerName = "Willhaben",
-                Description = "Gepflegtes Einfamilienhaus mit Garten, gefunden auf Willhaben. Ruhige Wohnlage nahe Linz.",
-                Features = ["Garage", "Garten", "Terrasse", "Fussbodenheizung"],
-                ImageUrls = ["https://picsum.photos/seed/portal1/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Baugrundstück Ansfelden - ImmoScout24",
-                Address = "Feldgasse 12",
-                City = "Ansfelden",
-                PostalCode = "4052",
-                Price = 198000,
-                PlotAreaSquareMeters = 720,
-                Type = PropertyType.Land,
-                SellerType = SellerType.Portal,
-                SellerName = "ImmoScout24",
-                Description = "Voll erschlossenes Baugrundstuck, gefunden auf ImmoScout24. Perfekte Lage fuer Familien.",
-                Features = ["Erschlossen", "Strom", "Wasser", "Kanal"],
-                ImageUrls = ["https://picsum.photos/seed/portal2/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Modernes Haus Traun - ImmobilienNET",
-                Address = "Linzer Strasse 88",
-                City = "Traun",
-                PostalCode = "4050",
-                Price = 329000,
-                LivingAreaSquareMeters = 130,
-                PlotAreaSquareMeters = 350,
-                Rooms = 4,
-                YearBuilt = 2021,
-                Type = PropertyType.House,
-                SellerType = SellerType.Portal,
-                SellerName = "ImmobilienNET",
-                Description = "Neubau-Haus mit moderner Ausstattung. Listing von ImmobilienNET.",
-                Features = ["Carport", "Garten", "Terrasse", "Waermepumpe", "Photovoltaik"],
-                ImageUrls = ["https://picsum.photos/seed/portal3/800/600"]
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Grundstück Pasching - FindMyHome",
-                Address = "Wiesenstrasse 3",
-                City = "Pasching",
-                PostalCode = "4061",
-                Price = 265000,
-                PlotAreaSquareMeters = 640,
-                Type = PropertyType.Land,
-                SellerType = SellerType.Portal,
-                SellerName = "FindMyHome",
-                Description = "Sonniges Baugrundstuck in begehrter Lage. Via FindMyHome gefunden.",
-                Features = ["Erschlossen", "Strom", "Wasser", "Kanal", "Suedlage"],
-                ImageUrls = ["https://picsum.photos/seed/portal4/800/600"]
-            }
+            CreateProperty("Einfamilienhaus Leonding - Willhaben", "Birkenweg 5", "Leonding", 379000,
+                140, 480, 5, 2016, PropertyType.House, SellerType.Portal, "Willhaben",
+                "Gepflegtes Einfamilienhaus mit Garten, gefunden auf Willhaben. Ruhige Wohnlage nahe Linz.",
+                ["Garage", "Garten", "Terrasse", "Fussbodenheizung"],
+                "https://picsum.photos/seed/portal1/800/600", GetMunicipalityId),
+
+            CreateProperty("Baugrundstück Ansfelden - ImmoScout24", "Feldgasse 12", "Ansfelden", 198000,
+                null, 720, null, null, PropertyType.Land, SellerType.Portal, "ImmoScout24",
+                "Voll erschlossenes Baugrundstuck, gefunden auf ImmoScout24. Perfekte Lage fuer Familien.",
+                ["Erschlossen", "Strom", "Wasser", "Kanal"],
+                "https://picsum.photos/seed/portal2/800/600", GetMunicipalityId),
+
+            CreateProperty("Modernes Haus Traun - ImmobilienNET", "Linzer Strasse 88", "Traun", 329000,
+                130, 350, 4, 2021, PropertyType.House, SellerType.Portal, "ImmobilienNET",
+                "Neubau-Haus mit moderner Ausstattung. Listing von ImmobilienNET.",
+                ["Carport", "Garten", "Terrasse", "Waermepumpe", "Photovoltaik"],
+                "https://picsum.photos/seed/portal3/800/600", GetMunicipalityId),
+
+            CreateProperty("Grundstück Pasching - FindMyHome", "Wiesenstrasse 3", "Pasching", 265000,
+                null, 640, null, null, PropertyType.Land, SellerType.Portal, "FindMyHome",
+                "Sonniges Baugrundstuck in begehrter Lage. Via FindMyHome gefunden.",
+                ["Erschlossen", "Strom", "Wasser", "Kanal", "Suedlage"],
+                "https://picsum.photos/seed/portal4/800/600", GetMunicipalityId)
         };
 
         // UserId und CreatedAt fuer alle Properties setzen
@@ -386,6 +218,36 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
     }
 
     /// <summary>
+    /// Helper: Create a Property with MunicipalityId lookup
+    /// </summary>
+    private static Property CreateProperty(
+        string title, string address, string cityName, decimal price,
+        int? livingArea, int? plotArea, int? rooms, int? yearBuilt,
+        PropertyType type, SellerType sellerType, string sellerName,
+        string description, List<string> features, string imageUrl,
+        Func<string, Guid> getMunicipalityId)
+    {
+        return new Property
+        {
+            Id = Guid.NewGuid(),
+            Title = title,
+            Address = address,
+            MunicipalityId = getMunicipalityId(cityName),
+            Price = price,
+            LivingAreaSquareMeters = livingArea,
+            PlotAreaSquareMeters = plotArea,
+            Rooms = rooms,
+            YearBuilt = yearBuilt,
+            Type = type,
+            SellerType = sellerType,
+            SellerName = sellerName,
+            Description = description,
+            Features = features,
+            ImageUrls = [imageUrl]
+        };
+    }
+
+    /// <summary>
     /// Setzt TypeSpecificData fuer alle Properties basierend auf ihrem Typ
     /// </summary>
     private static void SetTypeSpecificData(List<Property> properties)
@@ -423,12 +285,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                     // Realistic land data
                     var landData = new LandPropertyData(
                         PlotSizeInSquareMeters: property.PlotAreaSquareMeters ?? 800,
-                        Zoning: property.City switch
-                        {
-                            "Linz" or "Wels" => ZoningType.Residential,
-                            "Leonding" => ZoningType.Mixed,
-                            _ => ZoningType.Residential
-                        },
+                        Zoning: property.Price > 200000 ? ZoningType.Mixed : ZoningType.Residential,
                         HasBuildingRights: property.Features.Any(a => a.Contains("Erschlossen") || a.Contains("erschlossen")),
                         SoilQuality: property.Price > 200000 ? SoilQuality.High : SoilQuality.Medium,
                         IsBuildable: property.Features.Any(a => a.Contains("Erschlossen") || a.Contains("erschlossen")),
@@ -454,7 +311,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                         Status: LegalStatus.Scheduled,
                         FileNumber: $"{Random.Shared.Next(100, 999)} E {Random.Shared.Next(100, 999)}/{DateTime.Now.Year % 100}",
                         RegistrationNumber: $"EZ {Random.Shared.Next(1000, 9999)}/{DateTime.Now.Year}",
-                        CadastralMunicipality: property.City,
+                        CadastralMunicipality: "Oberoesterreich",
                         PlotNumber: $"{Random.Shared.Next(100, 999)}/{Random.Shared.Next(1, 20)}",
                         TotalArea: property.PlotAreaSquareMeters ?? 500,
                         BuildingArea: property.LivingAreaSquareMeters ?? 0,
@@ -472,7 +329,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                         BiddingDeadline: auctionDate.AddDays(-1),
                         OwnershipShare: "1/1",
                         Notes: "Besichtigung nach Voranmeldung beim Gericht möglich. Weitere Informationen im Edikt.",
-                        EdictUrl: $"https://edikte.justiz.gv.at/sample-{property.City.ToLower().Replace(" ", "-")}.odt"
+                        EdictUrl: $"https://edikte.justiz.gv.at/sample-{property.Id}.odt"
                     );
                     property.SetTypedData(foreclosureData);
                     break;

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Heimatplatz.Api.Core.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
+using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 
@@ -17,11 +18,11 @@ public class Property : BaseEntity
     /// <summary>Street address and house number</summary>
     public required string Address { get; set; }
 
-    /// <summary>City</summary>
-    public required string City { get; set; }
+    /// <summary>FK to Municipality (contains City name and PostalCode)</summary>
+    public Guid MunicipalityId { get; set; }
 
-    /// <summary>Postal/ZIP code</summary>
-    public required string PostalCode { get; set; }
+    /// <summary>Navigation property to Municipality</summary>
+    public Municipality Municipality { get; set; } = null!;
 
     /// <summary>Purchase price in currency</summary>
     public decimal Price { get; set; }
@@ -70,6 +71,20 @@ public class Property : BaseEntity
 
     /// <summary>Kontaktinformationen zu dieser Immobilie</summary>
     public List<PropertyContactInfo> Contacts { get; set; } = [];
+
+    // === Import-Tracking Felder ===
+
+    /// <summary>Name des Quellsystems (z.B. "ImmoScout24", "Willhaben")</summary>
+    public string? SourceName { get; set; }
+
+    /// <summary>Externe ID im Quellsystem</summary>
+    public string? SourceId { get; set; }
+
+    /// <summary>Original-URL beim Quellsystem</summary>
+    public string? SourceUrl { get; set; }
+
+    /// <summary>Letzte Aktualisierung beim Quellsystem</summary>
+    public DateTimeOffset? SourceLastUpdated { get; set; }
 
     /// <summary>
     /// Gets the type-specific data deserialized to the specified type

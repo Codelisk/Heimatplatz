@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Dispatching;
 using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
@@ -17,11 +18,13 @@ namespace Heimatplatz.Features.Properties.Presentation;
 public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IClipboardService _clipboardService;
+    private readonly IShareService _shareService;
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
     private readonly IPropertyStatusService _propertyStatusService;
     private readonly ILogger<PropertyDetailViewModel> _logger;
     private readonly Guid _propertyId;
+    private DispatcherQueue? _dispatcher;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -90,6 +93,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
 
     public PropertyDetailViewModel(
         IClipboardService clipboardService,
+        IShareService shareService,
         IMediator mediator,
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
@@ -97,14 +101,14 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         PropertyDetailData data)
     {
         _clipboardService = clipboardService;
+        _shareService = shareService;
         _mediator = mediator;
         _authService = authService;
         _propertyStatusService = propertyStatusService;
         _logger = logger;
         _propertyId = data.PropertyId;
 
-        // Load property data immediately
-        _ = LoadPropertyAsync(_propertyId);
+        // Property data is loaded in OnNavigatedTo (guaranteed UI thread for dispatcher access)
     }
 
     /// <summary>
@@ -177,8 +181,11 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
 
     public async Task LoadPropertyAsync(Guid propertyId)
     {
-        IsBusy = true;
-        BusyMessage = "Lade Immobilie...";
+        DispatchToUI(() =>
+        {
+            IsBusy = true;
+            BusyMessage = "Lade Immobilie...";
+        });
 
         try
         {
@@ -191,10 +198,11 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
 
             var (context, response) = await _mediator.Request(request);
 
+            PropertyDetailDto? loadedProperty = null;
             if (response?.Property != null)
             {
                 var prop = response.Property;
-                Property = new PropertyDetailDto(
+                loadedProperty = new PropertyDetailDto(
                     Id: prop.Id,
                     Title: prop.Title,
                     Address: prop.Address,
@@ -227,21 +235,28 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
                     TypeSpecificData: prop.TypeSpecificData
                 );
 
-                _logger.LogInformation("[PropertyDetail] Property loaded: {Title}", Property.Title);
+                _logger.LogInformation("[PropertyDetail] Property loaded: {Title}", loadedProperty.Title);
             }
             else
             {
                 _logger.LogWarning("[PropertyDetail] Property {PropertyId} not found", propertyId);
             }
 
-            UpdateDisplayProperties();
-
-            // Load favorite status
+            // Load favorite status (can run on any thread)
+            var isFavorite = false;
             if (_authService.IsAuthenticated)
             {
                 await _propertyStatusService.RefreshStatusAsync();
-                IsFavorite = _propertyStatusService.IsFavorite(propertyId);
+                isFavorite = _propertyStatusService.IsFavorite(propertyId);
             }
+
+            // Update all UI-bound properties on the UI thread
+            DispatchToUI(() =>
+            {
+                Property = loadedProperty;
+                UpdateDisplayProperties();
+                IsFavorite = isFavorite;
+            });
         }
         catch (Exception ex)
         {
@@ -249,7 +264,11 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         }
         finally
         {
-            IsBusy = false;
+            DispatchToUI(() =>
+            {
+                IsBusy = false;
+                BusyMessage = null;
+            });
         }
     }
 
@@ -284,12 +303,41 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         IsFavorite = await _propertyStatusService.ToggleFavoriteAsync(Property.Id);
     }
 
+    /// <summary>
+    /// Teilt die Immobilie ueber nativen Share-Dialog oder Zwischenablage
+    /// </summary>
+    [RelayCommand]
+    private async Task SharePropertyAsync()
+    {
+        if (Property == null)
+            return;
+
+        _logger.LogInformation("[PropertyDetail] Sharing property {PropertyId}", Property.Id);
+
+        // Build share URL for the property
+        var propertyUrl = new Uri($"https://heimatplatz.at/immobilie/{Property.Id}");
+
+        var description = $"{Property.Title}\n" +
+                          $"{FormattedPrice}\n" +
+                          $"{AddressText}";
+
+        var success = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
+        if (success)
+        {
+            CopyFeedback = "Geteilt!";
+            await Task.Delay(2000);
+            CopyFeedback = null;
+        }
+    }
+
     #region INavigationAware Implementation
 
     /// <inheritdoc />
     public void OnNavigatedTo(object? parameter)
     {
         _logger.LogDebug("[PropertyDetail] OnNavigatedTo");
+        _dispatcher ??= DispatcherQueue.GetForCurrentThread();
+        _ = LoadPropertyAsync(_propertyId);
     }
 
     /// <inheritdoc />
@@ -299,4 +347,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     }
 
     #endregion
+
+    private void DispatchToUI(Action action)
+    {
+        var dq = _dispatcher;
+        if (dq is not null)
+            dq.TryEnqueue(() => action());
+        else
+            action();
+    }
 }

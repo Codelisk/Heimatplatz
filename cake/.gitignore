@@ -1,0 +1,24 @@
+# Build artifacts
+bin/
+obj/
+
+# Fastlane
+fastlane/report.xml
+fastlane/README.md
+fastlane/screenshots/
+fastlane/test_output/
+
+# Secrets (never commit these)
+*.p8
+*.p12
+*.keystore
+*.jks
+*.json.key
+play-store-key.json
+AuthKey.p8
+docs/
+
+# IDE
+.vs/
+.vscode/
+*.user

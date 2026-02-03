@@ -1,5 +1,6 @@
 using Heimatplatz.App.Controls;
 using Heimatplatz.App.Presentation;
+using Heimatplatz.Core.DeepLink.Services;
 using Heimatplatz.Core.Startup;
 using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Presentation;
@@ -10,6 +11,7 @@ using Heimatplatz.Features.Properties.Presentation;
 using Shiny.Mediator;
 using Uno.Resizetizer;
 using UnoFramework.Contracts.Application;
+using Windows.ApplicationModel.Activation;
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
 #endif
@@ -36,7 +38,7 @@ public partial class App : Application, IApplicationWithServices
     /// </summary>
     public IServiceProvider? Services => Host?.Services;
 
-    protected async override void OnLaunched(LaunchActivatedEventArgs args)
+    protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         var builder = this.CreateBuilder(args)
             .UseToolkitNavigation()
@@ -92,6 +94,51 @@ public partial class App : Application, IApplicationWithServices
             IosShinyHost.Init(Host.Services);
         }
 #endif
+    }
+
+    /// <summary>
+    /// Handles protocol activation (deep links) when app is launched or already running
+    /// </summary>
+    protected override void OnActivated(IActivatedEventArgs args)
+    {
+        base.OnActivated(args);
+
+        if (args.Kind == ActivationKind.Protocol && args is ProtocolActivatedEventArgs protocolArgs)
+        {
+            _ = HandleProtocolActivationAsync(protocolArgs.Uri, args.PreviousExecutionState);
+        }
+    }
+
+    private async Task HandleProtocolActivationAsync(Uri uri, ApplicationExecutionState previousState)
+    {
+        // If app wasn't running, we need to wait for Host to be initialized
+        if (Host == null)
+        {
+            // App is starting fresh - OnLaunched hasn't completed yet
+            // Wait a bit for initialization to complete
+            var maxWait = 50; // 5 seconds max
+            while (Host == null && maxWait > 0)
+            {
+                await Task.Delay(100);
+                maxWait--;
+            }
+        }
+
+        if (Host?.Services == null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DeepLink] Cannot handle deep link - Host not initialized: {uri}");
+            return;
+        }
+
+        var deepLinkService = Host.Services.GetService<IDeepLinkService>();
+        if (deepLinkService == null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DeepLink] DeepLinkService not available: {uri}");
+            return;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"[DeepLink] Handling protocol activation: {uri}");
+        await deepLinkService.HandleDeepLinkAsync(uri);
     }
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
