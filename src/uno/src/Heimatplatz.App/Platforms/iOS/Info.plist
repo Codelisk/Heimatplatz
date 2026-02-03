@@ -47,6 +47,12 @@
 			</dict>
 		</array>
 
+		<!-- Location Usage Descriptions (required by referenced APIs/SDKs) -->
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Heimatplatz verwendet deinen Standort, um Immobilien in deiner Nähe anzuzeigen.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Heimatplatz verwendet deinen Standort, um Immobilien in deiner Nähe anzuzeigen und dich über neue Angebote zu informieren.</string>
+
 		<!--
 		Adjust this to your application's encryption usage.
 		<key>ITSAppUsesNonExemptEncryption</key>
