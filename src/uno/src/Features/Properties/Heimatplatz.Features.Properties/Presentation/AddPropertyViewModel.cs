@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
-using Windows.Storage;
 using Windows.Storage.Pickers;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -600,47 +599,10 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     #region INavigationAware Implementation
 
     /// <inheritdoc />
-    public void OnNavigatedTo(object? parameter)
-    {
-#if DEBUG
-        // Auto-load test image since file picker can't be used via automation
-        if (!IsEditMode)
-            _ = LoadTestImageAsync();
-#endif
-    }
-
-#if DEBUG
-    private async Task LoadTestImageAsync()
-    {
-        try
-        {
-            var testImagePath = @"C:\Users\Daniel\Pictures\profilbild.jpg";
-            if (!File.Exists(testImagePath))
-                return;
-
-            var fileBytes = await File.ReadAllBytesAsync(testImagePath);
-            var memoryStream = new MemoryStream(fileBytes);
-
-            var thumbnail = new BitmapImage();
-            memoryStream.Position = 0;
-            await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
-
-            memoryStream.Position = 0;
-            Images.Add(new ImageItem("profilbild.jpg", "image/jpeg", memoryStream, thumbnail));
-            ImageCount = Images.Count;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not load test image");
-        }
-    }
-#endif
+    public void OnNavigatedTo(object? parameter) { }
 
     /// <inheritdoc />
-    public void OnNavigatedFrom()
-    {
-        // Cleanup if needed
-    }
+    public void OnNavigatedFrom() { }
 
     #endregion
 }

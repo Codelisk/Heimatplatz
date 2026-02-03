@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using UnoFramework.Contracts.Navigation;
+using UnoFramework.Contracts.Pages;
 using Windows.Storage.Pickers;
 
 namespace Heimatplatz.Features.Properties.Presentation;
@@ -18,7 +20,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 /// <summary>
 /// ViewModel for EditPropertyPage
 /// </summary>
-public partial class EditPropertyViewModel : ObservableObject
+public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
@@ -400,12 +402,17 @@ public partial class EditPropertyViewModel : ObservableObject
         ImageCount = Images.Count;
     }
 
-    /// <summary>
-    /// Navigiert zurück zur vorherigen Seite ohne zu speichern
-    /// </summary>
-    [RelayCommand]
-    private async Task CancelAsync()
-    {
-        await _navigator.NavigateBackAsync(this);
-    }
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.Form;
+    public string PageTitle => "Immobilie bearbeiten";
+
+    #endregion
+
+    #region INavigationAware Implementation
+
+    public void OnNavigatedTo(object? parameter) { }
+    public void OnNavigatedFrom() { }
+
+    #endregion
 }
