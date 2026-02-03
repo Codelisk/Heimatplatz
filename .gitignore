@@ -34,9 +34,12 @@ Thumbs.db
 # MSBuild
 MSBuild_Logs/
 
-# SQLite temp files
+# SQLite database files (legacy, now using Azure SQL)
+*.db
 *.db-shm
 *.db-wal
+app.dev.db
+app.db
 
 # Screenshots and temp files
 screenshots/

@@ -19,17 +19,9 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        // Pruefen ob Tabelle existiert und bereits Datenschutzerklaerung vorhanden ist
-        try
-        {
-            if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "PrivacyPolicy", cancellationToken))
-                return;
-        }
-        catch (Microsoft.Data.Sqlite.SqliteException)
-        {
-            // Tabelle existiert noch nicht - wird beim naechsten Seeding-Lauf erstellt
+        // Pruefen ob bereits Datenschutzerklaerung vorhanden ist
+        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "PrivacyPolicy", cancellationToken))
             return;
-        }
 
         var responsibleParty = new ResponsiblePartyDto(
             CompanyName: "Heimatplatz GmbH",
