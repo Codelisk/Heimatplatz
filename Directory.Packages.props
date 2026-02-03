@@ -77,7 +77,7 @@
 
     <!-- Entity Framework -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftVersion)" />
 
     <!-- UI Testing -->

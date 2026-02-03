@@ -11,19 +11,20 @@ public static class ServiceCollectionExtensions
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        // Fallback nur für Build-Zeit Tools (OpenAPI Generator etc.)
-        // In Production wird die Validierung beim ersten DB-Zugriff fehlschlagen
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            connectionString = "Data Source=:memory:";
-        }
-
         // DatabaseOptions konfigurieren
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
 
         services.AddDbContext<AppDbContext>(options =>
         {
-            options.UseSqlite(connectionString);
+            // Für Build-Zeit Tools (OpenAPI Generator): InMemory Provider verwenden
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                options.UseInMemoryDatabase("BuildTimeDb");
+            }
+            else
+            {
+                options.UseSqlServer(connectionString);
+            }
         });
 
         return services;
