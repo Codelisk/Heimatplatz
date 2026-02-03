@@ -109,6 +109,7 @@ if (Assembly.GetEntryAssembly()?.GetName().Name != "GetDocument.Insider")
 }
 
 app.UseCors();
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 // Authentication und Authorization Middleware

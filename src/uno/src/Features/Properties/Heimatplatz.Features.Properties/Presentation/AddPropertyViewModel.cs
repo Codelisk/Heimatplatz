@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Generated;
@@ -5,10 +6,15 @@ using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -23,6 +29,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly ILocationService _locationService;
+    private readonly ILogger<AddPropertyViewModel> _logger;
 
     // Edit Mode - Property ID if editing existing property
     [ObservableProperty]
@@ -168,6 +175,18 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [ObservableProperty]
     private bool _showSuccess;
 
+    // Bilder
+    public ObservableCollection<ImageItem> Images { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasImages), nameof(HasNoImages))]
+    private int _imageCount;
+
+    public bool HasImages => ImageCount > 0;
+    public bool HasNoImages => ImageCount == 0;
+
+    private const int MaxImages = 20;
+
     #region IPageInfo Implementation
 
     public PageType PageType => PageType.Settings;
@@ -180,12 +199,14 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         IAuthService authService,
         IMediator mediator,
         INavigator navigator,
-        ILocationService locationService)
+        ILocationService locationService,
+        ILogger<AddPropertyViewModel> logger)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
         _locationService = locationService;
+        _logger = logger;
 
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
@@ -259,10 +280,78 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
 
 
     [RelayCommand]
+    private async Task AddPhotosAsync()
+    {
+        try
+        {
+            if (Images.Count >= MaxImages)
+            {
+                ErrorMessage = $"Maximal {MaxImages} Bilder erlaubt";
+                return;
+            }
+
+            var picker = new FileOpenPicker();
+            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".jpg");
+            picker.FileTypeFilter.Add(".jpeg");
+            picker.FileTypeFilter.Add(".png");
+            picker.FileTypeFilter.Add(".webp");
+
+            var files = await picker.PickMultipleFilesAsync();
+            if (files == null || files.Count == 0)
+                return;
+
+            var remaining = MaxImages - Images.Count;
+            var filesToAdd = files.Take(remaining);
+
+            foreach (var file in filesToAdd)
+            {
+                using var fileStream = await file.OpenStreamForReadAsync();
+                var contentType = file.ContentType;
+                if (string.IsNullOrEmpty(contentType))
+                    contentType = "image/jpeg";
+
+                // Read entire file into a MemoryStream (seekable, reusable for upload)
+                var memoryStream = new MemoryStream();
+                await fileStream.CopyToAsync(memoryStream);
+
+                // Create thumbnail from the MemoryStream
+                var thumbnail = new BitmapImage();
+                memoryStream.Position = 0;
+                await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
+
+                // Reset position for later upload use
+                memoryStream.Position = 0;
+
+                Images.Add(new ImageItem(file.Name, contentType, memoryStream, thumbnail));
+            }
+
+            ImageCount = Images.Count;
+
+            if (files.Count > remaining)
+            {
+                ErrorMessage = $"Nur {remaining} weitere Bilder konnten hinzugefügt werden (max. {MaxImages})";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Auswählen von Bildern");
+            ErrorMessage = $"Fehler beim Auswählen von Bildern: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveImage(ImageItem image)
+    {
+        image.Stream.Dispose();
+        Images.Remove(image);
+        ImageCount = Images.Count;
+    }
+
+    [RelayCommand]
     private async Task SavePropertyAsync()
     {
         ErrorMessage = null;
-        ShowSuccess = false;
 
         // Validation
         if (string.IsNullOrWhiteSpace(Titel) || Titel.Length < 10)
@@ -290,6 +379,8 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         }
 
         IsBusy = true;
+        var isEdit = IsEditMode;
+        var saveSucceeded = false;
 
         try
         {
@@ -330,7 +421,36 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
                 }
             }
 
-            if (IsEditMode)
+            // Upload images first to get URLs
+            List<string>? imageUrls = null;
+            if (Images.Count > 0)
+            {
+                try
+                {
+                    foreach (var img in Images)
+                        img.Stream.Position = 0;
+
+                    var imageFiles = Images.Select(img => new ImageFileData(
+                        img.FileName,
+                        img.ContentType,
+                        img.Stream
+                    )).ToList();
+
+                    var (_, uploadResult) = await _mediator.Request(
+                        new UploadPropertyImagesRequest(imageFiles));
+
+                    imageUrls = uploadResult?.ImageUrls;
+                    _logger.LogInformation("{Count} Bilder hochgeladen: {Urls}",
+                        imageUrls?.Count ?? 0,
+                        string.Join(", ", imageUrls ?? []));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Fehler beim Hochladen der Bilder");
+                }
+            }
+
+            if (isEdit)
             {
                 // Update existing property using generated Mediator request
                 await _mediator.Request(new UpdatePropertyHttpRequest
@@ -350,13 +470,14 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
                         PlotAreaSquareMeters = grundstuecksValue,
                         Rooms = zimmerValue,
                         YearBuilt = baujahrValue,
+                        ImageUrls = imageUrls,
                         TypeSpecificData = typeSpecificData
                     }
                 });
             }
             else
             {
-                // Create new property using generated client
+                // Create new property with image URLs included
                 var response = await _mediator.Request(new CreatePropertyHttpRequest
                 {
                     Body = new CreatePropertyRequest
@@ -373,26 +494,13 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
                         PlotAreaSquareMeters = grundstuecksValue,
                         Rooms = zimmerValue,
                         YearBuilt = baujahrValue,
+                        ImageUrls = imageUrls,
                         TypeSpecificData = typeSpecificData
                     }
                 });
             }
 
-            ShowSuccess = true;
-
-            // Wait a bit to show success message
-            await Task.Delay(1500);
-
-            if (IsEditMode)
-            {
-                // Navigate back after successful update
-                await _navigator.NavigateBackAsync(this);
-            }
-            else
-            {
-                // Reset form for next entry
-                ResetForm();
-            }
+            saveSucceeded = true;
         }
         catch (Exception ex)
         {
@@ -402,6 +510,22 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         {
             IsBusy = false;
         }
+
+        // Navigate AFTER IsBusy is false and try-finally has completed
+        // Use NavigateToRouteInContentEvent so MainPage navigates via NavigationView,
+        // which properly updates the NavigationView's selected item
+        if (saveSucceeded)
+        {
+            try
+            {
+                _logger.LogInformation("Navigating to MyProperties after {Mode}", isEdit ? "edit" : "create");
+                await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Navigation nach dem Speichern fehlgeschlagen");
+            }
+        }
     }
 
     /// <summary>
@@ -410,7 +534,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [RelayCommand]
     private async Task CancelAsync()
     {
-        await _navigator.NavigateBackAsync(this);
+        await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
     }
 
     private void ResetForm()
@@ -464,6 +588,12 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         LongAppraisalUrl = string.Empty;
         ShortAppraisalUrl = string.Empty;
 
+        // Reset Bilder
+        foreach (var img in Images)
+            img.Stream.Dispose();
+        Images.Clear();
+        ImageCount = 0;
+
         ShowSuccess = false;
     }
 
@@ -472,8 +602,39 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     /// <inheritdoc />
     public void OnNavigatedTo(object? parameter)
     {
-        // Navigation parameter handling if needed
+#if DEBUG
+        // Auto-load test image since file picker can't be used via automation
+        if (!IsEditMode)
+            _ = LoadTestImageAsync();
+#endif
     }
+
+#if DEBUG
+    private async Task LoadTestImageAsync()
+    {
+        try
+        {
+            var testImagePath = @"C:\Users\Daniel\Pictures\profilbild.jpg";
+            if (!File.Exists(testImagePath))
+                return;
+
+            var fileBytes = await File.ReadAllBytesAsync(testImagePath);
+            var memoryStream = new MemoryStream(fileBytes);
+
+            var thumbnail = new BitmapImage();
+            memoryStream.Position = 0;
+            await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
+
+            memoryStream.Position = 0;
+            Images.Add(new ImageItem("profilbild.jpg", "image/jpeg", memoryStream, thumbnail));
+            ImageCount = Images.Count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not load test image");
+        }
+    }
+#endif
 
     /// <inheritdoc />
     public void OnNavigatedFrom()

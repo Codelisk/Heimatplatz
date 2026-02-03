@@ -117,12 +117,8 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     public void OnNavigatedTo(object? parameter)
     {
         _logger.LogInformation("[MyProperties] OnNavigatedTo called");
-        // Skip reload if we already have data — avoids triggering
-        // CollectionChanged on both old and new page instances (StackOverflow).
-        if (Properties.Count == 0)
-        {
-            _ = Properties.ResetAndReloadAsync();
-        }
+        // Always reload to pick up newly created/edited properties
+        _ = Properties.ResetAndReloadAsync();
     }
 
     /// <summary>

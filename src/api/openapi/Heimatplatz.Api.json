@@ -300,6 +300,32 @@
         }
       }
     },
+    "/api/properties/images": {
+      "post": {
+        "tags": [
+          "Properties"
+        ],
+        "operationId": "UploadPropertyImages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPropertyImagesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/auth/filter-preferences": {
       "get": {
         "tags": [
@@ -3342,6 +3368,20 @@
           }
         }
       },
+      "UploadPropertyImagesResponse": {
+        "required": [
+          "ImageUrls"
+        ],
+        "type": "object",
+        "properties": {
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "UserRoleType": {
         "enum": [
           "Buyer",
@@ -3353,6 +3393,9 @@
   "tags": [
     {
       "name": "Heimatplatz.Api"
+    },
+    {
+      "name": "Properties"
     }
   ]
 }

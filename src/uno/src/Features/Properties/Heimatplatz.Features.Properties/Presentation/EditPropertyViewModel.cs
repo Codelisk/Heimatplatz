@@ -1,12 +1,17 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Generated;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using Windows.Storage.Pickers;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -19,6 +24,7 @@ public partial class EditPropertyViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly ILocationService _locationService;
+    private readonly ILogger<EditPropertyViewModel> _logger;
 
     // Property ID being edited
     [ObservableProperty]
@@ -81,24 +87,38 @@ public partial class EditPropertyViewModel : ObservableObject
     [ObservableProperty]
     private bool _showSuccess;
 
+    // Bilder
+    public ObservableCollection<ImageItem> Images { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasImages), nameof(HasNoImages))]
+    private int _imageCount;
+
+    public bool HasImages => ImageCount > 0;
+    public bool HasNoImages => ImageCount == 0;
+
+    private const int MaxImages = 20;
+
     public EditPropertyViewModel(
         IAuthService authService,
         IMediator mediator,
         INavigator navigator,
         ILocationService locationService,
+        ILogger<EditPropertyViewModel> logger,
         EditPropertyData data)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
         _locationService = locationService;
+        _logger = logger;
 
         PropertyId = data.PropertyId;
 
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
 
-        // Load property data
+        // Load property data (including existing images)
         _ = LoadPropertyAsync(data.PropertyId);
     }
 
@@ -143,6 +163,20 @@ public partial class EditPropertyViewModel : ObservableObject
                 if (typeItem != null)
                 {
                     SelectedPropertyTypeItem = typeItem;
+                }
+
+                // Load existing images from server URLs
+                if (prop.ImageUrls?.Count > 0)
+                {
+                    foreach (var url in prop.ImageUrls)
+                    {
+                        Images.Add(new ImageItem(
+                            Path.GetFileName(new Uri(url).LocalPath),
+                            "image/jpeg",
+                            Stream.Null,
+                            Url: url));
+                    }
+                    ImageCount = Images.Count;
                 }
             }
         }
@@ -225,7 +259,47 @@ public partial class EditPropertyViewModel : ObservableObject
                 }
             }
 
-            // Update property using generated Mediator request
+            // Collect existing image URLs and upload new images
+            List<string>? imageUrls = null;
+            if (Images.Count > 0)
+            {
+                try
+                {
+                    // Keep existing URLs as-is
+                    var existingUrls = Images.Where(img => img.IsExisting).Select(img => img.Url!).ToList();
+
+                    // Upload only new images
+                    var newImages = Images.Where(img => !img.IsExisting).ToList();
+                    List<string> newUrls = [];
+                    if (newImages.Count > 0)
+                    {
+                        foreach (var img in newImages)
+                            img.Stream.Position = 0;
+
+                        var imageFiles = newImages.Select(img => new ImageFileData(
+                            img.FileName,
+                            img.ContentType,
+                            img.Stream
+                        )).ToList();
+
+                        var (_, uploadResult) = await _mediator.Request(
+                            new UploadPropertyImagesRequest(imageFiles));
+
+                        newUrls = uploadResult?.ImageUrls ?? [];
+                    }
+
+                    imageUrls = [.. existingUrls, .. newUrls];
+                    _logger.LogInformation("{Count} Bilder gesamt ({Existing} bestehend, {New} neu): {Urls}",
+                        imageUrls.Count, existingUrls.Count, newUrls.Count,
+                        string.Join(", ", imageUrls));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Fehler beim Hochladen der Bilder");
+                }
+            }
+
+            // Update property with image URLs included
             await _mediator.Request(new UpdatePropertyHttpRequest
             {
                 Body = new UpdatePropertyRequest
@@ -243,15 +317,12 @@ public partial class EditPropertyViewModel : ObservableObject
                     PlotAreaSquareMeters = grundstuecksValue,
                     Rooms = zimmerValue,
                     YearBuilt = baujahrValue,
+                    ImageUrls = imageUrls,
                     TypeSpecificData = null
                 }
             });
 
-            ShowSuccess = true;
-
-            // Wait a bit to show success message, then navigate back
-            await Task.Delay(1500);
-            await _navigator.NavigateBackAsync(this);
+            await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
         }
         catch (Exception ex)
         {
@@ -261,6 +332,72 @@ public partial class EditPropertyViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task AddPhotosAsync()
+    {
+        try
+        {
+            if (Images.Count >= MaxImages)
+            {
+                ErrorMessage = $"Maximal {MaxImages} Bilder erlaubt";
+                return;
+            }
+
+            var picker = new FileOpenPicker();
+            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".jpg");
+            picker.FileTypeFilter.Add(".jpeg");
+            picker.FileTypeFilter.Add(".png");
+            picker.FileTypeFilter.Add(".webp");
+
+            var files = await picker.PickMultipleFilesAsync();
+            if (files == null || files.Count == 0)
+                return;
+
+            var remaining = MaxImages - Images.Count;
+            var filesToAdd = files.Take(remaining);
+
+            foreach (var file in filesToAdd)
+            {
+                using var fileStream = await file.OpenStreamForReadAsync();
+                var contentType = file.ContentType;
+                if (string.IsNullOrEmpty(contentType))
+                    contentType = "image/jpeg";
+
+                var memoryStream = new MemoryStream();
+                await fileStream.CopyToAsync(memoryStream);
+
+                var thumbnail = new BitmapImage();
+                memoryStream.Position = 0;
+                await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
+
+                memoryStream.Position = 0;
+                Images.Add(new ImageItem(file.Name, contentType, memoryStream, thumbnail));
+            }
+
+            ImageCount = Images.Count;
+
+            if (files.Count > remaining)
+            {
+                ErrorMessage = $"Nur {remaining} weitere Bilder konnten hinzugefügt werden (max. {MaxImages})";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Auswählen von Bildern");
+            ErrorMessage = $"Fehler beim Auswählen von Bildern: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveImage(ImageItem image)
+    {
+        if (!image.IsExisting)
+            image.Stream.Dispose();
+        Images.Remove(image);
+        ImageCount = Images.Count;
     }
 
     /// <summary>

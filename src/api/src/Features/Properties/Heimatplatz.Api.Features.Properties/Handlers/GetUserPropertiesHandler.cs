@@ -45,8 +45,9 @@ public class GetUserPropertiesHandler(
         // Get total count
         var total = await query.CountAsync(cancellationToken);
 
-        // Apply pagination and project to DTO
-        var properties = await query
+        // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
+        var entities = await query.ToListAsync(cancellationToken);
+        var properties = entities
             .OrderByDescending(p => p.CreatedAt)
             .Skip(request.Page * request.PageSize)
             .Take(request.PageSize)
@@ -68,7 +69,7 @@ public class GetUserPropertiesHandler(
                 p.CreatedAt,
                 p.InquiryType
             ))
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var hasMore = (request.Page + 1) * request.PageSize < total;
 
