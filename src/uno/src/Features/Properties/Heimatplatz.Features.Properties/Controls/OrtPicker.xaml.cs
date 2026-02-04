@@ -5,10 +5,13 @@ using Microsoft.UI.Xaml.Controls;
 namespace Heimatplatz.Features.Properties.Controls;
 
 /// <summary>
-/// Bezirk/Gemeinde Picker mit aufklappbaren Bezirken und Gemeinde-Checkboxen
+/// Bezirk/Gemeinde Picker mit aufklappbaren Bezirken und Gemeinde-Checkboxen.
+/// Unterstuetzt Multi-Select (Filter) und Single-Select (Formular) Modus.
 /// </summary>
 public sealed partial class OrtPicker : UserControl
 {
+    private bool _isSyncing;
+
     public OrtPicker()
     {
         this.InitializeComponent();
@@ -31,7 +34,7 @@ public sealed partial class OrtPicker : UserControl
     }
 
     /// <summary>
-    /// Bindable list of selected Gemeinde names (output property)
+    /// Bindable list of selected Gemeinde names (output property, multi-select)
     /// </summary>
     public static readonly DependencyProperty SelectedOrteProperty =
         DependencyProperty.Register(
@@ -44,6 +47,39 @@ public sealed partial class OrtPicker : UserControl
     {
         get => (List<string>)GetValue(SelectedOrteProperty);
         set => SetValue(SelectedOrteProperty, value);
+    }
+
+    /// <summary>
+    /// Single-Select Modus: Nur eine Gemeinde kann ausgewaehlt werden.
+    /// Im Single-Select wird das Flyout nach Auswahl automatisch geschlossen.
+    /// </summary>
+    public static readonly DependencyProperty IsSingleSelectProperty =
+        DependencyProperty.Register(
+            nameof(IsSingleSelect),
+            typeof(bool),
+            typeof(OrtPicker),
+            new PropertyMetadata(false));
+
+    public bool IsSingleSelect
+    {
+        get => (bool)GetValue(IsSingleSelectProperty);
+        set => SetValue(IsSingleSelectProperty, value);
+    }
+
+    /// <summary>
+    /// Single-Select Output: Die ID der ausgewaehlten Gemeinde.
+    /// </summary>
+    public static readonly DependencyProperty SelectedGemeindeIdProperty =
+        DependencyProperty.Register(
+            nameof(SelectedGemeindeId),
+            typeof(Guid?),
+            typeof(OrtPicker),
+            new PropertyMetadata(null, OnSelectedGemeindeIdChanged));
+
+    public Guid? SelectedGemeindeId
+    {
+        get => (Guid?)GetValue(SelectedGemeindeIdProperty);
+        set => SetValue(SelectedGemeindeIdProperty, value);
     }
 
     /// <summary>
@@ -64,8 +100,50 @@ public sealed partial class OrtPicker : UserControl
     {
         if (d is OrtPicker picker)
         {
-            picker.UpdateSelectionText();
             picker.SubscribeToSelectionChanges();
+            // Apply pre-set SelectedGemeindeId if available
+            if (picker.IsSingleSelect && picker.SelectedGemeindeId.HasValue)
+            {
+                picker.ApplySelectedGemeindeId(picker.SelectedGemeindeId.Value);
+            }
+            picker.UpdateSelectionText();
+        }
+    }
+
+    private static void OnSelectedGemeindeIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is OrtPicker picker && !picker._isSyncing && picker.Bezirke != null)
+        {
+            if (e.NewValue is Guid id)
+            {
+                picker.ApplySelectedGemeindeId(id);
+            }
+            else
+            {
+                picker.ClearAllSelections();
+            }
+            picker.UpdateSelectionText();
+        }
+    }
+
+    private void ApplySelectedGemeindeId(Guid id)
+    {
+        if (Bezirke == null) return;
+
+        _isSyncing = true;
+        try
+        {
+            foreach (var bezirk in Bezirke)
+            {
+                foreach (var gemeinde in bezirk.Gemeinden)
+                {
+                    gemeinde.IsSelected = gemeinde.Id == id;
+                }
+            }
+        }
+        finally
+        {
+            _isSyncing = false;
         }
     }
 
@@ -79,14 +157,84 @@ public sealed partial class OrtPicker : UserControl
             {
                 gemeinde.PropertyChanged += (s, e) =>
                 {
-                    if (e.PropertyName == nameof(GemeindeModel.IsSelected))
+                    if (e.PropertyName == nameof(GemeindeModel.IsSelected) && !_isSyncing)
                     {
+                        if (IsSingleSelect && s is GemeindeModel selected && selected.IsSelected)
+                        {
+                            EnforceSingleSelect(selected);
+                            UpdateSelectedGemeindeId(selected);
+                            CloseFlyout();
+                        }
+
                         UpdateSelectionText();
                         UpdateSelectedOrte();
                         SelectionChanged?.Invoke(this, EventArgs.Empty);
                     }
                 };
             }
+        }
+    }
+
+    private void EnforceSingleSelect(GemeindeModel selectedGemeinde)
+    {
+        if (Bezirke == null) return;
+
+        _isSyncing = true;
+        try
+        {
+            foreach (var bezirk in Bezirke)
+            {
+                foreach (var gemeinde in bezirk.Gemeinden)
+                {
+                    if (gemeinde != selectedGemeinde)
+                    {
+                        gemeinde.IsSelected = false;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            _isSyncing = false;
+        }
+    }
+
+    private void UpdateSelectedGemeindeId(GemeindeModel gemeinde)
+    {
+        _isSyncing = true;
+        try
+        {
+            SelectedGemeindeId = gemeinde.IsSelected ? gemeinde.Id : null;
+        }
+        finally
+        {
+            _isSyncing = false;
+        }
+    }
+
+    private void CloseFlyout()
+    {
+        PickerFlyout.Hide();
+    }
+
+    private void ClearAllSelections()
+    {
+        if (Bezirke == null) return;
+
+        _isSyncing = true;
+        try
+        {
+            foreach (var bezirk in Bezirke)
+            {
+                foreach (var gemeinde in bezirk.Gemeinden)
+                {
+                    gemeinde.IsSelected = false;
+                }
+            }
+        }
+        finally
+        {
+            _isSyncing = false;
         }
     }
 
@@ -115,7 +263,8 @@ public sealed partial class OrtPicker : UserControl
         }
         else if (selectedGemeinden.Count == 1)
         {
-            SelectionText.Text = selectedGemeinden[0].Name;
+            var g = selectedGemeinden[0];
+            SelectionText.Text = IsSingleSelect ? $"{g.Name} ({g.PostalCode})" : g.Name;
             SelectionText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["OnSurfaceBrush"];
         }
         else
@@ -135,15 +284,24 @@ public sealed partial class OrtPicker : UserControl
 
     private void ClearAllButton_Click(object sender, RoutedEventArgs e)
     {
-        if (Bezirke == null) return;
+        ClearAllSelections();
 
-        foreach (var bezirk in Bezirke)
+        if (IsSingleSelect)
         {
-            foreach (var gemeinde in bezirk.Gemeinden)
+            _isSyncing = true;
+            try
             {
-                gemeinde.IsSelected = false;
+                SelectedGemeindeId = null;
+            }
+            finally
+            {
+                _isSyncing = false;
             }
         }
+
+        UpdateSelectionText();
+        UpdateSelectedOrte();
+        SelectionChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

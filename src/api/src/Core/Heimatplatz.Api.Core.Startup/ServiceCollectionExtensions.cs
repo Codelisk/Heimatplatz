@@ -133,6 +133,10 @@ public static class ServiceCollectionExtensions
                     await dbContext.Database.EnsureDeletedAsync();
                     await dbContext.Database.EnsureCreatedAsync();
                 }
+                catch (Exception ex) when (ex.Message.Contains("already an object named") || ex.Message.Contains("There is already"))
+                {
+                    logger.LogWarning("Tables already exist (created via EnsureCreated). Skipping migration: {Message}", ex.Message);
+                }
             }
             logger.LogInformation("Database migrations completed.");
         }

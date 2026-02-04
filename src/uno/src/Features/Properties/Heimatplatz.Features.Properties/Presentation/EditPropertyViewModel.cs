@@ -52,11 +52,13 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
     [ObservableProperty]
     private string _adresse = string.Empty;
 
+    // Bezirke fuer den OrtPicker
     [ObservableProperty]
-    private string _ort = string.Empty;
+    private List<BezirkModel> _bezirke = [];
 
+    // Ausgewaehlte Gemeinde (Single-Select OrtPicker)
     [ObservableProperty]
-    private string _plz = string.Empty;
+    private Guid? _selectedGemeindeId;
 
     [ObservableProperty]
     private string _preis = string.Empty;
@@ -120,8 +122,30 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
 
-        // Load property data (including existing images)
-        _ = LoadPropertyAsync(data.PropertyId);
+        // Load Bezirke and property data
+        _ = InitializeAsync(data.PropertyId);
+    }
+
+    private async Task InitializeAsync(Guid propertyId)
+    {
+        try
+        {
+            var locations = await _locationService.GetLocationsAsync();
+            Bezirke = locations
+                .SelectMany(bl => bl.Bezirke)
+                .Select(b => new BezirkModel(
+                    b.Id,
+                    b.Name,
+                    b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
+                ))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Orte");
+        }
+
+        await LoadPropertyAsync(propertyId);
     }
 
     /// <summary>
@@ -149,8 +173,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
                 // Fill common fields
                 Titel = prop.Title;
                 Adresse = prop.Address;
-                Ort = prop.City;
-                Plz = prop.PostalCode;
+                SelectedGemeindeId = prop.MunicipalityId;
                 Preis = prop.Price.ToString();
                 Beschreibung = prop.Description ?? string.Empty;
 
@@ -217,9 +240,15 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Adresse) || string.IsNullOrWhiteSpace(Ort) || string.IsNullOrWhiteSpace(Plz))
+        if (string.IsNullOrWhiteSpace(Adresse))
         {
-            ErrorMessage = "Adresse, Ort und PLZ sind erforderlich";
+            ErrorMessage = "Bitte geben Sie eine Straße ein";
+            return;
+        }
+
+        if (!SelectedGemeindeId.HasValue)
+        {
+            ErrorMessage = "Bitte wählen Sie einen Ort aus";
             return;
         }
 
@@ -247,19 +276,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
             // Get seller info from auth service
             var sellerName = _authService.UserFullName ?? "Unbekannt";
 
-            // Resolve MunicipalityId from Ort and Plz
-            var municipalityId = await _locationService.ResolveMunicipalityIdAsync(Ort.Trim(), Plz.Trim());
-            if (municipalityId == null)
-            {
-                // Fallback: Try to get first municipality
-                var municipalities = await _locationService.GetAllMunicipalitiesAsync();
-                municipalityId = municipalities.FirstOrDefault()?.Id;
-                if (municipalityId == null)
-                {
-                    ErrorMessage = "Konnte keine passende Gemeinde für den angegebenen Ort finden";
-                    return;
-                }
-            }
+            var municipalityId = SelectedGemeindeId!.Value;
 
             // Collect existing image URLs and upload new images
             List<string>? imageUrls = null;
@@ -309,7 +326,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
                     Id = PropertyId,
                     Title = Titel.Trim(),
                     Address = Adresse.Trim(),
-                    MunicipalityId = municipalityId.Value,
+                    MunicipalityId = municipalityId,
                     Price = (double)preisValue,
                     Type = (Core.ApiClient.Generated.PropertyType)(int)SelectedTyp,
                     SellerType = Core.ApiClient.Generated.SellerType.Private,

@@ -4,6 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
       xmlns:models="using:Heimatplatz.Features.Properties.Contracts.Models"
+      xmlns:controls="using:Heimatplatz.Features.Properties.Controls"
       xmlns:pages="using:UnoFramework.Pages"
       NavigationCacheMode="Disabled"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -36,13 +37,10 @@
                     <Setter Target="AddressLayout.RowSpacing" Value="8" />
                     <Setter Target="AddressField.(Grid.Row)" Value="0" />
                     <Setter Target="AddressField.(Grid.Column)" Value="0" />
-                    <Setter Target="AddressField.(Grid.ColumnSpan)" Value="3" />
-                    <Setter Target="CityField.(Grid.Row)" Value="1" />
-                    <Setter Target="CityField.(Grid.Column)" Value="0" />
-                    <Setter Target="CityField.(Grid.ColumnSpan)" Value="3" />
-                    <Setter Target="PostalCodeField.(Grid.Row)" Value="2" />
-                    <Setter Target="PostalCodeField.(Grid.Column)" Value="0" />
-                    <Setter Target="PostalCodeField.(Grid.ColumnSpan)" Value="3" />
+                    <Setter Target="AddressField.(Grid.ColumnSpan)" Value="2" />
+                    <Setter Target="OrtPickerField.(Grid.Row)" Value="1" />
+                    <Setter Target="OrtPickerField.(Grid.Column)" Value="0" />
+                    <Setter Target="OrtPickerField.(Grid.ColumnSpan)" Value="2" />
 
                     <!-- House Details Layout - Stack vertically -->
                     <Setter Target="HouseDetailsLayout.RowSpacing" Value="8" />
@@ -107,39 +105,32 @@
 
             <Grid x:Name="AddressLayout" ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
+
+                <StackPanel x:Name="OrtPickerField"
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Spacing="4">
+                    <TextBlock Text="Ort *"
+                               Style="{StaticResource CaptionTextBlockStyle}" />
+                    <controls:OrtPicker Bezirke="{Binding Bezirke}"
+                                        IsSingleSelect="True"
+                                        SelectedGemeindeId="{Binding SelectedGemeindeId, Mode=TwoWay}"
+                                        HorizontalAlignment="Stretch" />
+                </StackPanel>
 
                 <TextBox x:Name="AddressField"
                          Grid.Row="0"
-                         Grid.Column="0"
-                         Header="Adresse *"
+                         Grid.Column="1"
+                         Header="Straße *"
                          Text="{Binding Adresse, Mode=TwoWay}"
                          PlaceholderText="Straße und Hausnummer"
-                         HorizontalAlignment="Stretch" />
-
-                <TextBox x:Name="CityField"
-                         Grid.Row="0"
-                         Grid.Column="1"
-                         Header="Ort *"
-                         Text="{Binding Ort, Mode=TwoWay}"
-                         PlaceholderText="z.B. Linz"
-                         HorizontalAlignment="Stretch" />
-
-                <TextBox x:Name="PostalCodeField"
-                         Grid.Row="0"
-                         Grid.Column="2"
-                         Header="PLZ *"
-                         Text="{Binding Plz, Mode=TwoWay}"
-                         PlaceholderText="4020"
-                         InputScope="Number"
                          HorizontalAlignment="Stretch" />
             </Grid>
 
