@@ -97,8 +97,15 @@ public partial class LoginViewModel : ObservableObject
 
             _logger.LogInformation("Login erfolgreich fuer {Email}", Email);
 
-            // Push Notifications initialisieren via Mediator Command
-            await _mediator.Send(new InitializePushNotificationsCommand());
+            // Push Notifications initialisieren (nur auf mobilen Plattformen verfuegbar)
+            try
+            {
+                await _mediator.Send(new InitializePushNotificationsCommand());
+            }
+            catch (Exception pushEx)
+            {
+                _logger.LogWarning(pushEx, "Push Notifications konnten nicht initialisiert werden (nicht auf dieser Plattform verfuegbar)");
+            }
 
             // Formular zuruecksetzen
             Email = string.Empty;

@@ -16,6 +16,13 @@ public class UserLoggedInEventHandler(
     public async Task Handle(UserLoggedInEvent @event, IMediatorContext context, CancellationToken cancellationToken)
     {
         logger.LogInformation("[UserLoggedInEventHandler] User logged in: {Email}, initializing push notifications...", @event.Email);
-        await mediator.Send(new InitializePushNotificationsCommand(), cancellationToken);
+        try
+        {
+            await mediator.Send(new InitializePushNotificationsCommand(), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Push Notifications konnten nicht initialisiert werden (nicht auf dieser Plattform verfuegbar)");
+        }
     }
 }
