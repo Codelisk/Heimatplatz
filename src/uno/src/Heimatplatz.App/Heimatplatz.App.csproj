@@ -58,6 +58,11 @@
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
 
+  <!-- WebAssembly: Preserve all types in ApiClient assembly (trimmer removes constructors needed for JSON deserialization) -->
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
+    <TrimmerRootAssembly Include="Heimatplatz.Core.ApiClient" />
+  </ItemGroup>
+
   <!-- WebAssembly AppManifest -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\AppManifest.js" />
