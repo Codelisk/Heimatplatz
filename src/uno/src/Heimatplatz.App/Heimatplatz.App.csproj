@@ -53,6 +53,11 @@
     <UnoSplashScreen Include="Assets\Splash\splash_screen.svg" Color="#7F7F7F" BaseSize="128,128" />
   </ItemGroup>
 
+  <!-- WebAssembly: Enable reflection-based JSON serialization (required by Shiny.Mediator SysTextJsonSerializerService) -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+
   <!-- WebAssembly AppManifest -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\AppManifest.js" />
