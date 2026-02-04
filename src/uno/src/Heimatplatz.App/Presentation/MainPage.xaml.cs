@@ -165,11 +165,15 @@ public sealed partial class MainPage : Page,
         var dispatcherQueue = DispatcherQueue;
         dispatcherQueue?.TryEnqueue(async () =>
         {
-            var navViewNavigator = NavView.Navigator();
-            if (navViewNavigator != null)
+            // Use NavigationContent's navigator to navigate within the content region directly.
+            // NavView.Navigator() only works for routes that have a corresponding NavigationViewItem.
+            // Routes without a NavigationViewItem (e.g. UserProfile) would bubble up to the Shell,
+            // replacing MainPage entirely and losing header/NavigationView.
+            var contentNavigator = NavigationContent.Navigator();
+            if (contentNavigator != null)
             {
                 System.Diagnostics.Debug.WriteLine($"[MainPage] Navigating to {@event.Route} in Content region");
-                await navViewNavigator.NavigateRouteAsync(NavView, @event.Route);
+                await contentNavigator.NavigateRouteAsync(NavigationContent, @event.Route);
             }
         });
 

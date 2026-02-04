@@ -1,7 +1,17 @@
 $body = @{
-    email = "test.seller@heimatplatz.dev"
-    password = "Test123!"
+    Email = "test.seller@heimatplatz.dev"
+    Passwort = "Test123!"
 } | ConvertTo-Json
 
-$response = Invoke-WebRequest -Uri "http://localhost:5292/api/auth/login" -Method POST -Body $body -ContentType "application/json"
-$response.Content
+try {
+    $response = Invoke-RestMethod -Uri "http://localhost:5292/api/auth/login" -Method Post -Body $body -ContentType "application/json"
+    Write-Output "Login successful!"
+    $response | ConvertTo-Json
+} catch {
+    Write-Output "Login failed: $($_.Exception.Message)"
+    if ($_.Exception.Response) {
+        $stream = $_.Exception.Response.GetResponseStream()
+        $reader = New-Object System.IO.StreamReader($stream)
+        Write-Output $reader.ReadToEnd()
+    }
+}

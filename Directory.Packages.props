@@ -26,6 +26,9 @@
     <!-- Uno Extensions -->
     <PackageVersion Include="Uno.Extensions.Reactive" Version="7.0.17" />
 
+    <!-- Logging -->
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+
     <!-- AndroidX Version Override (resolve transitive conflicts) -->
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="$(AndroidXLifecycleVersion)" />
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="$(AndroidXLifecycleVersion)" />

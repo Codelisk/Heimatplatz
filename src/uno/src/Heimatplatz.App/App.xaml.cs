@@ -8,6 +8,7 @@ using Heimatplatz.Features.Notifications.Presentation;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Presentation;
+using Serilog;
 using Shiny.Mediator;
 using Uno.Resizetizer;
 using UnoFramework.Contracts.Application;
@@ -26,6 +27,28 @@ public partial class App : Application, IApplicationWithServices
     public App()
     {
         this.InitializeComponent();
+
+        // Log unhandled exceptions and prevent non-fatal crashes
+        this.UnhandledException += (sender, e) =>
+        {
+            // Uno Platform internal errors (e.g. ScrollBar VisualState race conditions)
+            // are non-fatal and should not crash the app
+            if (IsUnoInternalError(e.Exception))
+            {
+                Log.Warning(e.Exception, "Suppressed Uno internal error");
+                e.Handled = true;
+                return;
+            }
+
+            Log.Fatal(e.Exception, "Unhandled exception");
+            Log.CloseAndFlush();
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            Log.Error(e.Exception, "Unobserved task exception");
+            e.SetObserved();
+        };
     }
 
     public static Window? MainWindow { get; private set; }
@@ -55,6 +78,21 @@ public partial class App : Application, IApplicationWithServices
                                 LogLevel.Warning)
                         .CoreLogLevel(LogLevel.Warning);
                 }, enableUnoLogging: true)
+                .UseSerilog(
+                    consoleLoggingEnabled: true,
+                    fileLoggingEnabled: false, // We configure file sink manually below
+                    configureLogger: config =>
+                    {
+                        var logPath = GetLogFilePath();
+                        config
+                            .WriteTo.File(
+                                path: logPath,
+                                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}",
+                                rollingInterval: RollingInterval.Day,
+                                rollOnFileSizeLimit: true,
+                                fileSizeLimitBytes: 10_000_000,
+                                retainedFileCountLimit: 7);
+                    })
                 .UseConfiguration(configure: configBuilder =>
                     configBuilder
                         .EmbeddedSource<App>()
@@ -66,6 +104,14 @@ public partial class App : Application, IApplicationWithServices
                 .UseLocalization()
                 .ConfigureServices((context, services) =>
                 {
+#if DEBUG
+                    // Debug: Lokale Einstellung pruefen ob Production-API verwendet werden soll
+                    if (Features.Debug.Presentation.DebugStartViewModel.GetUseProductionApiSetting())
+                    {
+                        context.Configuration[Features.Debug.Presentation.DebugStartViewModel.MediatorHttpConfigKey]
+                            = Features.Debug.Presentation.DebugStartViewModel.ProductionUrl;
+                    }
+#endif
                     services.AddAppServices(context.Configuration);
                 })
                 .UseNavigation(RegisterRoutes)
@@ -78,6 +124,12 @@ public partial class App : Application, IApplicationWithServices
         MainWindow.SetWindowIcon();
 
         Host = await builder.NavigateAsync<Shell>();
+
+        MainWindow.Closed += (s, e) =>
+        {
+            Log.Information("Application shutting down");
+            Log.CloseAndFlush();
+        };
 
 #if __ANDROID__
         // Initialize Shiny for Android push notifications
@@ -139,6 +191,41 @@ public partial class App : Application, IApplicationWithServices
 
         System.Diagnostics.Debug.WriteLine($"[DeepLink] Handling protocol activation: {uri}");
         await deepLinkService.HandleDeepLinkAsync(uri);
+    }
+
+    private static bool IsUnoInternalError(Exception ex)
+    {
+        var stackTrace = ex.StackTrace;
+        if (stackTrace is null) return false;
+
+        // ResourceResolver.PopScope bug in ScrollBar VisualState transitions
+        if (ex is InvalidOperationException
+            && ex.Message.Contains("Base scope")
+            && stackTrace.Contains("Uno.UI.ResourceResolver"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static string GetLogFilePath()
+    {
+        string baseDir;
+
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+        baseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+#elif HAS_UNO_SKIA
+        baseDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Heimatplatz");
+#else
+        baseDir = AppDomain.CurrentDomain.BaseDirectory;
+#endif
+
+        var logDir = Path.Combine(baseDir, "Logs");
+        Directory.CreateDirectory(logDir);
+        return Path.Combine(logDir, "heimatplatz-.log");
     }
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)

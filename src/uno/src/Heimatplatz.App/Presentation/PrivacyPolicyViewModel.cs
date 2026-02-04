@@ -2,17 +2,41 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Generated;
 using Shiny.Mediator;
-using Uno.Extensions.Navigation;
+using UnoFramework.Contracts.Navigation;
+using UnoFramework.Contracts.Pages;
 
 namespace Heimatplatz.App.Presentation;
 
 /// <summary>
 /// ViewModel fuer die Datenschutzerklaerung
 /// </summary>
-public partial class PrivacyPolicyViewModel : ObservableObject
+public partial class PrivacyPolicyViewModel : ObservableObject, IPageInfo, INavigationAware
 {
-    private readonly INavigator _navigator;
     private readonly IMediator _mediator;
+
+    #region IPageInfo Implementation
+
+    public PageType PageType => PageType.Detail;
+    public string PageTitle => "Datenschutzerklaerung";
+    public Type? MainHeaderViewModel => null;
+
+    #endregion
+
+    #region INavigationAware Implementation
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        if (PrivacyPolicy is null)
+        {
+            _ = LoadAsync();
+        }
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    #endregion
 
     [ObservableProperty]
     private bool _isLoading;
@@ -23,9 +47,8 @@ public partial class PrivacyPolicyViewModel : ObservableObject
     [ObservableProperty]
     private PrivacyPolicyDto? _privacyPolicy;
 
-    public PrivacyPolicyViewModel(INavigator navigator, IMediator mediator)
+    public PrivacyPolicyViewModel(IMediator mediator)
     {
-        _navigator = navigator;
         _mediator = mediator;
     }
 
@@ -156,9 +179,4 @@ public partial class PrivacyPolicyViewModel : ObservableObject
         OnPropertyChanged(nameof(Sections));
     }
 
-    [RelayCommand]
-    private async Task GoBackAsync()
-    {
-        await _navigator.GoBack(this);
-    }
 }

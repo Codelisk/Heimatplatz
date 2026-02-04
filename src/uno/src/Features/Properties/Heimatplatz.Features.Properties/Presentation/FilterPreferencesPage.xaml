@@ -28,12 +28,35 @@
                                 HorizontalAlignment="Center"
                                 utu:SafeArea.Insets="Bottom">
 
-                    <!-- Description -->
-                    <TextBlock Text="Konfigurieren Sie Ihre Standard-Filtereinstellungen. Diese werden automatisch angewendet, wenn Sie die Startseite besuchen."
-                               Style="{StaticResource BodyTextBlockStyle}"
-                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                               TextWrapping="Wrap"
-                               AutomationProperties.AutomationId="FilterPreferences_Description" />
+                    <!-- Description with auto-save indicator -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Konfigurieren Sie Ihre Standard-Filtereinstellungen. Aenderungen werden automatisch gespeichert."
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   TextWrapping="Wrap"
+                                   AutomationProperties.AutomationId="FilterPreferences_Description" />
+
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="6"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding IsSaving}"
+                                    AutomationProperties.AutomationId="FilterPreferences_SavingIndicator">
+                            <ProgressRing IsActive="{Binding IsSaving}"
+                                          Width="16"
+                                          Height="16" />
+                            <TextBlock Text="Speichern..."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
 
                     <!-- Ort-Filter Card -->
                     <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
@@ -122,22 +145,6 @@
                         </utu:AutoLayout>
                     </utu:CardContentControl>
 
-                    <!-- Success Message -->
-                    <Border Background="{ThemeResource SuccessBackgroundBrush}"
-                            CornerRadius="8"
-                            Padding="16"
-                            Visibility="{Binding ShowSuccessMessage}"
-                            AutomationProperties.AutomationId="FilterPreferences_SuccessMessage">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon Glyph="&#xE73E;"
-                                      FontSize="20"
-                                      Foreground="{ThemeResource SuccessForegroundBrush}" />
-                            <TextBlock Text="Einstellungen wurden gespeichert."
-                                       Foreground="{ThemeResource SuccessForegroundBrush}"
-                                       VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Border>
-
                     <!-- Error Message -->
                     <Border Background="{ThemeResource ErrorBackgroundBrush}"
                             CornerRadius="8"
@@ -155,26 +162,6 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Save Button -->
-                    <Button Command="{Binding SavePreferencesCommand}"
-                            HorizontalAlignment="Stretch"
-                            Background="{ThemeResource PrimaryButtonBackgroundBrush}"
-                            Foreground="{ThemeResource PrimaryButtonForegroundBrush}"
-                            FontWeight="SemiBold"
-                            Padding="16,12"
-                            CornerRadius="{StaticResource RadiusSm}"
-                            AutomationProperties.AutomationId="FilterPreferences_SaveButton">
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                            <ProgressRing IsActive="{Binding IsSaving}"
-                                          Width="16"
-                                          Height="16"
-                                          Visibility="{Binding IsSaving}"
-                                          Foreground="{ThemeResource PrimaryButtonForegroundBrush}" />
-                            <TextBlock Text="Einstellungen speichern"
-                                       VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-
                     <!-- Info Card -->
                     <Border Background="{ThemeResource SurfaceVariantBrush}"
                             CornerRadius="8"
@@ -185,7 +172,7 @@
                                       FontSize="20"
                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                       VerticalAlignment="Top" />
-                            <TextBlock Text="Diese Einstellungen werden auf Ihrem Geraet gespeichert und automatisch angewendet, wenn Sie die Startseite besuchen."
+                            <TextBlock Text="Ihre Einstellungen werden automatisch gespeichert und beim naechsten Besuch der Startseite angewendet."
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                        TextWrapping="Wrap"
                                        Style="{StaticResource CaptionTextBlockStyle}" />

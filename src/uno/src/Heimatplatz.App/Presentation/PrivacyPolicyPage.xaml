@@ -1,361 +1,307 @@
-<Page x:Class="Heimatplatz.App.Presentation.PrivacyPolicyPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:local="using:Heimatplatz.App.Presentation"
-      xmlns:utu="using:Uno.Toolkit.UI"
-      NavigationCacheMode="Required"
-      x:Uid="PrivacyPolicyPage"
-      Loaded="OnLoaded">
+<pages:BasePage
+    x:Class="Heimatplatz.App.Presentation.PrivacyPolicyPage"
+    x:Name="RootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Heimatplatz.App.Presentation"
+    xmlns:utu="using:Uno.Toolkit.UI"
+    xmlns:pages="using:UnoFramework.Pages"
+    NavigationCacheMode="Disabled"
+    x:Uid="PrivacyPolicyPage"
+    Background="{ThemeResource BackgroundBrush}">
 
     <!--
     Datenschutzerklaerung - Rechtlich erforderliche Seite nach DSGVO
     Enthält alle Pflichtangaben nach Art. 13/14 DSGVO
     -->
 
-    <Grid Background="{ThemeResource BackgroundBrush}"
-          AutomationProperties.AutomationId="PrivacyPolicyPage_Root">
+    <Grid>
+        <!-- Loading Indicator -->
+        <Grid Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}">
+            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                          Style="{StaticResource LargeProgressRingStyle}"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Width="48"
+                          Height="48" />
+        </Grid>
 
-        <Grid utu:SafeArea.Insets="Bottom">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <!-- Error Message -->
+        <StackPanel Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="16">
+            <FontIcon Glyph="&#xE783;"
+                      FontSize="48"
+                      Foreground="{ThemeResource ErrorBrush}"
+                      HorizontalAlignment="Center" />
+            <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                       Style="{StaticResource BodyTextBlockStyle}"
+                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxWidth="300" />
+            <Button Content="Erneut versuchen"
+                    Command="{x:Bind ViewModel.LoadCommand}"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource FilledButtonStyle}" />
+        </StackPanel>
 
-            <!-- Header -->
-            <Border Grid.Row="0"
-                    Background="{ThemeResource SurfaceBrush}"
-                    BorderBrush="{ThemeResource BorderBrush}"
-                    BorderThickness="0,0,0,1"
-                    Padding="{utu:Responsive Narrowest='12,10', Normal='20,12'}"
-                    AutomationProperties.AutomationId="PrivacyPolicyPage_Header">
+        <!-- Content -->
+        <ScrollViewer Padding="{utu:Responsive Narrowest='16', Normal='24,20'}"
+                      AutomationProperties.AutomationId="PrivacyPolicyPage_ScrollViewer">
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+            <StackPanel Spacing="24"
+                        MaxWidth="800"
+                        HorizontalAlignment="Left"
+                        utu:SafeArea.Insets="Bottom">
 
-                    <!-- Zurueck Button -->
-                    <Button Grid.Column="0"
-                            Click="OnBackClick"
-                            Style="{StaticResource IconButtonStyle}"
-                            Padding="8"
-                            VerticalAlignment="Center"
-                            AutomationProperties.AutomationId="PrivacyPolicyPage_BackButton">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE72B;"
-                                      FontSize="16"
-                                      Foreground="{ThemeResource OnSurfaceBrush}" />
-                            <TextBlock Text="Zurück"
-                                       Style="{StaticResource BodyMediumTextBlockStyle}"
-                                       FontSize="14"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       VerticalAlignment="Center"
-                                       Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}" />
-                        </StackPanel>
-                    </Button>
+                <!-- Stand und Version -->
+                <StackPanel Spacing="4">
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_LastUpdated">
+                        <Run Text="Stand: " />
+                        <Run Text="{x:Bind ViewModel.LastUpdated, Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceVariantBrush}">
+                        <Run Text="Version: " />
+                        <Run Text="{x:Bind ViewModel.Version, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
 
-                    <!-- Titel -->
-                    <TextBlock Grid.Column="1"
-                               x:Uid="PrivacyPolicyPage_Title"
-                               Text="Datenschutzerklaerung"
+                <!-- 1. Verantwortlicher -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="1. Verantwortlicher"
                                Style="{StaticResource TitleTextBlockStyle}"
                                Foreground="{ThemeResource OnSurfaceBrush}"
-                               VerticalAlignment="Center"
-                               Margin="8,0,0,0"
-                               AutomationProperties.AutomationId="PrivacyPolicyPage_TitleText" />
-                </Grid>
-            </Border>
-
-            <!-- Loading Indicator -->
-            <Grid Grid.Row="1"
-                  Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}">
-                <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                              Style="{StaticResource LargeProgressRingStyle}"
-                              HorizontalAlignment="Center"
-                              VerticalAlignment="Center"
-                              Width="48"
-                              Height="48" />
-            </Grid>
-
-            <!-- Error Message -->
-            <StackPanel Grid.Row="1"
-                        Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="16">
-                <FontIcon Glyph="&#xE783;"
-                          FontSize="48"
-                          Foreground="{ThemeResource ErrorBrush}"
-                          HorizontalAlignment="Center" />
-                <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                           Style="{StaticResource BodyTextBlockStyle}"
-                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                           HorizontalAlignment="Center"
-                           TextWrapping="Wrap"
-                           MaxWidth="300" />
-                <Button Content="Erneut versuchen"
-                        Command="{x:Bind ViewModel.LoadCommand}"
-                        HorizontalAlignment="Center"
-                        Style="{StaticResource FilledButtonStyle}" />
-            </StackPanel>
-
-            <!-- Content -->
-            <ScrollViewer Grid.Row="1"
-                          Padding="{utu:Responsive Narrowest='16', Normal='24,20'}"
-                          AutomationProperties.AutomationId="PrivacyPolicyPage_ScrollViewer">
-
-                <StackPanel Spacing="24"
-                            MaxWidth="800"
-                            HorizontalAlignment="Left">
-
-                    <!-- Stand und Version -->
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section1_Title" />
                     <StackPanel Spacing="4">
-                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_LastUpdated">
-                            <Run Text="Stand: " />
-                            <Run Text="{x:Bind ViewModel.LastUpdated, Mode=OneWay}" />
-                        </TextBlock>
-                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceVariantBrush}">
-                            <Run Text="Version: " />
-                            <Run Text="{x:Bind ViewModel.Version, Mode=OneWay}" />
-                        </TextBlock>
-                    </StackPanel>
-
-                    <!-- 1. Verantwortlicher -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="1. Verantwortlicher"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section1_Title" />
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO):"
-                                       Style="{StaticResource BodyTextBlockStyle}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       LineHeight="24" />
-                            <TextBlock Text="{x:Bind ViewModel.ResponsibleName, Mode=OneWay}"
-                                       Style="{StaticResource BodyTextBlockStyle}"
-                                       FontWeight="SemiBold"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       Margin="0,8,0,0" />
-                            <TextBlock Text="{x:Bind ViewModel.ResponsibleAddress, Mode=OneWay}"
-                                       Style="{StaticResource BodyTextBlockStyle}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{ThemeResource OnSurfaceBrush}" />
-                            <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                       Foreground="{ThemeResource OnSurfaceBrush}">
-                                <Run Text="E-Mail: " />
-                                <Run Text="{x:Bind ViewModel.ResponsibleEmail, Mode=OneWay}" />
-                            </TextBlock>
-                            <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       Visibility="{x:Bind ViewModel.ResponsiblePhone, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}">
-                                <Run Text="Telefon: " />
-                                <Run Text="{x:Bind ViewModel.ResponsiblePhone, Mode=OneWay}" />
-                            </TextBlock>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <!-- 2. Erhobene Daten -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="2. Welche Daten wir erheben"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section2_Title" />
-                        <TextBlock Text="Bei der Nutzung unserer Website/App werden folgende Daten verarbeitet:"
+                        <TextBlock Text="Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO):"
                                    Style="{StaticResource BodyTextBlockStyle}"
                                    TextWrapping="Wrap"
                                    Foreground="{ThemeResource OnSurfaceBrush}"
                                    LineHeight="24" />
-                        <StackPanel Spacing="4" Margin="16,8,0,0">
-                            <TextBlock Text="- Server-Logdaten (IP-Adresse, Zugriffszeitpunkt, Browser-Typ)"
-                                       Style="{StaticResource BodyTextBlockStyle}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       LineHeight="24" />
-                            <TextBlock Text="- Registrierungsdaten (Name, E-Mail-Adresse, Passwort)"
-                                       Style="{StaticResource BodyTextBlockStyle}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       LineHeight="24" />
-                            <TextBlock Text="- Nutzungsdaten (Sucheinstellungen, Favoriten, Kontaktanfragen)"
-                                       Style="{StaticResource BodyTextBlockStyle}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       LineHeight="24" />
-                            <TextBlock Text="- Immobiliendaten bei Inseratserstellung"
-                                       Style="{StaticResource BodyTextBlockStyle}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       LineHeight="24" />
-                        </StackPanel>
-                    </StackPanel>
-
-                    <!-- 3. Zweck und Rechtsgrundlage -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="3. Zweck und Rechtsgrundlage"
-                                   Style="{StaticResource TitleTextBlockStyle}"
+                        <TextBlock Text="{x:Bind ViewModel.ResponsibleName, Mode=OneWay}"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   FontWeight="SemiBold"
                                    Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section3_Title" />
-                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   Margin="0,8,0,0" />
+                        <TextBlock Text="{x:Bind ViewModel.ResponsibleAddress, Mode=OneWay}"
+                                   Style="{StaticResource BodyTextBlockStyle}"
                                    TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceBrush}">
+                            <Run Text="E-Mail: " />
+                            <Run Text="{x:Bind ViewModel.ResponsibleEmail, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
                                    Foreground="{ThemeResource OnSurfaceBrush}"
-                                   LineHeight="24">
-                            <Run Text="Wir verarbeiten Ihre Daten zu folgenden Zwecken:" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="a) Vertragserfuellung" FontWeight="SemiBold" />
-                            <Run Text=" (Art. 6 Abs. 1 lit. b DSGVO): Bereitstellung der Plattform, Verwaltung Ihres Benutzerkontos, Vermittlung von Immobilienanfragen." />
-                            <LineBreak /><LineBreak />
-                            <Run Text="b) Berechtigte Interessen" FontWeight="SemiBold" />
-                            <Run Text=" (Art. 6 Abs. 1 lit. f DSGVO): Gewaehrleistung der IT-Sicherheit, Analyse zur Verbesserung unserer Dienste, Betrugspraevention." />
-                            <LineBreak /><LineBreak />
-                            <Run Text="c) Einwilligung" FontWeight="SemiBold" />
-                            <Run Text=" (Art. 6 Abs. 1 lit. a DSGVO): Versand von Benachrichtigungen ueber neue Immobilien (sofern aktiviert)." />
+                                   Visibility="{x:Bind ViewModel.ResponsiblePhone, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}">
+                            <Run Text="Telefon: " />
+                            <Run Text="{x:Bind ViewModel.ResponsiblePhone, Mode=OneWay}" />
                         </TextBlock>
                     </StackPanel>
-
-                    <!-- 4. Speicherdauer -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="4. Speicherdauer"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section4_Title" />
-                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                   TextWrapping="Wrap"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   LineHeight="24">
-                            <Run Text="- Server-Logs: 30 Tage" />
-                            <LineBreak />
-                            <Run Text="- Benutzerkonto-Daten: Bis zur Loeschung des Kontos" />
-                            <LineBreak />
-                            <Run Text="- Kontaktanfragen: 3 Jahre nach Abschluss" />
-                            <LineBreak />
-                            <Run Text="- Inserate: Bis zur Loeschung durch den Nutzer" />
-                        </TextBlock>
-                    </StackPanel>
-
-                    <!-- 5. Empfaenger -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="5. Empfaenger der Daten"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section5_Title" />
-                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                   TextWrapping="Wrap"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   LineHeight="24">
-                            <Run Text="Ihre Daten werden an folgende Empfaenger weitergegeben:" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="- Hosting-Anbieter (Serverstandort: EU)" />
-                            <LineBreak />
-                            <Run Text="- Immobilienanbieter bei Kontaktanfragen (nur freigegebene Daten)" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="Eine Uebermittlung in Drittlaender findet nicht statt." />
-                        </TextBlock>
-                    </StackPanel>
-
-                    <!-- 6. Ihre Rechte -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="6. Ihre Rechte"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section6_Title" />
-                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                   TextWrapping="Wrap"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   LineHeight="24">
-                            <Run Text="Sie haben folgende Rechte bezueglich Ihrer personenbezogenen Daten:" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="- Auskunft" FontWeight="SemiBold" />
-                            <Run Text=" ueber die gespeicherten Daten (Art. 15 DSGVO)" />
-                            <LineBreak />
-                            <Run Text="- Berichtigung" FontWeight="SemiBold" />
-                            <Run Text=" unrichtiger Daten (Art. 16 DSGVO)" />
-                            <LineBreak />
-                            <Run Text="- Loeschung" FontWeight="SemiBold" />
-                            <Run Text=" Ihrer Daten (Art. 17 DSGVO)" />
-                            <LineBreak />
-                            <Run Text="- Einschraenkung" FontWeight="SemiBold" />
-                            <Run Text=" der Verarbeitung (Art. 18 DSGVO)" />
-                            <LineBreak />
-                            <Run Text="- Datenuebertragbarkeit" FontWeight="SemiBold" />
-                            <Run Text=" (Art. 20 DSGVO)" />
-                            <LineBreak />
-                            <Run Text="- Widerspruch" FontWeight="SemiBold" />
-                            <Run Text=" gegen die Verarbeitung (Art. 21 DSGVO)" />
-                            <LineBreak />
-                            <Run Text="- Widerruf" FontWeight="SemiBold" />
-                            <Run Text=" einer erteilten Einwilligung (Art. 7 Abs. 3 DSGVO)" />
-                        </TextBlock>
-                    </StackPanel>
-
-                    <!-- 7. Beschwerderecht -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="7. Beschwerderecht"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section7_Title" />
-                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                   TextWrapping="Wrap"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   LineHeight="24">
-                            <Run Text="Sie haben das Recht, sich bei der zustaendigen Aufsichtsbehoerde zu beschweren:" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="Oesterreichische Datenschutzbehoerde" FontWeight="SemiBold" />
-                            <LineBreak />
-                            <Run Text="Barichgasse 40-42" />
-                            <LineBreak />
-                            <Run Text="1030 Wien" />
-                            <LineBreak />
-                            <Run Text="E-Mail: dsb@dsb.gv.at" />
-                            <LineBreak />
-                            <Run Text="Website: https://www.dsb.gv.at" />
-                        </TextBlock>
-                    </StackPanel>
-
-                    <!-- 8. Cookies -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="8. Cookies und Local Storage"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section8_Title" />
-                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                   TextWrapping="Wrap"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   LineHeight="24">
-                            <Run Text="Unsere Website verwendet ausschliesslich " />
-                            <Run Text="technisch notwendige Cookies" FontWeight="SemiBold" />
-                            <Run Text=" bzw. Local Storage fuer:" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="- Speicherung Ihrer Anmeldedaten (Session)" />
-                            <LineBreak />
-                            <Run Text="- Speicherung Ihrer Filtereinstellungen" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="Fuer technisch notwendige Cookies ist keine Einwilligung erforderlich (Paragraph 165 Abs. 3 TKG)." />
-                        </TextBlock>
-                    </StackPanel>
-
-                    <!-- 9. Kontakt -->
-                    <StackPanel Spacing="8" Margin="0,0,0,32">
-                        <TextBlock Text="9. Kontakt"
-                                   Style="{StaticResource TitleTextBlockStyle}"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   AutomationProperties.AutomationId="PrivacyPolicyPage_Section9_Title" />
-                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                                   TextWrapping="Wrap"
-                                   Foreground="{ThemeResource OnSurfaceBrush}"
-                                   LineHeight="24">
-                            <Run Text="Bei Fragen zum Datenschutz wenden Sie sich bitte an:" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="{x:Bind ViewModel.ResponsibleEmail, Mode=OneWay}" FontWeight="SemiBold" />
-                        </TextBlock>
-                    </StackPanel>
-
                 </StackPanel>
-            </ScrollViewer>
-        </Grid>
+
+                <!-- 2. Erhobene Daten -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="2. Welche Daten wir erheben"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section2_Title" />
+                    <TextBlock Text="Bei der Nutzung unserer Website/App werden folgende Daten verarbeitet:"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24" />
+                    <StackPanel Spacing="4" Margin="16,8,0,0">
+                        <TextBlock Text="- Server-Logdaten (IP-Adresse, Zugriffszeitpunkt, Browser-Typ)"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   LineHeight="24" />
+                        <TextBlock Text="- Registrierungsdaten (Name, E-Mail-Adresse, Passwort)"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   LineHeight="24" />
+                        <TextBlock Text="- Nutzungsdaten (Sucheinstellungen, Favoriten, Kontaktanfragen)"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   LineHeight="24" />
+                        <TextBlock Text="- Immobiliendaten bei Inseratserstellung"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   LineHeight="24" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 3. Zweck und Rechtsgrundlage -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="3. Zweck und Rechtsgrundlage"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section3_Title" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24">
+                        <Run Text="Wir verarbeiten Ihre Daten zu folgenden Zwecken:" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="a) Vertragserfuellung" FontWeight="SemiBold" />
+                        <Run Text=" (Art. 6 Abs. 1 lit. b DSGVO): Bereitstellung der Plattform, Verwaltung Ihres Benutzerkontos, Vermittlung von Immobilienanfragen." />
+                        <LineBreak /><LineBreak />
+                        <Run Text="b) Berechtigte Interessen" FontWeight="SemiBold" />
+                        <Run Text=" (Art. 6 Abs. 1 lit. f DSGVO): Gewaehrleistung der IT-Sicherheit, Analyse zur Verbesserung unserer Dienste, Betrugspraevention." />
+                        <LineBreak /><LineBreak />
+                        <Run Text="c) Einwilligung" FontWeight="SemiBold" />
+                        <Run Text=" (Art. 6 Abs. 1 lit. a DSGVO): Versand von Benachrichtigungen ueber neue Immobilien (sofern aktiviert)." />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- 4. Speicherdauer -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="4. Speicherdauer"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section4_Title" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24">
+                        <Run Text="- Server-Logs: 30 Tage" />
+                        <LineBreak />
+                        <Run Text="- Benutzerkonto-Daten: Bis zur Loeschung des Kontos" />
+                        <LineBreak />
+                        <Run Text="- Kontaktanfragen: 3 Jahre nach Abschluss" />
+                        <LineBreak />
+                        <Run Text="- Inserate: Bis zur Loeschung durch den Nutzer" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- 5. Empfaenger -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="5. Empfaenger der Daten"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section5_Title" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24">
+                        <Run Text="Ihre Daten werden an folgende Empfaenger weitergegeben:" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="- Hosting-Anbieter (Serverstandort: EU)" />
+                        <LineBreak />
+                        <Run Text="- Immobilienanbieter bei Kontaktanfragen (nur freigegebene Daten)" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="Eine Uebermittlung in Drittlaender findet nicht statt." />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- 6. Ihre Rechte -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="6. Ihre Rechte"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section6_Title" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24">
+                        <Run Text="Sie haben folgende Rechte bezueglich Ihrer personenbezogenen Daten:" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="- Auskunft" FontWeight="SemiBold" />
+                        <Run Text=" ueber die gespeicherten Daten (Art. 15 DSGVO)" />
+                        <LineBreak />
+                        <Run Text="- Berichtigung" FontWeight="SemiBold" />
+                        <Run Text=" unrichtiger Daten (Art. 16 DSGVO)" />
+                        <LineBreak />
+                        <Run Text="- Loeschung" FontWeight="SemiBold" />
+                        <Run Text=" Ihrer Daten (Art. 17 DSGVO)" />
+                        <LineBreak />
+                        <Run Text="- Einschraenkung" FontWeight="SemiBold" />
+                        <Run Text=" der Verarbeitung (Art. 18 DSGVO)" />
+                        <LineBreak />
+                        <Run Text="- Datenuebertragbarkeit" FontWeight="SemiBold" />
+                        <Run Text=" (Art. 20 DSGVO)" />
+                        <LineBreak />
+                        <Run Text="- Widerspruch" FontWeight="SemiBold" />
+                        <Run Text=" gegen die Verarbeitung (Art. 21 DSGVO)" />
+                        <LineBreak />
+                        <Run Text="- Widerruf" FontWeight="SemiBold" />
+                        <Run Text=" einer erteilten Einwilligung (Art. 7 Abs. 3 DSGVO)" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- 7. Beschwerderecht -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="7. Beschwerderecht"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section7_Title" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24">
+                        <Run Text="Sie haben das Recht, sich bei der zustaendigen Aufsichtsbehoerde zu beschweren:" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="Oesterreichische Datenschutzbehoerde" FontWeight="SemiBold" />
+                        <LineBreak />
+                        <Run Text="Barichgasse 40-42" />
+                        <LineBreak />
+                        <Run Text="1030 Wien" />
+                        <LineBreak />
+                        <Run Text="E-Mail: dsb@dsb.gv.at" />
+                        <LineBreak />
+                        <Run Text="Website: https://www.dsb.gv.at" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- 8. Cookies -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="8. Cookies und Local Storage"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section8_Title" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24">
+                        <Run Text="Unsere Website verwendet ausschliesslich " />
+                        <Run Text="technisch notwendige Cookies" FontWeight="SemiBold" />
+                        <Run Text=" bzw. Local Storage fuer:" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="- Speicherung Ihrer Anmeldedaten (Session)" />
+                        <LineBreak />
+                        <Run Text="- Speicherung Ihrer Filtereinstellungen" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="Fuer technisch notwendige Cookies ist keine Einwilligung erforderlich (Paragraph 165 Abs. 3 TKG)." />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- 9. Kontakt -->
+                <StackPanel Spacing="8" Margin="0,0,0,32">
+                    <TextBlock Text="9. Kontakt"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="PrivacyPolicyPage_Section9_Title" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24">
+                        <Run Text="Bei Fragen zum Datenschutz wenden Sie sich bitte an:" />
+                        <LineBreak /><LineBreak />
+                        <Run Text="{x:Bind ViewModel.ResponsibleEmail, Mode=OneWay}" FontWeight="SemiBold" />
+                    </TextBlock>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
-</Page>
+</pages:BasePage>

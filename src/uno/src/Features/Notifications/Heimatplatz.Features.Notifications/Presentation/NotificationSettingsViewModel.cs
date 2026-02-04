@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Notifications.Contracts.Models;
 using Heimatplatz.Features.Notifications.Services;
+using Heimatplatz.Features.Properties.Contracts.Interfaces;
+using Heimatplatz.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
 using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
@@ -15,6 +17,7 @@ namespace Heimatplatz.Features.Notifications.Presentation;
 public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly INotificationService _notificationService;
+    private readonly ILocationService _locationService;
     private readonly ILogger<NotificationSettingsViewModel> _logger;
     private bool _isLoading;
 
@@ -63,12 +66,12 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
     // Custom filter visibility
     public bool IsCustomFilterVisible => FilterMode == NotificationFilterMode.Custom;
 
-    // Custom filter: Locations
+    // Custom filter: Locations (OrtPicker)
     [ObservableProperty]
-    private List<string> _locations = new();
+    private List<BezirkModel> _bezirke = [];
 
     [ObservableProperty]
-    private string _newLocation = string.Empty;
+    private List<string> _selectedOrte = [];
 
     // Custom filter: PropertyType
     [ObservableProperty]
@@ -92,9 +95,11 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
 
     public NotificationSettingsViewModel(
         INotificationService notificationService,
+        ILocationService locationService,
         ILogger<NotificationSettingsViewModel> logger)
     {
         _notificationService = notificationService;
+        _locationService = locationService;
         _logger = logger;
     }
 
@@ -124,6 +129,12 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
         _ = SavePreferencesAsync();
     }
 
+    partial void OnSelectedOrteChanged(List<string> value)
+    {
+        if (_isLoading) return;
+        _ = SavePreferencesAsync();
+    }
+
     /// <summary>
     /// Loads notification preferences from the API
     /// </summary>
@@ -133,6 +144,18 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
         {
             _isLoading = true;
             IsBusy = true;
+
+            // Load Bezirke for OrtPicker
+            var locations = await _locationService.GetLocationsAsync();
+            Bezirke = locations
+                .SelectMany(bl => bl.Bezirke)
+                .Select(b => new BezirkModel(
+                    b.Id,
+                    b.Name,
+                    b.Gemeinden.Select(g => new GemeindeModel(g.Id, g.Name, g.PostalCode)).ToList()
+                ))
+                .ToList();
+
             var preferences = await _notificationService.GetPreferencesAsync(CancellationToken.None);
 
             IsEnabled = preferences.IsEnabled;
@@ -143,7 +166,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
             IsFilterModeSameAsSearch = preferences.FilterMode == NotificationFilterMode.SameAsSearch;
             IsFilterModeCustom = preferences.FilterMode == NotificationFilterMode.Custom;
 
-            Locations = new List<string>(preferences.Locations);
+            SelectedOrte = preferences.Locations.ToList();
             IsHausSelected = preferences.IsHausSelected;
             IsGrundstueckSelected = preferences.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
@@ -160,35 +183,6 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
             _isLoading = false;
             IsBusy = false;
         }
-    }
-
-    /// <summary>
-    /// Adds a new location to the custom filter
-    /// </summary>
-    [RelayCommand]
-    private async Task AddLocationAsync()
-    {
-        if (string.IsNullOrWhiteSpace(NewLocation))
-            return;
-
-        if (Locations.Contains(NewLocation.Trim(), StringComparer.OrdinalIgnoreCase))
-            return;
-
-        var newLocations = new List<string>(Locations) { NewLocation.Trim() };
-        Locations = newLocations;
-        NewLocation = string.Empty;
-        await SavePreferencesAsync();
-    }
-
-    /// <summary>
-    /// Removes a location from the custom filter
-    /// </summary>
-    [RelayCommand]
-    private async Task RemoveLocationAsync(string location)
-    {
-        var newLocations = Locations.Where(l => !l.Equals(location, StringComparison.OrdinalIgnoreCase)).ToList();
-        Locations = newLocations;
-        await SavePreferencesAsync();
     }
 
     /// <summary>
@@ -214,7 +208,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
             var success = await _notificationService.UpdatePreferencesAsync(
                 IsEnabled,
                 FilterMode,
-                Locations,
+                SelectedOrte,
                 IsHausSelected,
                 IsGrundstueckSelected,
                 IsZwangsversteigerungSelected,

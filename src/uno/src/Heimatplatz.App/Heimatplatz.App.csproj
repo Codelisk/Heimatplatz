@@ -8,6 +8,8 @@
     <!-- Suppress IL2026 trimming warnings for Uno.Extensions -->
     <!-- UNO0001: MenuFlyout doesn't support Style property, suppress for this element type -->
     <NoWarn>$(NoWarn);IL2026;IL2104;IL2111;UNO0001</NoWarn>
+    <!-- Use custom UnhandledException handler for Serilog crash logging -->
+    <DefineConstants>$(DefineConstants);DISABLE_GENERATED_UNHANDLED_EXCEPTION_HANDLER</DefineConstants>
 
     <!-- Display name -->
     <ApplicationTitle>Heimatplatz.App</ApplicationTitle>
@@ -31,6 +33,7 @@
       Hosting;
       Toolkit;
       Logging;
+      LoggingSerilog;
       Mvvm;
       Configuration;
       Localization;
@@ -74,6 +77,10 @@
     <!-- Shiny packages for push notifications -->
     <PackageReference Include="Shiny.Hosting.Native" />
     <ProjectReference Include="..\..\..\..\subm\shiny\src\Shiny.Core\Shiny.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
 
   <ItemGroup>

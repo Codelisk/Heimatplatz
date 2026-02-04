@@ -24,6 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Heimatplatz.Features.Notifications.Contracts\Heimatplatz.Features.Notifications.Contracts.csproj" />
     <ProjectReference Include="..\..\Auth\Heimatplatz.Features.Auth.Contracts\Heimatplatz.Features.Auth.Contracts.csproj" />
+    <ProjectReference Include="..\..\Properties\Heimatplatz.Features.Properties.Contracts\Heimatplatz.Features.Properties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Properties\Heimatplatz.Features.Properties\Heimatplatz.Features.Properties.csproj" />
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj" />
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.Styles\Heimatplatz.Core.Styles.csproj" />
     <ProjectReference Include="..\..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />

@@ -167,6 +167,68 @@
                         HorizontalAlignment="Stretch"
                         MinWidth="300" />
 
+                <!-- API Environment Toggle -->
+                <Border Height="1"
+                        Background="#30FFFFFF"
+                        Margin="0,8" />
+
+                <TextBlock Text="API-Umgebung"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Opacity="0.7"
+                           HorizontalAlignment="Center" />
+
+                <Border Background="#20FFFFFF"
+                        Padding="16,12"
+                        CornerRadius="8"
+                        HorizontalAlignment="Center">
+                    <TextBlock FontSize="12"
+                               Opacity="0.7"
+                               HorizontalAlignment="Center">
+                        <Run Text="Aktuelle URL: " />
+                        <Run Text="{Binding CurrentApiUrl, Mode=OneWay}"
+                             FontWeight="SemiBold" />
+                    </TextBlock>
+                </Border>
+
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Spacing="8">
+                    <Button MinWidth="140"
+                            Command="{Binding SwitchToDebugApiCommand}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="🔧 Debug (localhost)"
+                                       HorizontalAlignment="Center" />
+                            <Border Height="2"
+                                    Background="#4CAF50"
+                                    Visibility="{Binding IsDebugApi}" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button MinWidth="140"
+                            Command="{Binding SwitchToProductionApiCommand}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="🌐 Production (Azure)"
+                                       HorizontalAlignment="Center" />
+                            <Border Height="2"
+                                    Background="#FF6B6B"
+                                    Visibility="{Binding IsProductionApi}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <Border Background="#40FF6B6B"
+                        Padding="12,8"
+                        CornerRadius="8"
+                        HorizontalAlignment="Center"
+                        Visibility="{Binding ShowRestartHint}">
+                    <TextBlock Text="⚠️ App muss neu gestartet werden!"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFF6B6B"
+                               HorizontalAlignment="Center" />
+                </Border>
+
             </utu:AutoLayout>
         </ScrollViewer>
     </Grid>

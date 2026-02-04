@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
@@ -9,13 +10,16 @@ using UnoFramework.Contracts.Pages;
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
-/// ViewModel fuer die FilterPreferencesPage
-/// Implements INavigationAware to trigger PageNavigatedEvent for header updates
+/// ViewModel fuer die FilterPreferencesPage.
+/// Aenderungen an Filtern werden automatisch nach kurzer Verzoegerung gespeichert (Debounce).
 /// </summary>
 public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IFilterPreferencesService _filterPreferencesService;
     private readonly ILocationService _locationService;
+
+    private CancellationTokenSource? _debounceCts;
+    private bool _isLoaded;
 
     #region IPageInfo Implementation
 
@@ -30,14 +34,14 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     /// <inheritdoc />
     public void OnNavigatedTo(object? parameter)
     {
-        // Load preferences when navigated to
         _ = LoadPreferencesAsync();
     }
 
     /// <inheritdoc />
     public void OnNavigatedFrom()
     {
-        // Cleanup if needed
+        _debounceCts?.Cancel();
+        UnsubscribeSellerTypes();
     }
 
     #endregion
@@ -47,9 +51,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
 
     [ObservableProperty]
     private bool _isSaving;
-
-    [ObservableProperty]
-    private bool _showSuccessMessage;
 
     [ObservableProperty]
     private bool _showErrorMessage;
@@ -97,8 +98,8 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     [RelayCommand]
     private async Task LoadPreferencesAsync()
     {
+        _isLoaded = false;
         IsBusy = true;
-        ShowSuccessMessage = false;
         ShowErrorMessage = false;
 
         try
@@ -115,16 +116,7 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
                 .ToList();
 
             var preferences = await _filterPreferencesService.GetPreferencesAsync();
-
-            if (preferences != null)
-            {
-                ApplyPreferences(preferences);
-            }
-            else
-            {
-                // Standardwerte setzen
-                ApplyPreferences(FilterPreferencesDto.Default);
-            }
+            ApplyPreferences(preferences ?? FilterPreferencesDto.Default);
         }
         catch (Exception ex)
         {
@@ -135,21 +127,37 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
         finally
         {
             IsBusy = false;
+            _isLoaded = true;
         }
     }
 
-    /// <summary>
-    /// Speichert die aktuellen Filtereinstellungen
-    /// </summary>
-    [RelayCommand]
-    private async Task SavePreferencesAsync()
-    {
-        IsSaving = true;
-        ShowSuccessMessage = false;
-        ShowErrorMessage = false;
+    #region Auto-Save
 
+    /// <summary>
+    /// Startet einen Debounce-Timer (500ms). Wird bei jeder Filteraenderung aufgerufen.
+    /// Mehrfache Aufrufe innerhalb der Verzoegerung setzen den Timer zurueck.
+    /// </summary>
+    private void ScheduleAutoSave()
+    {
+        if (_isSyncing || !_isLoaded) return;
+
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        _ = AutoSaveAfterDelayAsync(token);
+    }
+
+    private async Task AutoSaveAfterDelayAsync(CancellationToken token)
+    {
         try
         {
+            await Task.Delay(500, token);
+            if (token.IsCancellationRequested) return;
+
+            IsSaving = true;
+            ShowErrorMessage = false;
+
             var (isPrivate, isBroker, isPortal) = GetSellerTypeSelection();
 
             var preferences = new FilterPreferencesDto(
@@ -165,17 +173,18 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             );
 
             await _filterPreferencesService.SavePreferencesAsync(preferences);
-
-            ShowSuccessMessage = true;
-
-            // Erfolgsmeldung nach 3 Sekunden ausblenden
-            _ = HideSuccessMessageAsync();
+            System.Diagnostics.Debug.WriteLine("[FilterPreferences] Auto-saved successfully");
+        }
+        catch (OperationCanceledException)
+        {
+            // Debounce abgebrochen - ignorieren
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FilterPreferences] Save failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FilterPreferences] Auto-save failed: {ex.Message}");
             ErrorMessage = "Einstellungen konnten nicht gespeichert werden.";
             ShowErrorMessage = true;
+            _ = HideErrorMessageAsync();
         }
         finally
         {
@@ -183,11 +192,41 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
         }
     }
 
-    private async Task HideSuccessMessageAsync()
+    private async Task HideErrorMessageAsync()
     {
         await Task.Delay(3000);
-        ShowSuccessMessage = false;
+        ShowErrorMessage = false;
     }
+
+    #endregion
+
+    #region SellerType Subscriptions
+
+    private void SubscribeSellerTypes()
+    {
+        foreach (var sellerType in SellerTypes)
+        {
+            sellerType.PropertyChanged += OnSellerTypePropertyChanged;
+        }
+    }
+
+    private void UnsubscribeSellerTypes()
+    {
+        foreach (var sellerType in SellerTypes)
+        {
+            sellerType.PropertyChanged -= OnSellerTypePropertyChanged;
+        }
+    }
+
+    private void OnSellerTypePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SellerTypeModel.IsSelected))
+        {
+            ScheduleAutoSave();
+        }
+    }
+
+    #endregion
 
     private bool _isSyncing;
 
@@ -203,10 +242,12 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
 
             // SellerTypes synchronisieren
+            UnsubscribeSellerTypes();
             UpdateSellerTypesFromPreferences(
                 preferences.IsPrivateSelected,
                 preferences.IsBrokerSelected,
                 preferences.IsPortalSelected);
+            SubscribeSellerTypes();
         }
         finally
         {
@@ -242,39 +283,54 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     {
         if (_isSyncing) return;
 
-        // Mindestens ein Filter muss aktiv bleiben
         if (!value && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
         {
             _isSyncing = true;
             IsHausSelected = true;
             _isSyncing = false;
+            return;
         }
+
+        ScheduleAutoSave();
     }
 
     partial void OnIsGrundstueckSelectedChanged(bool value)
     {
         if (_isSyncing) return;
 
-        // Mindestens ein Filter muss aktiv bleiben
         if (!value && !IsHausSelected && !IsZwangsversteigerungSelected)
         {
             _isSyncing = true;
             IsGrundstueckSelected = true;
             _isSyncing = false;
+            return;
         }
+
+        ScheduleAutoSave();
     }
 
     partial void OnIsZwangsversteigerungSelectedChanged(bool value)
     {
         if (_isSyncing) return;
 
-        // Mindestens ein Filter muss aktiv bleiben
         if (!value && !IsHausSelected && !IsGrundstueckSelected)
         {
             _isSyncing = true;
             IsZwangsversteigerungSelected = true;
             _isSyncing = false;
+            return;
         }
+
+        ScheduleAutoSave();
     }
 
+    partial void OnSelectedAgeFilterChanged(AgeFilter value)
+    {
+        ScheduleAutoSave();
+    }
+
+    partial void OnSelectedOrteChanged(List<string> value)
+    {
+        ScheduleAutoSave();
+    }
 }

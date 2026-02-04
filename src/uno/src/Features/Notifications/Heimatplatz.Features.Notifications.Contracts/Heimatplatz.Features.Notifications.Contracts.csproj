@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Shiny.Mediator.Contracts" />
+  </ItemGroup>
+
 </Project>

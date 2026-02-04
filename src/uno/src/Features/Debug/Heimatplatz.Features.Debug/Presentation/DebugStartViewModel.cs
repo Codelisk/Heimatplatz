@@ -3,10 +3,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Debug.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using Windows.Storage;
 
 namespace Heimatplatz.Features.Debug.Presentation;
 
@@ -28,6 +30,11 @@ public partial class DebugStartViewModel : ObservableObject
     private const string BothEmail = "test.both@heimatplatz.dev";
     private const string TestPassword = "Test123!";
 
+    public const string ProductionUrl = "https://heimatplatz-api.azurewebsites.net";
+    public const string DevelopmentUrl = "http://localhost:5292";
+    public const string UseProductionApiKey = "DebugUseProductionApi";
+    public const string MediatorHttpConfigKey = "Mediator:Http:Heimatplatz.Core.ApiClient.Generated.*";
+
     [ObservableProperty]
     private bool _isLoggedOut = true;
 
@@ -46,12 +53,25 @@ public partial class DebugStartViewModel : ObservableObject
     [ObservableProperty]
     private string _currentUserRoles = "-";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDebugApi))]
+    private bool _isProductionApi;
+
+    public bool IsDebugApi => !IsProductionApi;
+
+    [ObservableProperty]
+    private string _currentApiUrl = "";
+
+    [ObservableProperty]
+    private bool _showRestartHint;
+
     public DebugStartViewModel(
         IDebugAuthService debugAuthService,
         IAuthService authService,
         INavigator navigator,
         ILogger<DebugStartViewModel> logger,
-        IMediator mediator)
+        IMediator mediator,
+        IConfiguration configuration)
     {
         _debugAuthService = debugAuthService;
         _authService = authService;
@@ -62,6 +82,55 @@ public partial class DebugStartViewModel : ObservableObject
         // Auth-State-Changes beobachten
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
         UpdateUserInfo();
+
+        // Environment-State initialisieren
+        CurrentApiUrl = configuration[MediatorHttpConfigKey] ?? DevelopmentUrl;
+        IsProductionApi = GetUseProductionApiSetting();
+    }
+
+    /// <summary>
+    /// Liest die lokale Einstellung ob Production-API verwendet werden soll.
+    /// </summary>
+    public static bool GetUseProductionApiSetting()
+    {
+        try
+        {
+            var settings = ApplicationData.Current.LocalSettings;
+            return settings.Values.TryGetValue(UseProductionApiKey, out var value) && value is true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    [RelayCommand]
+    private void SwitchToProductionApi()
+    {
+        SetUseProductionApi(true);
+    }
+
+    [RelayCommand]
+    private void SwitchToDebugApi()
+    {
+        SetUseProductionApi(false);
+    }
+
+    private void SetUseProductionApi(bool useProduction)
+    {
+        try
+        {
+            var settings = ApplicationData.Current.LocalSettings;
+            settings.Values[UseProductionApiKey] = useProduction;
+            IsProductionApi = useProduction;
+            ShowRestartHint = true;
+            _logger.LogInformation("[DEBUG] API-Umgebung auf {Env} gesetzt (Neustart erforderlich)",
+                useProduction ? "Production" : "Development");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[DEBUG] Fehler beim Speichern der API-Einstellung");
+        }
     }
 
     private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)

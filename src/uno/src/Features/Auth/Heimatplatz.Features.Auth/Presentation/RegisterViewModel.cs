@@ -1,7 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
+using Microsoft.Extensions.Logging;
 using Shiny.Mediator;
+using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Features.Auth.Presentation;
 
@@ -13,6 +16,8 @@ public partial class RegisterViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
+    private readonly INavigator _navigator;
+    private readonly ILogger<RegisterViewModel> _logger;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -50,10 +55,16 @@ public partial class RegisterViewModel : ObservableObject
     [ObservableProperty]
     private string? _successMessage;
 
-    public RegisterViewModel(IMediator mediator, IAuthService authService)
+    public RegisterViewModel(
+        IMediator mediator,
+        IAuthService authService,
+        INavigator navigator,
+        ILogger<RegisterViewModel> logger)
     {
         _mediator = mediator;
         _authService = authService;
+        _navigator = navigator;
+        _logger = logger;
     }
 
     public bool CanRegister =>
@@ -89,6 +100,8 @@ public partial class RegisterViewModel : ObservableObject
 
         try
         {
+            _logger.LogInformation("Registrierung fuer {Email}", Email);
+
             // Rollen basierend auf Auswahl erstellen
             var selectedRoles = new List<Heimatplatz.Core.ApiClient.Generated.UserRoleType>();
             if (IsBuyer)
@@ -97,7 +110,6 @@ public partial class RegisterViewModel : ObservableObject
                 selectedRoles.Add(Heimatplatz.Core.ApiClient.Generated.UserRoleType.Seller);
 
             // Der RegisterHttpRequest wird automatisch aus der OpenAPI-Spec generiert
-            // Body enthält den eigentlichen Request gemäß OpenAPI-Schema
             var response = await _mediator.Request(new Heimatplatz.Core.ApiClient.Generated.RegisterHttpRequest
             {
                 Body = new Heimatplatz.Core.ApiClient.Generated.RegisterRequest
@@ -119,20 +131,17 @@ public partial class RegisterViewModel : ObservableObject
                 response.Result.FullName,
                 response.Result.ExpiresAt);
 
-            IsSuccess = true;
-            SuccessMessage = $"Willkommen, {response.Result.FullName}! Ihre Registrierung war erfolgreich.";
+            _logger.LogInformation("Registrierung erfolgreich fuer {Email}", Email);
 
-            // Formular zurücksetzen
-            Vorname = string.Empty;
-            Nachname = string.Empty;
-            Email = string.Empty;
-            Passwort = string.Empty;
-            PasswortBestaetigung = string.Empty;
-            IsBuyer = false;
-            IsSeller = false;
+            // Push Notifications initialisieren via Mediator Command
+            await _mediator.Send(new InitializePushNotificationsCommand());
+
+            // Zurueck zur HomePage navigieren
+            await _navigator.NavigateBackAsync(this);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Registrierung fehlgeschlagen fuer {Email}", Email);
             ErrorMessage = ex.Message;
         }
         finally

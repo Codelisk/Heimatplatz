@@ -5,302 +5,373 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:utu="using:Uno.Toolkit.UI"
+    xmlns:uc="using:UnoFramework.Controls"
+    xmlns:controls="using:Heimatplatz.Features.Properties.Controls"
     xmlns:local="using:Heimatplatz.Features.Notifications.Presentation"
     xmlns:pages="using:UnoFramework.Pages"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    mc:Ignorable="d"
     NavigationCacheMode="Disabled"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource BackgroundBrush}">
 
-    <Page.Resources>
-        <!-- Chip style for location tags -->
-        <Style x:Key="LocationChipStyle" TargetType="Border">
-            <Setter Property="Background" Value="{ThemeResource SystemAccentColor}" />
-            <Setter Property="CornerRadius" Value="16" />
-            <Setter Property="Padding" Value="12,6" />
-            <Setter Property="Margin" Value="4" />
-        </Style>
-    </Page.Resources>
+    <Grid>
+        <uc:BusyOverlay IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                        BusyMessage="Laden..."
+                        AutomationProperties.AutomationId="NotificationSettings_BusyOverlay">
 
-    <ScrollViewer>
-        <utu:AutoLayout
-            Padding="24"
-            Spacing="24"
-            Orientation="Vertical"
-            MaxWidth="800"
-            HorizontalAlignment="Center">
+            <ScrollViewer>
+                <utu:AutoLayout
+                    Padding="24"
+                    Spacing="24"
+                    Orientation="Vertical"
+                    MaxWidth="600"
+                    HorizontalAlignment="Center"
+                    utu:SafeArea.Insets="Bottom">
 
-            <!-- Description -->
-            <TextBlock
-                Text="Konfigurieren Sie, wann Sie ueber neue Immobilien benachrichtigt werden moechten."
-                Style="{StaticResource BodyTextBlockStyle}"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                TextWrapping="Wrap" />
+                    <!-- Description with auto-save indicator -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-            <!-- Enable/Disable Toggle -->
-            <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
-                <utu:AutoLayout Padding="16" Spacing="12" Orientation="Horizontal">
-                    <FontIcon
-                        Glyph="&#xEA8F;"
-                        FontSize="24"
-                        Foreground="{ThemeResource SystemAccentColor}"
-                        VerticalAlignment="Center" />
-                    <utu:AutoLayout Spacing="4" Orientation="Vertical" HorizontalAlignment="Stretch">
                         <TextBlock
-                            Text="Benachrichtigungen aktivieren"
-                            Style="{StaticResource SubtitleTextBlockStyle}" />
-                        <TextBlock
-                            Text="Push-Benachrichtigungen fuer neue Immobilien"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </utu:AutoLayout>
-                    <ToggleSwitch
-                        IsOn="{x:Bind ViewModel.IsEnabled, Mode=TwoWay}"
-                        Toggled="OnNotificationsToggled"
-                        VerticalAlignment="Center" />
-                </utu:AutoLayout>
-            </utu:CardContentControl>
+                            Grid.Column="0"
+                            x:Uid="NotificationSettings.Description"
+                            Text="Konfigurieren Sie, wann Sie ueber neue Immobilien benachrichtigt werden moechten."
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                            TextWrapping="Wrap"
+                            AutomationProperties.AutomationId="NotificationSettings_Description" />
 
-            <!-- Filter Mode Selection -->
-            <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
-                <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
-                    <utu:AutoLayout Spacing="4" Orientation="Vertical">
-                        <TextBlock
-                            Text="Filtermodus"
-                            Style="{StaticResource SubtitleTextBlockStyle}" />
-                        <TextBlock
-                            Text="Waehlen Sie, fuer welche Immobilien Sie benachrichtigt werden moechten."
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            TextWrapping="Wrap" />
-                    </utu:AutoLayout>
-
-                    <!-- RadioButton: Alle -->
-                    <RadioButton
-                        x:Name="FilterModeAllRadio"
-                        GroupName="FilterMode"
-                        IsChecked="{x:Bind ViewModel.IsFilterModeAll, Mode=TwoWay}"
-                        AutomationProperties.AutomationId="NotificationSettings_FilterMode_All">
-                        <utu:AutoLayout Spacing="4" Orientation="Vertical">
-                            <TextBlock
-                                Text="Alle Immobilien"
-                                Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <TextBlock
-                                Text="Benachrichtigung bei jeder neuen Immobilie"
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                        </utu:AutoLayout>
-                    </RadioButton>
-
-                    <!-- RadioButton: Wie Suchfilter -->
-                    <RadioButton
-                        x:Name="FilterModeSameAsSearchRadio"
-                        GroupName="FilterMode"
-                        IsChecked="{x:Bind ViewModel.IsFilterModeSameAsSearch, Mode=TwoWay}"
-                        AutomationProperties.AutomationId="NotificationSettings_FilterMode_SameAsSearch">
-                        <utu:AutoLayout Spacing="4" Orientation="Vertical">
-                            <TextBlock
-                                Text="Wie Suchfilter"
-                                Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <TextBlock
-                                Text="Verwendet automatisch Ihre aktuellen Suchfilter-Einstellungen"
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                        </utu:AutoLayout>
-                    </RadioButton>
-
-                    <!-- RadioButton: Benutzerdefiniert -->
-                    <RadioButton
-                        x:Name="FilterModeCustomRadio"
-                        GroupName="FilterMode"
-                        IsChecked="{x:Bind ViewModel.IsFilterModeCustom, Mode=TwoWay}"
-                        AutomationProperties.AutomationId="NotificationSettings_FilterMode_Custom">
-                        <utu:AutoLayout Spacing="4" Orientation="Vertical">
-                            <TextBlock
-                                Text="Benutzerdefiniert"
-                                Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <TextBlock
-                                Text="Eigene Filterkriterien fuer Benachrichtigungen festlegen"
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                        </utu:AutoLayout>
-                    </RadioButton>
-                </utu:AutoLayout>
-            </utu:CardContentControl>
-
-            <!-- Custom Filter Section (only visible when Custom mode is selected) -->
-            <utu:AutoLayout
-                Spacing="24"
-                Orientation="Vertical"
-                Visibility="{x:Bind ViewModel.IsCustomFilterVisible, Mode=OneWay}">
-
-                <!-- Immobilientyp Filter -->
-                <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
-                    <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
-                        <utu:AutoLayout Spacing="4" Orientation="Vertical">
-                            <TextBlock
-                                Text="Immobilientyp"
-                                Style="{StaticResource SubtitleTextBlockStyle}" />
-                            <TextBlock
-                                Text="Waehlen Sie die Immobilientypen, fuer die Sie benachrichtigt werden moechten."
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                        </utu:AutoLayout>
-
-                        <StackPanel Orientation="Horizontal"
-                                    Spacing="8"
-                                    AutomationProperties.AutomationId="NotificationSettings_PropertyTypeChips">
-                            <ToggleButton
-                                Content="Haus"
-                                IsChecked="{x:Bind ViewModel.IsHausSelected, Mode=TwoWay}"
-                                Style="{StaticResource FilterChipBaseStyle}"
-                                Click="OnCustomFilterChanged"
-                                AutomationProperties.AutomationId="NotificationSettings_Chip_Haus" />
-                            <ToggleButton
-                                Content="Grundstueck"
-                                IsChecked="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}"
-                                Style="{StaticResource FilterChipBaseStyle}"
-                                Click="OnCustomFilterChanged"
-                                AutomationProperties.AutomationId="NotificationSettings_Chip_Grundstueck" />
-                            <ToggleButton
-                                Content="Zwangsversteigerung"
-                                IsChecked="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}"
-                                Style="{StaticResource FilterChipBaseStyle}"
-                                Click="OnCustomFilterChanged"
-                                AutomationProperties.AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="6"
+                                    VerticalAlignment="Center"
+                                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                                    AutomationProperties.AutomationId="NotificationSettings_SavingIndicator">
+                            <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                                          Width="16"
+                                          Height="16" />
+                            <TextBlock Text="Speichern..."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                       VerticalAlignment="Center" />
                         </StackPanel>
-                    </utu:AutoLayout>
-                </utu:CardContentControl>
+                    </Grid>
 
-                <!-- Anbietertyp Filter -->
-                <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
-                    <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
-                        <utu:AutoLayout Spacing="4" Orientation="Vertical">
-                            <TextBlock
-                                Text="Anbietertyp"
-                                Style="{StaticResource SubtitleTextBlockStyle}" />
-                            <TextBlock
-                                Text="Waehlen Sie die Anbietertypen, fuer die Sie benachrichtigt werden moechten."
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="Wrap" />
+                    <!-- Enable/Disable Toggle -->
+                    <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                            AutomationProperties.AutomationId="NotificationSettings_EnableCard">
+                        <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0"
+                                        Background="{ThemeResource SurfaceVariantBrush}"
+                                        CornerRadius="{StaticResource RadiusMd}"
+                                        Width="44" Height="44"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,16,0">
+                                    <FontIcon
+                                        Glyph="&#xEA8F;"
+                                        FontSize="20"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center" />
+                                </Border>
+
+                                <utu:AutoLayout Grid.Column="1"
+                                                Spacing="4"
+                                                Orientation="Vertical"
+                                                VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.Toggle.Title"
+                                        Text="Benachrichtigungen"
+                                        Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.Toggle.Subtitle"
+                                        Text="Push-Benachrichtigungen fuer neue Immobilien"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                </utu:AutoLayout>
+
+                                <ToggleSwitch Grid.Column="2"
+                                              IsOn="{x:Bind ViewModel.IsEnabled, Mode=TwoWay}"
+                                              Toggled="OnNotificationsToggled"
+                                              VerticalAlignment="Center"
+                                              AutomationProperties.AutomationId="NotificationSettings_EnableToggle"
+                                              AutomationProperties.Name="Benachrichtigungen aktivieren" />
+                            </Grid>
                         </utu:AutoLayout>
+                    </utu:CardContentControl>
 
-                        <StackPanel Orientation="Horizontal"
-                                    Spacing="8"
-                                    AutomationProperties.AutomationId="NotificationSettings_SellerTypeChips">
-                            <ToggleButton
-                                Content="Privat"
-                                IsChecked="{x:Bind ViewModel.IsPrivateSelected, Mode=TwoWay}"
-                                Style="{StaticResource FilterChipBaseStyle}"
-                                Click="OnCustomFilterChanged"
-                                AutomationProperties.AutomationId="NotificationSettings_Chip_Private" />
-                            <ToggleButton
-                                Content="Makler"
-                                IsChecked="{x:Bind ViewModel.IsBrokerSelected, Mode=TwoWay}"
-                                Style="{StaticResource FilterChipBaseStyle}"
-                                Click="OnCustomFilterChanged"
-                                AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
-                            <ToggleButton
-                                Content="Portal"
-                                IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
-                                Style="{StaticResource FilterChipBaseStyle}"
-                                Click="OnCustomFilterChanged"
-                                AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
-                        </StackPanel>
-                    </utu:AutoLayout>
-                </utu:CardContentControl>
+                    <!-- Filter & Info (only visible when notifications are enabled) -->
+                    <utu:AutoLayout
+                        Spacing="24"
+                        Orientation="Vertical"
+                        Visibility="{x:Bind ViewModel.IsEnabled, Mode=OneWay}">
 
-                <!-- Location Filters -->
-                <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}">
-                    <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
-                        <utu:AutoLayout Spacing="8" Orientation="Vertical">
-                            <TextBlock
-                                Text="Orte"
-                                Style="{StaticResource SubtitleTextBlockStyle}" />
-                            <TextBlock
-                                Text="Waehlen Sie die Orte aus, fuer die Sie Benachrichtigungen erhalten moechten. Leer = alle Orte."
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                        </utu:AutoLayout>
+                    <!-- Filter Mode Selection -->
+                    <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                            AutomationProperties.AutomationId="NotificationSettings_FilterModeCard">
+                        <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                            <utu:AutoLayout Spacing="4" Orientation="Vertical">
+                                <TextBlock
+                                    x:Uid="NotificationSettings.FilterMode.Title"
+                                    Text="Filtermodus"
+                                    Style="{StaticResource SubtitleTextBlockStyle}" />
+                                <TextBlock
+                                    x:Uid="NotificationSettings.FilterMode.Subtitle"
+                                    Text="Waehlen Sie, fuer welche Immobilien Sie benachrichtigt werden moechten."
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                    TextWrapping="Wrap" />
+                            </utu:AutoLayout>
 
-                        <!-- Add Location Input -->
-                        <utu:AutoLayout Spacing="8" Orientation="Horizontal">
-                            <TextBox
-                                x:Name="LocationTextBox"
-                                PlaceholderText="Ort hinzufuegen (z.B. Zuerich, Bern)"
-                                Text="{x:Bind ViewModel.NewLocation, Mode=TwoWay}"
+                            <utu:Divider />
+
+                            <!-- RadioButton: Alle -->
+                            <RadioButton
+                                x:Name="FilterModeAllRadio"
+                                GroupName="FilterMode"
+                                IsChecked="{x:Bind ViewModel.IsFilterModeAll, Mode=TwoWay}"
                                 HorizontalAlignment="Stretch"
-                                VerticalAlignment="Center"
-                                KeyDown="OnLocationKeyDown" />
-                            <Button
-                                Content="Hinzufuegen"
-                                Click="OnAddLocationClick"
-                                Style="{StaticResource AccentButtonStyle}"
-                                VerticalAlignment="Center" />
+                                HorizontalContentAlignment="Stretch"
+                                Padding="0"
+                                AutomationProperties.AutomationId="NotificationSettings_FilterMode_All">
+                                <Grid Margin="8,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Grid.Column="0"
+                                              Glyph="&#xE774;"
+                                              FontSize="18"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,12,0"
+                                              Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                    <utu:AutoLayout Grid.Column="1" Spacing="2" Orientation="Vertical" VerticalAlignment="Center">
+                                        <TextBlock
+                                            Text="Alle Immobilien"
+                                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        <TextBlock
+                                            Text="Benachrichtigung bei jeder neuen Immobilie"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                            TextWrapping="Wrap" />
+                                    </utu:AutoLayout>
+                                </Grid>
+                            </RadioButton>
+
+                            <!-- RadioButton: Wie Suchfilter -->
+                            <RadioButton
+                                x:Name="FilterModeSameAsSearchRadio"
+                                GroupName="FilterMode"
+                                IsChecked="{x:Bind ViewModel.IsFilterModeSameAsSearch, Mode=TwoWay}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                Padding="0"
+                                AutomationProperties.AutomationId="NotificationSettings_FilterMode_SameAsSearch">
+                                <Grid Margin="8,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Grid.Column="0"
+                                              Glyph="&#xE71C;"
+                                              FontSize="18"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,12,0"
+                                              Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                    <utu:AutoLayout Grid.Column="1" Spacing="2" Orientation="Vertical" VerticalAlignment="Center">
+                                        <TextBlock
+                                            Text="Wie Suchfilter"
+                                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        <TextBlock
+                                            Text="Verwendet automatisch Ihre aktuellen Suchfilter-Einstellungen"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                            TextWrapping="Wrap" />
+                                    </utu:AutoLayout>
+                                </Grid>
+                            </RadioButton>
+
+                            <!-- RadioButton: Benutzerdefiniert -->
+                            <RadioButton
+                                x:Name="FilterModeCustomRadio"
+                                GroupName="FilterMode"
+                                IsChecked="{x:Bind ViewModel.IsFilterModeCustom, Mode=TwoWay}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                Padding="0"
+                                AutomationProperties.AutomationId="NotificationSettings_FilterMode_Custom">
+                                <Grid Margin="8,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Grid.Column="0"
+                                              Glyph="&#xE713;"
+                                              FontSize="18"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,12,0"
+                                              Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                    <utu:AutoLayout Grid.Column="1" Spacing="2" Orientation="Vertical" VerticalAlignment="Center">
+                                        <TextBlock
+                                            Text="Benutzerdefiniert"
+                                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        <TextBlock
+                                            Text="Eigene Filterkriterien fuer Benachrichtigungen festlegen"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                            TextWrapping="Wrap" />
+                                    </utu:AutoLayout>
+                                </Grid>
+                            </RadioButton>
                         </utu:AutoLayout>
+                    </utu:CardContentControl>
 
-                        <!-- Location List -->
-                        <ItemsRepeater
-                            ItemsSource="{x:Bind ViewModel.Locations, Mode=OneWay}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Vertical" Spacing="8" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <Border Style="{StaticResource LocationChipStyle}">
-                                        <utu:AutoLayout Spacing="8" Orientation="Horizontal">
-                                            <FontIcon
-                                                Glyph="&#xE707;"
-                                                FontSize="16"
-                                                Foreground="White"
-                                                VerticalAlignment="Center" />
-                                            <TextBlock
-                                                Text="{x:Bind}"
-                                                Foreground="White"
-                                                VerticalAlignment="Center" />
-                                            <Button
-                                                Content="&#xE711;"
-                                                FontFamily="Segoe MDL2 Assets"
-                                                Foreground="White"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Padding="4"
-                                                Click="OnRemoveLocationClick"
-                                                Tag="{x:Bind}"
-                                                VerticalAlignment="Center" />
-                                        </utu:AutoLayout>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
+                    <!-- Custom Filter Section (only visible when Custom mode is selected) -->
+                    <utu:AutoLayout
+                        Spacing="24"
+                        Orientation="Vertical"
+                        Visibility="{x:Bind ViewModel.IsCustomFilterVisible, Mode=OneWay}">
+
+                        <!-- Immobilientyp Filter -->
+                        <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                                AutomationProperties.AutomationId="NotificationSettings_PropertyTypeCard">
+                            <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                                <utu:AutoLayout Spacing="4" Orientation="Vertical">
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.PropertyType.Title"
+                                        Text="Immobilientyp"
+                                        Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.PropertyType.Subtitle"
+                                        Text="Waehlen Sie die Immobilientypen, fuer die Sie benachrichtigt werden moechten."
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                        TextWrapping="Wrap" />
+                                </utu:AutoLayout>
+
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="8"
+                                            AutomationProperties.AutomationId="NotificationSettings_PropertyTypeChips">
+                                    <ToggleButton
+                                        Content="Haus"
+                                        IsChecked="{x:Bind ViewModel.IsHausSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Haus" />
+                                    <ToggleButton
+                                        Content="Grundstueck"
+                                        IsChecked="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Grundstueck" />
+                                    <ToggleButton
+                                        Content="Zwangsversteigerung"
+                                        IsChecked="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
+                                </StackPanel>
+                            </utu:AutoLayout>
+                        </utu:CardContentControl>
+
+                        <!-- Anbietertyp Filter -->
+                        <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                                AutomationProperties.AutomationId="NotificationSettings_SellerTypeCard">
+                            <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                                <utu:AutoLayout Spacing="4" Orientation="Vertical">
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.SellerType.Title"
+                                        Text="Anbietertyp"
+                                        Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.SellerType.Subtitle"
+                                        Text="Waehlen Sie die Anbietertypen, fuer die Sie benachrichtigt werden moechten."
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                        TextWrapping="Wrap" />
+                                </utu:AutoLayout>
+
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="8"
+                                            AutomationProperties.AutomationId="NotificationSettings_SellerTypeChips">
+                                    <ToggleButton
+                                        Content="Privat"
+                                        IsChecked="{x:Bind ViewModel.IsPrivateSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Private" />
+                                    <ToggleButton
+                                        Content="Makler"
+                                        IsChecked="{x:Bind ViewModel.IsBrokerSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
+                                    <ToggleButton
+                                        Content="Portal"
+                                        IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
+                                </StackPanel>
+                            </utu:AutoLayout>
+                        </utu:CardContentControl>
+
+                        <!-- Location Filters -->
+                        <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
+                                                AutomationProperties.AutomationId="NotificationSettings_LocationCard">
+                            <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                                <utu:AutoLayout Spacing="4" Orientation="Vertical">
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.Locations.Title"
+                                        Text="Orte"
+                                        Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock
+                                        x:Uid="NotificationSettings.Locations.Subtitle"
+                                        Text="Waehlen Sie die Orte aus, fuer die Sie Benachrichtigungen erhalten moechten. Leer = alle Orte."
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                        TextWrapping="Wrap" />
+                                </utu:AutoLayout>
+
+                                <controls:OrtPicker Bezirke="{x:Bind ViewModel.Bezirke, Mode=OneWay}"
+                                                    SelectedOrte="{x:Bind ViewModel.SelectedOrte, Mode=TwoWay}"
+                                                    HorizontalAlignment="Stretch"
+                                                    AutomationProperties.AutomationId="NotificationSettings_OrtPicker" />
+                            </utu:AutoLayout>
+                        </utu:CardContentControl>
                     </utu:AutoLayout>
-                </utu:CardContentControl>
-            </utu:AutoLayout>
 
-            <!-- Info Card -->
-            <Border Background="{ThemeResource SurfaceVariantBrush}"
-                    CornerRadius="8"
-                    Padding="16">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <FontIcon
-                        Glyph="&#xE946;"
-                        FontSize="20"
-                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                        VerticalAlignment="Top" />
-                    <TextBlock
-                        Text="Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie erstellt wird, die Ihren Filtereinstellungen entspricht."
-                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                        TextWrapping="Wrap"
-                        Style="{StaticResource CaptionTextBlockStyle}" />
-                </StackPanel>
-            </Border>
-        </utu:AutoLayout>
-    </ScrollViewer>
+                    <!-- Info Card -->
+                    <Border Background="{ThemeResource SurfaceVariantBrush}"
+                            CornerRadius="{StaticResource RadiusMd}"
+                            Padding="16"
+                            AutomationProperties.AutomationId="NotificationSettings_InfoCard">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon
+                                Glyph="&#xE946;"
+                                FontSize="20"
+                                Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                VerticalAlignment="Top" />
+                            <TextBlock
+                                x:Uid="NotificationSettings.Info"
+                                Text="Ihre Einstellungen werden automatisch gespeichert. Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie Ihren Filtereinstellungen entspricht."
+                                Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                TextWrapping="Wrap"
+                                Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                    </Border>
+
+                    </utu:AutoLayout>
+
+                </utu:AutoLayout>
+            </ScrollViewer>
+        </uc:BusyOverlay>
+    </Grid>
 </pages:BasePage>
