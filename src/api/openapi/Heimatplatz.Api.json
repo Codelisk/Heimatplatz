@@ -2905,6 +2905,22 @@
             "items": {
               "$ref": "#/components/schemas/UserRoleType"
             }
+          },
+          "SellerType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SellerType"
+              }
+            ]
+          },
+          "CompanyName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3133,7 +3149,8 @@
         "enum": [
           "Private",
           "Broker",
-          "Portal"
+          "Portal",
+          null
         ]
       },
       "SendTestPushRequest": {
