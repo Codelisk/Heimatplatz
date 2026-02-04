@@ -53,15 +53,14 @@
     <UnoSplashScreen Include="Assets\Splash\splash_screen.svg" Color="#7F7F7F" BaseSize="128,128" />
   </ItemGroup>
 
-  <!-- WebAssembly: Enable reflection-based JSON serialization (required by Shiny.Mediator SysTextJsonSerializerService) -->
+  <!-- WebAssembly: IL Linker configuration per Uno Platform docs.
+       Preserves all Heimatplatz.* assemblies from trimming to prevent issues with
+       JSON deserialization, XAML {Binding}, and source-generated types. -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
-
-  <!-- WebAssembly: Preserve assemblies from trimmer (removes constructors/properties needed for JSON and XAML bindings) -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
-    <TrimmerRootAssembly Include="Heimatplatz.Core.ApiClient" />
-    <TrimmerRootAssembly Include="Heimatplatz.App" />
+    <TrimmerRootDescriptor Include="LinkerConfig.xml" />
   </ItemGroup>
 
   <!-- WebAssembly AppManifest -->

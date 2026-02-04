@@ -1,0 +1,20 @@
+<linker>
+  <!-- Preserve all types in Heimatplatz.* assemblies.
+       The IL trimmer removes constructors/properties needed for:
+       - JSON deserialization (System.Text.Json reflection)
+       - XAML {Binding} (reflection-based property access)
+       - Source-generated types (Shiny.Mediator, CommunityToolkit.Mvvm)
+       Using wildcard pattern so new assemblies are automatically covered. -->
+  <assembly fullname="Heimatplatz.App" />
+  <assembly fullname="Heimatplatz.Shared" />
+  <assembly fullname="Heimatplatz.Core.ApiClient" />
+  <assembly fullname="Heimatplatz.Core.Startup" />
+  <assembly fullname="Heimatplatz.Core.Styles" />
+  <assembly fullname="Heimatplatz.Core.DeepLink" />
+  <assembly fullname="Heimatplatz.Features.Auth" />
+  <assembly fullname="Heimatplatz.Features.Auth.Contracts" />
+  <assembly fullname="Heimatplatz.Features.Properties" />
+  <assembly fullname="Heimatplatz.Features.Properties.Contracts" />
+  <assembly fullname="Heimatplatz.Features.Notifications" />
+  <assembly fullname="Heimatplatz.Features.Notifications.Contracts" />
+</linker>
