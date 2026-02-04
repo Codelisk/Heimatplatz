@@ -117,6 +117,7 @@ public partial class App : Application, IApplicationWithServices
                 .UseNavigation(RegisterRoutes)
             );
         MainWindow = builder.Window;
+        MainWindow.Title = "Heimatplatz";
 
 #if DEBUG
         MainWindow.UseStudio();
