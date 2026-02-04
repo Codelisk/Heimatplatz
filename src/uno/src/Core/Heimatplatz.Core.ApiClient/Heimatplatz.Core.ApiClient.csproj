@@ -11,6 +11,9 @@
     <WarningsNotAsErrors>CS8669;CS9107</WarningsNotAsErrors>
     <NoWarn>$(NoWarn);CS8669;CS9107;IL2026</NoWarn>
 
+    <!-- Prevent trimmer from removing generated types (constructors needed for JSON deserialization) -->
+    <IsTrimmable>false</IsTrimmable>
+
     <UnoFeatures>
       Hosting;
       Http;
