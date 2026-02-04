@@ -3,8 +3,12 @@ using Heimatplatz.Core.DeepLink.Configuration;
 using Heimatplatz.Features.Auth.Configuration;
 using Heimatplatz.Features.Notifications.Configuration;
 using Heimatplatz.Features.Properties.Configuration;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shiny.Mediator.Infrastructure;
+using Shiny.Mediator.Infrastructure.Impl;
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
 #endif
@@ -19,6 +23,19 @@ public static class ServiceCollectionExtensions
     {
         // Auto-register services with [Service] attribute
         services.AddShinyServiceRegistry();
+
+        // Register ISerializerService BEFORE AddShinyMediator so TryAddSingleton becomes a no-op.
+        // The explicit DefaultJsonTypeInfoResolver ensures JSON deserialization works in WASM
+        // where the trimmer may strip the default reflection resolver.
+        services.AddSingleton<ISerializerService>(new SysTextJsonSerializerService
+        {
+            JsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                DefaultBufferSize = 128,
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+            }
+        });
 
         // Configure Shiny Mediator with UnoEventCollector
         services.AddShinyMediator(cfg =>
