@@ -1,4 +1,5 @@
 using Heimatplatz.Api.Features.Auth.Contracts.Enums;
+using Heimatplatz.Api.Features.Properties.Contracts;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
@@ -11,7 +12,9 @@ public record RegisterRequest(
     string Nachname,
     string Email,
     string Passwort,
-    List<UserRoleType>? Roles = null
+    List<UserRoleType>? Roles = null,
+    SellerType? SellerType = null,
+    string? CompanyName = null
 ) : IRequest<RegisterResponse>;
 
 /// <summary>

@@ -4,6 +4,7 @@ using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
+using Heimatplatz.Api.Features.Properties.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
@@ -32,6 +33,19 @@ public class RegisterHandler(
             throw new InvalidOperationException("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.");
         }
 
+        // Validierung: Wenn Seller-Rolle, muss SellerType angegeben werden
+        var isSeller = request.Roles?.Contains(UserRoleType.Seller) == true;
+        if (isSeller && request.SellerType == null)
+        {
+            throw new InvalidOperationException("Als Verkaeufer muss ein Verkaeufertyp angegeben werden.");
+        }
+
+        // Validierung: Wenn Broker, muss Firmenname angegeben werden
+        if (request.SellerType == SellerType.Broker && string.IsNullOrWhiteSpace(request.CompanyName))
+        {
+            throw new InvalidOperationException("Als Makler/Agentur muss ein Firmenname angegeben werden.");
+        }
+
         // Neuen Benutzer erstellen
         var user = new User
         {
@@ -40,6 +54,8 @@ public class RegisterHandler(
             Nachname = request.Nachname,
             Email = request.Email,
             PasswordHash = passwordHasher.Hash(request.Passwort),
+            SellerType = isSeller ? request.SellerType : null,
+            CompanyName = request.SellerType == SellerType.Broker ? request.CompanyName : null,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

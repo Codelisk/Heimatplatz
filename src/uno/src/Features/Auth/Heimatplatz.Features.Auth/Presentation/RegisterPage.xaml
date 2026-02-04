@@ -209,6 +209,60 @@
                                                                TextWrapping="Wrap" />
                                                 </StackPanel>
                                             </CheckBox>
+
+                                            <!-- Verkaeufertyp-Auswahl (nur wenn Seller) -->
+                                            <StackPanel Spacing="12"
+                                                        Margin="28,8,0,0"
+                                                        Visibility="{Binding IsSeller}">
+                                                <TextBlock Text="Ich biete an als:"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+
+                                                <!-- Privatperson -->
+                                                <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
+                                                             GroupName="SellerType"
+                                                             Padding="8,0,0,0">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="Privatperson"
+                                                                   FontSize="14"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                        <TextBlock Text="Ich verkaufe meine eigene Immobilie"
+                                                                   FontSize="12"
+                                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                                    </StackPanel>
+                                                </RadioButton>
+
+                                                <!-- Makler/Agentur -->
+                                                <RadioButton IsChecked="{Binding IsBrokerSeller, Mode=TwoWay}"
+                                                             GroupName="SellerType"
+                                                             Padding="8,0,0,0">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="Makler / Agentur"
+                                                                   FontSize="14"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                        <TextBlock Text="Ich vertrete Kunden als Immobilienmakler"
+                                                                   FontSize="12"
+                                                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                                    </StackPanel>
+                                                </RadioButton>
+
+                                                <!-- Firmenname (nur bei Broker) -->
+                                                <StackPanel Spacing="8"
+                                                            Margin="0,8,0,0"
+                                                            Visibility="{Binding IsBrokerSeller}">
+                                                    <TextBlock Text="Firmenname"
+                                                               FontSize="13"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                    <TextBox Text="{Binding CompanyName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             PlaceholderText="z.B. RE/MAX Premium"
+                                                             Padding="12,14"
+                                                             CornerRadius="{StaticResource RadiusSm}" />
+                                                </StackPanel>
+                                            </StackPanel>
                                         </StackPanel>
 
                                     </StackPanel>
@@ -478,6 +532,60 @@
                                                            Foreground="{ThemeResource OnSurfaceVariantBrush}" />
                                             </StackPanel>
                                         </CheckBox>
+
+                                        <!-- Verkaeufertyp-Auswahl (nur wenn Seller) -->
+                                        <StackPanel Spacing="10"
+                                                    Margin="28,6,0,0"
+                                                    Visibility="{Binding IsSeller}">
+                                            <TextBlock Text="Ich biete an als:"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource OnSurfaceBrush}" />
+
+                                            <!-- Privatperson -->
+                                            <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
+                                                         GroupName="SellerTypeMobile"
+                                                         Padding="8,0,0,0">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="Privatperson"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                    <TextBlock Text="Eigene Immobilie verkaufen"
+                                                               FontSize="12"
+                                                               Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                                </StackPanel>
+                                            </RadioButton>
+
+                                            <!-- Makler/Agentur -->
+                                            <RadioButton IsChecked="{Binding IsBrokerSeller, Mode=TwoWay}"
+                                                         GroupName="SellerTypeMobile"
+                                                         Padding="8,0,0,0">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="Makler / Agentur"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                    <TextBlock Text="Als Immobilienmakler taetig"
+                                                               FontSize="12"
+                                                               Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                                </StackPanel>
+                                            </RadioButton>
+
+                                            <!-- Firmenname (nur bei Broker) -->
+                                            <StackPanel Spacing="6"
+                                                        Margin="0,6,0,0"
+                                                        Visibility="{Binding IsBrokerSeller}">
+                                                <TextBlock Text="Firmenname"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                                                <TextBox Text="{Binding CompanyName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         PlaceholderText="z.B. RE/MAX Premium"
+                                                         Padding="12,14"
+                                                         CornerRadius="{StaticResource RadiusSm}" />
+                                            </StackPanel>
+                                        </StackPanel>
                                     </StackPanel>
 
                                 </StackPanel>

@@ -1,4 +1,5 @@
 using Heimatplatz.Api.Core.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Contracts;
 
 namespace Heimatplatz.Api.Features.Auth.Data.Entities;
 
@@ -24,4 +25,10 @@ public class User : BaseEntity
 
     /// <summary>Rollen des Benutzers (Kaeufer, Verkaeufer)</summary>
     public ICollection<UserRole> Roles { get; set; } = new List<UserRole>();
+
+    /// <summary>Verkaeufertyp (nur bei Seller-Rolle)</summary>
+    public SellerType? SellerType { get; set; }
+
+    /// <summary>Firmenname (nur bei Broker)</summary>
+    public string? CompanyName { get; set; }
 }
