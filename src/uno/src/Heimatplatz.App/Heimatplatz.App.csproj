@@ -12,7 +12,7 @@
     <DefineConstants>$(DefineConstants);DISABLE_GENERATED_UNHANDLED_EXCEPTION_HANDLER</DefineConstants>
 
     <!-- Display name -->
-    <ApplicationTitle>Heimatplatz.App</ApplicationTitle>
+    <ApplicationTitle>Heimatplatz</ApplicationTitle>
     <!-- App Identifier -->
     <ApplicationId>com.heimatplatz.app</ApplicationId>
     <!-- Versions -->
