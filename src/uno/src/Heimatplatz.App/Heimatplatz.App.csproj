@@ -58,9 +58,10 @@
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
 
-  <!-- WebAssembly: Preserve all types in ApiClient assembly (trimmer removes constructors needed for JSON deserialization) -->
+  <!-- WebAssembly: Preserve assemblies from trimmer (removes constructors/properties needed for JSON and XAML bindings) -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <TrimmerRootAssembly Include="Heimatplatz.Core.ApiClient" />
+    <TrimmerRootAssembly Include="Heimatplatz.App" />
   </ItemGroup>
 
   <!-- WebAssembly AppManifest -->
