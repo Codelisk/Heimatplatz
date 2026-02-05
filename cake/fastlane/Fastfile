@@ -23,6 +23,7 @@ platform :android do
         aab: ENV["SUPPLY_AAB"] || "../artifacts/android/*.aab",
         json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
         package_name: ENV["SUPPLY_PACKAGE_NAME"] || "at.heimatplatz.app",
+        release_status: "draft",
         skip_upload_metadata: true,
         skip_upload_images: true,
         skip_upload_screenshots: true
