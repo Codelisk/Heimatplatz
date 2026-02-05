@@ -15,10 +15,11 @@ namespace Heimatplatz.Features.AppUpdate.Platforms.Android;
 /// <summary>
 /// Android implementation of <see cref="Contracts.IAppUpdateService"/> using Google Play Core.
 /// </summary>
-internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IAppUpdateService, IInstallStateUpdatedListener
+internal sealed class AndroidAppUpdateService : Contracts.IAppUpdateService, IDisposable
 {
     private readonly ILogger<AndroidAppUpdateService> _logger;
     private readonly IAppUpdateManager _appUpdateManager;
+    private readonly InstallStateListener _installStateListener;
     private TaskCompletionSource<Contracts.Models.UpdateResult>? _updateFlowTcs;
 
     public Contracts.Models.AppUpdateOptions Options { get; set; } = new();
@@ -31,9 +32,10 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
     {
         _logger = logger;
 
-        var activity = GetCurrentActivity();
-        _appUpdateManager = AppUpdateManagerFactory.Create(activity);
-        _appUpdateManager.RegisterListener(this);
+        var context = Uno.UI.ContextHelper.Current;
+        _appUpdateManager = AppUpdateManagerFactory.Create(context);
+        _installStateListener = new InstallStateListener(this);
+        _appUpdateManager.RegisterListener(_installStateListener);
 
         _logger.LogDebug("AndroidAppUpdateService initialized");
     }
@@ -144,10 +146,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Called by the Play Core library when install state changes.
-    /// </summary>
-    public void OnStateUpdate(InstallState installState)
+    internal void OnInstallStateUpdate(InstallState installState)
     {
         var status = installState.InstallStatus();
         _logger.LogDebug("Install state update: {Status}", status);
@@ -211,7 +210,6 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
 
     private static Activity GetCurrentActivity()
     {
-        // Use Uno Platform's context helper instead of MAUI
         var context = Uno.UI.ContextHelper.Current;
         if (context is Activity activity)
         {
@@ -221,13 +219,21 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
         throw new InvalidOperationException("No current activity available");
     }
 
-    protected override void Dispose(bool disposing)
+    public void Dispose()
     {
-        if (disposing)
+        _appUpdateManager.UnregisterListener(_installStateListener);
+    }
+
+    /// <summary>
+    /// Listener for install state updates. Separate class to handle Java interface binding correctly.
+    /// </summary>
+    private sealed class InstallStateListener(AndroidAppUpdateService service)
+        : Java.Lang.Object, IInstallStateUpdatedListener
+    {
+        public void OnStateUpdate(InstallState state)
         {
-            _appUpdateManager.UnregisterListener(this);
+            service.OnInstallStateUpdate(state);
         }
-        base.Dispose(disposing);
     }
 }
 
