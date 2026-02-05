@@ -147,13 +147,8 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
     /// <summary>
     /// Called by the Play Core library when install state changes.
     /// </summary>
-    public void OnStateUpdate(Java.Lang.Object state)
+    public void OnStateUpdate(InstallState installState)
     {
-        if (state is not InstallState installState)
-        {
-            return;
-        }
-
         var status = installState.InstallStatus();
         _logger.LogDebug("Install state update: {Status}", status);
 
