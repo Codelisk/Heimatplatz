@@ -230,7 +230,17 @@ internal sealed class AndroidAppUpdateService : Contracts.IAppUpdateService, IDi
     private sealed class InstallStateListener(AndroidAppUpdateService service)
         : Java.Lang.Object, IInstallStateUpdatedListener
     {
-        public void OnStateUpdate(InstallState state)
+        // Explicit implementation for IStateUpdatedListener (base interface)
+        void IStateUpdatedListener.OnStateUpdate(Java.Lang.Object? state)
+        {
+            if (state is InstallState installState)
+            {
+                service.OnInstallStateUpdate(installState);
+            }
+        }
+
+        // Explicit implementation for IInstallStateUpdatedListener
+        void IInstallStateUpdatedListener.OnStateUpdate(InstallState state)
         {
             service.OnInstallStateUpdate(state);
         }
