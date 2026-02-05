@@ -408,6 +408,12 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
             return;
         }
 
+        if (Images.Count == 0)
+        {
+            ErrorMessage = "Bitte fügen Sie mindestens ein Bild hinzu";
+            return;
+        }
+
         IsBusy = true;
         var isEdit = IsEditMode;
         var saveSucceeded = false;

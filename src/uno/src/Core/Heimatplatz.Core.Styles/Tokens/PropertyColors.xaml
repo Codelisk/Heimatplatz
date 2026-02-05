@@ -27,11 +27,11 @@
     <SolidColorBrush x:Key="HausLightBrush" Color="#2D5F4C" Opacity="0.15" />
     <SolidColorBrush x:Key="HausHoverBrush" Color="#2D5F4C" Opacity="0.8" />
 
-    <!-- Grundstück - Ochre -->
-    <Color x:Key="GrundstueckColor">#B8860B</Color>
+    <!-- Grundstück - Sage Green (natural, land, foundation) -->
+    <Color x:Key="GrundstueckColor">#5D8A66</Color>
     <SolidColorBrush x:Key="GrundstueckBrush" Color="{StaticResource GrundstueckColor}" />
-    <SolidColorBrush x:Key="GrundstueckLightBrush" Color="#B8860B" Opacity="0.15" />
-    <SolidColorBrush x:Key="GrundstueckHoverBrush" Color="#B8860B" Opacity="0.8" />
+    <SolidColorBrush x:Key="GrundstueckLightBrush" Color="#5D8A66" Opacity="0.15" />
+    <SolidColorBrush x:Key="GrundstueckHoverBrush" Color="#5D8A66" Opacity="0.8" />
 
     <!-- Gewerbe - Steel Blue -->
     <Color x:Key="GewerbeColor">#4A6FA5</Color>

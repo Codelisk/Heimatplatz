@@ -324,7 +324,7 @@ public sealed partial class PropertyCard : UserControl
         TypeBadge.Background = property.Type switch
         {
             PropertyType.House => GetThemeResourceOrFallback("HausBrush", "#2D5F4C"),
-            PropertyType.Land => GetThemeResourceOrFallback("GrundstueckBrush", "#B8860B"),
+            PropertyType.Land => GetThemeResourceOrFallback("GrundstueckBrush", "#5D8A66"),
             PropertyType.Foreclosure => GetThemeResourceOrFallback("ZwangsversteigerungBrush", "#B22222"),
             _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"]
         };

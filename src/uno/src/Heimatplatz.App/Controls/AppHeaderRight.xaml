@@ -41,7 +41,7 @@
                                     Click="LogoutMenuItem_Click"
                                     AutomationProperties.AutomationId="AppHeaderRight_LogoutMenuItem">
                         <MenuFlyoutItem.Icon>
-                            <FontIcon Glyph="&#xF3B1;" FontSize="14" />
+                            <FontIcon Glyph="&#xE8BB;" FontSize="14" />
                         </MenuFlyoutItem.Icon>
                     </MenuFlyoutItem>
                 </MenuFlyout>

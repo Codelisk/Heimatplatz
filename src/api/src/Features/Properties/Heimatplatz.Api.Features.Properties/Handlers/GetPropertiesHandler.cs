@@ -61,9 +61,12 @@ public class GetPropertiesHandler(
         if (municipalityIds.Count > 0)
             query = query.Where(p => municipalityIds.Contains(p.MunicipalityId));
 
-        // Filter: CreatedAfter (Age filter)
+        // Filter: CreatedAfter (Age filter) - convert to UTC DateTimeOffset for proper comparison
         if (request.CreatedAfter.HasValue)
-            query = query.Where(p => p.CreatedAt >= request.CreatedAfter.Value);
+        {
+            var createdAfterUtc = new DateTimeOffset(request.CreatedAfter.Value.ToUniversalTime(), TimeSpan.Zero);
+            query = query.Where(p => p.CreatedAt >= createdAfterUtc);
+        }
 
         // Filter: Price range
         if (request.PriceMin.HasValue)

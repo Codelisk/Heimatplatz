@@ -73,6 +73,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     [ObservableProperty]
     private string _typeBadgeText = string.Empty;
 
+    [ObservableProperty]
+    private Microsoft.UI.Xaml.Media.Brush? _typeBadgeBrush;
+
     /// <summary>
     /// Text for the favorite button based on current status
     /// </summary>
@@ -143,6 +146,15 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             PropertyType.Land => "GRUND",
             PropertyType.Foreclosure => "ZV",
             _ => "IMM"
+        };
+
+        // Type badge color (matches PropertyCard.xaml.cs logic)
+        TypeBadgeBrush = Property.Type switch
+        {
+            PropertyType.House => GetThemeBrush("HausBrush"),
+            PropertyType.Land => GetThemeBrush("GrundstueckBrush"),
+            PropertyType.Foreclosure => GetThemeBrush("ZwangsversteigerungBrush"),
+            _ => GetThemeBrush("AccentBrush")
         };
 
         // Format price: "3.590.000 €"
@@ -355,5 +367,16 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             dq.TryEnqueue(() => action());
         else
             action();
+    }
+
+    private static Microsoft.UI.Xaml.Media.Brush GetThemeBrush(string resourceKey)
+    {
+        if (Microsoft.UI.Xaml.Application.Current.Resources.TryGetValue(resourceKey, out var resource)
+            && resource is Microsoft.UI.Xaml.Media.Brush brush)
+        {
+            return brush;
+        }
+        // Fallback to a default brush
+        return new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray);
     }
 }

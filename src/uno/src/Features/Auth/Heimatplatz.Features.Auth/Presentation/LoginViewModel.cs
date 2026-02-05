@@ -117,9 +117,7 @@ public partial class LoginViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Login fehlgeschlagen fuer {Email}", Email);
-            ErrorMessage = ex.Message.Contains("401") || ex.Message.Contains("Unauthorized")
-                ? "Ungueltige E-Mail-Adresse oder Passwort."
-                : $"Login fehlgeschlagen: {ex.Message}";
+            ErrorMessage = GetUserFriendlyErrorMessage(ex);
         }
         finally
         {
@@ -135,5 +133,44 @@ public partial class LoginViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(Passwort))
             return "Bitte geben Sie Ihr Passwort ein.";
         return string.Empty;
+    }
+
+    private static string GetUserFriendlyErrorMessage(Exception ex)
+    {
+        var message = ex.Message;
+
+        // HTTP 401 Unauthorized - falsche Anmeldedaten
+        if (message.Contains("401") || message.Contains("Unauthorized"))
+            return "E-Mail-Adresse oder Passwort ist falsch.";
+
+        // HTTP 403 Forbidden - Konto gesperrt oder keine Berechtigung
+        if (message.Contains("403") || message.Contains("Forbidden"))
+            return "Ihr Konto ist gesperrt. Bitte kontaktieren Sie den Support.";
+
+        // HTTP 404 - Benutzer nicht gefunden
+        if (message.Contains("404") || message.Contains("Not Found"))
+            return "Diese E-Mail-Adresse ist nicht registriert.";
+
+        // HTTP 429 - Zu viele Versuche
+        if (message.Contains("429") || message.Contains("Too Many"))
+            return "Zu viele Anmeldeversuche. Bitte warten Sie einen Moment.";
+
+        // HTTP 500+ - Serverfehler
+        if (message.Contains("500") || message.Contains("502") || message.Contains("503") ||
+            message.Contains("Internal Server") || message.Contains("Bad Gateway") || message.Contains("Service Unavailable"))
+            return "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut.";
+
+        // Netzwerkfehler (net_http, connection, timeout, etc.)
+        if (message.Contains("net_http") || message.Contains("network") || message.Contains("connection") ||
+            message.Contains("timeout") || message.Contains("Timeout") || message.Contains("SocketException") ||
+            message.Contains("host") || message.Contains("DNS") || message.Contains("resolve"))
+            return "Keine Internetverbindung. Bitte pruefen Sie Ihre Netzwerkverbindung.";
+
+        // SSL/TLS Fehler
+        if (message.Contains("SSL") || message.Contains("TLS") || message.Contains("certificate"))
+            return "Sichere Verbindung fehlgeschlagen. Bitte pruefen Sie Ihre Netzwerkeinstellungen.";
+
+        // Allgemeiner Fallback - keine technischen Details anzeigen
+        return "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
     }
 }

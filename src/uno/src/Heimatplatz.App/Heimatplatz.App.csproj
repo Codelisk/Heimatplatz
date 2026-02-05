@@ -16,8 +16,8 @@
     <!-- App Identifier -->
     <ApplicationId>at.heimatplatz.app</ApplicationId>
     <!-- Versions -->
-    <ApplicationDisplayVersion>1.23.0</ApplicationDisplayVersion>
-    <ApplicationVersion>24</ApplicationVersion>
+    <ApplicationDisplayVersion>1.26.0</ApplicationDisplayVersion>
+    <ApplicationVersion>27</ApplicationVersion>
     <!-- Package Publisher -->
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->
@@ -43,13 +43,12 @@
   </PropertyGroup>
   <!-- App Icon -->
   <ItemGroup>
-    <UnoIcon Include="Assets\Icons\icon.svg" ForegroundFile="Assets\Icons\icon_foreground.svg" Color="#00000000" />
+    <UnoIcon Include="Assets\Icons\icon.svg" ForegroundFile="Assets\Icons\icon_foreground.svg" Color="#FFFEFEFE" />
   </ItemGroup>
   <!-- Splash Screen -->
   <ItemGroup>
     <UnoSplashScreen Include="Assets\Splash\splash_screen.svg" Color="#7F7F7F" BaseSize="128,128" />
   </ItemGroup>
-
   <!-- WebAssembly: IL Linker configuration per Uno Platform docs.
        Preserves all Heimatplatz.* assemblies from trimming to prevent issues with
        JSON deserialization, XAML {Binding}, and source-generated types. -->
@@ -59,7 +58,6 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <TrimmerRootDescriptor Include="LinkerConfig.xml" />
   </ItemGroup>
-
   <!-- WebAssembly AppManifest -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\AppManifest.js" />
@@ -86,7 +84,6 @@
   <ItemGroup>
     <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
-
   <ItemGroup>
     <!-- Core Projects -->
     <ProjectReference Include="..\Core\Heimatplatz.Core.Startup\Heimatplatz.Core.Startup.csproj" />

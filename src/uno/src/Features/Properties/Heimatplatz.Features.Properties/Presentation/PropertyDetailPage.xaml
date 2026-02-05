@@ -62,7 +62,7 @@
 
                                     <!-- Typ-Badge (oben links) -->
                                     <Border x:Name="MobileTypeBadge"
-                                            Background="{ThemeResource HausBrush}"
+                                            Background="{x:Bind ViewModel.TypeBadgeBrush, Mode=OneWay}"
                                             CornerRadius="12"
                                             Padding="12,6"
                                             Margin="12"
@@ -127,7 +127,7 @@
                                 </Grid>
 
                                 <!-- Content Section -->
-                                <StackPanel Padding="20,24" Spacing="20" Background="{ThemeResource SurfaceBrush}">
+                                <StackPanel Padding="16,24,16,24" Spacing="20" Background="{ThemeResource SurfaceBrush}">
 
                                     <!-- Titel und Adresse -->
                                     <StackPanel Spacing="6">
@@ -294,6 +294,14 @@
                                                 </StackPanel>
                                         <Button.Flyout>
                                             <Flyout Placement="Top">
+                                                <Flyout.FlyoutPresenterStyle>
+                                                    <Style TargetType="FlyoutPresenter">
+                                                        <Setter Property="Background" Value="Transparent" />
+                                                        <Setter Property="BorderThickness" Value="0" />
+                                                        <Setter Property="Padding" Value="0" />
+                                                        <Setter Property="MinWidth" Value="0" />
+                                                    </Style>
+                                                </Flyout.FlyoutPresenterStyle>
                                                 <Border Background="{ThemeResource SurfaceBrush}"
                                                         CornerRadius="8"
                                                         Padding="16"
@@ -436,7 +444,7 @@
 
                                     <!-- Typ-Badge (oben links) -->
                                     <Border x:Name="DesktopTypeBadge"
-                                            Background="{ThemeResource HausBrush}"
+                                            Background="{x:Bind ViewModel.TypeBadgeBrush, Mode=OneWay}"
                                             CornerRadius="14"
                                             Padding="14,8"
                                             Margin="20"
@@ -691,6 +699,14 @@
                                             </StackPanel>
                                             <Button.Flyout>
                                                 <Flyout Placement="Bottom">
+                                                    <Flyout.FlyoutPresenterStyle>
+                                                        <Style TargetType="FlyoutPresenter">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                            <Setter Property="BorderThickness" Value="0" />
+                                                            <Setter Property="Padding" Value="0" />
+                                                            <Setter Property="MinWidth" Value="0" />
+                                                        </Style>
+                                                    </Flyout.FlyoutPresenterStyle>
                                                     <Border Background="{ThemeResource SurfaceBrush}"
                                                             CornerRadius="8"
                                                             Padding="16"

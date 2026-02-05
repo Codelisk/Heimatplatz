@@ -192,7 +192,7 @@ public partial class RegisterViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Registrierung fehlgeschlagen fuer {Email}", Email);
-            ErrorMessage = ex.Message;
+            ErrorMessage = GetUserFriendlyErrorMessage(ex);
         }
         finally
         {
@@ -222,5 +222,40 @@ public partial class RegisterViewModel : ObservableObject
         if (IsBrokerSeller && string.IsNullOrWhiteSpace(CompanyName))
             return "Bitte geben Sie Ihren Firmennamen ein.";
         return string.Empty;
+    }
+
+    private static string GetUserFriendlyErrorMessage(Exception ex)
+    {
+        var message = ex.Message;
+
+        // HTTP 409 Conflict - E-Mail bereits registriert
+        if (message.Contains("409") || message.Contains("Conflict") || message.Contains("already exists") || message.Contains("bereits"))
+            return "Diese E-Mail-Adresse ist bereits registriert.";
+
+        // HTTP 400 Bad Request - Validierungsfehler
+        if (message.Contains("400") || message.Contains("Bad Request") || message.Contains("validation"))
+            return "Bitte überprüfen Sie Ihre Eingaben.";
+
+        // HTTP 429 - Zu viele Versuche
+        if (message.Contains("429") || message.Contains("Too Many"))
+            return "Zu viele Versuche. Bitte warten Sie einen Moment.";
+
+        // HTTP 500+ - Serverfehler
+        if (message.Contains("500") || message.Contains("502") || message.Contains("503") ||
+            message.Contains("Internal Server") || message.Contains("Bad Gateway") || message.Contains("Service Unavailable"))
+            return "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut.";
+
+        // Netzwerkfehler
+        if (message.Contains("net_http") || message.Contains("network") || message.Contains("connection") ||
+            message.Contains("timeout") || message.Contains("Timeout") || message.Contains("SocketException") ||
+            message.Contains("host") || message.Contains("DNS") || message.Contains("resolve"))
+            return "Keine Internetverbindung. Bitte pruefen Sie Ihre Netzwerkverbindung.";
+
+        // SSL/TLS Fehler
+        if (message.Contains("SSL") || message.Contains("TLS") || message.Contains("certificate"))
+            return "Sichere Verbindung fehlgeschlagen. Bitte pruefen Sie Ihre Netzwerkeinstellungen.";
+
+        // Allgemeiner Fallback
+        return "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.";
     }
 }
