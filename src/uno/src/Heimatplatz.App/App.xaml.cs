@@ -140,10 +140,10 @@ public partial class App : Application, IApplicationWithServices
             // Get current activity from Uno Platform
             var currentActivity = Uno.UI.ContextHelper.Current as Android.App.Activity;
             AndroidShinyHost.Init(app, Host.Services, currentActivity);
-        }
 
-        // Check for app updates via Mediator (fire-and-forget, non-blocking)
-        _ = Host.Services.GetRequiredService<IMediator>().Send(new CheckForAppUpdateCommand());
+            // Check for app updates via Mediator (fire-and-forget, non-blocking)
+            _ = Host.Services.GetRequiredService<IMediator>().Send(new CheckForAppUpdateCommand());
+        }
 #elif __IOS__ || __MACCATALYST__
         // Initialize Shiny for iOS/Mac push notifications
         if (Host?.Services != null)
