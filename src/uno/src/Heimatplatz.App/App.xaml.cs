@@ -3,6 +3,7 @@ using Heimatplatz.App.Presentation;
 using Heimatplatz.Core.DeepLink.Services;
 using Heimatplatz.Core.Startup;
 using Heimatplatz.Events;
+using Heimatplatz.Features.AppUpdate.Contracts.Mediator.Commands;
 using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Notifications.Presentation;
 using Heimatplatz.Features.Properties.Contracts.Models;
@@ -140,6 +141,9 @@ public partial class App : Application, IApplicationWithServices
             var currentActivity = Uno.UI.ContextHelper.Current as Android.App.Activity;
             AndroidShinyHost.Init(app, Host.Services, currentActivity);
         }
+
+        // Check for app updates via Mediator (fire-and-forget, non-blocking)
+        _ = Host.Services.GetRequiredService<IMediator>().Send(new CheckForAppUpdateCommand());
 #elif __IOS__ || __MACCATALYST__
         // Initialize Shiny for iOS/Mac push notifications
         if (Host?.Services != null)

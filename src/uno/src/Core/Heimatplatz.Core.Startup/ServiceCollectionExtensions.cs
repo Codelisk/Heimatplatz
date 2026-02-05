@@ -1,5 +1,6 @@
 using Heimatplatz.Core.ApiClient.Configuration;
 using Heimatplatz.Core.DeepLink.Configuration;
+using Heimatplatz.Features.AppUpdate.Configuration;
 using Heimatplatz.Features.Auth.Configuration;
 using Heimatplatz.Features.Notifications.Configuration;
 using Heimatplatz.Features.Properties.Configuration;
@@ -54,6 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddDeepLinkFeature();
 
         // Features
+        services.AddAppUpdateFeature();
         services.AddAuthFeature();
         services.AddNotificationsFeature();
         services.AddPropertiesFeature(configuration);

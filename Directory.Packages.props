@@ -29,6 +29,9 @@
     <!-- Logging -->
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
 
+    <!-- Android In-App Updates -->
+    <PackageVersion Include="Xamarin.Google.Android.Play.App.Update" Version="2.1.0.7" />
+
     <!-- AndroidX Version Override (resolve transitive conflicts) -->
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="$(AndroidXLifecycleVersion)" />
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="$(AndroidXLifecycleVersion)" />
