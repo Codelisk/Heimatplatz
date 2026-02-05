@@ -226,7 +226,7 @@ internal sealed class AndroidAppUpdateService : Contracts.IAppUpdateService, IDi
 
     /// <summary>
     /// Listener for install state updates. Separate class to handle Java interface binding correctly.
-    /// Uses [Register] attribute to generate correct Java method signature for generic interface.
+    /// Implements the base interface method for C# compiler, then exports the typed version for Java.
     /// </summary>
     private sealed class InstallStateListener : Java.Lang.Object, IInstallStateUpdatedListener
     {
@@ -238,11 +238,23 @@ internal sealed class AndroidAppUpdateService : Contracts.IAppUpdateService, IDi
         }
 
         /// <summary>
-        /// Called by Play Core when install state changes.
-        /// The Register attribute generates the correct onStateUpdate(InstallState) signature.
+        /// Required by C# interface. Casts the Object to InstallState.
+        /// This method satisfies the C# compiler's IStateUpdatedListener requirement.
         /// </summary>
-        [Java.Interop.Export("onStateUpdate")]
-        public void OnStateUpdate(InstallState state)
+        public void OnStateUpdate(Java.Lang.Object? state)
+        {
+            if (state is InstallState installState)
+            {
+                _service.OnInstallStateUpdate(installState);
+            }
+        }
+
+        /// <summary>
+        /// Typed version that handles InstallState directly.
+        /// The Export attribute generates the correctly typed Java method signature.
+        /// </summary>
+        [Java.Interop.Export("onStateUpdate", "(Lcom/google/android/play/core/install/InstallState;)V")]
+        public void OnStateUpdateTyped(InstallState state)
         {
             _service.OnInstallStateUpdate(state);
         }
