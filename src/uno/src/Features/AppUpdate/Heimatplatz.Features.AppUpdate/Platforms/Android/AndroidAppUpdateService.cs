@@ -1,29 +1,32 @@
 #if __ANDROID__
 using Android.App;
 using Android.Gms.Tasks;
-using Heimatplatz.Features.AppUpdate.Contracts;
-using Heimatplatz.Features.AppUpdate.Contracts.Models;
 using Microsoft.Extensions.Logging;
+using Shiny.Mediator;
 using Xamarin.Google.Android.Play.Core.AppUpdate;
 using Xamarin.Google.Android.Play.Core.AppUpdate.Install;
 using Xamarin.Google.Android.Play.Core.AppUpdate.Install.Model;
+using PlayCoreAppUpdateInfo = Xamarin.Google.Android.Play.Core.AppUpdate.AppUpdateInfo;
+using PlayCoreAppUpdateOptions = Xamarin.Google.Android.Play.Core.AppUpdate.AppUpdateOptions;
+using AndroidTask = Android.Gms.Tasks.Task;
+using Task = System.Threading.Tasks.Task;
 
 namespace Heimatplatz.Features.AppUpdate.Platforms.Android;
 
 /// <summary>
-/// Android implementation of <see cref="IAppUpdateService"/> using Google Play Core.
+/// Android implementation of <see cref="Contracts.IAppUpdateService"/> using Google Play Core.
 /// </summary>
-internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateService, IInstallStateUpdatedListener
+internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IAppUpdateService, IInstallStateUpdatedListener
 {
     private readonly ILogger<AndroidAppUpdateService> _logger;
     private readonly IAppUpdateManager _appUpdateManager;
-    private TaskCompletionSource<UpdateResult>? _updateFlowTcs;
+    private TaskCompletionSource<Contracts.Models.UpdateResult>? _updateFlowTcs;
 
-    public AppUpdateOptions Options { get; set; } = new();
+    public Contracts.Models.AppUpdateOptions Options { get; set; } = new();
 
-    public event EventHandler<UpdateDownloadProgress>? DownloadProgressChanged;
+    public event EventHandler<Contracts.Models.UpdateDownloadProgress>? DownloadProgressChanged;
     public event EventHandler? UpdateDownloaded;
-    public event EventHandler<UpdateResult>? UpdateCompleted;
+    public event EventHandler<Contracts.Models.UpdateResult>? UpdateCompleted;
 
     public AndroidAppUpdateService(ILogger<AndroidAppUpdateService> logger)
     {
@@ -36,13 +39,12 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
         _logger.LogDebug("AndroidAppUpdateService initialized");
     }
 
-    public async Task<AppUpdateInfo?> CheckForUpdateAsync()
+    public async Task<Contracts.Models.AppUpdateInfo?> CheckForUpdateAsync()
     {
         try
         {
-            var activity = GetCurrentActivity();
             var appUpdateInfoTask = _appUpdateManager.AppUpdateInfo;
-            var info = await appUpdateInfoTask.AsTask<Xamarin.Google.Android.Play.Core.AppUpdate.AppUpdateInfo>();
+            var info = await appUpdateInfoTask.AsTask<PlayCoreAppUpdateInfo>();
 
             var updateAvailability = info.UpdateAvailability();
             var isUpdateAvailable = updateAvailability == UpdateAvailability.UpdateAvailable ||
@@ -54,7 +56,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
                 info.AvailableVersionCode(),
                 info.UpdatePriority());
 
-            return new AppUpdateInfo(
+            return new Contracts.Models.AppUpdateInfo(
                 IsUpdateAvailable: isUpdateAvailable,
                 IsImmediateUpdateAllowed: info.IsUpdateTypeAllowed(AppUpdateType.Immediate),
                 IsFlexibleUpdateAllowed: info.IsUpdateTypeAllowed(AppUpdateType.Flexible),
@@ -74,7 +76,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
         {
             var activity = GetCurrentActivity();
             var appUpdateInfoTask = _appUpdateManager.AppUpdateInfo;
-            var info = await appUpdateInfoTask.AsTask<Xamarin.Google.Android.Play.Core.AppUpdate.AppUpdateInfo>();
+            var info = await appUpdateInfoTask.AsTask<PlayCoreAppUpdateInfo>();
 
             if (!info.IsUpdateTypeAllowed(AppUpdateType.Immediate))
             {
@@ -82,12 +84,12 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
                 return false;
             }
 
-            _updateFlowTcs = new TaskCompletionSource<UpdateResult>();
+            _updateFlowTcs = new TaskCompletionSource<Contracts.Models.UpdateResult>();
 
             var result = _appUpdateManager.StartUpdateFlowForResult(
                 info,
                 activity,
-                AppUpdateOptions.NewBuilder(AppUpdateType.Immediate)
+                PlayCoreAppUpdateOptions.NewBuilder(AppUpdateType.Immediate)
                     .SetAllowAssetPackDeletion(Options.AllowAssetPackDeletion)
                     .Build(),
                 Options.RequestCode);
@@ -108,7 +110,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
         {
             var activity = GetCurrentActivity();
             var appUpdateInfoTask = _appUpdateManager.AppUpdateInfo;
-            var info = await appUpdateInfoTask.AsTask<Xamarin.Google.Android.Play.Core.AppUpdate.AppUpdateInfo>();
+            var info = await appUpdateInfoTask.AsTask<PlayCoreAppUpdateInfo>();
 
             if (!info.IsUpdateTypeAllowed(AppUpdateType.Flexible))
             {
@@ -116,12 +118,12 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
                 return false;
             }
 
-            _updateFlowTcs = new TaskCompletionSource<UpdateResult>();
+            _updateFlowTcs = new TaskCompletionSource<Contracts.Models.UpdateResult>();
 
             var result = _appUpdateManager.StartUpdateFlowForResult(
                 info,
                 activity,
-                AppUpdateOptions.NewBuilder(AppUpdateType.Flexible)
+                PlayCoreAppUpdateOptions.NewBuilder(AppUpdateType.Flexible)
                     .SetAllowAssetPackDeletion(Options.AllowAssetPackDeletion)
                     .Build(),
                 Options.RequestCode);
@@ -146,17 +148,22 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
     /// <summary>
     /// Called by the Play Core library when install state changes.
     /// </summary>
-    public void OnStateUpdate(InstallState state)
+    public void OnStateUpdate(Java.Lang.Object state)
     {
-        var status = state.InstallStatus();
+        if (state is not InstallState installState)
+        {
+            return;
+        }
+
+        var status = installState.InstallStatus();
         _logger.LogDebug("Install state update: {Status}", status);
 
         switch (status)
         {
             case InstallStatus.Downloading:
-                var progress = new UpdateDownloadProgress(
-                    state.BytesDownloaded(),
-                    state.TotalBytesToDownload());
+                var progress = new Contracts.Models.UpdateDownloadProgress(
+                    installState.BytesDownloaded(),
+                    installState.TotalBytesToDownload());
                 DownloadProgressChanged?.Invoke(this, progress);
                 break;
 
@@ -167,20 +174,20 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
 
             case InstallStatus.Installed:
                 _logger.LogInformation("Update installed successfully");
-                UpdateCompleted?.Invoke(this, UpdateResult.Success);
-                _updateFlowTcs?.TrySetResult(UpdateResult.Success);
+                UpdateCompleted?.Invoke(this, Contracts.Models.UpdateResult.Success);
+                _updateFlowTcs?.TrySetResult(Contracts.Models.UpdateResult.Success);
                 break;
 
             case InstallStatus.Failed:
                 _logger.LogError("Update installation failed");
-                UpdateCompleted?.Invoke(this, UpdateResult.Failed);
-                _updateFlowTcs?.TrySetResult(UpdateResult.Failed);
+                UpdateCompleted?.Invoke(this, Contracts.Models.UpdateResult.Failed);
+                _updateFlowTcs?.TrySetResult(Contracts.Models.UpdateResult.Failed);
                 break;
 
             case InstallStatus.Canceled:
                 _logger.LogInformation("Update cancelled by user");
-                UpdateCompleted?.Invoke(this, UpdateResult.Cancelled);
-                _updateFlowTcs?.TrySetResult(UpdateResult.Cancelled);
+                UpdateCompleted?.Invoke(this, Contracts.Models.UpdateResult.Cancelled);
+                _updateFlowTcs?.TrySetResult(Contracts.Models.UpdateResult.Cancelled);
                 break;
         }
     }
@@ -198,9 +205,9 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
 
         var result = resultCode switch
         {
-            Result.Ok => UpdateResult.Success,
-            Result.Canceled => UpdateResult.Cancelled,
-            _ => UpdateResult.Failed
+            Result.Ok => Contracts.Models.UpdateResult.Success,
+            Result.Canceled => Contracts.Models.UpdateResult.Cancelled,
+            _ => Contracts.Models.UpdateResult.Failed
         };
 
         _logger.LogInformation("Update activity result: {Result}", result);
@@ -233,7 +240,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, IAppUpdateServ
 /// </summary>
 internal static class TaskExtensions
 {
-    public static Task<T> AsTask<T>(this global::Android.Gms.Tasks.Task task) where T : Java.Lang.Object
+    public static Task<T> AsTask<T>(this AndroidTask task) where T : Java.Lang.Object
     {
         var tcs = new TaskCompletionSource<T>();
 
