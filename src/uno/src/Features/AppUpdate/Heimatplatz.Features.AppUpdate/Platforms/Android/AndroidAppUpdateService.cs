@@ -226,21 +226,25 @@ internal sealed class AndroidAppUpdateService : Contracts.IAppUpdateService, IDi
 
     /// <summary>
     /// Listener for install state updates. Separate class to handle Java interface binding correctly.
-    /// Due to Java generics type erasure, we implement OnStateUpdate(Object) which handles all cases.
+    /// Uses [Register] attribute to generate correct Java method signature for generic interface.
     /// </summary>
-    private sealed class InstallStateListener(AndroidAppUpdateService service)
-        : Java.Lang.Object, IInstallStateUpdatedListener
+    private sealed class InstallStateListener : Java.Lang.Object, IInstallStateUpdatedListener
     {
+        private readonly AndroidAppUpdateService _service;
+
+        public InstallStateListener(AndroidAppUpdateService service)
+        {
+            _service = service;
+        }
+
         /// <summary>
         /// Called by Play Core when install state changes.
-        /// The parameter is Object due to Java generics type erasure in the binding.
+        /// The Register attribute generates the correct onStateUpdate(InstallState) signature.
         /// </summary>
-        public void OnStateUpdate(Java.Lang.Object? state)
+        [Java.Interop.Export("onStateUpdate")]
+        public void OnStateUpdate(InstallState state)
         {
-            if (state is InstallState installState)
-            {
-                service.OnInstallStateUpdate(installState);
-            }
+            _service.OnInstallStateUpdate(state);
         }
     }
 }
