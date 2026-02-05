@@ -8,9 +8,10 @@ namespace Heimatplatz.App.iOS;
 /// <summary>
 /// Custom AppDelegate that integrates Shiny push notification lifecycle events
 /// </summary>
+#pragma warning disable CA1422 // Validate platform compatibility - ContinueUserActivity is obsolete in iOS 26 but still functional
 public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationDelegate
 {
-    public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
+    public override bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
     {
         // Initialize IosShinyHost after services are configured
         // This happens in App.xaml.cs OnLaunched
@@ -50,4 +51,5 @@ public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationD
         }
     }
 }
+#pragma warning restore CA1422
 #endif

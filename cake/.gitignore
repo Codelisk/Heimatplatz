@@ -9,6 +9,7 @@ fastlane/screenshots/
 fastlane/test_output/
 
 # Secrets (never commit these)
+secrets/
 *.p8
 *.p12
 *.keystore

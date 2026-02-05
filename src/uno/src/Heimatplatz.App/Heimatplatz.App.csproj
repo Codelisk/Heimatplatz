@@ -1,30 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(UnoFrameworks)</TargetFrameworks>
-
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
-
-    <!-- Suppress IL2026 trimming warnings for Uno.Extensions -->
+    <!-- Suppress IL trimming warnings for Uno.Extensions and Shiny -->
     <!-- UNO0001: MenuFlyout doesn't support Style property, suppress for this element type -->
-    <NoWarn>$(NoWarn);IL2026;IL2104;IL2111;UNO0001</NoWarn>
+    <NoWarn>$(NoWarn);IL2026;IL2067;IL2070;IL2072;IL2075;IL2080;IL2087;IL2091;IL2104;IL2111;IL2121;UNO0001</NoWarn>
+    <!-- Suppress all trim analysis warnings for iOS - Uno.WinUI and Shiny have many trimming issues -->
+    <SuppressTrimAnalysisWarnings Condition="$(TargetFramework.Contains('-ios'))">true</SuppressTrimAnalysisWarnings>
     <!-- Use custom UnhandledException handler for Serilog crash logging -->
     <DefineConstants>$(DefineConstants);DISABLE_GENERATED_UNHANDLED_EXCEPTION_HANDLER</DefineConstants>
-
     <!-- Display name -->
     <ApplicationTitle>Heimatplatz</ApplicationTitle>
     <!-- App Identifier -->
-    <ApplicationId>com.heimatplatz.app</ApplicationId>
+    <ApplicationId>at.heimatplatz.app</ApplicationId>
     <!-- Versions -->
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.23.0</ApplicationDisplayVersion>
+    <ApplicationVersion>24</ApplicationVersion>
     <!-- Package Publisher -->
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->
     <Description>AIRoutine FullStack Uno Platform App</Description>
     <!-- Android minimum SDK version (required by Firebase) -->
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
-
     <!--
       UnoFeatures are used to quickly add and manage features enabled for your app.
       https://aka.platform.uno/singleproject-features
@@ -42,12 +41,10 @@
       SkiaRenderer;
     </UnoFeatures>
   </PropertyGroup>
-
   <!-- App Icon -->
   <ItemGroup>
     <UnoIcon Include="Assets\Icons\icon.svg" ForegroundFile="Assets\Icons\icon_foreground.svg" Color="#00000000" />
   </ItemGroup>
-
   <!-- Splash Screen -->
   <ItemGroup>
     <UnoSplashScreen Include="Assets\Splash\splash_screen.svg" Color="#7F7F7F" BaseSize="128,128" />
@@ -67,7 +64,6 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\AppManifest.js" />
   </ItemGroup>
-
   <!-- Firebase Configuration for Push Notifications -->
   <!-- Android: Download from Firebase Console -> Project Settings -> Your Apps -> Android -->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
@@ -76,7 +72,6 @@
     <PackageReference Include="Shiny.Hosting.Native" />
     <ProjectReference Include="..\..\..\..\subm\shiny\src\Shiny.Core\Shiny.Core.csproj" />
   </ItemGroup>
-
   <!-- Asset fallback for Shiny packages (built for net9.0) when targeting net10.0 -->
   <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
     <AssetTargetFallback>$(AssetTargetFallback);net9.0-android35.0</AssetTargetFallback>
@@ -88,7 +83,6 @@
     <PackageReference Include="Shiny.Hosting.Native" />
     <ProjectReference Include="..\..\..\..\subm\shiny\src\Shiny.Core\Shiny.Core.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
@@ -111,5 +105,4 @@
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
     <ProjectReference Include="..\..\..\..\subm\uno\src\UnoFramework.Generators\UnoFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
-
 </Project>

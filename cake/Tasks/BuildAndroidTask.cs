@@ -35,8 +35,8 @@ public sealed class BuildAndroidTask : FrostingTask<BuildContext>
         var msBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
         // Ensure UNO_SINGLE_TARGET is set for publish as well (in case it triggers implicit restore)
         msBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "android" };
-        // Use APK format for apps not enrolled in Play App Signing
-        msBuildSettings.Properties["AndroidPackageFormat"] = new[] { "apk" };
+        // Use AAB format for Google Play Store
+        msBuildSettings.Properties["AndroidPackageFormat"] = new[] { "aab" };
 
         // Add signing properties if keystore is configured
         if (!string.IsNullOrEmpty(context.AndroidKeystorePath) && File.Exists(context.AndroidKeystorePath))
