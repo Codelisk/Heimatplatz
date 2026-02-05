@@ -15,27 +15,28 @@ public sealed class DeployAndroidTask : FrostingTask<BuildContext>
 
         var artifactsDir = Path.Combine(context.ProjectDirectory, "artifacts", "android");
 
-        var apkFiles = Directory.GetFiles(artifactsDir, "*.apk", SearchOption.AllDirectories);
         var aabFiles = Directory.GetFiles(artifactsDir, "*.aab", SearchOption.AllDirectories);
+        var apkFiles = Directory.GetFiles(artifactsDir, "*.apk", SearchOption.AllDirectories);
 
         string packagePath;
         bool isApk;
 
-        if (apkFiles.Length > 0)
-        {
-            packagePath = apkFiles.FirstOrDefault(f => f.Contains("-Signed")) ?? apkFiles.First();
-            isApk = true;
-            context.Information($"Found APK: {packagePath}");
-        }
-        else if (aabFiles.Length > 0)
+        // Prefer AAB over APK (Play Store requires AAB for most apps)
+        if (aabFiles.Length > 0)
         {
             packagePath = aabFiles.FirstOrDefault(f => f.Contains("-Signed")) ?? aabFiles.First();
             isApk = false;
             context.Information($"Found AAB: {packagePath}");
         }
+        else if (apkFiles.Length > 0)
+        {
+            packagePath = apkFiles.FirstOrDefault(f => f.Contains("-Signed")) ?? apkFiles.First();
+            isApk = true;
+            context.Information($"Found APK: {packagePath}");
+        }
         else
         {
-            throw new FileNotFoundException($"No APK or AAB file found in {artifactsDir}");
+            throw new FileNotFoundException($"No AAB or APK file found in {artifactsDir}");
         }
 
         if (string.IsNullOrEmpty(context.PlayStoreJsonKeyPath))

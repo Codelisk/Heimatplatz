@@ -50,7 +50,7 @@ public sealed class BuildAndroidTask : FrostingTask<BuildContext>
         }
         else
         {
-            context.Warning("No keystore configured - building unsigned APK");
+            context.Warning("No keystore configured - building unsigned AAB");
         }
 
         var settings = new DotNetPublishSettings
