@@ -2,7 +2,6 @@
 using Android.App;
 using Android.Gms.Tasks;
 using Microsoft.Extensions.Logging;
-using Shiny.Mediator;
 using Xamarin.Google.Android.Play.Core.AppUpdate;
 using Xamarin.Google.Android.Play.Core.AppUpdate.Install;
 using Xamarin.Google.Android.Play.Core.AppUpdate.Install.Model;
@@ -43,7 +42,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
     {
         try
         {
-            var appUpdateInfoTask = _appUpdateManager.AppUpdateInfo;
+            var appUpdateInfoTask = _appUpdateManager.GetAppUpdateInfo();
             var info = await appUpdateInfoTask.AsTask<PlayCoreAppUpdateInfo>();
 
             var updateAvailability = info.UpdateAvailability();
@@ -75,7 +74,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
         try
         {
             var activity = GetCurrentActivity();
-            var appUpdateInfoTask = _appUpdateManager.AppUpdateInfo;
+            var appUpdateInfoTask = _appUpdateManager.GetAppUpdateInfo();
             var info = await appUpdateInfoTask.AsTask<PlayCoreAppUpdateInfo>();
 
             if (!info.IsUpdateTypeAllowed(AppUpdateType.Immediate))
@@ -109,7 +108,7 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
         try
         {
             var activity = GetCurrentActivity();
-            var appUpdateInfoTask = _appUpdateManager.AppUpdateInfo;
+            var appUpdateInfoTask = _appUpdateManager.GetAppUpdateInfo();
             var info = await appUpdateInfoTask.AsTask<PlayCoreAppUpdateInfo>();
 
             if (!info.IsUpdateTypeAllowed(AppUpdateType.Flexible))
@@ -217,12 +216,14 @@ internal sealed class AndroidAppUpdateService : Java.Lang.Object, Contracts.IApp
 
     private static Activity GetCurrentActivity()
     {
-        var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
-        if (activity is null)
+        // Use Uno Platform's context helper instead of MAUI
+        var context = Uno.UI.ContextHelper.Current;
+        if (context is Activity activity)
         {
-            throw new InvalidOperationException("No current activity available");
+            return activity;
         }
-        return activity;
+
+        throw new InvalidOperationException("No current activity available");
     }
 
     protected override void Dispose(bool disposing)

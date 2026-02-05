@@ -18,7 +18,9 @@ internal sealed class NoOpAppUpdateService : IAppUpdateService
 
     public Task CompleteUpdateAsync() => Task.CompletedTask;
 
+#pragma warning disable CS0067 // Event is never used (expected for no-op implementation)
     public event EventHandler<UpdateDownloadProgress>? DownloadProgressChanged;
     public event EventHandler? UpdateDownloaded;
     public event EventHandler<UpdateResult>? UpdateCompleted;
+#pragma warning restore CS0067
 }
