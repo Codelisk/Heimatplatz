@@ -16,8 +16,8 @@
     <!-- App Identifier -->
     <ApplicationId>at.heimatplatz.app</ApplicationId>
     <!-- Versions -->
-    <ApplicationDisplayVersion>1.28.0</ApplicationDisplayVersion>
-    <ApplicationVersion>29</ApplicationVersion>
+    <ApplicationDisplayVersion>1.42.0</ApplicationDisplayVersion>
+    <ApplicationVersion>43</ApplicationVersion>
     <!-- Package Publisher -->
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->
@@ -47,7 +47,7 @@
   </ItemGroup>
   <!-- Splash Screen -->
   <ItemGroup>
-    <UnoSplashScreen Include="Assets\Splash\splash_screen.svg" Color="#7F7F7F" BaseSize="128,128" />
+    <UnoSplashScreen Include="Assets\Splash\splash_screen.svg" Color="#FEFEFE" BaseSize="300,300" />
   </ItemGroup>
   <!-- WebAssembly: IL Linker configuration per Uno Platform docs.
        Preserves all Heimatplatz.* assemblies from trimming to prevent issues with

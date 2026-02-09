@@ -63,6 +63,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     private string? _copyFeedback;
 
     [ObservableProperty]
+    private bool _isAuthenticated;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FavoriteButtonText))]
     [NotifyPropertyChangedFor(nameof(FavoriteButtonIcon))]
     private bool _isFavorite;
@@ -110,6 +113,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         _propertyStatusService = propertyStatusService;
         _logger = logger;
         _propertyId = data.PropertyId;
+        _isAuthenticated = authService.IsAuthenticated;
 
         // Property data is loaded in OnNavigatedTo (guaranteed UI thread for dispatcher access)
     }

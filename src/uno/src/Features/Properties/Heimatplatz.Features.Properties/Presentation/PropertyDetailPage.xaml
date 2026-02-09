@@ -22,7 +22,7 @@
                 <ScrollViewer>
                     <Grid Padding="{utu:Responsive Narrowest='0', Normal='40,24'}"
                           MaxWidth="1200"
-                          HorizontalAlignment="Center">
+                          HorizontalAlignment="{utu:Responsive Narrowest=Stretch, Normal=Center}">
 
                         <!-- Mobile Layout -->
                         <Grid Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}">
@@ -107,6 +107,7 @@
                                                 Width="40"
                                                 Height="40"
                                                 CornerRadius="20"
+                                                Visibility="{x:Bind ViewModel.IsAuthenticated, Mode=OneWay}"
                                                 Command="{x:Bind ViewModel.ToggleFavoriteCommand}">
                                             <FontIcon Glyph="{x:Bind ViewModel.FavoriteButtonIcon, Mode=OneWay}"
                                                       FontSize="18"
@@ -487,6 +488,7 @@
                                                 BorderThickness="0"
                                                 Padding="16,10"
                                                 CornerRadius="20"
+                                                Visibility="{x:Bind ViewModel.IsAuthenticated, Mode=OneWay}"
                                                 Command="{x:Bind ViewModel.ToggleFavoriteCommand}">
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <FontIcon Glyph="{x:Bind ViewModel.FavoriteButtonIcon, Mode=OneWay}"

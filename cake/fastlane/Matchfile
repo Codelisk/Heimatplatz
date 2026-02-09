@@ -1,0 +1,7 @@
+git_url("https://github.com/Codelisk/Heimatplatz.Fastlane.git")
+
+storage_mode("git")
+
+type("appstore")
+
+app_identifier(["at.heimatplatz.app"])
