@@ -695,13 +695,14 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             {
                 var cutoffDate = SelectedAgeFilter switch
                 {
-                    AgeFilter.EinTag => DateTime.UtcNow.AddDays(-1),
-                    AgeFilter.EineWoche => DateTime.UtcNow.AddDays(-7),
-                    AgeFilter.EinMonat => DateTime.UtcNow.AddMonths(-1),
-                    AgeFilter.EinJahr => DateTime.UtcNow.AddYears(-1),
-                    _ => DateTime.MinValue
+                    AgeFilter.EinTag => DateTimeOffset.UtcNow.AddDays(-1),
+                    AgeFilter.EineWoche => DateTimeOffset.UtcNow.AddDays(-7),
+                    AgeFilter.EinMonat => DateTimeOffset.UtcNow.AddMonths(-1),
+                    AgeFilter.EinJahr => DateTimeOffset.UtcNow.AddYears(-1),
+                    _ => DateTimeOffset.MinValue
                 };
                 request.CreatedAfter = cutoffDate;
+                _logger.LogWarning("[HomePage] AgeFilter={Filter}, CreatedAfter={CreatedAfter:O}", SelectedAgeFilter, cutoffDate);
             }
 
             var (_, response) = await _mediator.Request(request, ct);

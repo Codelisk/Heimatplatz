@@ -34,6 +34,7 @@ public sealed partial class PropertyCard : UserControl
     {
         AcquireMenuItemReferences();
         UpdateMenuTexts();
+        UpdateActionButtonVisibility();
     }
 
     private void OnMenuFlyoutOpening(object? sender, object e)
@@ -247,7 +248,8 @@ public sealed partial class PropertyCard : UserControl
     {
         if (d is PropertyCard card)
         {
-            card.MoreOptionsButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed;
+            // Delegate to UpdateActionButtonVisibility which considers all factors
+            card.UpdateActionButtonVisibility();
         }
     }
 
@@ -272,7 +274,7 @@ public sealed partial class PropertyCard : UserControl
         // Null-Checks nötig, da diese Methode von DependencyProperty-Callbacks aufgerufen wird,
         // bevor InitializeComponent() abgeschlossen ist
         if (MoreOptionsButton != null)
-            MoreOptionsButton.Visibility = Mode == CardMode.Default && IsAuthenticated ? Visibility.Visible : Visibility.Collapsed;
+            MoreOptionsButton.Visibility = Mode == CardMode.Default && ShowMoreButton && IsAuthenticated ? Visibility.Visible : Visibility.Collapsed;
         if (FavoriteActionButton != null)
             FavoriteActionButton.Visibility = Mode == CardMode.Favorite ? Visibility.Visible : Visibility.Collapsed;
         if (BlockedActionButton != null)

@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
+    <!-- Emit generated source files for inspection -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+
     <!-- Exclude warnings from generated code (Source Generators) -->
     <!-- CS8669: Nullable annotation context, CS9107: Captured parameter -->
     <WarningsNotAsErrors>CS8669;CS9107</WarningsNotAsErrors>

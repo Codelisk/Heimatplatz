@@ -55,7 +55,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
+                // Nur setzen wenn noch nicht explizit gesetzt (z.B. durch Seeder)
+                if (entry.Entity.CreatedAt == default)
+                    entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
             }
             else if (entry.State == EntityState.Modified)
             {
