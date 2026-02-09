@@ -24,14 +24,20 @@ public class PushNotificationOptions
 public class FirebaseOptions
 {
     /// <summary>
-    /// Path to the Firebase service account JSON file
+    /// Path to the Firebase service account JSON file (for local development)
     /// </summary>
     public string? ServiceAccountPath { get; set; }
 
     /// <summary>
+    /// Firebase service account JSON content directly (for Azure/cloud deployment).
+    /// Set via environment variable: PushNotifications__Firebase__ServiceAccountJson
+    /// </summary>
+    public string? ServiceAccountJson { get; set; }
+
+    /// <summary>
     /// Whether Firebase is enabled
     /// </summary>
-    public bool Enabled => !string.IsNullOrEmpty(ServiceAccountPath);
+    public bool Enabled => !string.IsNullOrEmpty(ServiceAccountJson) || !string.IsNullOrEmpty(ServiceAccountPath);
 }
 
 /// <summary>

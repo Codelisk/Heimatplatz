@@ -65,12 +65,22 @@ public static class PushProvidersConfiguration
         if (FirebaseApp.DefaultInstance != null)
             return;
 
-        if (!string.IsNullOrEmpty(options.ServiceAccountPath) && File.Exists(options.ServiceAccountPath))
+        GoogleCredential? credential = null;
+
+        // Priority 1: Direct JSON content (for Azure/cloud deployment via environment variable)
+        if (!string.IsNullOrEmpty(options.ServiceAccountJson))
         {
-            FirebaseApp.Create(new AppOptions
-            {
-                Credential = GoogleCredential.FromFile(options.ServiceAccountPath)
-            });
+            credential = GoogleCredential.FromJson(options.ServiceAccountJson);
+        }
+        // Priority 2: File path (for local development)
+        else if (!string.IsNullOrEmpty(options.ServiceAccountPath) && File.Exists(options.ServiceAccountPath))
+        {
+            credential = GoogleCredential.FromFile(options.ServiceAccountPath);
+        }
+
+        if (credential != null)
+        {
+            FirebaseApp.Create(new AppOptions { Credential = credential });
         }
     }
 }
