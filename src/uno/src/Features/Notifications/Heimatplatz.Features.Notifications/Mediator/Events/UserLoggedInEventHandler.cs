@@ -1,3 +1,4 @@
+using Heimatplatz.Core.Startup.Services;
 using Heimatplatz.Events;
 using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ namespace Heimatplatz.Features.Notifications.Mediator.Events;
 /// </summary>
 public class UserLoggedInEventHandler(
     IMediator mediator,
+    IShinyReadinessService shinyReadiness,
     ILogger<UserLoggedInEventHandler> logger) : IEventHandler<UserLoggedInEvent>
 {
     public async Task Handle(UserLoggedInEvent @event, IMediatorContext context, CancellationToken cancellationToken)
@@ -18,6 +20,9 @@ public class UserLoggedInEventHandler(
         logger.LogInformation("[UserLoggedInEventHandler] User logged in: {Email}, initializing push notifications...", @event.Email);
         try
         {
+            // Warten bis Shiny initialisiert ist (auf Mobile)
+            await shinyReadiness.WaitForReadyAsync();
+
             await mediator.Send(new InitializePushNotificationsCommand(), cancellationToken);
         }
         catch (Exception ex)

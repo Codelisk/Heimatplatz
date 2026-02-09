@@ -19,6 +19,8 @@
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Core.ApiClient\Heimatplatz.Core.ApiClient.csproj" />
     <ProjectReference Include="..\..\..\Shared\Heimatplatz.Shared\Heimatplatz.Shared.csproj" />
     <ProjectReference Include="..\..\Auth\Heimatplatz.Features.Auth\Heimatplatz.Features.Auth.csproj" />
+    <ProjectReference Include="..\..\Properties\Heimatplatz.Features.Properties\Heimatplatz.Features.Properties.csproj" />
+    <ProjectReference Include="..\..\Properties\Heimatplatz.Features.Properties.Contracts\Heimatplatz.Features.Properties.Contracts.csproj" />
     <!-- Framework References -->
     <ProjectReference Include="..\..\..\..\..\..\subm\uno\src\UnoFramework\UnoFramework.csproj" />
     <ProjectReference Include="..\..\..\..\..\..\subm\uno\src\UnoFramework.Contracts\UnoFramework.Contracts.csproj" />

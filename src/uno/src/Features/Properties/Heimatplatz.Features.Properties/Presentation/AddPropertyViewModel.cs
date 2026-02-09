@@ -202,7 +202,8 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         IMediator mediator,
         INavigator navigator,
         ILocationService locationService,
-        ILogger<AddPropertyViewModel> logger)
+        ILogger<AddPropertyViewModel> logger,
+        AddPropertyData data)
     {
         _authService = authService;
         _mediator = mediator;
@@ -213,8 +214,21 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         // Set default property type
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
 
-        // Bezirke laden
-        _ = LoadBezirkeAsync();
+        // Bezirke laden und ggf. Debug-Daten vorausfuellen
+        _ = InitializeAsync(data);
+    }
+
+    private async Task InitializeAsync(AddPropertyData data)
+    {
+        await LoadBezirkeAsync();
+
+        if (data.PrefillDebugData)
+        {
+            // Small delay to ensure Bezirke binding has propagated to OrtPicker
+            // before we set SelectedGemeindeId
+            await Task.Delay(100);
+            PrefillWithDebugData();
+        }
     }
 
     private async Task LoadBezirkeAsync()
@@ -246,6 +260,43 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         {
             PropertyId = id;
             await LoadPropertyForEditingAsync(id);
+        }
+    }
+
+    /// <summary>
+    /// Fills the form with debug/test data for quick testing
+    /// </summary>
+    private void PrefillWithDebugData()
+    {
+        _logger.LogInformation("[AddProperty] Prefilling form with debug data");
+
+        // Set property type to House
+        SelectedPropertyTypeItem = PropertyTypes.FirstOrDefault(t => t.Value == PropertyType.House) ?? PropertyTypes[0];
+
+        // Common fields
+        Titel = "Schönes Einfamilienhaus in ruhiger Lage mit großem Garten";
+        Adresse = "Musterstraße 42";
+        Preis = "450000";
+        Beschreibung = "Dieses wunderschöne Einfamilienhaus befindet sich in einer ruhigen Wohngegend und bietet alles, was das Herz begehrt. " +
+                       "Ein großer Garten lädt zum Entspannen ein, während die moderne Ausstattung höchsten Wohnkomfort garantiert. " +
+                       "Die Immobilie wurde 2015 komplett saniert und verfügt über eine effiziente Gasheizung.";
+
+        // House-specific fields
+        WohnflaecheM2 = "180";
+        GrundstuecksflaecheM2 = "650";
+        Zimmer = "5";
+        Baujahr = "1985";
+
+        // Select first available municipality if Bezirke are loaded
+        if (Bezirke.Count > 0)
+        {
+            var firstGemeinde = Bezirke.SelectMany(b => b.Gemeinden).FirstOrDefault();
+            if (firstGemeinde != null)
+            {
+                // Set both the model's IsSelected (for OrtPicker visual) and ViewModel's SelectedGemeindeId
+                firstGemeinde.IsSelected = true;
+                SelectedGemeindeId = firstGemeinde.Id;
+            }
         }
     }
 

@@ -4,6 +4,7 @@ using Heimatplatz.Features.AppUpdate.Configuration;
 using Heimatplatz.Features.Auth.Configuration;
 using Heimatplatz.Features.Notifications.Configuration;
 using Heimatplatz.Features.Properties.Configuration;
+using Heimatplatz.Features.Notifications;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Configuration;
@@ -40,10 +41,11 @@ public static class ServiceCollectionExtensions
             }
         });
 
-        // Configure Shiny Mediator with UnoEventCollector
+        // Configure Shiny Mediator with UnoEventCollector and source-generated handler registry
         services.AddShinyMediator(cfg =>
         {
-            cfg.AddEventCollector<UnoEventCollector>();
+            cfg.AddEventCollector<UnoEventCollector>()
+               .AddMediatorRegistry();
         });
 
         // Initialize Shiny Core (IPlatform, IKeyValueStore, etc.)

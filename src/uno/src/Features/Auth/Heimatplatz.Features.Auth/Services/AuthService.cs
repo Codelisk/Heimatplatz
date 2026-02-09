@@ -1,15 +1,24 @@
 using System.Text;
 using System.Text.Json;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
+using Windows.Storage;
 
 namespace Heimatplatz.Features.Auth.Services;
 
 /// <summary>
-/// Service fuer die Authentifizierung und Token-Verwaltung (In-Memory)
+/// Service fuer die Authentifizierung und Token-Verwaltung mit persistenter Speicherung
 /// </summary>
 [Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
 public class AuthService : IAuthService
 {
+    // Storage Keys fuer LocalSettings
+    private const string AccessTokenKey = "auth_access_token";
+    private const string RefreshTokenKey = "auth_refresh_token";
+    private const string UserIdKey = "auth_user_id";
+    private const string UserEmailKey = "auth_user_email";
+    private const string UserFullNameKey = "auth_user_fullname";
+    private const string ExpiresAtKey = "auth_expires_at";
+
     private string? _accessToken;
     private string? _refreshToken;
     private Guid? _userId;
@@ -62,6 +71,9 @@ public class AuthService : IAuthService
         // Rollen aus JWT-Token extrahieren
         ExtractRolesFromToken(accessToken);
 
+        // Persistent speichern
+        SaveToStorage();
+
         AuthenticationStateChanged?.Invoke(this, true);
     }
 
@@ -77,7 +89,126 @@ public class AuthService : IAuthService
         _isSeller = false;
         _isBuyer = false;
 
+        // Aus Storage loeschen
+        ClearStorage();
+
         AuthenticationStateChanged?.Invoke(this, false);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> TryRestoreSessionAsync()
+    {
+        try
+        {
+            var settings = ApplicationData.Current.LocalSettings;
+
+            // Pruefen ob gespeicherte Daten vorhanden sind
+            if (!settings.Values.ContainsKey(AccessTokenKey))
+                return Task.FromResult(false);
+
+            var accessToken = settings.Values[AccessTokenKey] as string;
+            var refreshToken = settings.Values[RefreshTokenKey] as string;
+            var userIdStr = settings.Values[UserIdKey] as string;
+            var email = settings.Values[UserEmailKey] as string;
+            var fullName = settings.Values[UserFullNameKey] as string;
+            var expiresAtStr = settings.Values[ExpiresAtKey] as string;
+
+            // Validierung der Pflichtfelder
+            if (string.IsNullOrEmpty(accessToken) ||
+                string.IsNullOrEmpty(userIdStr) ||
+                string.IsNullOrEmpty(expiresAtStr))
+            {
+                ClearStorage();
+                return Task.FromResult(false);
+            }
+
+            // Parsen
+            if (!Guid.TryParse(userIdStr, out var userId))
+            {
+                ClearStorage();
+                return Task.FromResult(false);
+            }
+
+            if (!DateTimeOffset.TryParse(expiresAtStr, out var expiresAt))
+            {
+                ClearStorage();
+                return Task.FromResult(false);
+            }
+
+            // Pruefen ob Token noch gueltig ist
+            if (expiresAt <= DateTimeOffset.UtcNow)
+            {
+                // Token abgelaufen - Storage loeschen
+                ClearStorage();
+                return Task.FromResult(false);
+            }
+
+            // Session wiederherstellen
+            _accessToken = accessToken;
+            _refreshToken = refreshToken;
+            _userId = userId;
+            _userEmail = email;
+            _userFullName = fullName;
+            _expiresAt = expiresAt;
+
+            // Rollen aus Token extrahieren
+            ExtractRolesFromToken(accessToken);
+
+            // Event ausloesen
+            AuthenticationStateChanged?.Invoke(this, true);
+
+            return Task.FromResult(true);
+        }
+        catch
+        {
+            // Bei Fehlern Storage loeschen und false zurueckgeben
+            ClearStorage();
+            return Task.FromResult(false);
+        }
+    }
+
+    /// <summary>
+    /// Speichert die Auth-Daten in LocalSettings
+    /// </summary>
+    private void SaveToStorage()
+    {
+        try
+        {
+            var settings = ApplicationData.Current.LocalSettings;
+
+            settings.Values[AccessTokenKey] = _accessToken;
+            settings.Values[RefreshTokenKey] = _refreshToken;
+            settings.Values[UserIdKey] = _userId?.ToString();
+            settings.Values[UserEmailKey] = _userEmail;
+            settings.Values[UserFullNameKey] = _userFullName;
+            settings.Values[ExpiresAtKey] = _expiresAt?.ToString("O"); // ISO 8601 Format
+        }
+        catch
+        {
+            // Fehler beim Speichern ignorieren - App funktioniert weiter, nur ohne Persistenz
+        }
+    }
+
+    /// <summary>
+    /// Loescht die Auth-Daten aus LocalSettings
+    /// </summary>
+    private void ClearStorage()
+    {
+        try
+        {
+            var settings = ApplicationData.Current.LocalSettings;
+
+            settings.Values.Remove(AccessTokenKey);
+            settings.Values.Remove(RefreshTokenKey);
+            settings.Values.Remove(UserIdKey);
+            settings.Values.Remove(UserEmailKey);
+            settings.Values.Remove(UserFullNameKey);
+            settings.Values.Remove(ExpiresAtKey);
+        }
+        catch
+        {
+            // Fehler beim Loeschen ignorieren
+        }
     }
 
     /// <summary>

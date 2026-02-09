@@ -2,6 +2,7 @@ using Heimatplatz.App.Controls;
 using Heimatplatz.App.Presentation;
 using Heimatplatz.Core.DeepLink.Services;
 using Heimatplatz.Core.Startup;
+using Heimatplatz.Core.Startup.Services;
 using Heimatplatz.Events;
 using Heimatplatz.Features.AppUpdate.Contracts.Mediator.Commands;
 using Heimatplatz.Features.Auth.Presentation;
@@ -135,21 +136,36 @@ public partial class App : Application, IApplicationWithServices
 
 #if __ANDROID__
         // Initialize Shiny for Android push notifications
+        System.Diagnostics.Debug.WriteLine("[App] Android: Checking Shiny init conditions...");
+        System.Diagnostics.Debug.WriteLine($"[App] Android.App.Application.Context type: {Android.App.Application.Context?.GetType()?.FullName ?? "null"}");
+        System.Diagnostics.Debug.WriteLine($"[App] Host?.Services is null: {Host?.Services == null}");
+
         if (Android.App.Application.Context is Android.App.Application app && Host?.Services != null)
         {
+            System.Diagnostics.Debug.WriteLine("[App] Android: Initializing Shiny...");
             // Get current activity from Uno Platform
             var currentActivity = Uno.UI.ContextHelper.Current as Android.App.Activity;
             AndroidShinyHost.Init(app, Host.Services, currentActivity);
+            Host.Services.GetRequiredService<IShinyReadinessService>().SignalReady();
+            System.Diagnostics.Debug.WriteLine("[App] Android: Shiny initialized successfully");
 
             // Check for app updates via Mediator (fire-and-forget, non-blocking)
             _ = Host.Services.GetRequiredService<IMediator>().Send(new CheckForAppUpdateCommand());
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("[App] Android: Shiny init skipped - conditions not met");
         }
 #elif __IOS__ || __MACCATALYST__
         // Initialize Shiny for iOS/Mac push notifications
         if (Host?.Services != null)
         {
             IosShinyHost.Init(Host.Services);
+            Host.Services.GetRequiredService<IShinyReadinessService>().SignalReady();
         }
+#else
+        // On non-mobile platforms, signal immediately since Shiny isn't used
+        Host?.Services?.GetService<IShinyReadinessService>()?.SignalReady();
 #endif
     }
 
@@ -243,7 +259,7 @@ public partial class App : Application, IApplicationWithServices
             new ViewMap<HomePage, HomeViewModel>(),
             new ViewMap<RegisterPage, RegisterViewModel>(),
             new ViewMap<LoginPage, LoginViewModel>(),
-            new ViewMap<AddPropertyPage, AddPropertyViewModel>(),
+            new DataViewMap<AddPropertyPage, AddPropertyViewModel, AddPropertyData>(),
             new DataViewMap<EditPropertyPage, EditPropertyViewModel, EditPropertyData>(),
             new ViewMap<MyPropertiesPage, MyPropertiesViewModel>(),
             new ViewMap<FavoritesPage, FavoritesViewModel>(),

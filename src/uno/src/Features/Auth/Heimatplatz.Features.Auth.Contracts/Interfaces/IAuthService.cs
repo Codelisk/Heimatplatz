@@ -60,4 +60,10 @@ public interface IAuthService
     /// Event das ausgeloest wird wenn sich der Authentifizierungsstatus aendert
     /// </summary>
     event EventHandler<bool>? AuthenticationStateChanged;
+
+    /// <summary>
+    /// Versucht eine gespeicherte Session wiederherzustellen (beim App-Start aufrufen)
+    /// </summary>
+    /// <returns>True wenn eine gueltige Session wiederhergestellt wurde</returns>
+    Task<bool> TryRestoreSessionAsync();
 }

@@ -226,8 +226,19 @@ public partial class DebugStartViewModel : ObservableObject
     [RelayCommand]
     private async Task NavigateToAddPropertyAsync()
     {
-        _logger.LogInformation("[DEBUG] Navigation zu AddProperty");
-        await _navigator.NavigateRouteAsync(this, "AddProperty");
+        _logger.LogInformation("[DEBUG] Navigation zu AddProperty mit Debug-Daten");
+
+        // Ensure seller is logged in before navigating
+        if (!_authService.IsAuthenticated)
+        {
+            _logger.LogInformation("[DEBUG] Logging in as Seller before AddProperty");
+            await QuickLoginAsync(SellerEmail);
+        }
+
+        await _navigator.NavigateViewModelAsync<Heimatplatz.Features.Properties.Presentation.AddPropertyViewModel>(
+            this,
+            data: new Heimatplatz.Features.Properties.Contracts.Models.AddPropertyData(PrefillDebugData: true)
+        );
     }
 
     [RelayCommand]
