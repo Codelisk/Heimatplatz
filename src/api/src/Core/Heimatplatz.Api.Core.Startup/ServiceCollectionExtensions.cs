@@ -80,27 +80,22 @@ public static class ServiceCollectionExtensions
         var configuration = app.Services.GetRequiredService<IConfiguration>();
         var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseInitialization");
 
+        // Validierung: Connection String prüfen
+        // Während Build-Tools (z.B. OpenAPI Generator) wird gracefully übersprungen
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "Data Source=:memory:")
+        {
+            logger.LogWarning(
+                "Connection string 'DefaultConnection' is not configured or uses in-memory placeholder. " +
+                "Database initialization skipped. This is expected during build/OpenAPI generation.");
+            return;
+        }
+
         // Skip database initialization wenn weder Migration noch Seeding aktiviert sind
-        // (z.B. für Build-Tools wie OpenAPI Generator die ohne echte DB laufen)
         if (!options.AutoMigrate && !options.EnableSeeding)
         {
             logger.LogDebug("Database initialization skipped (AutoMigrate=false, EnableSeeding=false).");
             return;
-        }
-
-        // Validierung: Connection String muss zur Laufzeit konfiguriert sein
-        // :memory: ist nur für Build-Tools erlaubt, nicht für echte Anwendungen
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "Data Source=:memory:")
-        {
-            logger.LogCritical(
-                "Connection string 'DefaultConnection' is not configured or uses in-memory placeholder. " +
-                "Please set it in appsettings.{{Environment}}.json or via environment variable " +
-                "'ConnectionStrings__DefaultConnection'.");
-            throw new InvalidOperationException(
-                "Connection string 'DefaultConnection' is not configured. " +
-                "Please set it in appsettings.{Environment}.json or via environment variable " +
-                "'ConnectionStrings__DefaultConnection'.");
         }
 
         logger.LogInformation("Database initialization started. AutoMigrate={AutoMigrate}, EnableSeeding={EnableSeeding}",
