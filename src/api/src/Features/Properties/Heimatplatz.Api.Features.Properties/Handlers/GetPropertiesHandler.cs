@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 
@@ -20,12 +21,17 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [MediatorHttpGroup("/api/properties")]
 public class GetPropertiesHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    ILogger<GetPropertiesHandler> logger
 ) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
 {
     [MediatorHttpGet("/", OperationId = "GetProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
+        // DEBUG: Log incoming filter parameters
+        logger.LogWarning("[GetProperties] Request: Page={Page}, CreatedAfter={CreatedAfter}, HasValue={HasValue}",
+            request.Page, request.CreatedAfter, request.CreatedAfter.HasValue);
+
         // Include Municipality for City/PostalCode values
         var query = dbContext.Set<Property>()
             .Include(p => p.Municipality)
