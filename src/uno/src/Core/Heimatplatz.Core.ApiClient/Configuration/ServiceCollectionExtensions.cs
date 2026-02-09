@@ -11,6 +11,10 @@ public static class ServiceCollectionExtensions
     /// Adds the ApiClient feature services.
     /// Registers the generated OpenAPI HTTP handlers for Shiny.Mediator.
     /// </summary>
+    /// <remarks>
+    /// Note: DateTimeQueryFixHandler is registered in Core.Startup BEFORE AddShinyMediator
+    /// to ensure the delegating handler is in the pipeline when Shiny.Mediator registers HttpClient.
+    /// </remarks>
     public static IServiceCollection AddApiClientFeature(this IServiceCollection services)
     {
         // Register the generated OpenAPI HTTP handlers

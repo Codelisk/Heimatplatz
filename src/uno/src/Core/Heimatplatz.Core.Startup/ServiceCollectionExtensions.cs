@@ -23,6 +23,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Auto-register services with [Service] attribute
+        // This also registers AggregatingHttpRequestDecorator which implements IHttpRequestDecorator
+        // and fixes DateTimeOffset query parameter serialization for Shiny.Mediator HTTP requests
         services.AddShinyServiceRegistry();
 
         // Register ISerializerService BEFORE AddShinyMediator so TryAddSingleton becomes a no-op.

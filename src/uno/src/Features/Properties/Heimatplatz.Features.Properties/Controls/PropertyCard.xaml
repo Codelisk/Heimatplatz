@@ -177,7 +177,7 @@
 
                 <!-- Action Buttons: Oben rechts (je nach CardMode) -->
 
-                <!-- Default Mode: 3-Punkt Menü - Circular Design -->
+                <!-- Default Mode: 3-Punkt Menü - Circular Design (nur fuer authentifizierte Benutzer) -->
                 <Button x:Name="MoreOptionsButton"
                         Tapped="OnMoreOptionsTapped"
                         Background="#70000000"
@@ -189,6 +189,7 @@
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right"
                         Margin="12"
+                        Visibility="Collapsed"
                         AutomationProperties.AutomationId="PropertyCard_MoreOptions">
                     <Button.Flyout>
                         <MenuFlyout Placement="BottomEdgeAlignedRight">
