@@ -21,7 +21,7 @@ public class GetUserFilterPreferencesHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<GetUserFilterPreferencesRequest, GetUserFilterPreferencesResponse>
 {
-    [MediatorHttpGet("/", OperationId = "GetUserFilterPreferences", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpGet("/", OperationId = "GetUserFilterPreferences", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetUserFilterPreferencesResponse> Handle(
         GetUserFilterPreferencesRequest request,
         IMediatorContext context,

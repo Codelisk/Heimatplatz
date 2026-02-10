@@ -28,7 +28,7 @@ public class ImportPropertiesHandler(
     IMediator mediator
 ) : IRequestHandler<ImportPropertiesRequest, ImportPropertiesResponse>
 {
-    [MediatorHttpPost("/properties", OperationId = "ImportProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
+    [MediatorHttpPost("/properties", OperationId = "ImportProperties", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<ImportPropertiesResponse> Handle(ImportPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // UserId aus JWT Token extrahieren

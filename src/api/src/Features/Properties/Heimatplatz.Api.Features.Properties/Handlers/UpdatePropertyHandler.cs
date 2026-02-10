@@ -25,7 +25,7 @@ public class UpdatePropertyHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<UpdatePropertyRequest, UpdatePropertyResponse>
 {
-    [MediatorHttpPut("/", OperationId = "UpdateProperty", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
+    [MediatorHttpPut("/", OperationId = "UpdateProperty", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<UpdatePropertyResponse> Handle(UpdatePropertyRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract HttpContext

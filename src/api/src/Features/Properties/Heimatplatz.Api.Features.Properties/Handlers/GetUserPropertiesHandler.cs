@@ -22,7 +22,7 @@ public class GetUserPropertiesHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<GetUserPropertiesRequest, GetUserPropertiesResponse>
 {
-    [MediatorHttpGet("/user", OperationId = "GetUserProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
+    [MediatorHttpGet("/user", OperationId = "GetUserProperties", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<GetUserPropertiesResponse> Handle(GetUserPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token

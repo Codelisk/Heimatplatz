@@ -21,7 +21,7 @@ public class SaveUserFilterPreferencesHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<SaveUserFilterPreferencesRequest, SaveUserFilterPreferencesResponse>
 {
-    [MediatorHttpPost("/", OperationId = "SaveUserFilterPreferences", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpPost("/", OperationId = "SaveUserFilterPreferences", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<SaveUserFilterPreferencesResponse> Handle(
         SaveUserFilterPreferencesRequest request,
         IMediatorContext context,

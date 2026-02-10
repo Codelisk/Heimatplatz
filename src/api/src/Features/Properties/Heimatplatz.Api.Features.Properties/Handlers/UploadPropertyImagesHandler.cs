@@ -20,7 +20,7 @@ public class UploadPropertyImagesHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<UploadPropertyImagesRequest, UploadPropertyImagesResponse>
 {
-    [MediatorHttpPost("/images", OperationId = "UploadPropertyImages", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
+    [MediatorHttpPost("/images", OperationId = "UploadPropertyImages", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<UploadPropertyImagesResponse> Handle(
         UploadPropertyImagesRequest request,
         IMediatorContext context,

@@ -18,7 +18,7 @@ public class GetSellerSourcesHandler(
     AppDbContext dbContext
 ) : IRequestHandler<GetSellerSourcesRequest, GetSellerSourcesResponse>
 {
-    [MediatorHttpGet("/", OperationId = "GetSellerSources", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpGet("/", OperationId = "GetSellerSources")]
     public async Task<GetSellerSourcesResponse> Handle(GetSellerSourcesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var sources = await dbContext.Set<SellerSource>()

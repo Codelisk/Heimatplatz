@@ -21,7 +21,7 @@ public class DeletePropertyHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<DeletePropertyRequest, DeletePropertyResponse>
 {
-    [MediatorHttpDelete("/{Id}", OperationId = "DeleteProperty", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
+    [MediatorHttpDelete("/{Id}", OperationId = "DeleteProperty", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<DeletePropertyResponse> Handle(DeletePropertyRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token

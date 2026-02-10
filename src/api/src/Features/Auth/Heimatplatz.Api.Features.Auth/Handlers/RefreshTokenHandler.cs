@@ -2,6 +2,7 @@ using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
@@ -11,6 +12,7 @@ namespace Heimatplatz.Api.Features.Auth.Handlers;
 /// <summary>
 /// Handler fuer RefreshTokenRequest - erneuert Access Token mittels Refresh Token
 /// </summary>
+[AllowAnonymous]
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class RefreshTokenHandler(
     AppDbContext dbContext,

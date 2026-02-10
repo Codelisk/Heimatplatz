@@ -5,6 +5,7 @@ using Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
 using Heimatplatz.Api.Features.Properties.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
@@ -14,6 +15,7 @@ namespace Heimatplatz.Api.Features.Auth.Handlers;
 /// <summary>
 /// Handler fuer RegisterRequest - registriert neuen Benutzer und loggt automatisch ein
 /// </summary>
+[AllowAnonymous]
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class RegisterHandler(
     AppDbContext dbContext,

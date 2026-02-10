@@ -11,6 +11,9 @@ namespace Heimatplatz.App.Droid;
     LargeHeap = true,
     HardwareAccelerated = true,
     Theme = "@style/Theme.App.Starting"
+#if DEBUG
+    , UsesCleartextTraffic = true
+#endif
 )]
 public class Application : Microsoft.UI.Xaml.NativeApplication
 {

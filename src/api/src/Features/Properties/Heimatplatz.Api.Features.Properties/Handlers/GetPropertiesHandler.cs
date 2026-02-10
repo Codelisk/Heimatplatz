@@ -25,7 +25,7 @@ public class GetPropertiesHandler(
     ILogger<GetPropertiesHandler> logger
 ) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
 {
-    [MediatorHttpGet("/", OperationId = "GetProperties", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpGet("/", OperationId = "GetProperties")]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // DEBUG: Log incoming filter parameters

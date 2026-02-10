@@ -19,7 +19,7 @@
 
             <ScrollViewer>
                 <utu:AutoLayout
-                    Padding="24"
+                    Padding="16,24,16,24"
                     Spacing="24"
                     Orientation="Vertical"
                     MaxWidth="600"
@@ -61,49 +61,36 @@
                     <!-- Enable/Disable Toggle -->
                     <utu:CardContentControl Style="{StaticResource FilledCardContentControlStyle}"
                                             AutomationProperties.AutomationId="NotificationSettings_EnableCard">
-                        <utu:AutoLayout Padding="16" Spacing="16" Orientation="Vertical">
+                        <utu:AutoLayout Padding="16" Spacing="8" Orientation="Vertical">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="0"
-                                        Background="{ThemeResource SurfaceVariantBrush}"
-                                        CornerRadius="{StaticResource RadiusMd}"
-                                        Width="44" Height="44"
-                                        VerticalAlignment="Center"
-                                        Margin="0,0,16,0">
-                                    <FontIcon
-                                        Glyph="&#xEA8F;"
-                                        FontSize="20"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center" />
-                                </Border>
+                                <TextBlock Grid.Column="0"
+                                    x:Uid="NotificationSettings.Toggle.Title"
+                                    Text="Benachrichtigungen"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    VerticalAlignment="Center" />
 
-                                <utu:AutoLayout Grid.Column="1"
-                                                Spacing="4"
-                                                Orientation="Vertical"
-                                                VerticalAlignment="Center">
-                                    <TextBlock
-                                        x:Uid="NotificationSettings.Toggle.Title"
-                                        Text="Benachrichtigungen"
-                                        Style="{StaticResource SubtitleTextBlockStyle}" />
-                                    <TextBlock
-                                        x:Uid="NotificationSettings.Toggle.Subtitle"
-                                        Text="Push-Benachrichtigungen fuer neue Immobilien"
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                </utu:AutoLayout>
-
-                                <ToggleSwitch Grid.Column="2"
+                                <ToggleSwitch Grid.Column="1"
                                               IsOn="{x:Bind ViewModel.IsEnabled, Mode=TwoWay}"
                                               Toggled="OnNotificationsToggled"
+                                              OnContent="{x:Null}"
+                                              OffContent="{x:Null}"
+                                              MinWidth="0"
+                                              Padding="0"
                                               VerticalAlignment="Center"
                                               AutomationProperties.AutomationId="NotificationSettings_EnableToggle"
                                               AutomationProperties.Name="Benachrichtigungen aktivieren" />
                             </Grid>
+                            <TextBlock
+                                x:Uid="NotificationSettings.Toggle.Subtitle"
+                                Text="Push-Benachrichtigungen fuer neue Immobilien"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                TextWrapping="Wrap" />
                         </utu:AutoLayout>
                     </utu:CardContentControl>
 
@@ -256,28 +243,32 @@
                                         TextWrapping="Wrap" />
                                 </utu:AutoLayout>
 
-                                <StackPanel Orientation="Horizontal"
-                                            Spacing="8"
-                                            AutomationProperties.AutomationId="NotificationSettings_PropertyTypeChips">
-                                    <ToggleButton
-                                        Content="Haus"
-                                        IsChecked="{x:Bind ViewModel.IsHausSelected, Mode=TwoWay}"
-                                        Style="{StaticResource FilterChipBaseStyle}"
-                                        Click="OnCustomFilterChanged"
-                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Haus" />
-                                    <ToggleButton
-                                        Content="Grundstueck"
-                                        IsChecked="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}"
-                                        Style="{StaticResource FilterChipBaseStyle}"
-                                        Click="OnCustomFilterChanged"
-                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Grundstueck" />
-                                    <ToggleButton
-                                        Content="Zwangsversteigerung"
-                                        IsChecked="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}"
-                                        Style="{StaticResource FilterChipBaseStyle}"
-                                        Click="OnCustomFilterChanged"
-                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
-                                </StackPanel>
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Disabled"
+                                              HorizontalScrollMode="Auto">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="8"
+                                                AutomationProperties.AutomationId="NotificationSettings_PropertyTypeChips">
+                                        <ToggleButton
+                                            Content="Haus"
+                                            IsChecked="{x:Bind ViewModel.IsHausSelected, Mode=TwoWay}"
+                                            Style="{StaticResource FilterChipBaseStyle}"
+                                            Click="OnCustomFilterChanged"
+                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Haus" />
+                                        <ToggleButton
+                                            Content="Grundstueck"
+                                            IsChecked="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}"
+                                            Style="{StaticResource FilterChipBaseStyle}"
+                                            Click="OnCustomFilterChanged"
+                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Grundstueck" />
+                                        <ToggleButton
+                                            Content="Zwangsversteigerung"
+                                            IsChecked="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}"
+                                            Style="{StaticResource FilterChipBaseStyle}"
+                                            Click="OnCustomFilterChanged"
+                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
+                                    </StackPanel>
+                                </ScrollViewer>
                             </utu:AutoLayout>
                         </utu:CardContentControl>
 
@@ -298,28 +289,32 @@
                                         TextWrapping="Wrap" />
                                 </utu:AutoLayout>
 
-                                <StackPanel Orientation="Horizontal"
-                                            Spacing="8"
-                                            AutomationProperties.AutomationId="NotificationSettings_SellerTypeChips">
-                                    <ToggleButton
-                                        Content="Privat"
-                                        IsChecked="{x:Bind ViewModel.IsPrivateSelected, Mode=TwoWay}"
-                                        Style="{StaticResource FilterChipBaseStyle}"
-                                        Click="OnCustomFilterChanged"
-                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Private" />
-                                    <ToggleButton
-                                        Content="Makler"
-                                        IsChecked="{x:Bind ViewModel.IsBrokerSelected, Mode=TwoWay}"
-                                        Style="{StaticResource FilterChipBaseStyle}"
-                                        Click="OnCustomFilterChanged"
-                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
-                                    <ToggleButton
-                                        Content="Portal"
-                                        IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
-                                        Style="{StaticResource FilterChipBaseStyle}"
-                                        Click="OnCustomFilterChanged"
-                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
-                                </StackPanel>
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Disabled"
+                                              HorizontalScrollMode="Auto">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="8"
+                                                AutomationProperties.AutomationId="NotificationSettings_SellerTypeChips">
+                                        <ToggleButton
+                                            Content="Privat"
+                                            IsChecked="{x:Bind ViewModel.IsPrivateSelected, Mode=TwoWay}"
+                                            Style="{StaticResource FilterChipBaseStyle}"
+                                            Click="OnCustomFilterChanged"
+                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Private" />
+                                        <ToggleButton
+                                            Content="Makler"
+                                            IsChecked="{x:Bind ViewModel.IsBrokerSelected, Mode=TwoWay}"
+                                            Style="{StaticResource FilterChipBaseStyle}"
+                                            Click="OnCustomFilterChanged"
+                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
+                                        <ToggleButton
+                                            Content="Portal"
+                                            IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
+                                            Style="{StaticResource FilterChipBaseStyle}"
+                                            Click="OnCustomFilterChanged"
+                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
+                                    </StackPanel>
+                                </ScrollViewer>
                             </utu:AutoLayout>
                         </utu:CardContentControl>
 

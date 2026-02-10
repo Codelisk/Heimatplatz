@@ -18,7 +18,7 @@ public class GetLocationsHandler(
     AppDbContext dbContext
 ) : IRequestHandler<GetLocationsRequest, GetLocationsResponse>
 {
-    [MediatorHttpGet("/", OperationId = "GetLocations", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpGet("/", OperationId = "GetLocations")]
     public async Task<GetLocationsResponse> Handle(GetLocationsRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var query = dbContext.Set<FederalProvince>()

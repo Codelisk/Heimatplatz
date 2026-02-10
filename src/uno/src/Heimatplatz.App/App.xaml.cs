@@ -100,6 +100,9 @@ public partial class App : Application, IApplicationWithServices
                         .EmbeddedSource<App>()
 #if __ANDROID__
                         .EmbeddedSource<App>("android")
+#if DEBUG
+                        .EmbeddedSource<App>("android.development")
+#endif
 #endif
                         .Section<AppConfig>()
                 )

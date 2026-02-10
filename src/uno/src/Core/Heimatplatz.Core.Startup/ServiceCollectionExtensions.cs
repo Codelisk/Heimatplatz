@@ -45,7 +45,8 @@ public static class ServiceCollectionExtensions
         services.AddShinyMediator(cfg =>
         {
             cfg.AddEventCollector<UnoEventCollector>()
-               .AddMediatorRegistry();
+               .AddMediatorRegistry()
+               .AddAuthExceptionHandler();
         });
 
         // Initialize Shiny Core (IPlatform, IKeyValueStore, etc.)

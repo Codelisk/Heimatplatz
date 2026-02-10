@@ -28,7 +28,7 @@ public class CreatePropertyHandler(
     IMediator mediator
 ) : IRequestHandler<CreatePropertyRequest, CreatePropertyResponse>
 {
-    [MediatorHttpPost("/", OperationId = "CreateProperty", AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
+    [MediatorHttpPost("/", OperationId = "CreateProperty", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
     public async Task<CreatePropertyResponse> Handle(CreatePropertyRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // UserId aus JWT Token extrahieren

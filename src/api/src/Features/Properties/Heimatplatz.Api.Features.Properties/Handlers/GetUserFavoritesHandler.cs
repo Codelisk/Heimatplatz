@@ -22,7 +22,7 @@ public class GetUserFavoritesHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<GetUserFavoritesRequest, GetUserFavoritesResponse>
 {
-    [MediatorHttpGet("", OperationId = "GetUserFavorites", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpGet("", OperationId = "GetUserFavorites", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetUserFavoritesResponse> Handle(GetUserFavoritesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token

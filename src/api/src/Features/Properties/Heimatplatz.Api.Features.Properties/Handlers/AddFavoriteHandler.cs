@@ -21,7 +21,7 @@ public class AddFavoriteHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<AddFavoriteRequest, AddFavoriteResponse>
 {
-    [MediatorHttpPost("", OperationId = "AddFavorite", AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpPost("", OperationId = "AddFavorite", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<AddFavoriteResponse> Handle(AddFavoriteRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token
