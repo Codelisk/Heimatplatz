@@ -149,15 +149,15 @@ public class AuthService : IAuthService
                 return Task.FromResult(false);
             }
 
-            // Pruefen ob Token noch gueltig ist
-            if (expiresAt <= DateTimeOffset.UtcNow)
+            // Pruefen ob Refresh-Token vorhanden ist
+            // Access-Token darf abgelaufen sein - wird via TokenRefreshMiddleware erneuert
+            if (string.IsNullOrEmpty(refreshToken))
             {
-                // Token abgelaufen - Storage loeschen
                 ClearStorage();
                 return Task.FromResult(false);
             }
 
-            // Session wiederherstellen
+            // Session wiederherstellen (auch mit abgelaufenem Access-Token)
             _accessToken = accessToken;
             _refreshToken = refreshToken;
             _userId = userId;

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
@@ -19,23 +20,70 @@ public class FilterPreferencesService(
 ) : IFilterPreferencesService
 {
     private const string ApiEndpoint = "/api/auth/filter-preferences";
+    private const string RefreshEndpoint = "/api/auth/refresh";
+    private static readonly SemaphoreSlim RefreshSemaphore = new(1, 1);
 
     /// <summary>
     /// Sets the Authorization header with the current access token.
     /// </summary>
     private void SetAuthorizationHeader()
     {
-        if (authService.IsAuthenticated && !string.IsNullOrEmpty(authService.AccessToken))
+        if (!string.IsNullOrEmpty(authService.AccessToken))
         {
             httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", authService.AccessToken);
         }
     }
 
+    /// <summary>
+    /// Versucht den Token zu erneuern wenn ein Refresh-Token vorhanden ist.
+    /// </summary>
+    private async Task<bool> TryRefreshTokenAsync(CancellationToken ct)
+    {
+        var refreshToken = authService.RefreshToken;
+        if (string.IsNullOrEmpty(refreshToken))
+            return false;
+
+        var acquired = await RefreshSemaphore.WaitAsync(TimeSpan.FromSeconds(10), ct);
+        if (!acquired)
+            return false;
+
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync(
+                RefreshEndpoint,
+                new { RefreshToken = refreshToken },
+                ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("[FilterPreferences] Token-Refresh fehlgeschlagen: {StatusCode}", response.StatusCode);
+                return false;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<TokenRefreshResult>(ct);
+            if (result == null)
+                return false;
+
+            authService.UpdateTokens(result.AccessToken, result.RefreshToken, result.ExpiresAt);
+            logger.LogInformation("[FilterPreferences] Token erfolgreich erneuert");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[FilterPreferences] Token-Refresh fehlgeschlagen");
+            return false;
+        }
+        finally
+        {
+            RefreshSemaphore.Release();
+        }
+    }
+
     /// <inheritdoc />
     public async Task<FilterPreferencesDto?> GetPreferencesAsync(CancellationToken ct = default)
     {
-        if (!authService.IsAuthenticated || authService.UserId == null)
+        if (authService.UserId == null || string.IsNullOrEmpty(authService.RefreshToken))
         {
             return null;
         }
@@ -44,26 +92,38 @@ public class FilterPreferencesService(
         {
             SetAuthorizationHeader();
 
-            var response = await httpClient.GetFromJsonAsync<GetUserFilterPreferencesResponse>(
-                ApiEndpoint,
-                ct);
+            var response = await httpClient.GetAsync(ApiEndpoint, ct);
 
-            if (response == null)
+            // Bei 401: Token refreshen und nochmal versuchen
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                logger.LogInformation("[FilterPreferences] 401 erhalten - versuche Token-Refresh");
+                if (await TryRefreshTokenAsync(ct))
+                {
+                    SetAuthorizationHeader();
+                    response = await httpClient.GetAsync(ApiEndpoint, ct);
+                }
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<GetUserFilterPreferencesResponse>(ct);
+            if (result == null)
             {
                 logger.LogWarning("Failed to get filter preferences - null response");
                 return FilterPreferencesDto.Default;
             }
 
             return new FilterPreferencesDto(
-                SelectedOrte: response.SelectedOrtes,
-                SelectedAgeFilter: (AgeFilter)response.SelectedAgeFilter,
-                IsHausSelected: response.IsHausSelected,
-                IsGrundstueckSelected: response.IsGrundstueckSelected,
-                IsZwangsversteigerungSelected: response.IsZwangsversteigerungSelected,
-                IsPrivateSelected: response.IsPrivateSelected,
-                IsBrokerSelected: response.IsBrokerSelected,
-                IsPortalSelected: response.IsPortalSelected,
-                ExcludedSellerSourceIds: response.ExcludedSellerSourceIds
+                SelectedOrte: result.SelectedOrtes,
+                SelectedAgeFilter: (AgeFilter)result.SelectedAgeFilter,
+                IsHausSelected: result.IsHausSelected,
+                IsGrundstueckSelected: result.IsGrundstueckSelected,
+                IsZwangsversteigerungSelected: result.IsZwangsversteigerungSelected,
+                IsPrivateSelected: result.IsPrivateSelected,
+                IsBrokerSelected: result.IsBrokerSelected,
+                IsPortalSelected: result.IsPortalSelected,
+                ExcludedSellerSourceIds: result.ExcludedSellerSourceIds
             );
         }
         catch (HttpRequestException ex)
@@ -87,7 +147,7 @@ public class FilterPreferencesService(
             authService.UserId,
             !string.IsNullOrEmpty(authService.AccessToken));
 
-        if (!authService.IsAuthenticated || authService.UserId == null)
+        if (authService.UserId == null || string.IsNullOrEmpty(authService.RefreshToken))
         {
             logger.LogWarning("User not authenticated - skipping save");
             return;
@@ -110,6 +170,17 @@ public class FilterPreferencesService(
             );
 
             var response = await httpClient.PostAsJsonAsync(ApiEndpoint, request, ct);
+
+            // Bei 401: Token refreshen und nochmal versuchen
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                logger.LogInformation("[FilterPreferences] 401 beim Speichern - versuche Token-Refresh");
+                if (await TryRefreshTokenAsync(ct))
+                {
+                    SetAuthorizationHeader();
+                    response = await httpClient.PostAsJsonAsync(ApiEndpoint, request, ct);
+                }
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -159,4 +230,10 @@ internal record SaveUserFilterPreferencesRequest(
     bool IsBrokerSelected,
     bool IsPortalSelected,
     List<Guid> ExcludedSellerSourceIds
+);
+
+internal record TokenRefreshResult(
+    string AccessToken,
+    string RefreshToken,
+    DateTimeOffset ExpiresAt
 );

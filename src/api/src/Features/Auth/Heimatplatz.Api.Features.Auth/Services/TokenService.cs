@@ -70,7 +70,7 @@ public class TokenService : ITokenService
             issuer: issuer,
             audience: audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddSeconds(30), // TEMP: 30s fuer Token-Refresh-Test
+            expires: DateTime.UtcNow.AddMinutes(validityMinutes),
             signingCredentials: credentials
         );
 

@@ -24,8 +24,8 @@ public class TokenRefreshMiddleware<TRequest, TResult>(
         RequestHandlerDelegate<TResult> next,
         CancellationToken cancellationToken)
     {
-        // Nicht authentifiziert → skip
-        if (!authService.IsAuthenticated)
+        // Kein Refresh-Token vorhanden → skip (komplett unauthentifiziert)
+        if (string.IsNullOrEmpty(authService.RefreshToken))
             return await next().ConfigureAwait(false);
 
         // Refresh-Request selbst → skip (Endlosschleifen-Schutz)
