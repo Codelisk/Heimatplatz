@@ -144,7 +144,7 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
     /// <summary>
     /// Loads a page of properties - called by PaginatedObservableCollection
     /// </summary>
-    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> LoadPageAsync(
+    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> LoadPageAsync(
         int page, int pageSize, CancellationToken ct)
     {
         _logger.LogInformation("[MyProperties] Loading page {Page} with pageSize {PageSize}", page, pageSize);
@@ -164,7 +164,7 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
             {
                 _logger.LogInformation("[MyProperties] Response was null or empty");
                 if (page == 0) IsEmpty = true;
-                return (Enumerable.Empty<PropertyListItemDto>(), false);
+                return (Enumerable.Empty<PropertyListItemDto>(), false, 0);
             }
 
             _logger.LogInformation("[MyProperties] Page {Page} loaded. Items: {Count}, HasMore: {HasMore}",
@@ -199,13 +199,13 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
                 IsEmpty = false;
             }
 
-            return (items, response.HasMore);
+            return (items, response.HasMore, response.Total);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[MyProperties] Error loading page {Page}", page);
             _ = ShowErrorDialogAsync("Fehler beim Laden", $"Die Immobilien konnten nicht geladen werden: {ex.Message}");
-            return (Enumerable.Empty<PropertyListItemDto>(), false);
+            return (Enumerable.Empty<PropertyListItemDto>(), false, 0);
         }
     }
 

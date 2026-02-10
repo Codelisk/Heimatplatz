@@ -52,7 +52,7 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
 
     #region Abstract Method Implementations
 
-    protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> FetchPageAsync(
+    protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, CancellationToken ct)
     {
         var (context, response) = await Mediator.Request(
@@ -65,7 +65,7 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
         );
 
         if (response?.Properties == null)
-            return (Enumerable.Empty<PropertyListItemDto>(), false);
+            return (Enumerable.Empty<PropertyListItemDto>(), false, 0);
 
         var items = response.Properties.Select(prop => new PropertyListItemDto(
             Id: prop.Id,
@@ -86,7 +86,7 @@ public partial class FavoritesViewModel : PropertyCollectionViewModelBase
             InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
         ));
 
-        return (items, response.HasMore);
+        return (items, response.HasMore, response.Total);
     }
 
     protected override async Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId)

@@ -171,8 +171,8 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// <summary>
     /// Fetches a page of properties from the API. To be implemented by derived classes.
     /// </summary>
-    /// <returns>Tuple with items and hasMore flag</returns>
-    protected abstract Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> FetchPageAsync(
+    /// <returns>Tuple with items, hasMore flag, and total count</returns>
+    protected abstract Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, CancellationToken ct);
 
     /// <summary>
@@ -184,14 +184,14 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// <summary>
     /// Loads a page of properties - called by PaginatedObservableCollection
     /// </summary>
-    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> LoadPageAsync(
+    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> LoadPageAsync(
         int page, int pageSize, CancellationToken ct)
     {
         Logger.LogInformation("[{PageTitle}] Loading page {Page} with pageSize {PageSize}", PageTitle, page, pageSize);
 
         try
         {
-            var (items, hasMore) = await FetchPageAsync(page, pageSize, ct);
+            var (items, hasMore, totalCount) = await FetchPageAsync(page, pageSize, ct);
             var itemsList = items.ToList();
 
             Logger.LogInformation("[{PageTitle}] Page {Page} loaded. Items: {Count}, HasMore: {HasMore}",
@@ -207,14 +207,14 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
                 IsEmpty = false;
             }
 
-            return (itemsList, hasMore);
+            return (itemsList, hasMore, totalCount);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "[{PageTitle}] Error loading page {Page}", PageTitle, page);
             // Show error dialog on UI thread
             _ = ShowErrorDialogAsync(LoadErrorTitle, GetLoadErrorMessage(ex.Message));
-            return (Enumerable.Empty<PropertyListItemDto>(), false);
+            return (Enumerable.Empty<PropertyListItemDto>(), false, 0);
         }
     }
 
