@@ -650,7 +650,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// <summary>
     /// Loads a page of properties from the API
     /// </summary>
-    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore)> LoadPageAsync(
+    private async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> LoadPageAsync(
         int page, int pageSize, CancellationToken ct)
     {
         _logger.LogInformation("[HomePage] Loading page {Page} with pageSize {PageSize}", page, pageSize);
@@ -731,16 +731,17 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             )) ?? Enumerable.Empty<PropertyListItemDto>();
 
             var hasMore = response?.HasMore ?? false;
+            var totalCount = response?.Total ?? 0;
 
             // Update UI state after loading
             DispatchToUI(UpdateResultCount);
 
-            return (items, hasMore);
+            return (items, hasMore, totalCount);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[HomePage] Error loading page {Page}", page);
-            return (Enumerable.Empty<PropertyListItemDto>(), false);
+            return (Enumerable.Empty<PropertyListItemDto>(), false, 0);
         }
     }
 
@@ -761,7 +762,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// </summary>
     private void UpdateResultCount()
     {
-        var count = Properties.Count;
+        var count = Properties.TotalCount;
         IsEmpty = count == 0;
         ResultCountText = $"{count} Objekte";
         _filterStateService.SetResultCount(count);

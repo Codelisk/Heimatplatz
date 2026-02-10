@@ -13,10 +13,11 @@ namespace Heimatplatz.Collections;
 /// <typeparam name="T">The type of items in the collection</typeparam>
 public class PaginatedObservableCollection<T> : BatchObservableCollection<T>, ISupportIncrementalLoading
 {
-    private readonly Func<int, int, CancellationToken, Task<(IEnumerable<T> Items, bool HasMore)>> _loadMoreAsync;
+    private readonly Func<int, int, CancellationToken, Task<(IEnumerable<T> Items, bool HasMore, int TotalCount)>> _loadMoreAsync;
     private int _currentPage;
     private bool _hasMore = true;
     private bool _isLoading;
+    private int _totalCount;
 
     /// <summary>
     /// Gets whether there are more items to load.
@@ -35,6 +36,11 @@ public class PaginatedObservableCollection<T> : BatchObservableCollection<T>, IS
     public int TotalLoaded => Count;
 
     /// <summary>
+    /// Gets the total number of items available on the server (from the API response).
+    /// </summary>
+    public int TotalCount => _totalCount;
+
+    /// <summary>
     /// Gets whether a load operation is currently in progress.
     /// </summary>
     public bool IsLoading => _isLoading;
@@ -50,11 +56,11 @@ public class PaginatedObservableCollection<T> : BatchObservableCollection<T>, IS
     /// <param name="loadMoreAsync">
     /// Async function to load more items.
     /// Parameters: (page, pageSize, cancellationToken)
-    /// Returns: (items, hasMore)
+    /// Returns: (items, hasMore, totalCount)
     /// </param>
     /// <param name="pageSize">Number of items to load per page. Default is 20.</param>
     public PaginatedObservableCollection(
-        Func<int, int, CancellationToken, Task<(IEnumerable<T> Items, bool HasMore)>> loadMoreAsync,
+        Func<int, int, CancellationToken, Task<(IEnumerable<T> Items, bool HasMore, int TotalCount)>> loadMoreAsync,
         int pageSize = 20)
     {
         _loadMoreAsync = loadMoreAsync ?? throw new ArgumentNullException(nameof(loadMoreAsync));
@@ -81,8 +87,9 @@ public class PaginatedObservableCollection<T> : BatchObservableCollection<T>, IS
         SetIsLoading(true);
         try
         {
-            var (items, hasMore) = await _loadMoreAsync(_currentPage, PageSize, ct);
+            var (items, hasMore, totalCount) = await _loadMoreAsync(_currentPage, PageSize, ct);
             var itemsList = items.ToList();
+            _totalCount = totalCount;
 
             // Add items using direct manipulation (no per-item notifications)
             foreach (var item in itemsList)
@@ -128,6 +135,7 @@ public class PaginatedObservableCollection<T> : BatchObservableCollection<T>, IS
         // Reset pagination state
         _currentPage = 0;
         _hasMore = true;
+        _totalCount = 0;
 
         // Load first page
         await LoadMoreItemsInternalAsync(ct);
