@@ -4,18 +4,18 @@ namespace Heimatplatz.Features.Properties.Models;
 
 /// <summary>
 /// Represents an image for display in the UI.
-/// New images have a Stream for upload; existing images have a Url.
+/// New images have byte[] data for upload; existing images have a Url.
 /// </summary>
 public record ImageItem(
     string FileName,
     string ContentType,
-    Stream Stream,
+    byte[] Data,
     BitmapImage? Thumbnail = null,
     string? Url = null
 )
 {
     /// <summary>
-    /// True if this image is already uploaded on the server (has URL, no stream data).
+    /// True if this image is already uploaded on the server (has URL, no data).
     /// </summary>
     public bool IsExisting => Url != null;
 
@@ -24,4 +24,15 @@ public record ImageItem(
     /// WinUI Image control accepts both types.
     /// </summary>
     public object? DisplaySource => IsExisting ? Url : Thumbnail;
+
+    /// <summary>
+    /// Creates a fresh MemoryStream from the byte[] data for upload.
+    /// Call this each time you need to upload the image.
+    /// </summary>
+    public MemoryStream CreateStream() => new MemoryStream(Data);
+
+    /// <summary>
+    /// Returns the image data as Base64-encoded string for JSON upload.
+    /// </summary>
+    public string ToBase64() => Convert.ToBase64String(Data);
 };

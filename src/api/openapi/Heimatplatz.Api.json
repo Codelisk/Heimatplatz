@@ -300,32 +300,6 @@
         }
       }
     },
-    "/api/properties/images": {
-      "post": {
-        "tags": [
-          "Properties"
-        ],
-        "operationId": "UploadPropertyImages",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UploadPropertyImagesResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
     "/api/auth/filter-preferences": {
       "get": {
         "tags": [
@@ -945,6 +919,36 @@
         }
       }
     },
+    "/api/properties/images": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UploadPropertyImages",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPropertyImagesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPropertyImagesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/seller-sources": {
       "get": {
         "tags": [
@@ -1203,6 +1207,25 @@
           },
           "WasAlreadyAssigned": {
             "type": "boolean"
+          }
+        }
+      },
+      "Base64ImageData": {
+        "required": [
+          "FileName",
+          "ContentType",
+          "Base64Data"
+        ],
+        "type": "object",
+        "properties": {
+          "FileName": {
+            "type": "string"
+          },
+          "ContentType": {
+            "type": "string"
+          },
+          "Base64Data": {
+            "type": "string"
           }
         }
       },
@@ -3385,6 +3408,20 @@
           }
         }
       },
+      "UploadPropertyImagesRequest": {
+        "required": [
+          "Images"
+        ],
+        "type": "object",
+        "properties": {
+          "Images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Base64ImageData"
+            }
+          }
+        }
+      },
       "UploadPropertyImagesResponse": {
         "required": [
           "ImageUrls"
@@ -3410,9 +3447,6 @@
   "tags": [
     {
       "name": "Heimatplatz.Api"
-    },
-    {
-      "name": "Properties"
     }
   ]
 }

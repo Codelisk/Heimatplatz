@@ -6,7 +6,8 @@ using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
-using Heimatplatz.Features.Properties.Contracts.Mediator.Requests;
+using UploadRequest = Heimatplatz.Core.ApiClient.Generated.UploadPropertyImagesHttpRequest;
+using UploadBase64 = Heimatplatz.Core.ApiClient.Generated.Base64ImageData;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
@@ -298,6 +299,50 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
                 SelectedGemeindeId = firstGemeinde.Id;
             }
         }
+
+        // DEBUG WORKAROUND: Auto-load test image
+        _ = LoadDebugImageAsync();
+    }
+
+    /// <summary>
+    /// DEBUG: Loads a test image automatically for quick testing.
+    /// Must be called after a small delay to ensure UI thread context.
+    /// </summary>
+    private async Task LoadDebugImageAsync()
+    {
+        try
+        {
+            // Small delay to allow UI to be ready
+            await Task.Delay(200);
+
+            var imagePath = @"C:\Users\Daniel\Pictures\FRMkTEHXoAEjgIp.jpg";
+            if (!System.IO.File.Exists(imagePath))
+            {
+                _logger.LogWarning("[AddProperty] Debug image not found: {Path}", imagePath);
+                return;
+            }
+
+            _logger.LogInformation("[AddProperty] Loading debug image from: {Path}", imagePath);
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(imagePath);
+
+            // Create thumbnail from a temporary stream
+            var thumbnail = new BitmapImage();
+            using (var thumbnailStream = new MemoryStream(fileBytes))
+            {
+                await thumbnail.SetSourceAsync(thumbnailStream.AsRandomAccessStream());
+            }
+
+            // Store byte[] in ImageItem - streams are created fresh for each upload
+            Images.Add(new ImageItem("FRMkTEHXoAEjgIp.jpg", "image/jpeg", fileBytes, thumbnail));
+            ImageCount = Images.Count;
+
+            _logger.LogInformation("[AddProperty] Debug image loaded successfully, ImageCount={Count}", ImageCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AddProperty] Failed to load debug image");
+        }
     }
 
     /// <summary>
@@ -386,19 +431,20 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
                 if (string.IsNullOrEmpty(contentType))
                     contentType = "image/jpeg";
 
-                // Read entire file into a MemoryStream (seekable, reusable for upload)
-                var memoryStream = new MemoryStream();
+                // Read entire file into byte array
+                using var memoryStream = new MemoryStream();
                 await fileStream.CopyToAsync(memoryStream);
+                var fileBytes = memoryStream.ToArray();
 
-                // Create thumbnail from the MemoryStream
+                // Create thumbnail from the byte array
                 var thumbnail = new BitmapImage();
-                memoryStream.Position = 0;
-                await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
+                using (var thumbnailStream = new MemoryStream(fileBytes))
+                {
+                    await thumbnail.SetSourceAsync(thumbnailStream.AsRandomAccessStream());
+                }
 
-                // Reset position for later upload use
-                memoryStream.Position = 0;
-
-                Images.Add(new ImageItem(file.Name, contentType, memoryStream, thumbnail));
+                // Store byte[] in ImageItem - streams are created fresh for each upload
+                Images.Add(new ImageItem(file.Name, contentType, fileBytes, thumbnail));
             }
 
             ImageCount = Images.Count;
@@ -418,7 +464,6 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [RelayCommand]
     private void RemoveImage(ImageItem image)
     {
-        image.Stream.Dispose();
         Images.Remove(image);
         ImageCount = Images.Count;
     }
@@ -426,6 +471,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [RelayCommand]
     private async Task SavePropertyAsync()
     {
+        _logger.LogInformation("[AddProperty] SavePropertyAsync CALLED - Images.Count={Count}", Images.Count);
         ErrorMessage = null;
 
         // Validation
@@ -502,28 +548,34 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
             {
                 try
                 {
-                    foreach (var img in Images)
-                        img.Stream.Position = 0;
+                    // Convert images to Base64 for JSON upload
+                    var base64Images = Images.Select(img => new UploadBase64
+                    {
+                        FileName = img.FileName,
+                        ContentType = img.ContentType,
+                        Base64Data = img.ToBase64()
+                    }).ToList();
 
-                    var imageFiles = Images.Select(img => new ImageFileData(
-                        img.FileName,
-                        img.ContentType,
-                        img.Stream
-                    )).ToList();
+                    _logger.LogInformation("[AddProperty] Starting image upload for {Count} files...", base64Images.Count);
 
                     var (_, uploadResult) = await _mediator.Request(
-                        new UploadPropertyImagesRequest(imageFiles));
+                        new UploadRequest { Body = new Heimatplatz.Core.ApiClient.Generated.UploadPropertyImagesRequest { Images = base64Images } });
 
-                    imageUrls = uploadResult?.ImageUrls;
-                    _logger.LogInformation("{Count} Bilder hochgeladen: {Urls}",
+                    imageUrls = uploadResult.ImageUrls;
+                    _logger.LogInformation("[AddProperty] {Count} Bilder hochgeladen: {Urls}",
                         imageUrls?.Count ?? 0,
                         string.Join(", ", imageUrls ?? []));
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Fehler beim Hochladen der Bilder");
+                    _logger.LogError(ex, "[AddProperty] FEHLER beim Hochladen der Bilder");
+                    ErrorMessage = $"Fehler beim Hochladen der Bilder: {ex.Message}";
+                    return; // Stop here, don't try to create property without images
                 }
             }
+
+            _logger.LogInformation("[AddProperty] Creating property with MunicipalityId: {Id}, ImageUrls: {Count}",
+                municipalityId, imageUrls?.Count ?? 0);
 
             if (isEdit)
             {
@@ -587,18 +639,17 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         }
 
         // Navigate AFTER IsBusy is false and try-finally has completed
-        // Use NavigateToRouteInContentEvent so MainPage navigates via NavigationView,
-        // which properly updates the NavigationView's selected item
+        // Use direct navigation which works from any context (inside Main or at Shell level)
         if (saveSucceeded)
         {
             try
             {
-                _logger.LogInformation("Navigating to MyProperties after {Mode}", isEdit ? "edit" : "create");
-                await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
+                _logger.LogInformation("[AddProperty] Navigating to MyProperties after {Mode}", isEdit ? "edit" : "create");
+                await _navigator.NavigateRouteAsync(this, "MyProperties");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Navigation nach dem Speichern fehlgeschlagen");
+                _logger.LogError(ex, "[AddProperty] Navigation nach dem Speichern fehlgeschlagen");
             }
         }
     }
@@ -609,7 +660,8 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     [RelayCommand]
     private async Task CancelAsync()
     {
-        await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
+        _logger.LogInformation("[AddProperty] Cancel - navigating to MyProperties");
+        await _navigator.NavigateRouteAsync(this, "MyProperties");
     }
 
     private void ResetForm()
@@ -663,8 +715,6 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
         ShortAppraisalUrl = string.Empty;
 
         // Reset Bilder
-        foreach (var img in Images)
-            img.Stream.Dispose();
         Images.Clear();
         ImageCount = 0;
 

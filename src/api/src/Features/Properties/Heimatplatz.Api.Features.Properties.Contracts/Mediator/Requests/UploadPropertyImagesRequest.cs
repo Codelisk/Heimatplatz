@@ -3,11 +3,21 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 
 /// <summary>
-/// Request zum Hochladen von Immobilien-Bildern.
-/// Die Dateien werden vom Handler aus dem HttpContext gelesen (multipart/form-data).
-/// Der Endpoint wird manuell via PropertyImageEndpoints registriert.
+/// Request zum Hochladen von Immobilien-Bildern als Base64-kodierte Daten.
+/// Ermoeglicht die Verwendung des automatisch generierten Shiny Mediator HTTP-Requests.
 /// </summary>
-public record UploadPropertyImagesRequest : IRequest<UploadPropertyImagesResponse>;
+public record UploadPropertyImagesRequest(
+    List<Base64ImageData> Images
+) : IRequest<UploadPropertyImagesResponse>;
+
+/// <summary>
+/// Base64-kodierte Bilddaten fuer den Upload.
+/// </summary>
+public record Base64ImageData(
+    string FileName,
+    string ContentType,
+    string Base64Data
+);
 
 /// <summary>
 /// Response mit den URLs der hochgeladenen Bilder.

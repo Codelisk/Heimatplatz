@@ -4,7 +4,8 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Generated;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
-using Heimatplatz.Features.Properties.Contracts.Mediator.Requests;
+using UploadRequest = Heimatplatz.Core.ApiClient.Generated.UploadPropertyImagesHttpRequest;
+using UploadBase64 = Heimatplatz.Core.ApiClient.Generated.Base64ImageData;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
@@ -198,7 +199,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
                         Images.Add(new ImageItem(
                             Path.GetFileName(new Uri(url).LocalPath),
                             "image/jpeg",
-                            Stream.Null,
+                            Array.Empty<byte>(),
                             Url: url));
                     }
                     ImageCount = Images.Count;
@@ -292,19 +293,18 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
                     List<string> newUrls = [];
                     if (newImages.Count > 0)
                     {
-                        foreach (var img in newImages)
-                            img.Stream.Position = 0;
-
-                        var imageFiles = newImages.Select(img => new ImageFileData(
-                            img.FileName,
-                            img.ContentType,
-                            img.Stream
-                        )).ToList();
+                        // Convert images to Base64 for JSON upload
+                        var base64Images = newImages.Select(img => new UploadBase64
+                        {
+                            FileName = img.FileName,
+                            ContentType = img.ContentType,
+                            Base64Data = img.ToBase64()
+                        }).ToList();
 
                         var (_, uploadResult) = await _mediator.Request(
-                            new UploadPropertyImagesRequest(imageFiles));
+                            new UploadRequest { Body = new Heimatplatz.Core.ApiClient.Generated.UploadPropertyImagesRequest { Images = base64Images } });
 
-                        newUrls = uploadResult?.ImageUrls ?? [];
+                        newUrls = uploadResult.ImageUrls ?? [];
                     }
 
                     imageUrls = [.. existingUrls, .. newUrls];
@@ -341,7 +341,8 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
                 }
             });
 
-            await _mediator.Publish(new Heimatplatz.Events.NavigateToRouteInContentEvent("MyProperties"));
+            _logger.LogInformation("[EditProperty] Navigating to MyProperties after save");
+            await _navigator.NavigateRouteAsync(this, "MyProperties");
         }
         catch (Exception ex)
         {
@@ -385,15 +386,20 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
                 if (string.IsNullOrEmpty(contentType))
                     contentType = "image/jpeg";
 
-                var memoryStream = new MemoryStream();
+                // Read entire file into byte array
+                using var memoryStream = new MemoryStream();
                 await fileStream.CopyToAsync(memoryStream);
+                var fileBytes = memoryStream.ToArray();
 
+                // Create thumbnail from the byte array
                 var thumbnail = new BitmapImage();
-                memoryStream.Position = 0;
-                await thumbnail.SetSourceAsync(memoryStream.AsRandomAccessStream());
+                using (var thumbnailStream = new MemoryStream(fileBytes))
+                {
+                    await thumbnail.SetSourceAsync(thumbnailStream.AsRandomAccessStream());
+                }
 
-                memoryStream.Position = 0;
-                Images.Add(new ImageItem(file.Name, contentType, memoryStream, thumbnail));
+                // Store byte[] in ImageItem - streams are created fresh for each upload
+                Images.Add(new ImageItem(file.Name, contentType, fileBytes, thumbnail));
             }
 
             ImageCount = Images.Count;
@@ -413,8 +419,6 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
     [RelayCommand]
     private void RemoveImage(ImageItem image)
     {
-        if (!image.IsExisting)
-            image.Stream.Dispose();
         Images.Remove(image);
         ImageCount = Images.Count;
     }

@@ -3,9 +3,6 @@ using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Auth.Presentation;
 using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
-#if DEBUG
-using Heimatplatz.Features.Debug.Presentation;
-#endif
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
@@ -53,13 +50,8 @@ public class ShellViewModel : IEventHandler<LogoutRequestedEvent>
             }
         }
 
-#if DEBUG
-        // Im Debug-Modus zur DebugStartPage navigieren für schnelles Testen
-        await _navigator.NavigateViewModelAsync<DebugStartViewModel>(this);
-#else
-        // In Release zur MainPage navigieren
+        // Immer zur MainPage navigieren (normaler App-Flow)
         await _navigator.NavigateViewModelAsync<MainViewModel>(this);
-#endif
     }
 
     /// <summary>

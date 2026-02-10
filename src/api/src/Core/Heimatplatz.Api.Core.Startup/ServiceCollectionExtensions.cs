@@ -21,7 +21,6 @@ using Heimatplatz.Api.Features.Locations;
 using Heimatplatz.Api.Features.Properties;
 using Heimatplatz.Api.Features.ForeclosureAuctions;
 using Heimatplatz.Api.Features.Notifications;
-using Heimatplatz.Api.Features.Properties.Endpoints;
 using Heimatplatz.Api.Features.PropertyImport;
 
 namespace Heimatplatz.Api.Core.Startup;
@@ -63,9 +62,6 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.ForeclosureAuctions.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Notifications.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.PropertyImport.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
-
-        // Manuell registrierte Endpoints (multipart/form-data Uploads)
-        app.MapPropertyImageEndpoints();
 
         return app;
     }

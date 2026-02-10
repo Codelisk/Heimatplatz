@@ -1,10 +1,7 @@
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
-using Heimatplatz.Features.Properties.Contracts.Mediator.Requests;
-using Heimatplatz.Features.Properties.Mediator.Requests;
 using Heimatplatz.Features.Properties.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shiny.Mediator;
 
 namespace Heimatplatz.Features.Properties.Configuration;
 
@@ -22,14 +19,8 @@ public static class ServiceCollectionExtensions
             client.BaseAddress = new Uri(baseUrl);
         });
 
-        // ImageUploadService benoetigt HttpClient mit BaseAddress fuer multipart Upload
-        services.AddHttpClient<IImageUploadService, ImageUploadService>(client =>
-        {
-            client.BaseAddress = new Uri(baseUrl);
-        });
-
-        // Mediator Handler fuer Bild-Upload registrieren
-        services.AddSingletonAsImplementedInterfaces<UploadPropertyImagesHandler>();
+        // UploadPropertyImagesHttpRequest wird automatisch via AddGeneratedOpenApiClient() registriert
+        // (siehe Core.ApiClient/Configuration/ServiceCollectionExtensions.cs)
 
         return services;
     }

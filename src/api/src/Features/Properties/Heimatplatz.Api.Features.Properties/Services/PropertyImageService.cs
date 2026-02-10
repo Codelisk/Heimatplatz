@@ -1,4 +1,5 @@
 using Heimatplatz.Api;
+using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -68,6 +69,41 @@ public class PropertyImageService(
     }
 
     /// <inheritdoc />
+    public async Task<List<string>> SaveBase64ImagesAsync(IReadOnlyList<Base64ImageData> images, CancellationToken ct = default)
+    {
+        if (images.Count == 0)
+            return [];
+
+        if (images.Count > MaxFiles)
+            throw new ArgumentException($"Maximal {MaxFiles} Bilder erlaubt, aber {images.Count} erhalten.");
+
+        var uploadPath = Path.Combine(environment.WebRootPath, UploadFolder);
+        Directory.CreateDirectory(uploadPath);
+
+        var urls = new List<string>(images.Count);
+
+        foreach (var image in images)
+        {
+            ValidateBase64Image(image);
+
+            var bytes = Convert.FromBase64String(image.Base64Data);
+
+            var extension = ContentTypeToExtension.GetValueOrDefault(image.ContentType, ".jpg");
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadPath, fileName);
+
+            await File.WriteAllBytesAsync(filePath, bytes, ct);
+
+            var url = $"/{UploadFolder}/{fileName}";
+            urls.Add(url);
+
+            logger.LogInformation("Base64-Bild gespeichert: {FileName} ({Size} bytes)", fileName, bytes.Length);
+        }
+
+        return urls;
+    }
+
+    /// <inheritdoc />
     public Task DeleteImageAsync(string imageUrl, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
@@ -99,5 +135,19 @@ public class PropertyImageService(
 
         if (!AllowedContentTypes.Contains(file.ContentType))
             throw new ArgumentException($"Dateityp '{file.ContentType}' fuer '{file.FileName}' nicht erlaubt. Erlaubt: JPEG, PNG, WebP.");
+    }
+
+    private static void ValidateBase64Image(Base64ImageData image)
+    {
+        if (string.IsNullOrWhiteSpace(image.Base64Data))
+            throw new ArgumentException($"Datei '{image.FileName}' hat keine Daten.");
+
+        // Base64-Laenge pruefen (Base64 ist ca. 4/3 der originalen Groesse)
+        var estimatedSize = image.Base64Data.Length * 3 / 4;
+        if (estimatedSize > MaxFileSize)
+            throw new ArgumentException($"Datei '{image.FileName}' ist zu gross ({estimatedSize / 1024 / 1024} MB). Maximum: {MaxFileSize / 1024 / 1024} MB.");
+
+        if (!AllowedContentTypes.Contains(image.ContentType))
+            throw new ArgumentException($"Dateityp '{image.ContentType}' fuer '{image.FileName}' nicht erlaubt. Erlaubt: JPEG, PNG, WebP.");
     }
 }
