@@ -243,32 +243,52 @@
                                         TextWrapping="Wrap" />
                                 </utu:AutoLayout>
 
-                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                              VerticalScrollBarVisibility="Disabled"
-                                              HorizontalScrollMode="Auto">
-                                    <StackPanel Orientation="Horizontal"
-                                                Spacing="8"
-                                                AutomationProperties.AutomationId="NotificationSettings_PropertyTypeChips">
-                                        <ToggleButton
-                                            Content="Haus"
-                                            IsChecked="{x:Bind ViewModel.IsHausSelected, Mode=TwoWay}"
-                                            Style="{StaticResource FilterChipBaseStyle}"
-                                            Click="OnCustomFilterChanged"
-                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Haus" />
-                                        <ToggleButton
-                                            Content="Grundstueck"
-                                            IsChecked="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}"
-                                            Style="{StaticResource FilterChipBaseStyle}"
-                                            Click="OnCustomFilterChanged"
-                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Grundstueck" />
-                                        <ToggleButton
-                                            Content="Zwangsversteigerung"
-                                            IsChecked="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}"
-                                            Style="{StaticResource FilterChipBaseStyle}"
-                                            Click="OnCustomFilterChanged"
-                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
-                                    </StackPanel>
-                                </ScrollViewer>
+                                <Grid ColumnSpacing="8" RowSpacing="8"
+                                      AutomationProperties.AutomationId="NotificationSettings_PropertyTypeChips">
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup>
+                                            <VisualState x:Name="PropertyTypeChipsWide">
+                                                <VisualState.StateTriggers>
+                                                    <AdaptiveTrigger MinWindowWidth="480" />
+                                                </VisualState.StateTriggers>
+                                                <VisualState.Setters>
+                                                    <Setter Target="ChipZwangsversteigerung.(Grid.Row)" Value="0" />
+                                                    <Setter Target="ChipZwangsversteigerung.(Grid.Column)" Value="2" />
+                                                    <Setter Target="ChipZwangsversteigerung.(Grid.ColumnSpan)" Value="1" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <ToggleButton Grid.Row="0" Grid.Column="0"
+                                        Content="Haus"
+                                        IsChecked="{x:Bind ViewModel.IsHausSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Haus" />
+                                    <ToggleButton Grid.Row="0" Grid.Column="1"
+                                        Content="Grundstueck"
+                                        IsChecked="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Grundstueck" />
+                                    <ToggleButton x:Name="ChipZwangsversteigerung"
+                                        Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                                        HorizontalAlignment="Left"
+                                        Content="Zwangsversteigerung"
+                                        IsChecked="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
+                                </Grid>
                             </utu:AutoLayout>
                         </utu:CardContentControl>
 
@@ -289,32 +309,28 @@
                                         TextWrapping="Wrap" />
                                 </utu:AutoLayout>
 
-                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                              VerticalScrollBarVisibility="Disabled"
-                                              HorizontalScrollMode="Auto">
-                                    <StackPanel Orientation="Horizontal"
-                                                Spacing="8"
-                                                AutomationProperties.AutomationId="NotificationSettings_SellerTypeChips">
-                                        <ToggleButton
-                                            Content="Privat"
-                                            IsChecked="{x:Bind ViewModel.IsPrivateSelected, Mode=TwoWay}"
-                                            Style="{StaticResource FilterChipBaseStyle}"
-                                            Click="OnCustomFilterChanged"
-                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Private" />
-                                        <ToggleButton
-                                            Content="Makler"
-                                            IsChecked="{x:Bind ViewModel.IsBrokerSelected, Mode=TwoWay}"
-                                            Style="{StaticResource FilterChipBaseStyle}"
-                                            Click="OnCustomFilterChanged"
-                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
-                                        <ToggleButton
-                                            Content="Portal"
-                                            IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
-                                            Style="{StaticResource FilterChipBaseStyle}"
-                                            Click="OnCustomFilterChanged"
-                                            AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
-                                    </StackPanel>
-                                </ScrollViewer>
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="8"
+                                            AutomationProperties.AutomationId="NotificationSettings_SellerTypeChips">
+                                    <ToggleButton
+                                        Content="Privat"
+                                        IsChecked="{x:Bind ViewModel.IsPrivateSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Private" />
+                                    <ToggleButton
+                                        Content="Makler"
+                                        IsChecked="{x:Bind ViewModel.IsBrokerSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
+                                    <ToggleButton
+                                        Content="Portal"
+                                        IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
+                                        Style="{StaticResource FilterChipBaseStyle}"
+                                        Click="OnCustomFilterChanged"
+                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
+                                </StackPanel>
                             </utu:AutoLayout>
                         </utu:CardContentControl>
 
