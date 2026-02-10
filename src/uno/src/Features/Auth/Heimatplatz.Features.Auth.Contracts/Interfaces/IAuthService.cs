@@ -16,6 +16,11 @@ public interface IAuthService
     string? AccessToken { get; }
 
     /// <summary>
+    /// Der aktuelle Refresh Token (null wenn nicht angemeldet)
+    /// </summary>
+    string? RefreshToken { get; }
+
+    /// <summary>
     /// Die aktuelle Benutzer-ID (null wenn nicht angemeldet)
     /// </summary>
     Guid? UserId { get; }
@@ -50,6 +55,12 @@ public interface IAuthService
         string email,
         string fullName,
         DateTimeOffset expiresAt);
+
+    /// <summary>
+    /// Aktualisiert nur die Tokens (nach erfolgreichem Refresh).
+    /// Aendert nicht userId/email/fullName und loest kein AuthenticationStateChanged aus.
+    /// </summary>
+    void UpdateTokens(string accessToken, string refreshToken, DateTimeOffset expiresAt);
 
     /// <summary>
     /// Loescht alle Authentifizierungsdaten (Logout)

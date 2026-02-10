@@ -28,4 +28,14 @@ public static class ServiceCollectionExtensions
         cfg.Services.AddSingleton<IExceptionHandler, AuthExceptionHandler>();
         return cfg;
     }
+
+    /// <summary>
+    /// Registriert die Token-Refresh-Middleware die bei 401 automatisch den Token erneuert.
+    /// Wird im ShinyMediatorBuilder Callback aufgerufen.
+    /// </summary>
+    public static ShinyMediatorBuilder AddTokenRefreshMiddleware(this ShinyMediatorBuilder cfg)
+    {
+        cfg.AddOpenRequestMiddleware(typeof(TokenRefreshMiddleware<,>), ServiceLifetime.Singleton);
+        return cfg;
+    }
 }

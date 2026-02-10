@@ -46,7 +46,8 @@ public static class ServiceCollectionExtensions
         {
             cfg.AddEventCollector<UnoEventCollector>()
                .AddMediatorRegistry()
-               .AddAuthExceptionHandler();
+               .AddAuthExceptionHandler()
+               .AddTokenRefreshMiddleware();
         });
 
         // Initialize Shiny Core (IPlatform, IKeyValueStore, etc.)

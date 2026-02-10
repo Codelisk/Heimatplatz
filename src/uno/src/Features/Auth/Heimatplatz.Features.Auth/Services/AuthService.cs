@@ -35,6 +35,9 @@ public class AuthService : IAuthService
     public string? AccessToken => _accessToken;
 
     /// <inheritdoc />
+    public string? RefreshToken => _refreshToken;
+
+    /// <inheritdoc />
     public Guid? UserId => _userId;
 
     /// <inheritdoc />
@@ -75,6 +78,17 @@ public class AuthService : IAuthService
         SaveToStorage();
 
         AuthenticationStateChanged?.Invoke(this, true);
+    }
+
+    /// <inheritdoc />
+    public void UpdateTokens(string accessToken, string refreshToken, DateTimeOffset expiresAt)
+    {
+        _accessToken = accessToken;
+        _refreshToken = refreshToken;
+        _expiresAt = expiresAt;
+
+        ExtractRolesFromToken(accessToken);
+        SaveToStorage();
     }
 
     /// <inheritdoc />
