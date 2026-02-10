@@ -50,6 +50,12 @@ public class TokenRefreshMiddleware<TRequest, TResult>(
             if (refreshed)
             {
                 logger.LogInformation("[TokenRefresh] Token erfolgreich erneuert - wiederhole Request");
+
+                // HTTP-Headers vom fehlgeschlagenen Request entfernen,
+                // damit der Handler sie beim Retry neu setzen kann
+                context.RemoveHeader("Http.Request");
+                context.RemoveHeader("Http.Response");
+
                 return await next().ConfigureAwait(false);
             }
 
