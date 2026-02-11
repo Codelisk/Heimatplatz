@@ -5,6 +5,14 @@
 
     <!-- Uno Platform Single Target: android, ios, desktop, wasm, false (alle) -->
     <UNO_SINGLE_TARGET Condition="'$(UNO_SINGLE_TARGET)' == ''">desktop</UNO_SINGLE_TARGET>
+
+    <!--
+      macOS + Debug: Standard auf iOS Simulator (x64) setzen.
+      Aktuell nur ein Mac vorhanden (Intel Core i5), daher iossimulator-x64 statt arm64.
+      Bei Wechsel auf Apple Silicon → iossimulator-arm64 verwenden.
+    -->
+    <UNO_SINGLE_TARGET Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(Configuration)' == 'Debug' AND '$(UNO_SINGLE_TARGET)' == 'desktop'">ios</UNO_SINGLE_TARGET>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('OSX')) AND '$(Configuration)' == 'Debug' AND '$(UNO_SINGLE_TARGET)' == 'ios' AND '$(RuntimeIdentifier)' == ''">iossimulator-x64</RuntimeIdentifier>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
