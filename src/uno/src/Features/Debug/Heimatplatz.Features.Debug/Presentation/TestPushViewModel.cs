@@ -1,10 +1,10 @@
 #if DEBUG
-using System.Net.Http.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Configuration;
+using Heimatplatz.Core.ApiClient.Generated;
 using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
+using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Features.Debug.Presentation;
@@ -17,8 +17,7 @@ public partial class TestPushViewModel : ObservableObject
 {
     private readonly INavigator _navigator;
     private readonly ILogger<TestPushViewModel> _logger;
-    private readonly HttpClient _httpClient;
-    private readonly string _baseUrl;
+    private readonly IMediator _mediator;
 
     [ObservableProperty]
     private string _title = "Test Notification";
@@ -38,18 +37,11 @@ public partial class TestPushViewModel : ObservableObject
     public TestPushViewModel(
         INavigator navigator,
         ILogger<TestPushViewModel> logger,
-        IConfiguration configuration,
-        IHttpClientFactory httpClientFactory)
+        IMediator mediator)
     {
         _navigator = navigator;
         _logger = logger;
-        _httpClient = httpClientFactory.CreateClient();
-
-        // Get base URL from configuration (same as Mediator HTTP config)
-        _baseUrl = configuration["Mediator:Http:Heimatplatz.Core.ApiClient.Generated.*"]
-            ?? "http://localhost:5292";
-
-        _logger.LogInformation("[TestPush] Base URL: {BaseUrl}", _baseUrl);
+        _mediator = mediator;
     }
 
     [RelayCommand]
@@ -69,23 +61,17 @@ public partial class TestPushViewModel : ObservableObject
         {
             _logger.LogInformation("[TestPush] Sende Push: Title={Title}, Body={Body}", Title, Body);
 
-            var request = new SendTestPushRequest(Title, Body);
-            var response = await _httpClient.PostAsJsonAsync(
-                $"{_baseUrl}/api/notifications/test-push",
-                request);
+            var (_, result) = await _mediator.Request(new SendTestPushHttpRequest
+            {
+                Body = new SendTestPushRequest
+                {
+                    Title = Title,
+                    Body = Body
+                }
+            });
 
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<SendTestPushResponse>();
-                ResultMessage = result?.Message ?? "Push gesendet!";
-                _logger.LogInformation("[TestPush] Erfolg: {Message}", ResultMessage);
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                ResultMessage = $"Fehler: {response.StatusCode} - {errorContent}";
-                _logger.LogWarning("[TestPush] Fehler: {StatusCode} - {Content}", response.StatusCode, errorContent);
-            }
+            ResultMessage = result?.Message ?? "Push gesendet!";
+            _logger.LogInformation("[TestPush] Erfolg: {Message}", ResultMessage);
         }
         catch (Exception ex)
         {
@@ -104,9 +90,5 @@ public partial class TestPushViewModel : ObservableObject
     {
         await _navigator.NavigateBackAsync(this);
     }
-
-    // DTOs for API call
-    private record SendTestPushRequest(string Title, string Body);
-    private record SendTestPushResponse(int SentCount, string Message);
 }
 #endif

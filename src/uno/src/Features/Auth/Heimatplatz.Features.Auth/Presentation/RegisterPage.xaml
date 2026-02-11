@@ -166,7 +166,8 @@
                                             <PasswordBox Password="{Binding PasswortBestaetigung, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                          PlaceholderText="Passwort wiederholen"
                                                          Padding="12,14"
-                                                         CornerRadius="{StaticResource RadiusSm}" />
+                                                         CornerRadius="{StaticResource RadiusSm}"
+                                                         KeyDown="PasswordBox_KeyDown" />
                                         </StackPanel>
 
                                         <!-- Rollenauswahl -->

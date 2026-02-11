@@ -22,7 +22,7 @@ public class GetUserBlockedHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<GetUserBlockedRequest, GetUserBlockedResponse>
 {
-    [MediatorHttpGet("", OperationId = "GetUserBlocked", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireBuyer])]
+    [MediatorHttpGet("", OperationId = "GetUserBlocked", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public async Task<GetUserBlockedResponse> Handle(GetUserBlockedRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token

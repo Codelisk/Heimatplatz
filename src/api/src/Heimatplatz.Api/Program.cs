@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Heimatplatz.Api;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Startup;
@@ -10,6 +11,8 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddExceptionHandler<UnauthorizedExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddApiServices(builder.Configuration);
 
 // CORS fuer Uno WASM Frontend
@@ -101,6 +104,7 @@ var app = builder.Build();
 // Datenbank initialisieren (Migration + Seeding basierend auf DatabaseOptions)
 await app.InitializeDatabaseAsync();
 
+app.UseExceptionHandler();
 app.UseCors();
 app.UseStaticFiles();
 app.UseHttpsRedirection();

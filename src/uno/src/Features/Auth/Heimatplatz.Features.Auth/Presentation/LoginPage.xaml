@@ -119,7 +119,8 @@
                                             <PasswordBox Password="{Binding Passwort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                          PlaceholderText="Ihr Passwort"
                                                          Padding="12,14"
-                                                         CornerRadius="{StaticResource RadiusSm}" />
+                                                         CornerRadius="{StaticResource RadiusSm}"
+                                                         KeyDown="PasswordBox_KeyDown" />
                                         </StackPanel>
 
                                     </StackPanel>

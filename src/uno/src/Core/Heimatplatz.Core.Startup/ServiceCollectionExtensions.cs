@@ -64,7 +64,7 @@ public static class ServiceCollectionExtensions
         services.AddAppUpdateFeature();
         services.AddAuthFeature();
         services.AddNotificationsFeature();
-        services.AddPropertiesFeature(configuration);
+        services.AddPropertiesFeature();
 
         return services;
     }
