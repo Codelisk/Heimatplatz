@@ -7,8 +7,10 @@ using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
+using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
+using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -118,7 +120,35 @@ public class CreatePropertyHandler(
             }
         }
 
+        // Kontaktdaten des Erstellers automatisch verknuepfen
+        var user = await dbContext.Set<User>()
+            .FirstAsync(u => u.Id == userId, cancellationToken);
+
+        var contactType = user.SellerType switch
+        {
+            SellerType.Broker => ContactType.Agent,
+            SellerType.Portal => ContactType.Agent,
+            _ => ContactType.Seller
+        };
+
+        var contact = new PropertyContactInfo
+        {
+            Id = Guid.NewGuid(),
+            PropertyId = property.Id,
+            Type = contactType,
+            Source = ContactSource.Manual,
+            Name = user.SellerType == SellerType.Broker && !string.IsNullOrEmpty(user.CompanyName)
+                ? user.CompanyName
+                : user.FullName,
+            Email = user.Email,
+            DisplayOrder = 0,
+            CreatedAt = property.CreatedAt
+        };
+
+        property.Contacts.Add(contact);
+
         dbContext.Set<Property>().Add(property);
+        dbContext.Set<PropertyContactInfo>().Add(contact);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         // Load Municipality for City name
