@@ -63,7 +63,7 @@
                                     <!-- Typ-Badge (oben links) -->
                                     <Border x:Name="MobileTypeBadge"
                                             Background="{x:Bind ViewModel.TypeBadgeBrush, Mode=OneWay}"
-                                            CornerRadius="{StaticResource RadiusLg}"
+                                            CornerRadius="{StaticResource RadiusMd}"
                                             Padding="12,6"
                                             Margin="12"
                                             VerticalAlignment="Top"
@@ -145,7 +145,7 @@
 
                                                     <!-- Section Items -->
                                                     <Border Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                                            CornerRadius="{StaticResource RadiusLg}"
+                                                            CornerRadius="{StaticResource RadiusMd}"
                                                             Padding="0">
                                                         <ItemsRepeater ItemsSource="{x:Bind Items}">
                                                             <ItemsRepeater.ItemTemplate>
@@ -229,7 +229,7 @@
                                     <Border Background="{ThemeResource SurfaceBrush}"
                                             BorderBrush="{ThemeResource BorderBrush}"
                                             BorderThickness="0.5"
-                                            CornerRadius="{StaticResource RadiusLg}"
+                                            CornerRadius="{StaticResource RadiusMd}"
                                             Padding="20"
                                             Margin="0,4,0,0"
                                             Translation="0,0,12">
@@ -378,7 +378,7 @@
                                     Spacing="24">
 
                             <!-- Hero Image (volle Breite) mit Schatten -->
-                            <Border CornerRadius="{StaticResource RadiusLg}" Height="480"
+                            <Border CornerRadius="{StaticResource RadiusMd}" Height="480"
                                     Translation="0,0,16">
                                 <Border.Shadow>
                                     <ThemeShadow />
@@ -388,7 +388,7 @@
                                 </Border.Clip>
                                 <Grid>
                                     <Border Background="{ThemeResource PlaceholderBrush}"
-                                            CornerRadius="{StaticResource RadiusLg}">
+                                            CornerRadius="{StaticResource RadiusMd}">
                                         <FontIcon Glyph="&#xE722;"
                                                   FontSize="64"
                                                   Foreground="{ThemeResource DetailsBrush}"
@@ -408,7 +408,7 @@
                                     </FlipView>
 
                                     <!-- Gradient Overlay -->
-                                    <Border CornerRadius="{StaticResource RadiusLg}" IsHitTestVisible="False">
+                                    <Border CornerRadius="{StaticResource RadiusMd}" IsHitTestVisible="False">
                                         <Border.Background>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                                 <GradientStop Color="#40000000" Offset="0" />
@@ -516,7 +516,7 @@
 
                                                 <!-- Section Items -->
                                                 <Border Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                                        CornerRadius="{StaticResource RadiusLg}"
+                                                        CornerRadius="{StaticResource RadiusMd}"
                                                         Padding="0">
                                                     <ItemsRepeater ItemsSource="{x:Bind Items}">
                                                         <ItemsRepeater.ItemTemplate>

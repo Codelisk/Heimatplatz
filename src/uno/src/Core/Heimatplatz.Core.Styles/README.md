@@ -85,7 +85,6 @@ Oeffne `ThemeOverrides.xaml` und aendere die Farben:
 
 <CornerRadius x:Key="RadiusSm">4</CornerRadius>
 <CornerRadius x:Key="RadiusMd">8</CornerRadius>
-<CornerRadius x:Key="RadiusLg">12</CornerRadius>
 ```
 
 ## Control Styling

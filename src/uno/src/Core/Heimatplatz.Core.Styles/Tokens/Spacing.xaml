@@ -13,7 +13,6 @@
     <!-- Corner Radius -->
     <CornerRadius x:Key="RadiusSm">4</CornerRadius>
     <CornerRadius x:Key="RadiusMd">8</CornerRadius>
-    <CornerRadius x:Key="RadiusLg">12</CornerRadius>
     <CornerRadius x:Key="RadiusFull">9999</CornerRadius>
 
     <!-- Corner Radius - Composite (TopLeft, TopRight, BottomRight, BottomLeft) -->
