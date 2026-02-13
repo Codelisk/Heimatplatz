@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
@@ -6,6 +7,8 @@ using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
+using Heimatplatz.Features.Properties.Contracts.Models.TypeSpecific;
+using Heimatplatz.Features.Properties.Contracts.Models.TypeSpecific.Enums;
 using Microsoft.Extensions.Logging;
 using Shiny.Mediator;
 
@@ -79,6 +82,27 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     [ObservableProperty]
     private Microsoft.UI.Xaml.Media.Brush? _typeBadgeBrush;
 
+    [ObservableProperty]
+    private List<PropertyDetailSection> _detailSections = [];
+
+    [ObservableProperty]
+    private string? _description;
+
+    [ObservableProperty]
+    private bool _hasDescription;
+
+    [ObservableProperty]
+    private List<string> _featuresList = [];
+
+    [ObservableProperty]
+    private bool _hasFeatures;
+
+    [ObservableProperty]
+    private bool _isBroker;
+
+    [ObservableProperty]
+    private string? _originalListingUrl;
+
     /// <summary>
     /// Text for the favorite button based on current status
     /// </summary>
@@ -123,6 +147,11 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     /// </summary>
     public bool HasContacts => Property?.Contacts?.Count > 0;
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private void UpdateDisplayProperties()
     {
         if (Property == null)
@@ -135,7 +164,14 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             ContactPersonText = string.Empty;
             HasContactPerson = false;
             IsHouseType = false;
+            IsBroker = false;
+            OriginalListingUrl = null;
             TypeBadgeText = string.Empty;
+            DetailSections = [];
+            Description = null;
+            HasDescription = false;
+            FeaturesList = [];
+            HasFeatures = false;
             return;
         }
 
@@ -186,14 +222,246 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         // Full address: "Strasse, PLZ Ort"
         AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
 
+        // Broker vs Private
+        IsBroker = Property.SellerType == SellerType.Broker;
+        OriginalListingUrl = Property.Contacts?.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.OriginalListingUrl))?.OriginalListingUrl;
+
         // Contact person (first contact name if available)
         var firstContact = Property.Contacts?.FirstOrDefault();
         HasContactPerson = firstContact != null;
         ContactPersonText = firstContact != null ? $"Herr/Frau {firstContact.Name}" : string.Empty;
 
+        // Description
+        Description = Property.Description;
+        HasDescription = !string.IsNullOrWhiteSpace(Property.Description);
+
+        // Features
+        FeaturesList = Property.Features ?? [];
+        HasFeatures = FeaturesList.Count > 0;
+
+        // Build structured data table
+        BuildDetailSections();
+
         // Notify all computed properties
         OnPropertyChanged(nameof(HasContacts));
     }
+
+    private void BuildDetailSections()
+    {
+        if (Property == null) return;
+
+        var items = new List<PropertyDetailItem>();
+
+        // --- Basisdaten (highlighted) ---
+        var typeLabel = Property.Type switch
+        {
+            PropertyType.House => "Haus",
+            PropertyType.Land => "Grundstueck",
+            PropertyType.Foreclosure => "Zwangsversteigerung",
+            _ => Property.Type.ToString()
+        };
+        AddIfNotEmpty(items, "Titel", Property.Title, PropertyDataCategory.Basisdaten, true);
+        items.Add(new PropertyDetailItem("Immobilienart", typeLabel, PropertyDataCategory.Basisdaten, true));
+        items.Add(new PropertyDetailItem("Kaufpreis", FormattedPrice, PropertyDataCategory.Basisdaten, true));
+        AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, "Adresse", Property.Address, PropertyDataCategory.Basisdaten, true);
+
+        // Deserialize TypeSpecificData
+        HousePropertyData? houseData = null;
+        LandPropertyData? landData = null;
+        ForeclosurePropertyData? foreclosureData = null;
+
+        if (!string.IsNullOrWhiteSpace(Property.TypeSpecificData))
+        {
+            try
+            {
+                switch (Property.Type)
+                {
+                    case PropertyType.House:
+                        houseData = JsonSerializer.Deserialize<HousePropertyData>(Property.TypeSpecificData, JsonOptions);
+                        break;
+                    case PropertyType.Land:
+                        landData = JsonSerializer.Deserialize<LandPropertyData>(Property.TypeSpecificData, JsonOptions);
+                        break;
+                    case PropertyType.Foreclosure:
+                        foreclosureData = JsonSerializer.Deserialize<ForeclosurePropertyData>(Property.TypeSpecificData, JsonOptions);
+                        break;
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "[PropertyDetail] Failed to deserialize TypeSpecificData");
+            }
+        }
+
+        // --- Flaechen ---
+        // Use TypeSpecificData if available, otherwise fall back to core fields
+        if (houseData != null && houseData.LivingAreaInSquareMeters > 0)
+            items.Add(new PropertyDetailItem("Wohnflaeche", FormatArea(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
+        else
+            AddIfHasValue(items, "Wohnflaeche", Property.LivingAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
+
+        if (landData != null && landData.PlotSizeInSquareMeters > 0)
+            items.Add(new PropertyDetailItem("Grundstuecksflaeche", FormatArea(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
+        else
+            AddIfHasValue(items, "Grundstuecksflaeche", Property.PlotAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
+
+        // --- Gebaeude (House) ---
+        if (houseData != null)
+        {
+            if (houseData.TotalRooms > 0)
+                items.Add(new PropertyDetailItem("Zimmer", houseData.TotalRooms.ToString(), PropertyDataCategory.Gebaeude));
+            else
+                AddIfHasValue(items, "Zimmer", Property.Rooms, v => v.ToString(), PropertyDataCategory.Gebaeude);
+
+            if (houseData.Bedrooms > 0)
+                items.Add(new PropertyDetailItem("Schlafzimmer", houseData.Bedrooms.ToString(), PropertyDataCategory.Gebaeude));
+            if (houseData.Bathrooms > 0)
+                items.Add(new PropertyDetailItem("Badezimmer", houseData.Bathrooms.ToString(), PropertyDataCategory.Gebaeude));
+            if (houseData.Floors > 0)
+                items.Add(new PropertyDetailItem("Stockwerke", houseData.Floors.ToString(), PropertyDataCategory.Gebaeude));
+            if (houseData.YearBuilt.HasValue)
+                items.Add(new PropertyDetailItem("Baujahr", houseData.YearBuilt.Value.ToString(), PropertyDataCategory.Gebaeude));
+            else
+                AddIfHasValue(items, "Baujahr", Property.YearBuilt, v => v.ToString(), PropertyDataCategory.Gebaeude);
+
+            items.Add(new PropertyDetailItem("Zustand", FormatCondition(houseData.Condition), PropertyDataCategory.Gebaeude));
+
+            if (houseData.ApartmentFloor.HasValue)
+                items.Add(new PropertyDetailItem("Etage", houseData.ApartmentFloor.Value.ToString(), PropertyDataCategory.Gebaeude));
+        }
+        else
+        {
+            // Fallback to core fields when no HousePropertyData
+            AddIfHasValue(items, "Zimmer", Property.Rooms, v => v.ToString(), PropertyDataCategory.Gebaeude);
+            AddIfHasValue(items, "Baujahr", Property.YearBuilt, v => v.ToString(), PropertyDataCategory.Gebaeude);
+        }
+
+        // --- Ausstattung (House) ---
+        if (houseData != null)
+        {
+            if (houseData.HasGarage)
+                items.Add(new PropertyDetailItem("Garage", "Ja", PropertyDataCategory.Ausstattung));
+            if (houseData.HasGarden)
+                items.Add(new PropertyDetailItem("Garten", "Ja", PropertyDataCategory.Ausstattung));
+            if (houseData.HasBasement)
+                items.Add(new PropertyDetailItem("Keller", "Ja", PropertyDataCategory.Ausstattung));
+            if (houseData.HasElevator == true)
+                items.Add(new PropertyDetailItem("Aufzug", "Ja", PropertyDataCategory.Ausstattung));
+        }
+
+        // --- Grundstueck (Land) ---
+        if (landData != null)
+        {
+            items.Add(new PropertyDetailItem("Widmung", FormatZoning(landData.Zoning), PropertyDataCategory.Grundstueck));
+            items.Add(new PropertyDetailItem("Baurecht", FormatBool(landData.HasBuildingRights), PropertyDataCategory.Grundstueck));
+            items.Add(new PropertyDetailItem("Bebaubar", FormatBool(landData.IsBuildable), PropertyDataCategory.Grundstueck));
+            items.Add(new PropertyDetailItem("Versorgung", FormatBool(landData.HasUtilities), PropertyDataCategory.Grundstueck));
+            if (landData.SoilQuality.HasValue)
+                items.Add(new PropertyDetailItem("Bodenqualitaet", FormatSoilQuality(landData.SoilQuality.Value), PropertyDataCategory.Grundstueck));
+        }
+
+        // --- Versteigerung (Foreclosure) ---
+        if (foreclosureData != null)
+        {
+            AddIfNotEmpty(items, "Gericht", foreclosureData.CourtName, PropertyDataCategory.Versteigerung);
+            AddIfNotEmpty(items, "Aktenzeichen", foreclosureData.FileNumber, PropertyDataCategory.Versteigerung);
+            items.Add(new PropertyDetailItem("Termin", foreclosureData.AuctionDate.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung));
+            items.Add(new PropertyDetailItem("Mindestgebot", $"{foreclosureData.MinimumBid:N0} \u20AC".Replace(",", "."), PropertyDataCategory.Versteigerung));
+            items.Add(new PropertyDetailItem("Status", FormatLegalStatus(foreclosureData.Status), PropertyDataCategory.Versteigerung));
+        }
+
+        // --- Kosten ---
+        if (Property.LivingAreaM2.HasValue && Property.LivingAreaM2.Value > 0)
+        {
+            var pricePerSqm = Property.Price / Property.LivingAreaM2.Value;
+            items.Add(new PropertyDetailItem("Preis / m\u00B2", $"{pricePerSqm:N2} \u20AC".Replace(",", "."), PropertyDataCategory.Kosten));
+        }
+
+        // --- Basisdaten: Eingestellt am ---
+        items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
+
+        // --- Sonstiges ---
+        AddIfNotEmpty(items, "Anbieter", Property.SellerName, PropertyDataCategory.Sonstiges);
+
+        // Group by category, filter empty sections
+        DetailSections = items
+            .GroupBy(i => i.Category)
+            .OrderBy(g => g.Key)
+            .Select(g => new PropertyDetailSection(GetCategoryTitle(g.Key), g.Key, g.ToList()))
+            .ToList();
+    }
+
+    #region Formatting Helpers
+
+    private static string FormatBool(bool value) => value ? "Ja" : "Nein";
+
+    private static string FormatArea(decimal sqm) => $"{sqm:N0} m\u00B2".Replace(",", ".");
+
+    private static string FormatCondition(PropertyCondition condition) => condition switch
+    {
+        PropertyCondition.LikeNew => "Neuwertig",
+        PropertyCondition.Good => "Gut",
+        PropertyCondition.Average => "Durchschnittlich",
+        PropertyCondition.NeedsRenovation => "Sanierungsbeduerftig",
+        _ => condition.ToString()
+    };
+
+    private static string FormatZoning(ZoningType zoning) => zoning switch
+    {
+        ZoningType.Residential => "Wohngebiet",
+        ZoningType.Commercial => "Gewerbegebiet",
+        ZoningType.Industrial => "Industriegebiet",
+        ZoningType.Agricultural => "Landwirtschaft",
+        ZoningType.Mixed => "Mischgebiet",
+        _ => zoning.ToString()
+    };
+
+    private static string FormatSoilQuality(SoilQuality quality) => quality switch
+    {
+        SoilQuality.High => "Hoch",
+        SoilQuality.Medium => "Mittel",
+        SoilQuality.Low => "Niedrig",
+        _ => quality.ToString()
+    };
+
+    private static string FormatLegalStatus(LegalStatus status) => status switch
+    {
+        LegalStatus.Pending => "Anhaengig",
+        LegalStatus.Scheduled => "Terminiert",
+        LegalStatus.InProgress => "Laufend",
+        LegalStatus.Completed => "Abgeschlossen",
+        LegalStatus.Cancelled => "Aufgehoben",
+        _ => status.ToString()
+    };
+
+    private static string GetCategoryTitle(PropertyDataCategory category) => category switch
+    {
+        PropertyDataCategory.Basisdaten => "BASISDATEN",
+        PropertyDataCategory.Flaechen => "FLAECHEN",
+        PropertyDataCategory.Gebaeude => "GEBAEUDE",
+        PropertyDataCategory.Ausstattung => "AUSSTATTUNG",
+        PropertyDataCategory.Grundstueck => "GRUNDSTUECK",
+        PropertyDataCategory.Versteigerung => "VERSTEIGERUNG",
+        PropertyDataCategory.Kosten => "KOSTEN",
+        PropertyDataCategory.Sonstiges => "SONSTIGES",
+        _ => category.ToString().ToUpperInvariant()
+    };
+
+    private static void AddIfNotEmpty(List<PropertyDetailItem> items, string label, string? value, PropertyDataCategory category, bool highlighted = false)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            items.Add(new PropertyDetailItem(label, value, category, highlighted));
+    }
+
+    private static void AddIfHasValue<T>(List<PropertyDetailItem> items, string label, T? value, Func<T, string> format, PropertyDataCategory category) where T : struct
+    {
+        if (value.HasValue)
+            items.Add(new PropertyDetailItem(label, format(value.Value), category));
+    }
+
+    #endregion
 
     public async Task LoadPropertyAsync(Guid propertyId)
     {
@@ -344,6 +612,20 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             await Task.Delay(2000);
             CopyFeedback = null;
         }
+    }
+
+    /// <summary>
+    /// Oeffnet die Original-Anbieterseite im Browser
+    /// </summary>
+    [RelayCommand]
+    private async Task OpenOriginalListingAsync()
+    {
+        if (string.IsNullOrWhiteSpace(OriginalListingUrl))
+            return;
+
+        _logger.LogInformation("[PropertyDetail] Opening original listing: {Url}", OriginalListingUrl);
+
+        await Windows.System.Launcher.LaunchUriAsync(new Uri(OriginalListingUrl));
     }
 
     #region INavigationAware Implementation
