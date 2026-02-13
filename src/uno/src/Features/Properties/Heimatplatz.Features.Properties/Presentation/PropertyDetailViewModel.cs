@@ -103,6 +103,27 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     [ObservableProperty]
     private string? _originalListingUrl;
 
+    [ObservableProperty]
+    private string? _primaryContactEmail;
+
+    [ObservableProperty]
+    private string? _primaryContactPhone;
+
+    [ObservableProperty]
+    private bool _hasPrimaryEmail;
+
+    [ObservableProperty]
+    private bool _hasPrimaryPhone;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ContactExpandIcon))]
+    private bool _isContactExpanded;
+
+    /// <summary>
+    /// Chevron icon: up when collapsed (to indicate "expand"), down when expanded (to indicate "collapse")
+    /// </summary>
+    public string ContactExpandIcon => IsContactExpanded ? "\uE70D" : "\uE70E";
+
     /// <summary>
     /// Text for the favorite button based on current status
     /// </summary>
@@ -166,6 +187,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             IsHouseType = false;
             IsBroker = false;
             OriginalListingUrl = null;
+            PrimaryContactEmail = null;
+            PrimaryContactPhone = null;
+            HasPrimaryEmail = false;
+            HasPrimaryPhone = false;
             TypeBadgeText = string.Empty;
             DetailSections = [];
             Description = null;
@@ -230,6 +255,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         var firstContact = Property.Contacts?.FirstOrDefault();
         HasContactPerson = firstContact != null;
         ContactPersonText = firstContact != null ? $"Herr/Frau {firstContact.Name}" : string.Empty;
+
+        // Primary contact details for footer bar
+        PrimaryContactEmail = firstContact?.Email;
+        PrimaryContactPhone = firstContact?.Phone;
+        HasPrimaryEmail = !string.IsNullOrWhiteSpace(PrimaryContactEmail);
+        HasPrimaryPhone = !string.IsNullOrWhiteSpace(PrimaryContactPhone);
 
         // Description
         Description = Property.Description;
@@ -382,8 +413,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         // --- Basisdaten: Eingestellt am ---
         items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
 
-        // --- Sonstiges ---
-        AddIfNotEmpty(items, "Anbieter", Property.SellerName, PropertyDataCategory.Sonstiges);
+        // Anbieter wird im Footer-Bar angezeigt, nicht in der Tabelle
 
         // Group by category, filter empty sections
         DetailSections = items
@@ -612,6 +642,15 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             await Task.Delay(2000);
             CopyFeedback = null;
         }
+    }
+
+    /// <summary>
+    /// Toggles the contact detail expansion in the footer bar
+    /// </summary>
+    [RelayCommand]
+    private void ToggleContactExpanded()
+    {
+        IsContactExpanded = !IsContactExpanded;
     }
 
     /// <summary>

@@ -149,32 +149,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 125, 280, 4, 2019, PropertyType.House, SellerType.Broker, "Hausfreund Immobilien",
                 "Neuwertige Doppelhaushaelfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
                 ["Garage", "Garten", "Terrasse", "Fussbodenheizung", "Waermepumpe"],
-                "https://picsum.photos/seed/doppel1/800/600", GetMunicipalityId),
-
-            // Portal-Properties (from real estate platforms)
-            CreateProperty("Einfamilienhaus Leonding - Willhaben", "Birkenweg 5", "Leonding", 379000,
-                140, 480, 5, 2016, PropertyType.House, SellerType.Portal, "Willhaben",
-                "Gepflegtes Einfamilienhaus mit Garten, gefunden auf Willhaben. Ruhige Wohnlage nahe Linz.",
-                ["Garage", "Garten", "Terrasse", "Fussbodenheizung"],
-                "https://picsum.photos/seed/portal1/800/600", GetMunicipalityId),
-
-            CreateProperty("Baugrundstück Ansfelden - ImmoScout24", "Feldgasse 12", "Ansfelden", 198000,
-                null, 720, null, null, PropertyType.Land, SellerType.Portal, "ImmoScout24",
-                "Voll erschlossenes Baugrundstuck, gefunden auf ImmoScout24. Perfekte Lage fuer Familien.",
-                ["Erschlossen", "Strom", "Wasser", "Kanal"],
-                "https://picsum.photos/seed/portal2/800/600", GetMunicipalityId),
-
-            CreateProperty("Modernes Haus Traun - ImmobilienNET", "Linzer Strasse 88", "Traun", 329000,
-                130, 350, 4, 2021, PropertyType.House, SellerType.Portal, "ImmobilienNET",
-                "Neubau-Haus mit moderner Ausstattung. Listing von ImmobilienNET.",
-                ["Carport", "Garten", "Terrasse", "Waermepumpe", "Photovoltaik"],
-                "https://picsum.photos/seed/portal3/800/600", GetMunicipalityId),
-
-            CreateProperty("Grundstück Pasching - FindMyHome", "Wiesenstrasse 3", "Pasching", 265000,
-                null, 640, null, null, PropertyType.Land, SellerType.Portal, "FindMyHome",
-                "Sonniges Baugrundstuck in begehrter Lage. Via FindMyHome gefunden.",
-                ["Erschlossen", "Strom", "Wasser", "Kanal", "Suedlage"],
-                "https://picsum.photos/seed/portal4/800/600", GetMunicipalityId)
+                "https://picsum.photos/seed/doppel1/800/600", GetMunicipalityId)
         };
 
         // UserId und CreatedAt fuer alle Properties setzen
@@ -353,13 +328,10 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
             var contactType = property.SellerType switch
             {
                 SellerType.Broker => ContactType.Agent,
-                SellerType.Portal => ContactType.Agent,
                 _ => ContactType.Seller
             };
 
-            var contactSource = property.SellerType == SellerType.Portal
-                ? ContactSource.Import
-                : ContactSource.Manual;
+            var contactSource = ContactSource.Manual;
 
             var nameParts = property.SellerName.Split(' ');
             var emailName = nameParts.Length > 1
@@ -375,10 +347,8 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 Name = property.SellerName,
                 Email = $"{emailName}@{emailDomains[Random.Shared.Next(emailDomains.Length)]}",
                 Phone = $"{phonePrefix[Random.Shared.Next(phonePrefix.Length)]} {Random.Shared.Next(1000000, 9999999)}",
-                OriginalListingUrl = property.SellerType == SellerType.Portal
-                    ? $"https://www.{property.SellerName.ToLower().Replace(" ", "")}.at/expose/{Random.Shared.Next(100000, 999999)}"
-                    : null,
-                SourceName = property.SellerType == SellerType.Portal ? property.SellerName : null,
+                OriginalListingUrl = null,
+                SourceName = null,
                 DisplayOrder = 0,
                 CreatedAt = property.CreatedAt
             };
@@ -424,7 +394,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                     PropertyId = property.Id,
                     Type = ContactType.Agent,
                     Source = ContactSource.Import,
-                    Name = $"Anbieter via {sourceName}",
+                    Name = property.SellerName,
                     OriginalListingUrl = $"{baseUrl}{sourceId}",
                     SourceName = sourceName,
                     SourceId = sourceId,
