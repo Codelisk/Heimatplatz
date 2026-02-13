@@ -56,3 +56,6 @@ GoogleService-Info.plist
 start-app*.ps1
 app-log.txt
 nul
+
+# ImmoCrawler data exports
+data/immocrawler/
