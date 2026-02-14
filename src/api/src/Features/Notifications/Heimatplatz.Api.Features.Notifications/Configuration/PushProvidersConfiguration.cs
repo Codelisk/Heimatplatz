@@ -39,26 +39,36 @@ public static class PushProvidersConfiguration
         {
             // Priority 1: Direct key content (for Azure/cloud deployment via environment variable)
             // Priority 2: File path (for local development)
-            var jwtContent = !string.IsNullOrEmpty(options.Apns.PrivateKeyContent)
-                ? options.Apns.PrivateKeyContent
-                : File.ReadAllText(options.Apns.PrivateKeyPath!);
+            string? jwtContent = null;
 
-            var jwtToken = new ApnsJsonToken
+            if (!string.IsNullOrEmpty(options.Apns.PrivateKeyContent))
             {
-                Content = jwtContent,
-                KeyId = options.Apns.KeyId!,
-                TeamId = options.Apns.TeamId!
-            };
+                jwtContent = options.Apns.PrivateKeyContent;
+            }
+            else if (!string.IsNullOrEmpty(options.Apns.PrivateKeyPath) && File.Exists(options.Apns.PrivateKeyPath))
+            {
+                jwtContent = File.ReadAllText(options.Apns.PrivateKeyPath);
+            }
 
-            var apnsSettings = new ApnsSettingsBuilder()
-                .InEnvironment(options.Apns.UseProduction ? ApnsEnvironment.Production : ApnsEnvironment.Development)
-                .SetTopic(options.Apns.BundleId)
-                .WithJsonToken(jwtToken)
-                .Build();
+            if (!string.IsNullOrEmpty(jwtContent))
+            {
+                var jwtToken = new ApnsJsonToken
+                {
+                    Content = jwtContent,
+                    KeyId = options.Apns.KeyId!,
+                    TeamId = options.Apns.TeamId!
+                };
 
-            // Required for JWT token caching
-            services.AddDistributedMemoryCache();
-            services.AddApns(settings: apnsSettings);
+                var apnsSettings = new ApnsSettingsBuilder()
+                    .InEnvironment(options.Apns.UseProduction ? ApnsEnvironment.Production : ApnsEnvironment.Development)
+                    .SetTopic(options.Apns.BundleId)
+                    .WithJsonToken(jwtToken)
+                    .Build();
+
+                // Required for JWT token caching
+                services.AddDistributedMemoryCache();
+                services.AddApns(settings: apnsSettings);
+            }
         }
 
         return services;
