@@ -37,7 +37,11 @@ public static class PushProvidersConfiguration
         // Register APNs client if configured
         if (options.Apns.Enabled)
         {
-            var jwtContent = File.ReadAllText(options.Apns.PrivateKeyPath!);
+            // Priority 1: Direct key content (for Azure/cloud deployment via environment variable)
+            // Priority 2: File path (for local development)
+            var jwtContent = !string.IsNullOrEmpty(options.Apns.PrivateKeyContent)
+                ? options.Apns.PrivateKeyContent
+                : File.ReadAllText(options.Apns.PrivateKeyPath!);
 
             var jwtToken = new ApnsJsonToken
             {

@@ -104,9 +104,16 @@ public static class ServiceCollectionExtensions
             await using var scope = app.Services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // SQLite: Immer EnsureCreated verwenden (keine SQL Server Migrations)
+            if (dbContext.Database.IsSqlite())
+            {
+                logger.LogInformation("SQLite detected, using EnsureCreated...");
+                await dbContext.Database.EnsureDeletedAsync();
+                await dbContext.Database.EnsureCreatedAsync();
+            }
             // Prüfen ob die Datenbank existiert - wenn nicht, nutze EnsureCreated
             // Dies ist nötig da EnsureCreated kein Migration-Tracking macht
-            if (!await dbContext.Database.CanConnectAsync())
+            else if (!await dbContext.Database.CanConnectAsync())
             {
                 logger.LogInformation("Database does not exist, creating with EnsureCreated...");
                 await dbContext.Database.EnsureCreatedAsync();

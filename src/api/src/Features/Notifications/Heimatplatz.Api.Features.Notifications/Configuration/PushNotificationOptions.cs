@@ -56,14 +56,20 @@ public class ApnsOptions
     public string? KeyId { get; set; }
 
     /// <summary>
-    /// Path to the .p8 private key file
+    /// Path to the .p8 private key file (for local development)
     /// </summary>
     public string? PrivateKeyPath { get; set; }
 
     /// <summary>
+    /// .p8 private key content directly (for Azure/cloud deployment).
+    /// Set via environment variable: PushNotifications__Apns__PrivateKeyContent
+    /// </summary>
+    public string? PrivateKeyContent { get; set; }
+
+    /// <summary>
     /// Bundle ID of the iOS app
     /// </summary>
-    public string BundleId { get; set; } = "com.heimatplatz.app";
+    public string BundleId { get; set; } = "at.heimatplatz.app";
 
     /// <summary>
     /// Whether to use the production APNs server (false = sandbox)
@@ -75,5 +81,5 @@ public class ApnsOptions
     /// </summary>
     public bool Enabled => !string.IsNullOrEmpty(TeamId)
                            && !string.IsNullOrEmpty(KeyId)
-                           && !string.IsNullOrEmpty(PrivateKeyPath);
+                           && (!string.IsNullOrEmpty(PrivateKeyPath) || !string.IsNullOrEmpty(PrivateKeyContent));
 }

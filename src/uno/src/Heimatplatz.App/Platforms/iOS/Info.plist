@@ -34,6 +34,12 @@
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 
+		<!-- Background Modes for Push Notifications -->
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>remote-notification</string>
+		</array>
+
 		<!-- Deep Link URL Schema -->
 		<key>CFBundleURLTypes</key>
 		<array>

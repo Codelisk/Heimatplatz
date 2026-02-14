@@ -21,6 +21,10 @@ public static class ServiceCollectionExtensions
             {
                 options.UseInMemoryDatabase("BuildTimeDb");
             }
+            else if (connectionString.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+            {
+                options.UseSqlite(connectionString);
+            }
             else
             {
                 options.UseSqlServer(connectionString);
@@ -42,7 +46,16 @@ public static class ServiceCollectionExtensions
         {
             await using var scope = serviceProvider.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await dbContext.Database.MigrateAsync();
+
+            // SQLite: EnsureCreated (keine SQL Server Migrations)
+            if (dbContext.Database.IsSqlite())
+            {
+                await dbContext.Database.EnsureCreatedAsync();
+            }
+            else
+            {
+                await dbContext.Database.MigrateAsync();
+            }
         }
     }
 }

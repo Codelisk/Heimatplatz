@@ -21,4 +21,9 @@
     <ProjectReference Include="..\Core\Heimatplatz.Api.Core.Startup\Heimatplatz.Api.Core.Startup.csproj" />
   </ItemGroup>
 
+  <!-- APNs Auth Key for Push Notifications -->
+  <ItemGroup>
+    <None Include="apns-auth-key.p8" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="Exists('apns-auth-key.p8')" />
+  </ItemGroup>
+
 </Project>

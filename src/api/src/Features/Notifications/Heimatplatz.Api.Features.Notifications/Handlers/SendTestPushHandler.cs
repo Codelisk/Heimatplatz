@@ -1,79 +1,144 @@
+using Fitomad.Apns;
+using Fitomad.Apns.Entities.Notification;
 using FirebaseAdmin.Messaging;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Notifications.Configuration;
 using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Notifications.Handlers;
 
 /// <summary>
-/// Handler to send test push notifications (Debug only)
+/// Handler to send test push notifications to all registered devices (Debug only)
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/notifications")]
 public class SendTestPushHandler(
     AppDbContext dbContext,
-    ILogger<SendTestPushHandler> logger
+    ILogger<SendTestPushHandler> logger,
+    IOptions<PushNotificationOptions> options,
+    IApnsClient? apnsClient = null
 ) : IRequestHandler<SendTestPushRequest, SendTestPushResponse>
 {
+    private static readonly string[] ApplePlatforms = ["iOS", "MacCatalyst", "maccatalyst"];
+
     [MediatorHttpPost("/test-push", OperationId = "SendTestPush")]
     public async Task<SendTestPushResponse> Handle(
         SendTestPushRequest request,
         IMediatorContext context,
         CancellationToken cancellationToken)
     {
-        // Get all registered Android devices
-        var subscriptions = await dbContext.Set<PushSubscription>()
-            .Where(ps => ps.Platform == "Android")
+        var allSubscriptions = await dbContext.Set<PushSubscription>()
             .ToListAsync(cancellationToken);
 
-        if (subscriptions.Count == 0)
+        if (allSubscriptions.Count == 0)
         {
-            return new SendTestPushResponse(0, "No Android devices registered for push notifications");
+            return new SendTestPushResponse(0, "No devices registered for push notifications");
         }
 
-        if (FirebaseMessaging.DefaultInstance == null)
-        {
-            return new SendTestPushResponse(0, "Firebase is not configured");
-        }
+        var androidSubs = allSubscriptions.Where(s => s.Platform == "Android").ToList();
+        var appleSubs = allSubscriptions.Where(s => ApplePlatforms.Contains(s.Platform, StringComparer.OrdinalIgnoreCase)).ToList();
 
-        var tokens = subscriptions.Select(s => s.DeviceToken).ToList();
+        int totalSent = 0;
+        var messages = new List<string>();
 
-        var message = new MulticastMessage
+        // Send to Android via Firebase
+        if (androidSubs.Count > 0)
         {
-            Tokens = tokens,
-            Notification = new Notification
+            if (FirebaseMessaging.DefaultInstance == null)
             {
-                Title = request.Title,
-                Body = request.Body
-            },
-            Data = new Dictionary<string, string>
-            {
-                ["action"] = "test"
-            },
-            Android = new AndroidConfig
-            {
-                Notification = new AndroidNotification
-                {
-                    ClickAction = "SHINY_PUSH_NOTIFICATION_CLICK"
-                }
+                messages.Add($"Firebase not configured, skipping {androidSubs.Count} Android devices");
             }
-        };
+            else
+            {
+                var tokens = androidSubs.Select(s => s.DeviceToken).ToList();
+                var message = new MulticastMessage
+                {
+                    Tokens = tokens,
+                    Notification = new FirebaseAdmin.Messaging.Notification
+                    {
+                        Title = request.Title,
+                        Body = request.Body
+                    },
+                    Data = new Dictionary<string, string> { ["action"] = "test" },
+                    Android = new AndroidConfig
+                    {
+                        Notification = new AndroidNotification
+                        {
+                            ClickAction = "SHINY_PUSH_NOTIFICATION_CLICK"
+                        }
+                    }
+                };
 
-        var response = await FirebaseMessaging.DefaultInstance
-            .SendEachForMulticastAsync(message, cancellationToken);
+                var response = await FirebaseMessaging.DefaultInstance
+                    .SendEachForMulticastAsync(message, cancellationToken);
 
-        logger.LogInformation(
-            "Test push sent: {Success}/{Total} successful",
-            response.SuccessCount,
-            subscriptions.Count);
+                totalSent += response.SuccessCount;
+                messages.Add($"Android: {response.SuccessCount}/{androidSubs.Count}");
 
-        return new SendTestPushResponse(
-            response.SuccessCount,
-            $"Sent to {response.SuccessCount}/{subscriptions.Count} devices");
+                logger.LogInformation("Test push Android: {Success}/{Total}", response.SuccessCount, androidSubs.Count);
+            }
+        }
+
+        // Send to iOS via APNs
+        if (appleSubs.Count > 0)
+        {
+            if (apnsClient == null || !options.Value.Apns.Enabled)
+            {
+                messages.Add($"APNs not configured, skipping {appleSubs.Count} Apple devices");
+            }
+            else
+            {
+                int apnsSent = 0;
+                foreach (var sub in appleSubs)
+                {
+                    try
+                    {
+                        var alert = new Alert
+                        {
+                            Title = request.Title,
+                            Body = request.Body
+                        };
+
+                        var notification = new NotificationBuilder()
+                            .WithAlert(alert)
+                            .WithCategory("test")
+                            .Build();
+
+                        var response = await apnsClient.SendAsync(notification, deviceToken: sub.DeviceToken);
+
+                        if (response.IsSuccess)
+                        {
+                            apnsSent++;
+                        }
+                        else
+                        {
+                            logger.LogWarning("APNs test push failed for {Token}: {Reason}",
+                                sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...",
+                                response.Error?.Reason);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error sending APNs test push to {Token}",
+                            sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...");
+                    }
+                }
+
+                totalSent += apnsSent;
+                messages.Add($"iOS/APNs: {apnsSent}/{appleSubs.Count}");
+
+                logger.LogInformation("Test push APNs: {Success}/{Total}", apnsSent, appleSubs.Count);
+            }
+        }
+
+        var summary = string.Join(", ", messages);
+        return new SendTestPushResponse(totalSent, $"Sent {totalSent}/{allSubscriptions.Count}: {summary}");
     }
 }

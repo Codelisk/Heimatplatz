@@ -16,8 +16,8 @@
     <!-- App Identifier -->
     <ApplicationId>at.heimatplatz.app</ApplicationId>
     <!-- Versions -->
-    <ApplicationDisplayVersion>1.42.0</ApplicationDisplayVersion>
-    <ApplicationVersion>43</ApplicationVersion>
+    <ApplicationDisplayVersion>1.55.0</ApplicationDisplayVersion>
+    <ApplicationVersion>54</ApplicationVersion>
     <!-- Package Publisher -->
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->
@@ -73,6 +73,10 @@
   <!-- Asset fallback for Shiny packages (built for net9.0) when targeting net10.0 -->
   <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
     <AssetTargetFallback>$(AssetTargetFallback);net9.0-android35.0</AssetTargetFallback>
+  </PropertyGroup>
+  <!-- iOS Entitlements for Push Notifications -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
   <!-- iOS: Download from Firebase Console -> Project Settings -> Your Apps -> iOS -->
   <ItemGroup Condition="$(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))">
