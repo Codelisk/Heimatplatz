@@ -121,13 +121,10 @@ public class SendTestPushHandler(
                         }
                         else
                         {
-                            var errorDetail = response.Error != null
-                                ? $"Reason={response.Error.Reason}, Timestamp={response.Error.TimestampInMs}"
-                                : "No error details";
-                            logger.LogWarning("APNs test push FAILED for {Token}: {Error}, StatusCode={StatusCode}",
+                            var errorDetail = response.Error?.Reason ?? "Unknown error";
+                            logger.LogWarning("APNs test push FAILED for {Token}: {Error}",
                                 sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...",
-                                errorDetail,
-                                response.StatusCode);
+                                errorDetail);
                             messages.Add($"APNs error: {errorDetail}");
                         }
                     }
