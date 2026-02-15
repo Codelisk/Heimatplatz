@@ -31,21 +31,29 @@ public class ApnsService : IApnsService
     private DateTimeOffset _tokenExpiry;
 
     public ApnsService(
-        IHttpClientFactory httpClientFactory,
         ApnsOptions apnsOptions,
         string base64Key,
         ILogger<ApnsService> logger)
     {
         _apnsOptions = apnsOptions;
         _logger = logger;
-        _httpClient = httpClientFactory.CreateClient("ApnsClient");
+
+        var handler = new SocketsHttpHandler
+        {
+            EnableMultipleHttp2Connections = true,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15)
+        };
 
         var host = _apnsOptions.UseProduction
             ? "https://api.push.apple.com"
             : "https://api.sandbox.push.apple.com";
-        _httpClient.BaseAddress = new Uri(host);
-        _httpClient.DefaultRequestVersion = new Version(2, 0);
-        _httpClient.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+
+        _httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri(host),
+            DefaultRequestVersion = new Version(2, 0),
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact
+        };
 
         _key = ECDsa.Create();
         _key.ImportPkcs8PrivateKey(Convert.FromBase64String(base64Key), out _);
@@ -59,6 +67,10 @@ public class ApnsService : IApnsService
         CancellationToken cancellationToken = default)
     {
         var token = GetOrRefreshJwt();
+        _logger.LogInformation("APNs JWT (first 50 chars): {TokenPrefix}..., Target: {Host}/3/device/{DeviceToken}",
+            token[..Math.Min(50, token.Length)],
+            _httpClient.BaseAddress,
+            deviceToken[..Math.Min(20, deviceToken.Length)]);
 
         var payload = new ApnsPayload
         {
@@ -74,6 +86,8 @@ public class ApnsService : IApnsService
         var json = JsonSerializer.Serialize(payload, ApnsJsonContext.Default.ApnsPayload);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"/3/device/{deviceToken.ToLowerInvariant()}");
+        request.Version = new Version(2, 0);
+        request.VersionPolicy = HttpVersionPolicy.RequestVersionExact;
         request.Headers.Authorization = new AuthenticationHeaderValue("bearer", token);
         request.Headers.TryAddWithoutValidation("apns-topic", _apnsOptions.BundleId);
         request.Headers.TryAddWithoutValidation("apns-push-type", "alert");
@@ -133,11 +147,7 @@ public class ApnsService : IApnsService
             new { iss = _apnsOptions.TeamId, iat = now.ToUnixTimeSeconds() }));
 
         var signingInput = Encoding.ASCII.GetBytes($"{header}.{payload}");
-        var signature = _key.SignData(signingInput, HashAlgorithmName.SHA256);
-
-        // Convert DER signature to fixed-length r||s format for ES256
-        // ECDsa.SignData with DSASignatureFormat not available on all platforms,
-        // so we use the default IEEE P1363 format which is already r||s
+        var signature = _key.SignData(signingInput, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
         var signatureB64 = Base64UrlEncode(signature);
 
         _cachedToken = $"{header}.{payload}.{signatureB64}";

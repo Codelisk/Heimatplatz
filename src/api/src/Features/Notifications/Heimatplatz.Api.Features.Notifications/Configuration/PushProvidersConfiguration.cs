@@ -58,17 +58,11 @@ public static class PushProvidersConfiguration
                     .Trim();
 
                 var capturedKey = keyContent;
-
-                services.AddHttpClient("ApnsClient")
-                    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-                    {
-                        EnableMultipleHttp2Connections = true
-                    });
+                var capturedOptions = options.Apns;
 
                 services.AddSingleton<IApnsService>(sp =>
                     new ApnsService(
-                        sp.GetRequiredService<IHttpClientFactory>(),
-                        options.Apns,
+                        capturedOptions,
                         capturedKey,
                         sp.GetRequiredService<ILogger<ApnsService>>()));
             }
