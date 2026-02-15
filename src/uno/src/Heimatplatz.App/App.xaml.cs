@@ -164,7 +164,12 @@ public partial class App : Application, IApplicationWithServices
         if (Host?.Services != null)
         {
             IosShinyHost.Init(Host.Services);
+#if DEBUG
+            // Auto-login BEFORE SignalReady so push registration has valid tokens
+            _ = AutoLoginThenSignalReadyAsync();
+#else
             Host.Services.GetRequiredService<IShinyReadinessService>().SignalReady();
+#endif
         }
 #else
         // On non-mobile platforms, signal immediately since Shiny isn't used
@@ -216,6 +221,76 @@ public partial class App : Application, IApplicationWithServices
         System.Diagnostics.Debug.WriteLine($"[DeepLink] Handling protocol activation: {uri}");
         await deepLinkService.HandleDeepLinkAsync(uri);
     }
+
+#if DEBUG && (__IOS__ || __MACCATALYST__)
+    private async Task AutoLoginThenSignalReadyAsync()
+    {
+        try
+        {
+            await Task.Delay(2000); // Wait for UI to settle
+            if (Host?.Services == null) return;
+
+            var authService = Host.Services.GetRequiredService<Heimatplatz.Features.Auth.Contracts.Interfaces.IAuthService>();
+
+            void LogNative(string msg) => Console.WriteLine(msg);
+
+            LogNative($"[AutoLogin] Starting fresh login (IsAuthenticated={authService.IsAuthenticated})...");
+
+            // Use direct HttpClient to avoid DI issues with named clients
+            using var client = new HttpClient();
+            var content = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(new { Email = "test.push@heimatplatz.dev", Passwort = "Test123!" }),
+                System.Text.Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync("https://heimatplatz-api.azurewebsites.net/api/auth/login", content);
+            LogNative($"[AutoLogin] Login response: {response.StatusCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                authService.SetAuthenticatedUser(
+                    root.GetProperty("AccessToken").GetString()!,
+                    root.GetProperty("RefreshToken").GetString()!,
+                    root.GetProperty("UserId").GetGuid(),
+                    root.GetProperty("Email").GetString()!,
+                    root.GetProperty("FullName").GetString()!,
+                    root.GetProperty("ExpiresAt").GetDateTimeOffset());
+
+                LogNative("[AutoLogin] Login successful with fresh tokens");
+            }
+            else
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                LogNative($"[AutoLogin] Login failed: {response.StatusCode} - {errorBody}");
+            }
+
+            // Signal Shiny ready AFTER login so push registration uses valid tokens
+            LogNative("[AutoLogin] Signaling Shiny ready...");
+            Host.Services.GetRequiredService<IShinyReadinessService>().SignalReady();
+
+            // Wait for Shiny to process and register for push
+            await Task.Delay(3000);
+
+            // Also explicitly trigger push init to ensure registration
+            LogNative("[AutoLogin] Triggering push notification initialization...");
+            var mediator = Host.Services.GetRequiredService<IMediator>();
+            await mediator.Send(new Heimatplatz.Features.Notifications.Contracts.Mediator.Commands.InitializePushNotificationsCommand());
+            LogNative("[AutoLogin] Push notification initialization completed");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AutoLogin] ERROR: {ex}");
+#if __IOS__
+            // Error already logged via Console.WriteLine above
+#endif
+            // Still signal ready even on failure so the app is functional
+            try { Host?.Services?.GetRequiredService<IShinyReadinessService>()?.SignalReady(); } catch { }
+        }
+    }
+#endif
 
     private static bool IsUnoInternalError(Exception ex)
     {

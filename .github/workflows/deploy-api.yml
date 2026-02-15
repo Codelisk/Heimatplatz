@@ -41,6 +41,13 @@ jobs:
         run: dotnet publish --configuration Release --output ./publish --self-contained true --runtime linux-x64
         working-directory: ${{ env.WORKING_DIRECTORY }}
 
+      - name: Write APNs key file
+        if: ${{ env.APNS_KEY != '' }}
+        run: echo "$APNS_KEY" > ./publish/apns-auth-key.p8
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        env:
+          APNS_KEY: ${{ secrets.APNS_PRIVATE_KEY_CONTENT }}
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:

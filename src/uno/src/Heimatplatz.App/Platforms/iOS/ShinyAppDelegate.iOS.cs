@@ -13,25 +13,40 @@ public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationD
 {
     public override bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
     {
-        // Initialize IosShinyHost after services are configured
-        // This happens in App.xaml.cs OnLaunched
+        Console.WriteLine("[ShinyAppDelegate] FinishedLaunching called");
         return base.FinishedLaunching(application, launchOptions);
     }
 
     public override void RegisteredForRemoteNotifications(UIApplication application, NSData deviceToken)
     {
-        IosShinyHost.OnRegisteredForRemoteNotifications(deviceToken);
-        base.RegisteredForRemoteNotifications(application, deviceToken);
+        Console.WriteLine($"[ShinyAppDelegate] RegisteredForRemoteNotifications called with token length: {deviceToken?.Length ?? 0}");
+        try
+        {
+            IosShinyHost.OnRegisteredForRemoteNotifications(deviceToken!);
+            Console.WriteLine("[ShinyAppDelegate] OnRegisteredForRemoteNotifications completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ShinyAppDelegate] OnRegisteredForRemoteNotifications ERROR: {ex}");
+        }
     }
 
     public override void FailedToRegisterForRemoteNotifications(UIApplication application, NSError error)
     {
-        IosShinyHost.OnFailedToRegisterForRemoteNotifications(error);
-        base.FailedToRegisterForRemoteNotifications(application, error);
+        Console.WriteLine($"[ShinyAppDelegate] FailedToRegisterForRemoteNotifications: {error}");
+        try
+        {
+            IosShinyHost.OnFailedToRegisterForRemoteNotifications(error);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ShinyAppDelegate] OnFailedToRegisterForRemoteNotifications ERROR: {ex}");
+        }
     }
 
     public override void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
     {
+        Console.WriteLine("[ShinyAppDelegate] DidReceiveRemoteNotification called");
         IosShinyHost.OnDidReceiveRemoteNotification(userInfo, completionHandler);
     }
 
