@@ -110,8 +110,18 @@ public class ApnsService : IApnsService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "APNs request failed for device {Token}", deviceToken[..Math.Min(20, deviceToken.Length)]);
-            return new ApnsResult(false, 0, ex.Message);
+            // Build full exception chain for debugging
+            var errorChain = new List<string>();
+            var current = ex;
+            while (current != null)
+            {
+                errorChain.Add($"{current.GetType().Name}: {current.Message}");
+                current = current.InnerException;
+            }
+            var fullError = string.Join(" -> ", errorChain);
+            _logger.LogError(ex, "APNs request failed for device {Token}: {Error}",
+                deviceToken[..Math.Min(20, deviceToken.Length)], fullError);
+            return new ApnsResult(false, 0, fullError);
         }
     }
 
