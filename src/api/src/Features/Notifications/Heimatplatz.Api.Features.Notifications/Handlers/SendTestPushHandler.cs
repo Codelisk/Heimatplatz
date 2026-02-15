@@ -1,11 +1,10 @@
-using Fitomad.Apns;
-using Fitomad.Apns.Entities.Notification;
 using FirebaseAdmin.Messaging;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Notifications.Configuration;
 using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
+using Heimatplatz.Api.Features.Notifications.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,7 +22,7 @@ public class SendTestPushHandler(
     AppDbContext dbContext,
     ILogger<SendTestPushHandler> logger,
     IOptions<PushNotificationOptions> options,
-    IApnsClient? apnsClient = null
+    IApnsService? apnsService = null
 ) : IRequestHandler<SendTestPushRequest, SendTestPushResponse>
 {
     private static readonly string[] ApplePlatforms = ["iOS", "MacCatalyst", "maccatalyst"];
@@ -89,7 +88,7 @@ public class SendTestPushHandler(
         // Send to iOS via APNs
         if (appleSubs.Count > 0)
         {
-            if (apnsClient == null || !options.Value.Apns.Enabled)
+            if (apnsService == null || !options.Value.Apns.Enabled)
             {
                 messages.Add($"APNs not configured, skipping {appleSubs.Count} Apple devices");
             }
@@ -100,20 +99,14 @@ public class SendTestPushHandler(
                 {
                     try
                     {
-                        var alert = new Alert
-                        {
-                            Title = request.Title,
-                            Body = request.Body
-                        };
+                        var result = await apnsService.SendAsync(
+                            sub.DeviceToken,
+                            request.Title,
+                            request.Body,
+                            category: "test",
+                            cancellationToken: cancellationToken);
 
-                        var notification = new NotificationBuilder()
-                            .WithAlert(alert)
-                            .WithCategory("test")
-                            .Build();
-
-                        var response = await apnsClient.SendAsync(notification, deviceToken: sub.DeviceToken);
-
-                        if (response.IsSuccess)
+                        if (result.IsSuccess)
                         {
                             apnsSent++;
                             logger.LogInformation("APNs test push SUCCESS for {Token}",
@@ -121,11 +114,10 @@ public class SendTestPushHandler(
                         }
                         else
                         {
-                            var errorDetail = response.Error?.Reason ?? "Unknown error";
-                            logger.LogWarning("APNs test push FAILED for {Token}: {Error}",
+                            logger.LogWarning("APNs test push FAILED for {Token}: {Error} (HTTP {Status})",
                                 sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...",
-                                errorDetail);
-                            messages.Add($"APNs error: {errorDetail}");
+                                result.ErrorReason, result.StatusCode);
+                            messages.Add($"APNs error: {result.ErrorReason}");
                         }
                     }
                     catch (Exception ex)

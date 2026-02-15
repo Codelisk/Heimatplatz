@@ -1,6 +1,4 @@
 using System.Text.Json;
-using Fitomad.Apns;
-using Fitomad.Apns.Entities.Notification;
 using FirebaseAdmin.Messaging;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
@@ -25,7 +23,7 @@ public class PushNotificationService(
     AppDbContext dbContext,
     ILogger<PushNotificationService> logger,
     IOptions<PushNotificationOptions> options,
-    IApnsClient? apnsClient = null
+    IApnsService? apnsService = null
 ) : IPushNotificationService
 {
     private static readonly string[] AndroidPlatforms = ["Android"];
@@ -340,7 +338,7 @@ public class PushNotificationService(
     {
         var invalidTokens = new List<PushSubscription>();
 
-        if (apnsClient == null || !options.Value.Apns.Enabled)
+        if (apnsService == null || !options.Value.Apns.Enabled)
         {
             logger.LogWarning("APNs is not configured. Skipping {Count} Apple notifications", subscriptions.Count);
             return invalidTokens;
@@ -348,44 +346,34 @@ public class PushNotificationService(
 
         try
         {
-            var alert = new Alert
-            {
-                Title = title,
-                Body = body
-            };
-
             foreach (var subscription in subscriptions)
             {
                 try
                 {
-                    var notification = new NotificationBuilder()
-                        .WithAlert(alert)
-                        .WithCategory(data["action"])
-                        .WithThreadId(data["propertyId"])
-                        .Build();
+                    var result = await apnsService.SendAsync(
+                        subscription.DeviceToken,
+                        title,
+                        body,
+                        category: data.GetValueOrDefault("action"),
+                        threadId: data.GetValueOrDefault("propertyId"),
+                        cancellationToken: cancellationToken);
 
-                    var response = await apnsClient.SendAsync(notification, deviceToken: subscription.DeviceToken);
-
-                    if (!response.IsSuccess)
+                    if (!result.IsSuccess)
                     {
-                        var errorReason = response.Error?.Reason;
-
-                        if (errorReason == "BadDeviceToken" ||
-                            errorReason == "Unregistered" ||
-                            errorReason == "ExpiredToken")
+                        if (result.ErrorReason is "BadDeviceToken" or "Unregistered" or "ExpiredToken")
                         {
                             invalidTokens.Add(subscription);
                             logger.LogDebug(
                                 "Invalid APNs token: {Token} (Reason: {Reason})",
                                 subscription.DeviceToken[..Math.Min(20, subscription.DeviceToken.Length)] + "...",
-                                errorReason);
+                                result.ErrorReason);
                         }
                         else
                         {
                             logger.LogWarning(
-                                "Failed to send APNs notification: {Reason} (Status: {StatusCode})",
-                                response.Error?.Reason,
-                                response.Error?.StatusCode);
+                                "Failed to send APNs notification: {Reason} (HTTP {Status})",
+                                result.ErrorReason,
+                                result.StatusCode);
                         }
                     }
                 }

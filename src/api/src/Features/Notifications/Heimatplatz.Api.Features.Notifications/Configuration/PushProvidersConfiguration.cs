@@ -1,9 +1,6 @@
-using Fitomad.Apns;
-using Fitomad.Apns.Entities;
-using Fitomad.Apns.Entities.Settings;
-using Fitomad.Apns.Extensions;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Heimatplatz.Api.Features.Notifications.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,46 +31,43 @@ public static class PushProvidersConfiguration
             InitializeFirebase(options.Firebase);
         }
 
-        // Register APNs client if configured
+        // Register APNs service if configured
         if (options.Apns.Enabled)
         {
-            // Priority 1: Direct key content (for Azure/cloud deployment via environment variable)
-            // Priority 2: File path (for local development)
-            string? jwtContent = null;
+            // Resolve key content: Priority 1 = direct content, Priority 2 = file
+            string? keyContent = null;
 
             if (!string.IsNullOrEmpty(options.Apns.PrivateKeyContent))
             {
-                jwtContent = options.Apns.PrivateKeyContent;
+                keyContent = options.Apns.PrivateKeyContent;
             }
             else if (!string.IsNullOrEmpty(options.Apns.PrivateKeyPath) && File.Exists(options.Apns.PrivateKeyPath))
             {
-                jwtContent = File.ReadAllText(options.Apns.PrivateKeyPath);
+                keyContent = File.ReadAllText(options.Apns.PrivateKeyPath);
             }
 
-            if (!string.IsNullOrEmpty(jwtContent))
+            if (!string.IsNullOrEmpty(keyContent))
             {
-                // Strip PEM headers - library expects raw Base64 (newlines are OK)
-                jwtContent = jwtContent
+                // Normalize: store as raw Base64 in PrivateKeyContent for ApnsService
+                keyContent = keyContent
                     .Replace("-----BEGIN PRIVATE KEY-----", "")
                     .Replace("-----END PRIVATE KEY-----", "")
+                    .Replace("\n", "")
+                    .Replace("\r", "")
                     .Trim();
 
-                var jwtToken = new ApnsJsonToken
-                {
-                    Content = jwtContent,
-                    KeyId = options.Apns.KeyId!,
-                    TeamId = options.Apns.TeamId!
-                };
+                // Update options so ApnsService gets the normalized key
+                services.PostConfigure<PushNotificationOptions>(o =>
+                    o.Apns.PrivateKeyContent = keyContent);
 
-                var apnsSettings = new ApnsSettingsBuilder()
-                    .InEnvironment(options.Apns.UseProduction ? ApnsEnvironment.Production : ApnsEnvironment.Development)
-                    .SetTopic(options.Apns.BundleId)
-                    .WithJsonToken(jwtToken)
-                    .Build();
+                services.AddHttpClient("ApnsClient")
+                    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                    {
+                        // Ensure HTTP/2 works correctly
+                        EnableMultipleHttp2Connections = true
+                    });
 
-                // Required for JWT token caching
-                services.AddDistributedMemoryCache();
-                services.AddApns(settings: apnsSettings);
+                services.AddSingleton<IApnsService, ApnsService>();
             }
         }
 
@@ -87,12 +81,10 @@ public static class PushProvidersConfiguration
 
         GoogleCredential? credential = null;
 
-        // Priority 1: Direct JSON content (for Azure/cloud deployment via environment variable)
         if (!string.IsNullOrEmpty(options.ServiceAccountJson))
         {
             credential = GoogleCredential.FromJson(options.ServiceAccountJson);
         }
-        // Priority 2: File path (for local development)
         else if (!string.IsNullOrEmpty(options.ServiceAccountPath) && File.Exists(options.ServiceAccountPath))
         {
             credential = GoogleCredential.FromFile(options.ServiceAccountPath);
