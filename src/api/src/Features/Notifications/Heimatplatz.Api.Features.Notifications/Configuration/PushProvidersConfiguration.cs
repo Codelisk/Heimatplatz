@@ -3,6 +3,7 @@ using Google.Apis.Auth.OAuth2;
 using Heimatplatz.Api.Features.Notifications.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Heimatplatz.Api.Features.Notifications.Configuration;
 
@@ -48,7 +49,7 @@ public static class PushProvidersConfiguration
 
             if (!string.IsNullOrEmpty(keyContent))
             {
-                // Normalize: store as raw Base64 in PrivateKeyContent for ApnsService
+                // Normalize to raw Base64
                 keyContent = keyContent
                     .Replace("-----BEGIN PRIVATE KEY-----", "")
                     .Replace("-----END PRIVATE KEY-----", "")
@@ -56,18 +57,20 @@ public static class PushProvidersConfiguration
                     .Replace("\r", "")
                     .Trim();
 
-                // Update options so ApnsService gets the normalized key
-                services.PostConfigure<PushNotificationOptions>(o =>
-                    o.Apns.PrivateKeyContent = keyContent);
+                var capturedKey = keyContent;
 
                 services.AddHttpClient("ApnsClient")
                     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
                     {
-                        // Ensure HTTP/2 works correctly
                         EnableMultipleHttp2Connections = true
                     });
 
-                services.AddSingleton<IApnsService, ApnsService>();
+                services.AddSingleton<IApnsService>(sp =>
+                    new ApnsService(
+                        sp.GetRequiredService<IHttpClientFactory>(),
+                        options.Apns,
+                        capturedKey,
+                        sp.GetRequiredService<ILogger<ApnsService>>()));
             }
         }
 

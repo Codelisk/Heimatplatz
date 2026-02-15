@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Heimatplatz.Api.Features.Notifications.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Heimatplatz.Api.Features.Notifications.Services;
 
@@ -33,10 +32,11 @@ public class ApnsService : IApnsService
 
     public ApnsService(
         IHttpClientFactory httpClientFactory,
-        IOptions<PushNotificationOptions> options,
+        ApnsOptions apnsOptions,
+        string base64Key,
         ILogger<ApnsService> logger)
     {
-        _apnsOptions = options.Value.Apns;
+        _apnsOptions = apnsOptions;
         _logger = logger;
         _httpClient = httpClientFactory.CreateClient("ApnsClient");
 
@@ -47,17 +47,11 @@ public class ApnsService : IApnsService
         _httpClient.DefaultRequestVersion = new Version(2, 0);
         _httpClient.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
 
-        // Load the private key
-        var keyContent = _apnsOptions.PrivateKeyContent ?? "";
-        keyContent = keyContent
-            .Replace("-----BEGIN PRIVATE KEY-----", "")
-            .Replace("-----END PRIVATE KEY-----", "")
-            .Replace("\n", "")
-            .Replace("\r", "")
-            .Trim();
-
         _key = ECDsa.Create();
-        _key.ImportPkcs8PrivateKey(Convert.FromBase64String(keyContent), out _);
+        _key.ImportPkcs8PrivateKey(Convert.FromBase64String(base64Key), out _);
+
+        _logger.LogInformation("APNs service initialized: Host={Host}, KeyId={KeyId}, TeamId={TeamId}, BundleId={BundleId}",
+            host, _apnsOptions.KeyId, _apnsOptions.TeamId, _apnsOptions.BundleId);
     }
 
     public async Task<ApnsResult> SendAsync(string deviceToken, string title, string body,
