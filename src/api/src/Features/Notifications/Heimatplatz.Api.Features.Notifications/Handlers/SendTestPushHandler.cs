@@ -116,18 +116,26 @@ public class SendTestPushHandler(
                         if (response.IsSuccess)
                         {
                             apnsSent++;
+                            logger.LogInformation("APNs test push SUCCESS for {Token}",
+                                sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...");
                         }
                         else
                         {
-                            logger.LogWarning("APNs test push failed for {Token}: {Reason}",
+                            var errorDetail = response.Error != null
+                                ? $"Reason={response.Error.Reason}, Timestamp={response.Error.TimestampInMs}"
+                                : "No error details";
+                            logger.LogWarning("APNs test push FAILED for {Token}: {Error}, StatusCode={StatusCode}",
                                 sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...",
-                                response.Error?.Reason);
+                                errorDetail,
+                                response.StatusCode);
+                            messages.Add($"APNs error: {errorDetail}");
                         }
                     }
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "Error sending APNs test push to {Token}",
                             sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...");
+                        messages.Add($"APNs exception: {ex.Message}");
                     }
                 }
 
