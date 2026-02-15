@@ -132,7 +132,10 @@ public class SendTestPushHandler(
                     {
                         logger.LogError(ex, "Error sending APNs test push to {Token}",
                             sub.DeviceToken[..Math.Min(20, sub.DeviceToken.Length)] + "...");
-                        messages.Add($"APNs exception: {ex.Message}");
+                        var fullError = ex.InnerException != null
+                            ? $"{ex.Message} -> {ex.InnerException.Message}"
+                            : ex.Message;
+                        messages.Add($"APNs exception: {fullError}");
                     }
                 }
 
