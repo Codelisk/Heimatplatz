@@ -164,6 +164,11 @@ public partial class App : Application, IApplicationWithServices
         if (Host?.Services != null)
         {
             IosShinyHost.Init(Host.Services);
+
+            // Set UNUserNotificationCenterDelegate so foreground push notifications are shown
+            // Shiny's IosShinyHost no longer sets this automatically
+            UserNotifications.UNUserNotificationCenter.Current.Delegate =
+                new Heimatplatz.App.iOS.PushNotificationCenterDelegate();
 #if DEBUG
             // Auto-login BEFORE SignalReady so push registration has valid tokens
             _ = AutoLoginThenSignalReadyAsync();

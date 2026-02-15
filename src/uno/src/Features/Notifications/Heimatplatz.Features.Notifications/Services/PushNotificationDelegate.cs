@@ -38,34 +38,19 @@ public class PushNotificationDelegate(
     /// </summary>
     public async Task OnReceived(PushNotification notification)
     {
-        Logger.LogInformation("=== PUSH RECEIVED START ===");
-
-        // Debug: Log raw notification data
-        Logger.LogInformation("Push notification raw - Notification object: Title={NotifTitle}, Message={NotifMessage}",
-            notification.Notification?.Title ?? "(null)",
-            notification.Notification?.Message ?? "(null)");
-
-        if (notification.Data != null)
-        {
-            foreach (var kvp in notification.Data)
-            {
-                Logger.LogInformation("Push notification data: {Key}={Value}", kvp.Key, kvp.Value);
-            }
-        }
-        else
-        {
-            Logger.LogInformation("Push notification data dictionary is null");
-        }
-
         var (title, message) = ExtractNotificationContent(notification);
         Logger.LogInformation("Push notification received: {Title} - {Message}", title, message);
 
-        // Show local notification when app is in foreground
-        // Android doesn't auto-display notifications when app is active
+#if __ANDROID__
+        // On Android, show local notification when app is in foreground
+        // iOS foreground display is handled by PushNotificationCenterDelegate (Banner | Sound | List)
         if (!string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(message))
         {
             await ShowLocalNotificationAsync(title, message);
         }
+#else
+        await Task.CompletedTask;
+#endif
     }
 
     /// <summary>
