@@ -52,6 +52,12 @@ public static class PushProvidersConfiguration
 
             if (!string.IsNullOrEmpty(jwtContent))
             {
+                // Strip PEM headers/footers - the library expects raw Base64 content only
+                jwtContent = jwtContent
+                    .Replace("-----BEGIN PRIVATE KEY-----", "")
+                    .Replace("-----END PRIVATE KEY-----", "")
+                    .Trim();
+
                 var jwtToken = new ApnsJsonToken
                 {
                     Content = jwtContent,
