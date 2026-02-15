@@ -41,12 +41,22 @@ jobs:
         run: dotnet publish --configuration Release --output ./publish --self-contained true --runtime linux-x64
         working-directory: ${{ env.WORKING_DIRECTORY }}
 
-      - name: Write APNs key file
+      - name: Inject APNs key into appsettings
         if: ${{ env.APNS_KEY != '' }}
-        run: echo "$APNS_KEY" > ./publish/apns-auth-key.p8
+        run: |
+          cd ./publish
+          python3 -c "
+          import json
+          with open('appsettings.json', 'r') as f:
+              config = json.load(f)
+          import os
+          config.setdefault('PushNotifications', {}).setdefault('Apns', {})['PrivateKeyContent'] = os.environ['APNS_KEY']
+          with open('appsettings.json', 'w') as f:
+              json.dump(config, f, indent=2)
+          "
         working-directory: ${{ env.WORKING_DIRECTORY }}
         env:
-          APNS_KEY: ${{ secrets.APNS_PRIVATE_KEY_CONTENT }}
+          APNS_KEY: ${{ secrets.APNS_PRIVATE_KEY_BASE64 }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
