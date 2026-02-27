@@ -350,7 +350,8 @@
 
                         <!-- Desktop Layout -->
                         <StackPanel Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
-                                    Spacing="24">
+                                    Spacing="24"
+                                    Margin="0,0,0,80">
 
                             <!-- Hero Image (volle Breite) mit Schatten -->
                             <Border CornerRadius="{StaticResource RadiusMd}" Height="480"
