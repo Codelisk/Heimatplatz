@@ -104,6 +104,16 @@ public static class ServiceCollectionExtensions
             await using var scope = app.Services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // ForceRecreate: DB loeschen und neu erstellen (einmaliger Reset)
+            if (options.ForceRecreate)
+            {
+                logger.LogWarning("ForceRecreate=true: Dropping and recreating database...");
+                await dbContext.Database.EnsureDeletedAsync();
+                await dbContext.Database.EnsureCreatedAsync();
+                logger.LogInformation("Database recreated successfully. Set ForceRecreate=false after this.");
+            }
+            else
+
             // SQLite: Immer EnsureCreated verwenden (keine SQL Server Migrations)
             if (dbContext.Database.IsSqlite())
             {
@@ -127,13 +137,21 @@ public static class ServiceCollectionExtensions
                 }
                 catch (Exception ex) when (ex.Message.Contains("PendingModelChanges"))
                 {
-                    logger.LogWarning("Pending model changes detected. For Development, recreating database...");
+                    logger.LogWarning("Pending model changes detected. Recreating database...");
                     await dbContext.Database.EnsureDeletedAsync();
                     await dbContext.Database.EnsureCreatedAsync();
                 }
                 catch (Exception ex) when (ex.Message.Contains("already an object named") || ex.Message.Contains("There is already"))
                 {
-                    logger.LogWarning("Tables already exist (created via EnsureCreated). Skipping migration: {Message}", ex.Message);
+                    logger.LogWarning("Tables already exist (created via EnsureCreated). Recreating database to apply schema changes...");
+                    await dbContext.Database.EnsureDeletedAsync();
+                    await dbContext.Database.EnsureCreatedAsync();
+                }
+                catch (Exception ex) when (ex.Message.Contains("Invalid column") || ex.Message.Contains("no such column"))
+                {
+                    logger.LogWarning("Schema mismatch detected. Recreating database: {Message}", ex.Message);
+                    await dbContext.Database.EnsureDeletedAsync();
+                    await dbContext.Database.EnsureCreatedAsync();
                 }
             }
             logger.LogInformation("Database migrations completed.");

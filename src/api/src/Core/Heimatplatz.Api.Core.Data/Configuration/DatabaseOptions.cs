@@ -19,4 +19,11 @@ public class DatabaseOptions
     /// In Production sollte dies false sein (manuelle Migration vor Deployment).
     /// </summary>
     public bool AutoMigrate { get; set; }
+
+    /// <summary>
+    /// Wenn true, wird die Datenbank beim Start geloescht und neu erstellt.
+    /// Nützlich bei Schema-Aenderungen wenn keine Migrations vorhanden sind.
+    /// ACHTUNG: Alle Daten gehen verloren! Nach einmaligem Einsatz wieder auf false setzen.
+    /// </summary>
+    public bool ForceRecreate { get; set; }
 }
