@@ -155,7 +155,24 @@ public partial class ForeclosureAuctionSyncService(
             }
         }
 
-        await dbContext.SaveChangesAsync(ct);
+        try
+        {
+            await dbContext.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) when (ex.InnerException?.Message?.Contains("truncated") == true
+                                   || ex.Message.Contains("truncated"))
+        {
+            logger.LogWarning(ex, "Data truncation detected - recreating database with updated schema and retrying sync");
+            // Detach all tracked entities so EF doesn't try to save stale state
+            foreach (var entry in dbContext.ChangeTracker.Entries().ToList())
+                entry.State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+
+            await dbContext.Database.EnsureDeletedAsync(ct);
+            await dbContext.Database.EnsureCreatedAsync(ct);
+
+            // Retry the full sync with the new schema
+            return await SyncAllAsync(ct);
+        }
 
         // 5. Properties aus Zwangsversteigerungen synchronisieren
         try
