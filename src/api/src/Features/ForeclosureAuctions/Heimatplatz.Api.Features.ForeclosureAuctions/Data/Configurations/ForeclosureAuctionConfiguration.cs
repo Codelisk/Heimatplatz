@@ -24,7 +24,7 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
 
         builder.Property(fa => fa.ObjectDescription)
             .IsRequired()
-            .HasMaxLength(500);
+            .HasMaxLength(2000);
 
         builder.Property(fa => fa.Status)
             .HasMaxLength(500);
@@ -32,7 +32,7 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
         // === Adressdaten ===
         builder.Property(fa => fa.Address)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(500);
 
         builder.Property(fa => fa.City)
             .IsRequired()
@@ -47,7 +47,7 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
             .HasMaxLength(50);
 
         builder.Property(fa => fa.CadastralMunicipality)
-            .HasMaxLength(100);
+            .HasMaxLength(200);
 
         builder.Property(fa => fa.PlotNumber)
             .HasMaxLength(50);
@@ -70,10 +70,10 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
 
         // === Immobilien-Details ===
         builder.Property(fa => fa.ZoningDesignation)
-            .HasMaxLength(100);
+            .HasMaxLength(500);
 
         builder.Property(fa => fa.BuildingCondition)
-            .HasMaxLength(200);
+            .HasMaxLength(500);
 
         // === Versteigerungs-Details ===
         builder.Property(fa => fa.EstimatedValue)
@@ -90,7 +90,7 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
             .HasMaxLength(100);
 
         builder.Property(fa => fa.Court)
-            .HasMaxLength(200);
+            .HasMaxLength(500);
 
         builder.Property(fa => fa.EdictUrl)
             .HasMaxLength(1000);
