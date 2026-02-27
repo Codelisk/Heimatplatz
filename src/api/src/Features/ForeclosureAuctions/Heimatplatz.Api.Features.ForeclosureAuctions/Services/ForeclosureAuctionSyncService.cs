@@ -65,9 +65,21 @@ public partial class ForeclosureAuctionSyncService(
         var scrapedExternalIds = new HashSet<string>();
 
         // 2. Bestehende Eintraege laden
-        var existingAuctions = await dbContext.Set<ForeclosureAuction>()
-            .Where(a => a.ExternalId != null)
-            .ToDictionaryAsync(a => a.ExternalId!, ct);
+        Dictionary<string, ForeclosureAuction> existingAuctions;
+        try
+        {
+            existingAuctions = await dbContext.Set<ForeclosureAuction>()
+                .Where(a => a.ExternalId != null)
+                .ToDictionaryAsync(a => a.ExternalId!, ct);
+        }
+        catch (Exception ex) when (ex.Message.Contains("Invalid column") || ex.InnerException?.Message?.Contains("Invalid column") == true
+                                   || ex.Message.Contains("no such column") || ex.InnerException?.Message?.Contains("no such column") == true)
+        {
+            logger.LogWarning(ex, "Schema mismatch detected - recreating database to apply new schema");
+            await dbContext.Database.EnsureDeletedAsync(ct);
+            await dbContext.Database.EnsureCreatedAsync(ct);
+            existingAuctions = new Dictionary<string, ForeclosureAuction>();
+        }
 
         // 3. Fuer jeden Listeneintrag die Details holen und verarbeiten
         foreach (var item in listItems)
