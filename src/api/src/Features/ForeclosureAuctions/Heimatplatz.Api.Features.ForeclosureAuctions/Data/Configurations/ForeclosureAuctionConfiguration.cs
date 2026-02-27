@@ -27,7 +27,7 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
             .HasMaxLength(500);
 
         builder.Property(fa => fa.Status)
-            .HasMaxLength(50);
+            .HasMaxLength(500);
 
         // === Adressdaten ===
         builder.Property(fa => fa.Address)
