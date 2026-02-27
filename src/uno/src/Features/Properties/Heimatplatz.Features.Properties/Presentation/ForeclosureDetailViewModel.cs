@@ -196,20 +196,21 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
             }
         }
 
-        // --- BASISDATEN ---
-        AddIfNotEmpty(items, "Titel", Property.Title, PropertyDataCategory.Basisdaten, true);
-        items.Add(new PropertyDetailItem("Immobilienart", "Zwangsversteigerung", PropertyDataCategory.Basisdaten, true));
-        AddJsonString(items, data, "Category", "Kategorie", PropertyDataCategory.Basisdaten, true);
-        AddJsonStatus(items, data, PropertyDataCategory.Basisdaten, true);
-        AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten, true);
-        AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten, true);
-        AddIfNotEmpty(items, "Adresse", Property.Address, PropertyDataCategory.Basisdaten, true);
-
-        // --- VERSTEIGERUNG ---
-        AddJsonDateTime(items, data, "AuctionDate", "Versteigerungstermin", PropertyDataCategory.Versteigerung);
-        AddJsonDecimalCurrency(items, data, "EstimatedValue", "Schaetzwert", PropertyDataCategory.Versteigerung);
-        AddJsonDecimalCurrency(items, data, "MinimumBid", "Mindestgebot", PropertyDataCategory.Versteigerung);
+        // --- VERSTEIGERUNG (wichtigste Daten zuerst) ---
+        items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung, true));
+        AddJsonDateTime(items, data, "AuctionDate", "Versteigerungstermin", PropertyDataCategory.Versteigerung, true);
+        AddJsonDecimalCurrency(items, data, "EstimatedValue", "Schaetzwert", PropertyDataCategory.Versteigerung, true);
+        AddJsonDecimalCurrency(items, data, "MinimumBid", "Mindestgebot", PropertyDataCategory.Versteigerung, true);
         AddJsonString(items, data, "OwnershipShare", "Eigentumsanteil", PropertyDataCategory.Versteigerung);
+
+        // --- BASISDATEN ---
+        AddIfNotEmpty(items, "Titel", Property.Title, PropertyDataCategory.Basisdaten);
+        items.Add(new PropertyDetailItem("Immobilienart", "Zwangsversteigerung", PropertyDataCategory.Basisdaten));
+        AddJsonString(items, data, "Category", "Kategorie", PropertyDataCategory.Basisdaten);
+        AddJsonStatus(items, data, PropertyDataCategory.Basisdaten);
+        AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten);
+        AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten);
+        AddIfNotEmpty(items, "Adresse", Property.Address, PropertyDataCategory.Basisdaten);
 
         // --- RECHTLICHES ---
         var courtName = GetJsonString(data, "CourtName");
@@ -257,9 +258,6 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         AddJsonDateTime(items, data, "ViewingDate", "Besichtigung", PropertyDataCategory.Termine);
         AddJsonDateTime(items, data, "BiddingDeadline", "Gebotsfrist", PropertyDataCategory.Termine);
 
-        // --- Basisdaten: Eingestellt am ---
-        items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
-
         // Description / Notes
         var notes = GetJsonString(data, "Notes");
         if (!string.IsNullOrWhiteSpace(notes))
@@ -291,10 +289,22 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
                        !string.IsNullOrEmpty(LongAppraisalUrl) ||
                        !string.IsNullOrEmpty(ShortAppraisalUrl);
 
-        // Group by category
+        // Group by category with custom order (Versteigerung first)
+        var categoryOrder = new[]
+        {
+            PropertyDataCategory.Versteigerung,
+            PropertyDataCategory.Basisdaten,
+            PropertyDataCategory.Rechtliches,
+            PropertyDataCategory.Flaechen,
+            PropertyDataCategory.Grundbuch,
+            PropertyDataCategory.Gebaeude,
+            PropertyDataCategory.Termine,
+            PropertyDataCategory.Sonstiges
+        };
+
         DetailSections = items
             .GroupBy(i => i.Category)
-            .OrderBy(g => g.Key)
+            .OrderBy(g => Array.IndexOf(categoryOrder, g.Key) is var idx && idx >= 0 ? idx : 999)
             .Select(g => new PropertyDetailSection(GetCategoryTitle(g.Key), g.Key, g.ToList()))
             .ToList();
     }
@@ -315,19 +325,19 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
             items.Add(new PropertyDetailItem(label, value, category, highlighted));
     }
 
-    private static void AddJsonDateTime(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)
+    private static void AddJsonDateTime(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category, bool highlighted = false)
     {
         if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop))
         {
             if (DateTime.TryParse(prop.GetString(), out var dt))
-                items.Add(new PropertyDetailItem(label, dt.ToString("dd.MM.yyyy HH:mm"), category));
+                items.Add(new PropertyDetailItem(label, dt.ToString("dd.MM.yyyy HH:mm"), category, highlighted));
         }
     }
 
-    private static void AddJsonDecimalCurrency(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)
+    private static void AddJsonDecimalCurrency(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category, bool highlighted = false)
     {
         if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var val))
-            items.Add(new PropertyDetailItem(label, $"{val:N0} \u20AC".Replace(",", "."), category));
+            items.Add(new PropertyDetailItem(label, $"{val:N0} \u20AC".Replace(",", "."), category, highlighted));
     }
 
     private static void AddJsonDecimalArea(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)
