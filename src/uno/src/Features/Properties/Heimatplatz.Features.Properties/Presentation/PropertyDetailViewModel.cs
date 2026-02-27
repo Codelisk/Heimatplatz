@@ -474,6 +474,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         PropertyDataCategory.Ausstattung => "AUSSTATTUNG",
         PropertyDataCategory.Grundstueck => "GRUNDSTUECK",
         PropertyDataCategory.Versteigerung => "VERSTEIGERUNG",
+        PropertyDataCategory.Rechtliches => "RECHTLICHES",
+        PropertyDataCategory.Grundbuch => "GRUNDBUCH",
+        PropertyDataCategory.Termine => "TERMINE",
         PropertyDataCategory.Kosten => "KOSTEN",
         PropertyDataCategory.Sonstiges => "SONSTIGES",
         _ => category.ToString().ToUpperInvariant()

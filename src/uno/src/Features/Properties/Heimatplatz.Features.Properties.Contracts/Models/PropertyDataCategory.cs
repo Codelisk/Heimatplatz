@@ -8,6 +8,9 @@ public enum PropertyDataCategory
     Ausstattung,
     Grundstueck,
     Versteigerung,
+    Rechtliches,
+    Grundbuch,
+    Termine,
     Kosten,
     Sonstiges
 }

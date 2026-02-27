@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
@@ -8,12 +9,11 @@ using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using Shiny.Mediator;
-using System.Text.Json;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
 /// <summary>
-/// ViewModel fuer die ForeclosureDetailPage (Zwangsversteigerungen)
+/// ViewModel fuer die ForeclosureDetailPage (Immoscout Style)
 /// Registered via Uno.Extensions.Navigation ViewMap (not [Service] attribute)
 /// </summary>
 public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, INavigationAware
@@ -43,80 +43,39 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
     private string _formattedPrice = string.Empty;
 
     [ObservableProperty]
-    private string _totalAreaText = "-";
-
-    [ObservableProperty]
-    private string _plotAreaText = "-";
-
-    [ObservableProperty]
-    private string _buildingAreaText = "-";
-
-    [ObservableProperty]
     private string _addressText = string.Empty;
 
     [ObservableProperty]
     private string? _copyFeedback;
 
     [ObservableProperty]
+    private bool _isAuthenticated;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FavoriteButtonText))]
     [NotifyPropertyChangedFor(nameof(FavoriteButtonIcon))]
     private bool _isFavorite;
 
-    // === Foreclosure-specific properties ===
+    [ObservableProperty]
+    private string _typeBadgeText = "ZV";
 
     [ObservableProperty]
-    private string _auctionDateText = "-";
+    private Microsoft.UI.Xaml.Media.Brush? _typeBadgeBrush;
 
     [ObservableProperty]
-    private string _estimatedValueText = "-";
+    private List<PropertyDetailSection> _detailSections = [];
 
     [ObservableProperty]
-    private string _minimumBidText = "-";
+    private string? _description;
 
     [ObservableProperty]
-    private string _courtText = "-";
+    private bool _hasDescription;
 
     [ObservableProperty]
-    private string _caseNumberText = "-";
+    [NotifyPropertyChangedFor(nameof(ContactExpandIcon))]
+    private bool _isContactExpanded;
 
-    [ObservableProperty]
-    private string _categoryText = "-";
-
-    [ObservableProperty]
-    private string _statusText = "-";
-
-    [ObservableProperty]
-    private string _registrationNumberText = "-";
-
-    [ObservableProperty]
-    private string _cadastralMunicipalityText = "-";
-
-    [ObservableProperty]
-    private string _plotNumberText = "-";
-
-    [ObservableProperty]
-    private string _zoningDesignationText = "-";
-
-    [ObservableProperty]
-    private string _buildingConditionText = "-";
-
-    [ObservableProperty]
-    private string _numberOfRoomsText = "-";
-
-    [ObservableProperty]
-    private string _yearBuiltText = "-";
-
-    [ObservableProperty]
-    private string _viewingDateText = "-";
-
-    [ObservableProperty]
-    private string _biddingDeadlineText = "-";
-
-    [ObservableProperty]
-    private string _ownershipShareText = "-";
-
-    [ObservableProperty]
-    private string _notesText = "-";
+    // === Document URLs ===
 
     [ObservableProperty]
     private string? _edictUrl;
@@ -136,8 +95,15 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
     [ObservableProperty]
     private bool _hasDocuments;
 
+    // === Seller info for contact box ===
+
     [ObservableProperty]
-    private bool _hasRoomInfo;
+    private string _courtName = string.Empty;
+
+    /// <summary>
+    /// Chevron icon: up when collapsed, down when expanded
+    /// </summary>
+    public string ContactExpandIcon => IsContactExpanded ? "\uE70D" : "\uE70E";
 
     /// <summary>
     /// Text for the favorite button based on current status
@@ -173,188 +139,252 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         _propertyStatusService = propertyStatusService;
         _logger = logger;
         _propertyId = data.PropertyId;
-
-        // Property data is loaded in OnNavigatedTo (guaranteed UI thread for dispatcher access)
+        _isAuthenticated = authService.IsAuthenticated;
     }
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     private void UpdateDisplayProperties()
     {
         if (Property == null)
         {
             FormattedPrice = string.Empty;
-            TotalAreaText = "-";
-            PlotAreaText = "-";
-            BuildingAreaText = "-";
             AddressText = string.Empty;
+            TypeBadgeText = "ZV";
+            DetailSections = [];
+            Description = null;
+            HasDescription = false;
+            HasDocuments = false;
+            CourtName = string.Empty;
             return;
         }
 
-        // Format price: "3.590.000 €"
+        // Type badge
+        TypeBadgeText = "ZV";
+        TypeBadgeBrush = GetThemeBrush("ZwangsversteigerungBrush");
+
+        // Format price
         FormattedPrice = $"{Property.Price:N0} €".Replace(",", ".");
 
-        // Plot area
-        PlotAreaText = Property.PlotAreaM2.HasValue
-            ? $"{Property.PlotAreaM2:N0} m²".Replace(",", ".")
-            : "-";
-
-        // Full address: "Strasse, PLZ Ort"
+        // Full address
         AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
 
-        // Parse TypeSpecificData for foreclosure-specific info
-        ParseForeclosureData();
+        // Parse TypeSpecificData and build sections
+        BuildDetailSections();
     }
 
-    private void ParseForeclosureData()
+    private void BuildDetailSections()
     {
-        if (string.IsNullOrEmpty(Property?.TypeSpecificData))
-            return;
+        if (Property == null) return;
 
-        try
+        var items = new List<PropertyDetailItem>();
+
+        // Parse TypeSpecificData
+        JsonElement? data = null;
+        if (!string.IsNullOrWhiteSpace(Property.TypeSpecificData))
         {
-            var data = JsonSerializer.Deserialize<JsonElement>(Property.TypeSpecificData);
-
-            // Auction date
-            if (data.TryGetProperty("AuctionDate", out var auctionDate))
+            try
             {
-                if (DateTime.TryParse(auctionDate.GetString(), out var dt))
-                    AuctionDateText = dt.ToString("dd.MM.yyyy HH:mm");
+                data = JsonSerializer.Deserialize<JsonElement>(Property.TypeSpecificData, JsonOptions);
             }
-
-            // Estimated value
-            if (data.TryGetProperty("EstimatedValue", out var estValue) && estValue.TryGetDecimal(out var ev))
-                EstimatedValueText = $"{ev:N0} €".Replace(",", ".");
-
-            // Minimum bid
-            if (data.TryGetProperty("MinimumBid", out var minBid) && minBid.TryGetDecimal(out var mb))
-                MinimumBidText = $"{mb:N0} €".Replace(",", ".");
-
-            // Court (JSON property name: CourtName)
-            if (data.TryGetProperty("CourtName", out var court))
-                CourtText = court.GetString() ?? "-";
-
-            // Case number (JSON property name: FileNumber)
-            if (data.TryGetProperty("FileNumber", out var caseNum))
-                CaseNumberText = caseNum.GetString() ?? "-";
-
-            // Category
-            if (data.TryGetProperty("Category", out var category))
-                CategoryText = category.GetString() ?? "-";
-
-            // Status - translate to German
-            if (data.TryGetProperty("Status", out var status))
+            catch (JsonException ex)
             {
-                var statusValue = status.GetString() ?? "";
-                StatusText = TranslateStatus(statusValue);
+                _logger.LogWarning(ex, "[ForeclosureDetail] Failed to deserialize TypeSpecificData");
             }
-
-            // Registration number (EZ)
-            if (data.TryGetProperty("RegistrationNumber", out var regNum))
-                RegistrationNumberText = regNum.GetString() ?? "-";
-
-            // Cadastral municipality (KG)
-            if (data.TryGetProperty("CadastralMunicipality", out var cadastral))
-                CadastralMunicipalityText = cadastral.GetString() ?? "-";
-
-            // Plot number
-            if (data.TryGetProperty("PlotNumber", out var plotNum))
-                PlotNumberText = plotNum.GetString() ?? "-";
-
-            // Total area
-            if (data.TryGetProperty("TotalArea", out var totalArea) && totalArea.TryGetDecimal(out var ta))
-                TotalAreaText = $"{ta:N0} m²".Replace(",", ".");
-
-            // Building area
-            if (data.TryGetProperty("BuildingArea", out var buildingArea) && buildingArea.TryGetDecimal(out var ba))
-                BuildingAreaText = $"{ba:N0} m²".Replace(",", ".");
-
-            // Zoning designation
-            if (data.TryGetProperty("ZoningDesignation", out var zoning))
-                ZoningDesignationText = zoning.GetString() ?? "-";
-
-            // Building condition
-            if (data.TryGetProperty("BuildingCondition", out var condition))
-                BuildingConditionText = condition.GetString() ?? "-";
-
-            // Number of rooms
-            if (data.TryGetProperty("NumberOfRooms", out var rooms) && rooms.TryGetInt32(out var r))
-            {
-                NumberOfRoomsText = r.ToString();
-                HasRoomInfo = true;
-            }
-
-            // Year built
-            if (data.TryGetProperty("YearBuilt", out var yearBuilt) && yearBuilt.TryGetInt32(out var yb))
-            {
-                YearBuiltText = yb.ToString();
-                HasRoomInfo = true;
-            }
-
-            // Viewing date
-            if (data.TryGetProperty("ViewingDate", out var viewingDate))
-            {
-                if (DateTime.TryParse(viewingDate.GetString(), out var vd))
-                    ViewingDateText = vd.ToString("dd.MM.yyyy HH:mm");
-            }
-
-            // Bidding deadline
-            if (data.TryGetProperty("BiddingDeadline", out var biddingDeadline))
-            {
-                if (DateTime.TryParse(biddingDeadline.GetString(), out var bd))
-                    BiddingDeadlineText = bd.ToString("dd.MM.yyyy HH:mm");
-            }
-
-            // Ownership share
-            if (data.TryGetProperty("OwnershipShare", out var ownership))
-                OwnershipShareText = ownership.GetString() ?? "-";
-
-            // Notes
-            if (data.TryGetProperty("Notes", out var notes))
-                NotesText = notes.GetString() ?? "-";
-
-            // Documents
-            if (data.TryGetProperty("EdictUrl", out var edictUrl))
-                EdictUrl = edictUrl.GetString();
-
-            if (data.TryGetProperty("FloorPlanUrl", out var floorPlan))
-                FloorPlanUrl = floorPlan.GetString();
-
-            if (data.TryGetProperty("SitePlanUrl", out var sitePlan))
-                SitePlanUrl = sitePlan.GetString();
-
-            if (data.TryGetProperty("LongAppraisalUrl", out var longAppraisal))
-                LongAppraisalUrl = longAppraisal.GetString();
-
-            if (data.TryGetProperty("ShortAppraisalUrl", out var shortAppraisal))
-                ShortAppraisalUrl = shortAppraisal.GetString();
-
-            HasDocuments = !string.IsNullOrEmpty(EdictUrl) ||
-                           !string.IsNullOrEmpty(FloorPlanUrl) ||
-                           !string.IsNullOrEmpty(SitePlanUrl) ||
-                           !string.IsNullOrEmpty(LongAppraisalUrl) ||
-                           !string.IsNullOrEmpty(ShortAppraisalUrl);
         }
-        catch (Exception ex)
+
+        // --- BASISDATEN ---
+        AddIfNotEmpty(items, "Titel", Property.Title, PropertyDataCategory.Basisdaten, true);
+        items.Add(new PropertyDetailItem("Immobilienart", "Zwangsversteigerung", PropertyDataCategory.Basisdaten, true));
+        AddJsonString(items, data, "Category", "Kategorie", PropertyDataCategory.Basisdaten, true);
+        AddJsonStatus(items, data, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, "Adresse", Property.Address, PropertyDataCategory.Basisdaten, true);
+
+        // --- VERSTEIGERUNG ---
+        AddJsonDateTime(items, data, "AuctionDate", "Versteigerungstermin", PropertyDataCategory.Versteigerung);
+        AddJsonDecimalCurrency(items, data, "EstimatedValue", "Schaetzwert", PropertyDataCategory.Versteigerung);
+        AddJsonDecimalCurrency(items, data, "MinimumBid", "Mindestgebot", PropertyDataCategory.Versteigerung);
+        AddJsonString(items, data, "OwnershipShare", "Eigentumsanteil", PropertyDataCategory.Versteigerung);
+
+        // --- RECHTLICHES ---
+        var courtName = GetJsonString(data, "CourtName");
+        if (!string.IsNullOrWhiteSpace(courtName))
         {
-            _logger.LogError(ex, "[ForeclosureDetail] Error parsing TypeSpecificData");
+            items.Add(new PropertyDetailItem("Gericht", courtName, PropertyDataCategory.Rechtliches));
+            CourtName = courtName;
         }
+        AddJsonString(items, data, "FileNumber", "Aktenzeichen", PropertyDataCategory.Rechtliches);
+
+        // --- FLAECHEN ---
+        AddJsonDecimalArea(items, data, "TotalArea", "Gesamtflaeche", PropertyDataCategory.Flaechen);
+        AddIfHasValue(items, "Grundstueck", Property.PlotAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
+        AddJsonDecimalArea(items, data, "BuildingArea", "Bebaute Flaeche", PropertyDataCategory.Flaechen);
+
+        // --- GRUNDBUCH ---
+        AddJsonString(items, data, "RegistrationNumber", "Einlagezahl (EZ)", PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "CadastralMunicipality", "Katastralgemeinde", PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "PlotNumber", "Grundstuecksnummer", PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "ZoningDesignation", "Flaechenwidmung", PropertyDataCategory.Grundbuch);
+
+        // --- GEBAEUDE (conditional) ---
+        var hasRoomData = false;
+        if (data.HasValue)
+        {
+            if (data.Value.TryGetProperty("NumberOfRooms", out var rooms) && rooms.ValueKind == JsonValueKind.Number && rooms.TryGetInt32(out var r) && r > 0)
+            {
+                items.Add(new PropertyDetailItem("Zimmer", r.ToString(), PropertyDataCategory.Gebaeude));
+                hasRoomData = true;
+            }
+            if (data.Value.TryGetProperty("YearBuilt", out var yb) && yb.ValueKind == JsonValueKind.Number && yb.TryGetInt32(out var y) && y > 0)
+            {
+                items.Add(new PropertyDetailItem("Baujahr", y.ToString(), PropertyDataCategory.Gebaeude));
+                hasRoomData = true;
+            }
+            AddJsonString(items, data, "BuildingCondition", "Zustand", PropertyDataCategory.Gebaeude);
+            if (!hasRoomData)
+            {
+                if (items.Any(i => i.Category == PropertyDataCategory.Gebaeude))
+                    hasRoomData = true;
+            }
+        }
+
+        // --- TERMINE ---
+        AddJsonDateTime(items, data, "ViewingDate", "Besichtigung", PropertyDataCategory.Termine);
+        AddJsonDateTime(items, data, "BiddingDeadline", "Gebotsfrist", PropertyDataCategory.Termine);
+
+        // --- Basisdaten: Eingestellt am ---
+        items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
+
+        // Description / Notes
+        var notes = GetJsonString(data, "Notes");
+        if (!string.IsNullOrWhiteSpace(notes))
+        {
+            Description = notes;
+            HasDescription = true;
+        }
+        else if (!string.IsNullOrWhiteSpace(Property.Description))
+        {
+            Description = Property.Description;
+            HasDescription = true;
+        }
+        else
+        {
+            Description = null;
+            HasDescription = false;
+        }
+
+        // Documents
+        EdictUrl = GetJsonString(data, "EdictUrl");
+        FloorPlanUrl = GetJsonString(data, "FloorPlanUrl");
+        SitePlanUrl = GetJsonString(data, "SitePlanUrl");
+        LongAppraisalUrl = GetJsonString(data, "LongAppraisalUrl");
+        ShortAppraisalUrl = GetJsonString(data, "ShortAppraisalUrl");
+
+        HasDocuments = !string.IsNullOrEmpty(EdictUrl) ||
+                       !string.IsNullOrEmpty(FloorPlanUrl) ||
+                       !string.IsNullOrEmpty(SitePlanUrl) ||
+                       !string.IsNullOrEmpty(LongAppraisalUrl) ||
+                       !string.IsNullOrEmpty(ShortAppraisalUrl);
+
+        // Group by category
+        DetailSections = items
+            .GroupBy(i => i.Category)
+            .OrderBy(g => g.Key)
+            .Select(g => new PropertyDetailSection(GetCategoryTitle(g.Key), g.Key, g.ToList()))
+            .ToList();
     }
 
-    /// <summary>
-    /// Translates English status values to German
-    /// </summary>
-    private static string TranslateStatus(string status)
+    #region JSON Helpers
+
+    private static string? GetJsonString(JsonElement? data, string propertyName)
     {
-        return status switch
-        {
-            "Pending" => "Anhängig",
-            "Scheduled" => "Termin angesetzt",
-            "InProgress" => "Laufend",
-            "Completed" => "Abgeschlossen",
-            "Cancelled" => "Abgebrochen",
-            "Suspended" => "Ausgesetzt",
-            _ => status
-        };
+        if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop))
+            return prop.GetString();
+        return null;
     }
+
+    private static void AddJsonString(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category, bool highlighted = false)
+    {
+        var value = GetJsonString(data, propertyName);
+        if (!string.IsNullOrWhiteSpace(value))
+            items.Add(new PropertyDetailItem(label, value, category, highlighted));
+    }
+
+    private static void AddJsonDateTime(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)
+    {
+        if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop))
+        {
+            if (DateTime.TryParse(prop.GetString(), out var dt))
+                items.Add(new PropertyDetailItem(label, dt.ToString("dd.MM.yyyy HH:mm"), category));
+        }
+    }
+
+    private static void AddJsonDecimalCurrency(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)
+    {
+        if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var val))
+            items.Add(new PropertyDetailItem(label, $"{val:N0} \u20AC".Replace(",", "."), category));
+    }
+
+    private static void AddJsonDecimalArea(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)
+    {
+        if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var val) && val > 0)
+            items.Add(new PropertyDetailItem(label, $"{val:N0} m\u00B2".Replace(",", "."), category));
+    }
+
+    private static void AddJsonStatus(List<PropertyDetailItem> items, JsonElement? data, PropertyDataCategory category, bool highlighted = false)
+    {
+        if (data.HasValue && data.Value.TryGetProperty("Status", out var prop))
+        {
+            var statusValue = prop.GetString() ?? "";
+            var translated = statusValue switch
+            {
+                "Pending" => "Anhaengig",
+                "Scheduled" => "Termin angesetzt",
+                "InProgress" => "Laufend",
+                "Completed" => "Abgeschlossen",
+                "Cancelled" => "Abgebrochen",
+                "Suspended" => "Ausgesetzt",
+                _ => statusValue
+            };
+            items.Add(new PropertyDetailItem("Status", translated, category, highlighted));
+        }
+    }
+
+    #endregion
+
+    #region Formatting Helpers
+
+    private static string GetCategoryTitle(PropertyDataCategory category) => category switch
+    {
+        PropertyDataCategory.Basisdaten => "BASISDATEN",
+        PropertyDataCategory.Flaechen => "FLAECHEN",
+        PropertyDataCategory.Gebaeude => "GEBAEUDE",
+        PropertyDataCategory.Grundbuch => "GRUNDBUCH",
+        PropertyDataCategory.Versteigerung => "VERSTEIGERUNG",
+        PropertyDataCategory.Rechtliches => "RECHTLICHES",
+        PropertyDataCategory.Termine => "TERMINE",
+        PropertyDataCategory.Sonstiges => "SONSTIGES",
+        _ => category.ToString().ToUpperInvariant()
+    };
+
+    private static void AddIfNotEmpty(List<PropertyDetailItem> items, string label, string? value, PropertyDataCategory category, bool highlighted = false)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            items.Add(new PropertyDetailItem(label, value, category, highlighted));
+    }
+
+    private static void AddIfHasValue<T>(List<PropertyDetailItem> items, string label, T? value, Func<T, string> format, PropertyDataCategory category) where T : struct
+    {
+        if (value.HasValue)
+            items.Add(new PropertyDetailItem(label, format(value.Value), category));
+    }
+
+    #endregion
 
     public async Task LoadPropertyAsync(Guid propertyId)
     {
@@ -419,7 +449,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
                 _logger.LogWarning("[ForeclosureDetail] Property {PropertyId} not found", propertyId);
             }
 
-            // Load favorite status (can run on any thread)
+            // Load favorite status
             var isFavorite = false;
             if (_authService.IsAuthenticated)
             {
@@ -491,12 +521,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
 
         _logger.LogInformation("[ForeclosureDetail] Sharing property {PropertyId}", Property.Id);
 
-        // Build share URL for the foreclosure
         var propertyUrl = new Uri($"https://heimatplatz.at/zwangsversteigerung/{Property.Id}");
 
         var description = $"Zwangsversteigerung: {Property.Title}\n" +
-                          $"Termin: {AuctionDateText}\n" +
-                          $"Mindestgebot: {MinimumBidText}\n" +
+                          $"Preis: {FormattedPrice}\n" +
                           $"Standort: {AddressText}";
 
         var success = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
@@ -506,6 +534,41 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
             await Task.Delay(2000);
             CopyFeedback = null;
         }
+    }
+
+    /// <summary>
+    /// Toggles the contact detail expansion in the footer bar
+    /// </summary>
+    [RelayCommand]
+    private void ToggleContactExpanded()
+    {
+        IsContactExpanded = !IsContactExpanded;
+    }
+
+    /// <summary>
+    /// Oeffnet die Edikt-Seite im Browser
+    /// </summary>
+    [RelayCommand]
+    private async Task OpenEdictAsync()
+    {
+        if (string.IsNullOrWhiteSpace(EdictUrl))
+            return;
+
+        _logger.LogInformation("[ForeclosureDetail] Opening edict: {Url}", EdictUrl);
+        await Windows.System.Launcher.LaunchUriAsync(new Uri(EdictUrl));
+    }
+
+    /// <summary>
+    /// Oeffnet ein Dokument im Browser
+    /// </summary>
+    [RelayCommand]
+    private async Task OpenDocumentAsync(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        _logger.LogInformation("[ForeclosureDetail] Opening document: {Url}", url);
+        await Windows.System.Launcher.LaunchUriAsync(new Uri(url));
     }
 
     #region INavigationAware Implementation
@@ -533,5 +596,15 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
             dq.TryEnqueue(() => action());
         else
             action();
+    }
+
+    private static Microsoft.UI.Xaml.Media.Brush GetThemeBrush(string resourceKey)
+    {
+        if (Microsoft.UI.Xaml.Application.Current.Resources.TryGetValue(resourceKey, out var resource)
+            && resource is Microsoft.UI.Xaml.Media.Brush brush)
+        {
+            return brush;
+        }
+        return new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray);
     }
 }
