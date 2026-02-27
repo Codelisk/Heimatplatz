@@ -5,36 +5,29 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.Mediator.Reques
 /// <summary>
 /// Request zum Abrufen aller Zwangsversteigerungen mit optionalen Filtern
 /// </summary>
-public record GetForeclosureAuctionsRequest : IRequest<GetForeclosureAuctionsResponse>
-{
-    /// <summary>Filter nach Kategorie (optional)</summary>
-    public PropertyCategory? Category { get; init; }
-
-    /// <summary>Filter nach Ort (optional)</summary>
-    public string? City { get; init; }
-
-    /// <summary>Filter nach Postleitzahl (optional)</summary>
-    public string? PostalCode { get; init; }
-
-    /// <summary>Filter nach Versteigerungsdatum ab (optional)</summary>
-    public DateTimeOffset? AuctionDateFrom { get; init; }
-
-    /// <summary>Filter nach Versteigerungsdatum bis (optional)</summary>
-    public DateTimeOffset? AuctionDateTo { get; init; }
-
-    /// <summary>Maximaler geschaetzter Wert (optional)</summary>
-    public decimal? MaxEstimatedValue { get; init; }
-
-    /// <summary>Filter nach Status (optional)</summary>
-    public string? Status { get; init; }
-}
+public record GetForeclosureAuctionsRequest(
+    int Page = 1,
+    int PageSize = 25,
+    PropertyCategory? Category = null,
+    string? City = null,
+    string? PostalCode = null,
+    DateTimeOffset? AuctionDateFrom = null,
+    DateTimeOffset? AuctionDateTo = null,
+    decimal? MaxEstimatedValue = null,
+    string? Status = null,
+    AustrianState? State = null,
+    bool? IsActive = null
+) : IRequest<GetForeclosureAuctionsResponse>;
 
 /// <summary>
-/// Response mit allen Zwangsversteigerungen
+/// Response mit Zwangsversteigerungen (paginiert)
 /// </summary>
 public record GetForeclosureAuctionsResponse
 {
     public required List<ForeclosureAuctionDto> Auctions { get; init; }
+    public int TotalCount { get; init; }
+    public int Page { get; init; }
+    public int PageSize { get; init; }
 }
 
 /// <summary>
@@ -91,4 +84,12 @@ public record ForeclosureAuctionDto
     public string? ShortAppraisalUrl { get; init; }
 
     public required DateTimeOffset CreatedAt { get; init; }
+
+    // Scraping-Daten
+    public string? ExternalId { get; init; }
+    public AustrianState? State { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset? FirstSeenAt { get; init; }
+    public DateTimeOffset? LastScrapedAt { get; init; }
+    public DateTimeOffset? RemovedAt { get; init; }
 }

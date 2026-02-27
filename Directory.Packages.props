@@ -43,6 +43,9 @@
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="$(AndroidXLifecycleVersion)" />
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState.Android" Version="$(AndroidXLifecycleVersion)" />
 
+    <!-- HTML Scraping -->
+    <PackageVersion Include="AngleSharp" Version="1.3.0" />
+
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(MicrosoftVersion)" />

@@ -119,4 +119,32 @@ public class ForeclosureAuction : BaseEntity
 
     /// <summary>URL zu Kurzgutachten (PDF)</summary>
     public string? ShortAppraisalUrl { get; set; }
+
+    // === Scraping-Daten ===
+
+    /// <summary>Externe ID aus der Ediktsdatei (Lotus Notes Document-ID)</summary>
+    public string? ExternalId { get; set; }
+
+    /// <summary>SHA256 Hash des gescrapten Inhalts fuer Change-Detection</summary>
+    public string? ContentHash { get; set; }
+
+    /// <summary>Bundesland</summary>
+    public AustrianState? State { get; set; }
+
+    /// <summary>Ob das Edikt noch auf edikte.justiz.gv.at aktiv ist</summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>Wann das Edikt erstmals gescraped wurde</summary>
+    public DateTimeOffset? FirstSeenAt { get; set; }
+
+    /// <summary>Wann das Edikt zuletzt erfolgreich gescraped wurde</summary>
+    public DateTimeOffset? LastScrapedAt { get; set; }
+
+    /// <summary>Wann das Edikt von der Website verschwunden ist</summary>
+    public DateTimeOffset? RemovedAt { get; set; }
+
+    // === Navigation Properties ===
+
+    /// <summary>Aenderungs-Verlauf</summary>
+    public ICollection<ForeclosureAuctionChange> Changes { get; set; } = new List<ForeclosureAuctionChange>();
 }

@@ -44,7 +44,7 @@ public static class ServiceCollectionExtensions
         services.AddLegalFeature();
         services.AddLocationsFeature();
         services.AddPropertiesFeature();
-        services.AddForeclosureAuctionsFeature();
+        services.AddForeclosureAuctionsFeature(configuration);
         services.AddNotificationsFeature(configuration);
         services.AddPropertyImportFeature();
 

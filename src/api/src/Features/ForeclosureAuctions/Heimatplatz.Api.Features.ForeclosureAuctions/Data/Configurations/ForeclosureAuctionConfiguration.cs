@@ -111,6 +111,25 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
         builder.Property(fa => fa.ShortAppraisalUrl)
             .HasMaxLength(1000);
 
+        // === Scraping-Daten ===
+        builder.Property(fa => fa.ExternalId)
+            .HasMaxLength(200);
+
+        builder.Property(fa => fa.ContentHash)
+            .HasMaxLength(64);
+
+        builder.Property(fa => fa.State);
+
+        builder.Property(fa => fa.IsActive)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        // === Navigation Properties ===
+        builder.HasMany(fa => fa.Changes)
+            .WithOne(c => c.ForeclosureAuction)
+            .HasForeignKey(c => c.ForeclosureAuctionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // === Indizes fuer haeufige Abfragen ===
         builder.HasIndex(fa => fa.AuctionDate);
         builder.HasIndex(fa => fa.Category);
@@ -119,5 +138,8 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
         builder.HasIndex(fa => fa.Status);
         builder.HasIndex(fa => fa.RegistrationNumber);
         builder.HasIndex(fa => fa.CreatedAt);
+        builder.HasIndex(fa => fa.ExternalId).IsUnique();
+        builder.HasIndex(fa => fa.IsActive);
+        builder.HasIndex(fa => fa.State);
     }
 }

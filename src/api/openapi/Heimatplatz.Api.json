@@ -191,115 +191,6 @@
         }
       }
     },
-    "/api/foreclosure-auctions/{Id}": {
-      "get": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "GetForeclosureAuctionById",
-        "parameters": [
-          {
-            "name": "Id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetForeclosureAuctionByIdResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/foreclosure-auctions": {
-      "get": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "GetForeclosureAuctions",
-        "parameters": [
-          {
-            "name": "Category",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/PropertyCategory"
-            }
-          },
-          {
-            "name": "City",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "PostalCode",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "AuctionDateFrom",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
-          },
-          {
-            "name": "AuctionDateTo",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
-          },
-          {
-            "name": "MaxEstimatedValue",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-              "type": [
-                "number",
-                "string"
-              ],
-              "format": "double"
-            }
-          },
-          {
-            "name": "Status",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetForeclosureAuctionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/auth/filter-preferences": {
       "get": {
         "tags": [
@@ -969,6 +860,268 @@
         }
       }
     },
+    "/api/foreclosure-auctions/{Id}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetForeclosureAuctionById",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetForeclosureAuctionByIdResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foreclosure-auctions/changes": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetForeclosureAuctionChanges",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "ChangeType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetForeclosureAuctionChangesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foreclosure-auctions": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetForeclosureAuctions",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PropertyCategory"
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "AuctionDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "AuctionDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "MaxEstimatedValue",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "State",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AustrianState"
+            }
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetForeclosureAuctionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foreclosure-auctions/sync/status": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetSyncStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSyncStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foreclosure-auctions/sync": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "TriggerForeclosureAuctionSync",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerForeclosureAuctionSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerForeclosureAuctionSyncResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notifications/preferences": {
       "get": {
         "tags": [
@@ -1209,6 +1362,20 @@
             "type": "boolean"
           }
         }
+      },
+      "AustrianState": {
+        "enum": [
+          "Burgenland",
+          "Kaernten",
+          "Niederoesterreich",
+          "Oberoesterreich",
+          "Salzburg",
+          "Steiermark",
+          "Tirol",
+          "Vorarlberg",
+          "Wien",
+          null
+        ]
       },
       "Base64ImageData": {
         "required": [
@@ -1512,6 +1679,38 @@
           }
         }
       },
+      "ForeclosureAuctionChangeDto": {
+        "required": [
+          "Id",
+          "ForeclosureAuctionId",
+          "ChangeType",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ForeclosureAuctionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChangeType": {
+            "type": "string"
+          },
+          "ChangedFields": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ForeclosureAuctionDto": {
         "required": [
           "Id",
@@ -1733,6 +1932,46 @@
           "CreatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "ExternalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "State": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AustrianState"
+              }
+            ]
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "FirstSeenAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "LastScrapedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "RemovedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -1751,6 +1990,28 @@
           }
         }
       },
+      "GetForeclosureAuctionChangesResponse": {
+        "required": [
+          "Changes"
+        ],
+        "type": "object",
+        "properties": {
+          "Changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForeclosureAuctionChangeDto"
+            }
+          },
+          "TotalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "GetForeclosureAuctionsResponse": {
         "required": [
           "Auctions"
@@ -1762,6 +2023,30 @@
             "items": {
               "$ref": "#/components/schemas/ForeclosureAuctionDto"
             }
+          },
+          "TotalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -1925,6 +2210,42 @@
             "items": {
               "$ref": "#/components/schemas/SellerSourceDto"
             }
+          }
+        }
+      },
+      "GetSyncStatusResponse": {
+        "type": "object",
+        "properties": {
+          "LastSyncAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "TotalActiveAuctions": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "TotalRemovedAuctions": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "TotalChanges": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -3208,6 +3529,60 @@
           },
           "Message": {
             "type": "string"
+          }
+        }
+      },
+      "TriggerForeclosureAuctionSyncRequest": {
+        "type": "object"
+      },
+      "TriggerForeclosureAuctionSyncResponse": {
+        "type": "object",
+        "properties": {
+          "Created": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Updated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Removed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Unchanged": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Errors": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ErrorMessages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
