@@ -186,7 +186,7 @@ public partial class ForeclosureAuctionSyncService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Fehler beim Property-Sync nach Zwangsversteigerungs-Sync");
-            errorMessages.Add($"Property-Sync fehlgeschlagen: {ex.Message}");
+            errorMessages.Add($"Property-Sync fehlgeschlagen: {ex.Message} | Inner: {ex.InnerException?.Message}");
             errors++;
         }
 
