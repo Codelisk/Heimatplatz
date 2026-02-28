@@ -16,6 +16,8 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 public class ForeclosurePropertySyncService(
     AppDbContext dbContext,
     IPasswordHasher passwordHasher,
+    IHttpClientFactory httpClientFactory,
+    ILoggerFactory loggerFactory,
     ILogger<ForeclosurePropertySyncService> logger
 ) : IForeclosurePropertySyncService
 {
@@ -52,8 +54,24 @@ public class ForeclosurePropertySyncService(
         var municipalities = await dbContext.Set<Municipality>().ToListAsync(ct);
         if (municipalities.Count == 0)
         {
-            logger.LogWarning("Keine Municipalities in der Datenbank - Property-Sync wird uebersprungen");
-            return new PropertySyncResult(0, 0, 0, 0, 1, ["Keine Municipalities vorhanden"]);
+            logger.LogWarning("Keine Municipalities - versuche auto-seed von OpenPLZ API");
+            try
+            {
+                var seeder = new Heimatplatz.Api.Features.Locations.Data.Seeding.LocationSeeder(
+                    dbContext, httpClientFactory, loggerFactory.CreateLogger<Heimatplatz.Api.Features.Locations.Data.Seeding.LocationSeeder>());
+                await seeder.SeedAsync(ct);
+                municipalities = await dbContext.Set<Municipality>().ToListAsync(ct);
+                logger.LogInformation("Auto-seed erfolgreich: {Count} Municipalities geladen", municipalities.Count);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Auto-seed der Municipalities fehlgeschlagen");
+            }
+
+            if (municipalities.Count == 0)
+            {
+                return new PropertySyncResult(0, 0, 0, 0, 1, ["Keine Municipalities vorhanden"]);
+            }
         }
 
         // 3. Alle aktiven ForeclosureAuctions laden
