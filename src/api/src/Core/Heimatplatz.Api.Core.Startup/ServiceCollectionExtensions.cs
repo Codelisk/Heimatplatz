@@ -113,45 +113,35 @@ public static class ServiceCollectionExtensions
                 logger.LogInformation("Database recreated successfully. Set ForceRecreate=false after this.");
             }
             else
+            {
+                // Fuer alle DB-Typen: EnsureCreatedAsync verwenden
+                // (keine EF Migrations im Projekt - Schema wird aus Code generiert)
+                logger.LogInformation("Ensuring database and tables exist...");
 
-            // SQLite: Immer EnsureCreated verwenden (keine SQL Server Migrations)
-            if (dbContext.Database.IsSqlite())
-            {
-                logger.LogInformation("SQLite detected, using EnsureCreated...");
-                await dbContext.Database.EnsureDeletedAsync();
-                await dbContext.Database.EnsureCreatedAsync();
-            }
-            // Prüfen ob die Datenbank existiert - wenn nicht, nutze EnsureCreated
-            // Dies ist nötig da EnsureCreated kein Migration-Tracking macht
-            else if (!await dbContext.Database.CanConnectAsync())
-            {
-                logger.LogInformation("Database does not exist, creating with EnsureCreated...");
-                await dbContext.Database.EnsureCreatedAsync();
-            }
-            else
-            {
-                // Bei existierender DB versuche Migrations anzuwenden
-                try
+                if (!await dbContext.Database.CanConnectAsync())
                 {
-                    await dbContext.Database.MigrateAsync();
-                }
-                catch (Exception ex) when (ex.Message.Contains("PendingModelChanges"))
-                {
-                    logger.LogWarning("Pending model changes detected. Recreating database...");
-                    await dbContext.Database.EnsureDeletedAsync();
+                    logger.LogInformation("Database does not exist, creating...");
                     await dbContext.Database.EnsureCreatedAsync();
                 }
-                catch (Exception ex) when (ex.Message.Contains("already an object named") || ex.Message.Contains("There is already"))
+                else
                 {
-                    logger.LogWarning("Tables already exist (created via EnsureCreated). Recreating database to apply schema changes...");
-                    await dbContext.Database.EnsureDeletedAsync();
-                    await dbContext.Database.EnsureCreatedAsync();
-                }
-                catch (Exception ex) when (ex.Message.Contains("Invalid column") || ex.Message.Contains("no such column"))
-                {
-                    logger.LogWarning("Schema mismatch detected. Recreating database: {Message}", ex.Message);
-                    await dbContext.Database.EnsureDeletedAsync();
-                    await dbContext.Database.EnsureCreatedAsync();
+                    // DB existiert - pruefen ob Tabellen vorhanden sind
+                    try
+                    {
+                        // Einfacher Test: Zaehle Eintraege in einer bekannten Tabelle
+                        await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM [Properties] WHERE 1=0");
+                        logger.LogInformation("Database tables exist.");
+                    }
+                    catch
+                    {
+                        // Tabellen fehlen - neu erstellen
+                        logger.LogWarning("Tables missing, recreating schema with EnsureCreated...");
+                        // EnsureCreated erstellt nur fehlende Tabellen wenn DB existiert
+                        // Bei Schema-Aenderungen muss die DB komplett neu erstellt werden
+                        await dbContext.Database.EnsureDeletedAsync();
+                        await dbContext.Database.EnsureCreatedAsync();
+                        logger.LogInformation("Database schema recreated.");
+                    }
                 }
             }
             logger.LogInformation("Database migrations completed.");
