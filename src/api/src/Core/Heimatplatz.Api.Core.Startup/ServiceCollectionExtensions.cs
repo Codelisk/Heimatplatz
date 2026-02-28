@@ -10,6 +10,7 @@ using Heimatplatz.Api.Features.ForeclosureAuctions.Configuration;
 using Heimatplatz.Api.Features.Notifications.Configuration;
 using Heimatplatz.Api.Features.PropertyImport.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -134,13 +135,21 @@ public static class ServiceCollectionExtensions
                     }
                     catch
                     {
-                        // Tabellen fehlen - neu erstellen
-                        logger.LogWarning("Tables missing, recreating schema with EnsureCreated...");
-                        // EnsureCreated erstellt nur fehlende Tabellen wenn DB existiert
-                        // Bei Schema-Aenderungen muss die DB komplett neu erstellt werden
-                        await dbContext.Database.EnsureDeletedAsync();
-                        await dbContext.Database.EnsureCreatedAsync();
-                        logger.LogInformation("Database schema recreated.");
+                        // Tabellen fehlen - direkt erstellen auf existierender DB
+                        logger.LogWarning("Tables missing, creating tables on existing database...");
+                        var creator = dbContext.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
+                        try
+                        {
+                            await creator.CreateTablesAsync();
+                            logger.LogInformation("Database tables created successfully.");
+                        }
+                        catch (Exception createEx)
+                        {
+                            logger.LogWarning(createEx, "CreateTables failed, trying EnsureDeleted+EnsureCreated...");
+                            await dbContext.Database.EnsureDeletedAsync();
+                            await dbContext.Database.EnsureCreatedAsync();
+                            logger.LogInformation("Database recreated from scratch.");
+                        }
                     }
                 }
             }
