@@ -148,7 +148,22 @@ public class ForeclosurePropertySyncService(
         }
 
         // 7. SaveChanges
-        await dbContext.SaveChangesAsync(ct);
+        try
+        {
+            await dbContext.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) when (ex.InnerException?.Message?.Contains("truncated") == true
+                                   || ex.Message.Contains("truncated"))
+        {
+            logger.LogWarning(ex, "Property data truncation detected - recreating database and retrying");
+            foreach (var entry in dbContext.ChangeTracker.Entries().ToList())
+                entry.State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+
+            await dbContext.Database.EnsureDeletedAsync(ct);
+            await dbContext.Database.EnsureCreatedAsync(ct);
+
+            return await SyncToPropertiesAsync(ct);
+        }
 
         logger.LogInformation(
             "Property-Sync abgeschlossen: {Created} erstellt, {Updated} aktualisiert, {Removed} entfernt, {Skipped} uebersprungen, {Errors} Fehler",
