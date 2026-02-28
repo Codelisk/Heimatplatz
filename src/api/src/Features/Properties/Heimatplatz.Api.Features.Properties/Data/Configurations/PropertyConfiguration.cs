@@ -17,11 +17,11 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
 
         builder.Property(p => p.Title)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(2000);
 
         builder.Property(p => p.Address)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(500);
 
         // FK to Municipality (replaces City and PostalCode strings)
         builder.Property(p => p.MunicipalityId)
@@ -37,7 +37,7 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
 
         builder.Property(p => p.SellerName)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(500);
 
         builder.Property(p => p.Description)
             .HasMaxLength(4000);
