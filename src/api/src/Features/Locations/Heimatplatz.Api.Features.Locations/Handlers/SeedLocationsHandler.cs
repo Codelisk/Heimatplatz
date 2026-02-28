@@ -4,6 +4,8 @@ using Heimatplatz.Api.Features.Locations.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Locations.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
