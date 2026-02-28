@@ -303,8 +303,16 @@ public sealed partial class PropertyCard : UserControl
 
     private void UpdateDisplay(PropertyListItemDto property)
     {
-        // Format price (compact)
-        PriceText.Text = FormatPrice(property.Price);
+        // Format price (compact) - hide when 0
+        if (property.Price > 0)
+        {
+            PriceOverlay.Visibility = Visibility.Visible;
+            PriceText.Text = FormatPrice(property.Price);
+        }
+        else
+        {
+            PriceOverlay.Visibility = Visibility.Collapsed;
+        }
 
         // City and address
         OrtText.Text = property.City;
@@ -337,8 +345,16 @@ public sealed partial class PropertyCard : UserControl
             ? Visibility.Visible
             : Visibility.Collapsed;
 
-        // Plot area
-        GrundstueckText.Text = property.PlotAreaM2?.ToString("N0") ?? "—";
+        // Plot area - hide when not available
+        if (property.PlotAreaM2.HasValue)
+        {
+            GrundstueckPanel.Visibility = Visibility.Visible;
+            GrundstueckText.Text = property.PlotAreaM2.Value.ToString("N0");
+        }
+        else
+        {
+            GrundstueckPanel.Visibility = Visibility.Collapsed;
+        }
 
         // Living area
         if (property.LivingAreaM2.HasValue)

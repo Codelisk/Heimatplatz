@@ -75,6 +75,9 @@ public record EdiktDetail
     public string? SitePlanUrl { get; init; }
     public string? FloorPlanUrl { get; init; }
 
+    // Bilder (alle Bild-Attachments von der Seite)
+    public List<string> ImageUrls { get; init; } = [];
+
     // Status
     public string? StatusText { get; init; }
     public string? LastChangeDateText { get; init; }

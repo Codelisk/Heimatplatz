@@ -120,6 +120,11 @@ public class ForeclosureAuction : BaseEntity
     /// <summary>URL zu Kurzgutachten (PDF)</summary>
     public string? ShortAppraisalUrl { get; set; }
 
+    // === Bilder ===
+
+    /// <summary>Bild-URLs von der Edikt-Seite (Fotos, Lagepläne etc.)</summary>
+    public List<string> ImageUrls { get; set; } = [];
+
     // === Scraping-Daten ===
 
     /// <summary>Externe ID aus der Ediktsdatei (Lotus Notes Document-ID)</summary>

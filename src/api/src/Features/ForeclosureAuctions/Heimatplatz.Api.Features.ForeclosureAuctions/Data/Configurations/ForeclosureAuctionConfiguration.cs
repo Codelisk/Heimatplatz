@@ -111,6 +111,13 @@ public class ForeclosureAuctionConfiguration : IEntityTypeConfiguration<Foreclos
         builder.Property(fa => fa.ShortAppraisalUrl)
             .HasMaxLength(1000);
 
+        // === Bilder ===
+        builder.Property(fa => fa.ImageUrls)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
+            );
+
         // === Scraping-Daten ===
         builder.Property(fa => fa.ExternalId)
             .HasMaxLength(200);

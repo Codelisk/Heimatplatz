@@ -74,10 +74,21 @@ public class ForeclosurePropertySyncService(
             }
         }
 
-        // 3. Alle aktiven ForeclosureAuctions laden
-        var activeAuctions = await dbContext.Set<ForeclosureAuction>()
+        // 3. Alle aktiven ForeclosureAuctions laden (nur echte Versteigerungen, keine abgeschlossenen Verfahren)
+        var allActiveAuctions = await dbContext.Set<ForeclosureAuction>()
             .Where(a => a.IsActive && a.ExternalId != null)
             .ToListAsync(ct);
+
+        // Nur Versteigerungen syncen - Meistbotsverteilung/Zuschlag sind abgeschlossene Verfahren
+        var activeAuctions = allActiveAuctions
+            .Where(a => a.Status != null
+                && !a.Status.StartsWith("Meistbotsverteilung", StringComparison.OrdinalIgnoreCase)
+                && !a.Status.StartsWith("Zuschlag", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        logger.LogInformation(
+            "Aktive Auctions: {Total}, davon fuer Property-Sync: {Filtered} (uebersprungen: {Skipped} abgeschlossene Verfahren)",
+            allActiveAuctions.Count, activeAuctions.Count, allActiveAuctions.Count - activeAuctions.Count);
 
         // 4. Bestehende Properties mit SourceName laden
         var existingProperties = await dbContext.Set<Property>()
@@ -203,6 +214,7 @@ public class ForeclosurePropertySyncService(
             Description = auction.ObjectDescription,
             UserId = systemUserId,
             InquiryType = InquiryType.ContactData,
+            ImageUrls = CollectImageUrls(auction),
             SourceName = ForeclosureAuctionConstants.SourceName,
             SourceId = auction.ExternalId,
             SourceUrl = auction.EdictUrl,
@@ -231,6 +243,7 @@ public class ForeclosurePropertySyncService(
             : null;
         property.Rooms = auction.NumberOfRooms;
         property.YearBuilt = auction.YearBuilt;
+        property.ImageUrls = CollectImageUrls(auction);
         property.SellerName = auction.Court ?? "Bezirksgericht";
         property.Description = auction.ObjectDescription;
         property.SourceUrl = auction.EdictUrl;
@@ -295,5 +308,19 @@ public class ForeclosurePropertySyncService(
             LongAppraisalUrl: auction.LongAppraisalUrl,
             ShortAppraisalUrl: auction.ShortAppraisalUrl
         );
+    }
+
+    private static List<string> CollectImageUrls(ForeclosureAuction auction)
+    {
+        // Prefer scraped image URLs, fall back to SitePlan/FloorPlan
+        if (auction.ImageUrls.Count > 0)
+            return auction.ImageUrls;
+
+        var urls = new List<string>();
+        if (!string.IsNullOrEmpty(auction.SitePlanUrl))
+            urls.Add(auction.SitePlanUrl);
+        if (!string.IsNullOrEmpty(auction.FloorPlanUrl))
+            urls.Add(auction.FloorPlanUrl);
+        return urls;
     }
 }

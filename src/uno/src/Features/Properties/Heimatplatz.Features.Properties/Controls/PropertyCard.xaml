@@ -127,7 +127,8 @@
                 </Border>
 
                 <!-- Preis: Unten rechts auf dem Bild - Prominenter -->
-                <Border Background="#E8000000"
+                <Border x:Name="PriceOverlay"
+                        Background="#E8000000"
                         CornerRadius="6"
                         Padding="14,8"
                         Margin="12"
@@ -353,7 +354,8 @@
                             Margin="12,0,0,0">
 
                     <!-- Grundstuecksflaeche prominent -->
-                    <StackPanel HorizontalAlignment="Right">
+                    <StackPanel x:Name="GrundstueckPanel"
+                                HorizontalAlignment="Right">
                         <TextBlock HorizontalAlignment="Right"
                                    AutomationProperties.AutomationId="PropertyCard_Area">
                             <Run x:Name="GrundstueckText"

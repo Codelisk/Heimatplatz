@@ -224,6 +224,7 @@ public partial class ForeclosureAuctionSyncService(
             LongAppraisalUrl = detail.LongAppraisalUrl,
             SitePlanUrl = detail.SitePlanUrl,
             FloorPlanUrl = detail.FloorPlanUrl,
+            ImageUrls = detail.ImageUrls,
             ExternalId = detail.ExternalId,
             ContentHash = contentHash,
             State = GuessStateFromPostalCode(ExtractPostalCode(detail.PostalCodeAndCity)),
@@ -262,6 +263,8 @@ public partial class ForeclosureAuctionSyncService(
         entity.LongAppraisalUrl = detail.LongAppraisalUrl ?? entity.LongAppraisalUrl;
         entity.SitePlanUrl = detail.SitePlanUrl ?? entity.SitePlanUrl;
         entity.FloorPlanUrl = detail.FloorPlanUrl ?? entity.FloorPlanUrl;
+        if (detail.ImageUrls.Count > 0)
+            entity.ImageUrls = detail.ImageUrls;
         entity.State = GuessStateFromPostalCode(ExtractPostalCode(detail.PostalCodeAndCity)) ?? entity.State;
         entity.EdictUrl = $"https://edikte.justiz.gv.at/edikte/ex/exedi3.nsf/alldoc/{detail.ExternalId}!OpenDocument";
     }

@@ -180,6 +180,25 @@ public partial class EdikteScraper(
             }
         }
 
+        // Alle Bild-Attachments extrahieren (JPG/PNG Links, keine Thumbnails)
+        var imageUrls = new List<string>();
+        var allLinks = document.QuerySelectorAll("a[href]");
+        foreach (var link in allLinks)
+        {
+            var href = link.GetAttribute("href");
+            if (string.IsNullOrEmpty(href)) continue;
+
+            // Nur Bild-Dateien, keine Thumbnails (th1...)
+            var lowerHref = href.ToLowerInvariant();
+            if ((lowerHref.EndsWith(".jpg") || lowerHref.EndsWith(".jpeg") || lowerHref.EndsWith(".png"))
+                && !lowerHref.Contains("/th1"))
+            {
+                var fullImgUrl = href.StartsWith("http") ? href : $"{options.Value.BaseUrl}{href}";
+                if (!imageUrls.Contains(fullImgUrl))
+                    imageUrls.Add(fullImgUrl);
+            }
+        }
+
         // Publikations-Eintraege am Ende
         var publications = document.QuerySelectorAll("#druckbereich > div:last-of-type p");
         string? publicationDate = null;
@@ -223,6 +242,7 @@ public partial class EdikteScraper(
             LongAppraisalUrl = longAppraisalUrl,
             SitePlanUrl = sitePlanUrl,
             FloorPlanUrl = floorPlanUrl,
+            ImageUrls = imageUrls,
             StatusText = statusFromPublications ?? title,
             LastChangeDateText = allFields.GetValueOrDefault("Letzte Änderung am"),
             PublicationDateText = publicationDate,
