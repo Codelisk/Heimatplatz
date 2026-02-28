@@ -45,6 +45,9 @@ public class GetUserPropertiesHandler(
         // Get total count
         var total = await query.CountAsync(cancellationToken);
 
+        var req = httpContextAccessor.HttpContext?.Request;
+        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+
         // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);
         var properties = entities
@@ -65,7 +68,7 @@ public class GetUserPropertiesHandler(
                 p.Type,
                 p.SellerType,
                 p.SellerName,
-                p.ImageUrls,
+                GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl),
                 p.CreatedAt,
                 p.InquiryType
             ))

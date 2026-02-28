@@ -71,6 +71,13 @@ public class GetUserFavoritesHandler(
             ))
             .ToListAsync(cancellationToken);
 
+        // Proxy external image URLs
+        var req = httpContextAccessor.HttpContext?.Request;
+        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+        properties = properties
+            .Select(p => p with { ImageUrls = GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl) })
+            .ToList();
+
         var hasMore = (request.Page + 1) * request.PageSize < total;
 
         return new GetUserFavoritesResponse(

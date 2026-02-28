@@ -4,6 +4,7 @@ using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shiny.Extensions.DependencyInjection;
 using Shiny.Mediator;
@@ -15,7 +16,10 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/properties")]
-public class GetPropertyByIdHandler(AppDbContext dbContext) : IRequestHandler<GetPropertyByIdRequest, GetPropertyByIdResponse>
+public class GetPropertyByIdHandler(
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor
+) : IRequestHandler<GetPropertyByIdRequest, GetPropertyByIdResponse>
 {
     [MediatorHttpGet("/{Id}", OperationId = "GetPropertyById")]
     public async Task<GetPropertyByIdResponse> Handle(GetPropertyByIdRequest request, IMediatorContext context, CancellationToken cancellationToken)
@@ -60,6 +64,14 @@ public class GetPropertyByIdHandler(AppDbContext dbContext) : IRequestHandler<Ge
                 p.TypeSpecificData
             ))
             .FirstOrDefaultAsync(cancellationToken);
+
+        if (property != null && property.ImageUrls.Count > 0)
+        {
+            var req = httpContextAccessor.HttpContext?.Request;
+            var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+            var proxied = GetPropertiesHandler.ProxyImageUrls(property.ImageUrls, baseUrl);
+            property = property with { ImageUrls = proxied };
+        }
 
         return new GetPropertyByIdResponse(property);
     }

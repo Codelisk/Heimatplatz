@@ -112,6 +112,10 @@ public class GetPropertiesHandler(
         var skip = request.Page * request.PageSize;
         var hasMore = (request.Page + 1) * request.PageSize < total;
 
+        // Build base URL for image proxy
+        var req = httpContextAccessor.HttpContext?.Request;
+        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+
         // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);
         var properties = entities
@@ -132,7 +136,7 @@ public class GetPropertiesHandler(
                 p.Type,
                 p.SellerType,
                 p.SellerName,
-                p.ImageUrls,
+                ProxyImageUrls(p.ImageUrls, baseUrl),
                 p.CreatedAt,
                 p.InquiryType
             ))
@@ -145,5 +149,23 @@ public class GetPropertiesHandler(
             request.Page,
             hasMore
         );
+    }
+
+    internal static List<string> ProxyImageUrls(List<string> urls, string baseUrl)
+    {
+        if (urls.Count == 0 || string.IsNullOrEmpty(baseUrl))
+            return urls;
+
+        return urls.Select(url =>
+        {
+            if (string.IsNullOrEmpty(url))
+                return url;
+
+            // Only proxy external URLs (not our own uploads)
+            if (url.StartsWith("https://edikte.justiz.gv.at", StringComparison.OrdinalIgnoreCase))
+                return $"{baseUrl}/api/images/proxy?url={Uri.EscapeDataString(url)}";
+
+            return url;
+        }).ToList();
     }
 }
