@@ -10,38 +10,37 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Handlers;
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/foreclosure-auctions")]
 public class TriggerForeclosureAuctionSyncHandler(
-    IForeclosureAuctionSyncService syncService,
+    IServiceScopeFactory scopeFactory,
     ILogger<TriggerForeclosureAuctionSyncHandler> logger
 ) : IRequestHandler<TriggerForeclosureAuctionSyncRequest, TriggerForeclosureAuctionSyncResponse>
 {
     [MediatorHttpPost("/sync", OperationId = "TriggerForeclosureAuctionSync")]
-    public async Task<TriggerForeclosureAuctionSyncResponse> Handle(
+    public Task<TriggerForeclosureAuctionSyncResponse> Handle(
         TriggerForeclosureAuctionSyncRequest request,
         IMediatorContext context,
         CancellationToken cancellationToken)
     {
-        try
+        // Fire-and-forget: run sync in background so the HTTP request returns immediately
+        _ = Task.Run(async () =>
         {
-            var result = await syncService.SyncAllAsync(cancellationToken);
+            try
+            {
+                using var scope = scopeFactory.CreateScope();
+                var bgSyncService = scope.ServiceProvider.GetRequiredService<IForeclosureAuctionSyncService>();
+                var result = await bgSyncService.SyncAllAsync(CancellationToken.None);
+                logger.LogInformation(
+                    "[Sync] Background sync completed: {Created} created, {Updated} updated, {Removed} removed, {Unchanged} unchanged, {Errors} errors",
+                    result.Created, result.Updated, result.Removed, result.Unchanged, result.Errors);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[Sync] Background sync failed");
+            }
+        });
 
-            return new TriggerForeclosureAuctionSyncResponse
-            {
-                Created = result.Created,
-                Updated = result.Updated,
-                Removed = result.Removed,
-                Unchanged = result.Unchanged,
-                Errors = result.Errors,
-                ErrorMessages = result.ErrorMessages
-            };
-        }
-        catch (Exception ex)
+        return Task.FromResult(new TriggerForeclosureAuctionSyncResponse
         {
-            logger.LogError(ex, "[Sync] Unhandled error during foreclosure sync");
-            return new TriggerForeclosureAuctionSyncResponse
-            {
-                Errors = 1,
-                ErrorMessages = [$"{ex.GetType().Name}: {ex.Message}", ex.InnerException?.Message ?? ""]
-            };
-        }
+            ErrorMessages = ["Sync started in background"]
+        });
     }
 }
