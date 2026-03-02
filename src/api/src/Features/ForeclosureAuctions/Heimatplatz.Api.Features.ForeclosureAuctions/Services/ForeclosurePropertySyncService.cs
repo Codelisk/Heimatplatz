@@ -3,6 +3,7 @@ using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
+using Heimatplatz.Api.Features.Notifications.Contracts.Events;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
@@ -10,6 +11,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific.Enums;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 
@@ -18,6 +20,7 @@ public class ForeclosurePropertySyncService(
     IPasswordHasher passwordHasher,
     IHttpClientFactory httpClientFactory,
     ILoggerFactory loggerFactory,
+    IMediator mediator,
     ILogger<ForeclosurePropertySyncService> logger
 ) : IForeclosurePropertySyncService
 {
@@ -98,6 +101,7 @@ public class ForeclosurePropertySyncService(
 
         var now = DateTimeOffset.UtcNow;
         var processedSourceIds = new HashSet<string>();
+        var newProperties = new List<(Property Property, string City)>();
 
         // 5. Upsert: Fuer jede aktive Auction → Property erstellen oder aktualisieren
         foreach (var auction in activeAuctions)
@@ -135,6 +139,9 @@ public class ForeclosurePropertySyncService(
                     var contact = CreateContact(property, auction);
                     dbContext.Set<PropertyContactInfo>().Add(contact);
 
+                    var municipalityName = municipalities.First(m => m.Id == municipalityId.Value).Name;
+                    newProperties.Add((property, municipalityName));
+
                     created++;
                 }
             }
@@ -160,6 +167,26 @@ public class ForeclosurePropertySyncService(
 
         // 7. SaveChanges
         await dbContext.SaveChangesAsync(ct);
+
+        // 8. Push-Benachrichtigungen fuer neue Properties
+        foreach (var (property, city) in newProperties)
+        {
+            try
+            {
+                await mediator.Publish(new PropertyCreatedEvent(
+                    property.Id,
+                    property.Title,
+                    city,
+                    property.Price,
+                    property.Type,
+                    property.SellerType
+                ), ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Push-Benachrichtigung fuer Property {PropertyId} fehlgeschlagen", property.Id);
+            }
+        }
 
         logger.LogInformation(
             "Property-Sync abgeschlossen: {Created} erstellt, {Updated} aktualisiert, {Removed} entfernt, {Skipped} uebersprungen, {Errors} Fehler",

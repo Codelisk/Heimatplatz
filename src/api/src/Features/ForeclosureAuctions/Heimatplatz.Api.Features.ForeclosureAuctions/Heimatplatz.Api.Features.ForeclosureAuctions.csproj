@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\Properties\Heimatplatz.Api.Features.Properties.Contracts\Heimatplatz.Api.Features.Properties.Contracts.csproj" />
     <ProjectReference Include="..\..\Locations\Heimatplatz.Api.Features.Locations\Heimatplatz.Api.Features.Locations.csproj" />
     <ProjectReference Include="..\..\Auth\Heimatplatz.Api.Features.Auth\Heimatplatz.Api.Features.Auth.csproj" />
+    <ProjectReference Include="..\..\Notifications\Heimatplatz.Api.Features.Notifications.Contracts\Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
