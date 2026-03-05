@@ -288,6 +288,66 @@
         }
       }
     },
+    "/api/locations/seed": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SeedLocations",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedLocationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedLocationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/db/init": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "InitDatabase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitDatabaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InitDatabaseResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/blocked": {
       "post": {
         "tags": [
@@ -2745,6 +2805,24 @@
           "Failed"
         ]
       },
+      "InitDatabaseRequest": {
+        "type": "object"
+      },
+      "InitDatabaseResponse": {
+        "required": [
+          "Success",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": "string"
+          }
+        }
+      },
       "InquiryType": {
         "enum": [
           "None",
@@ -3466,6 +3544,49 @@
         "properties": {
           "Success": {
             "type": "boolean"
+          }
+        }
+      },
+      "SeedLocationsRequest": {
+        "type": "object"
+      },
+      "SeedLocationsResponse": {
+        "required": [
+          "FederalProvinces",
+          "Districts",
+          "Municipalities"
+        ],
+        "type": "object",
+        "properties": {
+          "FederalProvinces": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Districts": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Municipalities": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
