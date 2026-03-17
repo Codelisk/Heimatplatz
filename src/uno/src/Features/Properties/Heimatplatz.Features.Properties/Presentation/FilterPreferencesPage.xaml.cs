@@ -14,4 +14,14 @@ public sealed partial class FilterPreferencesPage : BasePage
     {
         this.InitializeComponent();
     }
+
+    private void OnOrtSelectionChanged(object? sender, EventArgs e)
+    {
+        // Push the selected orte from OrtPicker directly to ViewModel
+        // (TwoWay binding with List<string> is unreliable)
+        if (ViewModel != null)
+        {
+            ViewModel.SelectedOrte = OrtPickerControl.GetSelectedOrte();
+        }
+    }
 }

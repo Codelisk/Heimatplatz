@@ -130,6 +130,25 @@
                                 <!-- Content Section -->
                                 <StackPanel Padding="16,24,16,24" Spacing="20" Background="{ThemeResource SurfaceBrush}">
 
+                                    <!-- Originalinserat Link (oben) -->
+                                    <Button Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            MinHeight="0"
+                                            HorizontalAlignment="Left"
+                                            Command="{x:Bind ViewModel.OpenOriginalListingCommand}"
+                                            Visibility="{x:Bind ViewModel.HasOriginalListingUrl, Mode=OneWay}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8A7;"
+                                                      FontSize="14"
+                                                      Foreground="{ThemeResource AccentBrush}" />
+                                            <TextBlock Text="Originalinserat ansehen"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource AccentBrush}"
+                                                       TextDecorations="Underline" />
+                                        </StackPanel>
+                                    </Button>
+
                                     <!-- Strukturierte Datentabelle -->
                                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.DetailSections, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
@@ -347,7 +366,7 @@
                                                        HorizontalAlignment="Center"
                                                        Visibility="{x:Bind ViewModel.CopyFeedback, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}" />
 
-                                            <!-- Zum Anbieter Button - nur bei Makler -->
+                                            <!-- Originalinserat Button -->
                                             <Button Background="{ThemeResource OnSurfaceBrush}"
                                                     Foreground="{ThemeResource SurfaceBrush}"
                                                     FontWeight="SemiBold"
@@ -357,12 +376,12 @@
                                                     HorizontalContentAlignment="Center"
                                                     CornerRadius="{StaticResource RadiusMd}"
                                                     Command="{x:Bind ViewModel.OpenOriginalListingCommand}"
-                                                    Visibility="{x:Bind ViewModel.IsBroker, Mode=OneWay}">
+                                                    Visibility="{x:Bind ViewModel.HasOriginalListingUrl, Mode=OneWay}">
                                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                                     <FontIcon Glyph="&#xE8A7;"
                                                               FontSize="16"
                                                               Foreground="{ThemeResource SurfaceBrush}" />
-                                                    <TextBlock Text="Zum Anbieter"
+                                                    <TextBlock Text="Originalinserat"
                                                                FontWeight="SemiBold"
                                                                VerticalAlignment="Center" />
                                                 </StackPanel>
@@ -499,6 +518,25 @@
 
                             <!-- Content: volle Breite (Kontakt in Footer-Bar) -->
                             <StackPanel Spacing="16" Margin="0,0,0,80">
+
+                                <!-- Originalinserat Link (oben) -->
+                                <Button Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        MinHeight="0"
+                                        HorizontalAlignment="Left"
+                                        Command="{x:Bind ViewModel.OpenOriginalListingCommand}"
+                                        Visibility="{x:Bind ViewModel.HasOriginalListingUrl, Mode=OneWay}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE8A7;"
+                                                  FontSize="14"
+                                                  Foreground="{ThemeResource AccentBrush}" />
+                                        <TextBlock Text="Originalinserat ansehen"
+                                                   FontSize="14"
+                                                   Foreground="{ThemeResource AccentBrush}"
+                                                   TextDecorations="Underline" />
+                                    </StackPanel>
+                                </Button>
 
                                 <!-- Strukturierte Datentabelle -->
                                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.DetailSections, Mode=OneWay}"
@@ -727,7 +765,7 @@
                                        HorizontalAlignment="Center"
                                        Visibility="{x:Bind ViewModel.CopyFeedback, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}" />
 
-                            <!-- Zum Anbieter Button (nur Makler) -->
+                            <!-- Originalinserat Button -->
                             <Button Background="{ThemeResource OnSurfaceBrush}"
                                     Foreground="{ThemeResource SurfaceBrush}"
                                     FontWeight="SemiBold"
@@ -737,12 +775,12 @@
                                     HorizontalAlignment="Left"
                                     CornerRadius="{StaticResource RadiusMd}"
                                     Command="{x:Bind ViewModel.OpenOriginalListingCommand}"
-                                    Visibility="{x:Bind ViewModel.IsBroker, Mode=OneWay}">
+                                    Visibility="{x:Bind ViewModel.HasOriginalListingUrl, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE8A7;"
                                               FontSize="14"
                                               Foreground="{ThemeResource SurfaceBrush}" />
-                                    <TextBlock Text="Zum Anbieter"
+                                    <TextBlock Text="Originalinserat"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center" />
                                 </StackPanel>

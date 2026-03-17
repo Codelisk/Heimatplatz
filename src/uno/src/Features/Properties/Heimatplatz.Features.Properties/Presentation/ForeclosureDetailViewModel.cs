@@ -204,7 +204,6 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         AddJsonString(items, data, "OwnershipShare", "Eigentumsanteil", PropertyDataCategory.Versteigerung);
 
         // --- BASISDATEN ---
-        AddIfNotEmpty(items, "Titel", Property.Title, PropertyDataCategory.Basisdaten);
         items.Add(new PropertyDetailItem("Immobilienart", "Zwangsversteigerung", PropertyDataCategory.Basisdaten));
         AddJsonString(items, data, "Category", "Kategorie", PropertyDataCategory.Basisdaten);
         AddJsonStatus(items, data, PropertyDataCategory.Basisdaten);

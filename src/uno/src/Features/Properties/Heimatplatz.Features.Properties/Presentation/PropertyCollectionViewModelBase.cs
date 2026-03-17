@@ -43,7 +43,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotEmpty))]
-    private bool _isEmpty = true;
+    private bool _isEmpty;
 
     public bool IsNotEmpty => !IsEmpty;
 

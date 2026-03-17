@@ -228,12 +228,15 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Capture UI dispatcher (OnNavigatedTo always runs on the UI thread)
         _dispatcher ??= DispatcherQueue.GetForCurrentThread();
 
-        // Trigger initial load if collection is empty
-        // The PaginatedObservableCollection loads data lazily when accessed
         if (Properties.Count == 0 && !Properties.IsLoading)
         {
             // Trigger first page load
             _ = Properties.LoadMoreItemsAsync(PageSize);
+        }
+        else if (_authService.IsAuthenticated)
+        {
+            // Reload filter preferences (may have changed in FilterPreferencesPage)
+            _ = LoadFilterPreferencesAsync();
         }
     }
 

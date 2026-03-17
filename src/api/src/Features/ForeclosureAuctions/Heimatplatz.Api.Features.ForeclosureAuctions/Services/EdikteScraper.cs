@@ -180,23 +180,59 @@ public partial class EdikteScraper(
             }
         }
 
-        // Alle Bild-Attachments extrahieren (JPG/PNG Links, keine Thumbnails)
+        // Alle Bild-Attachments extrahieren
         var imageUrls = new List<string>();
+
+        // 1. Direkte Bild-Links aus <a href> (keine Thumbnails)
         var allLinks = document.QuerySelectorAll("a[href]");
         foreach (var link in allLinks)
         {
             var href = link.GetAttribute("href");
             if (string.IsNullOrEmpty(href)) continue;
 
-            // Nur Bild-Dateien, keine Thumbnails (th1...)
             var lowerHref = href.ToLowerInvariant();
-            if ((lowerHref.EndsWith(".jpg") || lowerHref.EndsWith(".jpeg") || lowerHref.EndsWith(".png"))
+            if ((lowerHref.EndsWith(".jpg") || lowerHref.EndsWith(".jpeg")
+                || lowerHref.EndsWith(".png") || lowerHref.EndsWith(".gif"))
                 && !lowerHref.Contains("/th1"))
             {
                 var fullImgUrl = href.StartsWith("http") ? href : $"{options.Value.BaseUrl}{href}";
                 if (!imageUrls.Contains(fullImgUrl))
                     imageUrls.Add(fullImgUrl);
             }
+        }
+
+        // 2. Vollbild-URLs aus Thumbnail <img> Tags ableiten (th1... -> Original)
+        var allImages = document.QuerySelectorAll("img[src]");
+        foreach (var img in allImages)
+        {
+            var src = img.GetAttribute("src");
+            if (string.IsNullOrEmpty(src)) continue;
+
+            var lowerSrc = src.ToLowerInvariant();
+            if (!lowerSrc.Contains("/$file/th1")) continue;
+
+            // Thumbnail: /$file/th1bildansicht.jpg -> Vollbild: /$file/BildAnsicht.jpg
+            // Entferne th1 prefix aus dem Dateinamen
+            var fileIdx = src.IndexOf("/$file/", StringComparison.OrdinalIgnoreCase);
+            if (fileIdx < 0) continue;
+
+            // Hole den Verzeichnispfad (vor $file) - dort liegt das Vollbild unter gleichem Pfad
+            var basePath = src[..(fileIdx + "/$file/".Length)];
+            var thumbFileName = src[(fileIdx + "/$file/".Length)..];
+
+            // Entferne th1 prefix (case-insensitive)
+            var originalFileName = thumbFileName.StartsWith("th1", StringComparison.OrdinalIgnoreCase)
+                ? thumbFileName[3..]
+                : thumbFileName;
+
+            if (string.IsNullOrEmpty(originalFileName)) continue;
+
+            var fullImgUrl = $"{basePath}{originalFileName}";
+            if (!fullImgUrl.StartsWith("http"))
+                fullImgUrl = $"{options.Value.BaseUrl}{fullImgUrl}";
+
+            if (!imageUrls.Contains(fullImgUrl))
+                imageUrls.Add(fullImgUrl);
         }
 
         // Publikations-Eintraege am Ende

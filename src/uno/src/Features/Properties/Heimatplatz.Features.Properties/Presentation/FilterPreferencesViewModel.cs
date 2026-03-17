@@ -41,6 +41,8 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     public void OnNavigatedFrom()
     {
         _debounceCts?.Cancel();
+        // Always save on navigate-away to ensure no changes are lost
+        _ = SaveImmediatelyAsync();
         UnsubscribeSellerTypes();
     }
 
@@ -189,6 +191,38 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
         finally
         {
             IsSaving = false;
+        }
+    }
+
+    /// <summary>
+    /// Saves preferences immediately without debounce (used when navigating away)
+    /// </summary>
+    private async Task SaveImmediatelyAsync()
+    {
+        if (!_isLoaded) return;
+
+        try
+        {
+            var (isPrivate, isBroker, isPortal) = GetSellerTypeSelection();
+
+            var preferences = new FilterPreferencesDto(
+                SelectedOrte: SelectedOrte,
+                SelectedAgeFilter: SelectedAgeFilter,
+                IsHausSelected: IsHausSelected,
+                IsGrundstueckSelected: IsGrundstueckSelected,
+                IsZwangsversteigerungSelected: IsZwangsversteigerungSelected,
+                IsPrivateSelected: isPrivate,
+                IsBrokerSelected: isBroker,
+                IsPortalSelected: isPortal,
+                ExcludedSellerSourceIds: []
+            );
+
+            await _filterPreferencesService.SavePreferencesAsync(preferences);
+            System.Diagnostics.Debug.WriteLine("[FilterPreferences] Saved on navigate-away");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[FilterPreferences] Save on navigate-away failed: {ex.Message}");
         }
     }
 

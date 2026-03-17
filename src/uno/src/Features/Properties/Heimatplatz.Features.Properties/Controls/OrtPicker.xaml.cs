@@ -41,12 +41,42 @@ public sealed partial class OrtPicker : UserControl
             nameof(SelectedOrte),
             typeof(List<string>),
             typeof(OrtPicker),
-            new PropertyMetadata(new List<string>()));
+            new PropertyMetadata(null, OnSelectedOrteChanged));
 
     public List<string> SelectedOrte
     {
         get => (List<string>)GetValue(SelectedOrteProperty);
         set => SetValue(SelectedOrteProperty, value);
+    }
+
+    private static void OnSelectedOrteChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is OrtPicker picker && !picker._isSyncing && picker.Bezirke != null)
+        {
+            picker.ApplySelectedOrte(e.NewValue as List<string>);
+        }
+    }
+
+    private void ApplySelectedOrte(List<string>? orte)
+    {
+        if (Bezirke == null) return;
+
+        _isSyncing = true;
+        try
+        {
+            foreach (var bezirk in Bezirke)
+            {
+                foreach (var gemeinde in bezirk.Gemeinden)
+                {
+                    gemeinde.IsSelected = orte?.Contains(gemeinde.Name) == true;
+                }
+            }
+        }
+        finally
+        {
+            _isSyncing = false;
+        }
+        UpdateSelectionText();
     }
 
     /// <summary>
@@ -105,6 +135,11 @@ public sealed partial class OrtPicker : UserControl
             if (picker.IsSingleSelect && picker.SelectedGemeindeId.HasValue)
             {
                 picker.ApplySelectedGemeindeId(picker.SelectedGemeindeId.Value);
+            }
+            // Apply pre-set SelectedOrte if available (multi-select)
+            if (!picker.IsSingleSelect && picker.SelectedOrte is { Count: > 0 })
+            {
+                picker.ApplySelectedOrte(picker.SelectedOrte);
             }
             picker.UpdateSelectionText();
         }

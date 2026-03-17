@@ -129,6 +129,25 @@
                                 <!-- Content Section -->
                                 <StackPanel Padding="16,24,16,24" Spacing="20" Background="{ThemeResource SurfaceBrush}">
 
+                                    <!-- Originalinserat Link (oben) -->
+                                    <Button Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="0"
+                                            MinHeight="0"
+                                            HorizontalAlignment="Left"
+                                            Command="{x:Bind ViewModel.OpenEdictCommand}"
+                                            Visibility="{x:Bind ViewModel.EdictUrl, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8A7;"
+                                                      FontSize="14"
+                                                      Foreground="{ThemeResource AccentBrush}" />
+                                            <TextBlock Text="Originalinserat ansehen"
+                                                       FontSize="14"
+                                                       Foreground="{ThemeResource AccentBrush}"
+                                                       TextDecorations="Underline" />
+                                        </StackPanel>
+                                    </Button>
+
                                     <!-- Strukturierte Datentabelle -->
                                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.DetailSections, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
@@ -473,6 +492,25 @@
 
                             <!-- Content: volle Breite -->
                             <StackPanel Spacing="16" Margin="0,0,0,80">
+
+                                <!-- Originalinserat Link (oben) -->
+                                <Button Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        MinHeight="0"
+                                        HorizontalAlignment="Left"
+                                        Command="{x:Bind ViewModel.OpenEdictCommand}"
+                                        Visibility="{x:Bind ViewModel.EdictUrl, Converter={StaticResource NullToCollapsedConverter}, Mode=OneWay}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE8A7;"
+                                                  FontSize="14"
+                                                  Foreground="{ThemeResource AccentBrush}" />
+                                        <TextBlock Text="Originalinserat ansehen"
+                                                   FontSize="14"
+                                                   Foreground="{ThemeResource AccentBrush}"
+                                                   TextDecorations="Underline" />
+                                    </StackPanel>
+                                </Button>
 
                                 <!-- Strukturierte Datentabelle -->
                                 <ItemsRepeater ItemsSource="{x:Bind ViewModel.DetailSections, Mode=OneWay}"

@@ -104,6 +104,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     private string? _originalListingUrl;
 
     [ObservableProperty]
+    private bool _hasOriginalListingUrl;
+
+    [ObservableProperty]
     private string? _primaryContactEmail;
 
     [ObservableProperty]
@@ -187,6 +190,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             IsHouseType = false;
             IsBroker = false;
             OriginalListingUrl = null;
+            HasOriginalListingUrl = false;
             PrimaryContactEmail = null;
             PrimaryContactPhone = null;
             HasPrimaryEmail = false;
@@ -251,6 +255,19 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         IsBroker = Property.SellerType == SellerType.Broker;
         OriginalListingUrl = Property.Contacts?.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.OriginalListingUrl))?.OriginalListingUrl;
 
+        // For foreclosures, extract EdictUrl from TypeSpecificData if no contact URL
+        if (string.IsNullOrWhiteSpace(OriginalListingUrl) && !string.IsNullOrWhiteSpace(Property.TypeSpecificData))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(Property.TypeSpecificData);
+                if (doc.RootElement.TryGetProperty("EdictUrl", out var edictUrlElement))
+                    OriginalListingUrl = edictUrlElement.GetString();
+            }
+            catch { /* ignore parse errors */ }
+        }
+        HasOriginalListingUrl = !string.IsNullOrWhiteSpace(OriginalListingUrl);
+
         // Contact person (first contact name if available)
         var firstContact = Property.Contacts?.FirstOrDefault();
         HasContactPerson = firstContact != null;
@@ -291,7 +308,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             PropertyType.Foreclosure => "Zwangsversteigerung",
             _ => Property.Type.ToString()
         };
-        AddIfNotEmpty(items, "Titel", Property.Title, PropertyDataCategory.Basisdaten, true);
         items.Add(new PropertyDetailItem("Immobilienart", typeLabel, PropertyDataCategory.Basisdaten, true));
         items.Add(new PropertyDetailItem("Kaufpreis", FormattedPrice, PropertyDataCategory.Basisdaten, true));
         AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten, true);
