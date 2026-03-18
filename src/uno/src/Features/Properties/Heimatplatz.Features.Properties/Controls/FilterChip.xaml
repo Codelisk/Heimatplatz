@@ -4,7 +4,7 @@
              xmlns:local="using:Heimatplatz.Features.Properties.Controls">
 
     <!--
-    FilterChip - Toggle-Button fuer Filteroptionen
+    FilterChip - Toggle-Button für Filteroptionen
     Zeigt: Label mit selektiertem/unselektiertem Zustand
     -->
 

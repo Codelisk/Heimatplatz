@@ -11,7 +11,7 @@
 
     <!--
     BlockedPage - User's Blocked Properties
-    Zeigt alle blockierten Immobilien des eingeloggten Kaeufers
+    Zeigt alle blockierten Immobilien des eingeloggten Käufers
     Blockierte Immobilien werden aus der Hauptliste ausgeblendet
     -->
 
@@ -20,43 +20,43 @@
         <uc:BusyOverlay IsBusy="{Binding IsBusy}"
                         BusyMessage="{Binding BusyMessage}">
 
-            <!-- Content Area -->
-            <ScrollViewer>
+            <Grid>
+                <!-- Empty State -->
+                <StackPanel x:Name="EmptyState"
+                            Visibility="Collapsed"
+                            Spacing="16"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+
+                    <FontIcon Glyph="{Binding EmptyStateIcon}"
+                              FontSize="64"
+                              Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                              HorizontalAlignment="Center" />
+
+                    <TextBlock Text="{Binding EmptyStateTitle}"
+                               Style="{StaticResource TitleMediumTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               HorizontalAlignment="Center" />
+
+                    <TextBlock Text="{Binding EmptyStateDescription}"
+                               Style="{StaticResource BodyMediumTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="400" />
+                </StackPanel>
+
+                <!-- Content Area -->
+                <ScrollViewer x:Name="ContentArea" Visibility="Collapsed">
                     <utu:AutoLayout Orientation="Vertical"
                                     Spacing="16"
-                                    Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}">
-
-                        <!-- Empty State -->
-                        <StackPanel Visibility="{Binding IsEmpty, FallbackValue=Collapsed}"
-                                    Spacing="16"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Padding="0,80,0,0">
-
-                            <FontIcon Glyph="{Binding EmptyStateIcon}"
-                                      FontSize="64"
-                                      Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                      HorizontalAlignment="Center" />
-
-                            <TextBlock Text="{Binding EmptyStateTitle}"
-                                       Style="{StaticResource TitleMediumTextBlockStyle}"
-                                       Foreground="{ThemeResource OnSurfaceBrush}"
-                                       HorizontalAlignment="Center" />
-
-                            <TextBlock Text="{Binding EmptyStateDescription}"
-                                       Style="{StaticResource BodyMediumTextBlockStyle}"
-                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                       HorizontalAlignment="Center"
-                                       TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       MaxWidth="400"
-                                       Margin="0,0,0,24" />
-                        </StackPanel>
+                                    Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}"
+                                    utu:SafeArea.Insets="Bottom">
 
                         <!-- Blocked Properties Grid -->
                         <ItemsRepeater ItemsSource="{Binding Properties}"
-                                       utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True"
-                                       Visibility="{Binding IsNotEmpty, FallbackValue=Collapsed}">
+                                       utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True">
                             <ItemsRepeater.Layout>
                                 <UniformGridLayout Orientation="Horizontal"
                                                    MinItemWidth="240"
@@ -87,6 +87,7 @@
 
                     </utu:AutoLayout>
                 </ScrollViewer>
+            </Grid>
 
         </uc:BusyOverlay>
 

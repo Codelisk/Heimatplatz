@@ -7,11 +7,11 @@
       xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:uc="using:UnoFramework.Controls"
       xmlns:ufp="using:UnoFramework.Pages"
-      NavigationCacheMode="Disabled">
+      NavigationCacheMode="Required">
 
     <!--
     HomePage - Premium Editorial Design
-    Elegantes Layout mit grosszuegigem Weissraum
+    Elegantes Layout mit großzügigem Weißraum
     Header wurde in Shell verschoben (AppHeader Control)
     -->
 
@@ -128,7 +128,7 @@
                 <ScrollViewer Grid.Row="1"
                               Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
                               AutomationProperties.AutomationId="HomePage_ScrollViewer">
-                    <StackPanel>
+                    <StackPanel utu:SafeArea.Insets="Bottom">
                         <ItemsRepeater ItemsSource="{Binding Properties}"
                                        utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True"
                                        AutomationProperties.AutomationId="HomePage_PropertyList">
@@ -193,7 +193,7 @@
 
                 <!-- Empty State: Schlicht -->
                 <StackPanel Grid.Row="1"
-                            Visibility="{Binding IsEmpty}"
+                            Visibility="{Binding EmptyVisibility}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Spacing="8"

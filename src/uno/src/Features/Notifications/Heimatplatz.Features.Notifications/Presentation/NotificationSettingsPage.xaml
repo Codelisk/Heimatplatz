@@ -36,7 +36,7 @@
                         <TextBlock
                             Grid.Column="0"
                             x:Uid="NotificationSettings.Description"
-                            Text="Konfigurieren Sie, wann Sie ueber neue Immobilien benachrichtigt werden moechten."
+                            Text="Konfigurieren Sie, wann Sie über neue Immobilien benachrichtigt werden möchten."
                             Style="{StaticResource BodyTextBlockStyle}"
                             Foreground="{ThemeResource OnSurfaceVariantBrush}"
                             TextWrapping="Wrap"
@@ -87,7 +87,7 @@
                             </Grid>
                             <TextBlock
                                 x:Uid="NotificationSettings.Toggle.Subtitle"
-                                Text="Push-Benachrichtigungen fuer neue Immobilien"
+                                Text="Push-Benachrichtigungen für neue Immobilien"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                 TextWrapping="Wrap" />
@@ -111,7 +111,7 @@
                                     Style="{StaticResource SubtitleTextBlockStyle}" />
                                 <TextBlock
                                     x:Uid="NotificationSettings.FilterMode.Subtitle"
-                                    Text="Waehlen Sie, fuer welche Immobilien Sie benachrichtigt werden moechten."
+                                    Text="Wählen Sie, für welche Immobilien Sie benachrichtigt werden möchten."
                                     Style="{StaticResource CaptionTextBlockStyle}"
                                     Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                     TextWrapping="Wrap" />
@@ -210,7 +210,7 @@
                                             Text="Benutzerdefiniert"
                                             Style="{StaticResource BodyStrongTextBlockStyle}" />
                                         <TextBlock
-                                            Text="Eigene Filterkriterien fuer Benachrichtigungen festlegen"
+                                            Text="Eigene Filterkriterien für Benachrichtigungen festlegen"
                                             Style="{StaticResource CaptionTextBlockStyle}"
                                             Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                             TextWrapping="Wrap" />
@@ -237,7 +237,7 @@
                                         Style="{StaticResource SubtitleTextBlockStyle}" />
                                     <TextBlock
                                         x:Uid="NotificationSettings.PropertyType.Subtitle"
-                                        Text="Waehlen Sie die Immobilientypen, fuer die Sie benachrichtigt werden moechten."
+                                        Text="Wählen Sie die Immobilientypen, für die Sie benachrichtigt werden möchten."
                                         Style="{StaticResource CaptionTextBlockStyle}"
                                         Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                         TextWrapping="Wrap" />
@@ -275,7 +275,7 @@
                                         Click="OnCustomFilterChanged"
                                         AutomationProperties.AutomationId="NotificationSettings_Chip_Haus" />
                                     <ToggleButton Grid.Row="0" Grid.Column="1"
-                                        Content="Grundstueck"
+                                        Content="Grundstück"
                                         IsChecked="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}"
                                         Style="{StaticResource FilterChipBaseStyle}"
                                         Click="OnCustomFilterChanged"
@@ -303,7 +303,7 @@
                                         Style="{StaticResource SubtitleTextBlockStyle}" />
                                     <TextBlock
                                         x:Uid="NotificationSettings.SellerType.Subtitle"
-                                        Text="Waehlen Sie die Anbietertypen, fuer die Sie benachrichtigt werden moechten."
+                                        Text="Wählen Sie die Anbietertypen, für die Sie benachrichtigt werden möchten."
                                         Style="{StaticResource CaptionTextBlockStyle}"
                                         Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                         TextWrapping="Wrap" />
@@ -345,7 +345,7 @@
                                         Style="{StaticResource SubtitleTextBlockStyle}" />
                                     <TextBlock
                                         x:Uid="NotificationSettings.Locations.Subtitle"
-                                        Text="Waehlen Sie die Orte aus, fuer die Sie Benachrichtigungen erhalten moechten. Leer = alle Orte."
+                                        Text="Wählen Sie die Orte aus, für die Sie Benachrichtigungen erhalten möchten. Leer = alle Orte."
                                         Style="{StaticResource CaptionTextBlockStyle}"
                                         Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                         TextWrapping="Wrap" />

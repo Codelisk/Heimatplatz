@@ -36,12 +36,12 @@ public interface IAuthService
     string? UserFullName { get; }
 
     /// <summary>
-    /// Gibt an, ob der Benutzer die Rolle Verkaeufer hat
+    /// Gibt an, ob der Benutzer die Rolle Verkäufer hat
     /// </summary>
     bool IsSeller { get; }
 
     /// <summary>
-    /// Gibt an, ob der Benutzer die Rolle Kaeufer hat
+    /// Gibt an, ob der Benutzer die Rolle Käufer hat
     /// </summary>
     bool IsBuyer { get; }
 

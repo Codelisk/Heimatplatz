@@ -92,15 +92,20 @@ public class PaginatedObservableCollection<T> : BatchObservableCollection<T>, IS
             _totalCount = totalCount;
 
             // Add items using direct manipulation (no per-item notifications)
+            var startIndex = Items.Count;
             foreach (var item in itemsList)
             {
                 Items.Add(item);
             }
 
-            // Single notification for the batch
+            // Single Add notification for the batch (preserves existing virtualized containers)
+            // Using Add instead of Reset prevents ItemsRepeater from discarding all containers
             if (itemsList.Count > 0)
             {
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+                    NotifyCollectionChangedAction.Add,
+                    (System.Collections.IList)itemsList,
+                    startIndex));
                 OnPropertyChanged(new System.ComponentModel.PropertyChangedEventArgs(nameof(Count)));
                 OnPropertyChanged(new System.ComponentModel.PropertyChangedEventArgs("Item[]"));
             }

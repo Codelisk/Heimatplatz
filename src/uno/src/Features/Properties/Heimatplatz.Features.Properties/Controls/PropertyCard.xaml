@@ -6,7 +6,7 @@
 
     <!--
     PropertyCard - Vertikales Grid Card Design
-    Bild oben, Content darunter - optimiert fuer Grid Layout
+    Bild oben, Content darunter - optimiert für Grid Layout
     Redesign: Verbesserte visuelle Hierarchie und Tiefe
     -->
 
@@ -15,19 +15,15 @@
         <Border Background="{ThemeResource SurfaceBrush}"
                 CornerRadius="{StaticResource RadiusMd}"
                 Padding="0"
-                Translation="0,0,16"
                 BorderBrush="{ThemeResource BorderBrush}"
                 BorderThickness="0.5"
                 AutomationProperties.AutomationId="PropertyCard_Container">
-        <Border.Shadow>
-            <ThemeShadow />
-        </Border.Shadow>
 
         <Grid>
             <Grid.RowDefinitions>
                 <!-- Bild: Oben, prominenter Bereich -->
                 <RowDefinition Height="200" />
-                <!-- Content: Darunter, Auto-Hoehe fuer vollstaendige Anzeige -->
+                <!-- Content: Darunter, Auto-Höhe für vollständige Anzeige -->
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
@@ -49,7 +45,7 @@
                               Opacity="0.5" />
                 </Border>
 
-                <!-- FlipView fuer Bilder-Swipe -->
+                <!-- FlipView für Bilder-Swipe -->
                 <Border CornerRadius="8,8,0,0"
                         IsHitTestVisible="False"
                         AutomationProperties.AutomationId="PropertyCard_ImageBorder">
@@ -73,7 +69,7 @@
                     </FlipView>
                 </Border>
 
-                <!-- Gradient Overlay fuer bessere Lesbarkeit -->
+                <!-- Gradient Overlay für bessere Lesbarkeit -->
                 <Border CornerRadius="8,8,0,0"
                         IsHitTestVisible="False">
                     <Border.Background>
@@ -178,7 +174,7 @@
 
                 <!-- Action Buttons: Oben rechts (je nach CardMode) -->
 
-                <!-- Default Mode: 3-Punkt Menü - Circular Design (nur fuer authentifizierte Benutzer) -->
+                <!-- Default Mode: 3-Punkt Menü - Circular Design (nur für authentifizierte Benutzer) -->
                 <Button x:Name="MoreOptionsButton"
                         Tapped="OnMoreOptionsTapped"
                         Background="#70000000"
@@ -332,7 +328,7 @@
                                    AutomationProperties.AutomationId="PropertyCard_Seller" />
                     </StackPanel>
 
-                    <!-- Datum hinzugefuegt -->
+                    <!-- Datum hinzugefügt -->
                     <StackPanel Orientation="Horizontal"
                                 Spacing="4"
                                 Margin="0,2,0,0">
@@ -353,7 +349,7 @@
                             HorizontalAlignment="Right"
                             Margin="12,0,0,0">
 
-                    <!-- Grundstuecksflaeche prominent -->
+                    <!-- Grundstücksfläche prominent -->
                     <StackPanel x:Name="GrundstueckPanel"
                                 HorizontalAlignment="Right">
                         <TextBlock HorizontalAlignment="Right"
@@ -375,7 +371,7 @@
                                 HorizontalAlignment="Right"
                                 AutomationProperties.AutomationId="PropertyCard_Details">
 
-                        <!-- Wohnflaeche -->
+                        <!-- Wohnfläche -->
                         <Border x:Name="WohnflaechePanel"
                                 Background="{ThemeResource SolidBackgroundFillColorSecondary}"
                                 CornerRadius="3"

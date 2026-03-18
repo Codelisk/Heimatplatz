@@ -8,7 +8,7 @@ namespace Heimatplatz.Features.Properties.Contracts.Models;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ContactType
 {
-    /// <summary>Verkaeufer/Eigentuemer</summary>
+    /// <summary>Verkäufer/Eigentümer</summary>
     Seller = 0,
 
     /// <summary>Makler</summary>

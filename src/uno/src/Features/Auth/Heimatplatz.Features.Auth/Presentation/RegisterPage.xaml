@@ -181,7 +181,7 @@
                                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                                        Margin="0,-4,0,4" />
 
-                                            <!-- Kaeufer Checkbox -->
+                                            <!-- Käufer Checkbox -->
                                             <CheckBox IsChecked="{Binding IsBuyer, Mode=TwoWay}"
                                                       Padding="8,0,0,0">
                                                 <StackPanel Spacing="2">
@@ -196,7 +196,7 @@
                                                 </StackPanel>
                                             </CheckBox>
 
-                                            <!-- Verkaeufer Checkbox -->
+                                            <!-- Verkäufer Checkbox -->
                                             <CheckBox IsChecked="{Binding IsSeller, Mode=TwoWay}"
                                                       Padding="8,0,0,0">
                                                 <StackPanel Spacing="2">
@@ -211,7 +211,7 @@
                                                 </StackPanel>
                                             </CheckBox>
 
-                                            <!-- Verkaeufertyp-Auswahl (nur wenn Seller) -->
+                                            <!-- Verkäufertyp-Auswahl (nur wenn Seller) -->
                                             <StackPanel Spacing="12"
                                                         Margin="28,8,0,0"
                                                         Visibility="{Binding IsSeller}">
@@ -506,7 +506,7 @@
                                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                                    Margin="0,-4,0,4" />
 
-                                        <!-- Kaeufer Checkbox -->
+                                        <!-- Käufer Checkbox -->
                                         <CheckBox IsChecked="{Binding IsBuyer, Mode=TwoWay}"
                                                   Padding="8,0,0,0">
                                             <StackPanel Spacing="2">
@@ -520,7 +520,7 @@
                                             </StackPanel>
                                         </CheckBox>
 
-                                        <!-- Verkaeufer Checkbox -->
+                                        <!-- Verkäufer Checkbox -->
                                         <CheckBox IsChecked="{Binding IsSeller, Mode=TwoWay}"
                                                   Padding="8,0,0,0">
                                             <StackPanel Spacing="2">
@@ -534,7 +534,7 @@
                                             </StackPanel>
                                         </CheckBox>
 
-                                        <!-- Verkaeufertyp-Auswahl (nur wenn Seller) -->
+                                        <!-- Verkäufertyp-Auswahl (nur wenn Seller) -->
                                         <StackPanel Spacing="10"
                                                     Margin="28,6,0,0"
                                                     Visibility="{Binding IsSeller}">

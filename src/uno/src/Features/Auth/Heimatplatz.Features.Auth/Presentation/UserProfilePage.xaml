@@ -15,6 +15,7 @@
     <Grid Background="{ThemeResource BackgroundBrush}">
         <ScrollViewer>
             <Grid Padding="{utu:Responsive Narrowest='0', Normal='40,24'}"
+                  utu:SafeArea.Insets="Bottom"
                   MaxWidth="800"
                   HorizontalAlignment="Center">
 
@@ -107,7 +108,7 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Rolle: Kaeufer -->
+                            <!-- Rolle: Käufer -->
                             <Border Background="{ThemeResource SolidBackgroundFillColorSecondary}"
                                     CornerRadius="12"
                                     Padding="16"
@@ -135,7 +136,7 @@
                                         <TextBlock Text="Rolle"
                                                    FontSize="12"
                                                    Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                        <TextBlock Text="Kaeufer"
+                                        <TextBlock Text="Käufer"
                                                    FontSize="15"
                                                    FontWeight="Medium"
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
@@ -147,7 +148,7 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Rolle: Verkaeufer -->
+                            <!-- Rolle: Verkäufer -->
                             <Border Background="{ThemeResource SolidBackgroundFillColorSecondary}"
                                     CornerRadius="12"
                                     Padding="16"
@@ -175,7 +176,7 @@
                                         <TextBlock Text="Rolle"
                                                    FontSize="12"
                                                    Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                        <TextBlock Text="Verkaeufer"
+                                        <TextBlock Text="Verkäufer"
                                                    FontSize="15"
                                                    FontWeight="Medium"
                                                    Foreground="{ThemeResource OnSurfaceBrush}" />
@@ -257,7 +258,7 @@
                                         Padding="40,0,40,40"
                                         Spacing="24">
 
-                                <!-- Avatar (ueberlappt Banner) -->
+                                <!-- Avatar (überlappt Banner) -->
                                 <Border Width="120"
                                         Height="120"
                                         CornerRadius="60"
@@ -388,7 +389,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Rolle: Kaeufer -->
+                                    <!-- Rolle: Käufer -->
                                     <Border Grid.Row="1" Grid.Column="0"
                                             Background="{ThemeResource SolidBackgroundFillColorSecondary}"
                                             CornerRadius="12"
@@ -414,7 +415,7 @@
                                             </Border>
 
                                             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="Kaeufer"
+                                                <TextBlock Text="Käufer"
                                                            FontSize="16"
                                                            FontWeight="Medium"
                                                            Foreground="{ThemeResource OnSurfaceBrush}" />
@@ -426,7 +427,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Rolle: Verkaeufer -->
+                                    <!-- Rolle: Verkäufer -->
                                     <Border Grid.Row="1" Grid.Column="1"
                                             Background="{ThemeResource SolidBackgroundFillColorSecondary}"
                                             CornerRadius="12"
@@ -452,7 +453,7 @@
                                             </Border>
 
                                             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="Verkaeufer"
+                                                <TextBlock Text="Verkäufer"
                                                            FontSize="16"
                                                            FontWeight="Medium"
                                                            Foreground="{ThemeResource OnSurfaceBrush}" />

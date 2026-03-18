@@ -7,13 +7,13 @@
     THEME OVERRIDES - Anpassbare Farbpalette
     ============================================================================
 
-    Diese Datei ueberschreibt die WinUI/Fluent System-Farben.
-    Aendere hier die Farben um dein eigenes Design zu erstellen.
+    Diese Datei überschreibt die WinUI/Fluent System-Farben.
+    Ändere hier die Farben um dein eigenes Design zu erstellen.
 
     WICHTIG:
-    - Definiere Farben fuer ALLE drei Themes: Light, Dark, HighContrast
+    - Definiere Farben für ALLE drei Themes: Light, Dark, HighContrast
     - Nutze {ThemeResource ...} in deinen Styles um diese Farben zu referenzieren
-    - SystemAccentColor ist die primaere Akzentfarbe deiner App
+    - SystemAccentColor ist die primäre Akzentfarbe deiner App
 
     Dokumentation:
     - https://learn.microsoft.com/en-us/windows/apps/design/signature-experiences/color
@@ -25,7 +25,7 @@
 
         <!-- ================================================================
              LIGHT THEME - Heimatplatz Design System
-             Minimalistisch Schwarz-Weiss fuer Immobilien OOe
+             Minimalistisch Schwarz-Weiß für Immobilien OÖ
              ================================================================ -->
         <ResourceDictionary x:Key="Light">
 
@@ -42,12 +42,12 @@
             <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource SystemAccentColor}" />
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource SystemAccentColor}" />
 
-            <!-- Background Colors (Solides Weiss/Grau) -->
+            <!-- Background Colors (Solides Weiß/Grau) -->
             <Color x:Key="SolidBackgroundFillColorBase">#FFFFFF</Color>
             <Color x:Key="SolidBackgroundFillColorSecondary">#F5F5F5</Color>
             <Color x:Key="SolidBackgroundFillColorTertiary">#EEEEEE</Color>
 
-            <!-- Surface Colors (Weiss) -->
+            <!-- Surface Colors (Weiß) -->
             <Color x:Key="LayerFillColorDefault">#FFFFFF</Color>
             <Color x:Key="LayerFillColorAlt">#FFFFFF</Color>
             <Color x:Key="CardBackgroundFillColorDefault">#FFFFFF</Color>
@@ -72,6 +72,8 @@
 
             <!-- Semantic Brushes -->
             <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource SystemErrorColor}" />
+            <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#F8D7DA" />
+            <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#721C24" />
             <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SystemSuccessColor}" />
             <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource SystemWarningColor}" />
             <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource SystemInfoColor}" />
@@ -156,6 +158,8 @@
 
             <!-- Semantic Brushes -->
             <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource SystemErrorColor}" />
+            <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#5C1A1A" />
+            <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#F8D7DA" />
             <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SystemSuccessColor}" />
             <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource SystemWarningColor}" />
             <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource SystemInfoColor}" />
@@ -194,11 +198,11 @@
 
         <!-- ================================================================
              HIGH CONTRAST THEME
-             Nutzt SystemColor-Ressourcen fuer Barrierefreiheit
+             Nutzt SystemColor-Ressourcen für Barrierefreiheit
              ================================================================ -->
         <ResourceDictionary x:Key="HighContrast">
 
-            <!-- High Contrast nutzt System-Farben - NICHT aendern! -->
+            <!-- High Contrast nutzt System-Farben - NICHT ändern! -->
             <SolidColorBrush x:Key="AccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="BackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="SurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
@@ -209,6 +213,8 @@
             <SolidColorBrush x:Key="BorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="DividerBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="ErrorBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ErrorForegroundBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="SuccessBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="InfoBrush" Color="{ThemeResource SystemColorHighlightColor}" />

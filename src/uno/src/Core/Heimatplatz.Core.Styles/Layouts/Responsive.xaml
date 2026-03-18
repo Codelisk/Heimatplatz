@@ -7,8 +7,8 @@
     ============================================================================
     RESPONSIVE LAYOUT STYLES
     ============================================================================
-    Diese Styles nutzen {utu:Responsive} fuer automatische Anpassung an
-    verschiedene Bildschirmgroessen.
+    Diese Styles nutzen {utu:Responsive} für automatische Anpassung an
+    verschiedene Bildschirmgrößen.
 
     WICHTIG: xmlns:utu="using:Uno.Toolkit.UI" ist erforderlich!
 
@@ -17,7 +17,7 @@
     - Narrow:    Kleine Tablets
     - Normal:    Standard (Default)
     - Wide:      Tablets/Desktop
-    - Widest:    Grosse Monitore
+    - Widest:    Große Monitore
     ============================================================================
     -->
 
@@ -27,7 +27,7 @@
     ============================================================================
     -->
 
-    <!-- Responsive Page Root - Hauptcontainer fuer Pages -->
+    <!-- Responsive Page Root - Hauptcontainer für Pages -->
     <Style x:Key="ResponsivePageRootStyle" TargetType="Grid">
         <Setter Property="Background" Value="{ThemeResource BackgroundBrush}" />
     </Style>
@@ -51,7 +51,7 @@
                 Value="{utu:Responsive Narrowest=8, Narrow=12, Normal=16, Wide=20, Widest=24}" />
     </Style>
 
-    <!-- Responsive Section Stack - Groessere Abstaende zwischen Sektionen -->
+    <!-- Responsive Section Stack - Größere Abstände zwischen Sektionen -->
     <Style x:Key="ResponsiveSectionStackStyle" TargetType="StackPanel">
         <Setter Property="Spacing"
                 Value="{utu:Responsive Narrowest=16, Narrow=20, Normal=24, Wide=32, Widest=48}" />

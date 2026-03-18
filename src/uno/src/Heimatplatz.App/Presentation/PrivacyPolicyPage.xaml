@@ -16,37 +16,6 @@
     -->
 
     <Grid>
-        <!-- Loading Indicator -->
-        <Grid Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}">
-            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                          Style="{StaticResource LargeProgressRingStyle}"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          Width="48"
-                          Height="48" />
-        </Grid>
-
-        <!-- Error Message -->
-        <StackPanel Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Spacing="16">
-            <FontIcon Glyph="&#xE783;"
-                      FontSize="48"
-                      Foreground="{ThemeResource ErrorBrush}"
-                      HorizontalAlignment="Center" />
-            <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                       Style="{StaticResource BodyTextBlockStyle}"
-                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                       HorizontalAlignment="Center"
-                       TextWrapping="Wrap"
-                       MaxWidth="300" />
-            <Button Content="Erneut versuchen"
-                    Command="{x:Bind ViewModel.LoadCommand}"
-                    HorizontalAlignment="Center"
-                    Style="{StaticResource FilledButtonStyle}" />
-        </StackPanel>
-
         <!-- Content -->
         <ScrollViewer Padding="{utu:Responsive Narrowest='16', Normal='24,20'}"
                       AutomationProperties.AutomationId="PrivacyPolicyPage_ScrollViewer">
@@ -157,10 +126,10 @@
                         <Run Text=" (Art. 6 Abs. 1 lit. b DSGVO): Bereitstellung der Plattform, Verwaltung Ihres Benutzerkontos, Vermittlung von Immobilienanfragen." />
                         <LineBreak /><LineBreak />
                         <Run Text="b) Berechtigte Interessen" FontWeight="SemiBold" />
-                        <Run Text=" (Art. 6 Abs. 1 lit. f DSGVO): Gewaehrleistung der IT-Sicherheit, Analyse zur Verbesserung unserer Dienste, Betrugspraevention." />
+                        <Run Text=" (Art. 6 Abs. 1 lit. f DSGVO): Gewährleistung der IT-Sicherheit, Analyse zur Verbesserung unserer Dienste, Betrugsprävention." />
                         <LineBreak /><LineBreak />
                         <Run Text="c) Einwilligung" FontWeight="SemiBold" />
-                        <Run Text=" (Art. 6 Abs. 1 lit. a DSGVO): Versand von Benachrichtigungen ueber neue Immobilien (sofern aktiviert)." />
+                        <Run Text=" (Art. 6 Abs. 1 lit. a DSGVO): Versand von Benachrichtigungen über neue Immobilien (sofern aktiviert)." />
                     </TextBlock>
                 </StackPanel>
 
@@ -176,11 +145,11 @@
                                LineHeight="24">
                         <Run Text="- Server-Logs: 30 Tage" />
                         <LineBreak />
-                        <Run Text="- Benutzerkonto-Daten: Bis zur Loeschung des Kontos" />
+                        <Run Text="- Benutzerkonto-Daten: Bis zur Löschung des Kontos" />
                         <LineBreak />
                         <Run Text="- Kontaktanfragen: 3 Jahre nach Abschluss" />
                         <LineBreak />
-                        <Run Text="- Inserate: Bis zur Loeschung durch den Nutzer" />
+                        <Run Text="- Inserate: Bis zur Löschung durch den Nutzer" />
                     </TextBlock>
                 </StackPanel>
 
@@ -214,21 +183,21 @@
                                TextWrapping="Wrap"
                                Foreground="{ThemeResource OnSurfaceBrush}"
                                LineHeight="24">
-                        <Run Text="Sie haben folgende Rechte bezueglich Ihrer personenbezogenen Daten:" />
+                        <Run Text="Sie haben folgende Rechte bezüglich Ihrer personenbezogenen Daten:" />
                         <LineBreak /><LineBreak />
                         <Run Text="- Auskunft" FontWeight="SemiBold" />
-                        <Run Text=" ueber die gespeicherten Daten (Art. 15 DSGVO)" />
+                        <Run Text=" über die gespeicherten Daten (Art. 15 DSGVO)" />
                         <LineBreak />
                         <Run Text="- Berichtigung" FontWeight="SemiBold" />
                         <Run Text=" unrichtiger Daten (Art. 16 DSGVO)" />
                         <LineBreak />
-                        <Run Text="- Loeschung" FontWeight="SemiBold" />
+                        <Run Text="- Löschung" FontWeight="SemiBold" />
                         <Run Text=" Ihrer Daten (Art. 17 DSGVO)" />
                         <LineBreak />
-                        <Run Text="- Einschraenkung" FontWeight="SemiBold" />
+                        <Run Text="- Einschränkung" FontWeight="SemiBold" />
                         <Run Text=" der Verarbeitung (Art. 18 DSGVO)" />
                         <LineBreak />
-                        <Run Text="- Datenuebertragbarkeit" FontWeight="SemiBold" />
+                        <Run Text="- Datenübertragbarkeit" FontWeight="SemiBold" />
                         <Run Text=" (Art. 20 DSGVO)" />
                         <LineBreak />
                         <Run Text="- Widerspruch" FontWeight="SemiBold" />
@@ -273,9 +242,9 @@
                                TextWrapping="Wrap"
                                Foreground="{ThemeResource OnSurfaceBrush}"
                                LineHeight="24">
-                        <Run Text="Unsere Website verwendet ausschliesslich " />
+                        <Run Text="Unsere Website verwendet ausschließlich" />
                         <Run Text="technisch notwendige Cookies" FontWeight="SemiBold" />
-                        <Run Text=" bzw. Local Storage fuer:" />
+                        <Run Text=" bzw. Local Storage für:" />
                         <LineBreak /><LineBreak />
                         <Run Text="- Speicherung Ihrer Anmeldedaten (Session)" />
                         <LineBreak />
@@ -303,5 +272,45 @@
 
             </StackPanel>
         </ScrollViewer>
+
+        <!-- Loading Indicator (after content so it renders on top) -->
+        <Grid Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+              Background="{ThemeResource BackgroundBrush}">
+            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                          Style="{StaticResource LargeProgressRingStyle}"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Width="48"
+                          Height="48" />
+        </Grid>
+
+        <!-- Error Message (after content so it renders on top) -->
+        <Grid Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}"
+              Background="{ThemeResource BackgroundBrush}">
+            <Border Background="{ThemeResource ErrorBackgroundBrush}"
+                    CornerRadius="12"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MaxWidth="400">
+                <StackPanel Spacing="16"
+                            HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xE783;"
+                              FontSize="48"
+                              Foreground="{ThemeResource ErrorForegroundBrush}"
+                              HorizontalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource ErrorForegroundBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                    <Button Content="Erneut versuchen"
+                            Command="{x:Bind ViewModel.LoadCommand}"
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource FilledButtonStyle}" />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </pages:BasePage>

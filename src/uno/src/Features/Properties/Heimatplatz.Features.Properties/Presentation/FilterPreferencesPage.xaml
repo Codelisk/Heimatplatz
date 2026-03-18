@@ -11,8 +11,8 @@
       Background="{ThemeResource BackgroundBrush}">
 
     <!--
-    FilterPreferencesPage - Filtereinstellungen fuer eingeloggte Benutzer
-    Ermoeglicht das Vorkonfigurieren von Standardfiltern (Ort, Zeit, Typ)
+    FilterPreferencesPage - Filtereinstellungen für eingeloggte Benutzer
+    Ermöglicht das Vorkonfigurieren von Standardfiltern (Ort, Zeit, Typ)
     -->
 
     <Grid>
@@ -36,7 +36,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0"
-                                   Text="Konfigurieren Sie Ihre Standard-Filtereinstellungen. Aenderungen werden automatisch gespeichert."
+                                   Text="Konfigurieren Sie Ihre Standard-Filtereinstellungen. Änderungen werden automatisch gespeichert."
                                    Style="{StaticResource BodyTextBlockStyle}"
                                    Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                    TextWrapping="Wrap"
@@ -65,7 +65,7 @@
                             <utu:AutoLayout Spacing="4" Orientation="Vertical">
                                 <TextBlock Text="Orte"
                                            Style="{StaticResource SubtitleTextBlockStyle}" />
-                                <TextBlock Text="Waehlen Sie die Orte aus, die standardmaessig gefiltert werden sollen."
+                                <TextBlock Text="Wählen Sie die Orte aus, die standardmäßig gefiltert werden sollen."
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                            TextWrapping="Wrap" />
@@ -87,7 +87,7 @@
                             <utu:AutoLayout Spacing="4" Orientation="Vertical">
                                 <TextBlock Text="Zeitraum"
                                            Style="{StaticResource SubtitleTextBlockStyle}" />
-                                <TextBlock Text="Waehlen Sie den Standard-Zeitraum fuer die Anzeige von Immobilien."
+                                <TextBlock Text="Wählen Sie den Standard-Zeitraum für die Anzeige von Immobilien."
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                            TextWrapping="Wrap" />
@@ -106,7 +106,7 @@
                             <utu:AutoLayout Spacing="4" Orientation="Vertical">
                                 <TextBlock Text="Immobilientyp"
                                            Style="{StaticResource SubtitleTextBlockStyle}" />
-                                <TextBlock Text="Waehlen Sie die Immobilientypen, die standardmaessig angezeigt werden sollen."
+                                <TextBlock Text="Wählen Sie die Immobilientypen, die standardmäßig angezeigt werden sollen."
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                            TextWrapping="Wrap" />
@@ -135,7 +135,7 @@
                             <utu:AutoLayout Spacing="4" Orientation="Vertical">
                                 <TextBlock Text="Anbietertyp"
                                            Style="{StaticResource SubtitleTextBlockStyle}" />
-                                <TextBlock Text="Waehlen Sie die Anbietertypen, die standardmaessig angezeigt werden sollen."
+                                <TextBlock Text="Wählen Sie die Anbietertypen, die standardmäßig angezeigt werden sollen."
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                            TextWrapping="Wrap" />
@@ -174,7 +174,7 @@
                                       FontSize="20"
                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                       VerticalAlignment="Top" />
-                            <TextBlock Text="Ihre Einstellungen werden automatisch gespeichert und beim naechsten Besuch der Startseite angewendet."
+                            <TextBlock Text="Ihre Einstellungen werden automatisch gespeichert und beim nächsten Besuch der Startseite angewendet."
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                        TextWrapping="Wrap"
                                        Style="{StaticResource CaptionTextBlockStyle}" />

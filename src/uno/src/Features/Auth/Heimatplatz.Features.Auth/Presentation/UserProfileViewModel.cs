@@ -68,9 +68,9 @@ public partial class UserProfileViewModel : ObservableObject, IPageInfo, INaviga
         // Role badge text
         RoleBadgeText = (IsSeller, IsBuyer) switch
         {
-            (true, true) => "Kaeufer & Verkaeufer",
-            (true, false) => "Verkaeufer",
-            (false, true) => "Kaeufer",
+            (true, true) => "Käufer & Verkäufer",
+            (true, false) => "Verkäufer",
+            (false, true) => "Käufer",
             _ => string.Empty
         };
 

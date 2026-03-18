@@ -5,7 +5,7 @@
              xmlns:models="using:Heimatplatz.Features.Properties.Models">
 
     <!--
-    SellerTypePicker - MultiSelect Picker fuer Anbietertypen (Privat, Makler, Portal)
+    SellerTypePicker - MultiSelect Picker für Anbietertypen (Privat, Makler, Portal)
     Analog zum OrtPicker mit Button und Flyout
     -->
 

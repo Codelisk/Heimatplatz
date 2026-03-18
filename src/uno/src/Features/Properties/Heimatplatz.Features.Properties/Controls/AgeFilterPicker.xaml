@@ -4,7 +4,7 @@
              xmlns:local="using:Heimatplatz.Features.Properties.Controls">
 
     <!--
-    AgeFilterPicker - Filter fuer das Alter von Eintraegen
+    AgeFilterPicker - Filter für das Alter von Einträgen
     Optionen: Alle, 1 Tag, 1 Woche, 1 Monat, 1 Jahr
     -->
 
@@ -56,7 +56,7 @@
                                        Foreground="{ThemeResource OnSurfaceBrush}"
                                        Margin="0,0,0,8" />
 
-                            <!-- RadioButtons fuer Auswahl -->
+                            <!-- RadioButtons für Auswahl -->
                             <RadioButton x:Name="RadioAlle"
                                          Content="Alle"
                                          IsChecked="True"

@@ -107,6 +107,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     private bool _hasOriginalListingUrl;
 
     [ObservableProperty]
+    private bool _hasImages;
+
+    [ObservableProperty]
     private string? _primaryContactEmail;
 
     [ObservableProperty]
@@ -191,6 +194,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             IsBroker = false;
             OriginalListingUrl = null;
             HasOriginalListingUrl = false;
+            HasImages = false;
             PrimaryContactEmail = null;
             PrimaryContactPhone = null;
             HasPrimaryEmail = false;
@@ -268,6 +272,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         }
         HasOriginalListingUrl = !string.IsNullOrWhiteSpace(OriginalListingUrl);
 
+        // Images
+        HasImages = Property.ImageUrls is { Count: > 0 };
+
         // Contact person (first contact name if available)
         var firstContact = Property.Contacts?.FirstOrDefault();
         HasContactPerson = firstContact != null;
@@ -304,7 +311,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         var typeLabel = Property.Type switch
         {
             PropertyType.House => "Haus",
-            PropertyType.Land => "Grundstueck",
+            PropertyType.Land => "Grundstück",
             PropertyType.Foreclosure => "Zwangsversteigerung",
             _ => Property.Type.ToString()
         };
@@ -345,14 +352,14 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
         // --- Flaechen ---
         // Use TypeSpecificData if available, otherwise fall back to core fields
         if (houseData != null && houseData.LivingAreaInSquareMeters > 0)
-            items.Add(new PropertyDetailItem("Wohnflaeche", FormatArea(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
+            items.Add(new PropertyDetailItem("Wohnfläche", FormatArea(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
         else
-            AddIfHasValue(items, "Wohnflaeche", Property.LivingAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
+            AddIfHasValue(items, "Wohnfläche", Property.LivingAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
 
         if (landData != null && landData.PlotSizeInSquareMeters > 0)
-            items.Add(new PropertyDetailItem("Grundstuecksflaeche", FormatArea(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
+            items.Add(new PropertyDetailItem("Grundstücksfläche", FormatArea(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
         else
-            AddIfHasValue(items, "Grundstuecksflaeche", Property.PlotAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
+            AddIfHasValue(items, "Grundstücksfläche", Property.PlotAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
 
         // --- Gebaeude (House) ---
         if (houseData != null)
@@ -406,7 +413,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
             items.Add(new PropertyDetailItem("Bebaubar", FormatBool(landData.IsBuildable), PropertyDataCategory.Grundstueck));
             items.Add(new PropertyDetailItem("Versorgung", FormatBool(landData.HasUtilities), PropertyDataCategory.Grundstueck));
             if (landData.SoilQuality.HasValue)
-                items.Add(new PropertyDetailItem("Bodenqualitaet", FormatSoilQuality(landData.SoilQuality.Value), PropertyDataCategory.Grundstueck));
+                items.Add(new PropertyDetailItem("Bodenqualität", FormatSoilQuality(landData.SoilQuality.Value), PropertyDataCategory.Grundstueck));
         }
 
         // --- Versteigerung (Foreclosure) ---
@@ -485,10 +492,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageInfo, INav
     private static string GetCategoryTitle(PropertyDataCategory category) => category switch
     {
         PropertyDataCategory.Basisdaten => "BASISDATEN",
-        PropertyDataCategory.Flaechen => "FLAECHEN",
-        PropertyDataCategory.Gebaeude => "GEBAEUDE",
+        PropertyDataCategory.Flaechen => "FLÄCHEN",
+        PropertyDataCategory.Gebaeude => "GEBÄUDE",
         PropertyDataCategory.Ausstattung => "AUSSTATTUNG",
-        PropertyDataCategory.Grundstueck => "GRUNDSTUECK",
+        PropertyDataCategory.Grundstueck => "GRUNDSTÜCK",
         PropertyDataCategory.Versteigerung => "VERSTEIGERUNG",
         PropertyDataCategory.Rechtliches => "RECHTLICHES",
         PropertyDataCategory.Grundbuch => "GRUNDBUCH",

@@ -95,6 +95,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
     [ObservableProperty]
     private bool _hasDocuments;
 
+    [ObservableProperty]
+    private bool _hasImages;
+
     // === Seller info for contact box ===
 
     [ObservableProperty]
@@ -158,6 +161,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
             Description = null;
             HasDescription = false;
             HasDocuments = false;
+            HasImages = false;
             CourtName = string.Empty;
             return;
         }
@@ -171,6 +175,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
 
         // Full address
         AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
+
+        // Images
+        HasImages = Property.ImageUrls is { Count: > 0 };
 
         // Parse TypeSpecificData and build sections
         BuildDetailSections();
@@ -220,18 +227,18 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
         }
         AddJsonString(items, data, "FileNumber", "Aktenzeichen", PropertyDataCategory.Rechtliches);
 
-        // --- FLAECHEN ---
-        AddJsonDecimalArea(items, data, "TotalArea", "Gesamtflaeche", PropertyDataCategory.Flaechen);
-        AddIfHasValue(items, "Grundstueck", Property.PlotAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
-        AddJsonDecimalArea(items, data, "BuildingArea", "Bebaute Flaeche", PropertyDataCategory.Flaechen);
+        // --- FLÄCHEN ---
+        AddJsonDecimalArea(items, data, "TotalArea", "Gesamtfläche", PropertyDataCategory.Flaechen);
+        AddIfHasValue(items, "Grundstück", Property.PlotAreaM2, v => $"{v:N0} m\u00B2".Replace(",", "."), PropertyDataCategory.Flaechen);
+        AddJsonDecimalArea(items, data, "BuildingArea", "Bebaute Fläche", PropertyDataCategory.Flaechen);
 
         // --- GRUNDBUCH ---
         AddJsonString(items, data, "RegistrationNumber", "Einlagezahl (EZ)", PropertyDataCategory.Grundbuch);
         AddJsonString(items, data, "CadastralMunicipality", "Katastralgemeinde", PropertyDataCategory.Grundbuch);
-        AddJsonString(items, data, "PlotNumber", "Grundstuecksnummer", PropertyDataCategory.Grundbuch);
-        AddJsonString(items, data, "ZoningDesignation", "Flaechenwidmung", PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "PlotNumber", "Grundstücksnummer", PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "ZoningDesignation", "Flächenwidmung", PropertyDataCategory.Grundbuch);
 
-        // --- GEBAEUDE (conditional) ---
+        // --- GEBÄUDE (conditional) ---
         var hasRoomData = false;
         if (data.HasValue)
         {
@@ -371,8 +378,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
     private static string GetCategoryTitle(PropertyDataCategory category) => category switch
     {
         PropertyDataCategory.Basisdaten => "BASISDATEN",
-        PropertyDataCategory.Flaechen => "FLAECHEN",
-        PropertyDataCategory.Gebaeude => "GEBAEUDE",
+        PropertyDataCategory.Flaechen => "FLÄCHEN",
+        PropertyDataCategory.Gebaeude => "GEBÄUDE",
         PropertyDataCategory.Grundbuch => "GRUNDBUCH",
         PropertyDataCategory.Versteigerung => "VERSTEIGERUNG",
         PropertyDataCategory.Rechtliches => "RECHTLICHES",
