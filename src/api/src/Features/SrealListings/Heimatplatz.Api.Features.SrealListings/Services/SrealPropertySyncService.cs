@@ -224,7 +224,7 @@ public class SrealPropertySyncService(
             Type = propertyType,
             SellerType = SellerType.Portal,
             SellerName = listing.AgentName ?? "s REAL",
-            Description = listing.Description,
+            Description = listing.Description?.Length > 4000 ? listing.Description[..4000] : listing.Description,
             UserId = systemUserId,
             InquiryType = InquiryType.ContactData,
             ImageUrls = listing.ImageUrls,
