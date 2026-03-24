@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
       xmlns:controls="using:Heimatplatz.Features.Properties.Controls"
+      xmlns:models="using:Heimatplatz.Features.Properties.Contracts.Models"
       xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:uen="using:Uno.Extensions.Navigation.UI"
       xmlns:uc="using:UnoFramework.Controls"
@@ -19,8 +20,8 @@
           Background="{ThemeResource BackgroundBrush}"
           AutomationProperties.AutomationId="HomePage_Root">
 
-        <uc:BusyOverlay IsBusy="{Binding IsBusy}"
-                        BusyMessage="{Binding BusyMessage}"
+        <uc:BusyOverlay IsBusy="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                        BusyMessage="{x:Bind ViewModel.BusyMessage, Mode=OneWay}"
                         AutomationProperties.AutomationId="HomePage_BusyOverlay">
 
             <Grid>
@@ -41,7 +42,7 @@
                         AutomationProperties.AutomationId="HomePage_MobileFilter">
                     <StackPanel>
                         <!-- Filter Header: Immer sichtbar — ganzer Bereich klickbar -->
-                        <Button Command="{Binding ToggleFilterExpandedCommand}"
+                        <Button Command="{x:Bind ViewModel.ToggleFilterExpandedCommand}"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Stretch"
                                 Background="Transparent"
@@ -73,7 +74,7 @@
 
                                 <!-- Ergebnis-Counter -->
                                 <TextBlock Grid.Column="1"
-                                           Text="{Binding ResultCountText}"
+                                           Text="{x:Bind ViewModel.ResultCountText, Mode=OneWay}"
                                            FontWeight="SemiBold"
                                            Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                            FontSize="12"
@@ -84,7 +85,7 @@
 
                                 <!-- Chevron-Icon: Auf/Zuklappen -->
                                 <FontIcon Grid.Column="2"
-                                          Glyph="{Binding FilterToggleGlyph}"
+                                          Glyph="{x:Bind ViewModel.FilterToggleGlyph, Mode=OneWay}"
                                           FontSize="12"
                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                           VerticalAlignment="Center" />
@@ -94,16 +95,16 @@
                         <!-- Filter Body: Einklappbar -->
                         <StackPanel Spacing="8"
                                     Padding="12,0,12,8"
-                                    Visibility="{Binding IsFilterExpanded}"
+                                    Visibility="{x:Bind ViewModel.IsFilterExpanded, Mode=OneWay}"
                                     AutomationProperties.AutomationId="HomePage_MobileFilterBody">
 
                             <!-- OrtPicker und Alters-Filter -->
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <controls:OrtPicker Bezirke="{Binding Bezirke}"
-                                                    SelectedOrte="{Binding SelectedOrte, Mode=TwoWay}"
+                                <controls:OrtPicker Bezirke="{x:Bind ViewModel.Bezirke, Mode=OneWay}"
+                                                    SelectedOrte="{x:Bind ViewModel.SelectedOrte, Mode=TwoWay}"
                                                     HorizontalAlignment="Stretch"
                                                     AutomationProperties.AutomationId="HomePage_MobileOrtPicker" />
-                                <controls:AgeFilterPicker SelectedAgeFilter="{Binding SelectedAgeFilter, Mode=TwoWay}"
+                                <controls:AgeFilterPicker SelectedAgeFilter="{x:Bind ViewModel.SelectedAgeFilter, Mode=TwoWay}"
                                                           HorizontalAlignment="Stretch"
                                                           AutomationProperties.AutomationId="HomePage_MobileAgeFilterPicker" />
                             </StackPanel>
@@ -111,15 +112,15 @@
                             <!-- Filter Chips: Immobilientyp -->
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <controls:FilterChip Label="Haus"
-                                                     IsSelected="{Binding IsHausSelected, Mode=TwoWay}" />
+                                                     IsSelected="{x:Bind ViewModel.IsHausSelected, Mode=TwoWay}" />
                                 <controls:FilterChip Label="Grund"
-                                                     IsSelected="{Binding IsGrundstueckSelected, Mode=TwoWay}" />
+                                                     IsSelected="{x:Bind ViewModel.IsGrundstueckSelected, Mode=TwoWay}" />
                                 <controls:FilterChip Label="ZV"
-                                                     IsSelected="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}" />
+                                                     IsSelected="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}" />
                             </StackPanel>
 
                             <!-- Anbietertyp Picker -->
-                            <controls:SellerTypePicker SellerTypes="{Binding SellerTypes}"
+                            <controls:SellerTypePicker SellerTypes="{x:Bind ViewModel.SellerTypes, Mode=OneWay}"
                                                        AutomationProperties.AutomationId="HomePage_MobileSellerTypePicker" />
                         </StackPanel>
                     </StackPanel>
@@ -129,7 +130,8 @@
                 <Grid Grid.Row="1">
                     <ScrollViewer Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
                                   AutomationProperties.AutomationId="HomePage_ScrollViewer">
-                        <ItemsRepeater ItemsSource="{Binding Properties}"
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Properties, Mode=OneWay}"
+                                       VerticalCacheLength="1.0"
                                        utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True"
                                        AutomationProperties.AutomationId="HomePage_PropertyList">
                             <ItemsRepeater.Layout>
@@ -141,8 +143,8 @@
                                                    ItemsStretch="Fill" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
-                                <DataTemplate>
-                                    <controls:PropertyCard Property="{Binding}"
+                                <DataTemplate x:DataType="models:PropertyListItemDto">
+                                    <controls:PropertyCard Property="{x:Bind}"
                                                            IsAuthenticated="{Binding DataContext.IsAuthenticated, ElementName=RootGrid}"
                                                            CardClicked="OnPropertyCardClicked"
                                                            PropertyBlocked="OnPropertyBlocked"
@@ -154,8 +156,8 @@
                     </ScrollViewer>
 
                     <!-- Loading Indicator - Overlay at bottom of scroll area -->
-                    <ProgressRing IsActive="{Binding Properties.IsLoading}"
-                                  Visibility="{Binding Properties.HasMoreItems}"
+                    <ProgressRing IsActive="{x:Bind ViewModel.Properties.IsLoading, Mode=OneWay}"
+                                  Visibility="{x:Bind ViewModel.Properties.HasMoreItems, Mode=OneWay}"
                                   Width="32"
                                   Height="32"
                                   Margin="0,0,0,16"
@@ -166,7 +168,7 @@
 
                 <!-- Empty State: Schlicht -->
                 <StackPanel Grid.Row="1"
-                            Visibility="{Binding EmptyVisibility}"
+                            Visibility="{x:Bind ViewModel.EmptyVisibility, Mode=OneWay}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Spacing="8"

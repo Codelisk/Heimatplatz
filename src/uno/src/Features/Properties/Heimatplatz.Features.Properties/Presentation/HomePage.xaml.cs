@@ -27,6 +27,7 @@ public sealed partial class HomePage : BasePage
     public HomePage()
     {
         this.InitializeComponent();
+        this.DataContextChanged += (_, _) => Bindings.Update();
     }
 
     private async void OnPropertyCardClicked(object sender, PropertyListItemDto property)
