@@ -352,6 +352,7 @@ public partial class App : Application, IApplicationWithServices
             new ViewMap<NotificationSettingsPage, NotificationSettingsViewModel>(),
             new ViewMap<FilterPreferencesPage, FilterPreferencesViewModel>(),
             new ViewMap<PrivacyPolicyPage, PrivacyPolicyViewModel>(),
+            new ViewMap<ImprintPage, ImprintViewModel>(),
             new ViewMap<HomeFilterBar, HomeFilterBarViewModel>(),
             new ViewMap<UserProfilePage, UserProfileViewModel>()
 #if DEBUG
@@ -386,6 +387,7 @@ public partial class App : Application, IApplicationWithServices
                             new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>()),
                             new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
                             new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>()),
+                            new ("Imprint", View: views.FindByViewModel<ImprintViewModel>()),
                             new ("UserProfile", View: views.FindByViewModel<UserProfileViewModel>())
                         ]),
 #if DEBUG

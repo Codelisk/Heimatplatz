@@ -239,6 +239,26 @@
         }
       }
     },
+    "/api/legal/imprint": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetImprint",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetImprintResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/legal/privacy-policy": {
       "get": {
         "tags": [
@@ -2255,6 +2275,24 @@
           }
         }
       },
+      "GetImprintResponse": {
+        "required": [
+          "Imprint"
+        ],
+        "type": "object",
+        "properties": {
+          "Imprint": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ImprintDto"
+              }
+            ]
+          }
+        }
+      },
       "GetLocationsResponse": {
         "required": [
           "FederalProvinces"
@@ -3023,6 +3061,135 @@
           "Skipped",
           "Failed"
         ]
+      },
+      "ImprintDto": {
+        "required": [
+          "CompanyName",
+          "LegalForm",
+          "Owner",
+          "Street",
+          "PostalCode",
+          "City",
+          "Country",
+          "Email",
+          "Phone",
+          "Website",
+          "UidNumber",
+          "TaxNumber",
+          "DunsNumber",
+          "Gln",
+          "GisaNumber",
+          "Trade",
+          "TradeAuthority",
+          "ProfessionalLaw",
+          "ChamberMembership",
+          "TradeGroup",
+          "Sections",
+          "Version",
+          "EffectiveDate",
+          "LastUpdated"
+        ],
+        "type": "object",
+        "properties": {
+          "CompanyName": {
+            "type": "string"
+          },
+          "LegalForm": {
+            "type": "string"
+          },
+          "Owner": {
+            "type": "string"
+          },
+          "Street": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "Country": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Website": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "UidNumber": {
+            "type": "string"
+          },
+          "TaxNumber": {
+            "type": "string"
+          },
+          "DunsNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Gln": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "GisaNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Trade": {
+            "type": "string"
+          },
+          "TradeAuthority": {
+            "type": "string"
+          },
+          "ProfessionalLaw": {
+            "type": "string"
+          },
+          "ChamberMembership": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "TradeGroup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegalSectionDto"
+            }
+          },
+          "Version": {
+            "type": "string"
+          },
+          "EffectiveDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastUpdated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "InitDatabaseRequest": {
         "type": "object"

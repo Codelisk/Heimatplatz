@@ -27,7 +27,6 @@ public class GetPrivacyPolicyHandler(AppDbContext dbContext) : IRequestHandler<G
     {
         var settings = await dbContext.Set<LegalSettings>()
             .Where(x => x.SettingType == "PrivacyPolicy" && x.IsActive)
-            .OrderByDescending(x => x.EffectiveDate)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (settings == null)

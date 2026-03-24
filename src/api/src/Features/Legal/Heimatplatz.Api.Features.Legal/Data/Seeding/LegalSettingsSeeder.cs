@@ -19,17 +19,22 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        // Pruefen ob bereits Datenschutzerklaerung vorhanden ist
+        await SeedPrivacyPolicyAsync(cancellationToken);
+        await SeedImprintAsync(cancellationToken);
+    }
+
+    private async Task SeedPrivacyPolicyAsync(CancellationToken cancellationToken)
+    {
         if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "PrivacyPolicy", cancellationToken))
             return;
 
         var responsibleParty = new ResponsiblePartyDto(
-            CompanyName: "Heimatplatz GmbH",
-            Street: "Musterstrasse 1",
-            PostalCode: "4020",
-            City: "Linz",
+            CompanyName: "Ing. Daniel Hufnagl",
+            Street: "Stockham 44/Tuer 2",
+            PostalCode: "4663",
+            City: "Laakirchen",
             Country: "Oesterreich",
-            Email: "datenschutz@heimatplatz.at",
+            Email: "info@heimatplatz.at",
             Phone: null,
             DataProtectionOfficer: null
         );
@@ -103,6 +108,68 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
         };
 
         dbContext.Set<LegalSettings>().Add(privacyPolicy);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SeedImprintAsync(CancellationToken cancellationToken)
+    {
+        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "Imprint", cancellationToken))
+            return;
+
+        var party = new ImprintPartyDto(
+            CompanyName: "Ing. Daniel Hufnagl",
+            LegalForm: "Einzelunternehmen",
+            Owner: "Ing. Daniel Hufnagl",
+            Street: "Stockham 44/Tuer 2",
+            PostalCode: "4663",
+            City: "Laakirchen",
+            Country: "Oesterreich",
+            Email: "info@heimatplatz.at",
+            Phone: null,
+            Website: "https://www.heimatplatz.at",
+            UidNumber: "ATU75151817",
+            TaxNumber: "532163383",
+            DunsNumber: "30-080-8592",
+            Gln: "9110026231195",
+            GisaNumber: "31233118",
+            Trade: "Dienstleistungen in der automatischen Datenverarbeitung und Informationstechnik",
+            TradeAuthority: "Bezirkshauptmannschaft Gmunden",
+            ProfessionalLaw: "Gewerbeordnung 1994 (GewO)",
+            ChamberMembership: "Wirtschaftskammer Oberoesterreich",
+            TradeGroup: "Fachgruppe Unternehmensberatung, Buchhaltung und Informationstechnologie"
+        );
+
+        var sections = new List<LegalSectionDto>
+        {
+            new(1, "Haftungsausschluss",
+                "Die Inhalte dieser Website wurden mit groesster Sorgfalt erstellt. " +
+                "Fuer die Richtigkeit, Vollstaendigkeit und Aktualitaet der Inhalte " +
+                "uebernehmen wir jedoch keine Gewaehr."),
+
+            new(2, "Urheberrecht",
+                "Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten " +
+                "unterliegen dem oesterreichischen Urheberrecht. Die Vervielfaeltigung, Bearbeitung, " +
+                "Verbreitung und jede Art der Verwertung ausserhalb der Grenzen des Urheberrechtes " +
+                "beduerfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers."),
+
+            new(3, "Streitschlichtung",
+                "Die Europaeische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: " +
+                "https://ec.europa.eu/consumers/odr/\n\n" +
+                "Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren " +
+                "vor einer Verbraucherschlichtungsstelle teilzunehmen.")
+        };
+
+        var imprintSettings = new LegalSettings
+        {
+            SettingType = "Imprint",
+            ResponsiblePartyJson = JsonSerializer.Serialize(party, JsonOptions),
+            SectionsJson = JsonSerializer.Serialize(sections, JsonOptions),
+            Version = "1.0",
+            EffectiveDate = DateTimeOffset.UtcNow,
+            IsActive = true
+        };
+
+        dbContext.Set<LegalSettings>().Add(imprintSettings);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -20,6 +20,7 @@ Speichert rechtliche Dokumente mit JSON-Feldern fuer Flexibilitaet:
 ### API Endpoints
 
 - `GET /api/legal/privacy-policy` - Holt aktive Datenschutzerklaerung
+- `GET /api/legal/imprint` - Holt aktives Impressum
 
 ## Verwendung
 

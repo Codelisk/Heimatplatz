@@ -1,0 +1,242 @@
+<pages:BasePage
+    x:Class="Heimatplatz.App.Presentation.ImprintPage"
+    x:Name="RootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Heimatplatz.App.Presentation"
+    xmlns:utu="using:Uno.Toolkit.UI"
+    xmlns:pages="using:UnoFramework.Pages"
+    NavigationCacheMode="Disabled"
+    x:Uid="ImprintPage"
+    Background="{ThemeResource BackgroundBrush}">
+
+    <!--
+    Impressum - Rechtlich erforderliche Seite nach ECG §5 und UGB §14
+    Enthält alle Pflichtangaben fuer oesterreichische Einzelunternehmen
+    -->
+
+    <Grid>
+        <!-- Content -->
+        <ScrollViewer Padding="{utu:Responsive Narrowest='16', Normal='24,20'}"
+                      AutomationProperties.AutomationId="ImprintPage_ScrollViewer">
+
+            <StackPanel Spacing="24"
+                        MaxWidth="800"
+                        HorizontalAlignment="Left"
+                        utu:SafeArea.Insets="Bottom">
+
+                <!-- Stand und Version -->
+                <StackPanel Spacing="4">
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_LastUpdated">
+                        <Run Text="Stand: " />
+                        <Run Text="{x:Bind ViewModel.LastUpdated, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Firmeninhaber -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Angaben gemaess ECG und UGB"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Company" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.CompanyName, Mode=OneWay}"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.LegalForm, Mode=OneWay}"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.FullAddress, Mode=OneWay}"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   Margin="0,8,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Kontakt -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Kontakt"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Contact" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceBrush}">
+                            <Run Text="E-Mail: " />
+                            <Run Text="{x:Bind ViewModel.Email, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   Visibility="{x:Bind ViewModel.Website, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}">
+                            <Run Text="Website: " />
+                            <Run Text="{x:Bind ViewModel.Website, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Gewerbliche Angaben -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Gewerbliche Angaben"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Trade" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}">
+                            <Run Text="Gewerbe: " FontWeight="SemiBold" />
+                            <Run Text="{x:Bind ViewModel.Trade, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}">
+                            <Run Text="GISA-Zahl: " FontWeight="SemiBold" />
+                            <Run Text="{x:Bind ViewModel.GisaNumber, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}">
+                            <Run Text="Behoerde: " FontWeight="SemiBold" />
+                            <Run Text="{x:Bind ViewModel.TradeAuthority, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}">
+                            <Run Text="Berufsrecht: " FontWeight="SemiBold" />
+                            <Run Text="{x:Bind ViewModel.ProfessionalLaw, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Kammermitgliedschaft -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Kammermitgliedschaft"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Chamber" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Bind ViewModel.ChamberMembership, Mode=OneWay}"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.TradeGroup, Mode=OneWay}"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Steuerdaten -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Steuerdaten"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Tax" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceBrush}">
+                            <Run Text="UID-Nummer: " FontWeight="SemiBold" />
+                            <Run Text="{x:Bind ViewModel.UidNumber, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   Visibility="{x:Bind ViewModel.DunsNumber, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}">
+                            <Run Text="D-U-N-S Nummer: " FontWeight="SemiBold" />
+                            <Run Text="{x:Bind ViewModel.DunsNumber, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                                   Foreground="{ThemeResource OnSurfaceBrush}"
+                                   Visibility="{x:Bind ViewModel.Gln, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}">
+                            <Run Text="GLN: " FontWeight="SemiBold" />
+                            <Run Text="{x:Bind ViewModel.Gln, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Haftungsausschluss -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Haftungsausschluss"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Disclaimer" />
+                    <TextBlock Text="{x:Bind ViewModel.DisclaimerText, Mode=OneWay}"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24" />
+                </StackPanel>
+
+                <!-- Urheberrecht -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Urheberrecht"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Copyright" />
+                    <TextBlock Text="{x:Bind ViewModel.CopyrightText, Mode=OneWay}"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24" />
+                </StackPanel>
+
+                <!-- Streitschlichtung -->
+                <StackPanel Spacing="8" Margin="0,0,0,32">
+                    <TextBlock Text="Streitschlichtung"
+                               Style="{StaticResource TitleTextBlockStyle}"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               AutomationProperties.AutomationId="ImprintPage_Section_Dispute" />
+                    <TextBlock Text="{x:Bind ViewModel.DisputeText, Mode=OneWay}"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource OnSurfaceBrush}"
+                               LineHeight="24" />
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Loading Indicator -->
+        <Grid Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+              Background="{ThemeResource BackgroundBrush}">
+            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                          Style="{StaticResource LargeProgressRingStyle}"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Width="48"
+                          Height="48" />
+        </Grid>
+
+        <!-- Error Message -->
+        <Grid Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource NullToCollapsedConverter}}"
+              Background="{ThemeResource BackgroundBrush}">
+            <Border Background="{ThemeResource ErrorBackgroundBrush}"
+                    CornerRadius="12"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MaxWidth="400">
+                <StackPanel Spacing="16"
+                            HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xE783;"
+                              FontSize="48"
+                              Foreground="{ThemeResource ErrorForegroundBrush}"
+                              HorizontalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource ErrorForegroundBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                    <Button Content="Erneut versuchen"
+                            Command="{x:Bind ViewModel.LoadCommand}"
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource FilledButtonStyle}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</pages:BasePage>

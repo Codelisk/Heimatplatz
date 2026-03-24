@@ -176,6 +176,11 @@
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center"
                                         Spacing="24">
+                                <HyperlinkButton Content="Impressum"
+                                                 uen:Navigation.Request="Imprint"
+                                                 Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                                 FontSize="12"
+                                                 AutomationProperties.AutomationId="HomePage_ImprintLink" />
                                 <HyperlinkButton Content="Datenschutz"
                                                  uen:Navigation.Request="PrivacyPolicy"
                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}"
