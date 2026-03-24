@@ -15,32 +15,39 @@ public class TriggerSrealSyncHandler(
 ) : IRequestHandler<TriggerSrealSyncRequest, TriggerSrealSyncResponse>
 {
     [MediatorHttpPost("/sync", OperationId = "TriggerSrealSync")]
-    public Task<TriggerSrealSyncResponse> Handle(
+    public async Task<TriggerSrealSyncResponse> Handle(
         TriggerSrealSyncRequest request,
         IMediatorContext context,
         CancellationToken cancellationToken)
     {
-        // Fire-and-forget: run sync in background so the HTTP request returns immediately
-        _ = Task.Run(async () =>
+        // Run synchronously to capture errors in response (useful for debugging)
+        try
         {
-            try
-            {
-                using var scope = scopeFactory.CreateScope();
-                var bgSyncService = scope.ServiceProvider.GetRequiredService<ISrealSyncService>();
-                var result = await bgSyncService.SyncAllAsync(CancellationToken.None);
-                logger.LogInformation(
-                    "[sreal.at Sync] Background sync completed: {Created} created, {Updated} updated, {Removed} removed, {Unchanged} unchanged, {Errors} errors",
-                    result.Created, result.Updated, result.Removed, result.Unchanged, result.Errors);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "[sreal.at Sync] Background sync failed");
-            }
-        });
+            using var scope = scopeFactory.CreateScope();
+            var syncService = scope.ServiceProvider.GetRequiredService<ISrealSyncService>();
+            var result = await syncService.SyncAllAsync(cancellationToken);
+            logger.LogInformation(
+                "[sreal.at Sync] Sync completed: {Created} created, {Updated} updated, {Removed} removed, {Unchanged} unchanged, {Errors} errors",
+                result.Created, result.Updated, result.Removed, result.Unchanged, result.Errors);
 
-        return Task.FromResult(new TriggerSrealSyncResponse
+            return new TriggerSrealSyncResponse
+            {
+                Created = result.Created,
+                Updated = result.Updated,
+                Removed = result.Removed,
+                Unchanged = result.Unchanged,
+                Errors = result.Errors,
+                ErrorMessages = result.ErrorMessages
+            };
+        }
+        catch (Exception ex)
         {
-            ErrorMessages = ["Sync started in background"]
-        });
+            logger.LogError(ex, "[sreal.at Sync] Sync failed");
+            return new TriggerSrealSyncResponse
+            {
+                Errors = 1,
+                ErrorMessages = [$"Sync failed: {ex.Message} | Inner: {ex.InnerException?.Message}"]
+            };
+        }
     }
 }
