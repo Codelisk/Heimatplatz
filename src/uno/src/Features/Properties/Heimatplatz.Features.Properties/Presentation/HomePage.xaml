@@ -27,6 +27,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- Desktop Filter ist jetzt im AppHeader (HeaderCenter Region) -->
@@ -124,11 +125,10 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Content: Responsives Grid Layout -->
-                <ScrollViewer Grid.Row="1"
-                              Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
-                              AutomationProperties.AutomationId="HomePage_ScrollViewer">
-                    <StackPanel utu:SafeArea.Insets="Bottom">
+                <!-- Content: ItemsRepeater as direct ScrollViewer child for virtualization -->
+                <Grid Grid.Row="1">
+                    <ScrollViewer Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
+                                  AutomationProperties.AutomationId="HomePage_ScrollViewer">
                         <ItemsRepeater ItemsSource="{Binding Properties}"
                                        utu:ItemsRepeaterExtensions.SupportsIncrementalLoading="True"
                                        AutomationProperties.AutomationId="HomePage_PropertyList">
@@ -142,12 +142,6 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
-                                    <!-- DO NOT add Loaded="OnPropertyCardLoaded" here.
-                                         Setting DependencyProperties (IsFavorite/IsBlocked) during
-                                         ItemsRepeater rendering triggers a synchronous recursive cascade
-                                         through Uno's DependencyObjectStore → BindingExpression →
-                                         OnValueChanged → StackOverflow.
-                                         Status is loaded on-demand in PropertyCard.OnMenuFlyoutOpening. -->
                                     <controls:PropertyCard Property="{Binding}"
                                                            IsAuthenticated="{Binding DataContext.IsAuthenticated, ElementName=RootGrid}"
                                                            CardClicked="OnPropertyCardClicked"
@@ -157,44 +151,18 @@
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
+                    </ScrollViewer>
 
-                        <!-- Loading Indicator for Pagination -->
-                        <ProgressRing IsActive="{Binding Properties.IsLoading}"
-                                      Visibility="{Binding Properties.HasMoreItems}"
-                                      Width="32"
-                                      Height="32"
-                                      Margin="0,16,0,0"
-                                      HorizontalAlignment="Center"
-                                      AutomationProperties.AutomationId="HomePage_LoadingIndicator" />
-
-                        <!-- Footer -->
-                        <Border Margin="0,32,0,16"
-                                Padding="0,16,0,0"
-                                BorderBrush="{ThemeResource BorderBrush}"
-                                BorderThickness="0,1,0,0"
-                                AutomationProperties.AutomationId="HomePage_Footer">
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center"
-                                        Spacing="24">
-                                <HyperlinkButton Content="Impressum"
-                                                 uen:Navigation.Request="Imprint"
-                                                 Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                                 FontSize="12"
-                                                 AutomationProperties.AutomationId="HomePage_ImprintLink" />
-                                <HyperlinkButton Content="Datenschutz"
-                                                 uen:Navigation.Request="PrivacyPolicy"
-                                                 Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                                 FontSize="12"
-                                                 AutomationProperties.AutomationId="HomePage_PrivacyPolicyLink" />
-                                <TextBlock Text="Heimatplatz"
-                                           Foreground="{ThemeResource OnSurfaceVariantBrush}"
-                                           FontSize="12"
-                                           Opacity="0.6"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
+                    <!-- Loading Indicator - Overlay at bottom of scroll area -->
+                    <ProgressRing IsActive="{Binding Properties.IsLoading}"
+                                  Visibility="{Binding Properties.HasMoreItems}"
+                                  Width="32"
+                                  Height="32"
+                                  Margin="0,0,0,16"
+                                  VerticalAlignment="Bottom"
+                                  HorizontalAlignment="Center"
+                                  AutomationProperties.AutomationId="HomePage_LoadingIndicator" />
+                </Grid>
 
                 <!-- Empty State: Schlicht -->
                 <StackPanel Grid.Row="1"
@@ -213,6 +181,34 @@
                                HorizontalAlignment="Center"
                                AutomationProperties.AutomationId="HomePage_EmptyText" />
                 </StackPanel>
+
+                <!-- Footer -->
+                <Border Grid.Row="2"
+                        utu:SafeArea.Insets="Bottom"
+                        Padding="0,8,0,8"
+                        BorderBrush="{ThemeResource BorderBrush}"
+                        BorderThickness="0,1,0,0"
+                        AutomationProperties.AutomationId="HomePage_Footer">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="24">
+                        <HyperlinkButton Content="Impressum"
+                                         uen:Navigation.Request="Imprint"
+                                         Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                         FontSize="12"
+                                         AutomationProperties.AutomationId="HomePage_ImprintLink" />
+                        <HyperlinkButton Content="Datenschutz"
+                                         uen:Navigation.Request="PrivacyPolicy"
+                                         Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                         FontSize="12"
+                                         AutomationProperties.AutomationId="HomePage_PrivacyPolicyLink" />
+                        <TextBlock Text="Heimatplatz"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   FontSize="12"
+                                   Opacity="0.6"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
             </Grid>
         </uc:BusyOverlay>
     </Grid>

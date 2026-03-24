@@ -45,15 +45,29 @@
                               Opacity="0.5" />
                 </Border>
 
-                <!-- FlipView für Bilder-Swipe -->
-                <Border CornerRadius="8,8,0,0"
+                <!-- Single Image (efficient for 1 image — avoids FlipView overhead) -->
+                <Border x:Name="SingleImageContainer"
+                        CornerRadius="8,8,0,0"
                         IsHitTestVisible="False"
+                        Visibility="Collapsed">
+                    <Border.Clip>
+                        <RectangleGeometry Rect="0,0,10000,200" />
+                    </Border.Clip>
+                    <Image x:Name="SingleImage"
+                           Stretch="UniformToFill"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+                </Border>
+
+                <!-- FlipView for multi-image swipe (hidden by default) -->
+                <Border x:Name="FlipViewContainer"
+                        CornerRadius="8,8,0,0"
+                        IsHitTestVisible="False"
+                        Visibility="Collapsed"
                         AutomationProperties.AutomationId="PropertyCard_ImageBorder">
                     <Border.Clip>
                         <RectangleGeometry Rect="0,0,10000,200" />
                     </Border.Clip>
-                    <!-- IsHitTestVisible="False" verhindert, dass FlipView Mausrad-Events konsumiert
-                         und damit den Parent ScrollViewer blockiert (Desktop Skia) -->
                     <FlipView x:Name="ImageFlipView"
                               Background="Transparent"
                               IsHitTestVisible="False"
@@ -67,19 +81,6 @@
                             </DataTemplate>
                         </FlipView.ItemTemplate>
                     </FlipView>
-                </Border>
-
-                <!-- Gradient Overlay für bessere Lesbarkeit -->
-                <Border CornerRadius="8,8,0,0"
-                        IsHitTestVisible="False">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#40000000" Offset="0" />
-                            <GradientStop Color="#00000000" Offset="0.3" />
-                            <GradientStop Color="#00000000" Offset="0.6" />
-                            <GradientStop Color="#60000000" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
                 </Border>
 
                 <!-- Bild-Counter unten links -->

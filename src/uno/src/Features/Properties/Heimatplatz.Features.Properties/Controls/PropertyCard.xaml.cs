@@ -17,6 +17,7 @@ public sealed partial class PropertyCard : UserControl
     private MenuFlyoutItem? _favoriteMenuItem;
     private MenuFlyoutItem? _blockMenuItem;
     private List<string>? _currentImageUrls;
+    private bool _imagesFullyLoaded;
 
     public PropertyCard()
     {
@@ -389,38 +390,47 @@ public sealed partial class PropertyCard : UserControl
         // Created date (relative)
         CreatedAtText.Text = FormatRelativeDate(property.CreatedAt);
 
-        // Load images (FlipView for swipe)
-        // Detach previous handler to prevent accumulation
+        // Load images — use simple Image for single image (avoids FlipView overhead)
         ImageFlipView.SelectionChanged -= OnImageFlipViewSelectionChanged;
 
         if (property.ImageUrls?.Count > 0)
         {
             var imageUrls = property.ImageUrls.Where(url => !string.IsNullOrEmpty(url)).ToList();
             _currentImageUrls = imageUrls;
-            ImageFlipView.ItemsSource = imageUrls;
 
-            // Show counter and arrows when multiple images
-            if (imageUrls.Count > 1)
+            if (imageUrls.Count == 1)
             {
+                // Single image: simple Image element (no FlipView overhead)
+                SingleImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(imageUrls[0]));
+                SingleImageContainer.Visibility = Visibility.Visible;
+                FlipViewContainer.Visibility = Visibility.Collapsed;
+                ImageCounterBadge.Visibility = Visibility.Collapsed;
+                PrevImageButton.Visibility = Visibility.Collapsed;
+                NextImageButton.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                // Multiple images: FlipView with deferred loading (only first image initially)
+                SingleImageContainer.Visibility = Visibility.Collapsed;
+                FlipViewContainer.Visibility = Visibility.Visible;
+                _imagesFullyLoaded = false;
+                ImageFlipView.ItemsSource = new List<string> { imageUrls[0] };
+
                 ImageCounterBadge.Visibility = Visibility.Visible;
                 ImageCounterText.Text = $"1/{imageUrls.Count}";
-
-                // Show navigation arrows
                 PrevImageButton.Visibility = Visibility.Visible;
                 NextImageButton.Visibility = Visibility.Visible;
 
                 ImageFlipView.SelectionChanged += OnImageFlipViewSelectionChanged;
             }
-            else
-            {
-                ImageCounterBadge.Visibility = Visibility.Collapsed;
-                PrevImageButton.Visibility = Visibility.Collapsed;
-                NextImageButton.Visibility = Visibility.Collapsed;
-            }
         }
         else
         {
             _currentImageUrls = null;
+            _imagesFullyLoaded = false;
+            SingleImage.Source = null;
+            SingleImageContainer.Visibility = Visibility.Collapsed;
+            FlipViewContainer.Visibility = Visibility.Collapsed;
             ImageFlipView.ItemsSource = null;
             ImageCounterBadge.Visibility = Visibility.Collapsed;
             PrevImageButton.Visibility = Visibility.Collapsed;
@@ -483,8 +493,21 @@ public sealed partial class PropertyCard : UserControl
         }
     }
 
+    /// <summary>
+    /// Loads all image URLs into FlipView on first navigation interaction.
+    /// Initially only the first image is loaded for performance.
+    /// </summary>
+    private void LoadAllImages()
+    {
+        if (_imagesFullyLoaded || _currentImageUrls == null || _currentImageUrls.Count <= 1)
+            return;
+        _imagesFullyLoaded = true;
+        ImageFlipView.ItemsSource = _currentImageUrls;
+    }
+
     private void OnPrevImageClick(object sender, RoutedEventArgs e)
     {
+        LoadAllImages();
         var count = ImageFlipView.Items.Count;
         if (count == 0)
             return;
@@ -502,6 +525,7 @@ public sealed partial class PropertyCard : UserControl
 
     private void OnNextImageClick(object sender, RoutedEventArgs e)
     {
+        LoadAllImages();
         var count = ImageFlipView.Items.Count;
         if (count == 0)
             return;
