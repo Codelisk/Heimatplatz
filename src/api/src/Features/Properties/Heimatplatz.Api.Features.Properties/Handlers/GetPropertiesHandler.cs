@@ -161,8 +161,12 @@ public class GetPropertiesHandler(
             if (string.IsNullOrEmpty(url))
                 return url;
 
-            // Only proxy external URLs (not our own uploads)
-            if (url.StartsWith("https://edikte.justiz.gv.at", StringComparison.OrdinalIgnoreCase))
+            // Proxy all external URLs (CORS bypass for Uno WASM)
+            // Only skip our own uploads (local paths starting with /)
+            if (url.StartsWith("/"))
+                return url;
+
+            if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 return $"{baseUrl}/api/images/proxy?url={Uri.EscapeDataString(url)}";
 
             return url;
