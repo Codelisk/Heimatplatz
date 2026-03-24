@@ -54,7 +54,8 @@ public class SrealSyncService(
             existingListings = await dbContext.Set<SrealListing>()
                 .ToDictionaryAsync(s => s.ExternalId, ct);
         }
-        catch (Exception ex) when (ex.Message.Contains("no such column") || ex.InnerException?.Message?.Contains("no such column") == true)
+        catch (Exception ex) when (ex.Message.Contains("no such column") || ex.InnerException?.Message?.Contains("no such column") == true
+                                   || ex.Message.Contains("no such table") || ex.InnerException?.Message?.Contains("no such table") == true)
         {
             logger.LogWarning(ex, "Schema mismatch detected - recreating database to apply new schema");
             await dbContext.Database.EnsureDeletedAsync(ct);
