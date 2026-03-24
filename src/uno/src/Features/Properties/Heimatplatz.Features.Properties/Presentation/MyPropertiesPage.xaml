@@ -21,7 +21,8 @@
 
             <Grid>
                 <!-- Empty State - Modern Card Design (Full screen centered) -->
-                <Grid Visibility="{Binding IsEmpty, FallbackValue=Collapsed}"
+                <Grid x:Name="EmptyState"
+                      Visibility="Collapsed"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch">
                     <Border HorizontalAlignment="Center"
@@ -96,10 +97,11 @@
                 </Grid>
 
                 <!-- Content Area with Properties -->
-                <ScrollViewer Visibility="{Binding IsNotEmpty, FallbackValue=Collapsed}">
+                <ScrollViewer x:Name="ContentArea" Visibility="Collapsed">
                     <utu:AutoLayout Orientation="Vertical"
                                     Spacing="16"
-                                    Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}">
+                                    Padding="{utu:Responsive Narrowest='16', Normal='24,24,24,40'}"
+                                    utu:SafeArea.Insets="Bottom">
 
                         <!-- Properties Grid -->
                         <ItemsRepeater ItemsSource="{Binding Properties}"

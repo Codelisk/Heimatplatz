@@ -21,7 +21,8 @@
             <Grid>
                 <!-- Content -->
                 <ScrollViewer>
-                    <Grid Padding="{utu:Responsive Narrowest='0', Normal='40,24'}"
+                    <Grid Padding="{utu:Responsive Narrowest='16,0', Normal='40,24'}"
+                          utu:SafeArea.Insets="Bottom"
                           MaxWidth="1200"
                           HorizontalAlignment="{utu:Responsive Narrowest=Stretch, Normal=Center}">
 
@@ -29,7 +30,8 @@
                         <Grid Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}">
                             <StackPanel>
                                 <!-- Hero Image -->
-                                <Grid Height="320">
+                                <Grid Height="320"
+                                      Visibility="{x:Bind ViewModel.HasImages, Mode=OneWay}">
                                     <Border Background="{ThemeResource PlaceholderBrush}">
                                         <FontIcon Glyph="&#xE8A9;"
                                                   FontSize="48"
@@ -374,7 +376,8 @@
 
                             <!-- Hero Image (volle Breite) mit Schatten -->
                             <Border CornerRadius="{StaticResource RadiusMd}" Height="480"
-                                    Translation="0,0,16">
+                                    Translation="0,0,16"
+                                    Visibility="{x:Bind ViewModel.HasImages, Mode=OneWay}">
                                 <Border.Shadow>
                                     <ThemeShadow />
                                 </Border.Shadow>

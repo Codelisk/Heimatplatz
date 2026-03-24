@@ -148,6 +148,19 @@ public sealed partial class MainPage : Page,
         {
             dispatcherQueue.TryEnqueue(async () =>
             {
+                // Hide pane on Detail/Form pages, restore on navigation pages
+                if (_currentPageType is PageType.Detail or PageType.Form)
+                {
+                    NavView.IsPaneOpen = false;
+                    NavView.PaneDisplayMode = NavigationViewPaneDisplayMode.LeftMinimal;
+                    NavView.IsPaneVisible = false;
+                }
+                else if (_authService != null)
+                {
+                    NavView.IsPaneVisible = _authService.IsAuthenticated;
+                    UpdatePaneDisplayMode(_authService.IsAuthenticated);
+                }
+
                 await HandleMainHeaderNavigation(@event.MainHeaderViewModel);
             });
         }

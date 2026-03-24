@@ -11,6 +11,7 @@ using Heimatplatz.Features.Properties.Controls;
 using Heimatplatz.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using UnoFramework.Contracts.Navigation;
@@ -156,6 +157,14 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
 
     [ObservableProperty]
     private bool _isEmpty;
+
+    [ObservableProperty]
+    private Visibility _emptyVisibility = Visibility.Collapsed;
+
+    partial void OnIsEmptyChanged(bool value)
+    {
+        EmptyVisibility = value ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     [ObservableProperty]
     private string _resultCountText = "0 Objekte";

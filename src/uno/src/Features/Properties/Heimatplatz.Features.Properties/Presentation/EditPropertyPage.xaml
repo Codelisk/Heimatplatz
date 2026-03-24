@@ -5,6 +5,7 @@
       xmlns:local="using:Heimatplatz.Features.Properties.Presentation"
       xmlns:models="using:Heimatplatz.Features.Properties.Contracts.Models"
       xmlns:controls="using:Heimatplatz.Features.Properties.Controls"
+      xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:pages="using:UnoFramework.Pages"
       NavigationCacheMode="Disabled"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -62,7 +63,8 @@
     </VisualStateManager.VisualStateGroups>
 
     <ScrollViewer>
-        <StackPanel Padding="12" Spacing="8" MaxWidth="900">
+        <StackPanel Padding="12" Spacing="8" MaxWidth="900"
+                    utu:SafeArea.Insets="Bottom">
 
             <!-- Loading Indicator -->
             <ProgressRing IsActive="{Binding IsLoading, Mode=OneWay}"

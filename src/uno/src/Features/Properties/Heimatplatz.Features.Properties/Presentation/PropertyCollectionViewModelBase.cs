@@ -47,6 +47,18 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
     public bool IsNotEmpty => !IsEmpty;
 
+    [ObservableProperty]
+    private Visibility _emptyVisibility = Visibility.Collapsed;
+
+    [ObservableProperty]
+    private Visibility _notEmptyVisibility = Visibility.Collapsed;
+
+    partial void OnIsEmptyChanged(bool value)
+    {
+        EmptyVisibility = value ? Visibility.Visible : Visibility.Collapsed;
+        NotEmptyVisibility = value ? Visibility.Collapsed : Visibility.Visible;
+    }
+
     // IPageInfo implementation - List pages show hamburger button
     public virtual PageType PageType => PageType.List;
     public virtual Type? MainHeaderViewModel => null;
@@ -212,6 +224,10 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         catch (Exception ex)
         {
             Logger.LogError(ex, "[{PageTitle}] Error loading page {Page}", PageTitle, page);
+            if (page == 0)
+            {
+                IsEmpty = true;
+            }
             // Show error dialog on UI thread
             _ = ShowErrorDialogAsync(LoadErrorTitle, GetLoadErrorMessage(ex.Message));
             return (Enumerable.Empty<PropertyListItemDto>(), false, 0);

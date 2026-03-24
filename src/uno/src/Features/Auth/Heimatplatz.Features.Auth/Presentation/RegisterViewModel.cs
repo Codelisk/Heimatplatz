@@ -186,7 +186,8 @@ public partial class RegisterViewModel : ObservableObject
                 _logger.LogWarning(pushEx, "Push Notifications konnten nicht initialisiert werden (nicht auf dieser Plattform verfuegbar)");
             }
 
-            // Zurueck zur HomePage navigieren
+            // Zurueck zur HomePage navigieren (2x Back: Register -> Login -> Home)
+            await _navigator.NavigateBackAsync(this);
             await _navigator.NavigateBackAsync(this);
         }
         catch (Exception ex)
