@@ -1319,6 +1319,151 @@
           }
         }
       }
+    },
+    "/api/sreal-listings": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetSrealListings",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
+            "name": "ObjectType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SrealObjectType"
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MaxPrice",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "State",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/AustrianState"
+            }
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSrealListingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sreal-listings/sync/status": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetSrealSyncStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSrealSyncStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sreal-listings/sync": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "TriggerSrealSync",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerSrealSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerSrealSyncResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2270,6 +2415,80 @@
             "items": {
               "$ref": "#/components/schemas/SellerSourceDto"
             }
+          }
+        }
+      },
+      "GetSrealListingsResponse": {
+        "required": [
+          "Listings"
+        ],
+        "type": "object",
+        "properties": {
+          "Listings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SrealListingDto"
+            }
+          },
+          "TotalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "GetSrealSyncStatusResponse": {
+        "type": "object",
+        "properties": {
+          "LastSyncAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "TotalActiveListings": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "TotalRemovedListings": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "TotalChanges": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -3653,10 +3872,257 @@
           }
         }
       },
+      "SrealListingDto": {
+        "required": [
+          "Id",
+          "ExternalId",
+          "Title",
+          "Address",
+          "City",
+          "PostalCode",
+          "SourceUrl",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ExternalId": {
+            "type": "string"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "District": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "State": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AustrianState"
+              }
+            ]
+          },
+          "ObjectType": {
+            "$ref": "#/components/schemas/SrealObjectType"
+          },
+          "BuyingType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "PriceText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Commission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LivingArea": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "PlotArea": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "EnergyClass": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "EnergyValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "AgentName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "AgentPhone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "AgentEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "AgentOffice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "SourceUrl": {
+            "type": "string"
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "FirstSeenAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "LastScrapedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "RemovedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SrealObjectType": {
+        "enum": [
+          "House",
+          "Land",
+          "Vacation"
+        ]
+      },
       "TriggerForeclosureAuctionSyncRequest": {
         "type": "object"
       },
       "TriggerForeclosureAuctionSyncResponse": {
+        "type": "object",
+        "properties": {
+          "Created": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Updated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Removed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Unchanged": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Errors": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ErrorMessages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TriggerSrealSyncRequest": {
+        "type": "object"
+      },
+      "TriggerSrealSyncResponse": {
         "type": "object",
         "properties": {
           "Created": {
