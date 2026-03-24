@@ -55,11 +55,86 @@ public class SrealSyncService(
                 .ToDictionaryAsync(s => s.ExternalId, ct);
         }
         catch (Exception ex) when (ex.Message.Contains("no such column") || ex.InnerException?.Message?.Contains("no such column") == true
-                                   || ex.Message.Contains("no such table") || ex.InnerException?.Message?.Contains("no such table") == true)
+                                   || ex.Message.Contains("no such table") || ex.InnerException?.Message?.Contains("no such table") == true
+                                   || ex.Message.Contains("Invalid object name") || ex.InnerException?.Message?.Contains("Invalid object name") == true)
         {
-            logger.LogWarning(ex, "Schema mismatch detected - recreating database to apply new schema");
-            await dbContext.Database.EnsureDeletedAsync(ct);
-            await dbContext.Database.EnsureCreatedAsync(ct);
+            logger.LogWarning(ex, "Schema mismatch detected - applying schema fix");
+            // Tabellen fehlen: SQL direkt ausfuehren fuer die neuen Tabellen
+            try
+            {
+                await dbContext.Database.ExecuteSqlRawAsync("""
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SrealListings')
+                    BEGIN
+                        CREATE TABLE [SrealListings] (
+                            [Id] uniqueidentifier NOT NULL,
+                            [ExternalId] nvarchar(50) NOT NULL,
+                            [Title] nvarchar(500) NOT NULL,
+                            [Address] nvarchar(500) NOT NULL,
+                            [City] nvarchar(100) NOT NULL,
+                            [PostalCode] nvarchar(10) NOT NULL,
+                            [District] nvarchar(100) NULL,
+                            [State] int NOT NULL DEFAULT 4,
+                            [ObjectType] int NOT NULL,
+                            [BuyingType] nvarchar(10) NULL,
+                            [Price] decimal(12,2) NULL,
+                            [PriceText] nvarchar(100) NULL,
+                            [Commission] nvarchar(200) NULL,
+                            [LivingArea] decimal(12,2) NULL,
+                            [PlotArea] decimal(12,2) NULL,
+                            [Rooms] int NULL,
+                            [Description] nvarchar(max) NULL,
+                            [EnergyClass] nvarchar(5) NULL,
+                            [EnergyValue] nvarchar(50) NULL,
+                            [FGee] nvarchar(20) NULL,
+                            [FGeeClass] nvarchar(5) NULL,
+                            [ImageUrls] nvarchar(max) NULL,
+                            [SourceUrl] nvarchar(1000) NOT NULL,
+                            [AgentName] nvarchar(200) NULL,
+                            [AgentPhone] nvarchar(50) NULL,
+                            [AgentEmail] nvarchar(200) NULL,
+                            [AgentOffice] nvarchar(200) NULL,
+                            [Infrastructure] nvarchar(4000) NULL,
+                            [ContentHash] nvarchar(64) NULL,
+                            [IsActive] bit NOT NULL DEFAULT 1,
+                            [FirstSeenAt] datetimeoffset NULL,
+                            [LastScrapedAt] datetimeoffset NULL,
+                            [RemovedAt] datetimeoffset NULL,
+                            [CreatedAt] datetimeoffset NOT NULL,
+                            [UpdatedAt] datetimeoffset NULL,
+                            CONSTRAINT [PK_SrealListings] PRIMARY KEY ([Id])
+                        );
+                        CREATE UNIQUE INDEX [IX_SrealListings_ExternalId] ON [SrealListings] ([ExternalId]);
+                        CREATE INDEX [IX_SrealListings_City] ON [SrealListings] ([City]);
+                        CREATE INDEX [IX_SrealListings_PostalCode] ON [SrealListings] ([PostalCode]);
+                        CREATE INDEX [IX_SrealListings_IsActive] ON [SrealListings] ([IsActive]);
+                    END;
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SrealListingChanges')
+                    BEGIN
+                        CREATE TABLE [SrealListingChanges] (
+                            [Id] uniqueidentifier NOT NULL,
+                            [SrealListingId] uniqueidentifier NOT NULL,
+                            [ChangeType] nvarchar(20) NOT NULL,
+                            [ChangedFields] nvarchar(4000) NULL,
+                            [OldContentHash] nvarchar(64) NULL,
+                            [NewContentHash] nvarchar(64) NULL,
+                            [CreatedAt] datetimeoffset NOT NULL,
+                            [UpdatedAt] datetimeoffset NULL,
+                            CONSTRAINT [PK_SrealListingChanges] PRIMARY KEY ([Id]),
+                            CONSTRAINT [FK_SrealListingChanges_SrealListings] FOREIGN KEY ([SrealListingId]) REFERENCES [SrealListings] ([Id]) ON DELETE CASCADE
+                        );
+                        CREATE INDEX [IX_SrealListingChanges_SrealListingId] ON [SrealListingChanges] ([SrealListingId]);
+                        CREATE INDEX [IX_SrealListingChanges_ChangeType] ON [SrealListingChanges] ([ChangeType]);
+                        CREATE INDEX [IX_SrealListingChanges_CreatedAt] ON [SrealListingChanges] ([CreatedAt]);
+                    END;
+                    """, ct);
+                logger.LogInformation("SrealListings tables created via raw SQL");
+            }
+            catch (Exception createEx)
+            {
+                logger.LogWarning(createEx, "Raw SQL table creation failed, falling back to EnsureDeleted/EnsureCreated");
+                await dbContext.Database.EnsureDeletedAsync(ct);
+                await dbContext.Database.EnsureCreatedAsync(ct);
+            }
             existingListings = new Dictionary<string, SrealListing>();
         }
 
