@@ -32,22 +32,10 @@ public class SrealSyncService(
         var errors = 0;
         var errorMessages = new List<string>();
 
-        // 1. Alle Inserate von sreal.at holen
-        List<SrealListItem> listItems;
-        try
-        {
-            listItems = await scraper.GetListingsAsync(ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Fehler beim Abrufen der sreal.at Liste");
-            return new SrealSyncResult(0, 0, 0, 0, 1, [$"Fehler beim Abrufen der Liste: {ex.Message}"]);
-        }
-
         var now = DateTimeOffset.UtcNow;
         var scrapedExternalIds = new HashSet<string>();
 
-        // 2. Bestehende Eintraege laden
+        // 1. Bestehende Eintraege laden (VOR dem Scraping, damit Tabellen erstellt werden)
         Dictionary<string, SrealListing> existingListings;
         try
         {
@@ -136,6 +124,18 @@ public class SrealSyncService(
                 await dbContext.Database.EnsureCreatedAsync(ct);
             }
             existingListings = new Dictionary<string, SrealListing>();
+        }
+
+        // 2. Alle Inserate von sreal.at holen
+        List<SrealListItem> listItems;
+        try
+        {
+            listItems = await scraper.GetListingsAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Fehler beim Abrufen der sreal.at Liste");
+            return new SrealSyncResult(0, 0, 0, 0, 1, [$"Fehler beim Abrufen der Liste: {ex.Message}"]);
         }
 
         // 3. Fuer jeden Listeneintrag die Details holen und verarbeiten
