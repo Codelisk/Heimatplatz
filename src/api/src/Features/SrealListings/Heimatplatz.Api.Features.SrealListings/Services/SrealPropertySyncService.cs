@@ -232,7 +232,7 @@ public class SrealPropertySyncService(
             SourceId = listing.ExternalId,
             SourceUrl = listing.SourceUrl,
             SourceLastUpdated = listing.LastScrapedAt,
-            CreatedAt = now
+            CreatedAt = listing.FirstSeenAt ?? now
         };
 
         // Set type-specific data
