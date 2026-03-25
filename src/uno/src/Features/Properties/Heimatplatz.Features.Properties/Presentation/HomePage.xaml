@@ -27,6 +27,7 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -120,49 +121,68 @@
                                                      IsSelected="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}" />
                             </StackPanel>
 
-                            <!-- Anbietertyp Picker + Sortierung -->
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <controls:SellerTypePicker SellerTypes="{x:Bind ViewModel.SellerTypes, Mode=OneWay}"
-                                                           AutomationProperties.AutomationId="HomePage_MobileSellerTypePicker" />
-
-                                <!-- Sort Button -->
-                                <Button Background="{ThemeResource SolidBackgroundFillColorSecondary}"
-                                        BorderBrush="{ThemeResource BorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="{StaticResource RadiusSm}"
-                                        Padding="12,6"
-                                        MinHeight="36"
-                                        VerticalAlignment="Center"
-                                        AutomationProperties.AutomationId="HomePage_SortButton">
-                                    <Button.Flyout>
-                                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                            <MenuFlyoutItem Text="Neueste" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="Neueste" />
-                                            <MenuFlyoutItem Text="Älteste" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="Aelteste" />
-                                            <MenuFlyoutItem Text="Preis ↑" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAuf" />
-                                            <MenuFlyoutItem Text="Preis ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAb" />
-                                            <MenuFlyoutItem Text="Fläche ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="FlaecheAb" />
-                                            <MenuFlyoutItem Text="Fläche ↑" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="FlaecheAuf" />
-                                            <MenuFlyoutItem Text="PLZ" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PlzAuf" />
-                                        </MenuFlyout>
-                                    </Button.Flyout>
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE8CB;"
-                                                  FontSize="12"
-                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SortLabel, Mode=OneWay}"
-                                                   FontSize="13"
-                                                   FontWeight="Medium"
-                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
+                            <!-- Anbietertyp Picker -->
+                            <controls:SellerTypePicker SellerTypes="{x:Bind ViewModel.SellerTypes, Mode=OneWay}"
+                                                       AutomationProperties.AutomationId="HomePage_MobileSellerTypePicker" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
+                <!-- Toolbar: Ergebnis-Count + Sortierung (immer sichtbar) -->
+                <Border Grid.Row="1"
+                        Background="{ThemeResource SurfaceBrush}"
+                        Padding="{utu:Responsive Narrowest='12,8', Normal='20,8'}"
+                        BorderBrush="{ThemeResource BorderBrush}"
+                        BorderThickness="0,0,0,0.5"
+                        AutomationProperties.AutomationId="HomePage_Toolbar">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Ergebnis-Counter (Desktop) -->
+                        <TextBlock Text="{x:Bind ViewModel.ResultCountText, Mode=OneWay}"
+                                   FontSize="13"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   VerticalAlignment="Center" />
+
+                        <!-- Sort Button -->
+                        <Button Grid.Column="1"
+                                Background="{ThemeResource SolidBackgroundFillColorSecondary}"
+                                BorderBrush="{ThemeResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource RadiusSm}"
+                                Padding="12,6"
+                                MinHeight="36"
+                                AutomationProperties.AutomationId="HomePage_SortButton">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                    <MenuFlyoutItem Text="Neueste" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="Neueste" />
+                                    <MenuFlyoutItem Text="Älteste" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="Aelteste" />
+                                    <MenuFlyoutItem Text="Preis ↑" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAuf" />
+                                    <MenuFlyoutItem Text="Preis ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAb" />
+                                    <MenuFlyoutItem Text="Fläche ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="FlaecheAb" />
+                                    <MenuFlyoutItem Text="Fläche ↑" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="FlaecheAuf" />
+                                    <MenuFlyoutItem Text="PLZ" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PlzAuf" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8CB;"
+                                          FontSize="12"
+                                          Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                <TextBlock Text="{x:Bind ViewModel.SortLabel, Mode=OneWay}"
+                                           FontSize="13"
+                                           FontWeight="Medium"
+                                           Foreground="{ThemeResource OnSurfaceBrush}" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
                 <!-- Content: Max 20 items per page, no incremental loading -->
                 <ScrollViewer x:Name="ContentScrollViewer"
-                              Grid.Row="1"
+                              Grid.Row="2"
                               Padding="{utu:Responsive Narrowest='12', Normal='20,16'}"
                               AutomationProperties.AutomationId="HomePage_ScrollViewer">
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.Properties, Mode=OneWay}"
@@ -189,7 +209,7 @@
                 </ScrollViewer>
 
                 <!-- Empty State: Schlicht -->
-                <StackPanel Grid.Row="1"
+                <StackPanel Grid.Row="2"
                             Visibility="{x:Bind ViewModel.EmptyVisibility, Mode=OneWay}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
@@ -207,7 +227,7 @@
                 </StackPanel>
 
                 <!-- Pagination -->
-                <Border Grid.Row="2"
+                <Border Grid.Row="3"
                         Padding="8,6"
                         Visibility="{x:Bind ViewModel.PaginationVisibility, Mode=OneWay}"
                         AutomationProperties.AutomationId="HomePage_Pagination">
@@ -242,7 +262,7 @@
                 </Border>
 
                 <!-- Footer -->
-                <Border Grid.Row="3"
+                <Border Grid.Row="4"
                         utu:SafeArea.Insets="Bottom"
                         Padding="0,8,0,8"
                         BorderBrush="{ThemeResource BorderBrush}"
