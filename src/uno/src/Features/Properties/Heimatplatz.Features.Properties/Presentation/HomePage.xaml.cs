@@ -27,7 +27,12 @@ public sealed partial class HomePage : BasePage
     public HomePage()
     {
         this.InitializeComponent();
-        this.DataContextChanged += (_, _) => Bindings.Update();
+        this.DataContextChanged += (_, e) =>
+        {
+            Bindings.Update();
+            if (e.NewValue is HomeViewModel vm)
+                vm.PageChanged += (_, _) => ContentScrollViewer.ChangeView(null, 0, null);
+        };
     }
 
     private async void OnPropertyCardClicked(object sender, PropertyListItemDto property)

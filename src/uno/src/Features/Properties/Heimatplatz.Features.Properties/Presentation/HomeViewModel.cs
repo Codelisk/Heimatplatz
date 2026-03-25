@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Collections;
+// PaginatedObservableCollection removed — using classic page navigation instead
 using UnoFramework.Contracts.Pages;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
@@ -43,16 +43,36 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private string? _busyMessage;
 
-    // Paginated collection for automatic incremental loading
-    // Uses ISupportIncrementalLoading for ItemsRepeater/ListView
-    private PaginatedObservableCollection<PropertyListItemDto>? _properties;
-    public PaginatedObservableCollection<PropertyListItemDto> Properties =>
-        _properties ??= CreatePaginatedCollection();
+    private ObservableCollection<PropertyListItemDto>? _properties;
+    public ObservableCollection<PropertyListItemDto> Properties =>
+        _properties ??= new();
 
-    /// <summary>
-    /// Page size for pagination
-    /// </summary>
     private const int PageSize = 20;
+    private int _totalCount;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreviousPage))]
+    [NotifyPropertyChangedFor(nameof(HasNextPage))]
+    [NotifyPropertyChangedFor(nameof(PageInfoText))]
+    [NotifyCanExecuteChangedFor(nameof(GoToNextPageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(GoToPreviousPageCommand))]
+    private int _currentPage;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreviousPage))]
+    [NotifyPropertyChangedFor(nameof(HasNextPage))]
+    [NotifyPropertyChangedFor(nameof(PageInfoText))]
+    [NotifyPropertyChangedFor(nameof(PaginationVisibility))]
+    [NotifyCanExecuteChangedFor(nameof(GoToNextPageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(GoToPreviousPageCommand))]
+    private int _totalPages;
+
+    public bool HasPreviousPage => CurrentPage > 0;
+    public bool HasNextPage => CurrentPage < TotalPages - 1;
+    public string PageInfoText => TotalPages > 0 ? $"Seite {CurrentPage + 1} von {TotalPages}" : "";
+    public Visibility PaginationVisibility => TotalPages > 1 ? Visibility.Visible : Visibility.Collapsed;
+
+    public event EventHandler? PageChanged;
 
     [ObservableProperty]
     private bool _isHausSelected = true;
@@ -215,9 +235,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Load locations from API
         _ = LoadLocationsAsync();
 
-        // Properties are loaded lazily via PaginatedObservableCollection when first accessed
-        // Initial load triggered in OnNavigatedTo
-
         // Load preferences if already authenticated
         // PropertyStatusService is loaded lazily via EnsureLoadedAsync() in OnPropertyCardLoaded
         if (_authService.IsAuthenticated)
@@ -237,10 +254,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Capture UI dispatcher (OnNavigatedTo always runs on the UI thread)
         _dispatcher ??= DispatcherQueue.GetForCurrentThread();
 
-        if (Properties.Count == 0 && !Properties.IsLoading)
+        if (Properties.Count == 0 && !IsBusy)
         {
-            // Trigger first page load
-            _ = Properties.LoadMoreItemsAsync(PageSize);
+            _ = LoadCurrentPageAsync();
         }
         else if (_authService.IsAuthenticated)
         {
@@ -637,26 +653,45 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     }
 
     /// <summary>
-    /// Creates the paginated collection with the load function
+    /// Loads the current page from the API and replaces collection contents
     /// </summary>
-    private PaginatedObservableCollection<PropertyListItemDto> CreatePaginatedCollection()
+    private async Task LoadCurrentPageAsync()
     {
-        var collection = new PaginatedObservableCollection<PropertyListItemDto>(
-            LoadPageAsync,
-            PageSize
-        );
-
-        // Subscribe to loading state changes
-        collection.IsLoadingChanged += (s, e) =>
+        IsBusy = true;
+        BusyMessage = "Lade Immobilien...";
+        try
         {
-            DispatchToUI(() =>
-            {
-                IsBusy = collection.IsLoading;
-                BusyMessage = collection.IsLoading ? "Lade Immobilien..." : null;
-            });
-        };
+            var (items, _, totalCount) = await LoadPageAsync(CurrentPage, PageSize, CancellationToken.None);
+            var itemList = items.ToList();
 
-        return collection;
+            Properties.Clear();
+            foreach (var item in itemList)
+                Properties.Add(item);
+
+            _totalCount = totalCount;
+            TotalPages = totalCount > 0 ? (int)Math.Ceiling((double)totalCount / PageSize) : 0;
+            DispatchToUI(UpdateResultCount);
+            PageChanged?.Invoke(this, EventArgs.Empty);
+        }
+        finally
+        {
+            IsBusy = false;
+            BusyMessage = null;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(HasNextPage))]
+    private async Task GoToNextPageAsync()
+    {
+        CurrentPage++;
+        await LoadCurrentPageAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(HasPreviousPage))]
+    private async Task GoToPreviousPageAsync()
+    {
+        CurrentPage--;
+        await LoadCurrentPageAsync();
     }
 
     /// <summary>
@@ -745,9 +780,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             var hasMore = response?.HasMore ?? false;
             var totalCount = response?.Total ?? 0;
 
-            // Update UI state after loading
-            DispatchToUI(UpdateResultCount);
-
             return (items, hasMore, totalCount);
         }
         catch (Exception ex)
@@ -765,8 +797,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         if (_properties == null) return;
 
         _logger.LogInformation("[HomePage] Reloading properties with current filters");
-        await Properties.ResetAndReloadAsync();
-        DispatchToUI(UpdateResultCount);
+        CurrentPage = 0;
+        await LoadCurrentPageAsync();
     }
 
     /// <summary>
@@ -774,10 +806,9 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     /// </summary>
     private void UpdateResultCount()
     {
-        var count = Properties.TotalCount;
-        IsEmpty = count == 0;
-        ResultCountText = $"{count} Objekte";
-        _filterStateService.SetResultCount(count);
+        IsEmpty = _totalCount == 0;
+        ResultCountText = $"{_totalCount} Objekte";
+        _filterStateService.SetResultCount(_totalCount);
     }
 
     /// <summary>
