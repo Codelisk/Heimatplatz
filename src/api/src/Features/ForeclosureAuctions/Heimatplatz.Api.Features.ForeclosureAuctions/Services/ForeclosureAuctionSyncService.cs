@@ -228,6 +228,7 @@ public partial class ForeclosureAuctionSyncService(
             ExternalId = detail.ExternalId,
             ContentHash = contentHash,
             State = GuessStateFromPostalCode(ExtractPostalCode(detail.PostalCodeAndCity)),
+            PublicationDate = ParsePublicationDate(detail.PublicationDateText),
             IsActive = true,
             FirstSeenAt = now,
             LastScrapedAt = now
@@ -242,6 +243,7 @@ public partial class ForeclosureAuctionSyncService(
     private void UpdateEntityFromDetail(ForeclosureAuction entity, EdiktDetail detail, EdiktListItem listItem)
     {
         entity.AuctionDate = ParseAuctionDate(detail.AuctionDateText) ?? entity.AuctionDate;
+        entity.PublicationDate = ParsePublicationDate(detail.PublicationDateText) ?? entity.PublicationDate;
         entity.Category = ParseCategory(detail.CategoryText);
         entity.ObjectDescription = detail.ObjectDescription ?? listItem.ObjectDescription ?? entity.ObjectDescription;
         entity.Status = detail.StatusText;
@@ -426,6 +428,33 @@ public partial class ForeclosureAuctionSyncService(
             _ => null
         };
     }
+
+    /// <summary>
+    /// Parst das Veröffentlichungsdatum aus dem PublicationDateText.
+    /// Typische Formate: "Bekanntmachung vom 15.01.2026", "15.01.2026", etc.
+    /// </summary>
+    private static DateTimeOffset? ParsePublicationDate(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return null;
+
+        var match = PublicationDatePattern().Match(text);
+        if (!match.Success) return null;
+
+        if (DateTimeOffset.TryParseExact(
+            match.Groups[1].Value,
+            ["d.M.yyyy", "dd.MM.yyyy", "d.MM.yyyy", "dd.M.yyyy"],
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal,
+            out var result))
+        {
+            return result.ToOffset(TimeSpan.FromHours(1));
+        }
+
+        return null;
+    }
+
+    [GeneratedRegex(@"(\d{1,2}\.\d{1,2}\.\d{4})")]
+    private static partial Regex PublicationDatePattern();
 
     [GeneratedRegex(@"am\s+(\d{1,2}\.\d{1,2}\.\d{4})\s+um\s+(\d{2}:\d{2})")]
     private static partial Regex DatePattern();

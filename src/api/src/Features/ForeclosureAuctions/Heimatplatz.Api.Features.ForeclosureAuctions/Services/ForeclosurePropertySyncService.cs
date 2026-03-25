@@ -246,7 +246,7 @@ public class ForeclosurePropertySyncService(
             SourceId = auction.ExternalId,
             SourceUrl = auction.EdictUrl,
             SourceLastUpdated = auction.LastScrapedAt,
-            CreatedAt = now
+            CreatedAt = auction.PublicationDate ?? auction.FirstSeenAt ?? now
         };
 
         property.SetTypedData(foreclosureData);

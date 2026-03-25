@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         // Seeder
         services.AddSeeder<SystemUserSeeder>();
         services.AddSeeder<ForeclosureAuctionSeeder>();
+        services.AddSeeder<ForeclosurePropertyCreatedAtBackfillSeeder>();
 
         return services;
     }

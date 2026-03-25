@@ -139,6 +139,9 @@ public class ForeclosureAuction : BaseEntity
     /// <summary>Ob das Edikt noch auf edikte.justiz.gv.at aktiv ist</summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>Veröffentlichungsdatum des Edikts (geparst aus PublicationDateText)</summary>
+    public DateTimeOffset? PublicationDate { get; set; }
+
     /// <summary>Wann das Edikt erstmals gescraped wurde</summary>
     public DateTimeOffset? FirstSeenAt { get; set; }
 
