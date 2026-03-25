@@ -120,6 +120,9 @@ public class GetPropertiesHandler(
         var entities = await query.ToListAsync(cancellationToken);
         IEnumerable<Property> sorted = request.SortBy?.ToLowerInvariant() switch
         {
+            "createdat" => request.SortDescending
+                ? entities.OrderByDescending(p => p.CreatedAt)
+                : entities.OrderBy(p => p.CreatedAt),
             "price" => request.SortDescending
                 ? entities.OrderByDescending(p => p.Price)
                 : entities.OrderBy(p => p.Price),

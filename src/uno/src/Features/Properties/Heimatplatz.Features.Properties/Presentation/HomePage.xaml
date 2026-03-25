@@ -137,6 +137,7 @@
                                     <Button.Flyout>
                                         <MenuFlyout Placement="BottomEdgeAlignedLeft">
                                             <MenuFlyoutItem Text="Neueste" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="Neueste" />
+                                            <MenuFlyoutItem Text="Älteste" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="Aelteste" />
                                             <MenuFlyoutItem Text="Preis ↑" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAuf" />
                                             <MenuFlyoutItem Text="Preis ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAb" />
                                             <MenuFlyoutItem Text="Fläche ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="FlaecheAb" />

@@ -90,6 +90,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
 
     public string SortLabel => SelectedSort switch
     {
+        SortOption.Aelteste => "Älteste",
         SortOption.PreisAuf => "Preis ↑",
         SortOption.PreisAb => "Preis ↓",
         SortOption.FlaecheAb => "Fläche ↓",
@@ -738,6 +739,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             // Map SortOption to API parameters
             var (sortBy, sortDesc) = SelectedSort switch
             {
+                SortOption.Aelteste => ("CreatedAt", false),
                 SortOption.PreisAuf => ("Price", false),
                 SortOption.PreisAb => ("Price", true),
                 SortOption.FlaecheAb => ("PlotArea", true),

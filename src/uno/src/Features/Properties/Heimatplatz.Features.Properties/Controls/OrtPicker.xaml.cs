@@ -67,9 +67,8 @@ public sealed partial class OrtPicker : UserControl
             foreach (var bezirk in Bezirke)
             {
                 foreach (var gemeinde in bezirk.Gemeinden)
-                {
                     gemeinde.IsSelected = orte?.Contains(gemeinde.Name) == true;
-                }
+                bezirk.NotifyAllGemeindenSelectedChanged();
             }
         }
         finally
@@ -188,12 +187,15 @@ public sealed partial class OrtPicker : UserControl
 
         foreach (var bezirk in Bezirke)
         {
+            var b = bezirk; // capture for closure
             foreach (var gemeinde in bezirk.Gemeinden)
             {
                 gemeinde.PropertyChanged += (s, e) =>
                 {
                     if (e.PropertyName == nameof(GemeindeModel.IsSelected) && !_isSyncing)
                     {
+                        b.NotifyAllGemeindenSelectedChanged();
+
                         if (IsSingleSelect && s is GemeindeModel selected && selected.IsSelected)
                         {
                             EnforceSingleSelect(selected);
@@ -262,9 +264,8 @@ public sealed partial class OrtPicker : UserControl
             foreach (var bezirk in Bezirke)
             {
                 foreach (var gemeinde in bezirk.Gemeinden)
-                {
                     gemeinde.IsSelected = false;
-                }
+                bezirk.NotifyAllGemeindenSelectedChanged();
             }
         }
         finally
@@ -306,6 +307,33 @@ public sealed partial class OrtPicker : UserControl
         {
             SelectionText.Text = $"{selectedGemeinden.Count} Orte ausgewählt";
             SelectionText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["OnSurfaceBrush"];
+        }
+    }
+
+    private void BezirkCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkBox && checkBox.Tag is BezirkModel bezirk)
+        {
+            var allSelected = bezirk.Gemeinden.All(g => g.IsSelected);
+            var newState = !allSelected;
+
+            _isSyncing = true;
+            try
+            {
+                foreach (var gemeinde in bezirk.Gemeinden)
+                    gemeinde.IsSelected = newState;
+            }
+            finally
+            {
+                _isSyncing = false;
+            }
+
+            // Force correct CheckBox state (IsThreeState cycles through null)
+            checkBox.IsChecked = newState;
+            bezirk.NotifyAllGemeindenSelectedChanged();
+            UpdateSelectionText();
+            UpdateSelectedOrte();
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 

@@ -35,6 +35,23 @@ public partial class BezirkModel : ObservableObject
 
     public List<GemeindeModel> Gemeinden { get; }
 
+    /// <summary>
+    /// Ob alle Gemeinden im Bezirk ausgewaehlt sind (null = teilweise)
+    /// </summary>
+    public bool? AllGemeindenSelected
+    {
+        get
+        {
+            if (Gemeinden.Count == 0) return false;
+            var count = Gemeinden.Count(g => g.IsSelected);
+            if (count == 0) return false;
+            if (count == Gemeinden.Count) return true;
+            return null;
+        }
+    }
+
+    public void NotifyAllGemeindenSelectedChanged() => OnPropertyChanged(nameof(AllGemeindenSelected));
+
     public BezirkModel(Guid id, string name, List<GemeindeModel> gemeinden)
     {
         Id = id;

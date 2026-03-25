@@ -8,6 +8,9 @@ public enum SortOption
     /// <summary>Neueste zuerst (Standard)</summary>
     Neueste,
 
+    /// <summary>Aelteste zuerst</summary>
+    Aelteste,
+
     /// <summary>Preis aufsteigend</summary>
     PreisAuf,
 
