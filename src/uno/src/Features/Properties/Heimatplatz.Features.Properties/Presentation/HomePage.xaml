@@ -120,9 +120,41 @@
                                                      IsSelected="{x:Bind ViewModel.IsZwangsversteigerungSelected, Mode=TwoWay}" />
                             </StackPanel>
 
-                            <!-- Anbietertyp Picker -->
-                            <controls:SellerTypePicker SellerTypes="{x:Bind ViewModel.SellerTypes, Mode=OneWay}"
-                                                       AutomationProperties.AutomationId="HomePage_MobileSellerTypePicker" />
+                            <!-- Anbietertyp Picker + Sortierung -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <controls:SellerTypePicker SellerTypes="{x:Bind ViewModel.SellerTypes, Mode=OneWay}"
+                                                           AutomationProperties.AutomationId="HomePage_MobileSellerTypePicker" />
+
+                                <!-- Sort Button -->
+                                <Button Background="{ThemeResource SolidBackgroundFillColorSecondary}"
+                                        BorderBrush="{ThemeResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource RadiusSm}"
+                                        Padding="12,6"
+                                        MinHeight="36"
+                                        VerticalAlignment="Center"
+                                        AutomationProperties.AutomationId="HomePage_SortButton">
+                                    <Button.Flyout>
+                                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                            <MenuFlyoutItem Text="Neueste" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="Neueste" />
+                                            <MenuFlyoutItem Text="Preis ↑" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAuf" />
+                                            <MenuFlyoutItem Text="Preis ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PreisAb" />
+                                            <MenuFlyoutItem Text="Fläche ↓" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="FlaecheAb" />
+                                            <MenuFlyoutItem Text="Fläche ↑" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="FlaecheAuf" />
+                                            <MenuFlyoutItem Text="PLZ" Command="{x:Bind ViewModel.SetSortCommand}" CommandParameter="PlzAuf" />
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE8CB;"
+                                                  FontSize="12"
+                                                  Foreground="{ThemeResource OnSurfaceVariantBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SortLabel, Mode=OneWay}"
+                                                   FontSize="13"
+                                                   FontWeight="Medium"
+                                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </Border>

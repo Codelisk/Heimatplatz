@@ -118,8 +118,20 @@ public class GetPropertiesHandler(
 
         // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);
-        var properties = entities
-            .OrderByDescending(p => p.CreatedAt)
+        IEnumerable<Property> sorted = request.SortBy?.ToLowerInvariant() switch
+        {
+            "price" => request.SortDescending
+                ? entities.OrderByDescending(p => p.Price)
+                : entities.OrderBy(p => p.Price),
+            "plotarea" => request.SortDescending
+                ? entities.OrderByDescending(p => p.PlotAreaSquareMeters ?? 0)
+                : entities.OrderBy(p => p.PlotAreaSquareMeters ?? 0),
+            "postalcode" => request.SortDescending
+                ? entities.OrderByDescending(p => p.Municipality.PostalCode)
+                : entities.OrderBy(p => p.Municipality.PostalCode),
+            _ => entities.OrderByDescending(p => p.CreatedAt) // default: newest first
+        };
+        var properties = sorted
             .Skip(skip)
             .Take(request.PageSize)
             .Select(p => new PropertyListItemDto(

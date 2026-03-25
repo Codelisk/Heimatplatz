@@ -74,6 +74,36 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
 
     public event EventHandler? PageChanged;
 
+    private SortOption _selectedSort = SortOption.Neueste;
+    public SortOption SelectedSort
+    {
+        get => _selectedSort;
+        set
+        {
+            if (SetProperty(ref _selectedSort, value))
+            {
+                OnPropertyChanged(nameof(SortLabel));
+                _ = ReloadPropertiesAsync();
+            }
+        }
+    }
+
+    public string SortLabel => SelectedSort switch
+    {
+        SortOption.PreisAuf => "Preis ↑",
+        SortOption.PreisAb => "Preis ↓",
+        SortOption.FlaecheAb => "Fläche ↓",
+        SortOption.FlaecheAuf => "Fläche ↑",
+        SortOption.PlzAuf => "PLZ",
+        _ => "Neueste"
+    };
+
+    [RelayCommand]
+    private void SetSort(string sortName)
+    {
+        SelectedSort = Enum.TryParse<SortOption>(sortName, out var option) ? option : SortOption.Neueste;
+    }
+
     [ObservableProperty]
     private bool _isHausSelected = true;
 
@@ -705,10 +735,23 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         try
         {
             // Build API request with all server-side filters
+            // Map SortOption to API parameters
+            var (sortBy, sortDesc) = SelectedSort switch
+            {
+                SortOption.PreisAuf => ("Price", false),
+                SortOption.PreisAb => ("Price", true),
+                SortOption.FlaecheAb => ("PlotArea", true),
+                SortOption.FlaecheAuf => ("PlotArea", false),
+                SortOption.PlzAuf => ("PostalCode", false),
+                _ => ((string?)null, true)
+            };
+
             var request = new Heimatplatz.Core.ApiClient.Generated.GetPropertiesHttpRequest
             {
                 Page = page,
-                PageSize = pageSize
+                PageSize = pageSize,
+                SortBy = sortBy,
+                SortDescending = sortDesc
             };
 
             // PropertyTypes filter (multi-select as JSON array)

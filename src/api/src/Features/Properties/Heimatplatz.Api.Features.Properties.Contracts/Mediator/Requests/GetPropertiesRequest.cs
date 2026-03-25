@@ -35,7 +35,13 @@ public record GetPropertiesRequest(
     int? RoomsMin = null,
 
     // Filter: Excluded seller sources
-    string? ExcludedSellerSourceIdsJson = null
+    string? ExcludedSellerSourceIdsJson = null,
+
+    // Sorting: Field name (CreatedAt, Price, PlotArea, PostalCode)
+    string? SortBy = null,
+
+    // Sorting: Direction (true = descending, false = ascending)
+    bool SortDescending = true
 ) : IRequest<GetPropertiesResponse>
 {
     /// <summary>
