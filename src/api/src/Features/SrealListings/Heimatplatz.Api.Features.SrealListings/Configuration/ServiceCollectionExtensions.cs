@@ -1,6 +1,7 @@
 using Heimatplatz.Api.Core.Data.Seeding.Configuration;
 using Heimatplatz.Api.Features.SrealListings.Data.Seeding;
 using Heimatplatz.Api.Features.SrealListings.Services;
+// ReSharper disable once RedundantUsingDirective
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -33,6 +34,7 @@ public static class ServiceCollectionExtensions
 
         // Seeder
         services.AddSeeder<SrealListingSeeder>();
+        services.AddSeeder<SrealPropertyCreatedAtBackfillSeeder>();
 
         return services;
     }
