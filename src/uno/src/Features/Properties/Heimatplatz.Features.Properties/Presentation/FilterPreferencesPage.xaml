@@ -169,16 +169,21 @@
                             CornerRadius="8"
                             Padding="16"
                             AutomationProperties.AutomationId="FilterPreferences_InfoCard">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
                             <FontIcon Glyph="&#xE946;"
                                       FontSize="20"
                                       Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                       VerticalAlignment="Top" />
-                            <TextBlock Text="Ihre Einstellungen werden automatisch gespeichert und beim nächsten Besuch der Startseite angewendet."
+                            <TextBlock Grid.Column="1"
+                                       Text="Ihre Einstellungen werden automatisch gespeichert und beim nächsten Besuch der Startseite angewendet."
                                        Foreground="{ThemeResource OnSurfaceVariantBrush}"
                                        TextWrapping="Wrap"
                                        Style="{StaticResource CaptionTextBlockStyle}" />
-                        </StackPanel>
+                        </Grid>
                     </Border>
 
                 </utu:AutoLayout>
