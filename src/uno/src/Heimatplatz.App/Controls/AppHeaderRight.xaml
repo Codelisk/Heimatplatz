@@ -59,7 +59,7 @@
 
             <!-- Login Button -->
             <Button Content="Anmelden"
-                    uen:Navigation.Request="Login"
+                    uen:Navigation.Request="anmelden"
                     Style="{StaticResource TextButtonStyle}"
                     FontSize="13"
                     Foreground="{ThemeResource OnSurfaceVariantBrush}"
@@ -68,7 +68,7 @@
 
             <!-- Register Button (prominent) -->
             <Button Content="Registrieren"
-                    uen:Navigation.Request="Register"
+                    uen:Navigation.Request="registrieren"
                     Style="{StaticResource FilledButtonStyle}"
                     Background="{ThemeResource PrimaryButtonBackgroundBrush}"
                     Foreground="{ThemeResource PrimaryButtonForegroundBrush}"

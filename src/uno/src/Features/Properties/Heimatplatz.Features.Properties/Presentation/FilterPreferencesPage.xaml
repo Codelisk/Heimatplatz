@@ -147,6 +147,20 @@
                         </utu:AutoLayout>
                     </utu:CardContentControl>
 
+                    <!-- Sortierung -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Sortierung"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock Text="Standardsortierung für die Immobilienliste"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ComboBox ItemsSource="{Binding SortOptions}"
+                                  SelectedItem="{Binding SelectedSort, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  DisplayMemberPath=""
+                                  AutomationProperties.AutomationId="FilterPreferences_SortComboBox" />
+                    </StackPanel>
+
                     <!-- Error Message -->
                     <Border Background="{ThemeResource ErrorBackgroundBrush}"
                             CornerRadius="8"

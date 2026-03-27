@@ -87,7 +87,7 @@ public class DeepLinkService : IDeepLinkService
         }
 
         var data = new PropertyDetailData(propertyId);
-        await navigator.NavigateRouteAsync(this, "PropertyDetail", data: data);
+        await navigator.NavigateRouteAsync(this, "immobilie", data: data);
         return true;
     }
 
@@ -103,7 +103,7 @@ public class DeepLinkService : IDeepLinkService
         }
 
         var data = new ForeclosureDetailData(propertyId);
-        await navigator.NavigateRouteAsync(this, "ForeclosureDetail", data: data);
+        await navigator.NavigateRouteAsync(this, "zwangsversteigerung", data: data);
         return true;
     }
 

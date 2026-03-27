@@ -15,6 +15,11 @@ public class FilterStateService : IFilterStateService
 
     public FilterState CurrentState => _currentState;
 
+    /// <summary>
+    /// True after UpdateFilters has been called at least once (session state exists).
+    /// </summary>
+    public bool HasSessionState { get; private set; }
+
     public event EventHandler? FilterStateChanged;
     public event EventHandler? ResultCountChanged;
 
@@ -27,8 +32,10 @@ public class FilterStateService : IFilterStateService
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         bool isPortalSelected = true,
-        List<Guid>? excludedSellerSourceIds = null)
+        List<Guid>? excludedSellerSourceIds = null,
+        SortOption selectedSort = SortOption.Neueste)
     {
+        HasSessionState = true;
         _currentState = _currentState with
         {
             IsHausSelected = isHausSelected,
@@ -39,7 +46,8 @@ public class FilterStateService : IFilterStateService
             IsPrivateSelected = isPrivateSelected,
             IsBrokerSelected = isBrokerSelected,
             IsPortalSelected = isPortalSelected,
-            ExcludedSellerSourceIds = excludedSellerSourceIds ?? []
+            ExcludedSellerSourceIds = excludedSellerSourceIds ?? [],
+            SelectedSort = selectedSort
         };
 
         FilterStateChanged?.Invoke(this, EventArgs.Empty);

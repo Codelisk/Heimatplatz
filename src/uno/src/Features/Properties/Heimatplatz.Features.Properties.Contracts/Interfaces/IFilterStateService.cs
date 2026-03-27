@@ -14,6 +14,11 @@ public interface IFilterStateService
     FilterState CurrentState { get; }
 
     /// <summary>
+    /// True after UpdateFilters has been called at least once (session state exists).
+    /// </summary>
+    bool HasSessionState { get; }
+
+    /// <summary>
     /// Event wenn sich der Filter-State ändert
     /// </summary>
     event EventHandler? FilterStateChanged;
@@ -30,7 +35,8 @@ public interface IFilterStateService
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         bool isPortalSelected = true,
-        List<Guid>? excludedSellerSourceIds = null);
+        List<Guid>? excludedSellerSourceIds = null,
+        SortOption selectedSort = SortOption.Neueste);
 
     /// <summary>
     /// Event wenn sich die Ergebnis-Anzahl aendert (separat von FilterStateChanged
@@ -58,5 +64,6 @@ public record FilterState
     public bool IsBrokerSelected { get; init; } = true;
     public bool IsPortalSelected { get; init; } = true;
     public IReadOnlyList<Guid> ExcludedSellerSourceIds { get; init; } = [];
+    public SortOption SelectedSort { get; init; } = SortOption.Neueste;
     public int ResultCount { get; init; }
 }

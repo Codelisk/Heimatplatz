@@ -6,6 +6,7 @@ using Heimatplatz.Features.Properties.Contracts.Models;
 using Heimatplatz.Features.Properties.Models;
 using UnoFramework.Contracts.Navigation;
 using UnoFramework.Contracts.Pages;
+using Microsoft.Extensions.Logging;
 
 namespace Heimatplatz.Features.Properties.Presentation;
 
@@ -16,6 +17,7 @@ namespace Heimatplatz.Features.Properties.Presentation;
 public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, INavigationAware
 {
     private readonly IFilterPreferencesService _filterPreferencesService;
+    private readonly IFilterStateService _filterStateService;
     private readonly ILocationService _locationService;
 
     private CancellationTokenSource? _debounceCts;
@@ -82,15 +84,24 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     [ObservableProperty]
     private List<string> _selectedOrte = [];
 
+    [ObservableProperty]
+    private SortOption _selectedSort = SortOption.Neueste;
+
+    public List<SortOption> SortOptions { get; } = Enum.GetValues<SortOption>().ToList();
+
     /// <summary>
     /// Liste der Bezirke (von API geladen)
     /// </summary>
     [ObservableProperty]
     private List<BezirkModel> _bezirke = [];
 
-    public FilterPreferencesViewModel(IFilterPreferencesService filterPreferencesService, ILocationService locationService)
+    public FilterPreferencesViewModel(
+        IFilterPreferencesService filterPreferencesService,
+        IFilterStateService filterStateService,
+        ILocationService locationService)
     {
         _filterPreferencesService = filterPreferencesService;
+        _filterStateService = filterStateService;
         _locationService = locationService;
     }
 
@@ -171,10 +182,12 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
                 IsPrivateSelected: isPrivate,
                 IsBrokerSelected: isBroker,
                 IsPortalSelected: isPortal,
-                ExcludedSellerSourceIds: []
+                ExcludedSellerSourceIds: [],
+                SelectedSort: SelectedSort
             );
 
             await _filterPreferencesService.SavePreferencesAsync(preferences);
+            UpdateFilterStateService(preferences);
             System.Diagnostics.Debug.WriteLine("[FilterPreferences] Auto-saved successfully");
         }
         catch (OperationCanceledException)
@@ -214,10 +227,12 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
                 IsPrivateSelected: isPrivate,
                 IsBrokerSelected: isBroker,
                 IsPortalSelected: isPortal,
-                ExcludedSellerSourceIds: []
+                ExcludedSellerSourceIds: [],
+                SelectedSort: SelectedSort
             );
 
             await _filterPreferencesService.SavePreferencesAsync(preferences);
+            UpdateFilterStateService(preferences);
             System.Diagnostics.Debug.WriteLine("[FilterPreferences] Saved on navigate-away");
         }
         catch (Exception ex)
@@ -262,6 +277,23 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
 
     #endregion
 
+    /// <summary>
+    /// Syncs saved preferences to FilterStateService so HomePage picks up changes on navigate-back.
+    /// </summary>
+    private void UpdateFilterStateService(FilterPreferencesDto preferences)
+    {
+        _filterStateService.UpdateFilters(
+            preferences.IsHausSelected,
+            preferences.IsGrundstueckSelected,
+            preferences.IsZwangsversteigerungSelected,
+            preferences.SelectedAgeFilter,
+            preferences.SelectedOrte.ToList(),
+            preferences.IsPrivateSelected,
+            preferences.IsBrokerSelected,
+            preferences.IsPortalSelected,
+            selectedSort: preferences.SelectedSort);
+    }
+
     private bool _isSyncing;
 
     private void ApplyPreferences(FilterPreferencesDto preferences)
@@ -274,6 +306,7 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             IsHausSelected = preferences.IsHausSelected;
             IsGrundstueckSelected = preferences.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
+            SelectedSort = preferences.SelectedSort;
 
             // SellerTypes synchronisieren
             UnsubscribeSellerTypes();
@@ -364,6 +397,11 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     }
 
     partial void OnSelectedOrteChanged(List<string> value)
+    {
+        ScheduleAutoSave();
+    }
+
+    partial void OnSelectedSortChanged(SortOption value)
     {
         ScheduleAutoSave();
     }

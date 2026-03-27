@@ -21,11 +21,11 @@
     <SolidColorBrush x:Key="WohnungLightBrush" Color="#D85D3E" Opacity="0.15" />
     <SolidColorBrush x:Key="WohnungHoverBrush" Color="#D85D3E" Opacity="0.8" />
 
-    <!-- Haus - Forest Green -->
-    <Color x:Key="HausColor">#2D5F4C</Color>
+    <!-- Haus - Blue -->
+    <Color x:Key="HausColor">#2D6A9F</Color>
     <SolidColorBrush x:Key="HausBrush" Color="{StaticResource HausColor}" />
-    <SolidColorBrush x:Key="HausLightBrush" Color="#2D5F4C" Opacity="0.15" />
-    <SolidColorBrush x:Key="HausHoverBrush" Color="#2D5F4C" Opacity="0.8" />
+    <SolidColorBrush x:Key="HausLightBrush" Color="#2D6A9F" Opacity="0.15" />
+    <SolidColorBrush x:Key="HausHoverBrush" Color="#2D6A9F" Opacity="0.8" />
 
     <!-- Grundstück - Sage Green (natural, land, foundation) -->
     <Color x:Key="GrundstueckColor">#5D8A66</Color>

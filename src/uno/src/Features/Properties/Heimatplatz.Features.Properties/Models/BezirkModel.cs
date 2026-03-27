@@ -33,6 +33,12 @@ public partial class BezirkModel : ObservableObject
     [ObservableProperty]
     private bool _isExpanded;
 
+    /// <summary>
+    /// Ob die "Alle auswählen" Checkbox angezeigt wird (false im Single-Select Modus)
+    /// </summary>
+    [ObservableProperty]
+    private bool _showSelectAll = true;
+
     public List<GemeindeModel> Gemeinden { get; }
 
     /// <summary>

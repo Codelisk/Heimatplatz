@@ -186,7 +186,8 @@ public partial class MyPropertiesViewModel : ObservableObject, INavigationAware,
                 SellerName: prop.SellerName,
                 ImageUrls: prop.ImageUrls,
                 CreatedAt: prop.CreatedAt.DateTime,
-                InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
+                InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString()),
+                SourceName: prop.SourceName
             ));
 
             // Update IsEmpty based on whether we have any items

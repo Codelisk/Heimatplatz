@@ -153,7 +153,8 @@ public class GetPropertiesHandler(
                 p.SellerName,
                 ProxyImageUrls(p.ImageUrls, baseUrl),
                 p.CreatedAt,
-                p.InquiryType
+                p.InquiryType,
+                p.SourceName
             ))
             .ToList();
 

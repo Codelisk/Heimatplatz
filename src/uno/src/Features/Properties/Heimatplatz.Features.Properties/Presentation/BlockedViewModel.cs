@@ -268,7 +268,8 @@ public partial class BlockedViewModel : PropertyCollectionViewModelBase
             SellerName: prop.SellerName,
             ImageUrls: prop.ImageUrls,
             CreatedAt: prop.CreatedAt.DateTime,
-            InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
+            InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString()),
+            SourceName: prop.SourceName
         ));
 
         return (items, response.HasMore, response.Total);
@@ -301,11 +302,11 @@ public partial class BlockedViewModel : PropertyCollectionViewModelBase
         // Navigate to ForeclosureDetail for foreclosure properties, PropertyDetail otherwise
         if (property.Type == PropertyType.Foreclosure)
         {
-            await Navigator.NavigateRouteAsync(this, "ForeclosureDetail", data: new ForeclosureDetailData(property.Id));
+            await Navigator.NavigateRouteAsync(this, "zwangsversteigerung", data: new ForeclosureDetailData(property.Id));
         }
         else
         {
-            await Navigator.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
+            await Navigator.NavigateRouteAsync(this, "immobilie", data: new PropertyDetailData(property.Id));
         }
     }
 }

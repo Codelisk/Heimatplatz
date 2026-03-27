@@ -45,7 +45,8 @@ public class FilterPreferencesService(
                 IsPrivateSelected: result.IsPrivateSelected,
                 IsBrokerSelected: result.IsBrokerSelected,
                 IsPortalSelected: result.IsPortalSelected,
-                ExcludedSellerSourceIds: result.ExcludedSellerSourceIds
+                ExcludedSellerSourceIds: result.ExcludedSellerSourceIds,
+                SelectedSort: (SortOption)result.SelectedSort
             );
         }
         catch (HttpRequestException ex)
@@ -89,7 +90,8 @@ public class FilterPreferencesService(
                     IsPrivateSelected = preferences.IsPrivateSelected,
                     IsBrokerSelected = preferences.IsBrokerSelected,
                     IsPortalSelected = preferences.IsPortalSelected,
-                    ExcludedSellerSourceIds = preferences.ExcludedSellerSourceIds
+                    ExcludedSellerSourceIds = preferences.ExcludedSellerSourceIds,
+                    SelectedSort = (int)preferences.SelectedSort
                 }
             }, ct);
 

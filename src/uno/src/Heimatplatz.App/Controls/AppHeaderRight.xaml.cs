@@ -24,7 +24,7 @@ public sealed partial class AppHeaderRight : UserControl
         // Navigate via Mediator event so MainPage handles it within the NavigationView content region.
         // Direct navigation from HeaderRight would navigate in the wrong region context.
         var mediator = ((IApplicationWithServices)Application.Current).Services!.GetRequiredService<IMediator>();
-        await mediator.Publish(new NavigateToRouteInContentEvent("UserProfile"));
+        await mediator.Publish(new NavigateToRouteInContentEvent("profil"));
     }
 
     private async void LogoutMenuItem_Click(object sender, RoutedEventArgs e)

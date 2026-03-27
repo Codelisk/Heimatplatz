@@ -15,7 +15,8 @@ public record FilterPreferencesDto(
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     bool IsPortalSelected,
-    List<Guid> ExcludedSellerSourceIds
+    List<Guid> ExcludedSellerSourceIds,
+    SortOption SelectedSort = SortOption.Neueste
 )
 {
     /// <summary>
@@ -30,6 +31,7 @@ public record FilterPreferencesDto(
         IsPrivateSelected: true,
         IsBrokerSelected: true,
         IsPortalSelected: true,
-        ExcludedSellerSourceIds: []
+        ExcludedSellerSourceIds: [],
+        SelectedSort: SortOption.Neueste
     );
 }

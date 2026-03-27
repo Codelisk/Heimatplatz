@@ -40,11 +40,11 @@ public sealed partial class HomePage : BasePage
         // Navigate to ForeclosureDetail for foreclosure properties, PropertyDetail otherwise
         if (property.Type == PropertyType.Foreclosure)
         {
-            await this.Navigator()!.NavigateRouteAsync(this, "ForeclosureDetail", data: new ForeclosureDetailData(property.Id));
+            await this.Navigator()!.NavigateRouteAsync(this, "zwangsversteigerung", data: new ForeclosureDetailData(property.Id));
         }
         else
         {
-            await this.Navigator()!.NavigateRouteAsync(this, "PropertyDetail", data: new PropertyDetailData(property.Id));
+            await this.Navigator()!.NavigateRouteAsync(this, "immobilie", data: new PropertyDetailData(property.Id));
         }
     }
 

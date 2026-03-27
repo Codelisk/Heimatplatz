@@ -334,7 +334,7 @@ public sealed partial class PropertyCard : UserControl
         // Type-specific colors from design system
         TypeBadge.Background = property.Type switch
         {
-            PropertyType.House => GetThemeResourceOrFallback("HausBrush", "#2D5F4C"),
+            PropertyType.House => GetThemeResourceOrFallback("HausBrush", "#2D6A9F"),
             PropertyType.Land => GetThemeResourceOrFallback("GrundstueckBrush", "#5D8A66"),
             PropertyType.Foreclosure => GetThemeResourceOrFallback("ZwangsversteigerungBrush", "#B22222"),
             _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"]
@@ -383,7 +383,9 @@ public sealed partial class PropertyCard : UserControl
         SellerBadgeText.Text = property.SellerType switch
         {
             SellerType.Private => "Privat",
-            SellerType.Portal => $"Portal: {property.SellerName}",
+            SellerType.Portal => string.IsNullOrEmpty(property.SourceName)
+                ? property.SellerName
+                : $"{property.SourceName}: {property.SellerName}",
             _ => property.SellerName
         };
 

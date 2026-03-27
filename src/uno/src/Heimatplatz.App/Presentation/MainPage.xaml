@@ -88,7 +88,7 @@
             <!-- Navigation Menu Items -->
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Home"
-                                    uen:Region.Name="Home"
+                                    uen:Region.Name="hauptseite"
                                     AutomationProperties.AutomationId="MainPage.NavItem.Home">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE80F;" />
@@ -96,7 +96,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem Content="Meine Immobilien"
-                                    uen:Region.Name="MyProperties"
+                                    uen:Region.Name="meine-immobilien"
                                     Visibility="{Binding IsSeller}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.MyProperties">
                     <NavigationViewItem.Icon>
@@ -105,7 +105,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem Content="Meine Favoriten"
-                                    uen:Region.Name="Favorites"
+                                    uen:Region.Name="favoriten"
                                     AutomationProperties.AutomationId="MainPage.NavItem.Favorites">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE734;" />
@@ -113,7 +113,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem Content="Blockierte Immobilien"
-                                    uen:Region.Name="Blocked"
+                                    uen:Region.Name="blockiert"
                                     AutomationProperties.AutomationId="MainPage.NavItem.Blocked">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8F8;" />
@@ -123,7 +123,7 @@
                 <NavigationViewItemSeparator />
 
                 <NavigationViewItem Content="Immobilie hinzufuegen"
-                                    uen:Region.Name="AddProperty"
+                                    uen:Region.Name="immobilie-hinzufuegen"
                                     Visibility="{Binding IsSeller}"
                                     AutomationProperties.AutomationId="MainPage.NavItem.AddProperty">
                     <NavigationViewItem.Icon>
@@ -135,7 +135,7 @@
             <!-- Footer Menu Items (Settings, etc.) -->
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem Content="Benachrichtigungen"
-                                    uen:Region.Name="NotificationSettings"
+                                    uen:Region.Name="benachrichtigungen"
                                     AutomationProperties.AutomationId="MainPage.NavItem.NotificationSettings">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xEA8F;" />
@@ -143,7 +143,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem Content="Filtereinstellungen"
-                                    uen:Region.Name="FilterPreferences"
+                                    uen:Region.Name="filter-einstellungen"
                                     AutomationProperties.AutomationId="MainPage.NavItem.FilterPreferences">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE71C;" />

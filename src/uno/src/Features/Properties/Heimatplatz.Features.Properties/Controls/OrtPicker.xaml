@@ -57,7 +57,8 @@
 
                             <!-- Header mit "Alle abwählen" -->
                             <Grid Margin="0,0,0,8">
-                                <TextBlock Text="Orte auswählen"
+                                <TextBlock x:Name="HeaderText"
+                                           Text="Orte auswählen"
                                            FontSize="14"
                                            FontWeight="SemiBold"
                                            Foreground="{ThemeResource OnSurfaceBrush}" />
@@ -100,7 +101,8 @@
                                                               MinWidth="32"
                                                               MinHeight="0"
                                                               Padding="0"
-                                                              VerticalAlignment="Center" />
+                                                              VerticalAlignment="Center"
+                                                              Visibility="{x:Bind ShowSelectAll, Mode=OneWay}" />
                                                     <Button Grid.Column="1"
                                                             HorizontalAlignment="Stretch"
                                                             HorizontalContentAlignment="Left"

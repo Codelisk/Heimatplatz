@@ -48,5 +48,6 @@ public record PropertyListItemDto(
     string SellerName,
     List<string> ImageUrls,
     DateTimeOffset CreatedAt,
-    InquiryType InquiryType
+    InquiryType InquiryType,
+    string? SourceName = null
 );

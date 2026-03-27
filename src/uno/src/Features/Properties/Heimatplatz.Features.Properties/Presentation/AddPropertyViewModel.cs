@@ -645,7 +645,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
             try
             {
                 _logger.LogInformation("[AddProperty] Navigating to MyProperties after {Mode}", isEdit ? "edit" : "create");
-                await _navigator.NavigateRouteAsync(this, "MyProperties");
+                await _navigator.NavigateRouteAsync(this, "meine-immobilien");
             }
             catch (Exception ex)
             {
@@ -661,7 +661,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageInfo, INaviga
     private async Task CancelAsync()
     {
         _logger.LogInformation("[AddProperty] Cancel - navigating to MyProperties");
-        await _navigator.NavigateRouteAsync(this, "MyProperties");
+        await _navigator.NavigateRouteAsync(this, "meine-immobilien");
     }
 
     private void ResetForm()

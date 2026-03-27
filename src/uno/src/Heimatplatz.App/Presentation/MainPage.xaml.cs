@@ -46,7 +46,7 @@ public sealed partial class MainPage : Page,
                 var navViewNavigator = NavView.Navigator();
                 if (navViewNavigator != null)
                 {
-                    await navViewNavigator.NavigateRouteAsync(NavView, "Home");
+                    await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
                 }
             }
 
@@ -107,7 +107,7 @@ public sealed partial class MainPage : Page,
             if (navViewNavigator != null)
             {
                 System.Diagnostics.Debug.WriteLine("[MainPage] Navigating to Home in Content region");
-                await navViewNavigator.NavigateRouteAsync(NavView, "Home");
+                await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
             }
         });
 
@@ -129,7 +129,7 @@ public sealed partial class MainPage : Page,
                 if (navViewNavigator != null)
                 {
                     System.Diagnostics.Debug.WriteLine("[MainPage] Hardware back - Navigating to Home");
-                    await navViewNavigator.NavigateRouteAsync(NavView, "Home");
+                    await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
                 }
             });
         }

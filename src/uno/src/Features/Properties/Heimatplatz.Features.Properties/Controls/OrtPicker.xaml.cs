@@ -129,6 +129,7 @@ public sealed partial class OrtPicker : UserControl
     {
         if (d is OrtPicker picker)
         {
+            picker.ApplySingleSelectMode();
             picker.SubscribeToSelectionChanges();
             // Apply pre-set SelectedGemeindeId if available
             if (picker.IsSingleSelect && picker.SelectedGemeindeId.HasValue)
@@ -179,6 +180,16 @@ public sealed partial class OrtPicker : UserControl
         {
             _isSyncing = false;
         }
+    }
+
+    private void ApplySingleSelectMode()
+    {
+        if (Bezirke == null) return;
+
+        foreach (var bezirk in Bezirke)
+            bezirk.ShowSelectAll = !IsSingleSelect;
+
+        HeaderText.Text = IsSingleSelect ? "Ort auswählen" : "Orte auswählen";
     }
 
     private void SubscribeToSelectionChanges()
@@ -312,6 +323,8 @@ public sealed partial class OrtPicker : UserControl
 
     private void BezirkCheckBox_Click(object sender, RoutedEventArgs e)
     {
+        if (IsSingleSelect) return;
+
         if (sender is CheckBox checkBox && checkBox.Tag is BezirkModel bezirk)
         {
             var allSelected = bezirk.Gemeinden.All(g => g.IsSelected);

@@ -376,27 +376,27 @@ public partial class App : Application, IApplicationWithServices
                             // HeaderMain Route - explicitly navigated when needed
                             new ("HeaderMain", View: views.FindByViewModel<HomeFilterBarViewModel>()),
                             // Content pages - NavigationView routes to Content region
-                            new ("Home", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
-                            new ("MyProperties", View: views.FindByViewModel<MyPropertiesViewModel>()),
-                            new ("Favorites", View: views.FindByViewModel<FavoritesViewModel>()),
-                            new ("Blocked", View: views.FindByViewModel<BlockedViewModel>()),
-                            new ("AddProperty", View: views.FindByViewModel<AddPropertyViewModel>()),
-                            new ("EditProperty", View: views.FindByViewModel<EditPropertyViewModel>()),
-                            new ("PropertyDetail", View: views.FindByViewModel<PropertyDetailViewModel>()),
-                            new ("ForeclosureDetail", View: views.FindByViewModel<ForeclosureDetailViewModel>()),
-                            new ("NotificationSettings", View: views.FindByViewModel<NotificationSettingsViewModel>()),
-                            new ("FilterPreferences", View: views.FindByViewModel<FilterPreferencesViewModel>()),
-                            new ("PrivacyPolicy", View: views.FindByViewModel<PrivacyPolicyViewModel>()),
-                            new ("Imprint", View: views.FindByViewModel<ImprintViewModel>()),
-                            new ("UserProfile", View: views.FindByViewModel<UserProfileViewModel>())
+                            new ("hauptseite", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
+                            new ("meine-immobilien", View: views.FindByViewModel<MyPropertiesViewModel>()),
+                            new ("favoriten", View: views.FindByViewModel<FavoritesViewModel>()),
+                            new ("blockiert", View: views.FindByViewModel<BlockedViewModel>()),
+                            new ("immobilie-hinzufuegen", View: views.FindByViewModel<AddPropertyViewModel>()),
+                            new ("immobilie-bearbeiten", View: views.FindByViewModel<EditPropertyViewModel>()),
+                            new ("immobilie", View: views.FindByViewModel<PropertyDetailViewModel>()),
+                            new ("zwangsversteigerung", View: views.FindByViewModel<ForeclosureDetailViewModel>()),
+                            new ("benachrichtigungen", View: views.FindByViewModel<NotificationSettingsViewModel>()),
+                            new ("filter-einstellungen", View: views.FindByViewModel<FilterPreferencesViewModel>()),
+                            new ("datenschutz", View: views.FindByViewModel<PrivacyPolicyViewModel>()),
+                            new ("impressum", View: views.FindByViewModel<ImprintViewModel>()),
+                            new ("profil", View: views.FindByViewModel<UserProfileViewModel>())
                         ]),
 #if DEBUG
                     new ("DebugStart", View: views.FindByViewModel<DebugStartViewModel>()),
                     new ("TestPush", View: views.FindByViewModel<TestPushViewModel>()),
 #endif
                     // Auth pages remain at Shell level (not in regions)
-                    new ("Register", View: views.FindByViewModel<RegisterViewModel>()),
-                    new ("Login", View: views.FindByViewModel<LoginViewModel>())
+                    new ("registrieren", View: views.FindByViewModel<RegisterViewModel>()),
+                    new ("anmelden", View: views.FindByViewModel<LoginViewModel>())
                 ]
             )
         );

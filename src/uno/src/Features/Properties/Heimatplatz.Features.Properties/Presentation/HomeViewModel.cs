@@ -285,14 +285,13 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Capture UI dispatcher (OnNavigatedTo always runs on the UI thread)
         _dispatcher ??= DispatcherQueue.GetForCurrentThread();
 
+        // Always sync filter values from FilterStateService first.
+        // This preserves session filter state when ViewModel is recreated on navigation.
+        SyncFiltersFromService();
+
         if (Properties.Count == 0 && !IsBusy)
         {
             _ = LoadCurrentPageAsync();
-        }
-        else if (_authService.IsAuthenticated)
-        {
-            // Reload filter preferences (may have changed in FilterPreferencesPage)
-            _ = LoadFilterPreferencesAsync();
         }
     }
 
@@ -319,6 +318,96 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         }
     }
 
+    /// <summary>
+    /// Syncs filter values from FilterStateService without triggering a reload.
+    /// Called at the start of OnNavigatedTo to restore session state.
+    /// Only syncs if session state has been set (filters were changed at least once).
+    /// </summary>
+    private void SyncFiltersFromService()
+    {
+        if (!_filterStateService.HasSessionState) return;
+
+        var state = _filterStateService.CurrentState;
+
+        _isSyncingFromService = true;
+        try
+        {
+            IsHausSelected = state.IsHausSelected;
+            IsGrundstueckSelected = state.IsGrundstueckSelected;
+            IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
+            IsPrivateSelected = state.IsPrivateSelected;
+            IsBrokerSelected = state.IsBrokerSelected;
+            IsPortalSelected = state.IsPortalSelected;
+            SetProperty(ref _selectedAgeFilter, state.SelectedAgeFilter, nameof(SelectedAgeFilter));
+            SetProperty(ref _selectedOrte, state.SelectedOrte.ToList(), nameof(SelectedOrte));
+            SetProperty(ref _selectedSort, state.SelectedSort, nameof(SelectedSort));
+            OnPropertyChanged(nameof(SortLabel));
+
+            var ids = Bezirke
+                .SelectMany(b => b.Gemeinden)
+                .Where(g => state.SelectedOrte.Contains(g.Name))
+                .Select(g => g.Id)
+                .ToList();
+            SetProperty(ref _selectedMunicipalityIds, ids, nameof(SelectedMunicipalityIds));
+
+            UpdateSellerTypesFromBools();
+        }
+        finally
+        {
+            _isSyncingFromService = false;
+        }
+    }
+
+    /// <summary>
+    /// Restores filter UI from in-memory FilterStateService.
+    /// Only reloads properties if state actually changed (e.g. from FilterPreferencesPage).
+    /// </summary>
+    private void RestoreFromFilterState()
+    {
+        var state = _filterStateService.CurrentState;
+
+        // Check if any filter actually differs from current ViewModel state
+        var changed = state.IsHausSelected != IsHausSelected
+            || state.IsGrundstueckSelected != IsGrundstueckSelected
+            || state.IsZwangsversteigerungSelected != IsZwangsversteigerungSelected
+            || state.IsPrivateSelected != IsPrivateSelected
+            || state.IsBrokerSelected != IsBrokerSelected
+            || state.IsPortalSelected != IsPortalSelected
+            || state.SelectedAgeFilter != SelectedAgeFilter
+            || !state.SelectedOrte.SequenceEqual(SelectedOrte);
+
+        if (!changed) return;
+
+        // State differs (e.g. FilterPreferencesPage updated it) — apply and reload
+        _isSyncingFromService = true;
+        try
+        {
+            IsHausSelected = state.IsHausSelected;
+            IsGrundstueckSelected = state.IsGrundstueckSelected;
+            IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
+            IsPrivateSelected = state.IsPrivateSelected;
+            IsBrokerSelected = state.IsBrokerSelected;
+            IsPortalSelected = state.IsPortalSelected;
+            SetProperty(ref _selectedAgeFilter, state.SelectedAgeFilter, nameof(SelectedAgeFilter));
+            SetProperty(ref _selectedOrte, state.SelectedOrte.ToList(), nameof(SelectedOrte));
+
+            var ids = Bezirke
+                .SelectMany(b => b.Gemeinden)
+                .Where(g => state.SelectedOrte.Contains(g.Name))
+                .Select(g => g.Id)
+                .ToList();
+            SetProperty(ref _selectedMunicipalityIds, ids, nameof(SelectedMunicipalityIds));
+
+            UpdateSellerTypesFromBools();
+        }
+        finally
+        {
+            _isSyncingFromService = false;
+        }
+
+        _ = ReloadPropertiesAsync();
+    }
+
     private void OnFilterStateChanged(object? sender, EventArgs e)
     {
         // Sync local state from FilterStateService (when changed from HeaderFilterBar)
@@ -334,6 +423,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsPortalSelected = state.IsPortalSelected;
             SetProperty(ref _selectedAgeFilter, state.SelectedAgeFilter, nameof(SelectedAgeFilter));
             SetProperty(ref _selectedOrte, state.SelectedOrte.ToList(), nameof(SelectedOrte));
+            SetProperty(ref _selectedSort, state.SelectedSort, nameof(SelectedSort));
+            OnPropertyChanged(nameof(SortLabel));
 
             // Convert names to IDs for server-side filtering
             var ids = Bezirke
@@ -445,6 +536,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         // Use SetProperty to update backing fields properly
         SetProperty(ref _selectedOrte, preferences.SelectedOrte.ToList(), nameof(SelectedOrte));
         SetProperty(ref _selectedAgeFilter, preferences.SelectedAgeFilter, nameof(SelectedAgeFilter));
+        SetProperty(ref _selectedSort, preferences.SelectedSort, nameof(SelectedSort));
+        OnPropertyChanged(nameof(SortLabel));
 
         // Convert names to IDs for server-side filtering
         var ids = Bezirke
@@ -676,7 +769,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
                 SelectedOrte,
                 IsPrivateSelected,
                 IsBrokerSelected,
-                IsPortalSelected);
+                IsPortalSelected,
+                selectedSort: SelectedSort);
         }
 
         // Trigger server-side reload with new filters
@@ -819,7 +913,8 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
                 SellerName: prop.SellerName,
                 ImageUrls: prop.ImageUrls,
                 CreatedAt: prop.CreatedAt.DateTime,
-                InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString())
+                InquiryType: Enum.Parse<InquiryType>(prop.InquiryType.ToString()),
+                SourceName: prop.SourceName
             )) ?? Enumerable.Empty<PropertyListItemDto>();
 
             var hasMore = response?.HasMore ?? false;

@@ -67,7 +67,8 @@ public class GetUserFavoritesHandler(
                 f.Property.SellerName,
                 f.Property.ImageUrls,
                 f.Property.CreatedAt,
-                f.Property.InquiryType
+                f.Property.InquiryType,
+                f.Property.SourceName
             ))
             .ToListAsync(cancellationToken);
 

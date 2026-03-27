@@ -45,7 +45,8 @@ public class GetUserFilterPreferencesHandler(
                 IsPrivateSelected: true,
                 IsBrokerSelected: true,
                 IsPortalSelected: true,
-                ExcludedSellerSourceIds: []
+                ExcludedSellerSourceIds: [],
+                SelectedSort: 0
             );
         }
 
@@ -62,7 +63,8 @@ public class GetUserFilterPreferencesHandler(
             IsPrivateSelected: preferences.IsPrivateSelected,
             IsBrokerSelected: preferences.IsBrokerSelected,
             IsPortalSelected: preferences.IsPortalSelected,
-            ExcludedSellerSourceIds: excludedSellerSourceIds
+            ExcludedSellerSourceIds: excludedSellerSourceIds,
+            SelectedSort: preferences.SelectedSort
         );
     }
 

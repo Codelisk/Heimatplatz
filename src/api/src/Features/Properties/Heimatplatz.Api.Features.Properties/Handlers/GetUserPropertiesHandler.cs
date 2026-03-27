@@ -70,7 +70,8 @@ public class GetUserPropertiesHandler(
                 p.SellerName,
                 GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl),
                 p.CreatedAt,
-                p.InquiryType
+                p.InquiryType,
+                p.SourceName
             ))
             .ToList();
 

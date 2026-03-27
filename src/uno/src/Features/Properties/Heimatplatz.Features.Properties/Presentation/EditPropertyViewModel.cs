@@ -342,7 +342,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageInfo, INavig
             });
 
             _logger.LogInformation("[EditProperty] Navigating to MyProperties after save");
-            await _navigator.NavigateRouteAsync(this, "MyProperties");
+            await _navigator.NavigateRouteAsync(this, "meine-immobilien");
         }
         catch (Exception ex)
         {

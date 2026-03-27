@@ -144,7 +144,7 @@
                                         <TextBlock Text="Noch kein Konto?"
                                                    FontSize="14"
                                                    Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                        <Button uen:Navigation.Request="Register"
+                                        <Button uen:Navigation.Request="registrieren"
                                                 Background="Transparent"
                                                 BorderThickness="0"
                                                 Padding="0"
@@ -335,7 +335,7 @@
                                     <TextBlock Text="Noch kein Konto?"
                                                FontSize="14"
                                                Foreground="{ThemeResource OnSurfaceVariantBrush}" />
-                                    <Button uen:Navigation.Request="Register"
+                                    <Button uen:Navigation.Request="registrieren"
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Padding="0"

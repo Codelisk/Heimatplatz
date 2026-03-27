@@ -19,7 +19,8 @@ public record SaveUserFilterPreferencesRequest(
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     bool IsPortalSelected,
-    List<Guid>? ExcludedSellerSourceIds
+    List<Guid>? ExcludedSellerSourceIds,
+    int SelectedSort = 0
 ) : IRequest<SaveUserFilterPreferencesResponse>;
 
 /// <summary>

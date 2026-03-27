@@ -2723,6 +2723,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          "SelectedSort": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 0
           }
         }
       },
@@ -3632,6 +3641,12 @@
           },
           "InquiryType": {
             "$ref": "#/components/schemas/InquiryType"
+          },
+          "SourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3934,6 +3949,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          "SelectedSort": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 0
           }
         }
       },
