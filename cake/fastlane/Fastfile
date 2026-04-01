@@ -4,6 +4,23 @@
 default_platform(:ios)
 
 platform :android do
+  desc "Upload store metadata only (title, descriptions)"
+  lane :update_metadata do
+    supply(
+      json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
+      package_name: ENV["SUPPLY_PACKAGE_NAME"] || "at.heimatplatz.app",
+      metadata_path: "fastlane/metadata/android",
+      track: "internal",
+      release_status: "draft",
+      version_code: 60,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+
   desc "Deploy to Play Store internal test track"
   lane :internal do
     # Support both APK and AAB uploads
@@ -13,7 +30,7 @@ platform :android do
         apk: ENV["SUPPLY_APK"],
         json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
         package_name: ENV["SUPPLY_PACKAGE_NAME"] || "at.heimatplatz.app",
-        skip_upload_metadata: true,
+        metadata_path: "fastlane/metadata/android",
         skip_upload_images: true,
         skip_upload_screenshots: true
       )
@@ -24,7 +41,7 @@ platform :android do
         json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
         package_name: ENV["SUPPLY_PACKAGE_NAME"] || "at.heimatplatz.app",
         release_status: "draft",
-        skip_upload_metadata: true,
+        metadata_path: "fastlane/metadata/android",
         skip_upload_images: true,
         skip_upload_screenshots: true
       )
@@ -38,7 +55,7 @@ platform :android do
       aab: ENV["SUPPLY_AAB"] || "../artifacts/android/*.aab",
       json_key: ENV["SUPPLY_JSON_KEY"] || ENV["PLAY_STORE_JSON_KEY_PATH"],
       package_name: ENV["SUPPLY_PACKAGE_NAME"] || "at.heimatplatz.app",
-      skip_upload_metadata: true,
+      metadata_path: "fastlane/metadata/android",
       skip_upload_images: true,
       skip_upload_screenshots: true
     )

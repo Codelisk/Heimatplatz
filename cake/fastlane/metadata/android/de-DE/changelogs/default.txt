@@ -1,0 +1,5 @@
+• Neue Immobilien entdecken und filtern
+• Zwangsversteigerungen aus der Ediktsdatei
+• Push-Benachrichtigungen für Wunschorte
+• Favoriten speichern
+• Eigene Inserate erstellen
