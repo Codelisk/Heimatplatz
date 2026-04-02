@@ -43,6 +43,7 @@ app.db
 
 # Screenshots and temp files
 screenshots/
+!store-assets/**/screenshots/
 temp_*.png
 /*.png
 
