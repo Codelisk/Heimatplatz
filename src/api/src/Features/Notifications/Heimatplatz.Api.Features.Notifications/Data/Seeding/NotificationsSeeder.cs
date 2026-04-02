@@ -55,7 +55,6 @@ public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
                 IsZwangsversteigerungSelected = index % 2 == 0,
                 IsPrivateSelected = true,
                 IsBrokerSelected = true,
-                IsPortalSelected = index % 3 != 0,
                 CreatedAt = DateTimeOffset.UtcNow.AddDays(-Random.Shared.Next(1, 30))
             });
 

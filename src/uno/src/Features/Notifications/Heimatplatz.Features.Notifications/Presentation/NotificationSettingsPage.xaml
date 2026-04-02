@@ -324,12 +324,6 @@
                                         Style="{StaticResource FilterChipBaseStyle}"
                                         Click="OnCustomFilterChanged"
                                         AutomationProperties.AutomationId="NotificationSettings_Chip_Broker" />
-                                    <ToggleButton
-                                        Content="Portal"
-                                        IsChecked="{x:Bind ViewModel.IsPortalSelected, Mode=TwoWay}"
-                                        Style="{StaticResource FilterChipBaseStyle}"
-                                        Click="OnCustomFilterChanged"
-                                        AutomationProperties.AutomationId="NotificationSettings_Chip_Portal" />
                                 </StackPanel>
                             </utu:AutoLayout>
                         </utu:CardContentControl>

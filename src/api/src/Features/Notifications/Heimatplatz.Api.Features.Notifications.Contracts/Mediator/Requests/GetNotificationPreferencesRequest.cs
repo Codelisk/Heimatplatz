@@ -18,7 +18,5 @@ public record GetNotificationPreferencesResponse(
     bool IsGrundstueckSelected,
     bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
-    bool IsBrokerSelected,
-    bool IsPortalSelected,
-    List<Guid> ExcludedSellerSourceIds
+    bool IsBrokerSelected
 );

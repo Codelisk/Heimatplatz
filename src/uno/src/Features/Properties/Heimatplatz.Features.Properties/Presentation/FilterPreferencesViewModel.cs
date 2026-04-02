@@ -171,7 +171,7 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             IsSaving = true;
             ShowErrorMessage = false;
 
-            var (isPrivate, isBroker, isPortal) = GetSellerTypeSelection();
+            var (isPrivate, isBroker) = GetSellerTypeSelection();
 
             var preferences = new FilterPreferencesDto(
                 SelectedOrte: SelectedOrte,
@@ -181,7 +181,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
                 IsZwangsversteigerungSelected: IsZwangsversteigerungSelected,
                 IsPrivateSelected: isPrivate,
                 IsBrokerSelected: isBroker,
-                IsPortalSelected: isPortal,
                 ExcludedSellerSourceIds: [],
                 SelectedSort: SelectedSort
             );
@@ -216,7 +215,7 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
 
         try
         {
-            var (isPrivate, isBroker, isPortal) = GetSellerTypeSelection();
+            var (isPrivate, isBroker) = GetSellerTypeSelection();
 
             var preferences = new FilterPreferencesDto(
                 SelectedOrte: SelectedOrte,
@@ -226,7 +225,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
                 IsZwangsversteigerungSelected: IsZwangsversteigerungSelected,
                 IsPrivateSelected: isPrivate,
                 IsBrokerSelected: isBroker,
-                IsPortalSelected: isPortal,
                 ExcludedSellerSourceIds: [],
                 SelectedSort: SelectedSort
             );
@@ -290,7 +288,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             preferences.SelectedOrte.ToList(),
             preferences.IsPrivateSelected,
             preferences.IsBrokerSelected,
-            preferences.IsPortalSelected,
             selectedSort: preferences.SelectedSort);
     }
 
@@ -312,8 +309,7 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             UnsubscribeSellerTypes();
             UpdateSellerTypesFromPreferences(
                 preferences.IsPrivateSelected,
-                preferences.IsBrokerSelected,
-                preferences.IsPortalSelected);
+                preferences.IsBrokerSelected);
             SubscribeSellerTypes();
         }
         finally
@@ -322,7 +318,7 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
         }
     }
 
-    private void UpdateSellerTypesFromPreferences(bool isPrivateSelected, bool isBrokerSelected, bool isPortalSelected)
+    private void UpdateSellerTypesFromPreferences(bool isPrivateSelected, bool isBrokerSelected)
     {
         foreach (var sellerType in SellerTypes)
         {
@@ -330,18 +326,16 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
             {
                 SellerType.Private => isPrivateSelected,
                 SellerType.Broker => isBrokerSelected,
-                SellerType.Portal => isPortalSelected,
                 _ => true
             };
         }
     }
 
-    private (bool IsPrivate, bool IsBroker, bool IsPortal) GetSellerTypeSelection()
+    private (bool IsPrivate, bool IsBroker) GetSellerTypeSelection()
     {
         return (
             SellerTypes.FirstOrDefault(st => st.Type == SellerType.Private)?.IsSelected ?? true,
-            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true,
-            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Portal)?.IsSelected ?? true
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true
         );
     }
 

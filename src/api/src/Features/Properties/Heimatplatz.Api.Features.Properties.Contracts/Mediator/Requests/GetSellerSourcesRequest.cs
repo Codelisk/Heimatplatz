@@ -12,8 +12,7 @@ public record GetSellerSourcesRequest() : IRequest<GetSellerSourcesResponse>;
 /// </summary>
 public record SellerSourceDto(
     Guid Id,
-    string Name,
-    SellerType SellerType
+    string Name
 );
 
 /// <summary>

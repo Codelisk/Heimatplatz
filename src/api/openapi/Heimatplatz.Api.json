@@ -2331,9 +2331,7 @@
           "IsGrundstueckSelected",
           "IsZwangsversteigerungSelected",
           "IsPrivateSelected",
-          "IsBrokerSelected",
-          "IsPortalSelected",
-          "ExcludedSellerSourceIds"
+          "IsBrokerSelected"
         ],
         "type": "object",
         "properties": {
@@ -2363,16 +2361,6 @@
           },
           "IsBrokerSelected": {
             "type": "boolean"
-          },
-          "IsPortalSelected": {
-            "type": "boolean"
-          },
-          "ExcludedSellerSourceIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
           }
         }
       },
@@ -2680,7 +2668,6 @@
           "IsZwangsversteigerungSelected",
           "IsPrivateSelected",
           "IsBrokerSelected",
-          "IsPortalSelected",
           "ExcludedSellerSourceIds"
         ],
         "type": "object",
@@ -2714,24 +2701,12 @@
           "IsBrokerSelected": {
             "type": "boolean"
           },
-          "IsPortalSelected": {
-            "type": "boolean"
-          },
           "ExcludedSellerSourceIds": {
             "type": "array",
             "items": {
               "type": "string",
               "format": "uuid"
             }
-          },
-          "SelectedSort": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32",
-            "default": 0
           }
         }
       },
@@ -3903,7 +3878,6 @@
           "IsZwangsversteigerungSelected",
           "IsPrivateSelected",
           "IsBrokerSelected",
-          "IsPortalSelected",
           "ExcludedSellerSourceIds"
         ],
         "type": "object",
@@ -3937,9 +3911,6 @@
           "IsBrokerSelected": {
             "type": "boolean"
           },
-          "IsPortalSelected": {
-            "type": "boolean"
-          },
           "ExcludedSellerSourceIds": {
             "type": [
               "null",
@@ -3949,15 +3920,6 @@
               "type": "string",
               "format": "uuid"
             }
-          },
-          "SelectedSort": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32",
-            "default": 0
           }
         }
       },
@@ -4018,8 +3980,7 @@
       "SellerSourceDto": {
         "required": [
           "Id",
-          "Name",
-          "SellerType"
+          "Name"
         ],
         "type": "object",
         "properties": {
@@ -4029,9 +3990,6 @@
           },
           "Name": {
             "type": "string"
-          },
-          "SellerType": {
-            "$ref": "#/components/schemas/SellerType"
           }
         }
       },
@@ -4039,7 +3997,6 @@
         "enum": [
           "Private",
           "Broker",
-          "Portal",
           null
         ]
       },
@@ -4388,9 +4345,7 @@
           "IsGrundstueckSelected",
           "IsZwangsversteigerungSelected",
           "IsPrivateSelected",
-          "IsBrokerSelected",
-          "IsPortalSelected",
-          "ExcludedSellerSourceIds"
+          "IsBrokerSelected"
         ],
         "type": "object",
         "properties": {
@@ -4423,19 +4378,6 @@
           },
           "IsBrokerSelected": {
             "type": "boolean"
-          },
-          "IsPortalSelected": {
-            "type": "boolean"
-          },
-          "ExcludedSellerSourceIds": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
           }
         }
       },

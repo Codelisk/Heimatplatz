@@ -38,9 +38,6 @@ public class UserFilterPreferencesConfiguration : IEntityTypeConfiguration<UserF
         builder.Property(x => x.IsBrokerSelected)
             .HasDefaultValue(true);
 
-        builder.Property(x => x.IsPortalSelected)
-            .HasDefaultValue(true);
-
         builder.Property(x => x.ExcludedSellerSourceIdsJson)
             .HasMaxLength(4000)
             .HasDefaultValue("[]");

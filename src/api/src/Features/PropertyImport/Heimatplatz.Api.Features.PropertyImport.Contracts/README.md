@@ -35,7 +35,7 @@ var request = new ImportPropertiesRequest(
             PostalCode: "1010",
             Price: 450000,
             Type: PropertyType.House,
-            SellerType: SellerType.Portal,
+            SellerType: SellerType.Broker,
             SellerName: "Willhaben"
         )
     ],

@@ -54,17 +54,7 @@ public class UserFilterPreferences : BaseEntity
     public bool IsBrokerSelected { get; set; } = true;
 
     /// <summary>
-    /// Whether portal sources are included in filter results
-    /// </summary>
-    public bool IsPortalSelected { get; set; } = true;
-
-    /// <summary>
-    /// JSON array of excluded SellerSource IDs (specific brokers/portals to exclude)
+    /// JSON array of excluded SellerSource IDs (specific brokers to exclude)
     /// </summary>
     public string ExcludedSellerSourceIdsJson { get; set; } = "[]";
-
-    /// <summary>
-    /// Ausgewaehlte Sortierung (0=Neueste, etc.)
-    /// </summary>
-    public int SelectedSort { get; set; } = 0;
 }

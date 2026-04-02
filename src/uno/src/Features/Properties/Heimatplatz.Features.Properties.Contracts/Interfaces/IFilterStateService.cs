@@ -34,7 +34,6 @@ public interface IFilterStateService
         List<string> selectedOrte,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
-        bool isPortalSelected = true,
         List<Guid>? excludedSellerSourceIds = null,
         SortOption selectedSort = SortOption.Neueste);
 
@@ -62,7 +61,6 @@ public record FilterState
     public IReadOnlyList<string> SelectedOrte { get; init; } = [];
     public bool IsPrivateSelected { get; init; } = true;
     public bool IsBrokerSelected { get; init; } = true;
-    public bool IsPortalSelected { get; init; } = true;
     public IReadOnlyList<Guid> ExcludedSellerSourceIds { get; init; } = [];
     public SortOption SelectedSort { get; init; } = SortOption.Neueste;
     public int ResultCount { get; init; }

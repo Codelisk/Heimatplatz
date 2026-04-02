@@ -26,14 +26,12 @@ public partial class SellerTypeModel : ObservableObject
     /// </summary>
     public static List<SellerTypeModel> CreateDefaultList(
         bool isPrivateSelected = true,
-        bool isBrokerSelected = true,
-        bool isPortalSelected = true)
+        bool isBrokerSelected = true)
     {
         return
         [
             new SellerTypeModel(SellerType.Private, "Privat", isPrivateSelected),
-            new SellerTypeModel(SellerType.Broker, "Makler", isBrokerSelected),
-            new SellerTypeModel(SellerType.Portal, "Portal", isPortalSelected)
+            new SellerTypeModel(SellerType.Broker, "Makler", isBrokerSelected)
         ];
     }
 }

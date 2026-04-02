@@ -120,9 +120,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
     [ObservableProperty]
     private bool _isBrokerSelected = true;
 
-    [ObservableProperty]
-    private bool _isPortalSelected = true;
-
     /// <summary>
     /// Liste der Anbietertypen fuer den SellerTypePicker (Mobile)
     /// </summary>
@@ -337,7 +334,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
             IsPrivateSelected = state.IsPrivateSelected;
             IsBrokerSelected = state.IsBrokerSelected;
-            IsPortalSelected = state.IsPortalSelected;
             SetProperty(ref _selectedAgeFilter, state.SelectedAgeFilter, nameof(SelectedAgeFilter));
             SetProperty(ref _selectedOrte, state.SelectedOrte.ToList(), nameof(SelectedOrte));
             SetProperty(ref _selectedSort, state.SelectedSort, nameof(SelectedSort));
@@ -372,7 +368,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             || state.IsZwangsversteigerungSelected != IsZwangsversteigerungSelected
             || state.IsPrivateSelected != IsPrivateSelected
             || state.IsBrokerSelected != IsBrokerSelected
-            || state.IsPortalSelected != IsPortalSelected
             || state.SelectedAgeFilter != SelectedAgeFilter
             || !state.SelectedOrte.SequenceEqual(SelectedOrte);
 
@@ -387,7 +382,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
             IsPrivateSelected = state.IsPrivateSelected;
             IsBrokerSelected = state.IsBrokerSelected;
-            IsPortalSelected = state.IsPortalSelected;
             SetProperty(ref _selectedAgeFilter, state.SelectedAgeFilter, nameof(SelectedAgeFilter));
             SetProperty(ref _selectedOrte, state.SelectedOrte.ToList(), nameof(SelectedOrte));
 
@@ -420,7 +414,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
             IsPrivateSelected = state.IsPrivateSelected;
             IsBrokerSelected = state.IsBrokerSelected;
-            IsPortalSelected = state.IsPortalSelected;
             SetProperty(ref _selectedAgeFilter, state.SelectedAgeFilter, nameof(SelectedAgeFilter));
             SetProperty(ref _selectedOrte, state.SelectedOrte.ToList(), nameof(SelectedOrte));
             SetProperty(ref _selectedSort, state.SelectedSort, nameof(SelectedSort));
@@ -471,7 +464,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         {
             IsPrivateSelected = SellerTypes.FirstOrDefault(st => st.Type == SellerType.Private)?.IsSelected ?? true;
             IsBrokerSelected = SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true;
-            IsPortalSelected = SellerTypes.FirstOrDefault(st => st.Type == SellerType.Portal)?.IsSelected ?? true;
         }
         finally
         {
@@ -489,7 +481,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             {
                 SellerType.Private => IsPrivateSelected,
                 SellerType.Broker => IsBrokerSelected,
-                SellerType.Portal => IsPortalSelected,
                 _ => true
             };
         }
@@ -557,7 +548,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
             IsPrivateSelected = preferences.IsPrivateSelected;
             IsBrokerSelected = preferences.IsBrokerSelected;
-            IsPortalSelected = preferences.IsPortalSelected;
 
             // Sync SellerTypes list from preference bools
             UpdateSellerTypesFromBools();
@@ -710,7 +700,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         if (_isApplyingPreferences || _isSyncingFromService) return;
 
         // Mindestens ein SellerType muss aktiv bleiben
-        if (!value && !IsBrokerSelected && !IsPortalSelected)
+        if (!value && !IsBrokerSelected)
         {
             _isSyncingFromService = true;
             IsPrivateSelected = true;
@@ -726,26 +716,10 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
         if (_isApplyingPreferences || _isSyncingFromService) return;
 
         // Mindestens ein SellerType muss aktiv bleiben
-        if (!value && !IsPrivateSelected && !IsPortalSelected)
+        if (!value && !IsPrivateSelected)
         {
             _isSyncingFromService = true;
             IsBrokerSelected = true;
-            _isSyncingFromService = false;
-            return;
-        }
-
-        OnFiltersChanged();
-    }
-
-    partial void OnIsPortalSelectedChanged(bool value)
-    {
-        if (_isApplyingPreferences || _isSyncingFromService) return;
-
-        // Mindestens ein SellerType muss aktiv bleiben
-        if (!value && !IsPrivateSelected && !IsBrokerSelected)
-        {
-            _isSyncingFromService = true;
-            IsPortalSelected = true;
             _isSyncingFromService = false;
             return;
         }
@@ -769,7 +743,6 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
                 SelectedOrte,
                 IsPrivateSelected,
                 IsBrokerSelected,
-                IsPortalSelected,
                 selectedSort: SelectedSort);
         }
 
@@ -864,8 +837,7 @@ public partial class HomeViewModel : ObservableObject, INavigationAware, IPageIn
             var selectedSellerTypes = new List<string>();
             if (IsPrivateSelected) selectedSellerTypes.Add("Private");
             if (IsBrokerSelected) selectedSellerTypes.Add("Broker");
-            if (IsPortalSelected) selectedSellerTypes.Add("Portal");
-            if (selectedSellerTypes.Count > 0 && selectedSellerTypes.Count < 3)
+            if (selectedSellerTypes.Count > 0 && selectedSellerTypes.Count < 2)
             {
                 request.SellerTypesJson = JsonSerializer.Serialize(selectedSellerTypes);
             }

@@ -36,9 +36,7 @@ public class NotificationService(
                 response.IsGrundstueckSelected,
                 response.IsZwangsversteigerungSelected,
                 response.IsPrivateSelected,
-                response.IsBrokerSelected,
-                response.IsPortalSelected,
-                response.ExcludedSellerSourceIds?.ToList() ?? []);
+                response.IsBrokerSelected);
         }
         catch (Exception ex)
         {
@@ -56,8 +54,6 @@ public class NotificationService(
         bool isZwangsversteigerungSelected = true,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
-        bool isPortalSelected = true,
-        List<Guid>? excludedSellerSourceIds = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -74,9 +70,7 @@ public class NotificationService(
                         IsGrundstueckSelected = isGrundstueckSelected,
                         IsZwangsversteigerungSelected = isZwangsversteigerungSelected,
                         IsPrivateSelected = isPrivateSelected,
-                        IsBrokerSelected = isBrokerSelected,
-                        IsPortalSelected = isPortalSelected,
-                        ExcludedSellerSourceIds = excludedSellerSourceIds ?? []
+                        IsBrokerSelected = isBrokerSelected
                     }
                 },
                 cancellationToken);

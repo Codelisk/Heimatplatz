@@ -55,14 +55,11 @@ public class GetNotificationPreferencesHandler(
                 IsGrundstueckSelected: true,
                 IsZwangsversteigerungSelected: true,
                 IsPrivateSelected: true,
-                IsBrokerSelected: true,
-                IsPortalSelected: true,
-                ExcludedSellerSourceIds: []
+                IsBrokerSelected: true
             );
         }
 
         var locations = JsonSerializer.Deserialize<List<string>>(preference.SelectedLocationsJson) ?? [];
-        var excludedSellerSourceIds = JsonSerializer.Deserialize<List<Guid>>(preference.ExcludedSellerSourceIdsJson) ?? [];
 
         return new GetNotificationPreferencesResponse(
             IsEnabled: preference.IsEnabled,
@@ -72,9 +69,7 @@ public class GetNotificationPreferencesHandler(
             IsGrundstueckSelected: preference.IsGrundstueckSelected,
             IsZwangsversteigerungSelected: preference.IsZwangsversteigerungSelected,
             IsPrivateSelected: preference.IsPrivateSelected,
-            IsBrokerSelected: preference.IsBrokerSelected,
-            IsPortalSelected: preference.IsPortalSelected,
-            ExcludedSellerSourceIds: excludedSellerSourceIds
+            IsBrokerSelected: preference.IsBrokerSelected
         );
     }
 }

@@ -127,7 +127,6 @@ public class CreatePropertyHandler(
         var contactType = user.SellerType switch
         {
             SellerType.Broker => ContactType.Agent,
-            SellerType.Portal => ContactType.Agent,
             _ => ContactType.Seller
         };
 

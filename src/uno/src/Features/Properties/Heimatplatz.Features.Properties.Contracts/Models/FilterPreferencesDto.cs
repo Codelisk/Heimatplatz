@@ -14,7 +14,6 @@ public record FilterPreferencesDto(
     bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
     bool IsBrokerSelected,
-    bool IsPortalSelected,
     List<Guid> ExcludedSellerSourceIds,
     SortOption SelectedSort = SortOption.Neueste
 )
@@ -30,7 +29,6 @@ public record FilterPreferencesDto(
         IsZwangsversteigerungSelected: true,
         IsPrivateSelected: true,
         IsBrokerSelected: true,
-        IsPortalSelected: true,
         ExcludedSellerSourceIds: [],
         SelectedSort: SortOption.Neueste
     );

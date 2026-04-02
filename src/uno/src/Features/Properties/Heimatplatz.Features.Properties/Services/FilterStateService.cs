@@ -31,7 +31,6 @@ public class FilterStateService : IFilterStateService
         List<string> selectedOrte,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
-        bool isPortalSelected = true,
         List<Guid>? excludedSellerSourceIds = null,
         SortOption selectedSort = SortOption.Neueste)
     {
@@ -45,7 +44,6 @@ public class FilterStateService : IFilterStateService
             SelectedOrte = selectedOrte,
             IsPrivateSelected = isPrivateSelected,
             IsBrokerSelected = isBrokerSelected,
-            IsPortalSelected = isPortalSelected,
             ExcludedSellerSourceIds = excludedSellerSourceIds ?? [],
             SelectedSort = selectedSort
         };

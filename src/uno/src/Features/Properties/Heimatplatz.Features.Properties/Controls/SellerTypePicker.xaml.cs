@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 namespace Heimatplatz.Features.Properties.Controls;
 
 /// <summary>
-/// MultiSelect Picker fuer Anbietertypen (Privat, Makler, Portal)
+/// MultiSelect Picker fuer Anbietertypen (Privat, Makler)
 /// Analog zum OrtPicker mit Button und Flyout
 /// </summary>
 public sealed partial class SellerTypePicker : UserControl
@@ -106,15 +106,14 @@ public sealed partial class SellerTypePicker : UserControl
     /// <summary>
     /// Gibt die aktuellen Auswahl-Werte zurueck
     /// </summary>
-    public (bool IsPrivateSelected, bool IsBrokerSelected, bool IsPortalSelected) GetSelection()
+    public (bool IsPrivateSelected, bool IsBrokerSelected) GetSelection()
     {
         if (SellerTypes == null)
-            return (true, true, true);
+            return (true, true);
 
         return (
             SellerTypes.FirstOrDefault(st => st.Type == SellerType.Private)?.IsSelected ?? true,
-            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true,
-            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Portal)?.IsSelected ?? true
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true
         );
     }
 }

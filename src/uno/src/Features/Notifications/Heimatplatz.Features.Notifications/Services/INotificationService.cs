@@ -24,8 +24,6 @@ public interface INotificationService
         bool isZwangsversteigerungSelected = true,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
-        bool isPortalSelected = true,
-        List<Guid>? excludedSellerSourceIds = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

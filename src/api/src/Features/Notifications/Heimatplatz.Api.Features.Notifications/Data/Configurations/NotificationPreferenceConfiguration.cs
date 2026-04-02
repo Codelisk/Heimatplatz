@@ -42,13 +42,6 @@ public class NotificationPreferenceConfiguration : IEntityTypeConfiguration<Noti
         builder.Property(np => np.IsBrokerSelected)
             .HasDefaultValue(true);
 
-        builder.Property(np => np.IsPortalSelected)
-            .HasDefaultValue(true);
-
-        builder.Property(np => np.ExcludedSellerSourceIdsJson)
-            .HasMaxLength(4000)
-            .HasDefaultValue("[]");
-
         // Relationship with User
         builder.HasOne(np => np.User)
             .WithMany()

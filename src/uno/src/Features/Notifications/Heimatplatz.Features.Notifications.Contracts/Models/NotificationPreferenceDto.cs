@@ -11,8 +11,6 @@ namespace Heimatplatz.Features.Notifications.Contracts.Models;
 /// <param name="IsZwangsversteigerungSelected">Foreclosure property type selected</param>
 /// <param name="IsPrivateSelected">Private seller type selected</param>
 /// <param name="IsBrokerSelected">Broker seller type selected</param>
-/// <param name="IsPortalSelected">Portal seller type selected</param>
-/// <param name="ExcludedSellerSourceIds">Excluded seller source IDs</param>
 public record NotificationPreferenceDto(
     bool IsEnabled,
     NotificationFilterMode FilterMode,
@@ -21,7 +19,5 @@ public record NotificationPreferenceDto(
     bool IsGrundstueckSelected = true,
     bool IsZwangsversteigerungSelected = true,
     bool IsPrivateSelected = true,
-    bool IsBrokerSelected = true,
-    bool IsPortalSelected = true,
-    List<Guid>? ExcludedSellerSourceIds = null
+    bool IsBrokerSelected = true
 );

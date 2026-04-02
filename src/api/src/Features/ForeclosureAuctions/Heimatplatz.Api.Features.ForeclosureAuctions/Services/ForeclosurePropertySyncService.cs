@@ -236,7 +236,7 @@ public class ForeclosurePropertySyncService(
             Rooms = auction.NumberOfRooms,
             YearBuilt = auction.YearBuilt,
             Type = PropertyType.Foreclosure,
-            SellerType = SellerType.Portal,
+            SellerType = SellerType.Broker,
             SellerName = auction.Court ?? "Bezirksgericht",
             Description = auction.ObjectDescription,
             UserId = systemUserId,

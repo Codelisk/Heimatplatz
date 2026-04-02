@@ -19,18 +19,12 @@ public class SellerSourceConfiguration : IEntityTypeConfiguration<SellerSource>
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(ss => ss.SellerType)
-            .IsRequired();
-
         builder.Property(ss => ss.IsDefault)
             .IsRequired()
             .HasDefaultValue(true);
 
-        // Unique index on (Name, SellerType) - a name is unique per type
-        builder.HasIndex(ss => new { ss.Name, ss.SellerType })
+        // Unique index on Name
+        builder.HasIndex(ss => ss.Name)
             .IsUnique();
-
-        // Index for filtering by SellerType
-        builder.HasIndex(ss => ss.SellerType);
     }
 }

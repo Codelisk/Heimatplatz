@@ -90,9 +90,6 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
     [ObservableProperty]
     private bool _isBrokerSelected = true;
 
-    [ObservableProperty]
-    private bool _isPortalSelected = true;
-
     public NotificationSettingsViewModel(
         INotificationService notificationService,
         ILocationService locationService,
@@ -172,7 +169,6 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
             IsPrivateSelected = preferences.IsPrivateSelected;
             IsBrokerSelected = preferences.IsBrokerSelected;
-            IsPortalSelected = preferences.IsPortalSelected;
         }
         catch (Exception ex)
         {
@@ -213,8 +209,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageInfo
                 IsGrundstueckSelected,
                 IsZwangsversteigerungSelected,
                 IsPrivateSelected,
-                IsBrokerSelected,
-                IsPortalSelected);
+                IsBrokerSelected);
             if (success)
             {
                 _logger.LogInformation("Notification preferences saved successfully");

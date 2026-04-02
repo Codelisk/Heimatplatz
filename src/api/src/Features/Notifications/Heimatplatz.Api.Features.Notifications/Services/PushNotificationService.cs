@@ -186,7 +186,7 @@ public class PushNotificationService(
 
         // Check SellerType filter
         if (!MatchesSellerType(sellerType,
-            filterPrefs.IsPrivateSelected, filterPrefs.IsBrokerSelected, filterPrefs.IsPortalSelected))
+            filterPrefs.IsPrivateSelected, filterPrefs.IsBrokerSelected))
         {
             return false;
         }
@@ -220,7 +220,7 @@ public class PushNotificationService(
 
         // Check SellerType filter
         if (!MatchesSellerType(sellerType,
-            pref.IsPrivateSelected, pref.IsBrokerSelected, pref.IsPortalSelected))
+            pref.IsPrivateSelected, pref.IsBrokerSelected))
         {
             return false;
         }
@@ -241,13 +241,12 @@ public class PushNotificationService(
     }
 
     private static bool MatchesSellerType(
-        SellerType type, bool isPrivate, bool isBroker, bool isPortal)
+        SellerType type, bool isPrivate, bool isBroker)
     {
         return type switch
         {
             SellerType.Private => isPrivate,
             SellerType.Broker => isBroker,
-            SellerType.Portal => isPortal,
             _ => true
         };
     }

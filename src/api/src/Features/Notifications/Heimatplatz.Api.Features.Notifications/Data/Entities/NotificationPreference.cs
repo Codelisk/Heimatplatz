@@ -39,12 +39,6 @@ public class NotificationPreference : BaseEntity
     /// <summary>Ob Makler im Filter selektiert sind</summary>
     public bool IsBrokerSelected { get; set; } = true;
 
-    /// <summary>Ob Portal-Quellen im Filter selektiert sind</summary>
-    public bool IsPortalSelected { get; set; } = true;
-
-    /// <summary>JSON-Array von ausgeschlossenen SellerSource-IDs</summary>
-    public string ExcludedSellerSourceIdsJson { get; set; } = "[]";
-
     /// <summary>Navigation property to User</summary>
     public User User { get; set; } = null!;
 }

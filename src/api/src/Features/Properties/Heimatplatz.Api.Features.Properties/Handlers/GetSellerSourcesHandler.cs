@@ -23,7 +23,7 @@ public class GetSellerSourcesHandler(
     {
         var sources = await dbContext.Set<SellerSource>()
             .OrderBy(ss => ss.Name)
-            .Select(ss => new SellerSourceDto(ss.Id, ss.Name, ss.SellerType))
+            .Select(ss => new SellerSourceDto(ss.Id, ss.Name))
             .ToListAsync(cancellationToken);
 
         return new GetSellerSourcesResponse(sources);

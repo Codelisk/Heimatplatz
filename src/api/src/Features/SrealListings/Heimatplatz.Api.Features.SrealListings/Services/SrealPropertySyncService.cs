@@ -222,7 +222,7 @@ public class SrealPropertySyncService(
             PlotAreaSquareMeters = listing.PlotArea.HasValue ? (int)listing.PlotArea.Value : null,
             Rooms = listing.Rooms,
             Type = propertyType,
-            SellerType = SellerType.Portal,
+            SellerType = SellerType.Broker,
             SellerName = listing.AgentName ?? "s REAL",
             Description = listing.Description?.Length > 4000 ? listing.Description[..4000] : listing.Description,
             UserId = systemUserId,

@@ -44,7 +44,6 @@ public class FilterPreferencesService(
                 IsZwangsversteigerungSelected: result.IsZwangsversteigerungSelected,
                 IsPrivateSelected: result.IsPrivateSelected,
                 IsBrokerSelected: result.IsBrokerSelected,
-                IsPortalSelected: result.IsPortalSelected,
                 ExcludedSellerSourceIds: result.ExcludedSellerSourceIds,
                 SelectedSort: (SortOption)result.SelectedSort
             );
@@ -89,7 +88,6 @@ public class FilterPreferencesService(
                     IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected,
                     IsPrivateSelected = preferences.IsPrivateSelected,
                     IsBrokerSelected = preferences.IsBrokerSelected,
-                    IsPortalSelected = preferences.IsPortalSelected,
                     ExcludedSellerSourceIds = preferences.ExcludedSellerSourceIds,
                     SelectedSort = (int)preferences.SelectedSort
                 }

@@ -23,7 +23,5 @@ public record GetUserFilterPreferencesResponse(
     bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
     bool IsBrokerSelected,
-    bool IsPortalSelected,
-    List<Guid> ExcludedSellerSourceIds,
-    int SelectedSort = 0
+    List<Guid> ExcludedSellerSourceIds
 );

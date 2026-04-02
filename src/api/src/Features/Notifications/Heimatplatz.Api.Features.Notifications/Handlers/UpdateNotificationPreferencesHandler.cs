@@ -40,7 +40,6 @@ public class UpdateNotificationPreferencesHandler(
         }
 
         var locationsJson = JsonSerializer.Serialize(request.Locations ?? []);
-        var excludedSourcesJson = JsonSerializer.Serialize(request.ExcludedSellerSourceIds ?? []);
 
         // Upsert: find existing or create new
         var preference = await dbContext.Set<NotificationPreference>()
@@ -65,8 +64,6 @@ public class UpdateNotificationPreferencesHandler(
         preference.IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected;
         preference.IsPrivateSelected = request.IsPrivateSelected;
         preference.IsBrokerSelected = request.IsBrokerSelected;
-        preference.IsPortalSelected = request.IsPortalSelected;
-        preference.ExcludedSellerSourceIdsJson = excludedSourcesJson;
         preference.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);

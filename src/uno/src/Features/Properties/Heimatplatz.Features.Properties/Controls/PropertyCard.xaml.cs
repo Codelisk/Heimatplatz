@@ -383,9 +383,6 @@ public sealed partial class PropertyCard : UserControl
         SellerBadgeText.Text = property.SellerType switch
         {
             SellerType.Private => "Privat",
-            SellerType.Portal => string.IsNullOrEmpty(property.SourceName)
-                ? property.SellerName
-                : $"{property.SourceName}: {property.SellerName}",
             _ => property.SellerName
         };
 

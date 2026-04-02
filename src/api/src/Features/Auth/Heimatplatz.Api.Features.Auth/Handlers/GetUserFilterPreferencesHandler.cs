@@ -44,9 +44,7 @@ public class GetUserFilterPreferencesHandler(
                 IsZwangsversteigerungSelected: true,
                 IsPrivateSelected: true,
                 IsBrokerSelected: true,
-                IsPortalSelected: true,
-                ExcludedSellerSourceIds: [],
-                SelectedSort: 0
+                ExcludedSellerSourceIds: []
             );
         }
 
@@ -62,9 +60,7 @@ public class GetUserFilterPreferencesHandler(
             IsZwangsversteigerungSelected: preferences.IsZwangsversteigerungSelected,
             IsPrivateSelected: preferences.IsPrivateSelected,
             IsBrokerSelected: preferences.IsBrokerSelected,
-            IsPortalSelected: preferences.IsPortalSelected,
-            ExcludedSellerSourceIds: excludedSellerSourceIds,
-            SelectedSort: preferences.SelectedSort
+            ExcludedSellerSourceIds: excludedSellerSourceIds
         );
     }
 

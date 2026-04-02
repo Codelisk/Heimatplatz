@@ -18,9 +18,7 @@ public record SaveUserFilterPreferencesRequest(
     bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
     bool IsBrokerSelected,
-    bool IsPortalSelected,
-    List<Guid>? ExcludedSellerSourceIds,
-    int SelectedSort = 0
+    List<Guid>? ExcludedSellerSourceIds
 ) : IRequest<SaveUserFilterPreferencesResponse>;
 
 /// <summary>

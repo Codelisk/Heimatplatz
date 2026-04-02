@@ -51,9 +51,7 @@ public class SaveUserFilterPreferencesHandler(
                 IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected,
                 IsPrivateSelected = request.IsPrivateSelected,
                 IsBrokerSelected = request.IsBrokerSelected,
-                IsPortalSelected = request.IsPortalSelected,
                 ExcludedSellerSourceIdsJson = excludedSourcesJson,
-                SelectedSort = request.SelectedSort,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
@@ -69,9 +67,7 @@ public class SaveUserFilterPreferencesHandler(
             preferences.IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected;
             preferences.IsPrivateSelected = request.IsPrivateSelected;
             preferences.IsBrokerSelected = request.IsBrokerSelected;
-            preferences.IsPortalSelected = request.IsPortalSelected;
             preferences.ExcludedSellerSourceIdsJson = excludedSourcesJson;
-            preferences.SelectedSort = request.SelectedSort;
             preferences.UpdatedAt = DateTimeOffset.UtcNow;
         }
 

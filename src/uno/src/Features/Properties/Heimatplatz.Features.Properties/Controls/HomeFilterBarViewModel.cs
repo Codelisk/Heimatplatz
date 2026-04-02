@@ -105,7 +105,7 @@ public partial class HomeFilterBarViewModel : ObservableObject
             ResultCount = state.ResultCount;
 
             // SellerTypes synchronisieren
-            UpdateSellerTypesFromState(state.IsPrivateSelected, state.IsBrokerSelected, state.IsPortalSelected);
+            UpdateSellerTypesFromState(state.IsPrivateSelected, state.IsBrokerSelected);
         }
         finally
         {
@@ -113,7 +113,7 @@ public partial class HomeFilterBarViewModel : ObservableObject
         }
     }
 
-    private void UpdateSellerTypesFromState(bool isPrivateSelected, bool isBrokerSelected, bool isPortalSelected)
+    private void UpdateSellerTypesFromState(bool isPrivateSelected, bool isBrokerSelected)
     {
         foreach (var sellerType in SellerTypes)
         {
@@ -121,7 +121,6 @@ public partial class HomeFilterBarViewModel : ObservableObject
             {
                 SellerType.Private => isPrivateSelected,
                 SellerType.Broker => isBrokerSelected,
-                SellerType.Portal => isPortalSelected,
                 _ => true
             };
         }
@@ -210,7 +209,7 @@ public partial class HomeFilterBarViewModel : ObservableObject
 
     private void UpdateFilterState()
     {
-        var (isPrivate, isBroker, isPortal) = GetSellerTypeSelection();
+        var (isPrivate, isBroker) = GetSellerTypeSelection();
 
         _filterStateService.UpdateFilters(
             IsHausSelected,
@@ -219,16 +218,14 @@ public partial class HomeFilterBarViewModel : ObservableObject
             SelectedAgeFilter,
             SelectedOrte,
             isPrivate,
-            isBroker,
-            isPortal);
+            isBroker);
     }
 
-    private (bool IsPrivate, bool IsBroker, bool IsPortal) GetSellerTypeSelection()
+    private (bool IsPrivate, bool IsBroker) GetSellerTypeSelection()
     {
         return (
             SellerTypes.FirstOrDefault(st => st.Type == SellerType.Private)?.IsSelected ?? true,
-            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true,
-            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Portal)?.IsSelected ?? true
+            SellerTypes.FirstOrDefault(st => st.Type == SellerType.Broker)?.IsSelected ?? true
         );
     }
 }
