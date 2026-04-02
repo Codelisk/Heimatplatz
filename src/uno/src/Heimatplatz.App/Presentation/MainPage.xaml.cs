@@ -39,8 +39,8 @@ public sealed partial class MainPage : Page,
             var navigator = this.Navigator();
             if (navigator != null)
             {
-                await navigator.NavigateRouteAsync(this, "./HeaderLeft/HeaderLeft");
-                await navigator.NavigateRouteAsync(this, "./HeaderRight/HeaderRight");
+                await navigator.NavigateRouteAsync(this, "./menue/menue");
+                await navigator.NavigateRouteAsync(this, "./konto/konto");
 
                 // Explizit zur Home-Route navigieren (SelectedItem setzen reicht nicht)
                 var navViewNavigator = NavView.Navigator();

@@ -48,7 +48,7 @@
                 <!-- HeaderLeft Region: Hamburger/Back + Logo -->
                 <ContentControl Grid.Column="0"
                                 uen:Region.Attached="True"
-                                uen:Region.Name="HeaderLeft"
+                                uen:Region.Name="menue"
                                 VerticalContentAlignment="Center"
                                 AutomationProperties.AutomationId="MainPage.HeaderLeft" />
 
@@ -63,7 +63,7 @@
                 <!-- HeaderRight Region: Auth buttons -->
                 <ContentControl Grid.Column="2"
                                 uen:Region.Attached="True"
-                                uen:Region.Name="HeaderRight"
+                                uen:Region.Name="konto"
                                 VerticalContentAlignment="Center"
                                 AutomationProperties.AutomationId="MainPage.HeaderRight" />
             </Grid>

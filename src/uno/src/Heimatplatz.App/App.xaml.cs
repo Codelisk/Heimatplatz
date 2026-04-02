@@ -366,15 +366,15 @@ public partial class App : Application, IApplicationWithServices
                 Nested:
                 [
                     // Main acts as a region container for app content
-                    new ("Main", View: views.FindByViewModel<MainViewModel>(),
+                    new ("app", View: views.FindByViewModel<MainViewModel>(),
                         IsDefault: true,
                         Nested:
                         [
                             // Header Regions - 3-column layout: Left | Main | Right
-                            new ("HeaderLeft", View: views.FindByView<AppHeaderLeft>()),
-                            new ("HeaderRight", View: views.FindByView<AppHeaderRight>()),
+                            new ("menue", View: views.FindByView<AppHeaderLeft>()),
+                            new ("konto", View: views.FindByView<AppHeaderRight>()),
                             // HeaderMain Route - explicitly navigated when needed
-                            new ("HeaderMain", View: views.FindByViewModel<HomeFilterBarViewModel>()),
+                            new ("filter", View: views.FindByViewModel<HomeFilterBarViewModel>()),
                             // Content pages - NavigationView routes to Content region
                             new ("hauptseite", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
                             new ("meine-immobilien", View: views.FindByViewModel<MyPropertiesViewModel>()),
