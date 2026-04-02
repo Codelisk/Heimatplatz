@@ -9,7 +9,8 @@ namespace Heimatplatz.App.Controls;
 
 /// <summary>
 /// Right part of the AppHeader containing Auth buttons (Login/Register or User Profile).
-/// DataContext (AppHeaderRightViewModel) is set by MainPage via DI.
+/// Shares AppHeaderViewModel with AppHeaderLeft for consistent state.
+/// DataContext (AppHeaderViewModel) is set automatically via Uno Navigation ViewMap.
 /// </summary>
 public sealed partial class AppHeaderRight : UserControl
 {

@@ -370,6 +370,11 @@ public partial class App : Application, IApplicationWithServices
                         IsDefault: true,
                         Nested:
                         [
+                            // Header Regions - 3-column layout: Left | Main | Right
+                            new ("HeaderLeft", View: views.FindByView<AppHeaderLeft>()),
+                            new ("HeaderRight", View: views.FindByView<AppHeaderRight>()),
+                            // HeaderMain Route - explicitly navigated when needed
+                            new ("HeaderMain", View: views.FindByViewModel<HomeFilterBarViewModel>()),
                             // Content pages - NavigationView routes to Content region
                             new ("hauptseite", View: views.FindByViewModel<HomeViewModel>(), IsDefault: true),
                             new ("meine-immobilien", View: views.FindByViewModel<MyPropertiesViewModel>()),
