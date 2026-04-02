@@ -4,8 +4,7 @@ namespace Heimatplatz.App.Controls;
 
 /// <summary>
 /// Left part of the AppHeader containing Hamburger/Back button and Logo/Title.
-/// Shares AppHeaderViewModel with AppHeaderRight for consistent state.
-/// DataContext (AppHeaderViewModel) is set automatically via Uno Navigation ViewMap.
+/// DataContext (AppHeaderLeftViewModel) is set by MainPage via DI.
 /// </summary>
 public sealed partial class AppHeaderLeft : UserControl
 {

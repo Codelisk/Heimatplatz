@@ -1,3 +1,4 @@
+using Heimatplatz.App.Controls;
 using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Controls;
@@ -6,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
+using UnoFramework.Contracts.Application;
 using UnoFramework.Contracts.Pages;
 using Windows.UI.Core;
 
@@ -33,32 +35,27 @@ public sealed partial class MainPage : Page,
         // Handle hardware back button (Android, browser)
         SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
 
-        // Initial zu HeaderLeft, HeaderRight Regions navigieren und Home laden
+        // Header ViewModels aus DI setzen (keine Region-Navigation, damit die URL sauber bleibt)
         Loaded += async (_, _) =>
         {
-            var navigator = this.Navigator();
-            if (navigator != null)
+            if (((IApplicationWithServices)Application.Current).Services is { } services)
             {
-                await navigator.NavigateRouteAsync(this, "./HeaderLeft/HeaderLeft");
-                await navigator.NavigateRouteAsync(this, "./HeaderRight/HeaderRight");
+                HeaderLeftControl.DataContext = services.GetRequiredService<AppHeaderLeftViewModel>();
+                HeaderRightControl.DataContext = services.GetRequiredService<AppHeaderRightViewModel>();
 
-                // Explizit zur Home-Route navigieren (SelectedItem setzen reicht nicht)
-                var navViewNavigator = NavView.Navigator();
-                if (navViewNavigator != null)
-                {
-                    await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
-                }
-            }
-
-            // Subscribe to auth changes to update PaneDisplayMode
-            if (Application.Current is App app && app.Services != null)
-            {
-                _authService = app.Services.GetService<IAuthService>();
+                _authService = services.GetService<IAuthService>();
                 if (_authService != null)
                 {
                     _authService.AuthenticationStateChanged += OnAuthStateChanged;
                     UpdatePaneDisplayMode(_authService.IsAuthenticated);
                 }
+            }
+
+            // Explizit zur Home-Route navigieren
+            var navViewNavigator = NavView.Navigator();
+            if (navViewNavigator != null)
+            {
+                await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
             }
         };
 
