@@ -57,4 +57,9 @@ public class UserFilterPreferences : BaseEntity
     /// JSON array of excluded SellerSource IDs (specific brokers to exclude)
     /// </summary>
     public string ExcludedSellerSourceIdsJson { get; set; } = "[]";
+
+    /// <summary>
+    /// Ausgewaehlte Sortierung (0=Neueste, 1=Aelteste, 2=PreisAuf, etc.)
+    /// </summary>
+    public int SelectedSort { get; set; } = 0;
 }

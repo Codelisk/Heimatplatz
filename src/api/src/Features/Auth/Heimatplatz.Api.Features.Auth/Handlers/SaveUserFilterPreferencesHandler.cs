@@ -52,6 +52,7 @@ public class SaveUserFilterPreferencesHandler(
                 IsPrivateSelected = request.IsPrivateSelected,
                 IsBrokerSelected = request.IsBrokerSelected,
                 ExcludedSellerSourceIdsJson = excludedSourcesJson,
+                SelectedSort = request.SelectedSort,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
@@ -68,6 +69,7 @@ public class SaveUserFilterPreferencesHandler(
             preferences.IsPrivateSelected = request.IsPrivateSelected;
             preferences.IsBrokerSelected = request.IsBrokerSelected;
             preferences.ExcludedSellerSourceIdsJson = excludedSourcesJson;
+            preferences.SelectedSort = request.SelectedSort;
             preferences.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
