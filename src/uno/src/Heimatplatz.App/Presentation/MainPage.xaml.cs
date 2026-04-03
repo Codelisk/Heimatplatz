@@ -42,11 +42,14 @@ public sealed partial class MainPage : Page,
                 await navigator.NavigateRouteAsync(this, "./menue/menue");
                 await navigator.NavigateRouteAsync(this, "./konto/konto");
 
-                // Explizit zur Home-Route navigieren (SelectedItem setzen reicht nicht)
-                var navViewNavigator = NavView.Navigator();
-                if (navViewNavigator != null)
+                // Nur zur Home-Route navigieren wenn kein Deep Link bereits Content geladen hat
+                if (NavigationContent.Content == null)
                 {
-                    await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
+                    var navViewNavigator = NavView.Navigator();
+                    if (navViewNavigator != null)
+                    {
+                        await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
+                    }
                 }
             }
 
