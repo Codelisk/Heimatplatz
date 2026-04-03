@@ -160,8 +160,7 @@ public static class ServiceCollectionExtensions
             logger.LogInformation("Database migrations completed.");
         }
 
-        // Seeding wenn aktiviert (Development)
-        if (options.EnableSeeding)
+        // Seeding: Immer ausfuehren - Seeder sind idempotent und pruefen selbst ob Daten existieren
         {
             logger.LogInformation("Running database seeders...");
             using var scope = app.Services.CreateScope();
