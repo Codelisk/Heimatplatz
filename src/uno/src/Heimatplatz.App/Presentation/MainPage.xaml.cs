@@ -42,12 +42,11 @@ public sealed partial class MainPage : Page,
                 await navigator.NavigateRouteAsync(this, "./menue/menue");
                 await navigator.NavigateRouteAsync(this, "./konto/konto");
 
-                // Deep Link: Browser-URL auslesen und zur passenden Route navigieren
+                // Explizit zur Home-Route navigieren (SelectedItem setzen reicht nicht)
                 var navViewNavigator = NavView.Navigator();
                 if (navViewNavigator != null)
                 {
-                    var initialRoute = GetDeepLinkRoute();
-                    await navViewNavigator.NavigateRouteAsync(NavView, initialRoute);
+                    await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
                 }
             }
 
@@ -225,47 +224,4 @@ public sealed partial class MainPage : Page,
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Liest die Browser-URL aus und gibt die passende Content-Route zurueck.
-    /// Fallback auf "hauptseite" wenn kein gueltiger Deep Link erkannt wird.
-    /// </summary>
-    private static string GetDeepLinkRoute()
-    {
-        try
-        {
-            // Alle geladenen Assemblies nach WebAssemblyRuntime durchsuchen
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                var wasmType = assembly.GetType("Uno.Foundation.WebAssemblyRuntime");
-                if (wasmType == null) continue;
-
-                var invokeJs = wasmType.GetMethod("InvokeJS", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static, null, [typeof(string)], null);
-                if (invokeJs == null) continue;
-
-                var href = invokeJs.Invoke(null, ["window.location.pathname"]) as string;
-                System.Diagnostics.Debug.WriteLine($"[MainPage] Browser pathname: {href}");
-
-                if (!string.IsNullOrEmpty(href))
-                {
-                    var segments = href.Trim('/').Split('/');
-                    if (segments.Length >= 2 && segments[0] == "app")
-                    {
-                        var route = segments[1];
-                        if (!string.IsNullOrEmpty(route))
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[MainPage] Deep link detected: {route}");
-                            return route;
-                        }
-                    }
-                }
-                break;
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[MainPage] Error reading deep link: {ex.Message}");
-        }
-
-        return "hauptseite";
-    }
 }
