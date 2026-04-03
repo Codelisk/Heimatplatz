@@ -233,15 +233,20 @@ public sealed partial class MainPage : Page,
     {
         try
         {
-            // WebAssemblyRuntime.InvokeJS per Reflection aufrufen (nur auf Wasm verfuegbar)
-            var wasmType = Type.GetType("Uno.Foundation.WebAssemblyRuntime, Uno.Foundation.Runtime.WebAssembly");
-            if (wasmType != null)
+            // Alle geladenen Assemblies nach WebAssemblyRuntime durchsuchen
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var invokeJs = wasmType.GetMethod("InvokeJS", [typeof(string)]);
-                var href = invokeJs?.Invoke(null, ["window.location.pathname"]) as string;
+                var wasmType = assembly.GetType("Uno.Foundation.WebAssemblyRuntime");
+                if (wasmType == null) continue;
+
+                var invokeJs = wasmType.GetMethod("InvokeJS", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static, null, [typeof(string)], null);
+                if (invokeJs == null) continue;
+
+                var href = invokeJs.Invoke(null, ["window.location.pathname"]) as string;
+                System.Diagnostics.Debug.WriteLine($"[MainPage] Browser pathname: {href}");
+
                 if (!string.IsNullOrEmpty(href))
                 {
-                    // URL-Format: /app/{route} → erstes Segment nach "app" extrahieren
                     var segments = href.Trim('/').Split('/');
                     if (segments.Length >= 2 && segments[0] == "app")
                     {
@@ -253,6 +258,7 @@ public sealed partial class MainPage : Page,
                         }
                     }
                 }
+                break;
             }
         }
         catch (Exception ex)
