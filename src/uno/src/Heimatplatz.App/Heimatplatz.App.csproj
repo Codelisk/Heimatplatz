@@ -62,6 +62,10 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
     <EmbeddedResource Include="Platforms\WebAssembly\WasmScripts\AppManifest.js" />
   </ItemGroup>
+  <!-- Azure Static Web Apps: SPA fallback routing for deep links -->
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetVersion)-browserwasm'">
+    <Content Include="staticwebapp.config.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="wwwroot\staticwebapp.config.json" />
+  </ItemGroup>
   <!-- Firebase Configuration for Push Notifications -->
   <!-- Android: Download from Firebase Console -> Project Settings -> Your Apps -> Android -->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
