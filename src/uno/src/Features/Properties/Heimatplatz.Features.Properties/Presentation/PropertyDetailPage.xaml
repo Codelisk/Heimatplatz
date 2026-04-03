@@ -45,7 +45,7 @@
                                         <FlipView.ItemTemplate>
                                             <DataTemplate>
                                                 <Image Source="{Binding}"
-                                                       Stretch="UniformToFill" />
+                                                       Stretch="Uniform" />
                                             </DataTemplate>
                                         </FlipView.ItemTemplate>
                                     </FlipView>
@@ -424,7 +424,7 @@
                                         <FlipView.ItemTemplate>
                                             <DataTemplate>
                                                 <Image Source="{Binding}"
-                                                       Stretch="UniformToFill" />
+                                                       Stretch="Uniform" />
                                             </DataTemplate>
                                         </FlipView.ItemTemplate>
                                     </FlipView>
