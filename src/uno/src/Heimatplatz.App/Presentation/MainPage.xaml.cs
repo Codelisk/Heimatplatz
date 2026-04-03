@@ -42,11 +42,12 @@ public sealed partial class MainPage : Page,
                 await navigator.NavigateRouteAsync(this, "./menue/menue");
                 await navigator.NavigateRouteAsync(this, "./konto/konto");
 
-                // Explizit zur Home-Route navigieren (SelectedItem setzen reicht nicht)
+                // Deep Link: Browser-URL auslesen und zur passenden Route navigieren
                 var navViewNavigator = NavView.Navigator();
                 if (navViewNavigator != null)
                 {
-                    await navViewNavigator.NavigateRouteAsync(NavView, "hauptseite");
+                    var initialRoute = GetDeepLinkRoute();
+                    await navViewNavigator.NavigateRouteAsync(NavView, initialRoute);
                 }
             }
 
@@ -222,5 +223,43 @@ public sealed partial class MainPage : Page,
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Liest die Browser-URL aus und gibt die passende Content-Route zurueck.
+    /// Fallback auf "hauptseite" wenn kein gueltiger Deep Link erkannt wird.
+    /// </summary>
+    private static string GetDeepLinkRoute()
+    {
+        try
+        {
+            // WebAssemblyRuntime.InvokeJS per Reflection aufrufen (nur auf Wasm verfuegbar)
+            var wasmType = Type.GetType("Uno.Foundation.WebAssemblyRuntime, Uno.Foundation.Runtime.WebAssembly");
+            if (wasmType != null)
+            {
+                var invokeJs = wasmType.GetMethod("InvokeJS", [typeof(string)]);
+                var href = invokeJs?.Invoke(null, ["window.location.pathname"]) as string;
+                if (!string.IsNullOrEmpty(href))
+                {
+                    // URL-Format: /app/{route} → erstes Segment nach "app" extrahieren
+                    var segments = href.Trim('/').Split('/');
+                    if (segments.Length >= 2 && segments[0] == "app")
+                    {
+                        var route = segments[1];
+                        if (!string.IsNullOrEmpty(route))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[MainPage] Deep link detected: {route}");
+                            return route;
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainPage] Error reading deep link: {ex.Message}");
+        }
+
+        return "hauptseite";
     }
 }
