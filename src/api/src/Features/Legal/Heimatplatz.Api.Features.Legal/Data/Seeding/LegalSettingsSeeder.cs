@@ -25,7 +25,7 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
     private async Task SeedPrivacyPolicyAsync(CancellationToken cancellationToken)
     {
-        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "PrivacyPolicy", cancellationToken))
+        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "PrivacyPolicy" && x.IsActive, cancellationToken))
             return;
 
         var responsibleParty = new ResponsiblePartyDto(
@@ -113,7 +113,7 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
     private async Task SeedImprintAsync(CancellationToken cancellationToken)
     {
-        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "Imprint", cancellationToken))
+        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "Imprint" && x.IsActive, cancellationToken))
             return;
 
         var party = new ImprintPartyDto(
