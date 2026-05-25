@@ -37,7 +37,7 @@
                                             HorizontalAlignment="Stretch">
 
                                     <!-- Back Button -->
-                                    <Button uen:Navigation.Request="-"
+                                    <Button uen:Navigation.Request="/"
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Padding="0"
@@ -351,7 +351,7 @@
 
                                 <!-- Back Button -->
                                 <Button Grid.Column="0"
-                                        uen:Navigation.Request="-"
+                                        uen:Navigation.Request="/"
                                         Background="Transparent"
                                         BorderThickness="0"
                                         Padding="0"
