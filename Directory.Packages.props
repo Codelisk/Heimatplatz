@@ -1,11 +1,12 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftVersion>10.0.5</MicrosoftVersion>
+    <MicrosoftVersion>10.0.8</MicrosoftVersion>
     <MicrosoftExtensionsVersion>10.2.0</MicrosoftExtensionsVersion>
     <AspireVersion>13.1.0</AspireVersion>
     <OpenTelemetryVersion>1.14.0</OpenTelemetryVersion>
-    <ShinyMediatorVersion>6.2.0-beta-0003</ShinyMediatorVersion>
+	  <ShinyMediatorVersion>6.4.0</ShinyMediatorVersion>
+	  <ShinyExtensionsVersion>4.0.0-beta-0056</ShinyExtensionsVersion>
     <ShinyPushVersion>4.0.0-beta-0095</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.10.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
@@ -15,8 +16,8 @@
     <PackageVersion Include="Shiny.Mediator" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Mediator.AspNet" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Mediator.Contracts" Version="$(ShinyMediatorVersion)" />
-    <PackageVersion Include="Shiny.Extensions.DependencyInjection" Version="2.0.0-beta-0001" />
-    <PackageVersion Include="Shiny.Extensions.Stores" Version="2.0.0-beta-0001" />
+    <PackageVersion Include="Shiny.Extensions.DependencyInjection" Version="$(ShinyExtensionsVersion)" />
+    <PackageVersion Include="Shiny.Extensions.Stores" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Hosting.Native" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Reflector" Version="1.7.1" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
