@@ -111,8 +111,9 @@ public partial class LoginViewModel : ObservableObject
             Email = string.Empty;
             Passwort = string.Empty;
 
-            // Zurueck zur HomePage navigieren
-            await _navigator.NavigateBackAsync(this);
+            // Zur HomePage navigieren. NavigateBackAsync funktioniert hier nicht,
+            // weil Auth-Pages am Shell-Level liegen (kein Pop-History-Eintrag).
+            await _navigator.NavigateRouteAsync(this, "/");
         }
         catch (Exception ex)
         {

@@ -186,9 +186,9 @@ public partial class RegisterViewModel : ObservableObject
                 _logger.LogWarning(pushEx, "Push Notifications konnten nicht initialisiert werden (nicht auf dieser Plattform verfuegbar)");
             }
 
-            // Zurueck zur HomePage navigieren (2x Back: Register -> Login -> Home)
-            await _navigator.NavigateBackAsync(this);
-            await _navigator.NavigateBackAsync(this);
+            // Zur HomePage navigieren. NavigateBackAsync funktioniert hier nicht,
+            // weil Auth-Pages am Shell-Level liegen (kein Pop-History-Eintrag).
+            await _navigator.NavigateRouteAsync(this, "/");
         }
         catch (Exception ex)
         {
