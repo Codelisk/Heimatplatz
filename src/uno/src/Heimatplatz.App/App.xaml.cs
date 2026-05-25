@@ -61,8 +61,12 @@ public partial class App : Application, IApplicationWithServices
     /// <summary>
     /// Gets the service provider for the application.
     /// Implements IApplicationWithServices for framework-level service access.
+    /// Falls back to <see cref="Heimatplatz.Core.Startup.Services.ApplicationServiceProvider.Current"/>
+    /// damit <c>Services</c> bereits waehrend der initialen Navigation verfuegbar ist
+    /// (App.Host wird erst nach <c>await NavigateAsync&lt;Shell&gt;()</c> zugewiesen).
     /// </summary>
-    public IServiceProvider? Services => Host?.Services;
+    public IServiceProvider? Services
+        => Host?.Services ?? Heimatplatz.Core.Startup.Services.ApplicationServiceProvider.Current;
 
     protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {

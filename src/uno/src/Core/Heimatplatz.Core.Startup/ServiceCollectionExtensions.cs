@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shiny.Mediator.Infrastructure;
 using Shiny.Mediator.Infrastructure.Impl;
+using Uno.Extensions.Hosting;
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
 #endif
@@ -23,6 +24,12 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
     {
+        // IServiceInitialize: ApplicationServiceProvider.Current wird gesetzt, sobald
+        // der IHost gebaut ist - lange bevor die initiale Navigation abgeschlossen ist.
+        // Wird benoetigt fuer Code-Pfade, die VOR App.Host-Assignment laufen
+        // (z.B. MainPage.Loaded waehrend NavigateAsync<Shell>).
+        services.AddSingleton<IServiceInitialize, Services.ApplicationServiceProvider>();
+
         // Auto-register services with [Service] attribute
         // This also registers AggregatingHttpRequestDecorator which implements IHttpRequestDecorator
         // and fixes DateTimeOffset query parameter serialization for Shiny.Mediator HTTP requests

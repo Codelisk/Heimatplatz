@@ -5,13 +5,12 @@
              xmlns:utu="using:Uno.Toolkit.UI">
 
     <!--
-    HomeFilterBar - Filter-Leiste für den AppHeader (Desktop-Modus)
+    HomeFilterBar - Filter-Leiste für den AppHeader (Tablet/Desktop).
     Hat eigenes ViewModel (HomeFilterBarViewModel) via Uno Navigation.
-    Nur sichtbar auf Wide (905px+) Bildschirmen.
+    Visibility wird vom umschliessenden HeaderMainContent (MainPage) gesteuert.
     -->
 
     <StackPanel Orientation="Horizontal"
-                Visibility="{utu:Responsive Normal=Collapsed, Widest=Visible}"
                 Spacing="8"
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="HomeFilterBar_Root">
