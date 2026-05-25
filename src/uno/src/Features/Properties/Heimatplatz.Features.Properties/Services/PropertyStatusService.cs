@@ -1,7 +1,7 @@
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Features.Properties.Services;

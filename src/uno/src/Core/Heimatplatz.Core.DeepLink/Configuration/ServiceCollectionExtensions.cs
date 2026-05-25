@@ -13,8 +13,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddDeepLinkFeature(this IServiceCollection services)
     {
-        // DeepLinkService wird automatisch via [Service] Attribut registriert
-        // Diese Methode dient als expliziter Entry Point fuer das Feature
+        services.AddGeneratedServices();
         return services;
     }
 }

@@ -7,6 +7,8 @@
     <TargetFramework>$(NetVersion)</TargetFramework>
     <!-- Define API for platform-specific code -->
     <DefineConstants>$(DefineConstants);API</DefineConstants>
+    <!-- CS8669: nullable annotation in generated code without #nullable directive (Shiny.Extensions.DependencyInjection source generator) -->
+    <NoWarn>$(NoWarn);CS8669</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

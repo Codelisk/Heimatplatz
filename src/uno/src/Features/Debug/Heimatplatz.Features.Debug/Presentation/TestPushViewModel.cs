@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Core.ApiClient.Generated;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 

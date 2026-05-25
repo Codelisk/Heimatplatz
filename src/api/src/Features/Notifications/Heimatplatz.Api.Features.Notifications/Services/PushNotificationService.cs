@@ -10,7 +10,7 @@ using Heimatplatz.Api.Features.Properties.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Api.Features.Notifications.Services;
 

@@ -1,7 +1,7 @@
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace Heimatplatz.Features.Properties.Services;

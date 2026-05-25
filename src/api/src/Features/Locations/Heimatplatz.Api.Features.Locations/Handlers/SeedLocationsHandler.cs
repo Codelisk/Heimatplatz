@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Locations.Handlers;

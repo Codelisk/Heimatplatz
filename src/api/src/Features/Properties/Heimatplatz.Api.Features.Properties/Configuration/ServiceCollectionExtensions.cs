@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddPropertiesFeature(this IServiceCollection services)
     {
-        // Handler werden automatisch via [MediatorScoped] Attribut und AddMediatorRegistry() registriert
+        services.AddGeneratedServices();
 
         // Seeder registrieren
         services.AddSeeder<SellerSourceSeeder>();

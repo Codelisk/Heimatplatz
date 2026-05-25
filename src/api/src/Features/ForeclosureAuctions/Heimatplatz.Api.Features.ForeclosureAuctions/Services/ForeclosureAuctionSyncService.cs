@@ -11,7 +11,7 @@ using Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 

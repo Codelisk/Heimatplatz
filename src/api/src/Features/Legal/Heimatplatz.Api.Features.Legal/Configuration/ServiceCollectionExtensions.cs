@@ -8,6 +8,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddLegalFeature(this IServiceCollection services)
     {
+        services.AddGeneratedServices();
+
         // Seeder registrieren
         services.AddSeeder<LegalSettingsSeeder>();
 

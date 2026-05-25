@@ -1,6 +1,6 @@
 using Heimatplatz.Features.Properties.Contracts.Models;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Uno.Extensions.Navigation;
 
 namespace Heimatplatz.Core.DeepLink.Services;

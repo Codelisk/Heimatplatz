@@ -5,7 +5,7 @@ using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Debug.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 using Uno.Extensions.Navigation;
 using Windows.Storage;

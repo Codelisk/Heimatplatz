@@ -3,7 +3,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Api.Features.Properties.Services;
 

@@ -1,6 +1,6 @@
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Contracts.Models;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Features.Properties.Services;
 

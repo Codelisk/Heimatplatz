@@ -1,5 +1,5 @@
 using Heimatplatz.Features.Properties.Contracts.Interfaces;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace Heimatplatz.Features.Properties.Services;

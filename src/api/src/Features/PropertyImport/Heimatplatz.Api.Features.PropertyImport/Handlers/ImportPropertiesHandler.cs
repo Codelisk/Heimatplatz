@@ -12,7 +12,7 @@ using Heimatplatz.Api.Features.PropertyImport.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.PropertyImport.Handlers;

@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAuthFeature(this IServiceCollection services)
     {
-        services.AddShinyServiceRegistry();
+        services.AddGeneratedServices();
         // ViewModels werden automatisch via [Service] Attribut registriert
         return services;
     }

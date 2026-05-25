@@ -3,7 +3,7 @@ using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.SrealListings.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.SrealListings.Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.SrealListings.Handlers;

@@ -6,7 +6,7 @@ using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Api.Features.Auth.Services;
 

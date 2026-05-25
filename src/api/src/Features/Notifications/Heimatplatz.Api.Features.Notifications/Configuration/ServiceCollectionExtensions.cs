@@ -17,8 +17,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Services and handlers are registered automatically via [Service] attributes
-        // Entity configurations are discovered automatically by EF Core
+        services.AddGeneratedServices();
 
         // Configure push notification providers (Firebase + APNs)
         services.AddPushProviders(configuration);

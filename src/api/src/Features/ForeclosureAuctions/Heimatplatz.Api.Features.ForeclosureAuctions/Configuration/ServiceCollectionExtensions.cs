@@ -12,6 +12,8 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddGeneratedServices();
+
         // Scraping-Konfiguration
         services.Configure<ScrapingOptions>(configuration.GetSection(ScrapingOptions.SectionName));
 

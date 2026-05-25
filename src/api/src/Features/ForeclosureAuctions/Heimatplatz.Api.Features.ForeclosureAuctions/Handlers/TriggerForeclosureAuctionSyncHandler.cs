@@ -2,7 +2,7 @@ using Heimatplatz.Api;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.ForeclosureAuctions.Handlers;

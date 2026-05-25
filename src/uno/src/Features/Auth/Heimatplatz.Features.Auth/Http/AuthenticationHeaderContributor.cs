@@ -1,7 +1,7 @@
 using Heimatplatz;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Http;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Features.Auth.Http;
 

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Heimatplatz.Api;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Api.Features.Auth.Services;
 

@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAuthFeature(this IServiceCollection services)
     {
-        // Handler und Services werden automatisch via [Service] Attribut und AddShinyServiceRegistry() registriert
+        services.AddGeneratedServices();
 
         // Seeder registrieren
         services.AddSeeder<UserSeeder>();

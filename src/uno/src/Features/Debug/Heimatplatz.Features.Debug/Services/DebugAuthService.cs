@@ -4,7 +4,7 @@ using System.Security.Claims;
 using Heimatplatz.Core.ApiClient.Generated;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Features.Debug.Services;

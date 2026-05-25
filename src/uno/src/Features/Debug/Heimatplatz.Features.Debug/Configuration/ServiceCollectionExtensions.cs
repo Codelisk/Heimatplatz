@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Heimatplatz.Features.Properties.Configuration;
+namespace Heimatplatz.Features.Debug.Configuration;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddPropertiesFeature(this IServiceCollection services)
+    public static IServiceCollection AddDebugFeature(this IServiceCollection services)
     {
         services.AddGeneratedServices();
         return services;

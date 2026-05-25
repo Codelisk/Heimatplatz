@@ -3,7 +3,7 @@ using Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
 using Microsoft.EntityFrameworkCore;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Auth.Handlers;

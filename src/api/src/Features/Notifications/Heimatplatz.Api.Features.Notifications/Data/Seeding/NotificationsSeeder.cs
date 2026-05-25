@@ -6,7 +6,7 @@ using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Notifications.Contracts;
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Api.Features.Notifications.Data.Seeding;
 

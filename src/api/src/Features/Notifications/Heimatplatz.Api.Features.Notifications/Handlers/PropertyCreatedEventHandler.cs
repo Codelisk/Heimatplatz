@@ -2,7 +2,7 @@ using Heimatplatz.Api;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
 using Heimatplatz.Api.Features.Notifications.Services;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Notifications.Handlers;

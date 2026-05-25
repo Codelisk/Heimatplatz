@@ -19,6 +19,7 @@ using Windows.ApplicationModel.Activation;
 using Shiny;
 #endif
 #if DEBUG
+using Heimatplatz.Features.Debug.Configuration;
 using Heimatplatz.Features.Debug.Presentation;
 #endif
 
@@ -118,6 +119,9 @@ public partial class App : Application, IApplicationWithServices
                     }
 #endif
                     services.AddAppServices(context.Configuration);
+#if DEBUG
+                    services.AddDebugFeature();
+#endif
                 })
                 .UseNavigation(RegisterRoutes)
             );

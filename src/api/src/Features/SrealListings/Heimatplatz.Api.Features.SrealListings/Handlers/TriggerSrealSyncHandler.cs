@@ -2,7 +2,7 @@ using Heimatplatz.Api;
 using Heimatplatz.Api.Features.SrealListings.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.SrealListings.Services;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.SrealListings.Handlers;

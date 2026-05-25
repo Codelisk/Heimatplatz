@@ -7,7 +7,7 @@ using Heimatplatz.Api.Features.Auth.Services;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Auth.Handlers;

@@ -5,7 +5,7 @@ using Heimatplatz.Api.Features.Legal.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Legal.Contracts.Models;
 using Heimatplatz.Api.Features.Legal.Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Legal.Handlers;

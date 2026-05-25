@@ -7,7 +7,7 @@ using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Notifications.Handlers;

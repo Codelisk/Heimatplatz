@@ -9,7 +9,7 @@ using Heimatplatz.Api.Features.SrealListings.Contracts;
 using Heimatplatz.Api.Features.SrealListings.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Shiny.Extensions.DependencyInjection;
+using Shiny;
 
 namespace Heimatplatz.Api.Features.SrealListings.Services;
 

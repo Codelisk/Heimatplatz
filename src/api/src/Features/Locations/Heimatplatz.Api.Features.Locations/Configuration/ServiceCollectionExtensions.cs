@@ -14,6 +14,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddLocationsFeature(this IServiceCollection services)
     {
+        services.AddGeneratedServices();
+
         // HttpClient fuer OpenPLZ API Import
         services.AddHttpClient();
 

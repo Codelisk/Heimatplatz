@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
         // Auto-register services with [Service] attribute
         // This also registers AggregatingHttpRequestDecorator which implements IHttpRequestDecorator
         // and fixes DateTimeOffset query parameter serialization for Shiny.Mediator HTTP requests
-        services.AddShinyServiceRegistry();
+        services.AddGeneratedServices();
 
         // Register ISerializerService BEFORE AddShinyMediator so TryAddSingleton becomes a no-op.
         // The explicit DefaultJsonTypeInfoResolver ensures JSON deserialization works in WASM

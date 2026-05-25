@@ -12,8 +12,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddPropertyImportFeature(this IServiceCollection services)
     {
-        // Handler werden automatisch via [MediatorScoped] Attribut und AddMediatorRegistry() registriert
-
+        services.AddGeneratedServices();
         return services;
     }
 }
