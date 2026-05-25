@@ -52,12 +52,12 @@
                                 VerticalContentAlignment="Center"
                                 AutomationProperties.AutomationId="MainPage.HeaderLeft" />
 
-                <!-- HeaderMain Region: Page-specific content (Widest screens only, ≥1080px) -->
+                <!-- HeaderMain Region: ungenutzt (Filter zeigt sich inline in HomePage) -->
                 <ContentControl x:Name="HeaderMainContent"
                                 Grid.Column="1"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                Visibility="{utu:Responsive Narrowest=Collapsed, Narrow=Collapsed, Normal=Collapsed, Wide=Collapsed, Widest=Visible}"
+                                Visibility="Collapsed"
                                 AutomationProperties.AutomationId="MainPage.HeaderMain" />
 
                 <!-- HeaderRight Region: Auth buttons -->

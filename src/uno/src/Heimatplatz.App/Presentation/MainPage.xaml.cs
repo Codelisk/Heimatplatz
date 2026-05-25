@@ -219,9 +219,11 @@ public sealed partial class MainPage : Page,
 
     /// <summary>
     /// Stellt sicher, dass die HomeFilterBar als HeaderMain Content gesetzt ist.
-    /// Wird sowohl beim Loaded als auch bei PageNavigatedEvent aufgerufen, damit
-    /// der Desktop-Filter (Widest Breakpoint) zuverlaessig sichtbar ist - auch
-    /// bevor das erste PageNavigatedEvent feuert.
+    /// Wird verwendet, falls der HeaderMain auf Tablet/Desktop irgendwann reaktiviert
+    /// werden soll. Aktuell ist HeaderMain in MainPage.xaml auf Collapsed gesetzt,
+    /// und der Filter wird inline in HomePage angezeigt - das funktioniert ohne
+    /// Abhaengigkeit von <c>App.Host</c>, das beim initialen Start lange null bleibt
+    /// (NavigateAsync&lt;Shell&gt; kehrt erst nach vollstaendiger Navigation zurueck).
     /// </summary>
     private void EnsureHeaderMainContent()
     {
@@ -231,7 +233,6 @@ public sealed partial class MainPage : Page,
         if (Application.Current is not App app || app.Services == null)
             return;
 
-        System.Diagnostics.Debug.WriteLine("[MainPage] Setting HeaderMain content to HomeFilterBar");
         var filterBar = new HomeFilterBar
         {
             DataContext = app.Services.GetRequiredService<HomeFilterBarViewModel>()
