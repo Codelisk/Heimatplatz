@@ -45,10 +45,11 @@
                     <ColumnDefinition Width="Auto" />  <!-- HeaderRight -->
                 </Grid.ColumnDefinitions>
 
-                <!-- HeaderLeft Region: Hamburger/Back + Logo -->
-                <ContentControl Grid.Column="0"
-                                uen:Region.Attached="True"
-                                uen:Region.Name="menue"
+                <!-- HeaderLeft Region: Hamburger/Back + Logo (Content wird programmatisch in
+                     MainPage.xaml.cs gesetzt, da Region-basierte Navigation aktuell nicht
+                     zuverlaessig laeuft - siehe EnsureHeaderRegions) -->
+                <ContentControl x:Name="HeaderLeftContent"
+                                Grid.Column="0"
                                 VerticalContentAlignment="Center"
                                 AutomationProperties.AutomationId="MainPage.HeaderLeft" />
 
@@ -61,9 +62,8 @@
                                 AutomationProperties.AutomationId="MainPage.HeaderMain" />
 
                 <!-- HeaderRight Region: Auth buttons -->
-                <ContentControl Grid.Column="2"
-                                uen:Region.Attached="True"
-                                uen:Region.Name="konto"
+                <ContentControl x:Name="HeaderRightContent"
+                                Grid.Column="2"
                                 VerticalContentAlignment="Center"
                                 AutomationProperties.AutomationId="MainPage.HeaderRight" />
             </Grid>

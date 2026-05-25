@@ -1,3 +1,4 @@
+using Heimatplatz.App.Controls;
 using Heimatplatz.Events;
 using Heimatplatz.Features.Auth.Contracts.Interfaces;
 using Heimatplatz.Features.Properties.Controls;
@@ -40,12 +41,16 @@ public sealed partial class MainPage : Page,
             // sofort sichtbar ist (vor dem ersten PageNavigatedEvent).
             EnsureHeaderMainContent();
 
+            // HeaderLeft/Right Content programmatisch befuellen (Region-basierte Navigation
+            // ueber "./menue" / "./konto" laed den View nicht zuverlaessig in die ContentControls,
+            // weil das initiale `await NavigateAsync<Shell>` haengt und der Navigator dadurch
+            // die regions nicht aufloest. Wir setzen die Inhalte direkt - so funktioniert auch
+            // der Back-Button auf Detail-Pages).
+            EnsureHeaderRegionContents();
+
             var navigator = this.Navigator();
             if (navigator != null)
             {
-                await navigator.NavigateRouteAsync(this, "./menue/menue");
-                await navigator.NavigateRouteAsync(this, "./konto/konto");
-
                 // Explizit zur Home-Route navigieren (SelectedItem setzen reicht nicht)
                 var navViewNavigator = NavView.Navigator();
                 if (navViewNavigator != null)
@@ -238,6 +243,33 @@ public sealed partial class MainPage : Page,
             DataContext = app.Services.GetRequiredService<HomeFilterBarViewModel>()
         };
         HeaderMainContent.Content = filterBar;
+    }
+
+    /// <summary>
+    /// Setzt AppHeaderLeft (Hamburger/Back/Logo) und AppHeaderRight (Auth-Buttons)
+    /// direkt als Content der entsprechenden ContentControls. Bypasses die Uno
+    /// Region-Navigation, die zur initialen Loaded-Zeit nicht zuverlaessig laeuft.
+    /// </summary>
+    private void EnsureHeaderRegionContents()
+    {
+        if (Application.Current is not App app || app.Services == null)
+            return;
+
+        if (HeaderLeftContent.Content is not AppHeaderLeft)
+        {
+            HeaderLeftContent.Content = new AppHeaderLeft
+            {
+                DataContext = app.Services.GetRequiredService<AppHeaderLeftViewModel>()
+            };
+        }
+
+        if (HeaderRightContent.Content is not AppHeaderRight)
+        {
+            HeaderRightContent.Content = new AppHeaderRight
+            {
+                DataContext = app.Services.GetRequiredService<AppHeaderRightViewModel>()
+            };
+        }
     }
 
 }
