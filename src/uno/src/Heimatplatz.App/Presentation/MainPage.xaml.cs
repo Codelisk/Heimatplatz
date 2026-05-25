@@ -36,6 +36,10 @@ public sealed partial class MainPage : Page,
         // Initial zu HeaderLeft, HeaderRight Regions navigieren und Home laden
         Loaded += async (_, _) =>
         {
+            // HeaderMain eager vorab fuellen, damit der Desktop-Filter bei Widest
+            // sofort sichtbar ist (vor dem ersten PageNavigatedEvent).
+            EnsureHeaderMainContent();
+
             var navigator = this.Navigator();
             if (navigator != null)
             {
@@ -198,18 +202,7 @@ public sealed partial class MainPage : Page,
         // HeaderMain Content direkt setzen (nicht über Navigation, da das Content-Region überschreibt)
         if (mainHeaderViewModel == typeof(HomeFilterBarViewModel))
         {
-            // HomeFilterBar nur setzen wenn noch nicht vorhanden
-            if (HeaderMainContent.Content is not HomeFilterBar)
-            {
-                System.Diagnostics.Debug.WriteLine("[MainPage] Setting HeaderMain content to HomeFilterBar");
-                var filterBar = new HomeFilterBar();
-                // ViewModel aus DI-Container holen und als DataContext setzen
-                if (Application.Current is App app && app.Services != null)
-                {
-                    filterBar.DataContext = app.Services.GetRequiredService<HomeFilterBarViewModel>();
-                }
-                HeaderMainContent.Content = filterBar;
-            }
+            EnsureHeaderMainContent();
         }
         else
         {
@@ -222,6 +215,28 @@ public sealed partial class MainPage : Page,
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Stellt sicher, dass die HomeFilterBar als HeaderMain Content gesetzt ist.
+    /// Wird sowohl beim Loaded als auch bei PageNavigatedEvent aufgerufen, damit
+    /// der Desktop-Filter (Widest Breakpoint) zuverlaessig sichtbar ist - auch
+    /// bevor das erste PageNavigatedEvent feuert.
+    /// </summary>
+    private void EnsureHeaderMainContent()
+    {
+        if (HeaderMainContent.Content is HomeFilterBar)
+            return;
+
+        if (Application.Current is not App app || app.Services == null)
+            return;
+
+        System.Diagnostics.Debug.WriteLine("[MainPage] Setting HeaderMain content to HomeFilterBar");
+        var filterBar = new HomeFilterBar
+        {
+            DataContext = app.Services.GetRequiredService<HomeFilterBarViewModel>()
+        };
+        HeaderMainContent.Content = filterBar;
     }
 
 }

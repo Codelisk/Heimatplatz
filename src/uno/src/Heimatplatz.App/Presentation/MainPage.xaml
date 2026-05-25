@@ -52,12 +52,12 @@
                                 VerticalContentAlignment="Center"
                                 AutomationProperties.AutomationId="MainPage.HeaderLeft" />
 
-                <!-- HeaderMain Region: Page-specific content (Wide screens only) -->
+                <!-- HeaderMain Region: Page-specific content (Widest screens only, ≥1080px) -->
                 <ContentControl x:Name="HeaderMainContent"
                                 Grid.Column="1"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                Visibility="{utu:Responsive Normal=Collapsed, Widest=Visible}"
+                                Visibility="{utu:Responsive Narrowest=Collapsed, Narrow=Collapsed, Normal=Collapsed, Wide=Collapsed, Widest=Visible}"
                                 AutomationProperties.AutomationId="MainPage.HeaderMain" />
 
                 <!-- HeaderRight Region: Auth buttons -->
