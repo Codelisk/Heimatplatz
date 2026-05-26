@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -29,6 +30,11 @@ public static class ServiceCollectionExtensions
             {
                 options.UseSqlServer(connectionString);
             }
+
+            // PendingModelChangesWarning unterdruecken: die FixProductionSchemaDrift-Migration
+            // hat absichtlich keinen aktualisierten Model-Snapshot, weil sie keine Entity-Aenderungen
+            // vornimmt (nur idempotenten Schema-Sync per Raw-SQL).
+            options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
         return services;
