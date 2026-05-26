@@ -16,7 +16,9 @@ using Uno.Resizetizer;
 using UnoFramework.Contracts.Application;
 using Windows.ApplicationModel.Activation;
 #if __ANDROID__ || __IOS__ || __MACCATALYST__
+using Microsoft.Extensions.Logging;
 using Shiny;
+using Shiny.Hosting;
 #endif
 #if DEBUG
 using Heimatplatz.Features.Debug.Configuration;
@@ -56,7 +58,7 @@ public partial class App : Application, IApplicationWithServices
 
     public static Window? MainWindow { get; private set; }
 
-    public IHost? Host { get; private set; }
+    public Microsoft.Extensions.Hosting.IHost? Host { get; private set; }
 
     /// <summary>
     /// Gets the service provider for the application.
@@ -145,43 +147,44 @@ public partial class App : Application, IApplicationWithServices
             Log.CloseAndFlush();
         };
 
-#if __ANDROID__
-        // Initialize Shiny for Android push notifications
-        System.Diagnostics.Debug.WriteLine("[App] Android: Checking Shiny init conditions...");
-        System.Diagnostics.Debug.WriteLine($"[App] Android.App.Application.Context type: {Android.App.Application.Context?.GetType()?.FullName ?? "null"}");
-        System.Diagnostics.Debug.WriteLine($"[App] Host?.Services is null: {Host?.Services == null}");
-
-        if (Android.App.Application.Context is Android.App.Application app && Host?.Services != null)
-        {
-            System.Diagnostics.Debug.WriteLine("[App] Android: Initializing Shiny...");
-            // Get current activity from Uno Platform
-            var currentActivity = Uno.UI.ContextHelper.Current as Android.App.Activity;
-            AndroidShinyHost.Init(app, Host.Services, currentActivity);
-            Host.Services.GetRequiredService<IShinyReadinessService>().SignalReady();
-            System.Diagnostics.Debug.WriteLine("[App] Android: Shiny initialized successfully");
-
-            // Check for app updates via Mediator (fire-and-forget, non-blocking)
-            _ = Host.Services.GetRequiredService<IMediator>().Send(new CheckForAppUpdateCommand());
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("[App] Android: Shiny init skipped - conditions not met");
-        }
-#elif __IOS__ || __MACCATALYST__
-        // Initialize Shiny for iOS/Mac push notifications
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+        // Shiny 4.0 Manual Hosting: setze Host.Current direkt aus dem Uno-IServiceProvider.
+        // ShinyUnoExtensions.AddShinyUno() in AddAppServices hat AddShinyCoreServices()
+        // bereits aufgerufen, sodass AndroidPlatform/IosPlatform + AndroidLifecycleExecutor/
+        // IosLifecycleExecutor in der DI registriert sind. Host.Run() setzt Host.Current
+        // und startet alle IShinyStartupTask (z.B. AndroidLifecycleExecutor).
         if (Host?.Services != null)
         {
-            IosShinyHost.Init(Host.Services);
+            System.Diagnostics.Debug.WriteLine("[App] Mobile: Initializing Shiny Host...");
+            try
+            {
+                var loggerFactory = Host.Services.GetRequiredService<ILoggerFactory>();
+                var shinyHost = new Shiny.Hosting.Host(Host.Services, loggerFactory);
+                shinyHost.Run();
+                System.Diagnostics.Debug.WriteLine("[App] Mobile: Shiny Host initialized");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[App] Mobile: Shiny Host init FAILED: {ex}");
+            }
 
+#if __IOS__ || __MACCATALYST__
             // Set UNUserNotificationCenterDelegate so foreground push notifications are shown
-            // Shiny's IosShinyHost no longer sets this automatically
             UserNotifications.UNUserNotificationCenter.Current.Delegate =
                 new Heimatplatz.App.iOS.PushNotificationCenterDelegate();
+#endif
+
+#if __ANDROID__
+            Host.Services.GetRequiredService<IShinyReadinessService>().SignalReady();
+            // Check for app updates via Mediator (fire-and-forget, non-blocking)
+            _ = Host.Services.GetRequiredService<IMediator>().Send(new CheckForAppUpdateCommand());
+#elif __IOS__ || __MACCATALYST__
 #if DEBUG
             // Auto-login BEFORE SignalReady so push registration has valid tokens
             _ = AutoLoginThenSignalReadyAsync();
 #else
             Host.Services.GetRequiredService<IShinyReadinessService>().SignalReady();
+#endif
 #endif
         }
 #else

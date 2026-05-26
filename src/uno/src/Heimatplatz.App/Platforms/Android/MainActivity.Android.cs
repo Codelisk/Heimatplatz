@@ -3,7 +3,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
-using Shiny;
+using ShinyHost = Shiny.Hosting.Host;
 
 namespace Heimatplatz.App.Droid;
 
@@ -40,7 +40,7 @@ public class MainActivity : Microsoft.UI.Xaml.ApplicationActivity
         base.OnCreate(savedInstanceState);
 
         // Shiny lifecycle hook
-        AndroidShinyHost.OnActivityOnCreate(this, savedInstanceState);
+        ShinyHost.Lifecycle.OnActivityOnCreate(this, savedInstanceState);
     }
 
     protected override void OnNewIntent(Intent? intent)
@@ -48,7 +48,7 @@ public class MainActivity : Microsoft.UI.Xaml.ApplicationActivity
         base.OnNewIntent(intent);
 
         // Shiny lifecycle hook
-        AndroidShinyHost.OnNewIntent(this, intent);
+        ShinyHost.Lifecycle.OnNewIntent(this, intent);
     }
 
     public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
@@ -56,7 +56,7 @@ public class MainActivity : Microsoft.UI.Xaml.ApplicationActivity
         base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
         // Shiny lifecycle hook for permission results
-        AndroidShinyHost.OnRequestPermissionsResult(this, requestCode, permissions, grantResults);
+        ShinyHost.Lifecycle.OnRequestPermissionsResult(this, requestCode, permissions, grantResults);
     }
 
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
@@ -64,6 +64,6 @@ public class MainActivity : Microsoft.UI.Xaml.ApplicationActivity
         base.OnActivityResult(requestCode, resultCode, data);
 
         // Shiny lifecycle hook
-        AndroidShinyHost.OnActivityResult(this, requestCode, resultCode, data);
+        ShinyHost.Lifecycle.OnActivityResult(this, requestCode, resultCode, data);
     }
 }

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+using Shiny.Infrastructure;
+#endif
 
 namespace Shiny;
 
@@ -14,23 +16,17 @@ public static class ShinyUnoExtensions
     /// Call this in ConfigureServices to enable Shiny on Uno Platform.
     /// </summary>
     /// <remarks>
-    /// On Android, you MUST also call AndroidShinyHost.Init(app, services) in your
-    /// Application class constructor BEFORE this is called.
-    /// On iOS/Mac, you MUST also call IosShinyHost.Init(services) in OnLaunched.
+    /// Nach app.Build() muss in App.xaml.cs OnLaunched ein <c>Shiny.Hosting.Host</c>
+    /// gegen den Uno-IServiceProvider gestartet werden, damit <c>Host.Current</c>
+    /// und <c>Host.Lifecycle</c> verfuegbar sind.
     /// </remarks>
     public static IServiceCollection AddShinyUno(this IServiceCollection services)
     {
-#if __ANDROID__
-        // Add platform implementation - register as both interface and concrete type
-        // PushManager needs AndroidPlatform directly (not IPlatform)
-        var platform = new AndroidPlatform();
-        services.TryAddSingleton(platform);
-        services.TryAddSingleton<IPlatform>(platform);
-#elif __IOS__ || __MACCATALYST__
-        // Add platform implementation for iOS/Mac
-        var platform = new ApplePlatform();
-        services.TryAddSingleton(platform);
-        services.TryAddSingleton<IPlatform>(platform);
+#if __ANDROID__ || __IOS__ || __MACCATALYST__
+        // Registriert AndroidPlatform/IosPlatform + AndroidLifecycleExecutor/IosLifecycleExecutor
+        // + KeyValueStores (Settings/Secure). Identisch zu dem was HostBuilder.Build()
+        // intern macht; wir bauen hier aber direkt mit der Uno-DI.
+        services.AddShinyCoreServices();
 #endif
         return services;
     }

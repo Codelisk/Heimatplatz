@@ -1,7 +1,7 @@
 #if __IOS__
 using Foundation;
-using Shiny;
 using UIKit;
+using ShinyHost = Shiny.Hosting.Host;
 
 namespace Heimatplatz.App.iOS;
 
@@ -22,7 +22,7 @@ public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationD
         Console.WriteLine($"[ShinyAppDelegate] RegisteredForRemoteNotifications called with token length: {deviceToken?.Length ?? 0}");
         try
         {
-            IosShinyHost.OnRegisteredForRemoteNotifications(deviceToken!);
+            ShinyHost.Lifecycle.OnRegisteredForRemoteNotifications(deviceToken!);
             Console.WriteLine("[ShinyAppDelegate] OnRegisteredForRemoteNotifications completed successfully");
         }
         catch (Exception ex)
@@ -36,7 +36,7 @@ public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationD
         Console.WriteLine($"[ShinyAppDelegate] FailedToRegisterForRemoteNotifications: {error}");
         try
         {
-            IosShinyHost.OnFailedToRegisterForRemoteNotifications(error);
+            ShinyHost.Lifecycle.OnFailedToRegisterForRemoteNotifications(error);
         }
         catch (Exception ex)
         {
@@ -47,12 +47,12 @@ public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationD
     public override void DidReceiveRemoteNotification(UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler)
     {
         Console.WriteLine("[ShinyAppDelegate] DidReceiveRemoteNotification called");
-        IosShinyHost.OnDidReceiveRemoteNotification(userInfo, completionHandler);
+        ShinyHost.Lifecycle.OnDidReceiveRemoteNotification(userInfo, completionHandler);
     }
 
     public override bool ContinueUserActivity(UIApplication application, NSUserActivity userActivity, UIApplicationRestorationHandler completionHandler)
     {
-        if (IosShinyHost.OnContinueUserActivity(userActivity, completionHandler))
+        if (ShinyHost.Lifecycle.OnContinueUserActivity(userActivity, completionHandler))
             return true;
 
         return base.ContinueUserActivity(application, userActivity, completionHandler);
@@ -60,7 +60,7 @@ public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationD
 
     public override void HandleEventsForBackgroundUrl(UIApplication application, string sessionIdentifier, Action completionHandler)
     {
-        if (!IosShinyHost.OnHandleEventsForBackgroundUrl(sessionIdentifier, completionHandler))
+        if (!ShinyHost.Lifecycle.OnHandleEventsForBackgroundUrl(sessionIdentifier, completionHandler))
         {
             base.HandleEventsForBackgroundUrl(application, sessionIdentifier, completionHandler);
         }
