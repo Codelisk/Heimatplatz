@@ -12,7 +12,9 @@ using Heimatplatz.Api.Features.PropertyImport.Configuration;
 using Heimatplatz.Api.Features.SrealListings.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -115,46 +117,48 @@ public static class ServiceCollectionExtensions
                 logger.LogWarning("ForceRecreate=true: Dropping and recreating database...");
                 await dbContext.Database.EnsureDeletedAsync();
                 await dbContext.Database.EnsureCreatedAsync();
+                await SeedMigrationsHistoryAsync(dbContext, logger);
                 logger.LogInformation("Database recreated successfully. Set ForceRecreate=false after this.");
             }
             else
             {
-                // Fuer alle DB-Typen: EnsureCreatedAsync verwenden
-                // (keine EF Migrations im Projekt - Schema wird aus Code generiert)
+                // Strategie:
+                //  - DB existiert nicht -> EnsureCreatedAsync (Schema aus Entity-Modell) + History seeden
+                //  - DB existiert ohne __EFMigrationsHistory -> Legacy (EnsureCreated) State,
+                //    History seeden mit allen alten Migrations als "applied", dann MigrateAsync
+                //    fuehrt nur neue (z.B. FixProductionSchemaDrift) idempotent aus
+                //  - DB existiert MIT __EFMigrationsHistory -> normaler MigrateAsync-Flow
                 logger.LogInformation("Ensuring database and tables exist...");
 
                 if (!await dbContext.Database.CanConnectAsync())
                 {
-                    logger.LogInformation("Database does not exist, creating...");
+                    logger.LogInformation("Database does not exist, creating from model...");
                     await dbContext.Database.EnsureCreatedAsync();
+                    await SeedMigrationsHistoryAsync(dbContext, logger);
                 }
                 else
                 {
-                    // DB existiert - pruefen ob Tabellen vorhanden sind
-                    try
+                    var hasHistoryTable = await HasMigrationsHistoryTableAsync(dbContext);
+                    var hasAppTables = await HasApplicationTablesAsync(dbContext);
+
+                    if (!hasHistoryTable && hasAppTables)
                     {
-                        // Einfacher Test: Zaehle Eintraege in einer bekannten Tabelle
-                        await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM [Properties] WHERE 1=0");
-                        logger.LogInformation("Database tables exist.");
+                        // Legacy DB (EnsureCreatedAsync vorher): History mit allen alten Migrations
+                        // als "applied" seeden (Schema entspricht Entity-Modell vor FixProductionSchemaDrift),
+                        // damit nachfolgendes MigrateAsync nur FixProductionSchemaDrift faehrt.
+                        logger.LogWarning("Legacy DB detected (tables exist but no __EFMigrationsHistory). Seeding migrations history with all pre-drift migrations as applied.");
+                        await SeedMigrationsHistoryAsync(dbContext, logger, excludeNewest: true);
                     }
-                    catch
+                    else if (!hasHistoryTable && !hasAppTables)
                     {
-                        // Tabellen fehlen - direkt erstellen auf existierender DB
-                        logger.LogWarning("Tables missing, creating tables on existing database...");
-                        var creator = dbContext.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
-                        try
-                        {
-                            await creator.CreateTablesAsync();
-                            logger.LogInformation("Database tables created successfully.");
-                        }
-                        catch (Exception createEx)
-                        {
-                            logger.LogWarning(createEx, "CreateTables failed, trying EnsureDeleted+EnsureCreated...");
-                            await dbContext.Database.EnsureDeletedAsync();
-                            await dbContext.Database.EnsureCreatedAsync();
-                            logger.LogInformation("Database recreated from scratch.");
-                        }
+                        // DB existiert aber leer (z.B. neu angelegtes Azure SQL ohne Tabellen)
+                        logger.LogInformation("Empty database detected, creating from model...");
+                        await dbContext.Database.EnsureCreatedAsync();
+                        await SeedMigrationsHistoryAsync(dbContext, logger);
                     }
+
+                    logger.LogInformation("Applying pending migrations...");
+                    await dbContext.Database.MigrateAsync();
                 }
             }
             logger.LogInformation("Database migrations completed.");
@@ -168,5 +172,99 @@ public static class ServiceCollectionExtensions
             await seederRunner.RunAllSeedersAsync();
             logger.LogInformation("Database seeding completed.");
         }
+    }
+
+    /// <summary>
+    /// Prueft ob die __EFMigrationsHistory Tabelle in der aktuellen DB existiert.
+    /// Provider-neutral via INFORMATION_SCHEMA / sqlite_master.
+    /// </summary>
+    private static async Task<bool> HasMigrationsHistoryTableAsync(AppDbContext dbContext)
+    {
+        try
+        {
+            await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM __EFMigrationsHistory WHERE 1=0");
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Prueft ob die Haupt-Anwendungstabellen (Properties) existieren.
+    /// </summary>
+    private static async Task<bool> HasApplicationTablesAsync(AppDbContext dbContext)
+    {
+        try
+        {
+            await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM Properties WHERE 1=0");
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Seedet __EFMigrationsHistory mit den Namen aller bisherigen Migrations als "applied",
+    /// sodass MigrateAsync sie nicht erneut auszufuehren versucht.
+    /// Wenn <paramref name="excludeNewest"/>=true, wird die neueste Migration ausgelassen
+    /// (sie soll dann tatsaechlich laufen, z.B. fuer Schema-Drift-Korrekturen).
+    /// </summary>
+    private static async Task SeedMigrationsHistoryAsync(AppDbContext dbContext, ILogger logger, bool excludeNewest = false)
+    {
+        var migrationsAssembly = dbContext.GetService<IMigrationsAssembly>();
+        var allMigrationIds = migrationsAssembly.Migrations.Keys.OrderBy(id => id).ToList();
+        if (allMigrationIds.Count == 0) return;
+
+        var idsToMark = excludeNewest && allMigrationIds.Count > 1
+            ? allMigrationIds.Take(allMigrationIds.Count - 1).ToList()
+            : allMigrationIds;
+
+        var productVersion = typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly
+            .GetName().Version?.ToString() ?? "10.0.0";
+
+        // Tabelle anlegen wenn fehlt (provider-aware)
+        var isSqlServer = dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.SqlServer";
+        if (isSqlServer)
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(@"
+IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '__EFMigrationsHistory')
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );");
+        }
+        else
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(@"
+CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
+    ""MigrationId"" TEXT NOT NULL CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY,
+    ""ProductVersion"" TEXT NOT NULL
+);");
+        }
+
+        foreach (var id in idsToMark)
+        {
+            if (isSqlServer)
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "IF NOT EXISTS (SELECT 1 FROM __EFMigrationsHistory WHERE MigrationId = {0}) " +
+                    "INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ({0}, {1})",
+                    id, productVersion);
+            }
+            else
+            {
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "INSERT OR IGNORE INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ({0}, {1})",
+                    id, productVersion);
+            }
+        }
+
+        logger.LogInformation("Seeded __EFMigrationsHistory with {Count} migration(s) marked as applied (excludeNewest={ExcludeNewest}).",
+            idsToMark.Count, excludeNewest);
     }
 }
