@@ -21,7 +21,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     private readonly ILocationService _locationService;
 
     private CancellationTokenSource? _debounceCts;
-    private bool _isLoaded;
 
     #region IPageInfo Implementation
 
@@ -111,7 +110,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     [RelayCommand]
     private async Task LoadPreferencesAsync()
     {
-        _isLoaded = false;
         IsBusy = true;
         ShowErrorMessage = false;
 
@@ -140,7 +138,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
         finally
         {
             IsBusy = false;
-            _isLoaded = true;
         }
     }
 
@@ -152,7 +149,7 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     /// </summary>
     private void ScheduleAutoSave()
     {
-        if (_isSyncing || !_isLoaded) return;
+        if (_isSyncing) return;
 
         _debounceCts?.Cancel();
         _debounceCts = new CancellationTokenSource();
@@ -211,8 +208,6 @@ public partial class FilterPreferencesViewModel : ObservableObject, IPageInfo, I
     /// </summary>
     private async Task SaveImmediatelyAsync()
     {
-        if (!_isLoaded) return;
-
         try
         {
             var (isPrivate, isBroker) = GetSellerTypeSelection();

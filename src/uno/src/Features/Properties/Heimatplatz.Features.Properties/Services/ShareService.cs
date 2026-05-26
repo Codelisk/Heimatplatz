@@ -13,7 +13,7 @@ namespace Heimatplatz.Features.Properties.Services;
 public class ShareService : IShareService
 {
     private readonly ILogger<ShareService> _logger;
-    private TaskCompletionSource<bool>? _shareCompletionSource;
+    private TaskCompletionSource<ShareResult>? _shareCompletionSource;
     private string? _pendingTitle;
     private string? _pendingText;
     private Uri? _pendingUri;
@@ -24,18 +24,18 @@ public class ShareService : IShareService
     }
 
     /// <inheritdoc />
-    public Task<bool> ShareTextAsync(string title, string text)
+    public Task<ShareResult> ShareTextAsync(string title, string text)
     {
         return ShareAsync(title, text, null);
     }
 
     /// <inheritdoc />
-    public Task<bool> ShareLinkAsync(string title, Uri uri, string? description = null)
+    public Task<ShareResult> ShareLinkAsync(string title, Uri uri, string? description = null)
     {
         return ShareAsync(title, description, uri);
     }
 
-    private Task<bool> ShareAsync(string title, string? text, Uri? uri)
+    private Task<ShareResult> ShareAsync(string title, string? text, Uri? uri)
     {
         try
         {
@@ -57,13 +57,13 @@ public class ShareService : IShareService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to share content");
-            return Task.FromResult(false);
+            return Task.FromResult(ShareResult.Failed);
         }
     }
 
-    private Task<bool> ShowNativeShareDialogAsync(string title, string? text, Uri? uri)
+    private Task<ShareResult> ShowNativeShareDialogAsync(string title, string? text, Uri? uri)
     {
-        _shareCompletionSource = new TaskCompletionSource<bool>();
+        _shareCompletionSource = new TaskCompletionSource<ShareResult>();
         _pendingTitle = title;
         _pendingText = text;
         _pendingUri = uri;
@@ -76,12 +76,11 @@ public class ShareService : IShareService
             DataTransferManager.ShowShareUI();
 
             // Complete immediately since we can't know when user dismisses the dialog
-            _shareCompletionSource.TrySetResult(true);
+            _shareCompletionSource.TrySetResult(ShareResult.SharedNatively);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to show native share dialog, falling back to clipboard");
-            _shareCompletionSource.TrySetResult(false);
 
             // Fall back to clipboard
             return CopyToClipboardAsync(title, text, uri);
@@ -127,7 +126,7 @@ public class ShareService : IShareService
         }
     }
 
-    private Task<bool> CopyToClipboardAsync(string title, string? text, Uri? uri)
+    private Task<ShareResult> CopyToClipboardAsync(string title, string? text, Uri? uri)
     {
         try
         {
@@ -157,12 +156,12 @@ public class ShareService : IShareService
             Clipboard.SetContent(dataPackage);
 
             _logger.LogInformation("Content copied to clipboard successfully");
-            return Task.FromResult(true);
+            return Task.FromResult(ShareResult.CopiedToClipboard);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to copy content to clipboard");
-            return Task.FromResult(false);
+            return Task.FromResult(ShareResult.Failed);
         }
     }
 }

@@ -543,10 +543,16 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageInfo, I
                           $"Preis: {FormattedPrice}\n" +
                           $"Standort: {AddressText}";
 
-        var success = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
-        if (success)
+        var result = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
+        if (result == ShareResult.SharedNatively)
         {
             CopyFeedback = "Geteilt!";
+            await Task.Delay(2000);
+            CopyFeedback = null;
+        }
+        else if (result == ShareResult.CopiedToClipboard)
+        {
+            CopyFeedback = "In Zwischenablage kopiert!";
             await Task.Delay(2000);
             CopyFeedback = null;
         }
