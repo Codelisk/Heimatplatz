@@ -9,7 +9,7 @@ jobs:
     name: Initialize iOS Certificates
     defaults:
       run:
-        working-directory: cake/fastlane
+        working-directory: cake
 
     steps:
       - name: Checkout
