@@ -99,7 +99,7 @@ platform :ios do
     end
   end
 
-  desc "Initialize match repository (run once to setup certificate repo)"
+  desc "Initialize match repository (re-runnable: revokes existing certs first)"
   lane :match_init do
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
@@ -107,7 +107,21 @@ platform :ios do
       key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
     )
 
-    # Create App Store distribution certificates
+    [["appstore", "App Store"], ["development", "Development"]].each do |type, label|
+      begin
+        match_nuke(
+          type: type,
+          app_identifier: "at.heimatplatz.app",
+          team_id: ENV["APPLE_TEAM_ID"],
+          git_url: ENV["MATCH_GIT_URL"],
+          api_key: api_key,
+          skip_confirmation: true
+        )
+      rescue => e
+        UI.important("match_nuke (#{label}) skipped: #{e.message}")
+      end
+    end
+
     match(
       type: "appstore",
       app_identifier: "at.heimatplatz.app",
@@ -119,7 +133,6 @@ platform :ios do
       verbose: true
     )
 
-    # Create development certificates
     match(
       type: "development",
       app_identifier: "at.heimatplatz.app",
