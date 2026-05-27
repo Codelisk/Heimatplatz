@@ -32,10 +32,13 @@ jobs:
         with:
           submodules: true
 
-      - name: Select latest Xcode
+      - name: List available Xcode versions
+        run: ls /Applications | grep -i Xcode
+
+      - name: Select Xcode 26.5
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '26.5'
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
