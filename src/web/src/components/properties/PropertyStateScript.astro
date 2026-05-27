@@ -1,0 +1,1763 @@
+<script>
+  type Draft = {
+    id?: string;
+    updatedAt?: string;
+    title?: string;
+    propertyType?: string;
+    sellerName?: string;
+    sellerType?: string;
+    description?: string;
+    municipalityId?: string;
+    postalCode?: string;
+    city?: string;
+    address?: string;
+    price?: string;
+    livingArea?: string;
+    plotArea?: string;
+    rooms?: string;
+    yearBuilt?: string;
+    imageUrls?: string[];
+    [key: string]: string | string[] | undefined;
+  };
+
+  type Session = {
+    AccessToken: string;
+    RefreshToken: string;
+    UserId: string;
+    Email: string;
+    FullName: string;
+    ExpiresAt: string;
+  };
+
+  type RequestOptions = Omit<RequestInit, "body"> & {
+    body?: unknown;
+    skipAuth?: boolean;
+  };
+
+  type ApiProperty = {
+    Id: string;
+    Title: string;
+    Address: string;
+    MunicipalityId?: string;
+    City: string;
+    PostalCode: string;
+    Price: number | string;
+    LivingAreaM2?: number | string | null;
+    PlotAreaM2?: number | string | null;
+    Rooms?: number | string | null;
+    Type: string;
+    SellerType: string | null;
+    SellerName: string;
+    ImageUrls: string[];
+    CreatedAt: string;
+    SourceName?: string | null;
+    Description?: string | null;
+    YearBuilt?: number | string | null;
+    TypeSpecificData?: string | Record<string, unknown> | null;
+  };
+
+  type Municipality = {
+    Id: string;
+    Name: string;
+    PostalCode: string;
+    DistrictName: string;
+  };
+
+  type LocationsResponse = {
+    FederalProvinces: Array<{
+      Districts: Array<{
+        Name: string;
+        Municipalities: Array<{ Id: string; Name: string; PostalCode: string }>;
+      }>;
+    }>;
+  };
+
+  type PropertyImageItem = {
+    id: string;
+    url: string;
+    fileName: string;
+    contentType: string;
+    existing: boolean;
+    file?: File;
+  };
+
+  const STORAGE_KEYS = {
+    session: "heimatplatz:session",
+    favorites: "heimatplatz:favorites",
+    blocked: "heimatplatz:blocked",
+    drafts: "heimatplatz:property-drafts",
+    notificationPreferences: "heimatplatz:notification-preferences",
+    filterPreferences: "heimatplatz:filter-preferences",
+  };
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://heimatplatz-api.azurewebsites.net";
+  const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const MAX_PROPERTY_IMAGES = 20;
+  const imageFormState = new WeakMap<HTMLFormElement, PropertyImageItem[]>();
+  let municipalityPromise: Promise<Municipality[]> | null = null;
+
+  function readArray<T = string>(key: string): T[] {
+    try {
+      const value = window.localStorage.getItem(key);
+      const parsed = value ? JSON.parse(value) : [];
+      return Array.isArray(parsed) ? parsed as T[] : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writeArray<T>(key: string, value: T[]) {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Local storage can be disabled; the UI should still remain usable.
+    }
+  }
+
+  function readJson<T>(key: string): T | null {
+    try {
+      const value = window.localStorage.getItem(key);
+      return value ? JSON.parse(value) as T : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeJson<T>(key: string, value: T) {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Local storage can be disabled; the UI should still remain usable.
+    }
+  }
+
+  function readSession() {
+    const session = readJson<Session>(STORAGE_KEYS.session);
+    if (!session?.AccessToken) return null;
+
+    if (session.ExpiresAt && new Date(session.ExpiresAt).getTime() <= Date.now()) {
+      window.localStorage.removeItem(STORAGE_KEYS.session);
+      return null;
+    }
+
+    return session;
+  }
+
+  function readSessionRoles(session: Session | null) {
+    const roles = new Set<string>();
+    if (!session?.AccessToken) return roles;
+
+    try {
+      const payload = session.AccessToken.split(".")[1];
+      if (!payload) return roles;
+      const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
+      const parsed = JSON.parse(window.atob(padded)) as Record<string, unknown>;
+      const roleClaim = parsed.user_role;
+      const values = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+      values.forEach((role) => {
+        if (typeof role === "string") roles.add(role.toLowerCase());
+      });
+    } catch {
+      // Role badges are a progressive enhancement; authentication itself does not depend on this.
+    }
+
+    return roles;
+  }
+
+  function getInitials(fullName: string | undefined) {
+    const parts = (fullName ?? "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+
+  function getRoleBadgeText(roles: Set<string>) {
+    const isBuyer = roles.has("buyer");
+    const isSeller = roles.has("seller");
+    if (isBuyer && isSeller) return "Kaeufer & Verkaeufer";
+    if (isSeller) return "Verkaeufer";
+    if (isBuyer) return "Kaeufer";
+    return "Konto";
+  }
+
+  function saveSession(session: Session) {
+    writeJson(STORAGE_KEYS.session, session);
+    renderAuthState();
+  }
+
+  function clearSession() {
+    window.localStorage.removeItem(STORAGE_KEYS.session);
+    renderAuthState();
+  }
+
+  async function apiRequest<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
+    const url = new URL(path, API_BASE_URL);
+    const headers = new Headers(options.headers);
+
+    if (options.body !== undefined && !headers.has("content-type")) {
+      headers.set("content-type", "application/json");
+    }
+
+    const session = readSession();
+    if (!options.skipAuth && session?.AccessToken && !headers.has("authorization")) {
+      headers.set("authorization", `Bearer ${session.AccessToken}`);
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
+
+    const contentType = response.headers.get("content-type") ?? "";
+    const payload = contentType.includes("application/json")
+      ? await response.json()
+      : await response.text();
+
+    if (!response.ok) {
+      throw new Error(typeof payload === "string" && payload ? payload : `Online-Anfrage fehlgeschlagen: ${response.status}`);
+    }
+
+    return payload as TResponse;
+  }
+
+  function toggleValue(key: string, value: string) {
+    const values = new Set(readArray(key));
+    const nextActive = !values.has(value);
+    if (nextActive) {
+      values.add(value);
+    } else {
+      values.delete(value);
+    }
+    writeArray(key, Array.from(values));
+    return nextActive;
+  }
+
+  function removeValue(key: string, value: string) {
+    const values = new Set(readArray(key));
+    values.delete(value);
+    writeArray(key, Array.from(values));
+  }
+
+  function setFormStatus(form: HTMLFormElement, message: string, tone: "info" | "error" | "success" = "info") {
+    const status = form.querySelector<HTMLElement>("[data-form-status]");
+    if (!status) return;
+
+    status.textContent = message;
+    status.classList.remove("hidden", "text-muted-foreground", "text-red-700", "text-green-700");
+    if (tone === "error") status.classList.add("text-red-700");
+    if (tone === "success") status.classList.add("text-green-700");
+    if (tone === "info") status.classList.add("text-muted-foreground");
+  }
+
+  function renderAuthState() {
+    const session = readSession();
+    const loggedIn = !!session;
+    const roles = readSessionRoles(session);
+    const isBuyer = roles.has("buyer");
+    const isSeller = roles.has("seller");
+
+    document.querySelectorAll<HTMLElement>("[data-auth-email]").forEach((element) => {
+      element.textContent = session?.Email ?? "";
+    });
+    document.querySelectorAll<HTMLElement>("[data-auth-name]").forEach((element) => {
+      element.textContent = session?.FullName ?? "Nicht angemeldet";
+    });
+    document.querySelectorAll<HTMLElement>("[data-auth-initials]").forEach((element) => {
+      element.textContent = loggedIn ? getInitials(session?.FullName) : "?";
+    });
+    document.querySelectorAll<HTMLElement>("[data-auth-role-badge]").forEach((element) => {
+      element.textContent = loggedIn ? getRoleBadgeText(roles) : "";
+    });
+    document.querySelectorAll<HTMLElement>("[data-auth-user-id]").forEach((element) => {
+      element.textContent = session?.UserId ?? "";
+    });
+    document.querySelectorAll<HTMLElement>("[data-auth-role-buyer]").forEach((element) => {
+      element.hidden = !isBuyer;
+    });
+    document.querySelectorAll<HTMLElement>("[data-auth-role-seller]").forEach((element) => {
+      element.hidden = !isSeller;
+    });
+    document.querySelectorAll<HTMLElement>("[data-guest-only]").forEach((element) => {
+      element.hidden = loggedIn;
+    });
+    document.querySelectorAll<HTMLElement>("[data-auth-only]").forEach((element) => {
+      element.hidden = !loggedIn;
+    });
+  }
+
+  function bindRegisterRoleFields() {
+    document.querySelectorAll<HTMLFormElement>("[data-auth-form='register']").forEach((form) => {
+      const sellerRole = form.querySelector<HTMLInputElement>("[name='role'][value='seller']");
+      const sellerFields = form.querySelector<HTMLElement>("[data-seller-fields]");
+      const sellerTypes = Array.from(form.querySelectorAll<HTMLInputElement>("[name='sellerType']"));
+      const brokerType = form.querySelector<HTMLInputElement>("[name='sellerType'][value='Broker']");
+      const companyWrapper = form.querySelector<HTMLElement>("[data-company-field]");
+      const companyName = form.querySelector<HTMLInputElement>("[name='companyName']");
+
+      const update = () => {
+        const sellerSelected = Boolean(sellerRole?.checked);
+        if (sellerFields) sellerFields.hidden = !sellerSelected;
+        sellerTypes.forEach((input) => {
+          input.disabled = !sellerSelected;
+        });
+
+        const brokerSelected = sellerSelected && Boolean(brokerType?.checked);
+        if (companyWrapper) companyWrapper.hidden = !brokerSelected;
+        if (companyName) {
+          companyName.disabled = !brokerSelected;
+          companyName.required = brokerSelected;
+          if (!brokerSelected) companyName.value = "";
+        }
+      };
+
+      form.addEventListener("change", update);
+      update();
+    });
+  }
+
+  function validateRegisterForm(formData: FormData) {
+    const password = String(formData.get("password") ?? "");
+    const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
+    const roles = formData.getAll("role").map(String);
+    const wantsSeller = roles.includes("seller");
+    const sellerType = String(formData.get("sellerType") ?? "");
+    const companyName = String(formData.get("companyName") ?? "").trim();
+
+    if (password !== passwordConfirm) return "Die Passwoerter stimmen nicht ueberein.";
+    if (roles.length === 0) return "Bitte mindestens eine Rolle auswaehlen.";
+    if (wantsSeller && !sellerType) return "Bitte einen Anbietertyp auswaehlen.";
+    if (wantsSeller && sellerType === "Broker" && !companyName) return "Bitte den Firmennamen angeben.";
+    return "";
+  }
+
+  function bindAuthForms() {
+    document.querySelectorAll<HTMLFormElement>("[data-auth-form]").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const mode = form.getAttribute("data-auth-form");
+        const formData = new FormData(form);
+        const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
+        const roles = formData.getAll("role").map((role) => role === "seller" ? "Seller" : "Buyer");
+        const wantsSeller = roles.includes("Seller");
+        const sellerType = wantsSeller ? String(formData.get("sellerType") ?? "Private") : "";
+        const companyName = String(formData.get("companyName") ?? "").trim();
+
+        if (mode === "register") {
+          const validationMessage = validateRegisterForm(formData);
+          if (validationMessage) {
+            setFormStatus(form, validationMessage, "error");
+            return;
+          }
+        }
+
+        submit?.setAttribute("disabled", "true");
+        setFormStatus(form, mode === "register" ? "Konto wird erstellt..." : "Anmeldung wird geprueft...");
+
+        try {
+          const payload = mode === "register"
+            ? {
+                Vorname: String(formData.get("firstName") ?? ""),
+                Nachname: String(formData.get("lastName") ?? ""),
+                Email: String(formData.get("email") ?? ""),
+                Passwort: String(formData.get("password") ?? ""),
+                Roles: roles,
+                SellerType: wantsSeller ? sellerType : null,
+                CompanyName: wantsSeller && sellerType === "Broker" ? companyName : null,
+              }
+            : {
+                Email: String(formData.get("email") ?? ""),
+                Passwort: String(formData.get("password") ?? ""),
+              };
+
+          const session = await apiRequest<Session>(
+            mode === "register" ? "/api/auth/register" : "/api/auth/login",
+            { method: "POST", body: payload, skipAuth: true },
+          );
+
+          saveSession(session);
+          setFormStatus(form, "Erfolgreich angemeldet.", "success");
+          const redirect = form.getAttribute("data-success-redirect") || "/profil/";
+          window.location.href = redirect;
+        } catch (error) {
+          setFormStatus(
+            form,
+            error instanceof Error ? error.message : "Die Anmeldung ist fehlgeschlagen.",
+            "error",
+          );
+        } finally {
+          submit?.removeAttribute("disabled");
+        }
+      });
+    });
+  }
+
+  function hasCheckbox(formData: FormData, name: string) {
+    return formData.has(name);
+  }
+
+  function getStringArray(formData: FormData, name: string) {
+    return formData.getAll(name).map((value) => String(value)).filter(Boolean);
+  }
+
+  function buildNotificationPreferences(formData: FormData) {
+    return {
+      IsEnabled: hasCheckbox(formData, "isEnabled"),
+      FilterMode: String(formData.get("filterMode") ?? "SameAsSearch"),
+      Locations: getStringArray(formData, "locations"),
+      IsHausSelected: hasCheckbox(formData, "house"),
+      IsGrundstueckSelected: hasCheckbox(formData, "land"),
+      IsZwangsversteigerungSelected: hasCheckbox(formData, "foreclosure"),
+      IsPrivateSelected: hasCheckbox(formData, "private"),
+      IsBrokerSelected: hasCheckbox(formData, "broker"),
+    };
+  }
+
+  function buildFilterPreferences(formData: FormData) {
+    return {
+      SelectedOrtes: getStringArray(formData, "locations"),
+      SelectedAgeFilter: Number(formData.get("ageFilter") ?? 0),
+      IsHausSelected: hasCheckbox(formData, "house"),
+      IsGrundstueckSelected: hasCheckbox(formData, "land"),
+      IsZwangsversteigerungSelected: hasCheckbox(formData, "foreclosure"),
+      IsPrivateSelected: hasCheckbox(formData, "private"),
+      IsBrokerSelected: hasCheckbox(formData, "broker"),
+      ExcludedSellerSourceIds: [],
+      SelectedSort: Number(formData.get("sort") ?? 0),
+    };
+  }
+
+  function setCheckbox(form: HTMLFormElement, name: string, checked: boolean | undefined) {
+    const input = form.querySelector<HTMLInputElement>(`input[type="checkbox"][name="${name}"]`);
+    if (input && typeof checked === "boolean") input.checked = checked;
+  }
+
+  function setCheckboxValues(form: HTMLFormElement, name: string, values: unknown) {
+    const selected = new Set(Array.isArray(values) ? values.map(String) : []);
+    form.querySelectorAll<HTMLInputElement>(`input[type="checkbox"][name="${name}"]`).forEach((input) => {
+      input.checked = selected.has(input.value);
+    });
+  }
+
+  function normalizeAgeFilterValue(value: unknown) {
+    const numeric = Number(value ?? 0);
+    if (numeric === 7) return "2";
+    if (numeric === 30) return "3";
+    if (numeric >= 365) return "4";
+    if ([0, 1, 2, 3, 4].includes(numeric)) return String(numeric);
+    return "0";
+  }
+
+  function normalizeSortValue(value: unknown) {
+    const numeric = Number(value ?? 0);
+    return [0, 1, 2, 3, 4, 5, 6].includes(numeric) ? String(numeric) : "0";
+  }
+
+  function applySavedPreferences() {
+    document.querySelectorAll<HTMLFormElement>("[data-preferences-form]").forEach((form) => {
+      const mode = form.getAttribute("data-preferences-form");
+      const preferences = mode === "notifications"
+        ? readJson<Record<string, unknown>>(STORAGE_KEYS.notificationPreferences)
+        : readJson<Record<string, unknown>>(STORAGE_KEYS.filterPreferences);
+      if (!preferences) return;
+
+      if (mode === "notifications") {
+        setCheckbox(form, "isEnabled", preferences.IsEnabled as boolean);
+        setCheckbox(form, "house", preferences.IsHausSelected as boolean);
+        setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
+        setCheckbox(form, "foreclosure", preferences.IsZwangsversteigerungSelected as boolean);
+        setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
+        setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
+        setCheckboxValues(form, "locations", preferences.Locations);
+        const filterMode = form.querySelector<HTMLSelectElement>("[name='filterMode']");
+        if (filterMode && typeof preferences.FilterMode === "string") filterMode.value = preferences.FilterMode;
+      } else {
+        setCheckbox(form, "house", preferences.IsHausSelected as boolean);
+        setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
+        setCheckbox(form, "foreclosure", preferences.IsZwangsversteigerungSelected as boolean);
+        setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
+        setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
+        const age = form.querySelector<HTMLSelectElement>("[name='ageFilter']");
+        const sort = form.querySelector<HTMLSelectElement>("[name='sort']");
+        const location = form.querySelector<HTMLSelectElement>("[name='locations']");
+        if (age && preferences.SelectedAgeFilter !== undefined) age.value = normalizeAgeFilterValue(preferences.SelectedAgeFilter);
+        if (sort && preferences.SelectedSort !== undefined) sort.value = normalizeSortValue(preferences.SelectedSort);
+        setCheckboxValues(form, "locations", preferences.SelectedOrtes);
+        if (location && Array.isArray(preferences.SelectedOrtes) && preferences.SelectedOrtes[0]) {
+          location.value = String(preferences.SelectedOrtes[0]);
+        }
+      }
+    });
+  }
+
+  function updateNotificationPreferenceVisibility(form: HTMLFormElement) {
+    const enabled = form.querySelector<HTMLInputElement>("[name='isEnabled']")?.checked ?? true;
+    const mode = form.querySelector<HTMLSelectElement>("[name='filterMode']")?.value ?? "SameAsSearch";
+    const showFilters = enabled;
+    const showCustom = enabled && mode === "Custom";
+
+    form.querySelectorAll<HTMLElement>("[data-notification-filter-settings]").forEach((element) => {
+      element.hidden = !showFilters;
+    });
+    form.querySelectorAll<HTMLElement>("[data-notification-custom]").forEach((element) => {
+      element.hidden = !showCustom;
+    });
+  }
+
+  function bindNotificationPreferenceVisibility() {
+    document.querySelectorAll<HTMLFormElement>("[data-preferences-form='notifications']").forEach((form) => {
+      form.addEventListener("change", () => updateNotificationPreferenceVisibility(form));
+      updateNotificationPreferenceVisibility(form);
+    });
+  }
+
+  function bindPreferenceForms() {
+    document.querySelectorAll<HTMLFormElement>("[data-preferences-form]").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const mode = form.getAttribute("data-preferences-form");
+        const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
+        const formData = new FormData(form);
+        const preferences = mode === "notifications"
+          ? buildNotificationPreferences(formData)
+          : buildFilterPreferences(formData);
+
+        const storageKey = mode === "notifications"
+          ? STORAGE_KEYS.notificationPreferences
+          : STORAGE_KEYS.filterPreferences;
+        const endpoint = mode === "notifications"
+          ? "/api/notifications/preferences"
+          : "/api/auth/filter-preferences";
+        const method = mode === "notifications" ? "PUT" : "POST";
+
+        writeJson(storageKey, preferences);
+        submit?.setAttribute("disabled", "true");
+        setFormStatus(form, readSession() ? "Einstellungen werden synchronisiert..." : "Einstellungen lokal gespeichert.");
+
+        try {
+          if (readSession()) {
+            await apiRequest(endpoint, { method, body: preferences });
+            setFormStatus(form, "Einstellungen gespeichert und synchronisiert.", "success");
+          } else {
+            setFormStatus(form, "Einstellungen lokal gespeichert. Nach dem Login werden sie synchronisiert.", "success");
+          }
+        } catch (error) {
+          setFormStatus(
+            form,
+            error instanceof Error
+              ? `Lokal gespeichert, Online-Sync fehlgeschlagen: ${error.message}`
+              : "Lokal gespeichert, Online-Sync fehlgeschlagen.",
+            "error",
+          );
+        } finally {
+          submit?.removeAttribute("disabled");
+        }
+      });
+    });
+  }
+
+  function refreshActionButtons() {
+    const favorites = new Set(readArray(STORAGE_KEYS.favorites));
+    const blocked = new Set(readArray(STORAGE_KEYS.blocked));
+
+    document.querySelectorAll("[data-property-action]").forEach((button) => {
+      const action = button.getAttribute("data-property-action");
+      const slug = button.getAttribute("data-property-slug");
+      if (!slug || !(button instanceof HTMLButtonElement)) return;
+
+      const active = action === "favorite" ? favorites.has(slug) : blocked.has(slug);
+      button.setAttribute("aria-pressed", String(active));
+      if (action === "favorite") {
+        button.setAttribute("aria-label", active ? "Favorit entfernen" : "Favorit speichern");
+      }
+      if (action === "block") {
+        button.setAttribute("aria-label", active ? "Blockierung entfernen" : "Immobilie blockieren");
+      }
+
+      const label = button.querySelector<HTMLElement>("[data-action-label]");
+      if (label) {
+        label.textContent = active
+          ? button.getAttribute("data-active-text") ?? label.textContent
+          : button.getAttribute("data-inactive-text") ?? label.textContent;
+      }
+    });
+  }
+
+  function closeCardMenus(except?: HTMLElement | null) {
+    document.querySelectorAll<HTMLElement>("[data-card-menu]").forEach((menu) => {
+      if (menu === except) return;
+      menu.classList.add("hidden");
+      const button = document.querySelector<HTMLButtonElement>(`[data-card-action][aria-controls="${menu.id}"]`);
+      button?.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  async function syncRemotePropertyAction(action: string | null, propertyId: string | null, active: boolean) {
+    const session = readSession();
+    if (!session || !propertyId || !UUID_PATTERN.test(propertyId)) return;
+
+    try {
+      if (action === "favorite") {
+        await apiRequest(
+          active ? "/api/favorites" : `/api/favorites/${propertyId}`,
+          active ? { method: "POST", body: { PropertyId: propertyId } } : { method: "DELETE" },
+        );
+      }
+
+      if (action === "block") {
+        await apiRequest(
+          active ? "/api/blocked" : `/api/blocked/${propertyId}`,
+          active ? { method: "POST", body: { PropertyId: propertyId } } : { method: "DELETE" },
+        );
+      }
+    } catch (error) {
+      console.warn("[Heimatplatz] API sync for property status failed", error);
+    }
+  }
+
+  function syncUserLists() {
+    const favorites = new Set(readArray(STORAGE_KEYS.favorites));
+    const blocked = new Set(readArray(STORAGE_KEYS.blocked));
+
+    document.querySelectorAll("[data-user-list]").forEach((list) => {
+      const mode = list.getAttribute("data-user-mode");
+      if (mode !== "favorites" && mode !== "blocked") return;
+
+      const wanted = mode === "favorites" ? favorites : blocked;
+      let visible = 0;
+      list.querySelectorAll<HTMLElement>("[data-property-card]").forEach((card) => {
+        const slug = card.getAttribute("data-slug");
+        const show = !!slug && wanted.has(slug);
+        card.hidden = !show;
+        if (show) visible += 1;
+      });
+
+      list.classList.toggle("hidden", visible === 0);
+      const empty = list.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+      empty?.classList.toggle("hidden", visible > 0);
+    });
+  }
+
+  function formatEuro(value: string | undefined) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) return "Preis offen";
+    return new Intl.NumberFormat("de-AT", {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(number);
+  }
+
+  function formatPriceValue(value: number | string | undefined) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) return "Preis offen";
+    if (number >= 1_000_000) return `${(number / 1_000_000).toLocaleString("de-AT", { maximumFractionDigits: 1 })} Mio. EUR`;
+    if (number >= 1000) return `${Math.round(number / 1000).toLocaleString("de-AT")} Tsd. EUR`;
+    return `${number.toLocaleString("de-AT")} EUR`;
+  }
+
+  function createText<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text: string) {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    return element;
+  }
+
+  function getImageState(form: HTMLFormElement) {
+    let state = imageFormState.get(form);
+    if (!state) {
+      state = [];
+      imageFormState.set(form, state);
+    }
+    return state;
+  }
+
+  function getDraftImageUrls(draft: Draft) {
+    return Array.isArray(draft.imageUrls) ? draft.imageUrls.filter(Boolean) : [];
+  }
+
+  function writeImageUrlField(form: HTMLFormElement) {
+    const field = form.querySelector<HTMLInputElement>("[data-property-image-urls]");
+    if (!field) return;
+    field.value = JSON.stringify(getImageState(form).map((item) => item.url));
+  }
+
+  function renderImageGrid(form: HTMLFormElement) {
+    const state = getImageState(form);
+    const grid = form.querySelector<HTMLElement>("[data-property-image-grid]");
+    const count = form.querySelector<HTMLElement>("[data-property-image-count]");
+    if (count) count.textContent = `Fotos ${state.length} / ${MAX_PROPERTY_IMAGES}`;
+    if (!grid) return;
+
+    grid.textContent = "";
+    grid.classList.toggle("hidden", state.length === 0);
+    state.forEach((item) => {
+      const frame = document.createElement("div");
+      frame.className = "relative aspect-[4/3] overflow-hidden rounded-md border border-border bg-muted";
+
+      const image = document.createElement("img");
+      image.src = item.url;
+      image.alt = item.fileName;
+      image.className = "h-full w-full object-cover";
+      image.loading = "lazy";
+      image.addEventListener("error", () => {
+        image.src = "/og/heimatplatz-default.svg";
+      }, { once: true });
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "absolute right-1 top-1 grid size-7 place-items-center rounded-full bg-black/70 text-xs font-bold text-white";
+      remove.setAttribute("aria-label", "Foto entfernen");
+      remove.textContent = "x";
+      remove.addEventListener("click", () => {
+        imageFormState.set(form, getImageState(form).filter((entry) => entry.id !== item.id));
+        writeImageUrlField(form);
+        renderImageGrid(form);
+      });
+
+      frame.append(image, remove);
+      grid.append(frame);
+    });
+
+    writeImageUrlField(form);
+  }
+
+  function setFormImages(form: HTMLFormElement, urls: string[]) {
+    imageFormState.set(
+      form,
+      urls.slice(0, MAX_PROPERTY_IMAGES).map((url, index) => ({
+        id: `existing-${index}-${url}`,
+        url,
+        fileName: url.split("/").pop() || `Bild ${index + 1}`,
+        contentType: url.startsWith("data:") ? (url.match(/^data:([^;]+);/)?.[1] ?? "image/jpeg") : "image/jpeg",
+        existing: !url.startsWith("data:"),
+      })),
+    );
+    renderImageGrid(form);
+  }
+
+  function readFileAsDataUrl(file: File) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener("load", () => resolve(String(reader.result ?? "")));
+      reader.addEventListener("error", () => reject(reader.error ?? new Error("Datei konnte nicht gelesen werden.")));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function getLocalImageUrls(form: HTMLFormElement) {
+    const urls: string[] = [];
+    for (const item of getImageState(form)) {
+      if (!item.file) {
+        urls.push(item.url);
+      } else {
+        urls.push(await readFileAsDataUrl(item.file));
+      }
+    }
+    return urls;
+  }
+
+  async function uploadImages(form: HTMLFormElement, requireImage: boolean) {
+    const state = getImageState(form);
+    if (requireImage && state.length === 0) {
+      throw new Error("Bitte fuegen Sie mindestens ein Foto hinzu.");
+    }
+
+    const existingUrls = state.filter((item) => item.existing && item.url).map((item) => item.url);
+    const newImages = state.filter((item) => item.file || (!item.existing && item.url.startsWith("data:")));
+    if (newImages.length === 0) return existingUrls;
+
+    const images = await Promise.all(newImages.map(async (item) => {
+      const dataUrl = item.file ? await readFileAsDataUrl(item.file) : item.url;
+      return {
+        FileName: item.fileName,
+        ContentType: item.contentType || item.file?.type || dataUrl.match(/^data:([^;]+);/)?.[1] || "image/jpeg",
+        Base64Data: dataUrl.split(",")[1] ?? "",
+      };
+    }));
+
+    const response = await apiRequest<{ ImageUrls: string[] }>("/api/properties/images", {
+      method: "POST",
+      body: { Images: images },
+    });
+
+    return [...existingUrls, ...(response.ImageUrls ?? [])];
+  }
+
+  function bindImagePickers() {
+    document.querySelectorAll<HTMLFormElement>("[data-local-property-form]").forEach((form) => {
+      renderImageGrid(form);
+      const input = form.querySelector<HTMLInputElement>("[data-property-images]");
+      if (!input) return;
+
+      input.addEventListener("change", () => {
+        const files = Array.from(input.files ?? []);
+        if (files.length === 0) return;
+
+        const state = getImageState(form);
+        const remaining = Math.max(0, MAX_PROPERTY_IMAGES - state.length);
+        files.slice(0, remaining).forEach((file) => {
+          state.push({
+            id: `${Date.now()}-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`,
+            url: URL.createObjectURL(file),
+            fileName: file.name,
+            contentType: file.type || "image/jpeg",
+            existing: false,
+            file,
+          });
+        });
+
+        input.value = "";
+        renderImageGrid(form);
+        if (files.length > remaining) {
+          setFormStatus(form, `Nur ${remaining} weitere Bilder konnten hinzugefuegt werden.`, "error");
+        }
+      });
+    });
+  }
+
+  function createDraftCard(draft: Draft) {
+    const card = document.createElement("article");
+    card.className = "rounded-lg border border-border bg-card p-4 shadow-sm";
+    const imageUrls = getDraftImageUrls(draft);
+
+    if (imageUrls[0]) {
+      const image = document.createElement("img");
+      image.src = imageUrls[0];
+      image.alt = draft.title || "Immobilienfoto";
+      image.className = "mb-4 aspect-[4/3] w-full rounded-md object-cover";
+      image.loading = "lazy";
+      image.addEventListener("error", () => {
+        image.remove();
+      }, { once: true });
+      card.append(image);
+    }
+
+    const eyebrow = createText("p", "text-xs font-semibold uppercase text-muted-foreground", "Lokaler Entwurf");
+    const title = createText("h2", "mt-2 text-lg font-bold", draft.title || "Neues Inserat");
+    const place = createText(
+      "p",
+      "mt-1 text-sm text-muted-foreground",
+      [draft.postalCode, draft.city, draft.address].filter(Boolean).join(" ") || "Adresse offen"
+    );
+    const meta = createText(
+      "p",
+      "mt-4 text-sm font-semibold",
+      `${draft.propertyType || "Immobilie"} · ${formatEuro(draft.price)}`
+    );
+
+    const actions = document.createElement("div");
+    actions.className = "mt-4 flex gap-2";
+
+    const edit = document.createElement("a");
+    edit.className = "inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium";
+    edit.href = `/immobilien/bearbeiten/?draft=${encodeURIComponent(draft.id || "")}`;
+    edit.textContent = "Bearbeiten";
+
+    const remove = document.createElement("button");
+    remove.className = "inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background";
+    remove.type = "button";
+    remove.textContent = "Loeschen";
+    remove.setAttribute("data-draft-remove", draft.id || "");
+
+    actions.append(edit, remove);
+    card.append(eyebrow, title, place, meta, actions);
+    return card;
+  }
+
+  function createApiPropertyCard(property: ApiProperty, mode = "") {
+    const card = document.createElement("article");
+    card.className = "overflow-hidden rounded-lg border border-border bg-card shadow-sm";
+    card.dataset.propertyCard = "";
+    card.dataset.slug = property.Id;
+    card.dataset.propertyId = property.Id;
+
+    const imageWrap = document.createElement("a");
+    imageWrap.href = `/immobilien/live/?id=${encodeURIComponent(property.Id)}`;
+    imageWrap.className = "relative block h-44 bg-muted";
+    const image = document.createElement("img");
+    image.className = "h-full w-full object-cover";
+    image.alt = property.Title;
+    image.loading = "lazy";
+    image.src = property.ImageUrls?.[0] || "/og/heimatplatz-default.svg";
+    image.addEventListener("error", () => {
+      image.src = "/og/heimatplatz-default.svg";
+    }, { once: true });
+    const type = createText("span", "absolute left-3 top-3 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background", property.Type);
+    const price = createText("span", "absolute bottom-3 right-3 rounded-md bg-black/90 px-4 py-2 text-lg font-bold text-white", formatPriceValue(property.Price));
+    imageWrap.append(image, type, price);
+
+    const body = document.createElement("div");
+    body.className = "p-4";
+    const title = document.createElement("h2");
+    title.className = "text-base font-semibold";
+    const titleLink = document.createElement("a");
+    titleLink.href = `/immobilien/live/?id=${encodeURIComponent(property.Id)}`;
+    titleLink.className = "hover:underline";
+    titleLink.textContent = property.City || property.Title;
+    title.append(titleLink);
+    const address = createText("p", "mt-1 text-sm text-muted-foreground", `${property.PostalCode} ${property.City} · ${property.Address}`);
+    const subtitle = createText("p", "mt-1 text-xs text-muted-foreground", property.Title);
+    const meta = createText(
+      "p",
+      "mt-4 text-sm font-semibold",
+      [
+        property.LivingAreaM2 ? `${property.LivingAreaM2} m2 Wfl` : null,
+        property.PlotAreaM2 ? `${property.PlotAreaM2} m2 Grund` : null,
+        property.Rooms ? `${property.Rooms} Zi` : null,
+      ].filter(Boolean).join(" · ") || property.SellerName,
+    );
+    const actions = document.createElement("div");
+    actions.className = "mt-4 flex flex-wrap gap-2";
+    if (mode === "mine") {
+      actions.innerHTML = `
+        <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/live/?id=${property.Id}">Details</a>
+        <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">Bearbeiten</a>
+        <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" data-remote-delete="${property.Id}">Loeschen</button>
+      `;
+    } else {
+      actions.innerHTML = `
+        <button type="button" class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" aria-label="Favorit speichern" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">Merken</button>
+        <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">Blockieren</button>
+      `;
+    }
+    body.append(title, address, subtitle, meta, actions);
+    card.append(imageWrap, body);
+    return card;
+  }
+
+  function scalarValue(value: string | string[] | number | null | undefined) {
+    if (Array.isArray(value)) return value[0] ?? "";
+    return value ?? "";
+  }
+
+  function toNumber(value: string | string[] | number | null | undefined) {
+    const scalar = scalarValue(value);
+    const parsed = Number(scalar);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  function requiredText(value: string | string[] | number | null | undefined) {
+    return String(scalarValue(value) ?? "").trim();
+  }
+
+  function mapPropertyType(value: string | undefined) {
+    if (value === "land") return "Land";
+    if (value === "foreclosure") return "Foreclosure";
+    return "House";
+  }
+
+  function mapApiPropertyType(value: string | undefined) {
+    if (value === "Land") return "land";
+    if (value === "Foreclosure") return "foreclosure";
+    return "house";
+  }
+
+  function hasStructureFields(draft: Draft) {
+    return draft.propertyType !== "land";
+  }
+
+  function toIsoDateTime(value: string | string[] | undefined) {
+    const scalar = scalarValue(value);
+    if (!scalar) return null;
+    const date = new Date(scalar);
+    return Number.isFinite(date.valueOf()) ? date.toISOString() : null;
+  }
+
+  function toDateTimeLocal(value: unknown) {
+    if (!value || typeof value !== "string") return "";
+    const date = new Date(value);
+    if (!Number.isFinite(date.valueOf())) return "";
+    const pad = (number: number) => String(number).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  function readTypeSpecificData(property: ApiProperty) {
+    if (!property.TypeSpecificData) return {};
+    if (typeof property.TypeSpecificData === "object") return property.TypeSpecificData;
+    try {
+      const parsed = JSON.parse(property.TypeSpecificData);
+      return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function readTypedString(data: Record<string, unknown>, key: string) {
+    const value = data[key];
+    if (value === null || value === undefined) return "";
+    return String(value);
+  }
+
+  function buildForeclosureTypeSpecificData(draft: Draft) {
+    if (draft.propertyType !== "foreclosure") return null;
+
+    return {
+      CourtName: scalarValue(draft.foreclosureCourtName),
+      AuctionDate: toIsoDateTime(draft.foreclosureAuctionDate) || new Date().toISOString(),
+      MinimumBid: toNumber(draft.foreclosureMinimumBid) ?? 0,
+      EstimatedValue: toNumber(draft.foreclosureEstimatedValue),
+      Encumbrances: [],
+      Status: scalarValue(draft.foreclosureStatus) || "Scheduled",
+      FileNumber: scalarValue(draft.foreclosureFileNumber),
+      RegistrationNumber: scalarValue(draft.foreclosureRegistrationNumber) || null,
+      CadastralMunicipality: scalarValue(draft.foreclosureCadastralMunicipality) || null,
+      PlotNumber: scalarValue(draft.foreclosurePlotNumber) || null,
+      TotalArea: toNumber(draft.foreclosureTotalArea) ?? toNumber(draft.plotArea),
+      BuildingArea: toNumber(draft.foreclosureBuildingArea),
+      ZoningDesignation: scalarValue(draft.foreclosureZoningDesignation) || null,
+      BuildingCondition: scalarValue(draft.foreclosureBuildingCondition) || null,
+      NumberOfRooms: toNumber(draft.rooms),
+      YearBuilt: toNumber(draft.yearBuilt),
+      ViewingDate: toIsoDateTime(draft.foreclosureViewingDate),
+      BiddingDeadline: toIsoDateTime(draft.foreclosureBiddingDeadline),
+      OwnershipShare: scalarValue(draft.foreclosureOwnershipShare) || null,
+      Notes: scalarValue(draft.foreclosureNotes) || null,
+      EdictUrl: scalarValue(draft.foreclosureEdictUrl) || null,
+      FloorPlanUrl: null,
+      SitePlanUrl: null,
+      LongAppraisalUrl: null,
+      ShortAppraisalUrl: null,
+    };
+  }
+
+  function validatePropertyDraft(draft: Draft) {
+    if (requiredText(draft.title).length < 10) return "Titel muss mindestens 10 Zeichen lang sein.";
+    if (requiredText(draft.description).length < 50) return "Beschreibung muss mindestens 50 Zeichen lang sein.";
+    if (!toNumber(draft.price)) return "Bitte geben Sie einen gueltigen Preis ein.";
+    if (!requiredText(draft.address)) return "Bitte geben Sie eine Strasse ein.";
+    if (!requiredText(draft.city) || !requiredText(draft.postalCode)) return "Bitte waehlen Sie einen Ort aus.";
+    if (!/^\d{4}$/.test(requiredText(draft.postalCode))) return "Bitte geben Sie eine gueltige vierstellige PLZ ein.";
+
+    if (draft.propertyType !== "foreclosure") return "";
+    if (!draft.foreclosureCourtName) return "Bitte das zuständige Gericht angeben.";
+    if (!draft.foreclosureFileNumber) return "Bitte das Aktenzeichen angeben.";
+    if (!toIsoDateTime(draft.foreclosureAuctionDate)) return "Bitte einen gueltigen Versteigerungstermin angeben.";
+    if (!toNumber(draft.foreclosureMinimumBid)) return "Bitte ein Mindestgebot groesser als 0 angeben.";
+    return "";
+  }
+
+  function mapSellerType(value: string | undefined) {
+    return value === "Broker" ? "Broker" : "Private";
+  }
+
+  function normalizeText(value: string | undefined) {
+    return (value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  async function loadMunicipalities() {
+    if (!municipalityPromise) {
+      municipalityPromise = apiRequest<LocationsResponse>("/api/locations").then((locations) =>
+        locations.FederalProvinces
+          .flatMap((province) => province.Districts)
+          .flatMap((district) =>
+            district.Municipalities.map((municipality) => ({
+              ...municipality,
+              DistrictName: district.Name,
+            })),
+          )
+          .sort((a, b) => `${a.PostalCode} ${a.Name}`.localeCompare(`${b.PostalCode} ${b.Name}`, "de-AT")),
+      );
+    }
+
+    return municipalityPromise;
+  }
+
+  function setLocationStatus(form: HTMLFormElement, message: string, tone: "info" | "error" = "info") {
+    const status = form.querySelector<HTMLElement>("[data-location-status]");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("text-red-700", tone === "error");
+    status.classList.toggle("text-muted-foreground", tone === "info");
+  }
+
+  function applyMunicipalityToForm(form: HTMLFormElement, municipality: Municipality) {
+    setField(form, "municipalityId", municipality.Id);
+    setField(form, "city", municipality.Name);
+    setField(form, "postalCode", municipality.PostalCode);
+  }
+
+  function syncLocationSelect(form: HTMLFormElement) {
+    const select = form.querySelector<HTMLSelectElement>("[data-location-select]");
+    if (!select || select.options.length <= 1) return;
+
+    const municipalityId = String((form.elements.namedItem("municipalityId") as HTMLInputElement | null)?.value ?? "");
+    if (municipalityId) {
+      select.value = municipalityId;
+      return;
+    }
+
+    const city = normalizeText(String((form.elements.namedItem("city") as HTMLInputElement | null)?.value ?? ""));
+    const postalCode = String((form.elements.namedItem("postalCode") as HTMLInputElement | null)?.value ?? "").trim();
+    const option = Array.from(select.options).find((item) =>
+      normalizeText(item.dataset.name) === city && (!postalCode || item.dataset.postalCode === postalCode)
+    );
+    if (option) {
+      select.value = option.value;
+      setField(form, "municipalityId", option.value);
+    }
+  }
+
+  async function populateLocationSelects() {
+    const forms = Array.from(document.querySelectorAll<HTMLFormElement>("[data-local-property-form]"));
+    if (forms.length === 0) return;
+
+    try {
+      const municipalities = await loadMunicipalities();
+      forms.forEach((form) => {
+        const select = form.querySelector<HTMLSelectElement>("[data-location-select]");
+        if (!select) return;
+
+        select.textContent = "";
+        select.append(new Option("Ort auswaehlen", ""));
+        municipalities.forEach((municipality) => {
+          const option = new Option(`${municipality.PostalCode} ${municipality.Name} (${municipality.DistrictName})`, municipality.Id);
+          option.dataset.name = municipality.Name;
+          option.dataset.postalCode = municipality.PostalCode;
+          select.append(option);
+        });
+
+        syncLocationSelect(form);
+        setLocationStatus(form, "Ort auswaehlen oder Ort/PLZ manuell eintragen.");
+      });
+    } catch (error) {
+      forms.forEach((form) => {
+        const select = form.querySelector<HTMLSelectElement>("[data-location-select]");
+        if (select) {
+          select.textContent = "";
+          select.append(new Option("Ort manuell eintragen", ""));
+        }
+        setLocationStatus(
+          form,
+          error instanceof Error ? `Orte konnten nicht geladen werden: ${error.message}` : "Orte konnten nicht geladen werden.",
+          "error",
+        );
+      });
+    }
+  }
+
+  function bindLocationPickers() {
+    document.querySelectorAll<HTMLFormElement>("[data-local-property-form]").forEach((form) => {
+      const select = form.querySelector<HTMLSelectElement>("[data-location-select]");
+      select?.addEventListener("change", async () => {
+        if (!select.value) return;
+        const municipality = (await loadMunicipalities()).find((item) => item.Id === select.value);
+        if (municipality) applyMunicipalityToForm(form, municipality);
+      });
+    });
+
+    void populateLocationSelects();
+  }
+
+  async function findMunicipalityId(draft: Draft) {
+    if (draft.municipalityId && UUID_PATTERN.test(draft.municipalityId)) {
+      return draft.municipalityId;
+    }
+
+    const city = normalizeText(draft.city);
+    const postalCode = draft.postalCode?.trim();
+    const municipalities = await loadMunicipalities();
+
+    const exact = municipalities.find((municipality) =>
+      normalizeText(municipality.Name) === city &&
+      (!postalCode || municipality.PostalCode === postalCode)
+    );
+    return exact?.Id ?? municipalities.find((municipality) => normalizeText(municipality.Name) === city)?.Id ?? null;
+  }
+
+  async function createRemoteProperty(draft: Draft, imageUrls: string[]) {
+    const session = readSession();
+    if (!session) return null;
+
+    const municipalityId = await findMunicipalityId(draft);
+    if (!municipalityId) {
+      throw new Error("Der Ort konnte nicht eindeutig in Oberoesterreich gefunden werden.");
+    }
+
+    const response = await apiRequest<{ PropertyId: string; Title: string; CreatedAt: string }>("/api/properties", {
+      method: "POST",
+      body: {
+        Title: draft.title,
+        Address: draft.address,
+        MunicipalityId: municipalityId,
+        Price: toNumber(draft.price),
+        Type: mapPropertyType(draft.propertyType),
+        SellerType: draft.sellerType || "Private",
+        SellerName: draft.sellerName || session.FullName || "Privatanbieter",
+        Description: draft.description || null,
+        LivingAreaSquareMeters: hasStructureFields(draft) ? toNumber(draft.livingArea) : null,
+        PlotAreaSquareMeters: toNumber(draft.plotArea),
+        Rooms: hasStructureFields(draft) ? toNumber(draft.rooms) : null,
+        YearBuilt: hasStructureFields(draft) ? toNumber(draft.yearBuilt) : null,
+        Features: [],
+        ImageUrls: imageUrls,
+        TypeSpecificData: buildForeclosureTypeSpecificData(draft),
+      },
+    });
+
+    return response;
+  }
+
+  async function updateRemoteProperty(id: string, draft: Draft, imageUrls: string[]) {
+    const session = readSession();
+    if (!session || !UUID_PATTERN.test(id)) return null;
+
+    const municipalityId = await findMunicipalityId(draft);
+    if (!municipalityId) {
+      throw new Error("Der Ort konnte nicht eindeutig in Oberoesterreich gefunden werden.");
+    }
+
+    const response = await apiRequest<{ Success: boolean }>("/api/properties", {
+      method: "PUT",
+      body: {
+        Id: id,
+        Title: draft.title,
+        Address: draft.address,
+        MunicipalityId: municipalityId,
+        Price: toNumber(draft.price),
+        Type: mapPropertyType(draft.propertyType),
+        SellerType: mapSellerType(draft.sellerType),
+        SellerName: draft.sellerName || session.FullName || "Privatanbieter",
+        Description: draft.description || null,
+        LivingAreaSquareMeters: hasStructureFields(draft) ? toNumber(draft.livingArea) : null,
+        PlotAreaSquareMeters: toNumber(draft.plotArea),
+        Rooms: hasStructureFields(draft) ? toNumber(draft.rooms) : null,
+        YearBuilt: hasStructureFields(draft) ? toNumber(draft.yearBuilt) : null,
+        Features: [],
+        ImageUrls: imageUrls,
+        TypeSpecificData: buildForeclosureTypeSpecificData(draft),
+      },
+    });
+
+    return response;
+  }
+
+  function saveLocalDraft(draft: Draft, editId: string | null) {
+    const drafts = readArray<Draft>(STORAGE_KEYS.drafts);
+    if (editId) {
+      const existingIndex = drafts.findIndex((item) => item.id === editId);
+      draft.id = editId;
+      if (existingIndex >= 0) {
+        drafts[existingIndex] = draft;
+        writeArray(STORAGE_KEYS.drafts, drafts);
+        return;
+      }
+    }
+
+    writeArray(STORAGE_KEYS.drafts, [draft, ...drafts]);
+  }
+
+  function setField(form: HTMLFormElement, name: string, value: string | number | null | undefined) {
+    const field = form.elements.namedItem(name);
+    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
+      field.value = value === null || value === undefined ? "" : String(value);
+    }
+  }
+
+  function updatePropertyTypeFields(form: HTMLFormElement) {
+    const type = form.elements.namedItem("propertyType");
+    const propertyType = type instanceof HTMLSelectElement ? type.value : "house";
+    const isLand = propertyType === "land";
+    const isForeclosure = propertyType === "foreclosure";
+    const foreclosureFields = form.querySelector<HTMLElement>("[data-foreclosure-fields]");
+
+    form.querySelectorAll<HTMLElement>("[data-structure-property-field]").forEach((element) => {
+      element.hidden = isLand;
+      element
+        .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")
+        .forEach((field) => {
+          field.disabled = isLand;
+        });
+    });
+
+    if (foreclosureFields) {
+      foreclosureFields.hidden = !isForeclosure;
+      foreclosureFields
+        .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")
+        .forEach((field) => {
+          field.disabled = !isForeclosure;
+          field.required = isForeclosure && field.hasAttribute("data-foreclosure-required");
+        });
+    }
+  }
+
+  function bindPropertyTypeFields() {
+    document.querySelectorAll<HTMLFormElement>("[data-local-property-form]").forEach((form) => {
+      const type = form.elements.namedItem("propertyType");
+      if (type instanceof HTMLSelectElement) {
+        type.addEventListener("change", () => updatePropertyTypeFields(form));
+      }
+      updatePropertyTypeFields(form);
+    });
+  }
+
+  function fillPropertyForm(form: HTMLFormElement, draft: Draft) {
+    setField(form, "propertyType", draft.propertyType);
+    setField(form, "sellerName", draft.sellerName);
+    setField(form, "sellerType", draft.sellerType);
+    setField(form, "title", draft.title);
+    setField(form, "description", draft.description);
+    setField(form, "address", draft.address);
+    setField(form, "city", draft.city);
+    setField(form, "postalCode", draft.postalCode);
+    setField(form, "price", draft.price);
+    setField(form, "livingArea", draft.livingArea);
+    setField(form, "plotArea", draft.plotArea);
+    setField(form, "rooms", draft.rooms);
+    setField(form, "yearBuilt", draft.yearBuilt);
+    setField(form, "municipalityId", draft.municipalityId);
+    [
+      "foreclosureCourtName",
+      "foreclosureFileNumber",
+      "foreclosureAuctionDate",
+      "foreclosureMinimumBid",
+      "foreclosureEstimatedValue",
+      "foreclosureStatus",
+      "foreclosureViewingDate",
+      "foreclosureBiddingDeadline",
+      "foreclosureOwnershipShare",
+      "foreclosureEdictUrl",
+      "foreclosureRegistrationNumber",
+      "foreclosureCadastralMunicipality",
+      "foreclosurePlotNumber",
+      "foreclosureTotalArea",
+      "foreclosureBuildingArea",
+      "foreclosureZoningDesignation",
+      "foreclosureBuildingCondition",
+      "foreclosureNotes",
+    ].forEach((field) => setField(form, field, draft[field] as string | undefined));
+    updatePropertyTypeFields(form);
+    setFormImages(form, getDraftImageUrls(draft));
+    syncLocationSelect(form);
+  }
+
+  function apiPropertyToDraft(property: ApiProperty) {
+    const typeSpecificData = readTypeSpecificData(property);
+    return {
+      id: property.Id,
+      title: property.Title,
+      description: property.Description ?? "",
+      propertyType: mapApiPropertyType(property.Type),
+      sellerName: property.SellerName,
+      sellerType: mapSellerType(property.SellerType ?? undefined),
+      address: property.Address,
+      city: property.City,
+      postalCode: property.PostalCode,
+      price: String(property.Price ?? ""),
+      livingArea: property.LivingAreaM2 ? String(property.LivingAreaM2) : "",
+      plotArea: property.PlotAreaM2 ? String(property.PlotAreaM2) : "",
+      rooms: property.Rooms ? String(property.Rooms) : "",
+      yearBuilt: property.YearBuilt ? String(property.YearBuilt) : "",
+      municipalityId: property.MunicipalityId ?? "",
+      imageUrls: property.ImageUrls ?? [],
+      foreclosureCourtName: readTypedString(typeSpecificData, "CourtName"),
+      foreclosureFileNumber: readTypedString(typeSpecificData, "FileNumber"),
+      foreclosureAuctionDate: toDateTimeLocal(typeSpecificData.AuctionDate),
+      foreclosureMinimumBid: readTypedString(typeSpecificData, "MinimumBid"),
+      foreclosureEstimatedValue: readTypedString(typeSpecificData, "EstimatedValue"),
+      foreclosureStatus: readTypedString(typeSpecificData, "Status") || "Scheduled",
+      foreclosureViewingDate: toDateTimeLocal(typeSpecificData.ViewingDate),
+      foreclosureBiddingDeadline: toDateTimeLocal(typeSpecificData.BiddingDeadline),
+      foreclosureOwnershipShare: readTypedString(typeSpecificData, "OwnershipShare"),
+      foreclosureEdictUrl: readTypedString(typeSpecificData, "EdictUrl"),
+      foreclosureRegistrationNumber: readTypedString(typeSpecificData, "RegistrationNumber"),
+      foreclosureCadastralMunicipality: readTypedString(typeSpecificData, "CadastralMunicipality"),
+      foreclosurePlotNumber: readTypedString(typeSpecificData, "PlotNumber"),
+      foreclosureTotalArea: readTypedString(typeSpecificData, "TotalArea"),
+      foreclosureBuildingArea: readTypedString(typeSpecificData, "BuildingArea"),
+      foreclosureZoningDesignation: readTypedString(typeSpecificData, "ZoningDesignation"),
+      foreclosureBuildingCondition: readTypedString(typeSpecificData, "BuildingCondition"),
+      foreclosureNotes: readTypedString(typeSpecificData, "Notes"),
+    } satisfies Draft;
+  }
+
+  async function hydratePropertyEditForm() {
+    const form = document.querySelector<HTMLFormElement>("[data-edit-property-form]");
+    if (!form) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const draftId = params.get("draft");
+    const remoteId = params.get("id");
+
+    if (draftId) {
+      const draft = readArray<Draft>(STORAGE_KEYS.drafts).find((item) => item.id === draftId);
+      if (draft) {
+        fillPropertyForm(form, draft);
+        setFormStatus(form, "Lokaler Entwurf geladen.");
+      }
+      return;
+    }
+
+    if (!remoteId || !UUID_PATTERN.test(remoteId)) return;
+
+    setFormStatus(form, "Immobilie wird geladen...");
+    try {
+      const response = await apiRequest<{ Property: ApiProperty | null }>(`/api/properties/${remoteId}`);
+      if (response.Property) {
+        fillPropertyForm(form, apiPropertyToDraft(response.Property));
+        setFormStatus(form, "Immobilie geladen.", "success");
+      } else {
+        setFormStatus(form, "Immobilie nicht gefunden.", "error");
+      }
+    } catch (error) {
+      setFormStatus(
+        form,
+        error instanceof Error ? `Immobilie konnte nicht geladen werden: ${error.message}` : "Immobilie konnte nicht geladen werden.",
+        "error",
+      );
+    }
+  }
+
+  function renderDrafts() {
+    const drafts = readArray<Draft>(STORAGE_KEYS.drafts);
+    document.querySelectorAll<HTMLElement>("[data-local-drafts]").forEach((container) => {
+      container.textContent = "";
+      drafts.forEach((draft) => container.append(createDraftCard(draft)));
+      container.classList.toggle("hidden", drafts.length === 0);
+
+      const empty = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+      empty?.classList.toggle("hidden", drafts.length > 0);
+    });
+  }
+
+  function renderMineStatus() {
+    const status = document.querySelector<HTMLElement>("[data-mine-status]");
+    const text = document.querySelector<HTMLElement>("[data-mine-status-text]");
+    if (!status || !text) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const message = params.has("bearbeitet")
+      ? "Aenderungen gespeichert."
+      : params.has("gespeichert")
+        ? "Entwurf gespeichert."
+        : "";
+
+    text.textContent = message;
+    status.classList.toggle("hidden", !message);
+  }
+
+  function bindFallbackImages() {
+    document.querySelectorAll<HTMLImageElement>("[data-fallback-image]").forEach((image) => {
+      image.addEventListener("error", () => {
+        image.src = image.dataset.fallbackImage || "/og/heimatplatz-default.svg";
+      }, { once: true });
+    });
+  }
+
+  async function renderRemoteUserLists() {
+    const session = readSession();
+    if (!session) return;
+
+    const endpoints: Record<string, string> = {
+      favorites: "/api/favorites",
+      blocked: "/api/blocked",
+      mine: "/api/properties/user",
+    };
+
+    document.querySelectorAll<HTMLElement>("[data-remote-properties]").forEach(async (container) => {
+      const mode = container.getAttribute("data-remote-mode") ?? "";
+      const endpoint = endpoints[mode];
+      if (!endpoint) return;
+
+      try {
+        const response = await apiRequest<{ Properties: ApiProperty[] }>(endpoint);
+        const properties = response.Properties ?? [];
+        container.textContent = "";
+        properties.forEach((property) => container.append(createApiPropertyCard(property, mode)));
+        container.classList.toggle("hidden", properties.length === 0);
+
+        const empty = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+        empty?.classList.toggle("hidden", properties.length > 0);
+      } catch (error) {
+        console.warn("[Heimatplatz] API user list load failed", error);
+      }
+    });
+  }
+
+  function bindPropertyForm() {
+    document.querySelectorAll<HTMLFormElement>("[data-local-property-form]").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+
+        const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
+        const params = new URLSearchParams(window.location.search);
+        const editId = params.get("id") ?? params.get("draft");
+        const isEditForm = form.hasAttribute("data-edit-property-form");
+        const formData = new FormData(form);
+        const draft: Draft = {};
+        formData.forEach((value, key) => {
+          if (key === "propertyImages" || key === "municipalityLookup" || key === "imageUrls") return;
+          draft[key] = typeof value === "string" ? value : value.name;
+        });
+        draft.id = editId ?? crypto.randomUUID?.() ?? `${Date.now()}`;
+        draft.updatedAt = new Date().toISOString();
+
+        const validationMessage = validatePropertyDraft(draft);
+        if (validationMessage) {
+          setFormStatus(form, validationMessage, "error");
+          return;
+        }
+
+        if (!isEditForm && getImageState(form).length === 0) {
+          setFormStatus(form, "Bitte fuegen Sie mindestens ein Foto hinzu.", "error");
+          return;
+        }
+
+        submit?.setAttribute("disabled", "true");
+        setFormStatus(form, editId ? "Aenderungen werden gespeichert..." : readSession() ? "Inserat wird gespeichert..." : "Entwurf wird lokal gespeichert...");
+
+        try {
+          if (editId && UUID_PATTERN.test(editId) && readSession()) {
+            setFormStatus(form, "Bilder werden hochgeladen...");
+            const imageUrls = await uploadImages(form, false);
+            draft.imageUrls = imageUrls;
+            const updated = await updateRemoteProperty(editId, draft, imageUrls);
+            if (updated) {
+              window.location.href = "/meine-immobilien/?gespeichert=api";
+              return;
+            }
+          }
+
+          if (!editId) {
+            let imageUrls = await getLocalImageUrls(form);
+            if (readSession()) {
+              setFormStatus(form, "Bilder werden hochgeladen...");
+              imageUrls = await uploadImages(form, true);
+            }
+            draft.imageUrls = imageUrls;
+            const remote = await createRemoteProperty(draft, imageUrls);
+            if (remote?.PropertyId) {
+              window.location.href = "/meine-immobilien/?gespeichert=api";
+              return;
+            }
+          }
+
+          draft.imageUrls = await getLocalImageUrls(form);
+          saveLocalDraft(draft, editId);
+          window.location.href = editId ? "/meine-immobilien/?bearbeitet=1" : "/meine-immobilien/?gespeichert=1";
+        } catch (error) {
+          draft.imageUrls = await getLocalImageUrls(form);
+          saveLocalDraft(draft, editId);
+          if (editId) {
+            setFormStatus(
+              form,
+              error instanceof Error
+                ? `Online-Aktualisierung fehlgeschlagen, Entwurf lokal gesichert: ${error.message}`
+                : "Online-Aktualisierung fehlgeschlagen, Entwurf lokal gesichert.",
+              "error",
+            );
+          } else {
+            setFormStatus(
+              form,
+              error instanceof Error
+                ? `Online-Speichern fehlgeschlagen, Entwurf lokal gesichert: ${error.message}`
+                : "Online-Speichern fehlgeschlagen, Entwurf lokal gesichert.",
+              "error",
+            );
+          }
+        } finally {
+          submit?.removeAttribute("disabled");
+        }
+      });
+    });
+  }
+
+  async function deleteRemoteProperty(id: string, button: HTMLButtonElement) {
+    if (!readSession() || !UUID_PATTERN.test(id)) return;
+    const card = button.closest("article");
+    button.setAttribute("disabled", "true");
+
+    try {
+      await apiRequest(`/api/properties/${id}`, { method: "DELETE" });
+      card?.remove();
+      document.querySelectorAll<HTMLElement>("[data-remote-properties]").forEach((container) => {
+        const empty = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+        empty?.classList.toggle("hidden", container.querySelectorAll("article").length > 0);
+      });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Die Immobilie konnte nicht geloescht werden.");
+      button.removeAttribute("disabled");
+    }
+  }
+
+  async function shareUrl(button: HTMLButtonElement) {
+    const url = button.getAttribute("data-share-url") || window.location.href;
+    const title = button.getAttribute("data-share-title") || document.title;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+      }
+      button.setAttribute("data-copied", "true");
+      window.setTimeout(() => button.removeAttribute("data-copied"), 1600);
+    } catch {
+      // Sharing is user-controlled and can be cancelled without affecting the page.
+    }
+  }
+
+  async function copyText(button: HTMLButtonElement) {
+    const value = button.getAttribute("data-copy-value");
+    if (!value) return;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const input = document.createElement("textarea");
+        input.value = value;
+        input.setAttribute("readonly", "true");
+        input.style.position = "fixed";
+        input.style.left = "-9999px";
+        document.body.append(input);
+        input.select();
+        const legacyDocument = document as unknown as { execCommand(commandId: string): boolean };
+        legacyDocument.execCommand("copy");
+        input.remove();
+      }
+
+      const text = button.querySelector<HTMLElement>("[data-copy-text]");
+      const originalText = text?.textContent;
+      const originalLabel = button.getAttribute("aria-label");
+      button.setAttribute("data-copied", "true");
+      button.setAttribute("aria-label", "Kopiert");
+      if (text) text.textContent = "Kopiert";
+
+      window.setTimeout(() => {
+        button.removeAttribute("data-copied");
+        if (text && originalText) text.textContent = originalText;
+        if (originalLabel) button.setAttribute("aria-label", originalLabel);
+      }, 1600);
+    } catch {
+      const text = button.querySelector<HTMLElement>("[data-copy-text]");
+      const originalText = text?.textContent;
+      if (text) text.textContent = "Nicht kopiert";
+      window.setTimeout(() => {
+        if (text && originalText) text.textContent = originalText;
+      }, 1600);
+    }
+  }
+
+  function bindGlobalActions() {
+    document.addEventListener("click", (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const menuButton = target?.closest("[data-card-action]");
+      if (menuButton instanceof HTMLButtonElement) {
+        const menuId = menuButton.getAttribute("aria-controls");
+        const menu = menuId ? document.getElementById(menuId) : null;
+        const willOpen = menu?.classList.contains("hidden") ?? false;
+        closeCardMenus(menu instanceof HTMLElement ? menu : null);
+
+        if (menu instanceof HTMLElement) {
+          menu.classList.toggle("hidden", !willOpen);
+          menuButton.setAttribute("aria-expanded", String(willOpen));
+        }
+        return;
+      }
+
+      const actionButton = target?.closest("[data-property-action]");
+      if (actionButton instanceof HTMLButtonElement) {
+        const action = actionButton.getAttribute("data-property-action");
+        const slug = actionButton.getAttribute("data-property-slug");
+        const propertyId = actionButton.getAttribute("data-property-id");
+        if (!slug) return;
+        let active = false;
+
+        if (action === "favorite") {
+          active = toggleValue(STORAGE_KEYS.favorites, slug);
+          if (active) removeValue(STORAGE_KEYS.blocked, slug);
+        }
+        if (action === "block") {
+          active = toggleValue(STORAGE_KEYS.blocked, slug);
+          if (active) removeValue(STORAGE_KEYS.favorites, slug);
+        }
+
+        refreshActionButtons();
+        syncUserLists();
+        closeCardMenus();
+        void syncRemotePropertyAction(action, propertyId, active);
+        return;
+      }
+
+      const remove = target?.closest("[data-draft-remove]");
+      if (remove instanceof HTMLButtonElement) {
+        const id = remove.getAttribute("data-draft-remove");
+        const drafts = readArray<Draft>(STORAGE_KEYS.drafts).filter((draft) => draft.id !== id);
+        writeArray(STORAGE_KEYS.drafts, drafts);
+        renderDrafts();
+        return;
+      }
+
+      const remoteDelete = target?.closest("[data-remote-delete]");
+      if (remoteDelete instanceof HTMLButtonElement) {
+        const id = remoteDelete.getAttribute("data-remote-delete");
+        if (id && window.confirm("Immobilie wirklich loeschen?")) {
+          void deleteRemoteProperty(id, remoteDelete);
+        }
+        return;
+      }
+
+      const copy = target?.closest("[data-copy-value]");
+      if (copy instanceof HTMLButtonElement) {
+        void copyText(copy);
+        return;
+      }
+
+      const share = target?.closest("[data-share-url]");
+      if (share instanceof HTMLButtonElement) {
+        void shareUrl(share);
+        return;
+      }
+
+      const logout = target?.closest("[data-logout]");
+      if (logout instanceof HTMLButtonElement) {
+        clearSession();
+        if (window.location.pathname === "/profil/") {
+          window.location.href = "/anmelden/";
+        }
+      }
+
+      if (!target?.closest("[data-card-menu]")) {
+        closeCardMenus();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeCardMenus();
+      }
+    });
+  }
+
+  function bootPropertyState() {
+    refreshActionButtons();
+    bindFallbackImages();
+    renderAuthState();
+    syncUserLists();
+    renderMineStatus();
+    renderDrafts();
+    void renderRemoteUserLists();
+    applySavedPreferences();
+    bindNotificationPreferenceVisibility();
+    bindRegisterRoleFields();
+    bindImagePickers();
+    bindLocationPickers();
+    bindPropertyTypeFields();
+    void hydratePropertyEditForm();
+    bindAuthForms();
+    bindPreferenceForms();
+    bindPropertyForm();
+    bindGlobalActions();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootPropertyState, { once: true });
+  } else {
+    bootPropertyState();
+  }
+</script>

@@ -1,0 +1,54 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PropertySearchApp from "@/components/properties/PropertySearchApp.astro";
+import { fetchApiProperties, getApiPropertyPath } from "@/features/properties/live-api";
+import { breadcrumbSchema } from "@/lib/seo";
+
+const properties = (await getCollection("properties")).sort(
+  (a, b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf(),
+);
+const apiProperties = await fetchApiProperties({ pageSize: 24 });
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Immobilien in Oberösterreich finden",
+  description:
+    "Haeuser, Wohnungen, Grundstuecke und Zwangsversteigerungen in Oberösterreich mit regionaler Suche und aktuellen Objektseiten.",
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: [
+      ...properties.map((property, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: new URL(`/immobilien/${property.data.slug}/`, Astro.site).toString(),
+        name: property.data.title,
+      })),
+      ...apiProperties.map((property, index) => ({
+        "@type": "ListItem",
+        position: properties.length + index + 1,
+        url: new URL(getApiPropertyPath(property), Astro.site).toString(),
+        name: property.Title,
+      })),
+    ],
+  },
+};
+---
+
+<BaseLayout
+  title="Immobilien in Oberösterreich finden"
+  description="Immobilien in Oberösterreich finden: Häuser, Wohnungen, Grundstücke und Zwangsversteigerungen in Linz, Wels, Steyr und allen Bezirken suchen."
+  canonicalPath="/"
+  structuredData={[
+    breadcrumbSchema([{ name: "Heimatplatz", url: new URL("/", Astro.site).toString() }]),
+    itemListSchema,
+  ]}
+>
+  <PropertySearchApp
+    properties={properties}
+    apiProperties={apiProperties}
+    introTitle="Immobilien in Oberösterreich finden"
+    introDescription="Häuser, Wohnungen, Grundstücke und Zwangsversteigerungen in Linz, Wels, Steyr, Gmunden, Vöcklabruck, Linz-Land und weiteren Bezirken suchen."
+    showIntro
+  />
+</BaseLayout>

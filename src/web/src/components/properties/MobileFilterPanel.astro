@@ -1,0 +1,50 @@
+---
+import FilterIcon from "@tabler/icons/outline/filter.svg";
+import { NativeSelect } from "@/components/starwind/native-select";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+---
+
+<section class="border-b border-border bg-background lg:hidden" data-mobile-filter>
+  <button
+    class="grid min-h-11 w-full grid-cols-[1fr_auto] items-center px-3 text-left"
+    type="button"
+    data-mobile-filter-toggle
+    aria-expanded="false"
+  >
+    <span class="flex items-center gap-2 text-sm font-semibold">
+      <FilterIcon class="size-4" aria-hidden="true" />
+      Filter
+    </span>
+    <span class="flex items-center gap-2 text-sm text-muted-foreground">
+      <span data-mobile-result-count>0 Objekte</span>
+      <span aria-hidden="true">⌄</span>
+    </span>
+  </button>
+
+  <form action="/immobilien/" method="get" class="hidden px-3 pb-3" data-mobile-filter-body>
+    <div class="grid grid-cols-2 gap-2">
+      <NativeSelect name="region" data-filter-region>
+        <option value="">Ort auswaehlen</option>
+        {upperAustriaRegions.map((region) => <option value={region.slug}>{region.name}</option>)}
+      </NativeSelect>
+      <NativeSelect name="age" data-filter-age>
+        <option value="">Zeitraum</option>
+        <option value="day">24 Stunden</option>
+        <option value="week">7 Tage</option>
+        <option value="month">30 Tage</option>
+        <option value="year">1 Jahr</option>
+      </NativeSelect>
+    </div>
+
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="apartment" aria-pressed="true">Wohnung</button>
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="house" aria-pressed="true">Haus</button>
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="land" aria-pressed="true">Grund</button>
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="foreclosure" aria-pressed="true">ZV</button>
+      <span class="basis-full"></span>
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="private" aria-pressed="true">Privat</button>
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="agent" aria-pressed="true">Makler</button>
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="court" aria-pressed="true">Portal</button>
+    </div>
+  </form>
+</section>

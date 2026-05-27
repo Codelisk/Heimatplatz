@@ -1,0 +1,18 @@
+---
+import { getCollection } from "astro:content";
+import UserListPage from "@/components/app/UserListPage.astro";
+import { fetchForeclosureAuctions } from "@/features/foreclosures/api";
+
+const properties = await getCollection("properties");
+const foreclosures = await fetchForeclosureAuctions();
+---
+
+<UserListPage
+  title="Meine Favoriten"
+  description="Gespeicherte Immobilien aus Oberösterreich. Favoriten werden lokal vorgemerkt und bei Anmeldung mit dem Benutzerkonto synchronisiert."
+  canonicalPath="/favoriten/"
+  properties={properties}
+  foreclosures={foreclosures}
+  mode="favorites"
+  emptyText="Noch keine Favoriten gespeichert."
+/>

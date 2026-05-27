@@ -1,0 +1,82 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getRegionLocalities } from "@/data/locality-search-pages";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+
+const regionGroups = upperAustriaRegions.map((region) => ({
+  region,
+  localities: getRegionLocalities(region.slug),
+}));
+---
+
+<BaseLayout
+  title="Benachrichtigungen"
+  description="Benachrichtigungen fuer neue Immobilien in Oberösterreich konfigurieren."
+  canonicalPath="/benachrichtigungen/"
+  noindex
+>
+  <section class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold">Benachrichtigungen</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">
+      Suchbenachrichtigungen fuer neue Objekte in Linz, Wels, Steyr und weiteren Regionen
+      speichern und mit dem Benutzerkonto synchronisieren.
+    </p>
+    <form class="mt-8 space-y-4" data-preferences-form="notifications">
+      <label class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 text-sm">
+        <span><strong>Benachrichtigungen</strong><br /><span class="text-muted-foreground">Push- oder E-Mail-Hinweise fuer neue passende Immobilien</span></span>
+        <input type="checkbox" name="isEnabled" checked />
+      </label>
+      <div class="rounded-lg border border-border bg-card p-4" data-notification-filter-settings>
+        <label class="text-sm font-semibold" for="filterMode">Filtermodus</label>
+        <select id="filterMode" name="filterMode" class="mt-2 w-full rounded-md border-border text-sm">
+          <option value="SameAsSearch">Wie gespeicherte Suche</option>
+          <option value="Custom">Eigene Benachrichtigungsfilter</option>
+          <option value="All">Alle neuen Objekte</option>
+        </select>
+      </div>
+      <div class="rounded-lg border border-border bg-card p-4" data-notification-custom hidden>
+        <h2 class="text-base font-semibold">Immobilientyp</h2>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="house" checked /> Haus</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="land" checked /> Grund</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="foreclosure" checked /> Zwangsversteigerungen</label>
+        </div>
+      </div>
+      <div class="rounded-lg border border-border bg-card p-4" data-notification-custom hidden>
+        <h2 class="text-base font-semibold">Anbietertyp</h2>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="private" checked /> Privat</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="broker" checked /> Makler</label>
+        </div>
+      </div>
+      <div class="rounded-lg border border-border bg-card p-4" data-notification-custom hidden>
+        <h2 class="text-base font-semibold">Orte</h2>
+        <p class="mt-1 text-sm text-muted-foreground">
+          Leer lassen bedeutet: alle Orte in Oberösterreich. Mehrere Orte werden wie in der App gespeichert.
+        </p>
+        <div class="mt-4 grid max-h-[32rem] gap-3 overflow-y-auto pr-1">
+          {regionGroups.map(({ region, localities }) => (
+            <details class="rounded-md border border-border bg-background p-3" open={region.slug === "linz" || region.slug === "linz-land"}>
+              <summary class="cursor-pointer text-sm font-semibold">{region.name}</summary>
+              <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                {localities.map((locality) => (
+                  <label class="flex min-h-10 items-center gap-3 rounded-md border border-border px-3 py-2 text-sm">
+                    <input type="checkbox" name="locations" value={locality.name} />
+                    <span>
+                      <span class="block font-medium">{locality.name}</span>
+                      <span class="block text-xs text-muted-foreground">{locality.regionName}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+      <p class="hidden text-sm" data-form-status></p>
+      <button type="submit" class="inline-flex h-10 items-center rounded-md bg-foreground px-4 text-sm font-semibold text-background">
+        Benachrichtigungen speichern
+      </button>
+    </form>
+  </section>
+</BaseLayout>

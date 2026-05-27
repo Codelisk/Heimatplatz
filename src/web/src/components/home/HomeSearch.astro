@@ -1,0 +1,64 @@
+---
+import SearchIcon from "@tabler/icons/outline/search.svg";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { NativeSelect } from "@/components/starwind/native-select";
+---
+
+<section class="border-b border-border bg-muted/35">
+  <div class="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl content-center gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+    <div class="max-w-3xl">
+      <p class="text-sm font-semibold uppercase text-primary">Immobiliensuche fuer Oberösterreich</p>
+      <h1 class="mt-4 max-w-2xl text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
+        Immobilien finden, vergleichen und in Oberösterreich schneller entscheiden.
+      </h1>
+      <p class="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+        Suche nach Ort, PLZ oder Immobilientyp und vergleiche Häuser, Wohnungen,
+        Grundstücke und Versteigerungsobjekte in den Regionen des Landes.
+      </p>
+
+      <form action="/immobilien/" method="get" class="mt-8 grid gap-3 rounded-lg border border-border bg-background p-3 shadow-sm sm:grid-cols-[1fr_180px_auto]">
+        <div>
+          <Label for="q" class="sr-only">Suchbegriff</Label>
+          <Input id="q" name="q" type="search" placeholder="Bezirk, Ort, PLZ oder Immobilie" autocomplete="off" />
+        </div>
+        <div>
+          <Label for="type" class="sr-only">Immobilientyp</Label>
+          <NativeSelect id="type" name="type">
+            <option value="">Alle Typen</option>
+            <option value="apartment">Wohnung</option>
+            <option value="house">Haus</option>
+            <option value="land">Grundstueck</option>
+            <option value="foreclosure">Versteigerung</option>
+          </NativeSelect>
+        </div>
+        <Button type="submit" variant="primary" class="gap-2">
+          <SearchIcon class="size-4" aria-hidden="true" />
+          Suchen
+        </Button>
+      </form>
+    </div>
+
+    <aside class="grid gap-3 self-center" aria-label="Aktuelle Plattformschwerpunkte">
+      <div class="rounded-lg border border-border bg-background p-5 shadow-sm">
+        <p class="text-sm text-muted-foreground">Regionale Suche</p>
+        <p class="mt-2 text-3xl font-semibold">Oberösterreich</p>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          Von Linz und Wels bis Innviertel, Muehlviertel und Salzkammergut: passende
+          Angebote nach Region und Immobilientyp finden.
+        </p>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded-lg border border-border bg-background p-5 shadow-sm">
+          <p class="text-sm text-muted-foreground">Merkliste</p>
+          <p class="mt-2 text-2xl font-semibold">Speichern</p>
+        </div>
+        <div class="rounded-lg border border-border bg-background p-5 shadow-sm">
+          <p class="text-sm text-muted-foreground">ZV</p>
+          <p class="mt-2 text-2xl font-semibold">Edikte</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>

@@ -1,0 +1,65 @@
+---
+import AuthShell from "@/components/auth/AuthShell.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+---
+
+<AuthShell
+  title="Konto erstellen"
+  description="Registrieren Sie sich fuer Immobilien-Angebote, Favoriten und Inserate in Oberösterreich."
+  mode="register"
+>
+  <form class="mt-10 space-y-5" action="/meine-immobilien/" method="get" data-auth-form="register" data-success-redirect="/meine-immobilien/">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="space-y-2">
+        <Label for="firstName">Vorname</Label>
+        <Input id="firstName" name="firstName" placeholder="Max" autocomplete="given-name" required />
+      </div>
+      <div class="space-y-2">
+        <Label for="lastName">Nachname</Label>
+        <Input id="lastName" name="lastName" placeholder="Mustermann" autocomplete="family-name" required />
+      </div>
+    </div>
+    <div class="space-y-2">
+      <Label for="email">E-Mail Adresse</Label>
+      <Input id="email" type="email" name="email" placeholder="max@beispiel.at" autocomplete="email" required />
+    </div>
+    <div class="space-y-2">
+      <Label for="password">Passwort</Label>
+      <Input id="password" type="password" name="password" placeholder="Mindestens 8 Zeichen" autocomplete="new-password" minlength="8" required />
+    </div>
+    <div class="space-y-2">
+      <Label for="passwordConfirm">Passwort bestaetigen</Label>
+      <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder="Passwort erneut eingeben" autocomplete="new-password" minlength="8" required />
+    </div>
+    <fieldset class="space-y-3">
+      <legend class="text-sm font-semibold">Ich moechte...</legend>
+      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
+        <input type="checkbox" name="role" value="buyer" checked />
+        <span><strong>Immobilien suchen</strong><br /><span class="text-muted-foreground">Angebote entdecken und Favoriten speichern</span></span>
+      </label>
+      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
+        <input type="checkbox" name="role" value="seller" />
+        <span><strong>Immobilien anbieten</strong><br /><span class="text-muted-foreground">Eigene Objekte inserieren und verwalten</span></span>
+      </label>
+    </fieldset>
+    <fieldset class="space-y-3" data-seller-fields hidden>
+      <legend class="text-sm font-semibold">Anbietertyp</legend>
+      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
+        <input type="radio" name="sellerType" value="Private" checked disabled />
+        <span><strong>Privatperson</strong><br /><span class="text-muted-foreground">Eigene Immobilie privat anbieten</span></span>
+      </label>
+      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
+        <input type="radio" name="sellerType" value="Broker" disabled />
+        <span><strong>Makler</strong><br /><span class="text-muted-foreground">Inserate im Namen eines Unternehmens verwalten</span></span>
+      </label>
+      <div class="space-y-2" data-company-field hidden>
+        <Label for="companyName">Firmenname</Label>
+        <Input id="companyName" name="companyName" placeholder="Immobilienunternehmen" autocomplete="organization" disabled />
+      </div>
+    </fieldset>
+    <p class="hidden text-sm" data-form-status></p>
+    <Button type="submit" class="w-full">Konto erstellen</Button>
+  </form>
+</AuthShell>

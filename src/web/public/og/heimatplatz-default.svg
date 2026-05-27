@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f8fafc"/>
+  <rect x="72" y="72" width="1056" height="486" rx="28" fill="#ffffff" stroke="#d4d4d4"/>
+  <rect x="116" y="116" width="86" height="86" rx="18" fill="#020617"/>
+  <path fill="#ffffff" d="M135 158 159 136l24 22v28a4 4 0 0 1-4 4h-11v-22h-18v22h-11a4 4 0 0 1-4-4v-28Z"/>
+  <text x="116" y="282" fill="#0f172a" font-family="Arial, sans-serif" font-size="72" font-weight="700">Heimatplatz</text>
+  <text x="116" y="358" fill="#334155" font-family="Arial, sans-serif" font-size="38">Immobilien in Oberoesterreich finden</text>
+  <text x="116" y="430" fill="#475569" font-family="Arial, sans-serif" font-size="28">Astro Web-App mit regionaler SEO-Struktur fuer Linz, Wels und Steyr.</text>
+  <rect x="116" y="476" width="255" height="54" rx="12" fill="#020617"/>
+  <text x="144" y="512" fill="#ffffff" font-family="Arial, sans-serif" font-size="24" font-weight="700">heimatplatz.at</text>
+</svg>

@@ -1,0 +1,165 @@
+---
+import DotsIcon from "@tabler/icons/outline/dots.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import CalendarIcon from "@tabler/icons/outline/calendar.svg";
+import UserIcon from "@tabler/icons/outline/user.svg";
+import {
+  formatDate,
+  formatPrice,
+  getAreaLabel,
+  getPropertyTypeSearchValue,
+  type PropertyEntry,
+} from "@/features/properties/format";
+import { slugifyLocation } from "@/features/locations/region-match";
+
+interface Props {
+  property: PropertyEntry;
+}
+
+const { property } = Astro.props;
+const data = property.data;
+const typeSearchValue = getPropertyTypeSearchValue(data.type);
+const menuId = `property-card-menu-${data.id}`;
+---
+
+<article
+  class="property-card overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+  data-property-card
+  data-slug={data.slug}
+  data-property-id={data.id}
+  data-type={typeSearchValue}
+  data-seller={data.sellerType}
+  data-region={data.regionSlug}
+  data-location={slugifyLocation(data.location)}
+  data-updated={data.updatedAt.toISOString()}
+  data-price={data.price}
+  data-area={data.plotArea ?? data.livingArea ?? 0}
+  data-postal={data.postalCode}
+  data-search={`${data.title} ${data.description} ${data.location} ${data.region} ${data.postalCode} ${data.address}`.toLowerCase()}
+>
+  <div class="relative h-50 overflow-hidden bg-muted">
+    <a href={`/immobilien/${data.slug}/`} class="block h-full">
+      <img
+        src={data.imageUrl}
+        alt={data.imageAlt}
+        class="h-full w-full object-cover"
+        loading="lazy"
+        decoding="async"
+      />
+    </a>
+    <span class:list={[
+      "absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold text-white",
+      data.type === "house" && "bg-[#2D6A9F]",
+      data.type === "apartment" && "bg-[#D85D3E]",
+      data.type === "land" && "bg-[#5D8A66]",
+      data.type === "foreclosure" && "bg-[#B22222]",
+    ]}>
+      {data.typeLabel}
+    </span>
+    <span class="absolute bottom-3 right-3 rounded-md bg-black/90 px-4 py-2 text-xl font-bold text-white">
+      {formatPrice(data.price)}
+    </span>
+    <div class="absolute right-3 top-3 flex gap-1">
+      <button
+        type="button"
+        class="grid size-9 place-items-center rounded-full bg-black/55 text-white"
+        aria-label="Favorit speichern"
+        aria-pressed="false"
+        data-property-action="favorite"
+        data-property-slug={data.slug}
+        data-property-id={data.id}
+      >
+        <HeartIcon class="size-5" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        class="grid size-9 place-items-center rounded-full bg-black/55 text-white"
+        aria-label="Immobilie blockieren"
+        aria-pressed="false"
+        data-property-action="block"
+        data-property-slug={data.slug}
+        data-property-id={data.id}
+      >
+        <EyeOffIcon class="size-5" aria-hidden="true" />
+      </button>
+      <div class="relative">
+        <button
+          type="button"
+          class="grid size-9 place-items-center rounded-full bg-black/55 text-white"
+          aria-label="Mehr Optionen"
+          aria-expanded="false"
+          aria-controls={menuId}
+          data-card-action
+        >
+          <DotsIcon class="size-5" aria-hidden="true" />
+        </button>
+        <div
+          id={menuId}
+          class="absolute right-0 top-11 z-20 hidden w-48 overflow-hidden rounded-md border border-border bg-card py-1 text-foreground shadow-lg"
+          data-card-menu
+        >
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-muted"
+            aria-label="Favorit speichern"
+            aria-pressed="false"
+            data-property-action="favorite"
+            data-property-slug={data.slug}
+            data-property-id={data.id}
+            data-active-text="Favorit entfernen"
+            data-inactive-text="Favorisieren"
+          >
+            <HeartIcon class="size-4" aria-hidden="true" />
+            <span data-action-label>Favorisieren</span>
+          </button>
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-muted"
+            aria-label="Immobilie blockieren"
+            aria-pressed="false"
+            data-property-action="block"
+            data-property-slug={data.slug}
+            data-property-id={data.id}
+            data-active-text="Blockierung entfernen"
+            data-inactive-text="Blockieren"
+          >
+            <EyeOffIcon class="size-4" aria-hidden="true" />
+            <span data-action-label>Blockieren</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
+    <div class="min-w-0">
+      <h2 class="truncate text-base font-semibold">
+        <a href={`/immobilien/${data.slug}/`} class="hover:underline">{data.location}</a>
+      </h2>
+      <p class="truncate text-sm text-muted-foreground">{data.address}</p>
+      <p class="mt-1 truncate text-xs text-muted-foreground">{data.title}</p>
+      <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+        <UserIcon class="size-3" aria-hidden="true" />
+        {data.sellerName}
+      </p>
+      <p class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+        <CalendarIcon class="size-3" aria-hidden="true" />
+        {formatDate(data.updatedAt)}
+      </p>
+    </div>
+
+    <dl class="text-right">
+      <div>
+        <dt class="sr-only">Flaeche</dt>
+        <dd class="text-2xl font-bold leading-none text-foreground">{data.plotArea ?? data.livingArea}</dd>
+        <dd class="text-xs text-muted-foreground">{data.plotArea ? "m2 Grund" : "m2 Wfl"}</dd>
+      </div>
+      <div class="mt-3 flex justify-end gap-1">
+        {data.livingArea && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{data.livingArea} Wfl</span>}
+        {data.rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{data.rooms} Zi</span>}
+      </div>
+    </dl>
+  </div>
+  <p class="sr-only">{getAreaLabel(data)}</p>
+</article>

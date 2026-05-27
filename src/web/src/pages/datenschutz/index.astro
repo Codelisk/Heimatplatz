@@ -1,0 +1,150 @@
+---
+import {
+  fetchPrivacyPolicy,
+  formatLegalDate,
+  paragraphsFromLegalText,
+  visibleLegalSections,
+} from "@/features/legal/api";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { breadcrumbSchema } from "@/lib/seo";
+
+type DetailItem = {
+  label: string;
+  value: string;
+  href?: string;
+};
+
+const policy = await fetchPrivacyPolicy();
+const party = policy.responsibleParty;
+const sections = visibleLegalSections(policy.sections);
+const contentSections = sections.filter((section) => section.title.trim().toLowerCase() !== "verantwortlicher");
+const updatedAt = formatLegalDate(policy.lastUpdated || policy.effectiveDate);
+const effectiveAt = formatLegalDate(policy.effectiveDate);
+const place = [party.postalCode, party.city].filter(Boolean).join(" ");
+const pageUrl = new URL("/datenschutz/", Astro.site).toString();
+
+const responsibleItems = [
+  { label: "Verantwortlicher", value: party.companyName },
+  { label: "Adresse", value: [party.street, place, party.country].filter(Boolean).join("\n") },
+  { label: "E-Mail", value: party.email, href: `mailto:${party.email}` },
+  { label: "Telefon", value: party.phone, href: party.phone ? `tel:${party.phone}` : undefined },
+  { label: "Datenschutzbeauftragter", value: party.dataProtectionOfficer },
+].filter((item): item is DetailItem => Boolean(item.value));
+
+const structuredData = [
+  breadcrumbSchema([
+    { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+    { name: "Datenschutz", url: pageUrl },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Datenschutzerklaerung",
+    description:
+      "Datenschutzerklaerung von Heimatplatz mit Informationen zu personenbezogenen Daten, Rechtsgrundlagen, Speicherdauer und Betroffenenrechten.",
+    url: pageUrl,
+    inLanguage: "de-AT",
+    dateModified: policy.lastUpdated || policy.effectiveDate || undefined,
+    about: {
+      "@type": "Thing",
+      name: "Datenschutz und DSGVO",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: party.companyName,
+      email: party.email,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: party.street,
+        postalCode: party.postalCode,
+        addressLocality: party.city,
+        addressCountry: "AT",
+      },
+    },
+  },
+];
+---
+
+<BaseLayout
+  title="Datenschutz"
+  description="Datenschutzerklaerung von Heimatplatz: personenbezogene Daten, Rechtsgrundlagen, Speicherdauer, Empfaenger und Betroffenenrechte."
+  canonicalPath="/datenschutz/"
+  structuredData={structuredData}
+>
+  <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+    <header class="max-w-3xl">
+      <p class="text-sm font-bold uppercase text-muted-foreground">Rechtliches</p>
+      <h1 class="mt-3 text-4xl font-bold tracking-normal">Datenschutzerklärung</h1>
+      <p class="mt-4 text-base leading-7 text-muted-foreground">
+        Informationen zur Verarbeitung personenbezogener Daten auf Heimatplatz.
+      </p>
+      <p class="mt-4 text-sm text-muted-foreground">
+        {updatedAt && <span>Stand: {updatedAt}</span>}
+        {updatedAt && policy.version && <span> · </span>}
+        {policy.version && <span>Version {policy.version}</span>}
+        {!updatedAt && effectiveAt && <span>Gueltig seit: {effectiveAt}</span>}
+      </p>
+    </header>
+
+    <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="space-y-5">
+        <article class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-xl font-bold">Verantwortlicher</h2>
+          <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+            {responsibleItems.map((item) => (
+              <div>
+                <dt class="text-xs font-bold uppercase text-muted-foreground">{item.label}</dt>
+                <dd class="mt-1 whitespace-pre-line text-sm leading-6 text-foreground">
+                  {item.href ? (
+                    <a class="font-medium underline-offset-4 hover:underline" href={item.href}>
+                      {item.value}
+                    </a>
+                  ) : (
+                    item.value
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </article>
+
+        {contentSections.map((section) => (
+          <article class="rounded-lg border border-border bg-card p-5">
+            <h2 class="text-xl font-bold">{section.title}</h2>
+            <div class="mt-3 space-y-3 text-sm leading-6 text-muted-foreground">
+              {paragraphsFromLegalText(section.content).map((paragraph) => (
+                <p class="whitespace-pre-line">{paragraph}</p>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <aside class="space-y-4">
+        <div class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-lg font-bold">Kontakt Datenschutz</h2>
+          <address class="mt-3 not-italic text-sm leading-6 text-muted-foreground">
+            <strong class="font-semibold text-foreground">{party.companyName}</strong><br />
+            {party.street}<br />
+            {place}<br />
+            {party.country}
+          </address>
+          {party.email && (
+            <a class="mt-4 inline-flex text-sm font-semibold underline-offset-4 hover:underline" href={`mailto:${party.email}`}>
+              {party.email}
+            </a>
+          )}
+        </div>
+
+        <div class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-lg font-bold">Betroffenenrechte</h2>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            Auskunft, Berichtigung, Loeschung, Einschraenkung, Datenuebertragbarkeit,
+            Widerspruch und Widerruf einer Einwilligung koennen per E-Mail geltend gemacht
+            werden.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,171 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
+import PropertyPreviewCard from "@/components/properties/PropertyPreviewCard.astro";
+import { getLocalityPath, getRegionLocalities } from "@/data/locality-search-pages";
+import { getRegionSearchPath, regionSearchIntents } from "@/data/region-search-intents";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+import { fetchMunicipalityRegionSlugs } from "@/features/locations/api";
+import { getApiPropertyRegionSlug } from "@/features/locations/region-match";
+import { fetchApiProperties, getApiPropertyPath } from "@/features/properties/live-api";
+import { breadcrumbSchema, faqSchema } from "@/lib/seo";
+
+export async function getStaticPaths() {
+  return upperAustriaRegions.map((region) => ({
+    params: { region: region.slug },
+    props: { region },
+  }));
+}
+
+const { region } = Astro.props;
+const allProperties = await getCollection("properties");
+const properties = allProperties.filter((property) => property.data.regionSlug === region.slug);
+const [apiProperties, municipalityRegionSlugs] = await Promise.all([
+  fetchApiProperties(),
+  fetchMunicipalityRegionSlugs(),
+]);
+const liveProperties = apiProperties
+  .filter((property) => getApiPropertyRegionSlug(property, municipalityRegionSlugs, region) === region.slug)
+  .slice(0, 9);
+const offerCount = properties.length + liveProperties.length;
+const localities = getRegionLocalities(region.slug);
+const faqItems = [
+  {
+    question: `Welche Immobilien finde ich in ${region.name}?`,
+    answer:
+      `${region.description} Heimatplatz zeigt dazu Haeuser, Wohnungen, Grundstuecke, Maklerangebote, private Inserate und passende Versteigerungsobjekte.`,
+  },
+  {
+    question: `Wie kann ich Angebote in ${region.name} nach Ort eingrenzen?`,
+    answer:
+      `Nutze die Ortslinks fuer ${region.name} oder die Suche mit Ort, PLZ, Bezirk, Zeitraum, Immobilientyp und Anbieterfilter.`,
+  },
+  {
+    question: `Sind auch Zwangsversteigerungen in ${region.name} sichtbar?`,
+    answer:
+      "Ja. Gerichtliche Versteigerungsobjekte werden in der Suche und auf eigenen Detailseiten angezeigt, sofern passende Daten fuer die Region vorliegen.",
+  },
+  {
+    question: `Warum lohnt sich der Vergleich mehrerer Orte in ${region.name}?`,
+    answer:
+      "Nachbarorte unterscheiden sich oft bei Preis, Angebotstyp, Flaeche und Verfuegbarkeit. Die lokalen Seiten helfen, Alternativen in derselben Region schneller zu vergleichen.",
+  },
+];
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: region.title,
+  description: region.description,
+  about: {
+    "@type": "Place",
+    name: `${region.name}, Oberösterreich`,
+  },
+  mainEntity: [
+    ...properties.map((property) => ({
+      "@type": "Offer",
+      name: property.data.title,
+      url: new URL(`/immobilien/${property.data.slug}/`, Astro.site).toString(),
+      price: property.data.price,
+      priceCurrency: "EUR",
+    })),
+    ...liveProperties.map((property) => ({
+      "@type": "Offer",
+      name: property.Title,
+      url: new URL(getApiPropertyPath(property), Astro.site).toString(),
+      price: Number(property.Price) > 0 ? Number(property.Price) : undefined,
+      priceCurrency: "EUR",
+    })),
+  ],
+};
+
+---
+
+<BaseLayout
+  title={region.title}
+  description={`${region.description} Aktuelle Immobilien, Haeuser, Wohnungen, Grundstuecke und Zwangsversteigerungen in ${region.name}, Oberösterreich.`}
+  canonicalPath={`/immobilien/oberoesterreich/${region.slug}/`}
+  structuredData={[
+    breadcrumbSchema([
+      { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+      { name: "Immobilien", url: new URL("/immobilien/", Astro.site).toString() },
+      { name: "Oberösterreich", url: new URL("/immobilien/oberoesterreich/", Astro.site).toString() },
+      { name: region.name, url: new URL(`/immobilien/oberoesterreich/${region.slug}/`, Astro.site).toString() },
+    ]),
+    schema,
+    faqSchema(faqItems),
+  ]}
+>
+  <section class="border-b border-border bg-muted/35">
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <p class="text-sm font-bold uppercase text-muted-foreground">Immobilien Oberösterreich</p>
+      <h1 class="mt-3 text-4xl font-bold">{region.title}</h1>
+      <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{region.description}</p>
+      <div class="mt-5 flex flex-wrap gap-2">
+        {regionSearchIntents.map((intent) => (
+          <a class="rounded-full bg-background px-3 py-1 text-sm hover:bg-card" href={getRegionSearchPath(region.slug, intent.slug)}>
+            {intent.label} {region.name}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
+    <div>
+      <h2 class="text-2xl font-bold">Aktuelle Immobilien in {region.name}</h2>
+      {
+        offerCount > 0 ? (
+          <div class="mt-6 grid gap-4 md:grid-cols-2">
+            {properties.map((property) => <PropertyPreviewCard property={property} />)}
+            {liveProperties.map((property) => <ApiPropertyCard property={property} />)}
+          </div>
+        ) : (
+          <div class="mt-6 rounded-lg border border-border bg-card p-6">
+            <p class="text-sm leading-6 text-muted-foreground">
+              Fuer {region.name} sind aktuell keine lokal zugeordneten Angebote sichtbar.
+              Neue Inserate aus diesem Bezirk erscheinen hier mit Ort, Preis, Flaeche und Detailansicht.
+            </p>
+            <a class="mt-4 inline-flex h-10 items-center rounded-md bg-foreground px-4 text-sm font-semibold text-background" href="/immobilien/">
+              Alle Immobilien ansehen
+            </a>
+          </div>
+        )
+      }
+      <section class="mt-8 rounded-lg border border-border bg-card p-5">
+        <h2 class="text-lg font-bold">Immobilienmarkt {region.name}</h2>
+        <ul class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
+          {region.marketNotes.map((note) => <li>{note}</li>)}
+        </ul>
+      </section>
+
+      <section class="mt-8 rounded-lg border border-border bg-card p-5" aria-labelledby="region-faq">
+        <h2 id="region-faq" class="text-lg font-bold">Haeufige Fragen zu Immobilien in {region.name}</h2>
+        <div class="mt-4 grid gap-3">
+          {faqItems.map((item) => (
+            <details class="rounded-md bg-muted p-3">
+              <summary class="cursor-pointer text-sm font-semibold">{item.question}</summary>
+              <p class="mt-3 text-sm leading-6 text-muted-foreground">{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    </div>
+    <aside class="self-start rounded-lg border border-border bg-card p-5">
+      <h2 class="text-lg font-bold">Regionale Suchbereiche</h2>
+      <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+        {localities.map((locality) => (
+          <li>
+            <a class="hover:text-foreground" href={getLocalityPath(locality.slug)}>
+              Immobilien {locality.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="mt-5 text-sm leading-6 text-muted-foreground">
+        Vergleiche lokale Immobilienangebote in {region.name} nach Ort, Immobilientyp,
+        Anbieter und regionalem Umfeld.
+      </p>
+    </aside>
+  </section>
+</BaseLayout>

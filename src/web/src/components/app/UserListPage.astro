@@ -1,0 +1,78 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import type { PropertyEntry } from "@/features/properties/format";
+import PropertyPreviewCard from "@/components/properties/PropertyPreviewCard.astro";
+import ForeclosureAuctionCard from "@/components/foreclosures/ForeclosureAuctionCard.astro";
+import { Button } from "@/components/starwind/button";
+import type { ApiForeclosureAuction } from "@/features/foreclosures/api";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  properties?: PropertyEntry[];
+  foreclosures?: ApiForeclosureAuction[];
+  emptyText?: string;
+  actionHref?: string;
+  actionLabel?: string;
+  mode?: "static" | "favorites" | "blocked" | "mine";
+}
+
+const {
+  title,
+  description,
+  canonicalPath,
+  properties = [],
+  foreclosures = [],
+  emptyText = "Noch keine Eintraege vorhanden.",
+  actionHref = "/immobilien/",
+  actionLabel = "Immobilien ansehen",
+  mode = "static",
+} = Astro.props;
+
+const isStateBacked = mode === "favorites" || mode === "blocked";
+const isMine = mode === "mine";
+const hasListItems = properties.length > 0 || foreclosures.length > 0;
+const showInitialGrid = hasListItems && !isStateBacked && !isMine;
+const savedDraft = isMine && Astro.url.searchParams.has("gespeichert");
+const editedDraft = isMine && Astro.url.searchParams.has("bearbeitet");
+const statusMessage = editedDraft ? "Aenderungen gespeichert." : "Entwurf gespeichert.";
+---
+
+<BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex>
+  <section class="border-b border-border bg-muted/35" data-user-page>
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold">{title}</h1>
+      <p class="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>
+    </div>
+  </section>
+  <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8" data-user-page>
+    {isMine && (
+      <div class:list={["mb-5 rounded-md border border-border bg-muted px-4 py-3 text-sm font-medium", !(savedDraft || editedDraft) && "hidden"]} data-mine-status>
+        <span data-mine-status-text>{statusMessage}</span>
+      </div>
+    )}
+
+    {(mode === "favorites" || mode === "blocked" || mode === "mine") && (
+      <div class="hidden grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-remote-properties data-remote-mode={mode}></div>
+    )}
+
+    {hasListItems && (
+      <div
+        class:list={["grid gap-4 sm:grid-cols-2 xl:grid-cols-3", !showInitialGrid && "hidden"]}
+        data-user-list
+        data-user-mode={mode}
+      >
+        {properties.map((property) => <PropertyPreviewCard property={property} />)}
+        {foreclosures.map((auction) => <ForeclosureAuctionCard auction={auction} />)}
+      </div>
+    )}
+
+    {isMine && <div class="hidden grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-local-drafts></div>}
+
+    <div class:list={["rounded-lg border border-border bg-card p-10 text-center", showInitialGrid && "hidden"]} data-user-empty>
+      <p class="text-sm text-muted-foreground">{emptyText}</p>
+      <Button href={actionHref} class="mt-5">{actionLabel}</Button>
+    </div>
+  </section>
+</BaseLayout>

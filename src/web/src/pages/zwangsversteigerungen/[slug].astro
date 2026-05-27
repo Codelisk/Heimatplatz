@@ -1,0 +1,234 @@
+---
+import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
+import FileTextIcon from "@tabler/icons/outline/file-text.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
+import ShareIcon from "@tabler/icons/outline/share.svg";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  fetchForeclosureAuctions,
+  formatAuctionArea,
+  formatAuctionDate,
+  formatAuctionMoney,
+  getAuctionDescription,
+  getAuctionDetailSections,
+  getAuctionDocumentLinks,
+  getAuctionJsonLd,
+  getAuctionPriceLabel,
+  getAuctionPrimaryArea,
+  getAuctionTitle,
+  getForeclosureAuctionPath,
+  getForeclosureAuctionSlug,
+  getForeclosureCategoryLabel,
+  type ApiForeclosureAuction,
+} from "@/features/foreclosures/api";
+import { breadcrumbSchema } from "@/lib/seo";
+
+export async function getStaticPaths() {
+  const auctions = await fetchForeclosureAuctions();
+  return auctions.map((auction) => ({
+    params: { slug: getForeclosureAuctionSlug(auction) },
+    props: { auction },
+  }));
+}
+
+interface Props {
+  auction: ApiForeclosureAuction;
+}
+
+const { auction } = Astro.props;
+const canonicalPath = getForeclosureAuctionPath(auction);
+const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
+const title = getAuctionTitle(auction);
+const description = getAuctionDescription(auction);
+const detailSections = getAuctionDetailSections(auction);
+const documents = getAuctionDocumentLinks(auction);
+const primaryFacts = [
+  ["Termin", formatAuctionDate(auction.AuctionDate)],
+  ["Schätzwert", formatAuctionMoney(auction.EstimatedValue)],
+  ["Mindestgebot", formatAuctionMoney(auction.MinimumBid)],
+  ["Fläche", formatAuctionArea(getAuctionPrimaryArea(auction))],
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  structuredData={[
+    breadcrumbSchema([
+      { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+      { name: "Zwangsversteigerungen", url: new URL("/zwangsversteigerungen/", Astro.site).toString() },
+      { name: title, url: canonicalUrl },
+    ]),
+    getAuctionJsonLd(auction, canonicalUrl),
+  ]}
+>
+  <article class="bg-background">
+    <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      <a href="/zwangsversteigerungen/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeftIcon class="size-4" aria-hidden="true" />
+        Zurück zu Zwangsversteigerungen
+      </a>
+    </header>
+
+    <section class="border-y border-border bg-muted/35">
+      <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background">ZV</span>
+          <span class="rounded-full bg-background px-3 py-1.5 text-xs font-bold text-foreground">
+            {getForeclosureCategoryLabel(auction.Category)}
+          </span>
+          {auction.Status && (
+            <span class="rounded-full bg-background px-3 py-1.5 text-xs font-bold text-foreground">
+              {auction.Status}
+            </span>
+          )}
+        </div>
+        <p class="mt-5 text-sm font-semibold text-muted-foreground">
+          {auction.PostalCode} {auction.City} · {auction.Address}
+        </p>
+        <h1 class="mt-3 max-w-4xl text-3xl font-bold leading-tight sm:text-4xl">{title}</h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{description}</p>
+      </div>
+    </section>
+
+    <section class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
+      <div>
+        <dl class="grid gap-3 sm:grid-cols-4">
+          {primaryFacts.map(([label, value]) => (
+            <div class="rounded-lg border border-border bg-card p-4">
+              <dt class="text-sm text-muted-foreground">{label}</dt>
+              <dd class="mt-1 text-xl font-bold">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <section class="mt-8" aria-labelledby="auction-object-description">
+          <h2 id="auction-object-description" class="text-sm font-bold uppercase text-muted-foreground">
+            Objektbeschreibung
+          </h2>
+          <p class="mt-3 rounded-lg border border-border bg-card p-4 text-sm leading-6">
+            {auction.ObjectDescription}
+          </p>
+        </section>
+
+        <div class="mt-8 space-y-6">
+          {detailSections.map((section) => (
+            <section aria-labelledby={`section-${section.title.toLowerCase()}`}>
+              <h2 id={`section-${section.title.toLowerCase()}`} class="text-sm font-bold uppercase text-muted-foreground">
+                {section.title}
+              </h2>
+              <dl class="mt-3 overflow-hidden rounded-lg border border-border bg-card">
+                {section.items.map(([label, value]) => (
+                  <div class="grid gap-2 border-b border-border px-4 py-3 last:border-b-0 sm:grid-cols-[180px_minmax(0,1fr)]">
+                    <dt class="text-sm font-semibold text-muted-foreground">{label}</dt>
+                    <dd class="text-sm font-medium">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ))}
+        </div>
+
+        {(auction.Notes || documents.length > 0) && (
+          <div class="mt-8 grid gap-6 md:grid-cols-2">
+            {auction.Notes && (
+              <section aria-labelledby="auction-notes">
+                <h2 id="auction-notes" class="text-sm font-bold uppercase text-muted-foreground">Hinweise</h2>
+                <p class="mt-3 rounded-lg border border-border bg-card p-4 text-sm leading-6">{auction.Notes}</p>
+              </section>
+            )}
+
+            {documents.length > 0 && (
+              <section aria-labelledby="auction-documents">
+                <h2 id="auction-documents" class="text-sm font-bold uppercase text-muted-foreground">Dokumente</h2>
+                <div class="mt-3 space-y-2">
+                  {documents.map(([label, url]) => (
+                    <a
+                      class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm font-semibold hover:border-foreground"
+                      href={url}
+                      rel="nofollow noopener"
+                      target="_blank"
+                    >
+                      <span class="inline-flex min-w-0 items-center gap-2">
+                        <FileTextIcon class="size-4 shrink-0" aria-hidden="true" />
+                        <span class="truncate">{label}</span>
+                      </span>
+                      <ExternalLinkIcon class="size-4 shrink-0" aria-hidden="true" />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+      </div>
+
+      <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
+        <p class="text-sm text-muted-foreground">Gericht / Quelle</p>
+        <h2 class="mt-1 text-xl font-bold">{auction.Court ?? "Bezirksgericht"}</h2>
+        <p class="mt-2 text-sm text-muted-foreground">
+          {auction.CaseNumber ? `Aktenzeichen ${auction.CaseNumber}` : "Gerichtliche Immobilienversteigerung"}
+        </p>
+        <p class="mt-4 text-3xl font-bold">{getAuctionPriceLabel(auction)}</p>
+        <p class="mt-2 text-sm text-muted-foreground">Mindestgebot oder Schätzwert, soweit veröffentlicht.</p>
+
+        <div class="mt-5 space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-semibold hover:border-foreground"
+              type="button"
+              aria-label="Zwangsversteigerung merken"
+              aria-pressed="false"
+              data-property-action="favorite"
+              data-property-slug={auction.Id}
+              data-property-id={auction.Id}
+            >
+              <HeartIcon class="size-4" aria-hidden="true" />
+              Merken
+            </button>
+            <button
+              class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-semibold hover:border-foreground"
+              type="button"
+              aria-label="Zwangsversteigerung blockieren"
+              aria-pressed="false"
+              data-property-action="block"
+              data-property-slug={auction.Id}
+              data-property-id={auction.Id}
+            >
+              <EyeOffIcon class="size-4" aria-hidden="true" />
+              Blockieren
+            </button>
+          </div>
+          {auction.EdictUrl && (
+            <a
+              class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 text-sm font-semibold text-background"
+              href={auction.EdictUrl}
+              rel="nofollow noopener"
+              target="_blank"
+            >
+              Edikt ansehen
+              <ExternalLinkIcon class="size-4" aria-hidden="true" />
+            </a>
+          )}
+          <button
+            class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-semibold"
+            type="button"
+            data-share-url={canonicalUrl}
+            data-share-title={title}
+          >
+            Teilen
+            <ShareIcon class="size-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div class="mt-5 border-t border-border pt-4 text-sm text-muted-foreground">
+          <p>Erfasst: {formatAuctionDate(auction.FirstSeenAt ?? auction.CreatedAt, "Nicht angegeben")}</p>
+          <p class="mt-1">Aktualisiert: {formatAuctionDate(auction.LastScrapedAt ?? auction.CreatedAt, "Nicht angegeben")}</p>
+        </div>
+      </aside>
+    </section>
+  </article>
+</BaseLayout>

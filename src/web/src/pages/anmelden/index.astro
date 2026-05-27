@@ -1,0 +1,31 @@
+---
+import AuthShell from "@/components/auth/AuthShell.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+---
+
+<AuthShell
+  title="Willkommen zurueck"
+  description="Melden Sie sich an, um gespeicherte Immobilien, Favoriten und Inserate zu verwalten."
+  mode="login"
+>
+  <form class="mt-10 space-y-5" action="/favoriten/" method="get" data-auth-form="login" data-success-redirect="/favoriten/">
+    <div class="space-y-2">
+      <Label for="email">E-Mail Adresse</Label>
+      <Input id="email" type="email" name="email" placeholder="max@beispiel.at" autocomplete="email" required />
+    </div>
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <Label for="password">Passwort</Label>
+        <span class="text-xs text-muted-foreground">Passwort vergessen?</span>
+      </div>
+      <Input id="password" type="password" name="password" placeholder="Ihr Passwort" autocomplete="current-password" required />
+    </div>
+    <p class="hidden text-sm" data-form-status></p>
+    <Button type="submit" class="w-full">Anmelden</Button>
+  </form>
+  <p class="mt-8 text-center text-sm text-muted-foreground">
+    Noch kein Konto? <a class="font-semibold text-foreground" href="/registrieren/">Registrieren</a>
+  </p>
+</AuthShell>

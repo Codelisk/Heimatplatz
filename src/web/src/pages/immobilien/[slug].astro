@@ -1,0 +1,216 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import ShareIcon from "@tabler/icons/outline/share.svg";
+import CopyIcon from "@tabler/icons/outline/copy.svg";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ContactDock from "@/components/properties/ContactDock.astro";
+import { Badge } from "@/components/starwind/badge";
+import { Button } from "@/components/starwind/button";
+import {
+  formatPriceLong,
+  getPropertyJsonLd,
+  PROPERTY_TYPE_LABELS,
+} from "@/features/properties/format";
+import { breadcrumbSchema } from "@/lib/seo";
+
+export async function getStaticPaths() {
+  const properties = await getCollection("properties");
+  return properties.map((property) => ({
+    params: { slug: property.data.slug },
+    props: { property },
+  }));
+}
+
+interface Props {
+  property: CollectionEntry<"properties">;
+}
+
+const { property } = Astro.props;
+const data = property.data;
+const url = new URL(`/immobilien/${data.slug}/`, Astro.site).toString();
+const primaryEmail = data.contacts.find((contact) => contact.email)?.email;
+const primaryPhone = data.contacts.find((contact) => contact.phone)?.phone;
+const structuredData = [
+  breadcrumbSchema([
+    { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+    { name: "Immobilien", url: new URL("/immobilien/", Astro.site).toString() },
+    { name: data.region, url: new URL(`/immobilien/oberoesterreich/${data.regionSlug}/`, Astro.site).toString() },
+    { name: data.title, url },
+  ]),
+  getPropertyJsonLd(data, url),
+];
+---
+
+<BaseLayout
+  title={`${data.title} in ${data.location}`}
+  description={`${data.description} Preis ${formatPriceLong(data.price)}. ${PROPERTY_TYPE_LABELS[data.type]} in ${data.region}, Oberösterreich.`}
+  canonicalPath={`/immobilien/${data.slug}/`}
+  image={data.imageUrl}
+  structuredData={structuredData}
+>
+  <article class="bg-background pb-28">
+    <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      <a href="/immobilien/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeftIcon class="size-4" aria-hidden="true" />
+        Zurueck
+      </a>
+    </header>
+
+    <section class="mx-auto grid max-w-7xl gap-8 px-4 pb-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
+      <div>
+        <div class="relative overflow-hidden rounded-lg bg-muted">
+          <img
+            src={data.imageUrl}
+            alt={data.imageAlt}
+            class="h-[320px] w-full object-cover sm:h-[460px]"
+            loading="eager"
+            decoding="async"
+          />
+          <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+            <Badge variant="default">{data.typeLabel}</Badge>
+            <Badge variant="outline" class="bg-background/90">{data.region}</Badge>
+          </div>
+          <div class="absolute right-4 top-4 flex gap-2">
+            <button
+              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              type="button"
+              aria-label="Merken"
+              aria-pressed="false"
+              data-property-action="favorite"
+              data-property-slug={data.slug}
+              data-property-id={data.id}
+            >
+              <HeartIcon class="size-5" aria-hidden="true" />
+            </button>
+            <button
+              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              type="button"
+              aria-label="Blockieren"
+              aria-pressed="false"
+              data-property-action="block"
+              data-property-slug={data.slug}
+              data-property-id={data.id}
+            >
+              <EyeOffIcon class="size-5" aria-hidden="true" />
+            </button>
+            <button
+              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              type="button"
+              aria-label="Teilen"
+              data-share-url={url}
+              data-share-title={data.title}
+            >
+              <ShareIcon class="size-5" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <p class="text-sm font-semibold text-muted-foreground">{data.postalCode} {data.location} · {data.address}</p>
+          <h1 class="mt-3 max-w-3xl text-4xl font-bold leading-tight">{data.title}</h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{data.description}</p>
+        </div>
+
+        <dl class="mt-6 grid gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-border bg-card p-4">
+            <dt class="text-sm text-muted-foreground">Preis</dt>
+            <dd class="mt-1 text-xl font-bold">{formatPriceLong(data.price)}</dd>
+          </div>
+          <div class="rounded-lg border border-border bg-card p-4">
+            <dt class="text-sm text-muted-foreground">Wohnflaeche</dt>
+            <dd class="mt-1 text-xl font-bold">{data.livingArea ? `${data.livingArea} m2` : "Keine Angabe"}</dd>
+          </div>
+          <div class="rounded-lg border border-border bg-card p-4">
+            <dt class="text-sm text-muted-foreground">Grund</dt>
+            <dd class="mt-1 text-xl font-bold">{data.plotArea ? `${data.plotArea} m2` : "Keine Angabe"}</dd>
+          </div>
+          <div class="rounded-lg border border-border bg-card p-4">
+            <dt class="text-sm text-muted-foreground">Zimmer</dt>
+            <dd class="mt-1 text-xl font-bold">{data.rooms ?? "Keine Angabe"}</dd>
+          </div>
+        </dl>
+
+        <section class="mt-8" aria-labelledby="details">
+          <h2 id="details" class="text-sm font-bold uppercase text-muted-foreground">Ausstattung & Merkmale</h2>
+          <ul class="mt-4 grid gap-2 sm:grid-cols-2">
+            {data.features.map((feature) => (
+              <li class="rounded-md bg-muted px-4 py-3 text-sm">{feature}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="mt-8" aria-labelledby="beschreibung">
+          <h2 id="beschreibung" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
+          <p class="mt-4 max-w-3xl text-base leading-7">{data.description}</p>
+        </section>
+      </div>
+
+      <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
+        <p class="text-sm text-muted-foreground">Anbieter</p>
+        <h2 class="mt-1 text-xl font-bold">{data.sellerName}</h2>
+        <p class="mt-2 text-sm text-muted-foreground">{data.sellerLabel} · {data.source}</p>
+        <div class="mt-5 space-y-3">
+          {data.contacts.map((contact) => (
+            <div class="rounded-md bg-muted p-3 text-sm">
+              <p class="font-semibold">{contact.label}</p>
+              {contact.email && (
+                <div class="mt-1 flex items-center justify-between gap-2">
+                  <a class="min-w-0 truncate text-muted-foreground hover:text-foreground" href={`mailto:${contact.email}`}>
+                    {contact.email}
+                  </a>
+                  <button
+                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
+                    type="button"
+                    data-copy-value={contact.email}
+                    aria-label={`E-Mail ${contact.email} kopieren`}
+                  >
+                    <CopyIcon class="size-3.5" aria-hidden="true" />
+                    <span data-copy-text>Kopieren</span>
+                  </button>
+                </div>
+              )}
+              {contact.phone && (
+                <div class="mt-1 flex items-center justify-between gap-2">
+                  <a class="min-w-0 truncate text-muted-foreground hover:text-foreground" href={`tel:${contact.phone.replace(/\s+/g, "")}`}>
+                    {contact.phone}
+                  </a>
+                  <button
+                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
+                    type="button"
+                    data-copy-value={contact.phone}
+                    aria-label={`Telefonnummer ${contact.phone} kopieren`}
+                  >
+                    <CopyIcon class="size-3.5" aria-hidden="true" />
+                    <span data-copy-text>Kopieren</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div class="mt-5 grid gap-2">
+          {primaryEmail && <Button href={`mailto:${primaryEmail}`} variant="default" class="w-full">E-Mail schreiben</Button>}
+          {primaryPhone && <Button href={`tel:${primaryPhone.replace(/\s+/g, "")}`} variant={primaryEmail ? "outline" : "default"} class="w-full">Anrufen</Button>}
+          {!(primaryEmail || primaryPhone) && <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">Kontakt ueber Anbieterangaben oder Originalinserat.</p>}
+        </div>
+        {data.originalUrl && <Button href={data.originalUrl} variant="outline" class="mt-3 w-full">Originalinserat</Button>}
+      </aside>
+    </section>
+    <ContactDock
+      sellerName={data.sellerName}
+      sellerMeta={`${data.sellerLabel} · ${data.source}`}
+      contacts={data.contacts.map((contact) => ({
+        label: contact.label,
+        name: contact.label,
+        email: contact.email ?? null,
+        phone: contact.phone ?? null,
+      }))}
+      primaryEmail={primaryEmail}
+      primaryPhone={primaryPhone}
+      originalUrl={data.originalUrl ?? null}
+    />
+  </article>
+</BaseLayout>

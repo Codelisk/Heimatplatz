@@ -1,0 +1,88 @@
+---
+import "@/styles/starwind.css";
+
+import { SITE } from "@/config/site";
+import SiteFooter from "@/components/layout/SiteFooter.astro";
+import SiteHeader from "@/components/layout/SiteHeader.astro";
+import PropertyStateScript from "@/components/properties/PropertyStateScript.astro";
+import {
+  realEstateAgentSchema,
+  getAssetUrl,
+  getCanonicalUrl,
+  getPageTitle,
+  getRobotsDirective,
+  organizationSchema,
+  type StructuredData,
+  websiteSchema,
+} from "@/lib/seo";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  image?: string;
+  noindex?: boolean;
+  structuredData?: StructuredData | StructuredData[];
+  bodyClass?: string;
+  chrome?: boolean;
+}
+
+const {
+  title = SITE.title,
+  description = SITE.description,
+  canonicalPath = Astro.url.pathname,
+  image = SITE.defaultImage,
+  noindex = false,
+  structuredData = [],
+  bodyClass = "",
+  chrome = true,
+} = Astro.props;
+
+const pageTitle = getPageTitle(title);
+const canonicalUrl = getCanonicalUrl(canonicalPath);
+const imageUrl = getAssetUrl(image);
+const data = Array.isArray(structuredData) ? structuredData : [structuredData];
+const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstateAgentSchema(), ...data]);
+---
+
+<!doctype html>
+<html lang={SITE.language}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content={SITE.themeColor} />
+    <meta name="description" content={description} />
+    <meta name="robots" content={getRobotsDirective(noindex)} />
+    <meta name="keywords" content={SITE.keywords.join(", ")} />
+
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content={SITE.locale} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={imageUrl} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+
+    <script is:inline type="application/ld+json" set:html={jsonLd}></script>
+  </head>
+  <body class:list={["min-h-screen bg-background text-foreground antialiased", bodyClass]}>
+    {chrome && <SiteHeader />}
+    <main>
+      <slot />
+    </main>
+    {chrome && <SiteFooter />}
+    <PropertyStateScript />
+  </body>
+</html>

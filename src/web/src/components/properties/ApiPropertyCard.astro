@@ -1,0 +1,123 @@
+---
+import CalendarIcon from "@tabler/icons/outline/calendar.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
+import UserIcon from "@tabler/icons/outline/user.svg";
+import {
+  formatApiDate,
+  formatApiPrice,
+  getApiAreaLabel,
+  getApiAreaValue,
+  getApiPropertyPath,
+  getApiPropertyTypeLabel,
+  getApiPropertyTypeSearchValue,
+  getApiSellerLabel,
+  getApiSellerSearchValue,
+  getApiPropertyImage,
+  type ApiProperty,
+} from "@/features/properties/live-api";
+import { slugifyLocation } from "@/features/locations/region-match";
+
+interface Props {
+  property: ApiProperty;
+}
+
+const { property } = Astro.props;
+const href = getApiPropertyPath(property);
+const typeSearchValue = getApiPropertyTypeSearchValue(property.Type, property);
+const sellerSearchValue = getApiSellerSearchValue(property.SellerType);
+const area = getApiAreaValue(property);
+const imageUrl = getApiPropertyImage(property);
+const citySlug = slugifyLocation(property.City);
+---
+
+<article
+  class="property-card overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+  data-property-card
+  data-live-property="true"
+  data-slug={property.Id}
+  data-property-id={property.Id}
+  data-type={typeSearchValue}
+  data-seller={sellerSearchValue}
+  data-region={citySlug}
+  data-location={citySlug}
+  data-updated={property.CreatedAt}
+  data-price={property.Price}
+  data-area={area}
+  data-postal={property.PostalCode}
+  data-search={`${property.Title} ${property.Address} ${property.City} ${property.PostalCode} ${property.SellerName} ${property.SourceName ?? ""}`.toLowerCase()}
+>
+  <div class="relative h-50 overflow-hidden bg-muted">
+    <a href={href} class="block h-full">
+      <img
+        src={imageUrl}
+        alt={property.Title}
+        class="h-full w-full object-cover"
+        loading="lazy"
+        decoding="async"
+        data-fallback-image="/og/heimatplatz-default.svg"
+      />
+    </a>
+    <span class="absolute left-3 top-3 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background">
+      {getApiPropertyTypeLabel(property.Type, property)}
+    </span>
+    <span class="absolute bottom-3 right-3 rounded-md bg-black/90 px-4 py-2 text-xl font-bold text-white">
+      {formatApiPrice(property.Price)}
+    </span>
+    <div class="absolute right-3 top-3 flex gap-1">
+      <button
+        type="button"
+        class="grid size-9 place-items-center rounded-full bg-black/55 text-white"
+        aria-label="Favorit speichern"
+        aria-pressed="false"
+        data-property-action="favorite"
+        data-property-slug={property.Id}
+        data-property-id={property.Id}
+      >
+        <HeartIcon class="size-5" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        class="grid size-9 place-items-center rounded-full bg-black/55 text-white"
+        aria-label="Immobilie blockieren"
+        aria-pressed="false"
+        data-property-action="block"
+        data-property-slug={property.Id}
+        data-property-id={property.Id}
+      >
+        <EyeOffIcon class="size-5" aria-hidden="true" />
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
+    <div class="min-w-0">
+      <h2 class="truncate text-base font-semibold">
+        <a href={href} class="hover:underline">{property.City || property.Title}</a>
+      </h2>
+      <p class="truncate text-sm text-muted-foreground">{property.PostalCode} {property.Address}</p>
+      <p class="mt-1 truncate text-xs text-muted-foreground">{property.Title}</p>
+      <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+        <UserIcon class="size-3" aria-hidden="true" />
+        {getApiSellerLabel(property.SellerType)} · {property.SellerName}
+      </p>
+      <p class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+        <CalendarIcon class="size-3" aria-hidden="true" />
+        {formatApiDate(property.CreatedAt) || "Live-Angebot"}
+      </p>
+    </div>
+
+    <dl class="text-right">
+      <div>
+        <dt class="sr-only">Flaeche</dt>
+        <dd class="text-2xl font-bold leading-none text-foreground">{area || "k.A."}</dd>
+        <dd class="text-xs text-muted-foreground">{area ? (property.PlotAreaM2 ? "m2 Grund" : "m2 Wfl") : "Flaeche"}</dd>
+      </div>
+      <div class="mt-3 flex justify-end gap-1">
+        {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{property.LivingAreaM2} Wfl</span>}
+        {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{property.Rooms} Zi</span>}
+      </div>
+    </dl>
+  </div>
+  <p class="sr-only">{getApiAreaLabel(property)}</p>
+</article>

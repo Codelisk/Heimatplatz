@@ -1,0 +1,211 @@
+---
+import {
+  fetchImprint,
+  formatLegalDate,
+  paragraphsFromLegalText,
+  visibleLegalSections,
+} from "@/features/legal/api";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { breadcrumbSchema } from "@/lib/seo";
+
+type DetailItem = {
+  label: string;
+  value: string;
+  href?: string;
+  external?: boolean;
+};
+
+const imprint = await fetchImprint();
+const sections = visibleLegalSections(imprint.sections);
+const updatedAt = formatLegalDate(imprint.lastUpdated || imprint.effectiveDate);
+const effectiveAt = formatLegalDate(imprint.effectiveDate);
+const place = [imprint.postalCode, imprint.city].filter(Boolean).join(" ");
+const pageUrl = new URL("/impressum/", Astro.site).toString();
+
+const rawDetailGroups: Array<{ title: string; items: DetailItem[] }> = [
+  {
+    title: "Angaben gemaess ECG und UGB",
+    items: [
+      { label: "Unternehmen", value: imprint.companyName },
+      { label: "Rechtsform", value: imprint.legalForm },
+      { label: "Inhaber", value: imprint.owner },
+      { label: "Adresse", value: [imprint.street, place, imprint.country].filter(Boolean).join("\n") },
+    ],
+  },
+  {
+    title: "Kontakt",
+    items: [
+      { label: "E-Mail", value: imprint.email, href: `mailto:${imprint.email}` },
+      { label: "Telefon", value: imprint.phone, href: imprint.phone ? `tel:${imprint.phone}` : undefined },
+      { label: "Website", value: imprint.website, href: imprint.website, external: true },
+    ],
+  },
+  {
+    title: "Gewerbliche Angaben",
+    items: [
+      { label: "Gewerbe", value: imprint.trade },
+      { label: "GISA-Zahl", value: imprint.gisaNumber },
+      { label: "Gewerbebehoerde", value: imprint.tradeAuthority },
+      { label: "Berufsrecht", value: imprint.professionalLaw },
+    ],
+  },
+  {
+    title: "Kammermitgliedschaft",
+    items: [
+      { label: "Kammer", value: imprint.chamberMembership },
+      { label: "Fachgruppe", value: imprint.tradeGroup },
+    ],
+  },
+  {
+    title: "Steuerdaten",
+    items: [
+      { label: "UID-Nummer", value: imprint.uidNumber },
+      { label: "Steuernummer", value: imprint.taxNumber },
+      { label: "DUNS", value: imprint.dunsNumber },
+      { label: "GLN", value: imprint.gln },
+    ],
+  },
+];
+
+const detailGroups = rawDetailGroups
+  .map((group) => ({
+    ...group,
+    items: group.items.filter((item): item is DetailItem => Boolean(item.value)),
+  }))
+  .filter((group) => group.items.length > 0);
+
+const structuredData = [
+  breadcrumbSchema([
+    { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+    { name: "Impressum", url: pageUrl },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Impressum",
+    description: "Impressum und Anbieterkennzeichnung von Heimatplatz.",
+    url: pageUrl,
+    inLanguage: "de-AT",
+    dateModified: imprint.lastUpdated || imprint.effectiveDate || undefined,
+    publisher: {
+      "@type": "Organization",
+      name: imprint.companyName,
+      url: imprint.website || pageUrl,
+      email: imprint.email,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: imprint.street,
+        postalCode: imprint.postalCode,
+        addressLocality: imprint.city,
+        addressCountry: "AT",
+      },
+    },
+  },
+];
+---
+
+<BaseLayout
+  title="Impressum"
+  description="Impressum und Anbieterkennzeichnung von Heimatplatz mit Kontakt-, Gewerbe-, Kammer- und Steuerdaten."
+  canonicalPath="/impressum/"
+  structuredData={structuredData}
+>
+  <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+    <header class="max-w-3xl">
+      <p class="text-sm font-bold uppercase text-muted-foreground">Rechtliches</p>
+      <h1 class="mt-3 text-4xl font-bold tracking-normal">Impressum</h1>
+      <p class="mt-4 text-base leading-7 text-muted-foreground">
+        Anbieterkennzeichnung und Kontaktangaben zur Plattform Heimatplatz.
+      </p>
+      <p class="mt-4 text-sm text-muted-foreground">
+        {updatedAt && <span>Stand: {updatedAt}</span>}
+        {updatedAt && imprint.version && <span> · </span>}
+        {imprint.version && <span>Version {imprint.version}</span>}
+        {!updatedAt && effectiveAt && <span>Gueltig seit: {effectiveAt}</span>}
+      </p>
+    </header>
+
+    <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="space-y-5">
+        {detailGroups.map((group) => (
+          <article class="rounded-lg border border-border bg-card p-5">
+            <h2 class="text-xl font-bold">{group.title}</h2>
+            <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+              {group.items.map((item) => (
+                <div>
+                  <dt class="text-xs font-bold uppercase text-muted-foreground">{item.label}</dt>
+                  <dd class="mt-1 whitespace-pre-line text-sm leading-6 text-foreground">
+                    {item.href ? (
+                      <a
+                        class="font-medium underline-offset-4 hover:underline"
+                        href={item.href}
+                        rel={item.external ? "noopener noreferrer" : undefined}
+                        target={item.external ? "_blank" : undefined}
+                      >
+                        {item.value}
+                      </a>
+                    ) : (
+                      item.value
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </article>
+        ))}
+
+        {sections.map((section) => (
+          <article class="rounded-lg border border-border bg-card p-5">
+            <h2 class="text-xl font-bold">{section.title}</h2>
+            <div class="mt-3 space-y-3 text-sm leading-6 text-muted-foreground">
+              {paragraphsFromLegalText(section.content).map((paragraph) => (
+                <p class="whitespace-pre-line">{paragraph}</p>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <aside class="space-y-4">
+        <div class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-lg font-bold">Kontakt</h2>
+          <address class="mt-3 not-italic text-sm leading-6 text-muted-foreground">
+            <strong class="font-semibold text-foreground">{imprint.companyName}</strong><br />
+            {imprint.street}<br />
+            {place}<br />
+            {imprint.country}
+          </address>
+          {imprint.email && (
+            <a class="mt-4 inline-flex text-sm font-semibold underline-offset-4 hover:underline" href={`mailto:${imprint.email}`}>
+              {imprint.email}
+            </a>
+          )}
+        </div>
+
+        <div class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-lg font-bold">Registerdaten</h2>
+          <dl class="mt-3 space-y-3 text-sm">
+            {imprint.gisaNumber && (
+              <div>
+                <dt class="text-muted-foreground">GISA</dt>
+                <dd class="font-medium">{imprint.gisaNumber}</dd>
+              </div>
+            )}
+            {imprint.uidNumber && (
+              <div>
+                <dt class="text-muted-foreground">UID</dt>
+                <dd class="font-medium">{imprint.uidNumber}</dd>
+              </div>
+            )}
+            {imprint.dunsNumber && (
+              <div>
+                <dt class="text-muted-foreground">DUNS</dt>
+                <dd class="font-medium">{imprint.dunsNumber}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

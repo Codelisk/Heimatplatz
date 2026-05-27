@@ -1,0 +1,260 @@
+---
+import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
+import CopyIcon from "@tabler/icons/outline/copy.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
+import ShareIcon from "@tabler/icons/outline/share.svg";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ContactDock from "@/components/properties/ContactDock.astro";
+import { Button } from "@/components/starwind/button";
+import {
+  fetchApiProperties,
+  fetchApiPropertyById,
+  formatApiDate,
+  formatApiPriceLong,
+  getApiAreaLabel,
+  getApiPropertyDescription,
+  getApiPropertyJsonLd,
+  getApiPropertyPath,
+  getApiPropertyTypeLabel,
+  getApiSellerLabel,
+  getApiPropertyImage,
+  type ApiProperty,
+  type ApiContact,
+} from "@/features/properties/live-api";
+import { getApiPropertyDetailSections } from "@/features/properties/detail-sections";
+import { breadcrumbSchema } from "@/lib/seo";
+
+export async function getStaticPaths() {
+  const properties = await fetchApiProperties();
+  const detailedProperties = await Promise.all(
+    properties.map(async (property) => await fetchApiPropertyById(property.Id) ?? property),
+  );
+
+  return detailedProperties.map((property) => ({
+    params: { id: property.Id },
+    props: { property },
+  }));
+}
+
+interface Props {
+  property: ApiProperty;
+}
+
+const { property } = Astro.props;
+const canonicalPath = getApiPropertyPath(property);
+const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
+const description = getApiPropertyDescription(property);
+const imageUrl = getApiPropertyImage(property);
+const facts = [
+  ["Preis", formatApiPriceLong(property.Price)],
+  ["Wohnflaeche", property.LivingAreaM2 ? `${property.LivingAreaM2} m2` : "Keine Angabe"],
+  ["Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m2` : "Keine Angabe"],
+  ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
+];
+const features = property.Features?.length
+  ? property.Features
+  : [getApiPropertyTypeLabel(property.Type, property), property.City, getApiAreaLabel(property), property.SourceName ?? "Heimatplatz"];
+const contactCards: ApiContact[] = property.Contacts?.length
+  ? property.Contacts
+  : [{ Name: property.SellerName, SourceName: property.SourceName, Email: null, Phone: null }];
+const originalUrl = contactCards.find((contact) => contact.OriginalListingUrl)?.OriginalListingUrl;
+const primaryEmail = contactCards.find((contact) => contact.Email)?.Email;
+const primaryPhone = contactCards.find((contact) => contact.Phone)?.Phone;
+const detailSections = getApiPropertyDetailSections(property);
+---
+
+<BaseLayout
+  title={`${property.Title} in ${property.City}`}
+  description={`${property.Title} in ${property.PostalCode} ${property.City}, Oberösterreich. ${formatApiPriceLong(property.Price)}. ${getApiAreaLabel(property)}.`}
+  canonicalPath={canonicalPath}
+  image={imageUrl}
+  structuredData={[
+    breadcrumbSchema([
+      { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+      { name: "Immobilien", url: new URL("/immobilien/", Astro.site).toString() },
+      { name: "Angebote", url: new URL("/immobilien/angebote/", Astro.site).toString() },
+      { name: property.Title, url: canonicalUrl },
+    ]),
+    getApiPropertyJsonLd(property, canonicalUrl, imageUrl),
+  ]}
+>
+  <article class="bg-background pb-28">
+    <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      <a href="/immobilien/angebote/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeftIcon class="size-4" aria-hidden="true" />
+        Zurueck zu Angeboten
+      </a>
+    </header>
+
+    <section class="mx-auto grid max-w-7xl gap-8 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
+      <div>
+        <div class="relative overflow-hidden rounded-lg bg-muted">
+          <img
+            src={imageUrl}
+            alt={property.Title}
+            class="h-[320px] w-full object-cover sm:h-[460px]"
+            loading="eager"
+            decoding="async"
+            data-fallback-image="/og/heimatplatz-default.svg"
+          />
+          <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+            <span class="rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background">{getApiPropertyTypeLabel(property.Type, property)}</span>
+            <span class="rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground">{property.City}</span>
+          </div>
+          <div class="absolute right-4 top-4 flex gap-2">
+            <button
+              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              type="button"
+              aria-label="Merken"
+              aria-pressed="false"
+              data-property-action="favorite"
+              data-property-slug={property.Id}
+              data-property-id={property.Id}
+            >
+              <HeartIcon class="size-5" aria-hidden="true" />
+            </button>
+            <button
+              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              type="button"
+              aria-label="Blockieren"
+              aria-pressed="false"
+              data-property-action="block"
+              data-property-slug={property.Id}
+              data-property-id={property.Id}
+            >
+              <EyeOffIcon class="size-5" aria-hidden="true" />
+            </button>
+            <button
+              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              type="button"
+              aria-label="Teilen"
+              data-share-url={canonicalUrl}
+              data-share-title={property.Title}
+            >
+              <ShareIcon class="size-5" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <p class="text-sm font-semibold text-muted-foreground">{property.PostalCode} {property.City} · {property.Address}</p>
+          <h1 class="mt-3 max-w-3xl text-4xl font-bold leading-tight">{property.Title}</h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{description}</p>
+        </div>
+
+        <dl class="mt-6 grid gap-3 sm:grid-cols-4">
+          {facts.map(([label, value]) => (
+            <div class="rounded-lg border border-border bg-card p-4">
+              <dt class="text-sm text-muted-foreground">{label}</dt>
+              <dd class="mt-1 text-xl font-bold">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        {detailSections.length > 0 && (
+          <section class="mt-8" aria-labelledby="api-details">
+            <h2 id="api-details" class="text-sm font-bold uppercase text-muted-foreground">Details</h2>
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+              {detailSections.map((section) => (
+                <section class="rounded-lg border border-border bg-card p-4" aria-label={section.title}>
+                  <h3 class="text-xs font-bold uppercase text-muted-foreground">{section.title}</h3>
+                  <dl class="mt-3 divide-y divide-border">
+                    {section.items.map((item) => (
+                      <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2 text-sm">
+                        <dt class="text-muted-foreground">{item.label}</dt>
+                        <dd class="max-w-44 text-right font-medium">{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section class="mt-8" aria-labelledby="api-features">
+          <h2 id="api-features" class="text-sm font-bold uppercase text-muted-foreground">Ausstattung & Merkmale</h2>
+          <ul class="mt-4 grid gap-2 sm:grid-cols-2">
+            {features.map((feature) => <li class="rounded-md bg-muted px-4 py-3 text-sm">{feature}</li>)}
+          </ul>
+        </section>
+
+        <section class="mt-8" aria-labelledby="api-description">
+          <h2 id="api-description" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
+          <p class="mt-4 max-w-3xl text-base leading-7">{description}</p>
+        </section>
+      </div>
+
+      <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
+        <p class="text-sm text-muted-foreground">Anbieter</p>
+        <h2 class="mt-1 text-xl font-bold">{property.SellerName}</h2>
+        <p class="mt-2 text-sm text-muted-foreground">{getApiSellerLabel(property.SellerType)} · {property.SourceName ?? "Heimatplatz"}</p>
+        <p class="mt-2 text-sm text-muted-foreground">Aktualisiert: {formatApiDate(property.CreatedAt) || "Live-Angebot"}</p>
+        <div class="mt-5 space-y-3">
+          {contactCards.map((contact) => (
+            <div class="rounded-md bg-muted p-3 text-sm">
+              <p class="font-semibold">{contact.Name || contact.SourceName || property.SellerName}</p>
+              {contact.Email && (
+                <div class="mt-1 flex items-center justify-between gap-2">
+                  <a class="min-w-0 truncate text-muted-foreground hover:text-foreground" href={`mailto:${contact.Email}`}>{contact.Email}</a>
+                  <button
+                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
+                    type="button"
+                    data-copy-value={contact.Email}
+                    aria-label={`E-Mail ${contact.Email} kopieren`}
+                  >
+                    <CopyIcon class="size-3.5" aria-hidden="true" />
+                    <span data-copy-text>Kopieren</span>
+                  </button>
+                </div>
+              )}
+              {contact.Phone && (
+                <div class="mt-1 flex items-center justify-between gap-2">
+                  <a class="min-w-0 truncate text-muted-foreground hover:text-foreground" href={`tel:${contact.Phone.replace(/\s+/g, "")}`}>{contact.Phone}</a>
+                  <button
+                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
+                    type="button"
+                    data-copy-value={contact.Phone}
+                    aria-label={`Telefonnummer ${contact.Phone} kopieren`}
+                  >
+                    <CopyIcon class="size-3.5" aria-hidden="true" />
+                    <span data-copy-text>Kopieren</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div class="mt-5 grid gap-2">
+          {primaryEmail && <Button href={`mailto:${primaryEmail}`} variant="default" class="w-full">E-Mail schreiben</Button>}
+          {primaryPhone && <Button href={`tel:${primaryPhone.replace(/\s+/g, "")}`} variant={primaryEmail ? "outline" : "default"} class="w-full">Anrufen</Button>}
+          {!(primaryEmail || primaryPhone) && <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">Kontakt ueber Anbieterangaben oder Originalinserat.</p>}
+        </div>
+        {originalUrl && (
+          <a
+            href={originalUrl}
+            class="mt-3 inline-flex h-10 w-full items-center justify-center rounded-md border border-border text-sm font-medium"
+            rel="nofollow noopener"
+            target="_blank"
+          >
+            Originalinserat
+          </a>
+        )}
+      </aside>
+    </section>
+    <ContactDock
+      sellerName={property.SellerName}
+      sellerMeta={`${getApiSellerLabel(property.SellerType)} · ${property.SourceName ?? "Heimatplatz"}`}
+      contacts={contactCards.map((contact) => ({
+        name: contact.Name ?? contact.SourceName ?? property.SellerName,
+        email: contact.Email ?? null,
+        phone: contact.Phone ?? null,
+        sourceName: contact.SourceName ?? null,
+      }))}
+      primaryEmail={primaryEmail}
+      primaryPhone={primaryPhone}
+      originalUrl={originalUrl ?? null}
+    />
+  </article>
+</BaseLayout>

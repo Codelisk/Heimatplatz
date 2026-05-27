@@ -1,0 +1,151 @@
+---
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import CopyIcon from "@tabler/icons/outline/copy.svg";
+import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
+import MailIcon from "@tabler/icons/outline/mail.svg";
+import PhoneIcon from "@tabler/icons/outline/phone.svg";
+
+type ContactDockContact = {
+  label?: string | null;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  sourceName?: string | null;
+};
+
+interface Props {
+  sellerName: string;
+  sellerMeta?: string;
+  contacts?: ContactDockContact[];
+  primaryEmail?: string | null;
+  primaryPhone?: string | null;
+  originalUrl?: string | null;
+}
+
+const {
+  sellerName,
+  sellerMeta = "",
+  contacts = [],
+  primaryEmail = null,
+  primaryPhone = null,
+  originalUrl = null,
+} = Astro.props;
+
+const normalizedContacts = contacts.length > 0 ? contacts : [{ name: sellerName }];
+const hasDirectContact = Boolean(primaryEmail || primaryPhone);
+---
+
+<section
+  class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 shadow-[0_-12px_32px_rgba(15,23,42,0.12)] backdrop-blur"
+  aria-label="Schneller Kontakt"
+  data-contact-dock
+>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <button
+      type="button"
+      class="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3 text-left"
+      aria-expanded="false"
+      data-contact-dock-toggle
+    >
+      <span class="min-w-0">
+        <span class="block truncate text-sm font-semibold">{sellerName}</span>
+        {sellerMeta && <span class="mt-0.5 block truncate text-xs text-muted-foreground">{sellerMeta}</span>}
+      </span>
+      <span class="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+        Kontakt
+        <ChevronDownIcon class="size-4 transition-transform" aria-hidden="true" data-contact-dock-icon />
+      </span>
+    </button>
+
+    <div class="hidden border-t border-border py-4" data-contact-dock-body>
+      <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div class="grid gap-3 sm:grid-cols-2">
+          {normalizedContacts.map((contact) => (
+            <div class="rounded-md bg-muted p-3 text-sm">
+              <p class="font-semibold">{contact.name || contact.label || contact.sourceName || sellerName}</p>
+              {contact.email && (
+                <div class="mt-2 flex items-center justify-between gap-2">
+                  <a class="inline-flex min-w-0 items-center gap-2 truncate text-muted-foreground hover:text-foreground" href={`mailto:${contact.email}`}>
+                    <MailIcon class="size-4 shrink-0" aria-hidden="true" />
+                    <span class="truncate">{contact.email}</span>
+                  </a>
+                  <button
+                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
+                    type="button"
+                    data-copy-value={contact.email}
+                    aria-label={`E-Mail ${contact.email} kopieren`}
+                  >
+                    <CopyIcon class="size-3.5" aria-hidden="true" />
+                    <span data-copy-text>Kopieren</span>
+                  </button>
+                </div>
+              )}
+              {contact.phone && (
+                <div class="mt-2 flex items-center justify-between gap-2">
+                  <a class="inline-flex min-w-0 items-center gap-2 truncate text-muted-foreground hover:text-foreground" href={`tel:${contact.phone.replace(/\s+/g, "")}`}>
+                    <PhoneIcon class="size-4 shrink-0" aria-hidden="true" />
+                    <span class="truncate">{contact.phone}</span>
+                  </a>
+                  <button
+                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
+                    type="button"
+                    data-copy-value={contact.phone}
+                    aria-label={`Telefonnummer ${contact.phone} kopieren`}
+                  >
+                    <CopyIcon class="size-3.5" aria-hidden="true" />
+                    <span data-copy-text>Kopieren</span>
+                  </button>
+                </div>
+              )}
+              {!contact.email && !contact.phone && (
+                <p class="mt-2 text-sm text-muted-foreground">Kontakt ueber Anbieterangaben oder Originalinserat.</p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div class="grid gap-2 sm:grid-cols-2 lg:w-72 lg:grid-cols-1">
+          {primaryEmail && (
+            <a class="inline-flex h-10 items-center justify-center rounded-md bg-foreground px-4 text-sm font-semibold text-background" href={`mailto:${primaryEmail}`}>
+              E-Mail schreiben
+            </a>
+          )}
+          {primaryPhone && (
+            <a class="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 text-sm font-medium hover:border-foreground" href={`tel:${primaryPhone.replace(/\s+/g, "")}`}>
+              Anrufen
+            </a>
+          )}
+          {!hasDirectContact && (
+            <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">Direkter Kontakt ist nicht angegeben.</p>
+          )}
+          {originalUrl && (
+            <a
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-medium hover:border-foreground"
+              href={originalUrl}
+              rel="nofollow noopener"
+              target="_blank"
+            >
+              Originalinserat
+              <ExternalLinkIcon class="size-4" aria-hidden="true" />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("click", (event) => {
+    const toggle = event.target instanceof Element ? event.target.closest("[data-contact-dock-toggle]") : null;
+    if (!(toggle instanceof HTMLButtonElement)) return;
+
+    const dock = toggle.closest("[data-contact-dock]");
+    const body = dock?.querySelector<HTMLElement>("[data-contact-dock-body]");
+    const icon = dock?.querySelector<HTMLElement>("[data-contact-dock-icon]");
+    const expanded = toggle.getAttribute("aria-expanded") === "true";
+    toggle.setAttribute("aria-expanded", String(!expanded));
+    body?.classList.toggle("hidden", expanded);
+    icon?.classList.toggle("rotate-180", !expanded);
+  });
+</script>

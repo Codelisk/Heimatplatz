@@ -1,0 +1,167 @@
+---
+import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
+import CheckIcon from "@tabler/icons/outline/check.svg";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { guidePages, type GuidePage } from "@/data/guide-pages";
+import { searchIntents } from "@/data/search-intents";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+import { SITE } from "@/config/site";
+import { breadcrumbSchema } from "@/lib/seo";
+
+export function getStaticPaths() {
+  return guidePages.map((guide) => ({
+    params: { slug: guide.slug },
+    props: { guide },
+  }));
+}
+
+interface Props {
+  guide: GuidePage;
+}
+
+const { guide } = Astro.props;
+const canonicalUrl = new URL(guide.canonicalPath, Astro.site).toString();
+const relatedIntents = searchIntents.filter((intent) => guide.relatedIntentSlugs.includes(intent.slug));
+const relatedRegions = upperAustriaRegions.filter((region) => guide.relatedRegionSlugs.includes(region.slug));
+const relatedGuides = guidePages.filter((item) => item.slug !== guide.slug).slice(0, 4);
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: guide.h1,
+  description: guide.description,
+  inLanguage: SITE.language,
+  dateModified: guide.dateModified,
+  author: {
+    "@type": "Organization",
+    name: SITE.name,
+    url: SITE.url,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: SITE.name,
+    logo: {
+      "@type": "ImageObject",
+      url: new URL("/favicon.svg", Astro.site).toString(),
+    },
+  },
+  mainEntityOfPage: canonicalUrl,
+  keywords: guide.keywords,
+};
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: guide.faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.answer,
+    },
+  })),
+};
+---
+
+<BaseLayout
+  title={guide.title}
+  description={guide.description}
+  canonicalPath={guide.canonicalPath}
+  structuredData={[
+    breadcrumbSchema([
+      { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+      { name: "Ratgeber", url: new URL("/ratgeber/", Astro.site).toString() },
+      { name: guide.h1, url: canonicalUrl },
+    ]),
+    articleSchema,
+    faqSchema,
+  ]}
+>
+  <article class="bg-background">
+    <header class="border-b border-border bg-muted/30">
+      <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <a href="/ratgeber/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeftIcon class="size-4" aria-hidden="true" />
+          Ratgeber
+        </a>
+        <p class="mt-6 text-sm font-bold uppercase text-muted-foreground">Immobilienwissen Oberösterreich</p>
+        <h1 class="mt-3 max-w-4xl text-4xl font-bold leading-tight">{guide.h1}</h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{guide.intro}</p>
+        <div class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-muted-foreground">
+          <span class="rounded-full bg-background px-3 py-1.5">Aktualisiert: {new Date(guide.dateModified).toLocaleDateString("de-AT")}</span>
+          <span class="rounded-full bg-background px-3 py-1.5">{guide.readingTime}</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:px-8">
+      <div class="max-w-3xl">
+        {guide.sections.map((section, index) => (
+          <section class="border-b border-border py-8 first:pt-0 last:border-b-0" aria-labelledby={`guide-section-${index}`}>
+            <h2 id={`guide-section-${index}`} class="text-2xl font-bold">{section.heading}</h2>
+            <div class="mt-4 space-y-4 text-base leading-7 text-muted-foreground">
+              {section.body.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+            {section.checklist && (
+              <ul class="mt-5 grid gap-3">
+                {section.checklist.map((item) => (
+                  <li class="flex gap-3 rounded-lg border border-border bg-card p-4 text-sm leading-6">
+                    <CheckIcon class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+
+        <section class="mt-10" aria-labelledby="faq">
+          <h2 id="faq" class="text-2xl font-bold">Haeufige Fragen</h2>
+          <div class="mt-5 divide-y divide-border rounded-lg border border-border bg-card">
+            {guide.faqs.map((faq) => (
+              <details class="group p-5">
+                <summary class="cursor-pointer list-none text-base font-semibold">
+                  {faq.question}
+                </summary>
+                <p class="mt-3 text-sm leading-6 text-muted-foreground">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-5 self-start lg:sticky lg:top-20">
+        {relatedIntents.length > 0 && (
+          <section class="rounded-lg border border-border bg-card p-5">
+            <h2 class="text-lg font-bold">Passende Suche</h2>
+            <ul class="mt-4 space-y-3 text-sm text-muted-foreground">
+              {relatedIntents.map((intent) => (
+                <li><a class="hover:text-foreground" href={intent.canonicalPath}>{intent.title}</a></li>
+              ))}
+              {guide.slug === "zwangsversteigerung-oberoesterreich" && (
+                <li><a class="hover:text-foreground" href="/zwangsversteigerungen/">Zwangsversteigerungen Oberösterreich</a></li>
+              )}
+            </ul>
+          </section>
+        )}
+
+        <section class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-lg font-bold">Regionen</h2>
+          <ul class="mt-4 space-y-3 text-sm text-muted-foreground">
+            {relatedRegions.map((region) => (
+              <li><a class="hover:text-foreground" href={`/immobilien/oberoesterreich/${region.slug}/`}>{region.name}</a></li>
+            ))}
+            <li><a class="hover:text-foreground" href="/immobilien/oberoesterreich/">Alle Bezirke in Oberösterreich</a></li>
+          </ul>
+        </section>
+
+        <section class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-lg font-bold">Weitere Ratgeber</h2>
+          <ul class="mt-4 space-y-3 text-sm text-muted-foreground">
+            {relatedGuides.map((item) => (
+              <li><a class="hover:text-foreground" href={item.canonicalPath}>{item.h1}</a></li>
+            ))}
+          </ul>
+        </section>
+      </aside>
+    </section>
+  </article>
+</BaseLayout>

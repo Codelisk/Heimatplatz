@@ -1,0 +1,684 @@
+---
+import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import ShareIcon from "@tabler/icons/outline/share.svg";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+---
+
+<BaseLayout
+  title="Aktuelle Immobilie"
+  description="Aktuelle Immobilie aus der Heimatplatz Suche."
+  canonicalPath="/immobilien/live/"
+  noindex
+>
+  <article class="bg-background pb-28" data-live-detail-page>
+    <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      <a href="/immobilien/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeftIcon class="size-4" aria-hidden="true" />
+        Zurueck
+      </a>
+    </header>
+
+    <section class="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+      <div class="rounded-lg border border-border bg-card p-6" data-live-loading>
+        <p class="text-sm text-muted-foreground">Immobilie wird geladen...</p>
+      </div>
+
+      <div class="hidden" data-live-error>
+        <div class="rounded-lg border border-border bg-card p-8">
+          <h1 class="text-2xl font-bold">Immobilie nicht gefunden</h1>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            Die Objektdetails konnten nicht geladen werden. Bitte zur Suche zurueckkehren.
+          </p>
+          <Button href="/immobilien/" class="mt-5">Zur Suche</Button>
+        </div>
+      </div>
+
+      <div class="hidden" data-live-detail>
+        <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div>
+            <div class="relative overflow-hidden rounded-lg bg-muted">
+              <img
+                src="/og/heimatplatz-default.svg"
+                alt=""
+                class="h-[320px] w-full object-cover sm:h-[460px]"
+                loading="eager"
+                decoding="async"
+                data-live-image
+              />
+              <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+                <span class="rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background" data-live-type>Live</span>
+                <span class="rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground" data-live-region>Oberösterreich</span>
+              </div>
+              <div class="absolute right-4 top-4 flex gap-2">
+                <button
+                  class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+                  type="button"
+                  aria-label="Merken"
+                  aria-pressed="false"
+                  data-live-favorite
+                >
+                  <HeartIcon class="size-5" aria-hidden="true" />
+                </button>
+                <button
+                  class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+                  type="button"
+                  aria-label="Blockieren"
+                  aria-pressed="false"
+                  data-live-block
+                >
+                  <EyeOffIcon class="size-5" aria-hidden="true" />
+                </button>
+                <button
+                  class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+                  type="button"
+                  aria-label="Teilen"
+                  data-live-share
+                >
+                  <ShareIcon class="size-5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <p class="text-sm font-semibold text-muted-foreground" data-live-address></p>
+              <h1 class="mt-3 max-w-3xl text-4xl font-bold leading-tight" data-live-title></h1>
+              <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground" data-live-description></p>
+            </div>
+
+            <dl class="mt-6 grid gap-3 sm:grid-cols-4" data-live-facts></dl>
+
+            <section class="mt-8" aria-labelledby="live-details" data-live-detail-sections-wrapper hidden>
+              <h2 id="live-details" class="text-sm font-bold uppercase text-muted-foreground">Details</h2>
+              <div class="mt-4 grid gap-4 md:grid-cols-2" data-live-detail-sections></div>
+            </section>
+
+            <section class="mt-8" aria-labelledby="live-features">
+              <h2 id="live-features" class="text-sm font-bold uppercase text-muted-foreground">Ausstattung & Merkmale</h2>
+              <ul class="mt-4 grid gap-2 sm:grid-cols-2" data-live-features></ul>
+            </section>
+
+            <section class="mt-8" aria-labelledby="live-description">
+              <h2 id="live-description" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
+              <p class="mt-4 max-w-3xl text-base leading-7" data-live-description-long></p>
+            </section>
+          </div>
+
+          <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
+            <p class="text-sm text-muted-foreground">Anbieter</p>
+            <h2 class="mt-1 text-xl font-bold" data-live-seller></h2>
+            <p class="mt-2 text-sm text-muted-foreground" data-live-source></p>
+            <div class="mt-5 space-y-3" data-live-contacts></div>
+            <div class="mt-5 grid gap-2" data-live-contact-actions></div>
+            <a
+              href="/immobilien/"
+              class="mt-3 hidden h-10 w-full items-center justify-center rounded-md border border-border text-sm font-medium"
+              data-live-original
+            >
+              Originalinserat
+            </a>
+          </aside>
+        </section>
+      </div>
+    </section>
+
+    <section
+      class="fixed inset-x-0 bottom-0 z-30 hidden border-t border-border bg-background/95 shadow-[0_-12px_32px_rgba(15,23,42,0.12)] backdrop-blur"
+      aria-label="Schneller Kontakt"
+      data-live-contact-dock
+    >
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <button
+          type="button"
+          class="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3 text-left"
+          aria-expanded="false"
+          data-live-contact-dock-toggle
+        >
+          <span class="min-w-0">
+            <span class="block truncate text-sm font-semibold" data-live-contact-dock-seller>Anbieter</span>
+            <span class="mt-0.5 block truncate text-xs text-muted-foreground" data-live-contact-dock-meta></span>
+          </span>
+          <span class="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+            Kontakt
+            <ChevronDownIcon class="size-4 transition-transform" aria-hidden="true" data-live-contact-dock-icon />
+          </span>
+        </button>
+
+        <div class="hidden border-t border-border py-4" data-live-contact-dock-body>
+          <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+            <div class="grid gap-3 sm:grid-cols-2" data-live-contact-dock-contacts></div>
+            <div class="grid gap-2 sm:grid-cols-2 lg:w-72 lg:grid-cols-1" data-live-contact-dock-actions></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </article>
+
+  <script>
+    type Contact = {
+      Name?: string | null;
+      Email?: string | null;
+      Phone?: string | null;
+      OriginalListingUrl?: string | null;
+      SourceName?: string | null;
+      Type?: string;
+    };
+
+    type ApiProperty = {
+      Id: string;
+      Title: string;
+      Address: string;
+      City: string;
+      PostalCode: string;
+      Price: number | string;
+      LivingAreaM2?: number | string | null;
+      PlotAreaM2?: number | string | null;
+      Rooms?: number | string | null;
+      YearBuilt?: number | string | null;
+      Type: string;
+      SellerType: string | number | null;
+      SellerName: string;
+      Description?: string | null;
+      Features?: string[];
+      ImageUrls: string[];
+      CreatedAt: string;
+      SourceName?: string | null;
+      Contacts?: Contact[];
+      TypeSpecificData?: string | null;
+    };
+
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://heimatplatz-api.azurewebsites.net";
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const loading = document.querySelector<HTMLElement>("[data-live-loading]");
+    const error = document.querySelector<HTMLElement>("[data-live-error]");
+    const detail = document.querySelector<HTMLElement>("[data-live-detail]");
+
+    function formatPrice(value: number | string) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number <= 0) return "Preis offen";
+      return new Intl.NumberFormat("de-AT", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 0,
+      }).format(number);
+    }
+
+    function typeLabel(type: string) {
+      if (type === "Land") return "GRUND";
+      if (type === "Foreclosure") return "ZV";
+      return "HAUS";
+    }
+
+    function propertyTypeLabel(type: string) {
+      if (type === "Land") return "Grundstueck";
+      if (type === "Foreclosure") return "Zwangsversteigerung";
+      return "Haus";
+    }
+
+    function sellerLabel(sellerType: string | number | null) {
+      if (sellerType === "Private" || sellerType === 1) return "Privat";
+      if (sellerType === "Broker" || sellerType === 2 || sellerType === 3) return "Makler";
+      return "Portal";
+    }
+
+    function setText(selector: string, value: string) {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (element) element.textContent = value;
+    }
+
+    function createFact(label: string, value: string) {
+      const item = document.createElement("div");
+      item.className = "rounded-lg border border-border bg-card p-4";
+      item.innerHTML = `<dt class="text-sm text-muted-foreground"></dt><dd class="mt-1 text-xl font-bold"></dd>`;
+      item.querySelector("dt")!.textContent = label;
+      item.querySelector("dd")!.textContent = value;
+      return item;
+    }
+
+    function readTypeSpecificData(property: ApiProperty) {
+      if (!property.TypeSpecificData) return {};
+      try {
+        const parsed = JSON.parse(property.TypeSpecificData);
+        return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function scalar(data: Record<string, unknown>, key: string) {
+      const value = data[key];
+      return value === null || value === undefined || value === "" ? "" : String(value);
+    }
+
+    function numberValue(value: unknown) {
+      const number = Number(value);
+      return Number.isFinite(number) && number > 0 ? number : null;
+    }
+
+    function positiveText(value: unknown) {
+      const number = numberValue(value);
+      return number ? String(number) : "";
+    }
+
+    function formatArea(value: unknown) {
+      const number = numberValue(value);
+      return number ? `${new Intl.NumberFormat("de-AT", { maximumFractionDigits: 0 }).format(number)} m2` : "";
+    }
+
+    function formatDateTime(value: unknown) {
+      if (!value || typeof value !== "string") return "";
+      const date = new Date(value);
+      if (!Number.isFinite(date.valueOf())) return "";
+      return new Intl.DateTimeFormat("de-AT", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    }
+
+    function boolLabel(value: unknown) {
+      if (typeof value === "boolean") return value ? "Ja" : "Nein";
+      if (typeof value === "string") return value.toLowerCase() === "true" ? "Ja" : value.toLowerCase() === "false" ? "Nein" : "";
+      return "";
+    }
+
+    function enumLabel(value: unknown, labels: Record<string, string>) {
+      const key = value === null || value === undefined ? "" : String(value);
+      return labels[key] ?? key;
+    }
+
+    function renderDetailSections(property: ApiProperty) {
+      const wrapper = document.querySelector<HTMLElement>("[data-live-detail-sections-wrapper]");
+      const container = document.querySelector<HTMLElement>("[data-live-detail-sections]");
+      if (!wrapper || !container) return;
+      const data = readTypeSpecificData(property);
+      const sections = new Map<string, Array<[string, string]>>();
+      const add = (section: string, label: string, value: string) => {
+        if (!value) return;
+        const items = sections.get(section) ?? [];
+        items.push([label, value]);
+        sections.set(section, items);
+      };
+
+      add("Basisdaten", "Immobilienart", propertyTypeLabel(property.Type));
+      add("Basisdaten", "Kaufpreis", formatPrice(property.Price));
+      add("Basisdaten", "PLZ", property.PostalCode);
+      add("Basisdaten", "Ort", property.City);
+      add("Basisdaten", "Adresse", property.Address);
+      add("Basisdaten", "Eingestellt am", property.CreatedAt ? new Intl.DateTimeFormat("de-AT").format(new Date(property.CreatedAt)) : "");
+      add("Flaechen", "Wohnflaeche", formatArea(data.LivingAreaInSquareMeters) || formatArea(property.LivingAreaM2));
+      add("Flaechen", "Grundstuecksflaeche", formatArea(data.PlotSizeInSquareMeters) || formatArea(property.PlotAreaM2));
+      add("Flaechen", "Gesamtflaeche", formatArea(data.TotalArea));
+      add("Flaechen", "Bebaute Flaeche", formatArea(data.BuildingArea));
+      add("Gebaeude", "Zimmer", positiveText(data.TotalRooms) || positiveText(data.NumberOfRooms) || positiveText(property.Rooms));
+      add("Gebaeude", "Baujahr", scalar(data, "YearBuilt") || (property.YearBuilt ? String(property.YearBuilt) : ""));
+      add("Gebaeude", "Schlafzimmer", positiveText(data.Bedrooms));
+      add("Gebaeude", "Badezimmer", positiveText(data.Bathrooms));
+      add("Gebaeude", "Zustand", enumLabel(data.Condition, { LikeNew: "Neuwertig", Good: "Gut", Average: "Durchschnittlich", NeedsRenovation: "Sanierungsbeduerftig" }));
+      if (boolLabel(data.HasGarage) === "Ja") add("Ausstattung", "Garage", "Ja");
+      if (boolLabel(data.HasGarden) === "Ja") add("Ausstattung", "Garten", "Ja");
+      if (boolLabel(data.HasBasement) === "Ja") add("Ausstattung", "Keller", "Ja");
+      if (boolLabel(data.HasElevator) === "Ja") add("Ausstattung", "Aufzug", "Ja");
+      add("Grundstueck", "Widmung", enumLabel(data.Zoning, { Residential: "Wohngebiet", Commercial: "Gewerbegebiet", Industrial: "Industriegebiet", Agricultural: "Landwirtschaft", Mixed: "Mischgebiet" }) || scalar(data, "ZoningDesignation"));
+      add("Grundstueck", "Baurecht", boolLabel(data.HasBuildingRights));
+      add("Grundstueck", "Bebaubar", boolLabel(data.IsBuildable));
+      add("Grundstueck", "Versorgung", boolLabel(data.HasUtilities));
+      add("Grundstueck", "Einlagezahl", scalar(data, "RegistrationNumber"));
+      add("Grundstueck", "Katastralgemeinde", scalar(data, "CadastralMunicipality"));
+      add("Grundstueck", "Grundstuecksnummer", scalar(data, "PlotNumber"));
+      add("Versteigerung", "Gericht", scalar(data, "CourtName"));
+      add("Versteigerung", "Aktenzeichen", scalar(data, "FileNumber"));
+      add("Versteigerung", "Termin", formatDateTime(data.AuctionDate));
+      add("Versteigerung", "Mindestgebot", data.MinimumBid ? formatPrice(data.MinimumBid as number | string) : "");
+      add("Versteigerung", "Schaetzwert", data.EstimatedValue ? formatPrice(data.EstimatedValue as number | string) : "");
+      add("Versteigerung", "Status", enumLabel(data.Status, { Pending: "Anhaengig", Scheduled: "Terminiert", InProgress: "Laufend", Completed: "Abgeschlossen", Cancelled: "Aufgehoben" }));
+
+      container.textContent = "";
+      ["Basisdaten", "Flaechen", "Gebaeude", "Ausstattung", "Grundstueck", "Versteigerung"].forEach((title) => {
+        const items = sections.get(title);
+        if (!items?.length) return;
+        const section = document.createElement("section");
+        section.className = "rounded-lg border border-border bg-card p-4";
+        const heading = document.createElement("h3");
+        heading.className = "text-xs font-bold uppercase text-muted-foreground";
+        heading.textContent = title;
+        const list = document.createElement("dl");
+        list.className = "mt-3 divide-y divide-border";
+        items.forEach(([label, value]) => {
+          const row = document.createElement("div");
+          row.className = "grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2 text-sm";
+          const term = document.createElement("dt");
+          term.className = "text-muted-foreground";
+          term.textContent = label;
+          const description = document.createElement("dd");
+          description.className = "max-w-44 text-right font-medium";
+          description.textContent = value;
+          row.append(term, description);
+          list.append(row);
+        });
+        section.append(heading, list);
+        container.append(section);
+      });
+      wrapper.hidden = container.children.length === 0;
+    }
+
+    function showError() {
+      loading?.classList.add("hidden");
+      detail?.classList.add("hidden");
+      error?.classList.remove("hidden");
+      document.querySelector<HTMLElement>("[data-live-contact-dock]")?.classList.add("hidden");
+    }
+
+    function renderContacts(property: ApiProperty) {
+      const container = document.querySelector<HTMLElement>("[data-live-contacts]");
+      if (!container) return;
+      container.textContent = "";
+
+      const contacts = property.Contacts?.length
+        ? property.Contacts
+        : [{ Name: property.SellerName, SourceName: property.SourceName, Email: null, Phone: null }];
+
+      contacts.forEach((contact) => {
+        const item = document.createElement("div");
+        item.className = "rounded-md bg-muted p-3 text-sm";
+        const name = document.createElement("p");
+        name.className = "font-semibold";
+        name.textContent = contact.Name || contact.SourceName || property.SellerName;
+        item.append(name);
+        if (contact.Email) {
+          const row = document.createElement("div");
+          row.className = "mt-1 flex items-center justify-between gap-2";
+          const email = document.createElement("a");
+          email.className = "min-w-0 truncate text-muted-foreground hover:text-foreground";
+          email.href = `mailto:${contact.Email}`;
+          email.textContent = contact.Email;
+          const copy = document.createElement("button");
+          copy.className = "inline-flex h-8 shrink-0 items-center rounded-md border border-border px-2 text-xs font-medium hover:border-foreground";
+          copy.type = "button";
+          copy.setAttribute("data-copy-value", contact.Email);
+          copy.setAttribute("aria-label", `E-Mail ${contact.Email} kopieren`);
+          copy.innerHTML = `<span data-copy-text>Kopieren</span>`;
+          row.append(email, copy);
+          item.append(row);
+        }
+        if (contact.Phone) {
+          const row = document.createElement("div");
+          row.className = "mt-1 flex items-center justify-between gap-2";
+          const phone = document.createElement("a");
+          phone.className = "min-w-0 truncate text-muted-foreground hover:text-foreground";
+          phone.href = `tel:${contact.Phone.replace(/\s+/g, "")}`;
+          phone.textContent = contact.Phone;
+          const copy = document.createElement("button");
+          copy.className = "inline-flex h-8 shrink-0 items-center rounded-md border border-border px-2 text-xs font-medium hover:border-foreground";
+          copy.type = "button";
+          copy.setAttribute("data-copy-value", contact.Phone);
+          copy.setAttribute("aria-label", `Telefonnummer ${contact.Phone} kopieren`);
+          copy.innerHTML = `<span data-copy-text>Kopieren</span>`;
+          row.append(phone, copy);
+          item.append(row);
+        }
+        container.append(item);
+      });
+    }
+
+    function renderContactActions(property: ApiProperty) {
+      const container = document.querySelector<HTMLElement>("[data-live-contact-actions]");
+      if (!container) return;
+      container.textContent = "";
+
+      const contacts = property.Contacts ?? [];
+      const primaryEmail = contacts.find((contact) => contact.Email)?.Email;
+      const primaryPhone = contacts.find((contact) => contact.Phone)?.Phone;
+
+      if (primaryEmail) {
+        const email = document.createElement("a");
+        email.className = "inline-flex h-10 w-full items-center justify-center rounded-md bg-foreground text-sm font-semibold text-background";
+        email.href = `mailto:${primaryEmail}`;
+        email.textContent = "E-Mail schreiben";
+        container.append(email);
+      }
+
+      if (primaryPhone) {
+        const phone = document.createElement("a");
+        phone.className = "inline-flex h-10 w-full items-center justify-center rounded-md border border-border text-sm font-medium";
+        phone.href = `tel:${primaryPhone.replace(/\s+/g, "")}`;
+        phone.textContent = "Anrufen";
+        container.append(phone);
+      }
+
+      if (!primaryEmail && !primaryPhone) {
+        const note = document.createElement("p");
+        note.className = "rounded-md bg-muted p-3 text-sm text-muted-foreground";
+        note.textContent = "Kontakt ueber Anbieterangaben oder Originalinserat.";
+        container.append(note);
+      }
+    }
+
+    function renderContactDock(property: ApiProperty) {
+      const dock = document.querySelector<HTMLElement>("[data-live-contact-dock]");
+      const contactsContainer = document.querySelector<HTMLElement>("[data-live-contact-dock-contacts]");
+      const actionsContainer = document.querySelector<HTMLElement>("[data-live-contact-dock-actions]");
+      if (!dock || !contactsContainer || !actionsContainer) return;
+
+      setText("[data-live-contact-dock-seller]", property.SellerName);
+      setText("[data-live-contact-dock-meta]", [sellerLabel(property.SellerType), property.SourceName || "Heimatplatz"].join(" · "));
+
+      contactsContainer.textContent = "";
+      actionsContainer.textContent = "";
+      const contacts = property.Contacts?.length
+        ? property.Contacts
+        : [{ Name: property.SellerName, SourceName: property.SourceName, Email: null, Phone: null }];
+      const primaryEmail = contacts.find((contact) => contact.Email)?.Email;
+      const primaryPhone = contacts.find((contact) => contact.Phone)?.Phone;
+      const originalUrl = contacts.find((contact) => contact.OriginalListingUrl)?.OriginalListingUrl;
+
+      contacts.forEach((contact) => {
+        const item = document.createElement("div");
+        item.className = "rounded-md bg-muted p-3 text-sm";
+        const name = document.createElement("p");
+        name.className = "font-semibold";
+        name.textContent = contact.Name || contact.SourceName || property.SellerName;
+        item.append(name);
+
+        if (contact.Email) {
+          const row = document.createElement("div");
+          row.className = "mt-2 flex items-center justify-between gap-2";
+          const email = document.createElement("a");
+          email.className = "min-w-0 truncate text-muted-foreground hover:text-foreground";
+          email.href = `mailto:${contact.Email}`;
+          email.textContent = contact.Email;
+          const copy = document.createElement("button");
+          copy.className = "inline-flex h-8 shrink-0 items-center rounded-md border border-border px-2 text-xs font-medium hover:border-foreground";
+          copy.type = "button";
+          copy.setAttribute("data-copy-value", contact.Email);
+          copy.setAttribute("aria-label", `E-Mail ${contact.Email} kopieren`);
+          copy.innerHTML = `<span data-copy-text>Kopieren</span>`;
+          row.append(email, copy);
+          item.append(row);
+        }
+
+        if (contact.Phone) {
+          const row = document.createElement("div");
+          row.className = "mt-2 flex items-center justify-between gap-2";
+          const phone = document.createElement("a");
+          phone.className = "min-w-0 truncate text-muted-foreground hover:text-foreground";
+          phone.href = `tel:${contact.Phone.replace(/\s+/g, "")}`;
+          phone.textContent = contact.Phone;
+          const copy = document.createElement("button");
+          copy.className = "inline-flex h-8 shrink-0 items-center rounded-md border border-border px-2 text-xs font-medium hover:border-foreground";
+          copy.type = "button";
+          copy.setAttribute("data-copy-value", contact.Phone);
+          copy.setAttribute("aria-label", `Telefonnummer ${contact.Phone} kopieren`);
+          copy.innerHTML = `<span data-copy-text>Kopieren</span>`;
+          row.append(phone, copy);
+          item.append(row);
+        }
+
+        if (!contact.Email && !contact.Phone) {
+          const note = document.createElement("p");
+          note.className = "mt-2 text-sm text-muted-foreground";
+          note.textContent = "Kontakt ueber Anbieterangaben oder Originalinserat.";
+          item.append(note);
+        }
+
+        contactsContainer.append(item);
+      });
+
+      if (primaryEmail) {
+        const email = document.createElement("a");
+        email.className = "inline-flex h-10 items-center justify-center rounded-md bg-foreground px-4 text-sm font-semibold text-background";
+        email.href = `mailto:${primaryEmail}`;
+        email.textContent = "E-Mail schreiben";
+        actionsContainer.append(email);
+      }
+
+      if (primaryPhone) {
+        const phone = document.createElement("a");
+        phone.className = "inline-flex h-10 items-center justify-center rounded-md border border-border px-4 text-sm font-medium hover:border-foreground";
+        phone.href = `tel:${primaryPhone.replace(/\s+/g, "")}`;
+        phone.textContent = "Anrufen";
+        actionsContainer.append(phone);
+      }
+
+      if (!primaryEmail && !primaryPhone) {
+        const note = document.createElement("p");
+        note.className = "rounded-md bg-muted p-3 text-sm text-muted-foreground";
+        note.textContent = "Direkter Kontakt ist nicht angegeben.";
+        actionsContainer.append(note);
+      }
+
+      if (originalUrl) {
+        const original = document.createElement("a");
+        original.className = "inline-flex h-10 items-center justify-center rounded-md border border-border px-4 text-sm font-medium hover:border-foreground";
+        original.href = originalUrl;
+        original.rel = "nofollow noopener";
+        original.target = "_blank";
+        original.textContent = "Originalinserat";
+        actionsContainer.append(original);
+      }
+
+      dock.classList.remove("hidden");
+    }
+
+    function renderProperty(property: ApiProperty) {
+      document.title = `${property.Title} in ${property.City} | Heimatplatz`;
+      const description = document.querySelector<HTMLMetaElement>("meta[name='description']");
+      if (description) {
+        description.content = `${property.Title} in ${property.City}, Oberösterreich. Preis ${formatPrice(property.Price)}.`;
+      }
+
+      const image = document.querySelector<HTMLImageElement>("[data-live-image]");
+      if (image) {
+        image.src = property.ImageUrls?.[0] || "/og/heimatplatz-default.svg";
+        image.alt = property.Title;
+        image.addEventListener("error", () => {
+          image.src = "/og/heimatplatz-default.svg";
+        }, { once: true });
+      }
+
+      setText("[data-live-type]", typeLabel(property.Type));
+      setText("[data-live-region]", property.City);
+      setText("[data-live-address]", `${property.PostalCode} ${property.City} · ${property.Address}`);
+      setText("[data-live-title]", property.Title);
+      setText("[data-live-description]", property.Description || "Aktuelle Immobilie aus der Heimatplatz Suche.");
+      setText("[data-live-description-long]", property.Description || "Die Detaildaten werden direkt aus der Angebotsquelle geladen.");
+      setText("[data-live-seller]", property.SellerName);
+      setText("[data-live-source]", [sellerLabel(property.SellerType), property.SourceName || "Heimatplatz"].join(" · "));
+
+      const favorite = document.querySelector<HTMLButtonElement>("[data-live-favorite]");
+      const block = document.querySelector<HTMLButtonElement>("[data-live-block]");
+      [favorite, block].forEach((button) => {
+        if (!button) return;
+        button.dataset.propertySlug = property.Id;
+        button.dataset.propertyId = property.Id;
+      });
+      favorite?.setAttribute("data-property-action", "favorite");
+      block?.setAttribute("data-property-action", "block");
+
+      const share = document.querySelector<HTMLButtonElement>("[data-live-share]");
+      share?.setAttribute("data-share-url", window.location.href);
+      share?.setAttribute("data-share-title", property.Title);
+
+      const facts = document.querySelector<HTMLElement>("[data-live-facts]");
+      if (facts) {
+        facts.textContent = "";
+        facts.append(
+          createFact("Preis", formatPrice(property.Price)),
+          createFact("Wohnflaeche", property.LivingAreaM2 ? `${property.LivingAreaM2} m2` : "Keine Angabe"),
+          createFact("Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m2` : "Keine Angabe"),
+          createFact("Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"),
+        );
+      }
+
+      const features = document.querySelector<HTMLElement>("[data-live-features]");
+      if (features) {
+        features.textContent = "";
+        const values = property.Features?.length ? property.Features : ["Aktuelles Angebot", property.City, typeLabel(property.Type)];
+        values.forEach((feature) => {
+          const li = document.createElement("li");
+          li.className = "rounded-md bg-muted px-4 py-3 text-sm";
+          li.textContent = feature;
+          features.append(li);
+        });
+      }
+
+      renderDetailSections(property);
+
+      const original = document.querySelector<HTMLAnchorElement>("[data-live-original]");
+      const originalUrl = property.Contacts?.find((contact) => contact.OriginalListingUrl)?.OriginalListingUrl;
+      if (original && originalUrl) {
+        original.href = originalUrl;
+        original.classList.remove("hidden");
+        original.classList.add("inline-flex");
+      }
+
+      renderContacts(property);
+      renderContactActions(property);
+      renderContactDock(property);
+      loading?.classList.add("hidden");
+      error?.classList.add("hidden");
+      detail?.classList.remove("hidden");
+    }
+
+    async function loadProperty() {
+      if (!id) {
+        showError();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/properties/${encodeURIComponent(id)}`);
+        if (!response.ok) throw new Error(`API ${response.status}`);
+        const payload = await response.json() as { Property: ApiProperty | null };
+        if (!payload.Property) {
+          showError();
+          return;
+        }
+        renderProperty(payload.Property);
+      } catch {
+        showError();
+      }
+    }
+
+    document.addEventListener("click", (event) => {
+      const toggle = event.target instanceof Element ? event.target.closest("[data-live-contact-dock-toggle]") : null;
+      if (!(toggle instanceof HTMLButtonElement)) return;
+
+      const dock = toggle.closest("[data-live-contact-dock]");
+      const body = dock?.querySelector<HTMLElement>("[data-live-contact-dock-body]");
+      const icon = dock?.querySelector<HTMLElement>("[data-live-contact-dock-icon]");
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      body?.classList.toggle("hidden", expanded);
+      icon?.classList.toggle("rotate-180", !expanded);
+    });
+
+    void loadProperty();
+  </script>
+</BaseLayout>

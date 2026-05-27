@@ -1,0 +1,262 @@
+---
+import BellIcon from "@tabler/icons/outline/bell.svg";
+import FilterIcon from "@tabler/icons/outline/filter.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
+import HomeIcon from "@tabler/icons/outline/home.svg";
+import LoginIcon from "@tabler/icons/outline/login.svg";
+import MenuIcon from "@tabler/icons/outline/menu-2.svg";
+import PlusIcon from "@tabler/icons/outline/plus.svg";
+import SearchIcon from "@tabler/icons/outline/search.svg";
+import ShieldOffIcon from "@tabler/icons/outline/shield-off.svg";
+import UserIcon from "@tabler/icons/outline/user.svg";
+import UserPlusIcon from "@tabler/icons/outline/user-plus.svg";
+import XIcon from "@tabler/icons/outline/x.svg";
+import { SITE } from "@/config/site";
+import { Button } from "@/components/starwind/button";
+import { NativeSelect } from "@/components/starwind/native-select";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+
+const pathname = Astro.url.pathname;
+const showFilters = pathname === "/" || pathname.startsWith("/immobilien");
+const titleByPath = [
+  { test: (path: string) => path === "/", title: "HEIMATPLATZ" },
+  { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: "Immobilie" },
+  { test: (path: string) => path.startsWith("/zwangsversteigerungen/") && path !== "/zwangsversteigerungen/", title: "Zwangsversteigerung" },
+  { test: (path: string) => path.startsWith("/immobilien/bearbeiten"), title: "Immobilie bearbeiten" },
+  { test: (path: string) => path.startsWith("/inserieren"), title: "Inserieren" },
+  { test: (path: string) => path.startsWith("/meine-immobilien"), title: "Meine Immobilien" },
+  { test: (path: string) => path.startsWith("/favoriten"), title: "Favoriten" },
+  { test: (path: string) => path.startsWith("/blockiert"), title: "Blockiert" },
+  { test: (path: string) => path.startsWith("/benachrichtigungen"), title: "Benachrichtigungen" },
+  { test: (path: string) => path.startsWith("/filter-einstellungen"), title: "Filtereinstellungen" },
+  { test: (path: string) => path.startsWith("/profil"), title: "Mein Konto" },
+  { test: (path: string) => path.startsWith("/ratgeber"), title: "Ratgeber" },
+  { test: (path: string) => path.startsWith("/immobilien"), title: "Immobilien" },
+  { test: (path: string) => path.startsWith("/zwangsversteigerungen"), title: "Zwangsversteigerungen" },
+];
+const currentTitle = titleByPath.find((item) => item.test(pathname))?.title ?? "HEIMATPLATZ";
+const publicLinks = [
+  { label: "Home", href: "/", icon: HomeIcon },
+  { label: "Immobilien suchen", href: "/immobilien/", icon: SearchIcon },
+  { label: "Oberösterreich", href: "/immobilien/oberoesterreich/", icon: SearchIcon },
+  { label: "Orte A-Z", href: "/immobilien/orte/", icon: SearchIcon },
+  { label: "Aktuelle Angebote", href: "/immobilien/angebote/", icon: SearchIcon },
+  { label: "Haus kaufen OÖ", href: "/immobilien/haus-kaufen-oberoesterreich/", icon: SearchIcon },
+  { label: "Wohnung kaufen OÖ", href: "/immobilien/wohnung-kaufen-oberoesterreich/", icon: SearchIcon },
+  { label: "Grundstück kaufen OÖ", href: "/immobilien/grundstueck-kaufen-oberoesterreich/", icon: SearchIcon },
+  { label: "Zwangsversteigerungen", href: "/zwangsversteigerungen/", icon: SearchIcon },
+  { label: "Ratgeber", href: "/ratgeber/", icon: SearchIcon },
+];
+const appLinks = [
+  { label: "Meine Immobilien", href: "/meine-immobilien/", icon: HomeIcon, sellerOnly: true },
+  { label: "Immobilie hinzufügen", href: "/inserieren/", icon: PlusIcon, sellerOnly: true },
+  { label: "Meine Favoriten", href: "/favoriten/", icon: HeartIcon },
+  { label: "Blockierte Immobilien", href: "/blockiert/", icon: ShieldOffIcon },
+  { label: "Benachrichtigungen", href: "/benachrichtigungen/", icon: BellIcon },
+  { label: "Filtereinstellungen", href: "/filter-einstellungen/", icon: FilterIcon },
+  { label: "Mein Profil", href: "/profil/", icon: UserIcon },
+];
+
+function isActive(href: string) {
+  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+}
+---
+
+<header class="sticky top-0 z-40 border-b border-border bg-background/98">
+  <div class="flex h-14 items-center justify-between gap-3 px-3 sm:px-4">
+    <div class="flex min-w-0 shrink-0 items-center gap-1">
+      <button
+        type="button"
+        class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent"
+        aria-label="Navigation öffnen"
+        aria-expanded="false"
+        data-site-nav-toggle
+      >
+        <MenuIcon class="size-5" aria-hidden="true" />
+      </button>
+      <a href="/" class="min-w-0 px-1 font-bold uppercase text-foreground" aria-label="Heimatplatz Startseite">
+        <span class="block truncate text-xs tracking-[0.15em] sm:text-sm">{currentTitle}</span>
+      </a>
+    </div>
+
+    {
+      showFilters && (
+        <form action="/immobilien/" method="get" class="hidden min-w-0 flex-1 items-center justify-center gap-2 xl:flex">
+          <NativeSelect name="region" class="w-36">
+            <option value="">Ort auswaehlen</option>
+            {upperAustriaRegions.map((region) => <option value={region.slug}>{region.name}</option>)}
+          </NativeSelect>
+          <NativeSelect name="age" class="w-32">
+            <option value="">Zeitraum</option>
+            <option value="day">24 Stunden</option>
+            <option value="week">7 Tage</option>
+            <option value="month">30 Tage</option>
+            <option value="year">1 Jahr</option>
+          </NativeSelect>
+          <button class="rounded-md bg-foreground px-4 py-2.5 text-sm font-semibold text-background" name="type" value="house">
+            Haus
+          </button>
+          <button class="rounded-md bg-foreground px-4 py-2.5 text-sm font-semibold text-background" name="type" value="apartment">
+            Wohnung
+          </button>
+          <button class="rounded-md bg-foreground px-4 py-2.5 text-sm font-semibold text-background" name="type" value="land">
+            Grund
+          </button>
+          <button class="rounded-md bg-foreground px-4 py-2.5 text-sm font-semibold text-background" name="type" value="foreclosure">
+            ZV
+          </button>
+          <span class="mx-1 h-6 w-px bg-border" aria-hidden="true" />
+          <NativeSelect name="seller" class="w-36">
+            <option value="">Anbieter: Alle</option>
+            <option value="private">Privat</option>
+            <option value="agent">Makler</option>
+            <option value="court">Portal</option>
+          </NativeSelect>
+        </form>
+      )
+    }
+
+    <nav class:list={["hidden shrink-0 items-center gap-1", showFilters ? "2xl:flex" : "lg:flex"]} aria-label="Hauptnavigation">
+      {
+        SITE.navigation.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <a
+              href={item.href}
+              class:list={[
+                "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                active
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              ]}
+              aria-current={active ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          );
+        })
+      }
+    </nav>
+
+    <div class="hidden shrink-0 items-center gap-2 sm:flex">
+      <Button href="/profil/" variant="outline" size="sm" class="max-w-36 truncate" data-auth-only hidden>
+        <span data-auth-email></span>
+      </Button>
+      <Button href="/anmelden/" variant="outline" size="sm" data-guest-only>
+        Anmelden
+      </Button>
+      <Button href="/registrieren/" variant="default" size="sm" class="hidden sm:inline-flex" data-guest-only>
+        Registrieren
+      </Button>
+      <Button href="/inserieren/" variant="default" size="sm" class="hidden sm:inline-flex" data-auth-role-seller hidden>
+        Inserieren
+      </Button>
+    </div>
+  </div>
+
+  <div class="fixed inset-0 z-50 bg-black/35" data-site-nav-overlay hidden></div>
+  <aside
+    class="fixed inset-y-0 left-0 z-50 flex w-[min(22rem,calc(100vw-2rem))] -translate-x-full flex-col border-r border-border bg-background shadow-xl transition-transform duration-200"
+    aria-label="App-Navigation"
+    aria-hidden="true"
+    inert
+    data-site-nav-panel
+  >
+    <div class="flex h-14 items-center justify-between border-b border-border px-4">
+      <a href="/" class="font-bold uppercase tracking-[0.15em]">Heimatplatz</a>
+      <button type="button" class="grid size-10 place-items-center rounded-md hover:bg-accent" aria-label="Navigation schließen" data-site-nav-close>
+        <XIcon class="size-5" aria-hidden="true" />
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-3 py-4">
+      <div class="space-y-1">
+        <p class="px-3 pb-1 text-xs font-semibold uppercase text-muted-foreground">Suche</p>
+        {publicLinks.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.href);
+          return (
+            <a
+              href={item.href}
+              class:list={[
+                "flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium",
+                active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              ]}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon class="size-4" aria-hidden="true" />
+              <span>{item.label}</span>
+            </a>
+          );
+        })}
+      </div>
+
+      <div class="mt-6 space-y-1" data-auth-only hidden>
+        <p class="px-3 pb-1 text-xs font-semibold uppercase text-muted-foreground">Mein Bereich</p>
+        {appLinks.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.href);
+          return (
+            <a
+              href={item.href}
+              class:list={[
+                "flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium",
+                active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              ]}
+              aria-current={active ? "page" : undefined}
+              data-auth-role-seller={item.sellerOnly ? "" : undefined}
+              hidden={item.sellerOnly ? true : undefined}
+            >
+              <Icon class="size-4" aria-hidden="true" />
+              <span>{item.label}</span>
+            </a>
+          );
+        })}
+      </div>
+
+      <div class="mt-6 space-y-2 px-3" data-guest-only>
+        <Button href="/anmelden/" variant="outline" class="w-full justify-start">
+          <LoginIcon class="size-4" aria-hidden="true" />
+          Anmelden
+        </Button>
+        <Button href="/registrieren/" class="w-full justify-start">
+          <UserPlusIcon class="size-4" aria-hidden="true" />
+          Registrieren
+        </Button>
+      </div>
+    </div>
+
+    <div class="border-t border-border p-3" data-auth-only hidden>
+      <div class="mb-2 rounded-md bg-muted px-3 py-2 text-sm">
+        <p class="truncate font-medium" data-auth-name>Nicht angemeldet</p>
+        <p class="truncate text-xs text-muted-foreground" data-auth-email></p>
+      </div>
+      <button type="button" class="w-full rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground" data-logout>
+        Abmelden
+      </button>
+    </div>
+  </aside>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-site-nav-toggle]");
+  const close = document.querySelector<HTMLButtonElement>("[data-site-nav-close]");
+  const panel = document.querySelector<HTMLElement>("[data-site-nav-panel]");
+  const overlay = document.querySelector<HTMLElement>("[data-site-nav-overlay]");
+
+  function setOpen(open: boolean) {
+    toggle?.setAttribute("aria-expanded", String(open));
+    panel?.classList.toggle("-translate-x-full", !open);
+    panel?.setAttribute("aria-hidden", String(!open));
+    panel?.toggleAttribute("inert", !open);
+    overlay?.toggleAttribute("hidden", !open);
+    document.documentElement.style.overflow = open ? "hidden" : "";
+  }
+
+  toggle?.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+  close?.addEventListener("click", () => setOpen(false));
+  overlay?.addEventListener("click", () => setOpen(false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setOpen(false);
+  });
+</script>

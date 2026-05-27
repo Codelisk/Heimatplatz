@@ -1,0 +1,816 @@
+---
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
+import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
+import SearchIcon from "@tabler/icons/outline/search.svg";
+import type { PropertyEntry } from "@/features/properties/format";
+import type { ApiProperty } from "@/features/properties/live-api";
+import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
+import PropertyPreviewCard from "@/components/properties/PropertyPreviewCard.astro";
+import MobileFilterPanel from "@/components/properties/MobileFilterPanel.astro";
+import { NativeSelect } from "@/components/starwind/native-select";
+import { Input } from "@/components/starwind/input";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+
+interface Props {
+  properties: PropertyEntry[];
+  apiProperties?: ApiProperty[];
+  introTitle?: string;
+  introDescription?: string;
+  showIntro?: boolean;
+  presetQuery?: string;
+  presetType?: "apartment" | "house" | "land" | "foreclosure" | "";
+  presetSeller?: "private" | "agent" | "court" | "";
+  presetRegion?: string;
+  presetAge?: "day" | "week" | "month" | "year" | "";
+}
+
+const {
+  properties,
+  apiProperties = [],
+  introTitle = "Immobilien in Oberösterreich",
+  introDescription = "Haeuser, Wohnungen, Grundstuecke und Zwangsversteigerungen in Linz, Wels, Steyr und weiteren Regionen suchen.",
+  showIntro = false,
+  presetQuery = "",
+  presetType = "",
+  presetSeller = "",
+  presetRegion = "",
+  presetAge = "",
+} = Astro.props;
+const totalInitialProperties = properties.length + apiProperties.length;
+const typeFilters = [
+  { value: "apartment", label: "Wohnung" },
+  { value: "house", label: "Haus" },
+  { value: "land", label: "Grund" },
+  { value: "foreclosure", label: "ZV" },
+] as const;
+const sellerFilters = [
+  { value: "private", label: "Privat" },
+  { value: "agent", label: "Makler" },
+  { value: "court", label: "Portal" },
+] as const;
+---
+
+<MobileFilterPanel />
+
+<section class="border-b border-border bg-background">
+  <div class="px-3 py-2 sm:px-5">
+    {showIntro && (
+      <div class="mx-auto max-w-7xl pb-4 pt-3">
+        <p class="text-xs font-semibold uppercase text-muted-foreground">Immobiliensuche Oberösterreich</p>
+        <h1 class="mt-2 text-3xl font-bold tracking-normal">{introTitle}</h1>
+        <p class="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{introDescription}</p>
+      </div>
+    )}
+
+    <div
+      class="mx-auto grid max-w-7xl gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center"
+      data-search-config
+      data-preset-query={presetQuery}
+      data-preset-type={presetType}
+      data-preset-seller={presetSeller}
+      data-preset-region={presetRegion}
+      data-preset-age={presetAge}
+    >
+      <form action="/immobilien/" method="get" class="grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_150px] xl:max-w-4xl" data-search-form>
+        <label class="sr-only" for="q">Suchbegriff</label>
+        <div class="relative">
+          <SearchIcon class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input id="q" name="q" type="search" class="pl-9" placeholder="Ort, Bezirk, PLZ oder Immobilie" autocomplete="off" data-filter-input />
+        </div>
+        <NativeSelect name="region" data-filter-region>
+          <option value="">Alle Orte</option>
+          {upperAustriaRegions.map((region) => <option value={region.slug}>{region.name}</option>)}
+        </NativeSelect>
+        <NativeSelect name="age" data-filter-age>
+          <option value="">Zeitraum</option>
+          <option value="day">24 Stunden</option>
+          <option value="week">7 Tage</option>
+          <option value="month">30 Tage</option>
+          <option value="year">1 Jahr</option>
+        </NativeSelect>
+      </form>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+        <div class="flex flex-wrap items-center gap-2" aria-label="Immobilientypen">
+          {typeFilters.map((filter) => (
+            <button
+              type="button"
+              class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background"
+              data-filter-type={filter.value}
+              aria-pressed="true"
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <div class="flex flex-wrap items-center gap-2" aria-label="Anbieter">
+          {sellerFilters.map((filter) => (
+            <button
+              type="button"
+              class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background"
+              data-filter-seller-chip={filter.value}
+              aria-pressed="true"
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <span class="font-semibold text-muted-foreground" data-result-count>{totalInitialProperties} Objekte</span>
+        <label class="flex items-center gap-2">
+          <span class="sr-only">Sortierung</span>
+          <NativeSelect data-filter-sort>
+            <option value="newest">Neueste</option>
+            <option value="oldest">Aelteste</option>
+            <option value="price-asc">Preis ↑</option>
+            <option value="price-desc">Preis ↓</option>
+            <option value="area-desc">Flaeche ↓</option>
+            <option value="area-asc">Flaeche ↑</option>
+            <option value="postal-asc">PLZ</option>
+          </NativeSelect>
+        </label>
+        <ChevronDownIcon class="hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="px-3 py-4 sm:px-5">
+  <div class="mx-auto grid max-w-7xl gap-4 sm:grid-cols-2 xl:grid-cols-3" data-property-grid>
+    {properties.map((property) => <PropertyPreviewCard property={property} />)}
+    {apiProperties.map((property) => <ApiPropertyCard property={property} />)}
+  </div>
+  <p class="mx-auto mt-4 hidden max-w-7xl text-sm text-muted-foreground" data-live-status></p>
+  <p class="mx-auto hidden max-w-7xl py-16 text-center text-sm text-muted-foreground" data-empty-state>
+    Keine Treffer fuer diese Filter. Bitte Ort, Zeitraum oder Anbieter anpassen.
+  </p>
+  <nav
+    class="mx-auto mt-5 hidden max-w-7xl items-center justify-center gap-4 border-t border-border pt-4"
+    aria-label="Suchergebnisse Seiten"
+    data-pagination
+  >
+    <button
+      type="button"
+      class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+      aria-label="Vorherige Seite"
+      data-page-prev
+    >
+      <ChevronLeftIcon class="size-5" aria-hidden="true" />
+    </button>
+    <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info></span>
+    <button
+      type="button"
+      class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+      aria-label="Naechste Seite"
+      data-page-next
+    >
+      <ChevronRightIcon class="size-5" aria-hidden="true" />
+    </button>
+  </nav>
+</section>
+
+<script>
+  type ApiProperty = {
+    Id: string;
+    Title: string;
+    Address: string;
+    City: string;
+    PostalCode: string;
+    Price: number | string;
+    LivingAreaM2?: number | string | null;
+    PlotAreaM2?: number | string | null;
+    Rooms?: number | string | null;
+    Type: string;
+    SellerType: string | null;
+    SellerName: string;
+    ImageUrls: string[];
+    CreatedAt: string;
+    Description?: string | null;
+    Features?: string[];
+    SourceName?: string | null;
+  };
+
+  type ApiPropertyResponse = {
+    Properties: ApiProperty[];
+    Total: number;
+    HasMore: boolean;
+  };
+
+  type VerifiedImageMap = Record<string, string>;
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://heimatplatz-api.azurewebsites.net";
+  const params = new URLSearchParams(window.location.search);
+  let cards = Array.from(document.querySelectorAll<HTMLElement>("[data-property-card]"));
+  const resultCount = document.querySelector<HTMLElement>("[data-result-count]");
+  const mobileResultCount = document.querySelector<HTMLElement>("[data-mobile-result-count]");
+  const emptyState = document.querySelector<HTMLElement>("[data-empty-state]");
+  const liveStatus = document.querySelector<HTMLElement>("[data-live-status]");
+  const input = document.querySelector<HTMLInputElement>("[data-filter-input]");
+  const regionControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-region]"));
+  const ageControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-age]"));
+  const typeButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-type]"));
+  const sellerButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-seller-chip]"));
+  const sort = document.querySelector<HTMLSelectElement>("[data-filter-sort]");
+  const pagination = document.querySelector<HTMLElement>("[data-pagination]");
+  const prevPage = document.querySelector<HTMLButtonElement>("[data-page-prev]");
+  const nextPage = document.querySelector<HTMLButtonElement>("[data-page-next]");
+  const paginationInfo = document.querySelector<HTMLElement>("[data-pagination-info]");
+  const mobileToggle = document.querySelector<HTMLButtonElement>("[data-mobile-filter-toggle]");
+  const mobileBody = document.querySelector<HTMLElement>("[data-mobile-filter-body]");
+  const config = document.querySelector<HTMLElement>("[data-search-config]");
+  const ALL_TYPES = ["apartment", "house", "land", "foreclosure"];
+  const ALL_SELLERS = ["private", "agent", "court"];
+  const PAGE_SIZE = 20;
+  let currentPage = 0;
+  let verifiedImageMapPromise: Promise<VerifiedImageMap> | null = null;
+
+  const preset = {
+    q: config?.dataset.presetQuery ?? "",
+    type: config?.dataset.presetType ?? "",
+    seller: config?.dataset.presetSeller ?? "",
+    region: config?.dataset.presetRegion ?? "",
+    age: config?.dataset.presetAge ?? "",
+  };
+
+  function transliterateGerman(value: string) {
+    return value
+      .replace(/ä/g, "ae")
+      .replace(/Ä/g, "ae")
+      .replace(/ö/g, "oe")
+      .replace(/Ö/g, "oe")
+      .replace(/ü/g, "ue")
+      .replace(/Ü/g, "ue")
+      .replace(/ß/g, "ss");
+  }
+
+  function normalize(value: string) {
+    return transliterateGerman(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  function normalizeText(value: string) {
+    return transliterateGerman(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  }
+
+  type StoredFilterPreferences = {
+    IsHausSelected?: boolean;
+    IsGrundstueckSelected?: boolean;
+    IsZwangsversteigerungSelected?: boolean;
+    IsPrivateSelected?: boolean;
+    IsBrokerSelected?: boolean;
+    SelectedOrtes?: string[];
+    SelectedAgeFilter?: number | string;
+    SelectedSort?: number | string;
+  };
+
+  function readStoredFilterPreferences(): StoredFilterPreferences | null {
+    try {
+      const value = localStorage.getItem("heimatplatz:filter-preferences");
+      return value ? JSON.parse(value) as StoredFilterPreferences : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getSelectedTypes(preferences: StoredFilterPreferences | null) {
+    if (!preferences) return "";
+    const selected = [
+      preferences.IsHausSelected !== false ? "apartment" : "",
+      preferences.IsHausSelected !== false ? "house" : "",
+      preferences.IsGrundstueckSelected !== false ? "land" : "",
+      preferences.IsZwangsversteigerungSelected !== false ? "foreclosure" : "",
+    ].filter(Boolean);
+    return selected.length > 0 && selected.length < ALL_TYPES.length ? selected.join(",") : "";
+  }
+
+  function getSelectedSellers(preferences: StoredFilterPreferences | null) {
+    if (!preferences) return "";
+    const selected = [
+      preferences.IsPrivateSelected !== false ? "private" : "",
+      preferences.IsBrokerSelected !== false ? "agent" : "",
+      "court",
+    ].filter(Boolean);
+    return selected.length > 0 && selected.length < ALL_SELLERS.length ? selected.join(",") : "";
+  }
+
+  function getStoredAge(preferences: StoredFilterPreferences | null) {
+    const age = Number(preferences?.SelectedAgeFilter ?? 0);
+    if (age === 1) return "day";
+    if (age === 2 || age === 7) return "week";
+    if (age === 3 || age === 30) return "month";
+    if (age === 4 || age >= 365) return "year";
+    return "";
+  }
+
+  function getStoredSort(preferences: StoredFilterPreferences | null) {
+    const mode = Number(preferences?.SelectedSort ?? 0);
+    if (mode === 1) return "oldest";
+    if (mode === 2) return "price-asc";
+    if (mode === 3) return "price-desc";
+    if (mode === 4) return "area-desc";
+    if (mode === 5) return "area-asc";
+    if (mode === 6) return "postal-asc";
+    return "newest";
+  }
+
+  function getStoredLocations(preferences: StoredFilterPreferences | null) {
+    return Array.isArray(preferences?.SelectedOrtes)
+      ? preferences.SelectedOrtes.map((item) => String(item)).filter(Boolean)
+      : [];
+  }
+
+  const storedPreferences = readStoredFilterPreferences();
+  const regionOptionValues = new Set(
+    Array.from(regionControls[0]?.options ?? []).map((option) => option.value).filter(Boolean),
+  );
+  const storedLocations = getStoredLocations(storedPreferences);
+  const storedSingleRegion = storedLocations.length === 1 ? normalize(storedLocations[0]) : "";
+  const storedInitial = {
+    type: getSelectedTypes(storedPreferences),
+    seller: getSelectedSellers(storedPreferences),
+    region: storedSingleRegion && regionOptionValues.has(storedSingleRegion) ? storedSingleRegion : "",
+    age: getStoredAge(storedPreferences),
+    sort: getStoredSort(storedPreferences),
+  };
+
+  function initialValue(name: string, presetValue: string, storedValue: string) {
+    const value = params.get(name);
+    if (value !== null) return value;
+    return presetValue || storedValue || "";
+  }
+
+  function splitSelection(value: string | null | undefined, allowed: string[]) {
+    if (!value) return [];
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => allowed.includes(item));
+  }
+
+  function getQuerySelection(name: string, allowed: string[]) {
+    return params
+      .getAll(name)
+      .flatMap((value) => splitSelection(value, allowed));
+  }
+
+  function initialSelection(name: string, presetValue: string, storedValue: string, allowed: string[]) {
+    const queryValues = getQuerySelection(name, allowed);
+    if (queryValues.length > 0) return queryValues;
+
+    const presetValues = splitSelection(presetValue, allowed);
+    if (presetValues.length > 0) return presetValues;
+
+    const storedValues = splitSelection(storedValue, allowed);
+    if (storedValues.length > 0) return storedValues;
+
+    return [...allowed];
+  }
+
+  const initial = {
+    q: params.get("q") ?? preset.q,
+    types: initialSelection("type", preset.type, storedInitial.type, ALL_TYPES),
+    sellers: initialSelection("seller", preset.seller, storedInitial.seller, ALL_SELLERS),
+    region: initialValue("region", preset.region, storedInitial.region),
+    age: initialValue("age", preset.age, storedInitial.age),
+    sort: params.get("sort") ?? storedInitial.sort,
+  };
+  const selectedTypes = new Set(initial.types);
+  const selectedSellers = new Set(initial.sellers);
+  const storedLocationFilters = storedLocations
+    .map((location) => ({
+      slug: normalize(location),
+      text: normalizeText(location),
+    }))
+    .filter((location) => location.slug && location.text);
+  let useStoredLocationFilters = !params.has("region")
+    && !preset.region
+    && !initial.region
+    && storedLocationFilters.length > 0;
+
+  if (input) input.value = initial.q;
+  regionControls.forEach((control) => {
+    control.value = initial.region;
+  });
+  ageControls.forEach((control) => {
+    control.value = initial.age;
+  });
+  if (sort) sort.value = initial.sort;
+
+  function isApiApartmentCandidate(property: ApiProperty) {
+    const searchText = [
+      property.Title,
+      property.Description ?? "",
+      property.Features?.join(" ") ?? "",
+    ].join(" ").toLowerCase();
+
+    return Boolean(property.LivingAreaM2 && !property.PlotAreaM2)
+      || searchText.includes("wohnung")
+      || searchText.includes("eigentumswohnung")
+      || searchText.includes("apartment");
+  }
+
+  function mapType(property: ApiProperty) {
+    if (property.Type === "House" && isApiApartmentCandidate(property)) return "apartment";
+    const type = property.Type;
+    if (type === "Land") return "land";
+    if (type === "Foreclosure") return "foreclosure";
+    return "house";
+  }
+
+  function mapSeller(sellerType: string | null) {
+    if (sellerType === "Private") return "private";
+    if (sellerType === "Broker") return "agent";
+    return "court";
+  }
+
+  function formatPrice(value: number | string) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) return "Preis offen";
+    if (number >= 1_000_000) return `${(number / 1_000_000).toLocaleString("de-AT", { maximumFractionDigits: 1 })} Mio. EUR`;
+    if (number >= 1000) return `${Math.round(number / 1000).toLocaleString("de-AT")} Tsd. EUR`;
+    return `${number.toLocaleString("de-AT")} EUR`;
+  }
+
+  function getAgeCutoff(age: string) {
+    const now = Date.now();
+    if (age === "day") return now - 24 * 60 * 60 * 1000;
+    if (age === "week") return now - 7 * 24 * 60 * 60 * 1000;
+    if (age === "month") return now - 30 * 24 * 60 * 60 * 1000;
+    if (age === "year") return now - 365 * 24 * 60 * 60 * 1000;
+    return null;
+  }
+
+  function setLiveStatus(message: string, visible = true) {
+    if (!liveStatus) return;
+    liveStatus.textContent = message;
+    liveStatus.classList.toggle("hidden", !visible);
+  }
+
+  function createText(tag: keyof HTMLElementTagNameMap, className: string, text: string) {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    return element;
+  }
+
+  function getApiDetailPath(id: string) {
+    return `/immobilien/angebote/${encodeURIComponent(id)}/`;
+  }
+
+  function loadVerifiedImageMap() {
+    if (!verifiedImageMapPromise) {
+      verifiedImageMapPromise = fetch("/api/property-image-map.json")
+        .then((response) => response.ok ? response.json() as Promise<VerifiedImageMap> : {})
+        .catch(() => ({}));
+    }
+
+    return verifiedImageMapPromise;
+  }
+
+  function getSafeImageUrl(property: ApiProperty, verifiedImages: VerifiedImageMap) {
+    const verified = verifiedImages[property.Id];
+    if (verified) return verified;
+
+    const firstImage = property.ImageUrls?.[0] ?? "";
+    if (firstImage.startsWith("/") || (firstImage && !firstImage.includes("/api/images/proxy"))) {
+      return firstImage;
+    }
+
+    return "/og/heimatplatz-default.svg";
+  }
+
+  function createApiCard(property: ApiProperty, verifiedImages: VerifiedImageMap) {
+    const article = document.createElement("article");
+    const type = mapType(property);
+    const sellerValue = mapSeller(property.SellerType);
+    const regionSlug = normalize(property.City);
+    const area = property.PlotAreaM2 ?? property.LivingAreaM2 ?? 0;
+    const search = [
+      property.Title,
+      property.Address,
+      property.City,
+      property.PostalCode,
+      property.SellerName,
+      property.Description ?? "",
+      property.Features?.join(" ") ?? "",
+      property.SourceName ?? "",
+    ].join(" ").toLowerCase();
+
+    article.className = "property-card overflow-hidden rounded-lg border border-border bg-card shadow-sm";
+    article.dataset.propertyCard = "";
+    article.dataset.liveProperty = "true";
+    article.dataset.slug = property.Id;
+    article.dataset.propertyId = property.Id;
+    article.dataset.type = type;
+    article.dataset.seller = sellerValue;
+    article.dataset.region = regionSlug;
+    article.dataset.location = regionSlug;
+    article.dataset.updated = property.CreatedAt;
+    article.dataset.price = String(property.Price ?? 0);
+    article.dataset.area = String(area);
+    article.dataset.postal = property.PostalCode;
+    article.dataset.search = search;
+
+    const media = document.createElement("div");
+    media.className = "relative h-50 overflow-hidden bg-muted";
+    const link = document.createElement("a");
+    link.href = getApiDetailPath(property.Id);
+    link.className = "block h-full";
+    const image = document.createElement("img");
+    image.src = getSafeImageUrl(property, verifiedImages);
+    image.alt = property.Title;
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.className = "h-full w-full object-cover";
+    image.dataset.fallbackImage = "/og/heimatplatz-default.svg";
+    image.addEventListener("error", () => {
+      image.src = "/og/heimatplatz-default.svg";
+    }, { once: true });
+    link.append(image);
+
+    const badge = createText("span", "absolute left-3 top-3 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background", type === "foreclosure" ? "ZV" : type === "land" ? "GRUND" : type === "apartment" ? "WOHNUNG" : "HAUS");
+    const price = createText("span", "absolute bottom-3 right-3 rounded-md bg-black/90 px-4 py-2 text-xl font-bold text-white", formatPrice(property.Price));
+    const actions = document.createElement("div");
+    actions.className = "absolute right-3 top-3 flex gap-1";
+    actions.innerHTML = `
+      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Favorit speichern" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">♡</button>
+      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">⊘</button>
+    `;
+    media.append(link, badge, price, actions);
+
+    const body = document.createElement("div");
+    body.className = "grid grid-cols-[1fr_auto] gap-3 p-3";
+    const left = document.createElement("div");
+    left.className = "min-w-0";
+    const title = document.createElement("h2");
+    title.className = "truncate text-base font-semibold";
+    const titleLink = document.createElement("a");
+    titleLink.href = getApiDetailPath(property.Id);
+    titleLink.className = "hover:underline";
+    titleLink.textContent = property.City || property.Title;
+    title.append(titleLink);
+    left.append(
+      title,
+      createText("p", "truncate text-sm text-muted-foreground", `${property.PostalCode} ${property.Address}`),
+      createText("p", "mt-1 truncate text-xs text-muted-foreground", property.Title),
+      createText("p", "mt-2 text-xs text-muted-foreground", property.SellerName || "Anbieter"),
+      createText("p", "mt-1 text-xs text-muted-foreground", "Aktuelles Angebot"),
+    );
+
+    const facts = document.createElement("dl");
+    facts.className = "text-right";
+    facts.innerHTML = `
+      <dt class="sr-only">Flaeche</dt>
+      <dd class="text-2xl font-bold leading-none text-foreground">${area || "k.A."}</dd>
+      <dd class="text-xs text-muted-foreground">${area ? (property.PlotAreaM2 ? "m2 Grund" : "m2 Wfl") : "Flaeche"}</dd>
+      <dd class="mt-3 text-xs text-muted-foreground">${property.Rooms ? `${property.Rooms} Zi` : ""}</dd>
+    `;
+
+    body.append(left, facts);
+    article.append(media, body);
+    return article;
+  }
+
+  function getRegionValue() {
+    return regionControls[0]?.value ?? initial.region;
+  }
+
+  function getAgeValue() {
+    return ageControls[0]?.value ?? initial.age;
+  }
+
+  function setSelectValue(controls: HTMLSelectElement[], value: string) {
+    controls.forEach((control) => {
+      control.value = value;
+    });
+  }
+
+  function getActiveTypes() {
+    const values = Array.from(selectedTypes).filter((value) => ALL_TYPES.includes(value));
+    return values.length > 0 ? values : [...ALL_TYPES];
+  }
+
+  function getActiveSellers() {
+    const values = Array.from(selectedSellers).filter((value) => ALL_SELLERS.includes(value));
+    return values.length > 0 ? values : [...ALL_SELLERS];
+  }
+
+  function isFilteringAll(selected: string[], allValues: string[]) {
+    return selected.length === allValues.length;
+  }
+
+  function setChipPressed(button: HTMLButtonElement, pressed: boolean) {
+    button.setAttribute("aria-pressed", String(pressed));
+    button.classList.toggle("border-foreground", pressed);
+    button.classList.toggle("bg-foreground", pressed);
+    button.classList.toggle("text-background", pressed);
+    button.classList.toggle("border-border", !pressed);
+    button.classList.toggle("bg-background", !pressed);
+    button.classList.toggle("text-foreground", !pressed);
+  }
+
+  function updateFilterChips() {
+    typeButtons.forEach((button) => {
+      const value = button.dataset.filterType;
+      setChipPressed(button, Boolean(value && selectedTypes.has(value)));
+    });
+    sellerButtons.forEach((button) => {
+      const value = button.dataset.filterSellerChip;
+      setChipPressed(button, Boolean(value && selectedSellers.has(value)));
+    });
+  }
+
+  function buildApiQuery() {
+    const apiParams = new URLSearchParams();
+    apiParams.set("Page", "0");
+    apiParams.set("PageSize", "24");
+    apiParams.set("SortBy", "CreatedAt");
+    apiParams.set("SortDescending", "true");
+
+    const activeTypes = getActiveTypes();
+    if (!isFilteringAll(activeTypes, ALL_TYPES)) {
+      const apiTypes = [...new Set(activeTypes.map((type) => (
+        type === "land" ? "Land" : type === "foreclosure" ? "Foreclosure" : "House"
+      )))];
+      apiParams.set("PropertyTypesJson", JSON.stringify(apiTypes));
+    }
+
+    const apiSellerTypes = getActiveSellers()
+      .filter((seller) => seller !== "court")
+      .map((seller) => seller === "private" ? "Private" : "Broker");
+    if (apiSellerTypes.length > 0 && apiSellerTypes.length < 2) {
+      apiParams.set("SellerTypesJson", JSON.stringify(apiSellerTypes));
+    }
+
+    const createdAfter = getAgeCutoff(getAgeValue());
+    if (createdAfter) apiParams.set("CreatedAfter", new Date(createdAfter).toISOString());
+
+    return apiParams.toString();
+  }
+
+  function matches(card: HTMLElement) {
+    const q = normalizeText(input?.value.trim() ?? initial.q);
+    const regionValue = getRegionValue();
+    const activeTypes = getActiveTypes();
+    const activeSellers = getActiveSellers();
+    const createdAfter = getAgeCutoff(getAgeValue());
+    const search = normalizeText(card.dataset.search ?? "");
+    const updated = Date.parse(card.dataset.updated ?? "");
+    const cardRegion = card.dataset.region ?? "";
+    const cardLocation = card.dataset.location ?? "";
+    const matchesStoredLocation = !useStoredLocationFilters || storedLocationFilters.some((location) =>
+      cardRegion === location.slug
+      || cardLocation === location.slug
+      || Boolean(cardLocation && location.slug.endsWith(`-${cardLocation}`))
+      || Boolean(cardLocation && cardLocation.endsWith(`-${location.slug}`))
+    );
+    return (
+      (!q || search.includes(q)) &&
+      (!regionValue || card.dataset.region === regionValue) &&
+      matchesStoredLocation &&
+      (isFilteringAll(activeTypes, ALL_TYPES) || activeTypes.includes(card.dataset.type ?? "")) &&
+      (isFilteringAll(activeSellers, ALL_SELLERS) || activeSellers.includes(card.dataset.seller ?? "")) &&
+      (!createdAfter || (Number.isFinite(updated) && updated >= createdAfter))
+    );
+  }
+
+  function applyFilters(resetPage = false) {
+    if (resetPage) currentPage = 0;
+
+    cards = Array.from(document.querySelectorAll<HTMLElement>("[data-property-card]"));
+    const visible = cards.filter((card) => {
+      const keep = matches(card);
+      card.hidden = !keep;
+      return keep;
+    });
+
+    visible.sort((a, b) => {
+      const mode = sort?.value ?? "newest";
+      const priceA = Number(a.dataset.price ?? 0);
+      const priceB = Number(b.dataset.price ?? 0);
+      if (mode === "price-asc") return priceA - priceB;
+      if (mode === "price-desc") return priceB - priceA;
+      if (mode === "area-desc") {
+        return Number(b.dataset.area ?? 0) - Number(a.dataset.area ?? 0);
+      }
+      if (mode === "area-asc") {
+        return Number(a.dataset.area ?? 0) - Number(b.dataset.area ?? 0);
+      }
+      if (mode === "postal-asc") {
+        return (a.dataset.postal ?? "").localeCompare(b.dataset.postal ?? "", "de-AT", { numeric: true });
+      }
+      if (mode === "oldest") {
+        return (a.dataset.updated ?? "").localeCompare(b.dataset.updated ?? "");
+      }
+      return (b.dataset.updated ?? "").localeCompare(a.dataset.updated ?? "");
+    });
+
+    const grid = document.querySelector("[data-property-grid]");
+    visible.forEach((card) => grid?.append(card));
+
+    const pageCount = Math.ceil(visible.length / PAGE_SIZE);
+    if (currentPage >= pageCount) currentPage = Math.max(0, pageCount - 1);
+    const pageStart = currentPage * PAGE_SIZE;
+    const pageEnd = pageStart + PAGE_SIZE;
+    visible.forEach((card, index) => {
+      card.hidden = index < pageStart || index >= pageEnd;
+    });
+
+    const label = `${visible.length} ${visible.length === 1 ? "Objekt" : "Objekte"}`;
+    if (resultCount) resultCount.textContent = label;
+    if (mobileResultCount) mobileResultCount.textContent = label;
+    if (emptyState) emptyState.classList.toggle("hidden", visible.length !== 0);
+    if (pagination) pagination.classList.toggle("hidden", pageCount <= 1);
+    if (pagination) pagination.classList.toggle("flex", pageCount > 1);
+    if (paginationInfo) paginationInfo.textContent = pageCount > 0 ? `Seite ${currentPage + 1} von ${pageCount}` : "";
+    if (prevPage) prevPage.disabled = currentPage <= 0;
+    if (nextPage) nextPage.disabled = currentPage >= pageCount - 1;
+  }
+
+  async function loadLiveProperties() {
+    const grid = document.querySelector<HTMLElement>("[data-property-grid]");
+    if (!grid) return;
+
+    setLiveStatus("Live-Angebote werden geladen...");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/properties?${buildApiQuery()}`);
+      if (!response.ok) throw new Error(`API ${response.status}`);
+      const payload = await response.json() as ApiPropertyResponse;
+      const existingIds = new Set(Array.from(document.querySelectorAll<HTMLElement>("[data-property-id]")).map((card) => card.dataset.propertyId));
+      const liveProperties = (payload.Properties ?? []).filter((property) => !existingIds.has(property.Id));
+      const verifiedImages = await loadVerifiedImageMap();
+      liveProperties.forEach((property) => grid.append(createApiCard(property, verifiedImages)));
+      setLiveStatus(liveProperties.length > 0 ? `${liveProperties.length} aktuelle Angebote ergaenzt.` : "Keine zusaetzlichen aktuellen Angebote gefunden.", liveProperties.length > 0);
+      applyFilters();
+    } catch {
+      setLiveStatus("Aktuelle Angebote konnten nicht geladen werden. Die vorhandenen Objektseiten bleiben verfuegbar.");
+    }
+  }
+
+  input?.addEventListener("input", () => applyFilters(true));
+  regionControls.forEach((control) => {
+    control.addEventListener("change", () => {
+      setSelectValue(regionControls, control.value);
+      useStoredLocationFilters = false;
+      applyFilters(true);
+    });
+  });
+  ageControls.forEach((control) => {
+    control.addEventListener("change", () => {
+      setSelectValue(ageControls, control.value);
+      applyFilters(true);
+    });
+  });
+  typeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const value = button.dataset.filterType;
+      if (!value) return;
+      if (selectedTypes.has(value) && selectedTypes.size > 1) {
+        selectedTypes.delete(value);
+      } else {
+        selectedTypes.add(value);
+      }
+      updateFilterChips();
+      applyFilters(true);
+    });
+  });
+  sellerButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const value = button.dataset.filterSellerChip;
+      if (!value) return;
+      if (selectedSellers.has(value) && selectedSellers.size > 1) {
+        selectedSellers.delete(value);
+      } else {
+        selectedSellers.add(value);
+      }
+      updateFilterChips();
+      applyFilters(true);
+    });
+  });
+  sort?.addEventListener("change", () => applyFilters(true));
+  prevPage?.addEventListener("click", () => {
+    if (currentPage <= 0) return;
+    currentPage -= 1;
+    applyFilters();
+  });
+  nextPage?.addEventListener("click", () => {
+    currentPage += 1;
+    applyFilters();
+  });
+  mobileToggle?.addEventListener("click", () => {
+    const expanded = mobileToggle.getAttribute("aria-expanded") === "true";
+    mobileToggle.setAttribute("aria-expanded", String(!expanded));
+    mobileBody?.classList.toggle("hidden", expanded);
+  });
+
+  updateFilterChips();
+  applyFilters();
+  void loadLiveProperties();
+</script>

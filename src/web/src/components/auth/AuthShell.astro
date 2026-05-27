@@ -1,0 +1,32 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  mode: "login" | "register";
+}
+
+const { title, description, mode } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} canonicalPath={mode === "login" ? "/anmelden/" : "/registrieren/"} chrome={false} noindex>
+  <div class="grid min-h-screen lg:grid-cols-[minmax(420px,560px)_1fr]">
+    <section class="bg-background px-6 py-8 sm:px-12">
+      <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">← Zurueck</a>
+      <div class="mt-12 max-w-md">
+        <h1 class="text-3xl font-bold">{title}</h1>
+        <p class="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
+        <slot />
+      </div>
+    </section>
+    <aside class="hidden bg-foreground text-background lg:grid lg:place-items-center">
+      <div class="max-w-md px-12">
+        <p class="text-5xl font-bold uppercase">Heimatplatz</p>
+        <p class="mt-5 text-lg text-background/80">
+          Immobilien-Favoriten, Inserate und Suchprofile fuer Oberösterreich an einem Ort.
+        </p>
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

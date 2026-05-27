@@ -1,0 +1,102 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getLocalityPath, localitySearchPages } from "@/data/locality-search-pages";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+import { searchIntents } from "@/data/search-intents";
+import { breadcrumbSchema } from "@/lib/seo";
+
+const properties = await getCollection("properties");
+const priorityLocalities = localitySearchPages.filter((locality) => locality.isRegionCenter).slice(0, 24);
+---
+
+<BaseLayout
+  title="Immobilien Oberösterreich"
+  description="Regionale Immobilienseiten fuer alle Bezirke in Oberösterreich: Linz, Wels, Steyr, Innviertel, Muehlviertel, Salzkammergut, Zentralraum und weitere Regionen."
+  canonicalPath="/immobilien/oberoesterreich/"
+  structuredData={breadcrumbSchema([
+    { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+    { name: "Immobilien", url: new URL("/immobilien/", Astro.site).toString() },
+    { name: "Oberösterreich", url: new URL("/immobilien/oberoesterreich/", Astro.site).toString() },
+  ])}
+>
+  <section class="border-b border-border bg-muted/35">
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <p class="text-sm font-bold uppercase text-muted-foreground">Oberösterreich</p>
+      <h1 class="mt-3 text-4xl font-bold">Immobilien in Oberösterreich</h1>
+      <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
+        Regionale Einstiegsseiten fuer Suchanfragen wie Haus kaufen Linz,
+        Wohnung kaufen Wels, Grundstueck Gmunden, Immobilien Innviertel oder Zwangsversteigerung Oberösterreich.
+        Die Bezirksstruktur orientiert sich an Gemeinden, Bezirken und Statutarstaedten in Oberösterreich.
+      </p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div class="mb-10">
+      <h2 class="text-2xl font-bold">Haeufige Immobiliensuchen in Oberösterreich</h2>
+      <div class="mt-5 grid gap-4 md:grid-cols-3">
+        {searchIntents.map((intent) => (
+          <a class="rounded-lg border border-border bg-card p-5 shadow-sm hover:border-foreground" href={intent.canonicalPath}>
+            <h3 class="text-lg font-bold">{intent.title}</h3>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">{intent.description}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div class="mb-10 grid gap-4 md:grid-cols-2">
+      <div class="rounded-lg border border-border bg-card p-5">
+      <h2 class="text-2xl font-bold">Aktuelle Angebote</h2>
+      <p class="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
+        Aktuelle Häuser, Wohnungen, Grundstücke und weitere Immobilienangebote in
+        Oberösterreich mit eigenen Objektseiten.
+      </p>
+      <a class="mt-5 inline-flex h-10 items-center rounded-md bg-foreground px-4 text-sm font-semibold text-background" href="/immobilien/angebote/">
+        Aktuelle Angebote ansehen
+      </a>
+      </div>
+
+      <div class="rounded-lg border border-border bg-card p-5">
+        <h2 class="text-2xl font-bold">Zwangsversteigerungen</h2>
+        <p class="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
+          Gerichtliche Immobilienversteigerungen in Oberösterreich mit Edikt,
+          Schätzwert, Mindestgebot, Termin und Bezirksgericht.
+        </p>
+        <a class="mt-5 inline-flex h-10 items-center rounded-md bg-foreground px-4 text-sm font-semibold text-background" href="/zwangsversteigerungen/">
+          Zwangsversteigerungen ansehen
+        </a>
+      </div>
+    </div>
+
+    <h2 class="text-2xl font-bold">Alle Bezirke und Statutarstaedte</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      {upperAustriaRegions.map((region) => (
+        <a class="rounded-lg border border-border bg-card p-5 shadow-sm hover:border-foreground" href={`/immobilien/oberoesterreich/${region.slug}/`}>
+          <h2 class="text-xl font-bold">{region.title}</h2>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">{region.description}</p>
+          <p class="mt-4 text-sm text-muted-foreground">{region.districts.slice(0, 4).join(" · ")}</p>
+          <p class="mt-4 text-sm font-semibold">{properties.filter((property) => property.data.regionSlug === region.slug).length} Objekte</p>
+        </a>
+      ))}
+    </div>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">Wichtige Orte fuer die Immobiliensuche</h2>
+      <p class="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
+        Lokale Einstiegsseiten fuer Staedte und Gemeinden in Oberösterreich helfen bei Suchen nach konkreten Orten,
+        Ortsteilen und Pendlerlagen.
+      </p>
+      <div class="mt-5 flex flex-wrap gap-2">
+        {priorityLocalities.map((locality) => (
+          <a class="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium hover:border-foreground" href={getLocalityPath(locality.slug)}>
+            Immobilien {locality.name}
+          </a>
+        ))}
+        <a class="rounded-full border border-foreground bg-foreground px-3 py-1.5 text-sm font-semibold text-background" href="/immobilien/orte/">
+          Alle Orte A-Z
+        </a>
+      </div>
+    </section>
+  </section>
+</BaseLayout>
