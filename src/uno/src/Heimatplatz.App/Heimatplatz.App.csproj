@@ -16,8 +16,8 @@
     <!-- App Identifier -->
     <ApplicationId>at.heimatplatz.app</ApplicationId>
     <!-- Versions -->
-    <ApplicationDisplayVersion>1.61.0</ApplicationDisplayVersion>
-    <ApplicationVersion>60</ApplicationVersion>
+    <ApplicationDisplayVersion>1.63.0</ApplicationDisplayVersion>
+    <ApplicationVersion>63</ApplicationVersion>
     <!-- Package Publisher -->
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->

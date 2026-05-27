@@ -60,3 +60,6 @@ nul
 
 # ImmoCrawler data exports
 data/immocrawler/
+
+# Local cake build artifacts
+artifacts/
