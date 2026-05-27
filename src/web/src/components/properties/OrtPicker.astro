@@ -3,7 +3,7 @@ import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
 import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import MapPinIcon from "@tabler/icons/outline/map-pin.svg";
 import { upperAustriaRegions } from "@/data/upper-austria-regions";
-import { getRegionLocalities } from "@/data/locality-search-pages";
+import { slugifyLocation } from "@/features/locations/region-match";
 
 interface Props {
   name?: string;
@@ -23,17 +23,21 @@ const {
 } = Astro.props;
 
 const regions = upperAustriaRegions.map((region) => {
-  const localities = getRegionLocalities(region.slug)
-    // Region-Center wird als "(alle)" oben gerendert, also hier rausfiltern
-    .filter((locality) => locality.slug !== region.slug);
+  const seen = new Set<string>();
+  const localities = region.districts.flatMap((districtName) => {
+    const baseSlug = slugifyLocation(districtName);
+    if (!baseSlug || baseSlug === region.slug) return [];
+    // Prefix mit Bezirk-Slug damit gleichnamige Gemeinden in verschiedenen Bezirken
+    // (z.B. "Innenstadt" in Linz und Wels) eindeutig bleiben
+    const slug = `${region.slug}-${baseSlug}`;
+    if (seen.has(slug)) return [];
+    seen.add(slug);
+    return [{ name: districtName, slug, baseSlug }];
+  });
   return {
     name: region.name,
     slug: region.slug,
-    localities: localities.map((locality) => ({
-      name: locality.name,
-      slug: locality.slug,
-      baseSlug: locality.baseSlug,
-    })),
+    localities,
   };
 });
 const buttonId = id ?? `ort-picker-${name}-${Math.random().toString(36).slice(2, 8)}`;

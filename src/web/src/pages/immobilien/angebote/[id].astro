@@ -72,8 +72,6 @@ const detailSections = getApiPropertyDetailSections(property);
   structuredData={[
     breadcrumbSchema([
       { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
-      { name: "Immobilien", url: new URL("/immobilien/", Astro.site).toString() },
-      { name: "Angebote", url: new URL("/immobilien/angebote/", Astro.site).toString() },
       { name: property.Title, url: canonicalUrl },
     ]),
     getApiPropertyJsonLd(property, canonicalUrl, imageUrl),
@@ -81,9 +79,9 @@ const detailSections = getApiPropertyDetailSections(property);
 >
   <article class="bg-background pb-28">
     <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-      <a href="/immobilien/angebote/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+      <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon class="size-4" aria-hidden="true" />
-        Zurueck zu Angeboten
+        Zurueck
       </a>
     </header>
 

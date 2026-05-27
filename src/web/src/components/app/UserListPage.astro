@@ -1,7 +1,5 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import type { PropertyEntry } from "@/features/properties/format";
-import PropertyPreviewCard from "@/components/properties/PropertyPreviewCard.astro";
 import ForeclosureAuctionCard from "@/components/foreclosures/ForeclosureAuctionCard.astro";
 import { Button } from "@/components/starwind/button";
 import type { ApiForeclosureAuction } from "@/features/foreclosures/api";
@@ -10,7 +8,6 @@ interface Props {
   title: string;
   description: string;
   canonicalPath: string;
-  properties?: PropertyEntry[];
   foreclosures?: ApiForeclosureAuction[];
   emptyText?: string;
   actionHref?: string;
@@ -22,17 +19,16 @@ const {
   title,
   description,
   canonicalPath,
-  properties = [],
   foreclosures = [],
   emptyText = "Noch keine Eintraege vorhanden.",
-  actionHref = "/immobilien/",
+  actionHref = "/",
   actionLabel = "Immobilien ansehen",
   mode = "static",
 } = Astro.props;
 
 const isStateBacked = mode === "favorites" || mode === "blocked";
 const isMine = mode === "mine";
-const hasListItems = properties.length > 0 || foreclosures.length > 0;
+const hasListItems = foreclosures.length > 0;
 const showInitialGrid = hasListItems && !isStateBacked && !isMine;
 const savedDraft = isMine && Astro.url.searchParams.has("gespeichert");
 const editedDraft = isMine && Astro.url.searchParams.has("bearbeitet");
@@ -63,7 +59,6 @@ const statusMessage = editedDraft ? "Aenderungen gespeichert." : "Entwurf gespei
         data-user-list
         data-user-mode={mode}
       >
-        {properties.map((property) => <PropertyPreviewCard property={property} />)}
         {foreclosures.map((auction) => <ForeclosureAuctionCard auction={auction} />)}
       </div>
     )}

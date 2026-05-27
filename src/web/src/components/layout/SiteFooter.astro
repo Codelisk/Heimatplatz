@@ -1,47 +1,10 @@
 ---
-import { SITE } from "@/config/site";
-import { guidePages } from "@/data/guide-pages";
-import { searchIntents } from "@/data/search-intents";
 ---
 
-<footer class="border-t border-border bg-muted/35">
-  <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr] lg:px-8">
-    <div>
-      <a href="/" class="inline-flex items-center gap-3 font-semibold">
-        <span class="grid size-9 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-          HP
-        </span>
-        <span>Heimatplatz</span>
-      </a>
-      <p class="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-        Schnelle Web-App fuer Immobilien in Oberösterreich. Regionale Seiten fuer Linz, Wels,
-        Steyr und Bezirke helfen bei der Suche nach passenden Häusern, Wohnungen und Grundstücken.
-      </p>
-    </div>
-
-    <div>
-      <h2 class="text-sm font-semibold">Web-App</h2>
-      <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
-        {SITE.navigation.map((item) => <li><a class="hover:text-foreground" href={item.href}>{item.label}</a></li>)}
-        <li><a class="hover:text-foreground" href="/immobilien/angebote/">Aktuelle Angebote</a></li>
-        <li><a class="hover:text-foreground" href="/immobilien/orte/">Orte A-Z</a></li>
-        <li><a class="hover:text-foreground" href="/meine-immobilien/">Meine Immobilien</a></li>
-        <li><a class="hover:text-foreground" href="/favoriten/">Favoriten</a></li>
-      </ul>
-    </div>
-
-    <div>
-      <h2 class="text-sm font-semibold">Regionale Suche</h2>
-      <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
-        {searchIntents.slice(0, 4).map((intent) => <li><a class="hover:text-foreground" href={intent.canonicalPath}>{intent.title}</a></li>)}
-        <li><a class="hover:text-foreground" href="/immobilien/orte/">Immobilien nach Ort</a></li>
-        {guidePages.slice(0, 2).map((guide) => <li><a class="hover:text-foreground" href={guide.canonicalPath}>{guide.h1}</a></li>)}
-        <li><a class="hover:text-foreground" href="/sitemap-index.xml">Sitemap</a></li>
-        <li><a class="hover:text-foreground" href="/robots.txt">Robots</a></li>
-        <li><a class="hover:text-foreground" href="/llms.txt">LLMs</a></li>
-        <li><a class="hover:text-foreground" href="/datenschutz/">Datenschutz</a></li>
-        <li><a class="hover:text-foreground" href="/impressum/">Impressum</a></li>
-      </ul>
-    </div>
+<footer class="border-t border-border">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-6 px-4 py-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
+    <a class="hover:text-foreground" href="/impressum/">Impressum</a>
+    <a class="hover:text-foreground" href="/datenschutz/">Datenschutz</a>
+    <span class="opacity-70">Heimatplatz</span>
   </div>
 </footer>

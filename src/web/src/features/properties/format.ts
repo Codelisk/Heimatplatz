@@ -1,7 +1,3 @@
-import type { CollectionEntry } from "astro:content";
-
-export type PropertyEntry = CollectionEntry<"properties">;
-
 export const PROPERTY_TYPE_LABELS = {
   apartment: "Wohnung",
   house: "Haus",
@@ -31,57 +27,4 @@ export function formatDate(date: Date) {
     month: "2-digit",
     year: "numeric",
   }).format(date);
-}
-
-export function getAreaLabel(property: PropertyEntry["data"]) {
-  if (property.plotArea) {
-    return `${property.plotArea} m2 Grund`;
-  }
-
-  if (property.livingArea) {
-    return `${property.livingArea} m2 Wfl`;
-  }
-
-  return "auf Anfrage";
-}
-
-export function getPropertyTypeSearchValue(type: PropertyEntry["data"]["type"]) {
-  return type;
-}
-
-export function getPropertyJsonLd(property: PropertyEntry["data"], url: string) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "Offer",
-    name: property.title,
-    description: property.description,
-    price: property.price,
-    priceCurrency: "EUR",
-    availability: "https://schema.org/InStock",
-    url,
-    itemOffered: {
-      "@type": "Residence",
-      name: property.title,
-      image: property.imageUrl,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: property.address,
-        postalCode: property.postalCode,
-        addressLocality: property.location,
-        addressRegion: "Oberösterreich",
-        addressCountry: "AT",
-      },
-      floorSize: property.livingArea
-        ? {
-            "@type": "QuantitativeValue",
-            value: property.livingArea,
-            unitCode: "MTK",
-          }
-        : undefined,
-    },
-    seller: {
-      "@type": "Organization",
-      name: property.sellerName,
-    },
-  };
 }

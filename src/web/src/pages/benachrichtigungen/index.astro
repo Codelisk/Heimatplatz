@@ -1,12 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getRegionLocalities } from "@/data/locality-search-pages";
-import { upperAustriaRegions } from "@/data/upper-austria-regions";
-
-const regionGroups = upperAustriaRegions.map((region) => ({
-  region,
-  localities: getRegionLocalities(region.slug),
-}));
+import OrtPicker from "@/components/properties/OrtPicker.astro";
 ---
 
 <BaseLayout
@@ -52,25 +46,10 @@ const regionGroups = upperAustriaRegions.map((region) => ({
       <div class="rounded-lg border border-border bg-card p-4" data-notification-custom hidden>
         <h2 class="text-base font-semibold">Orte</h2>
         <p class="mt-1 text-sm text-muted-foreground">
-          Leer lassen bedeutet: alle Orte in Oberösterreich. Mehrere Orte werden wie in der App gespeichert.
+          Leer lassen bedeutet: alle Orte in Oberoesterreich. Mehrere Orte werden wie in der App gespeichert.
         </p>
-        <div class="mt-4 grid max-h-[32rem] gap-3 overflow-y-auto pr-1">
-          {regionGroups.map(({ region, localities }) => (
-            <details class="rounded-md border border-border bg-background p-3" open={region.slug === "linz" || region.slug === "linz-land"}>
-              <summary class="cursor-pointer text-sm font-semibold">{region.name}</summary>
-              <div class="mt-3 grid gap-2 sm:grid-cols-2">
-                {localities.map((locality) => (
-                  <label class="flex min-h-10 items-center gap-3 rounded-md border border-border px-3 py-2 text-sm">
-                    <input type="checkbox" name="locations" value={locality.name} />
-                    <span>
-                      <span class="block font-medium">{locality.name}</span>
-                      <span class="block text-xs text-muted-foreground">{locality.regionName}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </details>
-          ))}
+        <div class="mt-4">
+          <OrtPicker name="locations" placeholder="Orte auswaehlen" />
         </div>
       </div>
       <p class="hidden text-sm" data-form-status></p>

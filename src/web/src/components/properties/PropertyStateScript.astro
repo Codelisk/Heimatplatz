@@ -873,7 +873,7 @@
     card.dataset.propertyId = property.Id;
 
     const imageWrap = document.createElement("a");
-    imageWrap.href = `/immobilien/live/?id=${encodeURIComponent(property.Id)}`;
+    imageWrap.href = `/immobilien/angebote/${encodeURIComponent(property.Id)}/`;
     imageWrap.className = "relative block h-44 bg-muted";
     const image = document.createElement("img");
     image.className = "h-full w-full object-cover";
@@ -892,7 +892,7 @@
     const title = document.createElement("h2");
     title.className = "text-base font-semibold";
     const titleLink = document.createElement("a");
-    titleLink.href = `/immobilien/live/?id=${encodeURIComponent(property.Id)}`;
+    titleLink.href = `/immobilien/angebote/${encodeURIComponent(property.Id)}/`;
     titleLink.className = "hover:underline";
     titleLink.textContent = property.City || property.Title;
     title.append(titleLink);
@@ -911,7 +911,7 @@
     actions.className = "mt-4 flex flex-wrap gap-2";
     if (mode === "mine") {
       actions.innerHTML = `
-        <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/live/?id=${property.Id}">Details</a>
+        <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/angebote/${property.Id}/">Details</a>
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">Bearbeiten</a>
         <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" data-remote-delete="${property.Id}">Loeschen</button>
       `;
