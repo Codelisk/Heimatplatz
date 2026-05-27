@@ -1,0 +1,405 @@
+---
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
+import MapPinIcon from "@tabler/icons/outline/map-pin.svg";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+import { getRegionLocalities } from "@/data/locality-search-pages";
+
+interface Props {
+  name?: string;
+  id?: string;
+  placeholder?: string;
+  className?: string;
+  /** Wenn true, schliesst der Picker nach Auswahl und erlaubt nur eine Auswahl. */
+  singleSelect?: boolean;
+}
+
+const {
+  name = "ortes",
+  id,
+  placeholder = "Ort auswaehlen",
+  className = "",
+  singleSelect = false,
+} = Astro.props;
+
+const regions = upperAustriaRegions.map((region) => {
+  const localities = getRegionLocalities(region.slug)
+    // Region-Center wird als "(alle)" oben gerendert, also hier rausfiltern
+    .filter((locality) => locality.slug !== region.slug);
+  return {
+    name: region.name,
+    slug: region.slug,
+    localities: localities.map((locality) => ({
+      name: locality.name,
+      slug: locality.slug,
+      baseSlug: locality.baseSlug,
+    })),
+  };
+});
+const buttonId = id ?? `ort-picker-${name}-${Math.random().toString(36).slice(2, 8)}`;
+const panelId = `${buttonId}-panel`;
+---
+
+<div
+  class:list={["relative", className]}
+  data-ort-picker
+  data-ort-picker-name={name}
+  data-ort-picker-single={singleSelect ? "true" : "false"}
+>
+  <button
+    type="button"
+    id={buttonId}
+    class="flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-xs transition-colors hover:bg-accent"
+    aria-haspopup="dialog"
+    aria-expanded="false"
+    aria-controls={panelId}
+    data-ort-picker-trigger
+    data-ort-picker-placeholder={placeholder}
+  >
+    <span class="flex min-w-0 items-center gap-2">
+      <MapPinIcon class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <span class="truncate text-left" data-ort-picker-label>{placeholder}</span>
+    </span>
+    <ChevronDownIcon class="size-4 shrink-0 text-muted-foreground transition-transform" aria-hidden="true" data-ort-picker-chevron />
+  </button>
+
+  <input type="hidden" name={name} value="" data-ort-picker-input />
+
+  <div
+    id={panelId}
+    role="dialog"
+    aria-labelledby={buttonId}
+    class="absolute left-0 top-full z-40 mt-1 hidden w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-md border border-border bg-background shadow-lg"
+    data-ort-picker-panel
+    hidden
+  >
+    <div class="flex items-center justify-between border-b border-border px-3 py-2">
+      <p class="text-sm font-semibold">{singleSelect ? "Ort auswaehlen" : "Orte auswaehlen"}</p>
+      <button
+        type="button"
+        class="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+        data-ort-picker-clear
+      >
+        Zuruecksetzen
+      </button>
+    </div>
+
+    <div class="max-h-80 overflow-y-auto py-1" data-ort-picker-list>
+      {regions.map((region) => (
+        <div class="border-b border-border/60 last:border-b-0" data-ort-picker-region={region.slug}>
+          <div class="flex items-center gap-1 px-2 py-1">
+            {!singleSelect && (
+              <label class="grid size-7 cursor-pointer place-items-center rounded hover:bg-accent" aria-label={`Alle Orte in ${region.name} auswaehlen`}>
+                <input
+                  type="checkbox"
+                  class="size-4 cursor-pointer accent-foreground"
+                  data-ort-picker-region-checkbox={region.slug}
+                />
+              </label>
+            )}
+            <button
+              type="button"
+              class="flex flex-1 items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-sm font-medium hover:bg-accent"
+              aria-expanded="false"
+              aria-controls={`${panelId}-${region.slug}`}
+              data-ort-picker-region-toggle={region.slug}
+            >
+              <span class="flex items-center gap-2">
+                <ChevronRightIcon class="size-3.5 text-muted-foreground transition-transform" aria-hidden="true" data-ort-picker-region-chevron />
+                {region.name}
+              </span>
+              <span class="text-xs text-muted-foreground" data-ort-picker-region-count={region.slug}></span>
+            </button>
+          </div>
+          <div
+            id={`${panelId}-${region.slug}`}
+            class="hidden grid-cols-1 gap-0.5 px-3 pb-2 pl-9 sm:grid-cols-2"
+            data-ort-picker-region-panel={region.slug}
+            hidden
+          >
+            {/* Bezirk-Hauptort als eigene Option (z.B. "Linz" selbst) */}
+            <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent">
+              <input
+                type={singleSelect ? "radio" : "checkbox"}
+                name={singleSelect ? `${name}-radio` : undefined}
+                class="size-4 cursor-pointer accent-foreground"
+                data-ort-picker-locality={region.slug}
+                data-ort-picker-locality-region={region.slug}
+                value={region.slug}
+              />
+              <span class="truncate">{region.name} (alle)</span>
+            </label>
+            {region.localities.map((locality) => (
+              <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent">
+                <input
+                  type={singleSelect ? "radio" : "checkbox"}
+                  name={singleSelect ? `${name}-radio` : undefined}
+                  class="size-4 cursor-pointer accent-foreground"
+                  data-ort-picker-locality={locality.slug}
+                  data-ort-picker-locality-region={region.slug}
+                  data-ort-picker-locality-base={locality.baseSlug}
+                  value={locality.slug}
+                />
+                <span class="truncate">{locality.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<script>
+  type OrtPickerDetail = { name: string; values: string[] };
+
+  function readValues(input: HTMLInputElement): string[] {
+    return (input.value || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  function writeValues(input: HTMLInputElement, values: string[]) {
+    input.value = values.join(",");
+  }
+
+  function updateLabel(picker: HTMLElement, values: string[]) {
+    const label = picker.querySelector<HTMLElement>("[data-ort-picker-label]");
+    const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
+    const placeholder = trigger?.getAttribute("data-ort-picker-placeholder") ?? "Ort auswaehlen";
+    if (!label) return;
+    if (values.length === 0) {
+      label.textContent = placeholder;
+      label.classList.add("text-muted-foreground");
+      return;
+    }
+    label.classList.remove("text-muted-foreground");
+    if (values.length === 1) {
+      const checkbox = picker.querySelector<HTMLInputElement>(`[data-ort-picker-locality][value="${cssEscape(values[0])}"]`);
+      const region = checkbox?.getAttribute("data-ort-picker-locality-region");
+      const span = checkbox?.parentElement?.querySelector<HTMLElement>("span");
+      label.textContent = span?.textContent?.trim() ?? values[0];
+      // Falls Wert ein Region-Slug ist, zeige nur Region-Namen
+      if (region === values[0]) {
+        const regionToggle = picker.querySelector<HTMLButtonElement>(`[data-ort-picker-region-toggle="${cssEscape(values[0])}"] span`);
+        label.textContent = regionToggle?.textContent?.trim() ?? label.textContent;
+      }
+      return;
+    }
+    label.textContent = `${values.length} Orte ausgewaehlt`;
+  }
+
+  function cssEscape(value: string) {
+    if (typeof (window as any).CSS !== "undefined" && (window as any).CSS.escape) {
+      return (window as any).CSS.escape(value);
+    }
+    return value.replace(/(["\\\[\]])/g, "\\$1");
+  }
+
+  function updateRegionCheckboxState(picker: HTMLElement, regionSlug: string) {
+    const regionCheckbox = picker.querySelector<HTMLInputElement>(`[data-ort-picker-region-checkbox="${cssEscape(regionSlug)}"]`);
+    const localities = Array.from(
+      picker.querySelectorAll<HTMLInputElement>(`[data-ort-picker-locality-region="${cssEscape(regionSlug)}"]`),
+    );
+    if (!regionCheckbox || localities.length === 0) return;
+    const checkedCount = localities.filter((item) => item.checked).length;
+    if (checkedCount === 0) {
+      regionCheckbox.checked = false;
+      regionCheckbox.indeterminate = false;
+    } else if (checkedCount === localities.length) {
+      regionCheckbox.checked = true;
+      regionCheckbox.indeterminate = false;
+    } else {
+      regionCheckbox.checked = false;
+      regionCheckbox.indeterminate = true;
+    }
+    const countLabel = picker.querySelector<HTMLElement>(`[data-ort-picker-region-count="${cssEscape(regionSlug)}"]`);
+    if (countLabel) {
+      countLabel.textContent = checkedCount > 0 ? `${checkedCount} ausgewaehlt` : "";
+    }
+  }
+
+  function syncState(picker: HTMLElement) {
+    const input = picker.querySelector<HTMLInputElement>("[data-ort-picker-input]");
+    if (!input) return;
+    const checked = Array.from(picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]:checked"));
+    const values = checked.map((item) => item.value);
+    writeValues(input, values);
+    const regionSlugs = new Set<string>();
+    picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((item) => {
+      const region = item.getAttribute("data-ort-picker-locality-region");
+      if (region) regionSlugs.add(region);
+    });
+    regionSlugs.forEach((slug) => updateRegionCheckboxState(picker, slug));
+    updateLabel(picker, values);
+  }
+
+  function emitChange(picker: HTMLElement) {
+    const name = picker.getAttribute("data-ort-picker-name") ?? "ortes";
+    const input = picker.querySelector<HTMLInputElement>("[data-ort-picker-input]");
+    const values = input ? readValues(input) : [];
+    picker.dispatchEvent(new CustomEvent<OrtPickerDetail>("ort-picker-change", {
+      bubbles: true,
+      detail: { name, values },
+    }));
+  }
+
+  function setPickerValues(picker: HTMLElement, values: string[]) {
+    const single = picker.getAttribute("data-ort-picker-single") === "true";
+    const wanted = new Set(values);
+    picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((input) => {
+      input.checked = wanted.has(input.value);
+    });
+    // Single-Select via radios: only the first match wins
+    if (single) {
+      const first = Array.from(picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]"))
+        .find((input) => wanted.has(input.value));
+      picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((input) => {
+        input.checked = input === first;
+      });
+    }
+    syncState(picker);
+  }
+
+  function openPanel(picker: HTMLElement) {
+    const panel = picker.querySelector<HTMLElement>("[data-ort-picker-panel]");
+    const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
+    const chevron = picker.querySelector<HTMLElement>("[data-ort-picker-chevron]");
+    if (!panel || !trigger) return;
+    panel.hidden = false;
+    panel.classList.remove("hidden");
+    trigger.setAttribute("aria-expanded", "true");
+    chevron?.classList.add("rotate-180");
+  }
+
+  function closePanel(picker: HTMLElement) {
+    const panel = picker.querySelector<HTMLElement>("[data-ort-picker-panel]");
+    const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
+    const chevron = picker.querySelector<HTMLElement>("[data-ort-picker-chevron]");
+    if (!panel || !trigger) return;
+    panel.hidden = true;
+    panel.classList.add("hidden");
+    trigger.setAttribute("aria-expanded", "false");
+    chevron?.classList.remove("rotate-180");
+  }
+
+  function isOpen(picker: HTMLElement) {
+    const panel = picker.querySelector<HTMLElement>("[data-ort-picker-panel]");
+    return panel ? !panel.hidden : false;
+  }
+
+  function toggleRegion(picker: HTMLElement, regionSlug: string, force?: boolean) {
+    const panel = picker.querySelector<HTMLElement>(`[data-ort-picker-region-panel="${cssEscape(regionSlug)}"]`);
+    const toggle = picker.querySelector<HTMLButtonElement>(`[data-ort-picker-region-toggle="${cssEscape(regionSlug)}"]`);
+    const chevron = toggle?.querySelector<HTMLElement>("[data-ort-picker-region-chevron]");
+    if (!panel || !toggle) return;
+    const next: boolean = typeof force === "boolean" ? force : panel.hidden === true;
+    panel.hidden = !next;
+    panel.classList.toggle("grid", next);
+    panel.classList.toggle("hidden", !next);
+    toggle.setAttribute("aria-expanded", String(next));
+    chevron?.classList.toggle("rotate-90", next);
+  }
+
+  function init(picker: HTMLElement) {
+    if (picker.dataset.ortPickerReady === "true") return;
+    picker.dataset.ortPickerReady = "true";
+    const single = picker.getAttribute("data-ort-picker-single") === "true";
+    const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
+    const clear = picker.querySelector<HTMLButtonElement>("[data-ort-picker-clear]");
+
+    trigger?.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (isOpen(picker)) {
+        closePanel(picker);
+      } else {
+        document.querySelectorAll<HTMLElement>("[data-ort-picker]").forEach((other) => {
+          if (other !== picker) closePanel(other);
+        });
+        openPanel(picker);
+      }
+    });
+
+    clear?.addEventListener("click", (event) => {
+      event.preventDefault();
+      picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((input) => {
+        input.checked = false;
+      });
+      syncState(picker);
+      emitChange(picker);
+    });
+
+    picker.querySelectorAll<HTMLButtonElement>("[data-ort-picker-region-toggle]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        const slug = button.getAttribute("data-ort-picker-region-toggle");
+        if (slug) toggleRegion(picker, slug);
+      });
+    });
+
+    picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-region-checkbox]").forEach((checkbox) => {
+      checkbox.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+      checkbox.addEventListener("change", () => {
+        const slug = checkbox.getAttribute("data-ort-picker-region-checkbox");
+        if (!slug) return;
+        const localities = Array.from(
+          picker.querySelectorAll<HTMLInputElement>(`[data-ort-picker-locality-region="${cssEscape(slug)}"]`),
+        );
+        const next = checkbox.checked;
+        localities.forEach((locality) => {
+          locality.checked = next;
+        });
+        syncState(picker);
+        emitChange(picker);
+      });
+    });
+
+    picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((input) => {
+      input.addEventListener("change", () => {
+        if (single) {
+          picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((other) => {
+            if (other !== input) other.checked = false;
+          });
+        }
+        syncState(picker);
+        emitChange(picker);
+        if (single) closePanel(picker);
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!isOpen(picker)) return;
+      const target = event.target as Node;
+      if (!picker.contains(target)) closePanel(picker);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && isOpen(picker)) {
+        closePanel(picker);
+        (picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]"))?.focus();
+      }
+    });
+
+    syncState(picker);
+  }
+
+  function initAll() {
+    document.querySelectorAll<HTMLElement>("[data-ort-picker]").forEach(init);
+  }
+
+  // Programmatic API: setOrtPickerValues(name, values)
+  (window as any).setOrtPickerValues = (name: string, values: string[]) => {
+    document.querySelectorAll<HTMLElement>(`[data-ort-picker][data-ort-picker-name="${cssEscape(name)}"]`).forEach((picker) => {
+      setPickerValues(picker, values);
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAll);
+  } else {
+    initAll();
+  }
+</script>

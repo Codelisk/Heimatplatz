@@ -1,7 +1,7 @@
 ---
 import FilterIcon from "@tabler/icons/outline/filter.svg";
 import { NativeSelect } from "@/components/starwind/native-select";
-import { upperAustriaRegions } from "@/data/upper-austria-regions";
+import OrtPicker from "@/components/properties/OrtPicker.astro";
 ---
 
 <section class="border-b border-border bg-background lg:hidden" data-mobile-filter>
@@ -23,10 +23,7 @@ import { upperAustriaRegions } from "@/data/upper-austria-regions";
 
   <form action="/immobilien/" method="get" class="hidden px-3 pb-3" data-mobile-filter-body>
     <div class="grid grid-cols-2 gap-2">
-      <NativeSelect name="region" data-filter-region>
-        <option value="">Ort auswaehlen</option>
-        {upperAustriaRegions.map((region) => <option value={region.slug}>{region.name}</option>)}
-      </NativeSelect>
+      <OrtPicker name="region" placeholder="Ort auswaehlen" />
       <NativeSelect name="age" data-filter-age>
         <option value="">Zeitraum</option>
         <option value="day">24 Stunden</option>

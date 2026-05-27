@@ -8,9 +8,9 @@ import type { ApiProperty } from "@/features/properties/live-api";
 import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
 import PropertyPreviewCard from "@/components/properties/PropertyPreviewCard.astro";
 import MobileFilterPanel from "@/components/properties/MobileFilterPanel.astro";
+import OrtPicker from "@/components/properties/OrtPicker.astro";
 import { NativeSelect } from "@/components/starwind/native-select";
 import { Input } from "@/components/starwind/input";
-import { upperAustriaRegions } from "@/data/upper-austria-regions";
 
 interface Props {
   properties: PropertyEntry[];
@@ -72,16 +72,13 @@ const sellerFilters = [
       data-preset-region={presetRegion}
       data-preset-age={presetAge}
     >
-      <form action="/immobilien/" method="get" class="grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_150px] xl:max-w-4xl" data-search-form>
+      <form action="/immobilien/" method="get" class="grid gap-2 md:grid-cols-[minmax(0,1fr)_220px_150px] xl:max-w-4xl" data-search-form>
         <label class="sr-only" for="q">Suchbegriff</label>
         <div class="relative">
           <SearchIcon class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input id="q" name="q" type="search" class="pl-9" placeholder="Ort, Bezirk, PLZ oder Immobilie" autocomplete="off" data-filter-input />
         </div>
-        <NativeSelect name="region" data-filter-region>
-          <option value="">Alle Orte</option>
-          {upperAustriaRegions.map((region) => <option value={region.slug}>{region.name}</option>)}
-        </NativeSelect>
+        <OrtPicker name="region" placeholder="Alle Orte" />
         <NativeSelect name="age" data-filter-age>
           <option value="">Zeitraum</option>
           <option value="day">24 Stunden</option>
@@ -207,6 +204,7 @@ const sellerFilters = [
   const liveStatus = document.querySelector<HTMLElement>("[data-live-status]");
   const input = document.querySelector<HTMLInputElement>("[data-filter-input]");
   const regionControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-region]"));
+  const ortPickers = Array.from(document.querySelectorAll<HTMLElement>("[data-ort-picker][data-ort-picker-name='region']"));
   const ageControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-age]"));
   const typeButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-type]"));
   const sellerButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-seller-chip]"));
@@ -339,6 +337,9 @@ const sellerFilters = [
     age: getStoredAge(storedPreferences),
     sort: getStoredSort(storedPreferences),
   };
+  const storedOrtSlugs = storedLocations
+    .map((location) => normalize(location))
+    .filter(Boolean);
 
   function initialValue(name: string, presetValue: string, storedValue: string) {
     const value = params.get(name);
@@ -383,21 +384,32 @@ const sellerFilters = [
   };
   const selectedTypes = new Set(initial.types);
   const selectedSellers = new Set(initial.sellers);
-  const storedLocationFilters = storedLocations
-    .map((location) => ({
-      slug: normalize(location),
-      text: normalizeText(location),
-    }))
-    .filter((location) => location.slug && location.text);
-  let useStoredLocationFilters = !params.has("region")
-    && !preset.region
-    && !initial.region
-    && storedLocationFilters.length > 0;
+
+  // Multi-Select Orte: aus URL (?region=linz,wels), Preset oder gespeicherten Praeferenzen
+  function parseSlugList(value: string | null | undefined) {
+    if (!value) return [] as string[];
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+  const initialOrtSlugs: string[] = (() => {
+    const fromUrl = parseSlugList(params.get("region"));
+    if (fromUrl.length > 0) return fromUrl;
+    const fromPreset = parseSlugList(preset.region);
+    if (fromPreset.length > 0) return fromPreset;
+    return storedOrtSlugs;
+  })();
+  const selectedOrtSlugs = new Set(initialOrtSlugs);
 
   if (input) input.value = initial.q;
   regionControls.forEach((control) => {
     control.value = initial.region;
   });
+  if (ortPickers.length > 0) {
+    const api = (window as any).setOrtPickerValues;
+    if (typeof api === "function") api("region", Array.from(selectedOrtSlugs));
+  }
   ageControls.forEach((control) => {
     control.value = initial.age;
   });
@@ -582,6 +594,20 @@ const sellerFilters = [
     return regionControls[0]?.value ?? initial.region;
   }
 
+  function matchesOrtSelection(card: HTMLElement) {
+    if (selectedOrtSlugs.size === 0) return true;
+    const region = card.dataset.region ?? "";
+    const location = card.dataset.location ?? "";
+    for (const slug of selectedOrtSlugs) {
+      if (!slug) continue;
+      if (slug === region || slug === location) return true;
+      if (location && slug.endsWith(`-${location}`)) return true;
+      if (location && location.endsWith(`-${slug}`)) return true;
+      if (region && slug.startsWith(`${region}-`)) return true;
+    }
+    return false;
+  }
+
   function getAgeValue() {
     return ageControls[0]?.value ?? initial.age;
   }
@@ -663,18 +689,10 @@ const sellerFilters = [
     const createdAfter = getAgeCutoff(getAgeValue());
     const search = normalizeText(card.dataset.search ?? "");
     const updated = Date.parse(card.dataset.updated ?? "");
-    const cardRegion = card.dataset.region ?? "";
-    const cardLocation = card.dataset.location ?? "";
-    const matchesStoredLocation = !useStoredLocationFilters || storedLocationFilters.some((location) =>
-      cardRegion === location.slug
-      || cardLocation === location.slug
-      || Boolean(cardLocation && location.slug.endsWith(`-${cardLocation}`))
-      || Boolean(cardLocation && cardLocation.endsWith(`-${location.slug}`))
-    );
     return (
       (!q || search.includes(q)) &&
       (!regionValue || card.dataset.region === regionValue) &&
-      matchesStoredLocation &&
+      matchesOrtSelection(card) &&
       (isFilteringAll(activeTypes, ALL_TYPES) || activeTypes.includes(card.dataset.type ?? "")) &&
       (isFilteringAll(activeSellers, ALL_SELLERS) || activeSellers.includes(card.dataset.seller ?? "")) &&
       (!createdAfter || (Number.isFinite(updated) && updated >= createdAfter))
@@ -758,9 +776,21 @@ const sellerFilters = [
   regionControls.forEach((control) => {
     control.addEventListener("change", () => {
       setSelectValue(regionControls, control.value);
-      useStoredLocationFilters = false;
       applyFilters(true);
     });
+  });
+
+  // OrtPicker (Multi-Select): aktualisiert das gemeinsame Set und synct alle Instanzen
+  document.addEventListener("ort-picker-change", (event) => {
+    const detail = (event as CustomEvent<{ name: string; values: string[] }>).detail;
+    if (!detail || detail.name !== "region") return;
+    selectedOrtSlugs.clear();
+    detail.values.forEach((value) => selectedOrtSlugs.add(value));
+    // Andere OrtPicker (z.B. Mobile vs Desktop) synchronisieren - setOrtPickerValues
+    // triggert syncState, aber kein erneutes emitChange, daher keine Endlosschleife.
+    const api = (window as any).setOrtPickerValues;
+    if (typeof api === "function") api("region", Array.from(selectedOrtSlugs));
+    applyFilters(true);
   });
   ageControls.forEach((control) => {
     control.addEventListener("change", () => {

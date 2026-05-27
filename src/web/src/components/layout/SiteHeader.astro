@@ -14,7 +14,7 @@ import XIcon from "@tabler/icons/outline/x.svg";
 import { SITE } from "@/config/site";
 import { Button } from "@/components/starwind/button";
 import { NativeSelect } from "@/components/starwind/native-select";
-import { upperAustriaRegions } from "@/data/upper-austria-regions";
+import OrtPicker from "@/components/properties/OrtPicker.astro";
 
 const pathname = Astro.url.pathname;
 const showFilters = pathname === "/" || pathname.startsWith("/immobilien");
@@ -82,10 +82,9 @@ function isActive(href: string) {
     {
       showFilters && (
         <form action="/immobilien/" method="get" class="hidden min-w-0 flex-1 items-center justify-center gap-2 xl:flex">
-          <NativeSelect name="region" class="w-36">
-            <option value="">Ort auswaehlen</option>
-            {upperAustriaRegions.map((region) => <option value={region.slug}>{region.name}</option>)}
-          </NativeSelect>
+          <div class="w-44">
+            <OrtPicker name="region" placeholder="Ort auswaehlen" />
+          </div>
           <NativeSelect name="age" class="w-32">
             <option value="">Zeitraum</option>
             <option value="day">24 Stunden</option>
