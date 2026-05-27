@@ -23,6 +23,15 @@ x86/
 *.nupkg
 packages/
 
+# Node / Astro
+node_modules/
+dist/
+.astro/
+.vite/
+.env
+.env.*
+!.env.example
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -43,6 +52,7 @@ app.db
 
 # Screenshots and temp files
 screenshots/
+.playwright-mcp/
 !store-assets/**/screenshots/
 temp_*.png
 /*.png

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Astro AI Development"
+  short_description: "Build SEO-first Astro apps with current docs."
+  default_prompt: "Use the Astro AI Development skill to implement or review the Astro web app."

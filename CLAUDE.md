@@ -4,7 +4,8 @@
 
 - **Sprache:** C# latest
 - **Framework:** .NET 10
-- **Frontend:** Uno Platform (nutze Uno MCP und definierte Skills)
+- **Frontend Web:** Astro (`src/web`, nutze Astro-AI-Skill und Astro Docs MCP)
+- **Frontend Mobile/Desktop:** Uno Platform (`src/uno`, nutze Uno MCP und definierte Skills)
 - **Backend:** ASP.NET (nutze Microsoft Docs MCP und definierte Skills)
 - **Architektur:** Shiny Mediator Pattern ([GitHub](https://github.com/shinyorg/mediator))
 
@@ -73,7 +74,16 @@ Heimatplatz/
 │   │           ├── *.Api.Features.{Name}/         # Services, Data, Handlers
 │   │           └── *.Api.Features.{Name}.Contracts/
 │   │
-│   └── uno/                        # Frontend (Uno Platform)
+│   ├── web/                        # Web Frontend (Astro)
+│   │   ├── src/
+│   │   │   ├── components/         # Layout, Feature-Komponenten, Starwind UI
+│   │   │   ├── config/             # Site-/SEO-Konfiguration
+│   │   │   ├── features/           # fachliche Web-Slices
+│   │   │   ├── layouts/            # BaseLayout mit SEO-Metadata
+│   │   │   └── pages/              # Astro file-based routes
+│   │   └── package.json
+│   │
+│   └── uno/                        # Mobile/Desktop Frontend (Uno Platform)
 │       └── src/
 │           ├── *.App/                             # Hauptprojekt
 │           ├── Shared/
