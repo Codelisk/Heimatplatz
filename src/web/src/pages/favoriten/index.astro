@@ -1,15 +1,10 @@
 ---
 import UserListPage from "@/components/app/UserListPage.astro";
-import { fetchForeclosureAuctions } from "@/features/foreclosures/api";
-
-const foreclosures = await fetchForeclosureAuctions();
 ---
 
 <UserListPage
   title="Meine Favoriten"
-  description="Gespeicherte Immobilien aus Oberösterreich. Favoriten werden lokal vorgemerkt und bei Anmeldung mit dem Benutzerkonto synchronisiert."
+  description="Favorisierte Immobilien aus Oberoesterreich."
   canonicalPath="/favoriten/"
-  foreclosures={foreclosures}
   mode="favorites"
-  emptyText="Noch keine Favoriten gespeichert."
 />

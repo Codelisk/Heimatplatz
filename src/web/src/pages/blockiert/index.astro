@@ -1,15 +1,10 @@
 ---
 import UserListPage from "@/components/app/UserListPage.astro";
-import { fetchForeclosureAuctions } from "@/features/foreclosures/api";
-
-const foreclosures = await fetchForeclosureAuctions();
 ---
 
 <UserListPage
   title="Blockierte Immobilien"
-  description="Ausgeblendete Immobilien. Blockierte Objekte bleiben lokal verborgen und werden bei Anmeldung mit dem Benutzerkonto synchronisiert."
+  description="Ausgeblendete Immobilien aus Oberoesterreich."
   canonicalPath="/blockiert/"
-  foreclosures={foreclosures}
   mode="blocked"
-  emptyText="Keine blockierten Immobilien."
 />
