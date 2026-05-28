@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Xml.Linq;
 using Cake.Common.Diagnostics;
 using Cake.Frosting;
 
@@ -27,6 +28,14 @@ public sealed class UpdateMetadataIosTask : FrostingTask<BuildContext>
                 "ASC_KEY_ID not configured. Set iOS:AppStoreConnectApiKeyId in appsettings.json or ASC_KEY_ID env var.");
         }
 
+        var doc = XDocument.Load(context.CsprojPath);
+        var ns = doc.Root?.Name.Namespace ?? XNamespace.None;
+        var displayVersion = doc.Descendants(ns + "ApplicationDisplayVersion").FirstOrDefault()?.Value
+            ?? throw new InvalidOperationException("ApplicationDisplayVersion not found in csproj");
+        var buildVersion = doc.Descendants(ns + "ApplicationVersion").FirstOrDefault()?.Value
+            ?? throw new InvalidOperationException("ApplicationVersion not found in csproj");
+
+        context.Information($"Targeting App Store version {displayVersion} (build {buildVersion})");
         context.Information($"Running Fastlane from: {context.FastlaneDirectory}");
 
         var processInfo = new ProcessStartInfo
@@ -43,6 +52,8 @@ public sealed class UpdateMetadataIosTask : FrostingTask<BuildContext>
         processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_ID"] = context.AppStoreConnectApiKeyId;
         processInfo.Environment["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] = context.AppStoreConnectIssuerId;
         processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] = context.AppStoreConnectKeyPath;
+        processInfo.Environment["DELIVER_APP_VERSION"] = displayVersion;
+        processInfo.Environment["DELIVER_BUILD_NUMBER"] = buildVersion;
 
         using var process = Process.Start(processInfo);
         if (process == null)
