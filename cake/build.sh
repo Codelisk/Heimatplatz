@@ -28,6 +28,7 @@ Available Targets:
     DeployIos            Build and deploy to TestFlight (macOS only)
     DeployWasm           Build and deploy to Azure Static Web Apps
     DeployAll            Deploy to all platforms
+    UpdateMetadataIos    Push App Store text metadata (macOS only)
     ComplianceCheck      Check store agreements
 
 Examples:
