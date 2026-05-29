@@ -5,10 +5,6 @@ using ShinyHost = Shiny.Hosting.Host;
 
 namespace Heimatplatz.App.iOS;
 
-/// <summary>
-/// Custom AppDelegate that integrates Shiny push notification lifecycle events
-/// </summary>
-#pragma warning disable CA1422 // Validate platform compatibility - ContinueUserActivity is obsolete in iOS 26 but still functional
 public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationDelegate
 {
     public override bool FinishedLaunching(UIApplication application, NSDictionary? launchOptions)
@@ -49,22 +45,5 @@ public class ShinyAppDelegate : Uno.UI.Runtime.Skia.AppleUIKit.UnoUIApplicationD
         Console.WriteLine("[ShinyAppDelegate] DidReceiveRemoteNotification called");
         ShinyHost.Lifecycle.OnDidReceiveRemoteNotification(userInfo, completionHandler);
     }
-
-    public override bool ContinueUserActivity(UIApplication application, NSUserActivity userActivity, UIApplicationRestorationHandler completionHandler)
-    {
-        if (ShinyHost.Lifecycle.OnContinueUserActivity(userActivity, completionHandler))
-            return true;
-
-        return base.ContinueUserActivity(application, userActivity, completionHandler);
-    }
-
-    public override void HandleEventsForBackgroundUrl(UIApplication application, string sessionIdentifier, Action completionHandler)
-    {
-        if (!ShinyHost.Lifecycle.OnHandleEventsForBackgroundUrl(sessionIdentifier, completionHandler))
-        {
-            base.HandleEventsForBackgroundUrl(application, sessionIdentifier, completionHandler);
-        }
-    }
 }
-#pragma warning restore CA1422
 #endif
