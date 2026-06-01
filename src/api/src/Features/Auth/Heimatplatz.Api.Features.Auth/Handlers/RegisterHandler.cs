@@ -1,4 +1,5 @@
 using Heimatplatz.Api;
+using Heimatplatz.Api.Exceptions;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
@@ -32,20 +33,20 @@ public class RegisterHandler(
 
         if (existingUser != null)
         {
-            throw new InvalidOperationException("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.");
+            throw new ConflictException("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.");
         }
 
         // Validierung: Wenn Seller-Rolle, muss SellerType angegeben werden
         var isSeller = request.Roles?.Contains(UserRoleType.Seller) == true;
         if (isSeller && request.SellerType == null)
         {
-            throw new InvalidOperationException("Als Verkaeufer muss ein Verkaeufertyp angegeben werden.");
+            throw new ValidationException("Als Verkaeufer muss ein Verkaeufertyp angegeben werden.");
         }
 
         // Validierung: Wenn Broker, muss Firmenname angegeben werden
         if (request.SellerType == SellerType.Broker && string.IsNullOrWhiteSpace(request.CompanyName))
         {
-            throw new InvalidOperationException("Als Makler/Agentur muss ein Firmenname angegeben werden.");
+            throw new ValidationException("Als Makler/Agentur muss ein Firmenname angegeben werden.");
         }
 
         // Neuen Benutzer erstellen

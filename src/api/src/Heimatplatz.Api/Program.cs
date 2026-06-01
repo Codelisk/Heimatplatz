@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient("ImageProxy");
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddExceptionHandler<UnauthorizedExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddApiServices(builder.Configuration);

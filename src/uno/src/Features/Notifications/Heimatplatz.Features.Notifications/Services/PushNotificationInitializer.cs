@@ -14,6 +14,13 @@ public class PushNotificationInitializer(
     ILogger<PushNotificationInitializer> logger) : IPushNotificationInitializer
 {
     /// <summary>
+    /// Maximale Wartezeit fuer plattformabhaengige Aufrufe (iOS APNs-Registrierung, API-Call).
+    /// Verhindert, dass die UI (z. B. "Registrierung wird durchgefuehrt...") unbegrenzt blockiert,
+    /// falls der APNs-Callback nie zurueckkommt. Ein try/catch faengt einen Hang NICHT ab.
+    /// </summary>
+    private static readonly TimeSpan InitTimeout = TimeSpan.FromSeconds(15);
+
+    /// <summary>
     /// Initializes push notifications after user login.
     /// </summary>
     public async Task InitializeAsync()
@@ -22,7 +29,9 @@ public class PushNotificationInitializer(
         {
             logger.LogInformation("[PushNotificationInitializer] Initializing push notifications...");
 
-            var result = await pushManager.RequestAccess();
+            // RequestAccess() wartet auf den iOS-APNs-Registrierungs-Callback, der ohne korrekte
+            // Push-Provisionierung nie feuert -> harte Obergrenze per WaitAsync.
+            var result = await pushManager.RequestAccess().WaitAsync(InitTimeout);
 
             switch (result.Status)
             {
@@ -34,7 +43,8 @@ public class PushNotificationInitializer(
                     if (!string.IsNullOrEmpty(result.RegistrationToken))
                     {
                         var platform = GetCurrentPlatform();
-                        var success = await notificationService.RegisterDeviceAsync(result.RegistrationToken, platform);
+                        var success = await notificationService.RegisterDeviceAsync(result.RegistrationToken, platform)
+                            .WaitAsync(InitTimeout);
                         if (success)
                         {
                             logger.LogInformation("[PushNotificationInitializer] Device registered successfully with API");
@@ -70,6 +80,11 @@ public class PushNotificationInitializer(
                     logger.LogWarning("[PushNotificationInitializer] Unknown push notification status: {Status}", result.Status);
                     break;
             }
+        }
+        catch (TimeoutException)
+        {
+            // Push-Registrierung haengt (z. B. fehlende APNs-Provisionierung) - UI nicht blockieren.
+            logger.LogWarning("[PushNotificationInitializer] Push initialization timed out after {Seconds}s and was skipped", InitTimeout.TotalSeconds);
         }
         catch (Exception ex)
         {
