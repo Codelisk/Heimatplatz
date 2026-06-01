@@ -46,9 +46,19 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
             throw new InvalidOperationException("Failed to start SWA CLI. Make sure Azure Static Web Apps CLI is installed: npm install -g @azure/static-web-apps-cli");
         }
 
-        var output = process.StandardOutput.ReadToEnd();
-        var error = process.StandardError.ReadToEnd();
-        process.WaitForExit();
+        // WICHTIG: stdout UND stderr gleichzeitig (asynchron) leeren, sonst Deadlock,
+        // sobald die gespraechige SWA-CLI einen Pipe-Puffer fuellt (siehe BuildAstroTask).
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
+
+        if (!process.WaitForExit(20 * 60_000))
+        {
+            try { process.Kill(entireProcessTree: true); } catch { /* ignore */ }
+            throw new TimeoutException("SWA CLI hat das Zeitlimit von 20 Minuten ueberschritten und wurde abgebrochen.");
+        }
+
+        var output = outputTask.GetAwaiter().GetResult();
+        var error = errorTask.GetAwaiter().GetResult();
 
         context.Information(output);
         if (!string.IsNullOrEmpty(error))

@@ -46,7 +46,8 @@ public sealed class BuildAstroTask : FrostingTask<BuildContext>
         string fileName,
         string arguments,
         string workingDirectory,
-        IDictionary<string, string>? environment)
+        IDictionary<string, string>? environment,
+        int timeoutMinutes = 30)
     {
         var processInfo = new ProcessStartInfo
         {
@@ -73,9 +74,22 @@ public sealed class BuildAstroTask : FrostingTask<BuildContext>
             throw new InvalidOperationException($"Failed to start process '{fileName}'. Make sure Node.js/npm is installed and on PATH.");
         }
 
-        var output = process.StandardOutput.ReadToEnd();
-        var error = process.StandardError.ReadToEnd();
-        process.WaitForExit();
+        // WICHTIG: stdout UND stderr gleichzeitig (asynchron) leeren. Sequenzielles
+        // ReadToEnd() (erst stdout, dann stderr) blockiert, sobald ein gespraechiger
+        // Prozess wie 'astro build' den stderr-Pipe-Puffer fuellt, waehrend wir noch
+        // auf stdout-EOF warten -> klassischer Deadlock (Build haengt ohne Ausgabe).
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
+
+        if (!process.WaitForExit(timeoutMinutes * 60_000))
+        {
+            try { process.Kill(entireProcessTree: true); } catch { /* ignore */ }
+            throw new TimeoutException(
+                $"'{fileName} {arguments}' hat das Zeitlimit von {timeoutMinutes} Minuten ueberschritten und wurde abgebrochen.");
+        }
+
+        var output = outputTask.GetAwaiter().GetResult();
+        var error = errorTask.GetAwaiter().GetResult();
 
         context.Information(output);
         if (!string.IsNullOrEmpty(error))
