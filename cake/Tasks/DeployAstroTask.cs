@@ -4,20 +4,19 @@ using Cake.Frosting;
 
 namespace Build.Tasks;
 
-[TaskName("DeployWasm")]
-[IsDependentOn(typeof(BuildWasmTask))]
-public sealed class DeployWasmTask : FrostingTask<BuildContext>
+[TaskName("DeployAstro")]
+[IsDependentOn(typeof(BuildAstroTask))]
+public sealed class DeployAstroTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        context.Information("=== Deploy WebAssembly Task (Azure Static Web Apps) ===");
+        context.Information("=== Deploy Astro Web Task (Azure Static Web Apps) ===");
 
-        var artifactsDir = Path.Combine(context.ProjectDirectory, "artifacts", "wasm");
-        var wwwrootDir = Path.Combine(artifactsDir, "wwwroot");
+        var distDir = Path.Combine(context.ProjectDirectory, "src", "web", "dist");
 
-        if (!Directory.Exists(wwwrootDir))
+        if (!Directory.Exists(distDir))
         {
-            throw new DirectoryNotFoundException($"wwwroot directory not found in {artifactsDir}. Did the WASM build succeed?");
+            throw new DirectoryNotFoundException($"Astro build output not found: {distDir}. Did the Astro build succeed?");
         }
 
         if (string.IsNullOrEmpty(context.AzureStaticWebAppsApiToken))
@@ -27,13 +26,13 @@ public sealed class DeployWasmTask : FrostingTask<BuildContext>
             return;
         }
 
-        context.Information($"Deploying from: {wwwrootDir}");
+        context.Information($"Deploying from: {distDir}");
 
         // Use Azure Static Web Apps CLI (swa) for deployment
         var processInfo = new ProcessStartInfo
         {
             FileName = "swa",
-            Arguments = $"deploy {wwwrootDir} --deployment-token {context.AzureStaticWebAppsApiToken} --env production",
+            Arguments = $"deploy {distDir} --deployment-token {context.AzureStaticWebAppsApiToken} --env production",
             WorkingDirectory = context.ProjectDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -63,6 +62,6 @@ public sealed class DeployWasmTask : FrostingTask<BuildContext>
                 "Make sure Azure Static Web Apps CLI is installed: npm install -g @azure/static-web-apps-cli");
         }
 
-        context.Information("WebAssembly deployment to Azure Static Web Apps completed!");
+        context.Information("Astro web deployment to Azure Static Web Apps completed!");
     }
 }

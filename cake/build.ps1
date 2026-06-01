@@ -27,18 +27,18 @@ Available Targets:
     VersionBump          Increment minor version
     BuildAndroid         Build Android APK
     BuildIos             Build iOS IPA (macOS only)
-    BuildWasm            Build WebAssembly
+    BuildAstro           Build Astro web (src/web -> dist)
     DeployAndroid        Build and deploy to Play Store internal
     DeployIos            Build and deploy to TestFlight (macOS only)
-    DeployWasm           Build and deploy to Azure Static Web Apps
-    DeployAll            Deploy to all platforms
+    DeployAstro          Build and deploy Astro web to Azure Static Web Apps
+    DeployAll            Deploy to all platforms (Android, iOS, Astro web)
     ComplianceCheck      Check store agreements
 
 Examples:
     ./build.ps1                           # Run default task
     ./build.ps1 -Target VersionBump       # Bump version only
     ./build.ps1 -Target DeployAndroid     # Build and deploy Android
-    ./build.ps1 -Target DeployWasm        # Build and deploy WASM
+    ./build.ps1 -Target DeployAstro       # Build and deploy Astro web
     ./build.ps1 -Target DeployAll         # Deploy to all platforms
 "@
     exit 0

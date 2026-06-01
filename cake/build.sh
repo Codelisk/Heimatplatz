@@ -23,11 +23,11 @@ Available Targets:
     VersionBump          Increment minor version
     BuildAndroid         Build Android APK
     BuildIos             Build iOS IPA (macOS only)
-    BuildWasm            Build WebAssembly
+    BuildAstro           Build Astro web (src/web -> dist)
     DeployAndroid        Build and deploy to Play Store internal
     DeployIos            Build and deploy to TestFlight (macOS only)
-    DeployWasm           Build and deploy to Azure Static Web Apps
-    DeployAll            Deploy to all platforms
+    DeployAstro          Build and deploy Astro web to Azure Static Web Apps
+    DeployAll            Deploy to all platforms (Android, iOS, Astro web)
     UpdateMetadataIos    Push App Store text metadata (macOS only)
     ComplianceCheck      Check store agreements
 
@@ -35,7 +35,7 @@ Examples:
     ./build.sh                           # Run default task
     ./build.sh VersionBump               # Bump version only
     ./build.sh DeployAndroid             # Build and deploy Android
-    ./build.sh DeployWasm                # Build and deploy WASM
+    ./build.sh DeployAstro               # Build and deploy Astro web
     ./build.sh DeployAll                 # Deploy to all platforms
 
 Environment Variables:
@@ -50,7 +50,7 @@ Environment Variables:
     ASC_ISSUER_ID                      App Store Connect Issuer ID
     ASC_KEY_PATH                       Path to App Store Connect API key file
     AZURE_STATIC_WEB_APPS_API_TOKEN    Azure Static Web Apps deployment token
-    API_BASE_URL                       API base URL for WASM build
+    API_BASE_URL                       API base URL injected as PUBLIC_API_BASE_URL into the Astro build
 EOF
     exit 0
 }
