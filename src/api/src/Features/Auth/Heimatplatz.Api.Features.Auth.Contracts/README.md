@@ -6,6 +6,8 @@ Contracts-Projekt fuer das Auth Feature der API.
 
 - **Mediator/Requests**: Request/Response DTOs fuer Authentifizierung
   - `RegisterRequest` / `RegisterResponse`: Benutzerregistrierung
+  - `LoginRequest` / `RefreshTokenRequest`: Login und Token-Erneuerung
+  - `DeleteAccountRequest` / `DeleteAccountResponse`: Endgueltige Loeschung des eigenen Kontos (DELETE /api/auth/account)
 
 ## Verwendung
 

@@ -19,8 +19,14 @@
                   MaxWidth="800"
                   HorizontalAlignment="Center">
 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
                 <!-- Mobile Layout -->
-                <Grid Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}">
+                <Grid Grid.Row="0"
+                      Visibility="{utu:Responsive Narrowest=Visible, Normal=Collapsed}">
                     <StackPanel Background="{ThemeResource SurfaceBrush}">
 
                         <!-- Hero Header mit Avatar -->
@@ -227,7 +233,8 @@
                 </Grid>
 
                 <!-- Desktop Layout -->
-                <StackPanel Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
+                <StackPanel Grid.Row="0"
+                            Visibility="{utu:Responsive Narrowest=Collapsed, Normal=Visible}"
                             Spacing="32">
 
                     <!-- Profil-Karte mit Schatten -->
@@ -469,6 +476,44 @@
                         </Grid>
                     </Border>
                 </StackPanel>
+
+                <!-- Gefahrenzone: Konto löschen (immer sichtbar, beide Layouts) -->
+                <Border Grid.Row="1"
+                        Margin="{utu:Responsive Narrowest='20,8,20,40', Normal='0,16,0,16'}"
+                        Background="{ThemeResource SurfaceBrush}"
+                        BorderBrush="{ThemeResource BorderBrush}"
+                        BorderThickness="0.5"
+                        CornerRadius="12"
+                        Padding="20">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Konto löschen"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource OnSurfaceBrush}" />
+                        <TextBlock Text="Wenn Sie Ihr Konto löschen, werden Ihr Profil, Ihre Inserate, Favoriten, Blockierungen und Benachrichtigungs-Einstellungen unwiderruflich entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+                                   FontSize="13"
+                                   Foreground="{ThemeResource OnSurfaceVariantBrush}"
+                                   TextWrapping="Wrap" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <Button Content="Konto löschen"
+                                    Command="{x:Bind ViewModel.DeleteAccountCommand}"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    HorizontalAlignment="Left">
+                                <Button.Background>
+                                    <SolidColorBrush Color="#D32F2F" />
+                                </Button.Background>
+                            </Button>
+
+                            <ProgressRing IsActive="{x:Bind ViewModel.IsDeletingAccount, Mode=OneWay}"
+                                          Visibility="{x:Bind ViewModel.IsDeletingAccount, Mode=OneWay}"
+                                          Width="24"
+                                          Height="24"
+                                          VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
             </Grid>
         </ScrollViewer>
     </Grid>

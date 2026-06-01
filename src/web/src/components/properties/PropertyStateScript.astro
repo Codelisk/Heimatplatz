@@ -190,6 +190,54 @@
     renderAuthState();
   }
 
+  async function handleDeleteAccount(button: HTMLButtonElement) {
+    const session = readSession();
+    if (!session) {
+      window.location.href = "/anmelden/";
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Möchten Sie Ihr Konto wirklich endgültig löschen? Ihr Profil, Ihre Inserate, Favoriten, " +
+      "Blockierungen und Benachrichtigungs-Einstellungen werden unwiderruflich entfernt. " +
+      "Diese Aktion kann nicht rückgängig gemacht werden.",
+    );
+    if (!confirmed) return;
+
+    const statusEl = document.querySelector<HTMLElement>("[data-delete-account-status]");
+    const setStatus = (message: string, tone: "info" | "error") => {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.classList.remove("hidden", "text-muted-foreground", "text-error");
+      statusEl.classList.add(tone === "error" ? "text-error" : "text-muted-foreground");
+    };
+
+    button.setAttribute("disabled", "true");
+    setStatus("Konto wird gelöscht...", "info");
+
+    try {
+      // Die gesamte Loeschlogik liegt im Backend. Der Benutzer wird per Bearer-Token erkannt.
+      await apiRequest("/api/auth/account", { method: "DELETE" });
+
+      // Lokale Daten ebenfalls entfernen
+      clearSession();
+      window.localStorage.removeItem(STORAGE_KEYS.favorites);
+      window.localStorage.removeItem(STORAGE_KEYS.blocked);
+      window.localStorage.removeItem(STORAGE_KEYS.drafts);
+      window.localStorage.removeItem(STORAGE_KEYS.notificationPreferences);
+      window.localStorage.removeItem(STORAGE_KEYS.filterPreferences);
+
+      window.alert("Ihr Konto und alle zugehörigen Daten wurden dauerhaft gelöscht.");
+      window.location.href = "/";
+    } catch (error) {
+      button.removeAttribute("disabled");
+      setStatus(
+        error instanceof Error ? `Löschung fehlgeschlagen: ${error.message}` : "Löschung fehlgeschlagen.",
+        "error",
+      );
+    }
+  }
+
   async function apiRequest<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
     const url = new URL(path, API_BASE_URL);
     const headers = new Headers(options.headers);
@@ -1720,6 +1768,12 @@
         if (window.location.pathname === "/profil/") {
           window.location.href = "/anmelden/";
         }
+      }
+
+      const deleteAccount = target?.closest("[data-delete-account]");
+      if (deleteAccount instanceof HTMLButtonElement) {
+        void handleDeleteAccount(deleteAccount);
+        return;
       }
 
       if (!target?.closest("[data-card-menu]")) {

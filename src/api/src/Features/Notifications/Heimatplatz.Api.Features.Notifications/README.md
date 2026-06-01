@@ -80,6 +80,11 @@ Workflow:
 3. Erstellt Push-Notification Payload
 4. Sendet an alle Device-Tokens (iOS/Android/Windows)
 
+**`NotificationsUserDataEraser`** (`IUserDataEraser`)
+
+Loescht bei der Konto-Loeschung die `PushSubscription`- und `NotificationPreference`-Eintraege
+des Benutzers. Registriert in `AddNotificationsFeature()`.
+
 #### Handlers
 
 **`PropertyCreatedEventHandler`**

@@ -70,6 +70,26 @@
         }
       }
     },
+    "/api/auth/account": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "DeleteAccount",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAccountResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users/{UserId}/roles": {
       "get": {
         "tags": [
@@ -1838,6 +1858,17 @@
           "CreatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "DeleteAccountResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
           }
         }
       },

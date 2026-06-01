@@ -13,6 +13,10 @@ Hauptprojekt fuer das Properties (Immobilien) Feature.
 - `GetPropertiesHandler` - Gefilterte Immobilien-Liste
 - `GetPropertyByIdHandler` - Einzelne Immobilie
 
+### Services
+- `PropertiesUserDataEraser` (`IUserDataEraser`) - loescht bei der Konto-Loeschung die Inserate,
+  Favoriten und Blockierungen eines Benutzers. Registriert in `AddPropertiesFeature()`.
+
 ## Verwendung
 
 ```csharp
