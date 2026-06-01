@@ -82,43 +82,41 @@ public sealed class VersionBumpTask : FrostingTask<BuildContext>
             context.Warning("App Store Connect key not configured, skipping TestFlight version check");
         }
 
-        // Determine the highest version from all sources
+        // Stores are the source of truth. If BOTH queries fail, fall back to csproj
+        // to avoid resetting the build number to 1 (which stores would reject).
+        if (!googlePlayVersion.HasValue && !testFlightVersion.HasValue)
+        {
+            throw new InvalidOperationException(
+                "Both Google Play and TestFlight version queries failed. " +
+                "Refusing to bump without a known store baseline.");
+        }
+
         var highestStoreVersion = Math.Max(
             googlePlayVersion ?? 0,
             testFlightVersion ?? 0);
 
         context.Information($"Highest store version: {highestStoreVersion}");
 
-        // New build version = max(current, highest_store) + 1
-        var newBuildVersion = Math.Max(currentBuildVersion, highestStoreVersion) + 1;
+        // New build version = highest_store + 1
+        var newBuildVersion = highestStoreVersion + 1;
 
-        // Parse and increment minor version
+        // Display version is derived from the new build: {major}.{newBuild}.0
         var versionParts = currentDisplayVersion.Split('.');
-        if (versionParts.Length >= 2)
-        {
-            var major = int.Parse(versionParts[0]);
-            var minor = int.Parse(versionParts[1]);
-            var patch = versionParts.Length >= 3 ? int.Parse(versionParts[2]) : 0;
-
-            // Increment minor, reset patch
-            minor++;
-            patch = 0;
-
-            var newDisplayVersion = $"{major}.{minor}.{patch}";
-
-            context.Information($"New display version: {newDisplayVersion}");
-            context.Information($"New build version: {newBuildVersion}");
-
-            UpdateAllElements(propertyGroups, ns, "ApplicationDisplayVersion", newDisplayVersion);
-            UpdateAllElements(propertyGroups, ns, "ApplicationVersion", newBuildVersion.ToString());
-
-            doc.Save(context.CsprojPath);
-            context.Information("Version bump completed successfully!");
-        }
-        else
+        if (versionParts.Length < 1 || !int.TryParse(versionParts[0], out var major))
         {
             throw new InvalidOperationException($"Invalid version format: {currentDisplayVersion}");
         }
+
+        var newDisplayVersion = $"{major}.{newBuildVersion}.0";
+
+        context.Information($"New display version: {newDisplayVersion}");
+        context.Information($"New build version: {newBuildVersion}");
+
+        UpdateAllElements(propertyGroups, ns, "ApplicationDisplayVersion", newDisplayVersion);
+        UpdateAllElements(propertyGroups, ns, "ApplicationVersion", newBuildVersion.ToString());
+
+        doc.Save(context.CsprojPath);
+        context.Information("Version bump completed successfully!");
     }
 
     private static string GetFirstElementValue(List<XElement> propertyGroups, XNamespace ns, string elementName)

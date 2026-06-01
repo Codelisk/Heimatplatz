@@ -19,11 +19,12 @@
     <!--
       Platzhalter-Werte: Die tatsaechliche Store-Version wird beim Deploy automatisch von der
       Pipeline gesetzt (cake VersionBumpTask). Diese fragt TestFlight und Google Play nach dem
-      hoechsten vorhandenen Build-Code ab und setzt: neuer Build = max(dieser Wert, Store-Hoechstwert) + 1,
-      Display-Version wird minor-weise erhoeht. Diese Werte muessen daher nicht manuell gepflegt werden.
+      hoechsten vorhandenen Build-Code ab und setzt: neuer Build = max(TestFlight, GooglePlay) + 1,
+      Display-Version wird auf {major}.{neuerBuild}.0 gesetzt. Diese Werte muessen daher nicht
+      manuell gepflegt werden - nur die Major-Version (erste Stelle) wird hier respektiert.
     -->
-    <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.2.0</ApplicationDisplayVersion>
+    <ApplicationVersion>63</ApplicationVersion>
     <!-- Package Publisher -->
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->
