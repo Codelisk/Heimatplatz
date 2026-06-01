@@ -60,27 +60,44 @@ public static class StoreVersionHelper
     }
 
     /// <summary>
-    /// Gets the latest build number from TestFlight
+    /// Gets the latest build number from TestFlight.
+    /// `latest_testflight_build_number` does NOT honor the APP_STORE_CONNECT_API_KEY_* env vars
+    /// for username-less auth, so we materialize a temporary api_key JSON and pass it via
+    /// `api_key_path:` (the form Spaceship accepts).
     /// </summary>
     public static int? GetTestFlightBuildNumber(string apiKeyId, string issuerId, string keyPath, string bundleId, string fastlaneDir)
     {
+        string? tempJsonPath = null;
         try
         {
+            // Fastlane's Spaceship requires the PEM contents inline as "key" (not "key_filepath")
+            var pemContents = File.ReadAllText(keyPath);
+            var keyEscaped = pemContents
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("\r\n", "\\n")
+                .Replace("\n", "\\n");
+
+            tempJsonPath = Path.Combine(Path.GetTempPath(), $"asc_api_key_{Guid.NewGuid():N}.json");
+            var apiKeyJson = $@"{{
+  ""key_id"": ""{apiKeyId}"",
+  ""issuer_id"": ""{issuerId}"",
+  ""key"": ""{keyEscaped}"",
+  ""duration"": 1200,
+  ""in_house"": false
+}}";
+            File.WriteAllText(tempJsonPath, apiKeyJson);
+
             var processInfo = new ProcessStartInfo
             {
                 FileName = "fastlane",
-                Arguments = $"run latest_testflight_build_number app_identifier:{bundleId}",
+                Arguments = $"run latest_testflight_build_number app_identifier:{bundleId} api_key_path:\"{tempJsonPath}\"",
                 WorkingDirectory = fastlaneDir,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
-            // App Store Connect API authentication
-            processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_ID"] = apiKeyId;
-            processInfo.Environment["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] = issuerId;
-            processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] = keyPath;
 
             using var process = Process.Start(processInfo);
             if (process == null) return null;
@@ -109,6 +126,13 @@ public static class StoreVersionHelper
         catch
         {
             return null;
+        }
+        finally
+        {
+            if (tempJsonPath != null && File.Exists(tempJsonPath))
+            {
+                try { File.Delete(tempJsonPath); } catch { /* best effort */ }
+            }
         }
     }
 
