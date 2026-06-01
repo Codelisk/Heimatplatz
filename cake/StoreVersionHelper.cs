@@ -1,4 +1,9 @@
 using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Build;
@@ -37,18 +42,21 @@ public static class StoreVersionHelper
 
             if (process.ExitCode != 0) return null;
 
-            // Parse output like: "Result: [144]"
-            var match = Regex.Match(output, @"Result:\s*\[(\d+)");
-            if (match.Success && int.TryParse(match.Groups[1].Value, out var versionCode))
+            // Parse output like: "Result: [144]" (highest first)
+            var match = Regex.Match(output, @"Result:\s*\[([^\]]+)\]");
+            if (match.Success)
             {
-                return versionCode;
-            }
-
-            // Try alternative format
-            match = Regex.Match(output, @"Found '(\d+)' version codes");
-            if (match.Success && int.TryParse(match.Groups[1].Value, out versionCode))
-            {
-                return versionCode;
+                var max = 0;
+                var seen = false;
+                foreach (var token in match.Groups[1].Value.Split(','))
+                {
+                    if (int.TryParse(token.Trim(), out var v))
+                    {
+                        if (!seen || v > max) max = v;
+                        seen = true;
+                    }
+                }
+                if (seen) return max;
             }
 
             return null;
@@ -60,81 +68,101 @@ public static class StoreVersionHelper
     }
 
     /// <summary>
-    /// Gets the latest build number from TestFlight.
-    /// `latest_testflight_build_number` does NOT honor the APP_STORE_CONNECT_API_KEY_* env vars
-    /// for username-less auth, so we materialize a temporary api_key JSON and pass it via
-    /// `api_key_path:` (the form Spaceship accepts).
+    /// Gets the highest build number ever uploaded to TestFlight across ALL versions.
+    /// Queries the App Store Connect API directly because fastlane's
+    /// `latest_testflight_build_number` only looks at the most recently uploaded version
+    /// (so a 1.64.0 upload would hide an existing 1.66.0/66 build).
     /// </summary>
     public static int? GetTestFlightBuildNumber(string apiKeyId, string issuerId, string keyPath, string bundleId, string fastlaneDir)
     {
-        string? tempJsonPath = null;
         try
         {
-            // Fastlane's Spaceship requires the PEM contents inline as "key" (not "key_filepath")
-            var pemContents = File.ReadAllText(keyPath);
-            var keyEscaped = pemContents
-                .Replace("\\", "\\\\")
-                .Replace("\"", "\\\"")
-                .Replace("\r\n", "\\n")
-                .Replace("\n", "\\n");
+            var jwt = CreateAppStoreConnectJwt(apiKeyId, issuerId, keyPath);
+            using var http = new HttpClient { BaseAddress = new Uri("https://api.appstoreconnect.apple.com/") };
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
+            http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            tempJsonPath = Path.Combine(Path.GetTempPath(), $"asc_api_key_{Guid.NewGuid():N}.json");
-            var apiKeyJson = $@"{{
-  ""key_id"": ""{apiKeyId}"",
-  ""issuer_id"": ""{issuerId}"",
-  ""key"": ""{keyEscaped}"",
-  ""duration"": 1200,
-  ""in_house"": false
-}}";
-            File.WriteAllText(tempJsonPath, apiKeyJson);
+            // Resolve app numeric id by bundle id
+            var appsResp = http.GetAsync($"v1/apps?filter[bundleId]={Uri.EscapeDataString(bundleId)}&fields[apps]=bundleId&limit=1").Result;
+            if (!appsResp.IsSuccessStatusCode) return null;
+            var appsJson = appsResp.Content.ReadAsStringAsync().Result;
+            using var appsDoc = JsonDocument.Parse(appsJson);
+            var dataArr = appsDoc.RootElement.GetProperty("data");
+            if (dataArr.GetArrayLength() == 0) return null;
+            var appId = dataArr[0].GetProperty("id").GetString();
+            if (string.IsNullOrEmpty(appId)) return null;
 
-            var processInfo = new ProcessStartInfo
+            // List builds for the app, paginate through all pages.
+            // 'version' on the Build resource is the build number (as a string).
+            var max = 0;
+            var seenAny = false;
+            var nextUrl = $"v1/builds?filter[app]={appId}&fields[builds]=version&limit=200";
+            while (!string.IsNullOrEmpty(nextUrl))
             {
-                FileName = "fastlane",
-                Arguments = $"run latest_testflight_build_number app_identifier:{bundleId} api_key_path:\"{tempJsonPath}\"",
-                WorkingDirectory = fastlaneDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+                var resp = http.GetAsync(nextUrl).Result;
+                if (!resp.IsSuccessStatusCode) return seenAny ? max : null;
+                var json = resp.Content.ReadAsStringAsync().Result;
+                using var doc = JsonDocument.Parse(json);
+                var builds = doc.RootElement.GetProperty("data");
+                foreach (var build in builds.EnumerateArray())
+                {
+                    if (!build.TryGetProperty("attributes", out var attrs)) continue;
+                    if (!attrs.TryGetProperty("version", out var versionEl)) continue;
+                    var versionStr = versionEl.GetString();
+                    if (int.TryParse(versionStr, out var buildNumber))
+                    {
+                        if (!seenAny || buildNumber > max) max = buildNumber;
+                        seenAny = true;
+                    }
+                }
 
-            using var process = Process.Start(processInfo);
-            if (process == null) return null;
-
-            var output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-
-            if (process.ExitCode != 0) return null;
-
-            // Parse output like: "Result: 144"
-            var match = Regex.Match(output, @"Result:\s*(\d+)");
-            if (match.Success && int.TryParse(match.Groups[1].Value, out var buildNumber))
-            {
-                return buildNumber;
+                nextUrl = null;
+                if (doc.RootElement.TryGetProperty("links", out var links)
+                    && links.TryGetProperty("next", out var nextEl)
+                    && nextEl.ValueKind == JsonValueKind.String)
+                {
+                    var nextAbs = nextEl.GetString();
+                    if (!string.IsNullOrEmpty(nextAbs))
+                    {
+                        // Strip absolute base so HttpClient.BaseAddress applies.
+                        nextUrl = nextAbs.StartsWith("https://api.appstoreconnect.apple.com/")
+                            ? nextAbs.Substring("https://api.appstoreconnect.apple.com/".Length)
+                            : nextAbs;
+                    }
+                }
             }
 
-            // Try alternative format "Latest build number: 144"
-            match = Regex.Match(output, @"build number[:\s]+(\d+)", RegexOptions.IgnoreCase);
-            if (match.Success && int.TryParse(match.Groups[1].Value, out buildNumber))
-            {
-                return buildNumber;
-            }
-
-            return null;
+            return seenAny ? max : null;
         }
         catch
         {
             return null;
         }
-        finally
-        {
-            if (tempJsonPath != null && File.Exists(tempJsonPath))
-            {
-                try { File.Delete(tempJsonPath); } catch { /* best effort */ }
-            }
-        }
     }
+
+    private static string CreateAppStoreConnectJwt(string apiKeyId, string issuerId, string keyPath)
+    {
+        var header = $"{{\"alg\":\"ES256\",\"kid\":\"{apiKeyId}\",\"typ\":\"JWT\"}}";
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var exp = now + 1200; // 20 min (ASC max)
+        var payload = $"{{\"iss\":\"{issuerId}\",\"iat\":{now},\"exp\":{exp},\"aud\":\"appstoreconnect-v1\"}}";
+
+        var headerB64 = Base64UrlEncode(Encoding.UTF8.GetBytes(header));
+        var payloadB64 = Base64UrlEncode(Encoding.UTF8.GetBytes(payload));
+        var signingInput = $"{headerB64}.{payloadB64}";
+
+        using var ecdsa = ECDsa.Create();
+        ecdsa.ImportFromPem(File.ReadAllText(keyPath));
+        var signature = ecdsa.SignData(
+            Encoding.UTF8.GetBytes(signingInput),
+            HashAlgorithmName.SHA256,
+            DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+
+        return $"{signingInput}.{Base64UrlEncode(signature)}";
+    }
+
+    private static string Base64UrlEncode(byte[] bytes)
+        => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
     /// <summary>
     /// Gets the highest version code from both stores

@@ -23,8 +23,8 @@
       Display-Version wird auf {major}.{neuerBuild}.0 gesetzt. Diese Werte muessen daher nicht
       manuell gepflegt werden - nur die Major-Version (erste Stelle) wird hier respektiert.
     -->
-    <ApplicationDisplayVersion>1.64.0</ApplicationDisplayVersion>
-    <ApplicationVersion>64</ApplicationVersion>
+    <ApplicationDisplayVersion>1.67.0</ApplicationDisplayVersion>
+    <ApplicationVersion>67</ApplicationVersion>
     <!-- Package Publisher -->
     <ApplicationPublisher>AIRoutine</ApplicationPublisher>
     <!-- Package Description -->
