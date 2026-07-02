@@ -186,6 +186,15 @@ export function formatApiDate(value: string) {
   }).format(date);
 }
 
+export function getApiAddressLine(property: ApiProperty) {
+  const address = (property.Address ?? "").trim();
+  const postalCode = (property.PostalCode ?? "").trim();
+  if (!address) return [postalCode, property.City].filter(Boolean).join(" ");
+  // Adressen aus Importen enthalten oft schon die PLZ ("4742 Pram")
+  if (!postalCode || address.startsWith(postalCode)) return address;
+  return `${postalCode} ${address}`;
+}
+
 export function getApiAreaValue(property: ApiProperty) {
   return Number(property.PlotAreaM2 ?? property.LivingAreaM2 ?? 0);
 }

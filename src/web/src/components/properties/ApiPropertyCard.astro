@@ -6,6 +6,7 @@ import UserIcon from "@tabler/icons/outline/user.svg";
 import {
   formatApiDate,
   formatApiPrice,
+  getApiAddressLine,
   getApiAreaLabel,
   getApiAreaValue,
   getApiPropertyPath,
@@ -95,7 +96,7 @@ const citySlug = slugifyLocation(property.City);
       <h2 class="truncate text-base font-semibold">
         <a href={href} class="hover:underline">{property.City || property.Title}</a>
       </h2>
-      <p class="truncate text-sm text-muted-foreground">{property.PostalCode} {property.Address}</p>
+      <p class="truncate text-sm text-muted-foreground">{getApiAddressLine(property)}</p>
       <p class="mt-1 truncate text-xs text-muted-foreground">{property.Title}</p>
       <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
         <UserIcon class="size-3" aria-hidden="true" />

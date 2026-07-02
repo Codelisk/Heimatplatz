@@ -381,6 +381,15 @@ const totalInitialProperties = apiProperties.length;
     return `/immobilien/angebote/${encodeURIComponent(id)}/`;
   }
 
+  function formatAddressLine(postalCode: string | null | undefined, address: string | null | undefined) {
+    const trimmedAddress = (address ?? "").trim();
+    const trimmedPostalCode = (postalCode ?? "").trim();
+    if (!trimmedAddress) return trimmedPostalCode;
+    // Adressen aus Importen enthalten oft schon die PLZ ("4742 Pram")
+    if (!trimmedPostalCode || trimmedAddress.startsWith(trimmedPostalCode)) return trimmedAddress;
+    return `${trimmedPostalCode} ${trimmedAddress}`;
+  }
+
   function loadVerifiedImageMap() {
     if (!verifiedImageMapPromise) {
       verifiedImageMapPromise = fetch("/api/property-image-map.json")
@@ -475,7 +484,7 @@ const totalInitialProperties = apiProperties.length;
     title.append(titleLink);
     left.append(
       title,
-      createText("p", "truncate text-sm text-muted-foreground", `${property.PostalCode} ${property.Address}`),
+      createText("p", "truncate text-sm text-muted-foreground", formatAddressLine(property.PostalCode, property.Address)),
       createText("p", "mt-1 truncate text-xs text-muted-foreground", property.Title),
       createText("p", "mt-2 text-xs text-muted-foreground", property.SellerName || "Anbieter"),
       createText("p", "mt-1 text-xs text-muted-foreground", "Aktuelles Angebot"),
@@ -618,8 +627,13 @@ const totalInitialProperties = apiProperties.length;
       const mode = sort?.value ?? "newest";
       const priceA = Number(a.dataset.price ?? 0);
       const priceB = Number(b.dataset.price ?? 0);
-      if (mode === "price-asc") return priceA - priceB;
-      if (mode === "price-desc") return priceB - priceA;
+      if (mode === "price-asc" || mode === "price-desc") {
+        // "Preis offen" (0) immer ans Ende sortieren
+        if (priceA <= 0 && priceB <= 0) return 0;
+        if (priceA <= 0) return 1;
+        if (priceB <= 0) return -1;
+        return mode === "price-asc" ? priceA - priceB : priceB - priceA;
+      }
       if (mode === "area-desc") {
         return Number(b.dataset.area ?? 0) - Number(a.dataset.area ?? 0);
       }
