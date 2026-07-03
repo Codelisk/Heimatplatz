@@ -94,6 +94,10 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftVersion)" />
 
+    <!-- Security: transitive Pins gegen bekannte Sicherheitsluecken (NU1903) -->
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.7.6" />
+
     <!-- UI Testing -->
     <PackageVersion Include="Uno.UITest" Version="1.1.0-dev.92" />
     <PackageVersion Include="Uno.UITest.Helpers" Version="1.1.0-dev.70" />
