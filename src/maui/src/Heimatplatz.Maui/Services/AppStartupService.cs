@@ -11,7 +11,7 @@ namespace Heimatplatz.Maui.Services;
 /// App-Startlogik (ersetzt das ShellViewModel der Uno-App):
 /// Session-Restore + Push-Initialisierung beim Start, Logout-Handling via Mediator-Event.
 /// </summary>
-[Singleton]
+[Singleton(AsSelf = true)]
 public class AppStartupService(
     IAuthService authService,
     IMediator mediator,

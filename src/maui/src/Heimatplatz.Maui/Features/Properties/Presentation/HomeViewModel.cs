@@ -587,6 +587,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             _logger.LogError(ex, "[HomePage] Error loading page {Page}", page);
             _hasMore = false;
             if (page == 0) _totalCount = 0;
+            await _dialogs.Alert(
+                "Fehler beim Laden",
+                "Die Immobilien konnten nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.");
             return [];
         }
     }

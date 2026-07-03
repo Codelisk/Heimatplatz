@@ -32,6 +32,16 @@ public static class MauiProgram
             ["Mediator:Http:Heimatplatz.Maui.ApiClient.Generated.*"] = "https://heimatplatz-api.azurewebsites.net"
         });
 
+        // Shiny-Serializer VOR AddShinyMediator konfigurieren (wie Uno Core.Startup):
+        // Der explizite DefaultJsonTypeInfoResolver erlaubt Deserialisierung der
+        // generierten OpenAPI-Typen ohne eigenen JsonSerializerContext.
+        builder.Services.ConfigureJsonSerializer(options =>
+        {
+            options.PropertyNameCaseInsensitive = true;
+            options.TypeInfoResolverChain.Add(new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver());
+        });
+        builder.Services.AddJsonSerialization();
+
         // Shiny Mediator mit MAUI-Integration (MainThread, Event-Safety)
         builder.Services.AddShinyMediator(cfg =>
         {
@@ -47,6 +57,11 @@ public static class MauiProgram
 
         // Alle [Singleton]/[Service]-Klassen dieser Assembly (Shiny DI Source Generator)
         builder.Services.AddGeneratedServices();
+
+        // AppStartupService ist AsSelf registriert (App-Konstruktor braucht den konkreten Typ);
+        // das Logout-Event muss denselben Singleton treffen
+        builder.Services.AddSingleton<IEventHandler<Events.LogoutRequestedEvent>>(
+            sp => sp.GetRequiredService<Services.AppStartupService>());
 
         // Generierte OpenAPI-HTTP-Handler (Shiny.Mediator MediatorHttp, Projekt Heimatplatz.Maui.ApiClient)
         builder.Services.AddApiClientFeature();

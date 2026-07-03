@@ -19,9 +19,10 @@
                      Command="{Binding RefreshCommand}">
             <CollectionView ItemsSource="{Binding Properties}"
                             RemainingItemsThreshold="4"
-                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
+                            controls:ResponsiveGrid.MinItemWidth="320">
                 <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="16" />
+                    <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="16" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Spacing="8"
