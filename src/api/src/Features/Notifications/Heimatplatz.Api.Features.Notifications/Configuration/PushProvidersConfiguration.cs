@@ -80,11 +80,11 @@ public static class PushProvidersConfiguration
 
         if (!string.IsNullOrEmpty(options.ServiceAccountJson))
         {
-            credential = GoogleCredential.FromJson(options.ServiceAccountJson);
+            credential = CredentialFactory.FromJson<ServiceAccountCredential>(options.ServiceAccountJson).ToGoogleCredential();
         }
         else if (!string.IsNullOrEmpty(options.ServiceAccountPath) && File.Exists(options.ServiceAccountPath))
         {
-            credential = GoogleCredential.FromFile(options.ServiceAccountPath);
+            credential = CredentialFactory.FromFile<ServiceAccountCredential>(options.ServiceAccountPath).ToGoogleCredential();
         }
 
         if (credential != null)

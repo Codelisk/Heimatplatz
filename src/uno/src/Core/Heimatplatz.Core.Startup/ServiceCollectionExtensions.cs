@@ -9,12 +9,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shiny.Mediator.Infrastructure;
-using Shiny.Mediator.Infrastructure.Impl;
-using Uno.Extensions.Hosting;
-#if __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny;
-#endif
+using Shiny.Mediator.Infrastructure;
+using Uno.Extensions.Hosting;
 using UnoFramework.Mediator;
 using UnoFramework.ViewModels;
 
@@ -35,18 +32,16 @@ public static class ServiceCollectionExtensions
         // and fixes DateTimeOffset query parameter serialization for Shiny.Mediator HTTP requests
         services.AddGeneratedServices();
 
-        // Register ISerializerService BEFORE AddShinyMediator so TryAddSingleton becomes a no-op.
+        // Configure the Shiny serializer BEFORE AddShinyMediator.
         // The explicit DefaultJsonTypeInfoResolver ensures JSON deserialization works in WASM
         // where the trimmer may strip the default reflection resolver.
-        services.AddSingleton<ISerializerService>(new SysTextJsonSerializerService
+        services.ConfigureJsonSerializer(options =>
         {
-            JsonOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                DefaultBufferSize = 128,
-                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
-            }
+            options.PropertyNameCaseInsensitive = true;
+            options.DefaultBufferSize = 128;
+            options.TypeInfoResolverChain.Add(new DefaultJsonTypeInfoResolver());
         });
+        services.AddJsonSerialization();
 
         // Configure Shiny Mediator with UnoEventCollector and source-generated handler registry
         services.AddShinyMediator(cfg =>

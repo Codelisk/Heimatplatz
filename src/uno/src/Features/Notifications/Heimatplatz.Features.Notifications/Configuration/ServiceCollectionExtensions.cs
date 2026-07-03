@@ -19,8 +19,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddNotificationsFeature(this IServiceCollection services)
     {
-        services.AddGeneratedServices();
-
         // Register notification services
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<IPushNotificationInitializer, PushNotificationInitializer>();

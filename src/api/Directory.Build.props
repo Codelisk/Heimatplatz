@@ -11,7 +11,4 @@
     <NoWarn>$(NoWarn);CS8669</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AIRoutine.CodeStyle.AspNetCore" PrivateAssets="all" />
-  </ItemGroup>
 </Project>

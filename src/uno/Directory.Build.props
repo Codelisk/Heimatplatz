@@ -33,7 +33,4 @@
     <DefineConstants Condition="'$(UNO_SINGLE_TARGET)' == 'framebuffer'">$(DefineConstants);LINUX_FRAMEBUFFER</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AIRoutine.CodeStyle.Uno" PrivateAssets="all" />
-  </ItemGroup>
 </Project>

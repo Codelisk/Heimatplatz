@@ -39,7 +39,6 @@ public static class ServiceCollectionExtensions
         // HttpContext für Handler, die den authentifizierten User benötigen
         services.AddHttpContextAccessor();
 
-        services.AddGeneratedServices();
         services.AddShinyMediator();
 
         // Features
