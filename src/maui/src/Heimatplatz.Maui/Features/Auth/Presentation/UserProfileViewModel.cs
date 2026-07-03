@@ -68,6 +68,16 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     public void OnAppearing()
     {
         _logger.LogDebug("[UserProfile] OnAppearing");
+
+        // Nicht angemeldete Nutzer zur Anmeldung weiterleiten - der Login-ShellContent
+        // ist im Flyout versteckt, "Profil" ist damit der Einstieg zum Login
+        // (Pendant zum "Anmelden"-Button im AppHeader der Uno-App).
+        if (!_authService.IsAuthenticated)
+        {
+            _ = _navigator.NavigateTo("Login", relativeNavigation: false);
+            return;
+        }
+
         LoadUserData();
     }
 

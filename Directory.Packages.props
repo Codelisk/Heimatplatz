@@ -6,7 +6,7 @@
     <AspireVersion>13.4.6</AspireVersion>
     <OpenTelemetryVersion>1.16.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.6.2</ShinyMediatorVersion>
-	  <ShinyExtensionsVersion>5.1.1</ShinyExtensionsVersion>
+	  <ShinyExtensionsVersion>5.1.2</ShinyExtensionsVersion>
     <ShinyPushVersion>5.1.1</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
