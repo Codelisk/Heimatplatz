@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:shiny="clr-namespace:Shiny;assembly=Shiny.Maui.Shell"
+             xmlns:api="clr-namespace:Heimatplatz.Maui.ApiClient.Generated"
+             xmlns:controls="clr-namespace:Heimatplatz.Maui.Features.Properties.Controls"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.HomePage"
+             x:DataType="vm:HomeViewModel"
+             Title="HEIMATPLATZ">
+
+    <ContentPage.Resources>
+        <!-- Filter-Chip Basis-Style -->
+        <Style x:Key="FilterChipStyle" TargetType="Button">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="MinimumHeightRequest" Value="36" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Filter"
+                     shiny:Navigate.Route="FilterPreferences" />
+        <ToolbarItem Text="Favoriten"
+                     Order="Secondary"
+                     shiny:Navigate.Route="Favorites" />
+        <ToolbarItem Text="Blockierte"
+                     Order="Secondary"
+                     shiny:Navigate.Route="Blocked" />
+        <ToolbarItem Text="Meine Immobilien"
+                     Order="Secondary"
+                     shiny:Navigate.Route="MyProperties" />
+        <ToolbarItem Text="Immobilie hinzufügen"
+                     Order="Secondary"
+                     shiny:Navigate.Route="AddProperty" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Einklappbare Filterleiste -->
+        <Border Grid.Row="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                StrokeThickness="0"
+                Padding="0">
+            <VerticalStackLayout>
+
+                <!-- Filter-Header: immer sichtbar, ganzer Bereich klickbar -->
+                <Grid ColumnDefinitions="Auto,*,Auto"
+                      Padding="12,10">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleFilterExpandedCommand}" />
+                    </Grid.GestureRecognizers>
+
+                    <Label Grid.Column="0"
+                           Text="Filter"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+
+                    <Label Grid.Column="1"
+                           Text="{Binding ResultCountText}"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           HorizontalOptions="End"
+                           VerticalOptions="Center"
+                           Margin="0,0,8,0"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+                    <Label Grid.Column="2"
+                           Text="{Binding FilterToggleGlyph}"
+                           FontSize="10"
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </Grid>
+
+                <!-- Filter-Body: einklappbar -->
+                <VerticalStackLayout Spacing="8"
+                                     Padding="12,0,12,10"
+                                     IsVisible="{Binding IsFilterExpanded}">
+
+                    <!-- Filter-Chips: Immobilientyp -->
+                    <HorizontalStackLayout Spacing="6">
+                        <Button Text="Haus"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding ToggleHausCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding IsHausSelected}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Text="Grund"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding ToggleGrundstueckCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding IsGrundstueckSelected}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Text="ZV"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding ToggleZwangsversteigerungCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding IsZwangsversteigerungSelected}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </HorizontalStackLayout>
+
+                    <!-- Anbietertyp-Chips -->
+                    <HorizontalStackLayout Spacing="6">
+                        <Button Text="Privat"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding TogglePrivateCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding IsPrivateSelected}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Text="Makler"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding ToggleBrokerCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding IsBrokerSelected}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </HorizontalStackLayout>
+
+                    <!-- Alters-Filter und Orte -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Picker Grid.Column="0"
+                                Title="Alter"
+                                ItemsSource="{Binding AgeFilterOptions}"
+                                SelectedIndex="{Binding SelectedAgeFilterIndex}" />
+                        <Button Grid.Column="1"
+                                Text="{Binding OrteInfoText}"
+                                Style="{StaticResource FilterChipStyle}"
+                                shiny:Navigate.Route="FilterPreferences" />
+                    </Grid>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Toolbar-Zeile: Ergebnis-Count + Sortierung -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="*,Auto"
+              Padding="12,8">
+            <Label Grid.Column="0"
+                   Text="{Binding ResultCountText}"
+                   FontSize="13"
+                   VerticalOptions="Center"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+            <Button Grid.Column="1"
+                    Text="{Binding SortLabel}"
+                    Style="{StaticResource FilterChipStyle}"
+                    Command="{Binding ShowSortOptionsCommand}" />
+        </Grid>
+
+        <!-- Liste mit Pull-to-Refresh und Infinite Scroll -->
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Properties}"
+                            RemainingItemsThreshold="4"
+                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="16" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Spacing="8"
+                                         VerticalOptions="Center"
+                                         HorizontalOptions="Center"
+                                         Padding="0,60,0,0">
+                        <Label Text="—"
+                               FontSize="32"
+                               HorizontalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
+                        <Label Text="Keine Treffer"
+                               FontSize="14"
+                               HorizontalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="api:PropertyListItemDto">
+                        <Grid Padding="12,0">
+                            <controls:PropertyCard Property="{Binding .}"
+                                                   IsAuthenticated="{Binding IsAuthenticated, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
+                                                   CardClickedCommand="{Binding PropertySelectedCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
+                                                   FavoriteCommand="{Binding ToggleFavoriteCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
+                                                   BlockCommand="{Binding ToggleBlockedCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.Footer>
+                    <ActivityIndicator IsRunning="{Binding IsLoadingMore}"
+                                       IsVisible="{Binding IsLoadingMore}"
+                                       Margin="0,8,0,16"
+                                       HorizontalOptions="Center" />
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Busy-Overlay -->
+        <Grid Grid.Row="2"
+              BackgroundColor="#40000000"
+              IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="8"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" />
+                <Label Text="{Binding BusyMessage}"
+                       FontSize="13"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

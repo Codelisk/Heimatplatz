@@ -15,6 +15,10 @@
   <Folder Name="/src/uno/src/">
     <Project Path="src/uno/src/Heimatplatz.App/Heimatplatz.App.csproj" />
   </Folder>
+  <Folder Name="/src/maui/src/">
+    <Project Path="src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj" />
+    <Project Path="src/maui/src/Heimatplatz.Maui.ApiClient/Heimatplatz.Maui.ApiClient.csproj" />
+  </Folder>
   <Folder Name="/src/uno/src/Core/">
     <Project Path="src/uno/src/Core/Heimatplatz.Core.ApiClient/Heimatplatz.Core.ApiClient.csproj" />
     <Project Path="src/uno/src/Core/Heimatplatz.Core.Startup/Heimatplatz.Core.Startup.csproj" />

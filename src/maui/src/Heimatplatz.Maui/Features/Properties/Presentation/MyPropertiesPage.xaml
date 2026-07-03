@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:api="clr-namespace:Heimatplatz.Maui.ApiClient.Generated"
+             xmlns:controls="clr-namespace:Heimatplatz.Maui.Features.Properties.Controls"
+             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.MyPropertiesPage"
+             x:DataType="vm:MyPropertiesViewModel"
+             Title="Meine Immobilien">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Neu"
+                     Command="{Binding NavigateToAddPropertyCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid>
+        <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Properties}"
+                            RemainingItemsThreshold="4"
+                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="16" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Spacing="8"
+                                         VerticalOptions="Center"
+                                         HorizontalOptions="Center"
+                                         Padding="24,60,24,0">
+                        <Label Text="🏠"
+                               FontSize="40"
+                               HorizontalOptions="Center"
+                               Opacity="0.5" />
+                        <Label Text="Noch keine Immobilien"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                        <Label Text="Fügen Sie Ihre erste Immobilie über den Button „Neu“ hinzu."
+                               FontSize="13"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="api:PropertyListItemDto">
+                        <Grid Padding="12,0">
+                            <controls:PropertyCard Property="{Binding .}"
+                                                   Mode="{x:Static models:CardMode.Owner}"
+                                                   CardClickedCommand="{Binding EditPropertyCommand, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}"
+                                                   DeleteCommand="{Binding RemoveFromCollectionCommand, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.Footer>
+                    <ActivityIndicator IsRunning="{Binding IsLoadingMore}"
+                                       IsVisible="{Binding IsLoadingMore}"
+                                       Margin="0,8,0,16"
+                                       HorizontalOptions="Center" />
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Busy-Overlay -->
+        <Grid BackgroundColor="#40000000"
+              IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="8"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" />
+                <Label Text="{Binding BusyMessage}"
+                       FontSize="13"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

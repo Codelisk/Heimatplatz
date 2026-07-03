@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Auth.Presentation.UserProfilePage"
+             x:DataType="vm:UserProfileViewModel"
+             Title="Mein Profil">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Hero Header mit Avatar -->
+            <Border BackgroundColor="{StaticResource Primary}"
+                    StrokeThickness="0"
+                    Padding="24,48,24,32">
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="16">
+
+                    <!-- Avatar Circle -->
+                    <Border WidthRequest="96"
+                            HeightRequest="96"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 48"
+                            BackgroundColor="{StaticResource White}"
+                            HorizontalOptions="Center">
+                        <Label Text="{Binding UserInitials}"
+                               FontSize="36"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <!-- Name -->
+                    <Label Text="{Binding UserFullName}"
+                           FontSize="24"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource White}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           LineBreakMode="WordWrap" />
+
+                    <!-- Rollen-Badge -->
+                    <Border BackgroundColor="{StaticResource White}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="16,8"
+                            HorizontalOptions="Center">
+                        <Label Text="{Binding RoleBadgeText}"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gray900}"
+                               HorizontalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Info-Karten -->
+            <VerticalStackLayout Padding="20,24" Spacing="16">
+
+                <!-- E-Mail Karte -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="E-Mail"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        <Label Text="{Binding UserEmail}"
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Rolle: Käufer -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="16"
+                        IsVisible="{Binding IsBuyer}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Rolle"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        <Label Text="Käufer"
+                               FontSize="15"
+                               FontAttributes="Bold" />
+                        <Label Text="Suche nach Immobilien und Anfragen stellen"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Rolle: Verkäufer -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="16"
+                        IsVisible="{Binding IsSeller}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Rolle"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        <Label Text="Verkäufer"
+                               FontSize="15"
+                               FontAttributes="Bold" />
+                        <Label Text="Immobilien anbieten und verwalten"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Konto-Status -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Konto-Status"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        <Label Text="Aktiv"
+                               FontSize="15"
+                               FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Abmelden -->
+                <Button Text="Abmelden"
+                        Command="{Binding LogoutCommand}"
+                        FontAttributes="Bold"
+                        FontSize="15"
+                        HeightRequest="52"
+                        Margin="0,8,0,0" />
+
+                <!-- Gefahrenzone: Konto löschen -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="20"
+                        Margin="0,8,0,40">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Konto löschen"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Wenn Sie Ihr Konto löschen, werden Ihr Profil, Ihre Inserate, Favoriten, Blockierungen und Benachrichtigungs-Einstellungen unwiderruflich entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                               LineBreakMode="WordWrap" />
+
+                        <HorizontalStackLayout Spacing="12">
+                            <Button Text="Konto löschen"
+                                    Command="{Binding DeleteAccountCommand}"
+                                    BackgroundColor="#D32F2F"
+                                    TextColor="{StaticResource White}"
+                                    HorizontalOptions="Start" />
+
+                            <ActivityIndicator IsRunning="{Binding IsDeletingAccount}"
+                                               IsVisible="{Binding IsDeletingAccount}"
+                                               WidthRequest="24"
+                                               HeightRequest="24"
+                                               VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

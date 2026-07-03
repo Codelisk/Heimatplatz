@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Auth.Presentation.RegisterPage"
+             x:DataType="vm:RegisterViewModel"
+             Title="Registrieren">
+
+    <Grid>
+
+        <ScrollView>
+            <VerticalStackLayout Padding="24,28" Spacing="24">
+
+                <!-- Brand Header -->
+                <Label Text="HEIMATPLATZ"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       CharacterSpacing="6"
+                       TextColor="{StaticResource Primary}"
+                       HorizontalOptions="Center" />
+
+                <!-- Title Section -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Konto erstellen"
+                           FontSize="24"
+                           FontAttributes="Bold" />
+                    <Label Text="Registrieren Sie sich für exklusive Angebote"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+
+                <!-- Error Message -->
+                <Border IsVisible="{Binding HasError}"
+                        BackgroundColor="#D32F2F"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 8"
+                        Padding="14">
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="{StaticResource White}"
+                           FontSize="13" />
+                </Border>
+
+                <!-- Success Message -->
+                <Border IsVisible="{Binding IsSuccess}"
+                        BackgroundColor="#2E7D32"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 8"
+                        Padding="14">
+                    <Label Text="{Binding SuccessMessage}"
+                           TextColor="{StaticResource White}"
+                           FontSize="13" />
+                </Border>
+
+                <!-- Form Fields -->
+                <VerticalStackLayout Spacing="18">
+
+                    <!-- Name Row (Two Columns) -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+
+                        <!-- Vorname -->
+                        <VerticalStackLayout Grid.Column="0" Spacing="6">
+                            <Label Text="Vorname"
+                                   FontSize="13"
+                                   FontAttributes="Bold" />
+                            <Entry Text="{Binding Vorname}"
+                                   Placeholder="Max" />
+                        </VerticalStackLayout>
+
+                        <!-- Nachname -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Nachname"
+                                   FontSize="13"
+                                   FontAttributes="Bold" />
+                            <Entry Text="{Binding Nachname}"
+                                   Placeholder="Mustermann" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- E-Mail -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="E-Mail Adresse"
+                               FontSize="13"
+                               FontAttributes="Bold" />
+                        <Entry Text="{Binding Email}"
+                               Placeholder="max@beispiel.at"
+                               Keyboard="Email" />
+                    </VerticalStackLayout>
+
+                    <!-- Passwort -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Passwort"
+                               FontSize="13"
+                               FontAttributes="Bold" />
+                        <Entry Text="{Binding Passwort}"
+                               Placeholder="Mindestens 8 Zeichen"
+                               IsPassword="True" />
+                    </VerticalStackLayout>
+
+                    <!-- Passwort bestaetigen -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Passwort bestätigen"
+                               FontSize="13"
+                               FontAttributes="Bold" />
+                        <Entry Text="{Binding PasswortBestaetigung}"
+                               Placeholder="Passwort wiederholen"
+                               IsPassword="True"
+                               ReturnCommand="{Binding RegisterCommand}" />
+                    </VerticalStackLayout>
+
+                    <!-- Rollenauswahl -->
+                    <VerticalStackLayout Spacing="10" Margin="0,6,0,0">
+                        <Label Text="Ich möchte..."
+                               FontSize="13"
+                               FontAttributes="Bold" />
+                        <Label Text="Wählen Sie mindestens eine Option"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                               Margin="0,-4,0,4" />
+
+                        <!-- Käufer Checkbox -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <CheckBox Grid.Column="0"
+                                      IsChecked="{Binding IsBuyer, Mode=TwoWay}"
+                                      VerticalOptions="Start" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="Immobilien suchen"
+                                       FontSize="14"
+                                       FontAttributes="Bold" />
+                                <Label Text="Als Käufer Angebote entdecken"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Verkäufer Checkbox -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <CheckBox Grid.Column="0"
+                                      IsChecked="{Binding IsSeller, Mode=TwoWay}"
+                                      VerticalOptions="Start" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="Immobilien anbieten"
+                                       FontSize="14"
+                                       FontAttributes="Bold" />
+                                <Label Text="Als Verkäufer Objekte inserieren"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Verkäufertyp-Auswahl (nur wenn Seller) -->
+                        <VerticalStackLayout Spacing="10"
+                                             Margin="28,6,0,0"
+                                             IsVisible="{Binding IsSeller}">
+                            <Label Text="Ich biete an als:"
+                                   FontSize="13"
+                                   FontAttributes="Bold" />
+
+                            <!-- Privatperson -->
+                            <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
+                                         GroupName="SellerType">
+                                <RadioButton.Content>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="Privatperson"
+                                               FontSize="14"
+                                               FontAttributes="Bold" />
+                                        <Label Text="Eigene Immobilie verkaufen"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                    </VerticalStackLayout>
+                                </RadioButton.Content>
+                            </RadioButton>
+
+                            <!-- Makler/Agentur -->
+                            <RadioButton IsChecked="{Binding IsBrokerSeller, Mode=TwoWay}"
+                                         GroupName="SellerType">
+                                <RadioButton.Content>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="Makler / Agentur"
+                                               FontSize="14"
+                                               FontAttributes="Bold" />
+                                        <Label Text="Als Immobilienmakler taetig"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                    </VerticalStackLayout>
+                                </RadioButton.Content>
+                            </RadioButton>
+
+                            <!-- Firmenname (nur bei Broker) -->
+                            <VerticalStackLayout Spacing="6"
+                                                 Margin="0,6,0,0"
+                                                 IsVisible="{Binding IsBrokerSeller}">
+                                <Label Text="Firmenname"
+                                       FontSize="13"
+                                       FontAttributes="Bold" />
+                                <Entry Text="{Binding CompanyName}"
+                                       Placeholder="z.B. RE/MAX Premium" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+                <!-- Register Button -->
+                <Button Text="Konto erstellen"
+                        Command="{Binding RegisterCommand}"
+                        FontAttributes="Bold"
+                        FontSize="15"
+                        HeightRequest="52" />
+
+                <!-- Login Link -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
+                    <Label Text="Bereits ein Konto?"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                           VerticalOptions="Center" />
+                    <Button Text="Anmelden"
+                            Command="{Binding GoToLoginCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Primary}"
+                            FontAttributes="Bold"
+                            FontSize="14"
+                            Padding="0"
+                            MinimumHeightRequest="0"
+                            MinimumWidthRequest="0" />
+                </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Busy Overlay -->
+        <Grid IsVisible="{Binding IsBusy}"
+              BackgroundColor="#80000000">
+            <VerticalStackLayout HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   Color="{StaticResource White}" />
+                <Label Text="{Binding BusyMessage}"
+                       TextColor="{StaticResource White}"
+                       FontSize="14"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

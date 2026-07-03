@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Auth.Presentation.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Title="Anmelden">
+
+    <Grid>
+
+        <ScrollView>
+            <VerticalStackLayout Padding="24,32" Spacing="28">
+
+                <!-- Brand Header -->
+                <Label Text="HEIMATPLATZ"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       CharacterSpacing="6"
+                       TextColor="{StaticResource Primary}"
+                       HorizontalOptions="Center" />
+
+                <!-- Title Section -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Willkommen zurück"
+                           FontSize="24"
+                           FontAttributes="Bold" />
+                    <Label Text="Melden Sie sich an, um fortzufahren"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+
+                <!-- Error Message -->
+                <Border IsVisible="{Binding HasError}"
+                        BackgroundColor="#D32F2F"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 8"
+                        Padding="14">
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="{StaticResource White}"
+                           FontSize="13" />
+                </Border>
+
+                <!-- Form Fields -->
+                <VerticalStackLayout Spacing="18">
+
+                    <!-- E-Mail -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="E-Mail Adresse"
+                               FontSize="13"
+                               FontAttributes="Bold" />
+                        <Entry Text="{Binding Email}"
+                               Placeholder="max@beispiel.at"
+                               Keyboard="Email" />
+                    </VerticalStackLayout>
+
+                    <!-- Passwort -->
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0"
+                                   Text="Passwort"
+                                   FontSize="13"
+                                   FontAttributes="Bold" />
+                            <Label Grid.Column="1"
+                                   Text="Vergessen?"
+                                   FontSize="12"
+                                   TextColor="{StaticResource Primary}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Entry Text="{Binding Passwort}"
+                               Placeholder="Ihr Passwort"
+                               IsPassword="True"
+                               ReturnCommand="{Binding LoginCommand}" />
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+                <!-- Login Button -->
+                <Button Text="Anmelden"
+                        Command="{Binding LoginCommand}"
+                        FontAttributes="Bold"
+                        FontSize="15"
+                        HeightRequest="52" />
+
+                <!-- Register Link -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
+                    <Label Text="Noch kein Konto?"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                           VerticalOptions="Center" />
+                    <Button Text="Registrieren"
+                            Command="{Binding GoToRegisterCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Primary}"
+                            FontAttributes="Bold"
+                            FontSize="14"
+                            Padding="0"
+                            MinimumHeightRequest="0"
+                            MinimumWidthRequest="0" />
+                </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Busy Overlay -->
+        <Grid IsVisible="{Binding IsBusy}"
+              BackgroundColor="#80000000">
+            <VerticalStackLayout HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   Color="{StaticResource White}" />
+                <Label Text="{Binding BusyMessage}"
+                       TextColor="{StaticResource White}"
+                       FontSize="14"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

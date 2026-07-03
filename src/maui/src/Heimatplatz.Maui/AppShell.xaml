@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<shiny:ShinyShell
+    x:Class="Heimatplatz.Maui.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:shiny="clr-namespace:Shiny;assembly=Shiny.Maui.Shell"
+    xmlns:properties="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
+    xmlns:auth="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
+    Title="Heimatplatz"
+    FlyoutBehavior="Flyout">
+
+    <ShellContent
+        Title="Startseite"
+        ContentTemplate="{DataTemplate properties:HomePage}"
+        Route="MainPage" />
+
+    <!-- Login als verstecktes ShellContent, damit absolute Navigation (//Login) beim Logout funktioniert -->
+    <ShellContent
+        Title="Anmelden"
+        ContentTemplate="{DataTemplate auth:LoginPage}"
+        Route="Login"
+        FlyoutItemIsVisible="False" />
+
+    <MenuItem Text="Meine Immobilien" shiny:Navigate.Route="MyProperties" />
+    <MenuItem Text="Favoriten" shiny:Navigate.Route="Favorites" />
+    <MenuItem Text="Blockiert" shiny:Navigate.Route="Blocked" />
+    <MenuItem Text="Immobilie hinzufügen" shiny:Navigate.Route="AddProperty" />
+    <MenuItem Text="Benachrichtigungen" shiny:Navigate.Route="NotificationSettings" />
+    <MenuItem Text="Filtereinstellungen" shiny:Navigate.Route="FilterPreferences" />
+    <MenuItem Text="Profil" shiny:Navigate.Route="UserProfile" />
+    <MenuItem Text="Impressum" shiny:Navigate.Route="Imprint" />
+    <MenuItem Text="Datenschutz" shiny:Navigate.Route="PrivacyPolicy" />
+
+</shiny:ShinyShell>

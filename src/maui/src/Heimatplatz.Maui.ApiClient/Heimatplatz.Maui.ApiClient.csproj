@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- Warnungen aus generiertem OpenAPI-Client-Code (wie Uno Core.ApiClient) -->
+		<!-- CS8669: Nullable annotation context, CS9107: Captured parameter -->
+		<WarningsNotAsErrors>CS8669;CS9107</WarningsNotAsErrors>
+		<NoWarn>$(NoWarn);CS8669;CS9107;IL2026</NoWarn>
+
+		<!-- Trimmer darf generierte Typen nicht entfernen (Konstruktoren fuer JSON-Deserialisierung) -->
+		<IsTrimmable>false</IsTrimmable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Shiny.Mediator" />
+	</ItemGroup>
+
+	<!-- OpenAPI HTTP Contract Generation aus der API (Shiny.Mediator Source Generator) -->
+	<ItemGroup>
+		<MediatorHttp Include="..\..\..\api\openapi\Heimatplatz.Api.json"
+		              Namespace="Heimatplatz.Maui.ApiClient.Generated"
+		              ContractPostfix="HttpRequest"
+		              GenerateJsonConverters="false"
+		              Visible="false" />
+	</ItemGroup>
+
+</Project>

@@ -30,6 +30,17 @@
     <!-- Uno Extensions -->
     <PackageVersion Include="Uno.Extensions.Reactive" Version="7.1.4" />
 
+    <!-- MAUI App -->
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.80" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Shiny.Maui.Shell" Version="6.3.1" />
+    <PackageVersion Include="Shiny.Extensions.MauiHosting" Version="$(ShinyExtensionsVersion)" />
+    <PackageVersion Include="Shiny.Extensions.Serialization" Version="$(ShinyExtensionsVersion)" />
+    <PackageVersion Include="Shiny.Mediator.Maui" Version="$(ShinyMediatorVersion)" />
+    <PackageVersion Include="Shiny.Hosting.Maui" Version="$(ShinyPushVersion)" />
+    <PackageVersion Include="Shiny.Push.FirebaseMessaging" Version="5.0.1" />
+    <PackageVersion Include="CommunityToolkit.Maui" Version="14.2.0" />
+
     <!-- Logging -->
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
 

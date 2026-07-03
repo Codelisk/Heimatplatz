@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.FilterPreferencesPage"
+             x:DataType="vm:FilterPreferencesViewModel"
+             Title="Filtereinstellungen">
+
+    <ContentPage.Resources>
+        <Style x:Key="FilterChipStyle" TargetType="Button">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="MinimumHeightRequest" Value="36" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="16" Padding="16">
+
+                <!-- Speicher-/Fehler-Status -->
+                <Label Text="Wird gespeichert..."
+                       FontSize="12"
+                       IsVisible="{Binding IsSaving}"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                <Border BackgroundColor="#FDECEA"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 6"
+                        Padding="12,8"
+                        IsVisible="{Binding ShowErrorMessage}">
+                    <Label Text="{Binding ErrorMessage}"
+                           FontSize="13"
+                           TextColor="#B22222" />
+                </Border>
+
+                <!-- Immobilientyp -->
+                <Label Text="Immobilientyp"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                <HorizontalStackLayout Spacing="6">
+                    <Button Text="Haus"
+                            Style="{StaticResource FilterChipStyle}"
+                            Command="{Binding ToggleHausCommand}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button"
+                                         Binding="{Binding IsHausSelected}"
+                                         Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="TextColor" Value="{StaticResource White}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button Text="Grundstück"
+                            Style="{StaticResource FilterChipStyle}"
+                            Command="{Binding ToggleGrundstueckCommand}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button"
+                                         Binding="{Binding IsGrundstueckSelected}"
+                                         Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="TextColor" Value="{StaticResource White}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button Text="Zwangsversteigerung"
+                            Style="{StaticResource FilterChipStyle}"
+                            Command="{Binding ToggleZwangsversteigerungCommand}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button"
+                                         Binding="{Binding IsZwangsversteigerungSelected}"
+                                         Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="TextColor" Value="{StaticResource White}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </HorizontalStackLayout>
+
+                <!-- Anbietertyp -->
+                <Label Text="Anbietertyp"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                <HorizontalStackLayout Spacing="6">
+                    <Button Text="Privat"
+                            Style="{StaticResource FilterChipStyle}"
+                            Command="{Binding TogglePrivateCommand}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button"
+                                         Binding="{Binding IsPrivateSelected}"
+                                         Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="TextColor" Value="{StaticResource White}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button Text="Makler"
+                            Style="{StaticResource FilterChipStyle}"
+                            Command="{Binding ToggleBrokerCommand}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button"
+                                         Binding="{Binding IsBrokerSelected}"
+                                         Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="TextColor" Value="{StaticResource White}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </HorizontalStackLayout>
+
+                <!-- Alter -->
+                <Label Text="Alter der Einträge"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                <Picker ItemsSource="{Binding AgeFilterOptions}"
+                        SelectedIndex="{Binding SelectedAgeFilterIndex}" />
+
+                <!-- Sortierung -->
+                <Label Text="Sortierung"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                <Picker ItemsSource="{Binding SortOptionLabels}"
+                        SelectedIndex="{Binding SelectedSortIndex}" />
+
+                <!-- Orte -->
+                <Label Text="Orte"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+
+                <!-- Ausgewaehlte Orte als Chips -->
+                <FlexLayout BindableLayout.ItemsSource="{Binding SelectedOrte}"
+                            Wrap="Wrap"
+                            JustifyContent="Start"
+                            IsVisible="{Binding HasSelectedOrte}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border BackgroundColor="{StaticResource Primary}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="10,5"
+                                    Margin="0,0,6,6">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Label Text="{Binding .}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource White}"
+                                           VerticalOptions="Center" />
+                                    <Label Text="✕"
+                                           FontSize="12"
+                                           TextColor="{StaticResource White}"
+                                           VerticalOptions="Center">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding RemoveOrtCommand, Source={RelativeSource AncestorType={x:Type vm:FilterPreferencesViewModel}}, x:DataType=vm:FilterPreferencesViewModel}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+
+                <!-- Ort-Suche -->
+                <Entry Text="{Binding OrtSearchText}"
+                       Placeholder="Ort oder PLZ suchen..." />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"
+                                     IsVisible="{Binding HasOrtSuggestions}"
+                                     Spacing="0">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="services:LocationGemeindeDto">
+                            <Border StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="8,10"
+                                    Margin="0,0,0,2">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding AddOrtCommand, Source={RelativeSource AncestorType={x:Type vm:FilterPreferencesViewModel}}, x:DataType=vm:FilterPreferencesViewModel}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Label FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0} ({1})">
+                                            <Binding Path="Name" />
+                                            <Binding Path="PostalCode" />
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Label Text="Änderungen werden automatisch gespeichert."
+                       FontSize="11"
+                       Margin="0,8,0,24"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Busy-Overlay -->
+        <Grid BackgroundColor="#40000000"
+              IsVisible="{Binding IsBusy}">
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Center" />
+        </Grid>
+    </Grid>
+</ContentPage>
