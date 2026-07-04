@@ -20,25 +20,16 @@
                     <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="16" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Spacing="8"
-                                         VerticalOptions="Center"
-                                         HorizontalOptions="Center"
-                                         Padding="24,60,24,0">
-                        <Label Text="♡"
-                               FontSize="40"
-                               HorizontalOptions="Center"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
-                        <Label Text="Noch keine Favoriten"
-                               FontSize="16"
-                               FontAttributes="Bold"
-                               HorizontalOptions="Center"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                        <Label Text="Markieren Sie Immobilien als Favoriten, um sie hier zu sehen."
-                               FontSize="13"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                    </VerticalStackLayout>
+                    <Grid Padding="24,60,24,24">
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center">
+                            <Label Text="♡" Style="{StaticResource EmptyStateIcon}" />
+                            <Label Text="Noch keine Favoriten" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="Markieren Sie Immobilien als Favoriten, um sie hier zu sehen."
+                                   Style="{StaticResource EmptyStateHint}" />
+                        </VerticalStackLayout>
+                    </Grid>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="api:PropertyListItemDto">
@@ -60,16 +51,17 @@
         </RefreshView>
 
         <!-- Busy-Overlay -->
-        <Grid BackgroundColor="#40000000"
+        <Grid Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsBusy}">
-            <VerticalStackLayout Spacing="8"
-                                 VerticalOptions="Center"
-                                 HorizontalOptions="Center">
-                <ActivityIndicator IsRunning="{Binding IsBusy}" />
-                <Label Text="{Binding BusyMessage}"
-                       FontSize="13"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-            </VerticalStackLayout>
+            <Border Style="{StaticResource BusyCard}">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" HorizontalOptions="Center" />
+                    <Label Text="{Binding BusyMessage}"
+                           FontSize="13"
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                </VerticalStackLayout>
+            </Border>
         </Grid>
     </Grid>
 </ContentPage>

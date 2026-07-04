@@ -35,6 +35,16 @@
 		<string>remote-notification</string>
 	</array>
 
+	<!-- Usage-Beschreibungen fuer die KI-gestuetzte Inseratserstellung -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Heimatplatz nutzt das Mikrofon, damit Sie die Beschreibung Ihrer Immobilie diktieren können.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Heimatplatz wandelt Ihr Diktat in Text um, um daraus Ihr Inserat zu erstellen.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Heimatplatz nutzt die Kamera, um Fotos und Videos Ihrer Immobilie aufzunehmen.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Heimatplatz greift auf Ihre Fotos zu, um Bilder und Videos Ihrer Immobilie auszuwählen.</string>
+
 	<!-- Deep Link URL Schema -->
 	<key>CFBundleURLTypes</key>
 	<array>

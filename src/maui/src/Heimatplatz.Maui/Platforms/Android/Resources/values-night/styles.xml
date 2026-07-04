@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode: dunkle Bars (OffBlack) mit hellen System-Icons -->
+    <style name="Maui.MainTheme" parent="Maui.MainTheme.Base">
+        <item name="android:statusBarColor">@color/systemBarBackground</item>
+        <item name="android:navigationBarColor">@color/systemBarBackground</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

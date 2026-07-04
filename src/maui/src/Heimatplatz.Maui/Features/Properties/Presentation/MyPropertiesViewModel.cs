@@ -66,10 +66,10 @@ public partial class MyPropertiesViewModel(
     }
 
     /// <summary>
-    /// Navigiert zur AddPropertyPage um eine neue Immobilie zu erstellen
+    /// Navigiert zur Inseratserstellung (KI-Flow auf Phones, manuell sonst)
     /// </summary>
     [RelayCommand]
-    private Task NavigateToAddProperty() => Navigator.NavigateTo("AddProperty");
+    private Task NavigateToAddProperty() => Navigator.NavigateTo(PropertyCreationRoutes.Default);
 
     /// <summary>
     /// Navigiert zur EditPropertyPage um die ausgewaehlte Immobilie zu bearbeiten

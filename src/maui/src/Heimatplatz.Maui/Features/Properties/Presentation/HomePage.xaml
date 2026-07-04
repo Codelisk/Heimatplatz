@@ -9,20 +9,6 @@
              x:DataType="vm:HomeViewModel"
              Title="HEIMATPLATZ">
 
-    <ContentPage.Resources>
-        <!-- Filter-Chip Basis-Style -->
-        <Style x:Key="FilterChipStyle" TargetType="Button">
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="14,6" />
-            <Setter Property="MinimumHeightRequest" Value="36" />
-            <Setter Property="CornerRadius" Value="18" />
-            <Setter Property="BorderWidth" Value="1" />
-            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
-            <Setter Property="BackgroundColor" Value="Transparent" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-        </Style>
-    </ContentPage.Resources>
-
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Filter"
                      shiny:Navigate.Route="FilterPreferences" />
@@ -35,7 +21,9 @@
         <ToolbarItem Text="Meine Immobilien"
                      Order="Secondary"
                      shiny:Navigate.Route="MyProperties" />
-        <ToolbarItem Text="Immobilie hinzufügen"
+        <!-- Route wird im Code-Behind gesetzt: KI-Flow auf Phones, manuell sonst -->
+        <ToolbarItem x:Name="AddPropertyToolbarItem"
+                     Text="Immobilie hinzufügen"
                      Order="Secondary"
                      shiny:Navigate.Route="AddProperty" />
     </ContentPage.ToolbarItems>
@@ -63,15 +51,6 @@
                            VerticalOptions="Center"
                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
 
-                    <Label Grid.Column="1"
-                           Text="{Binding ResultCountText}"
-                           FontSize="12"
-                           FontAttributes="Bold"
-                           HorizontalOptions="End"
-                           VerticalOptions="Center"
-                           Margin="0,0,8,0"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-
                     <Label Grid.Column="2"
                            Text="{Binding FilterToggleGlyph}"
                            FontSize="10"
@@ -85,72 +64,77 @@
                                      IsVisible="{Binding IsFilterExpanded}">
 
                     <!-- Filter-Chips: Immobilientyp -->
-                    <HorizontalStackLayout Spacing="6">
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start">
                         <Button Text="Haus"
                                 Style="{StaticResource FilterChipStyle}"
+                                Margin="0,0,6,6"
                                 Command="{Binding ToggleHausCommand}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button"
                                              Binding="{Binding IsHausSelected}"
                                              Value="True">
-                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Grund"
+                        <Button Text="Grundstück"
                                 Style="{StaticResource FilterChipStyle}"
+                                Margin="0,0,6,6"
                                 Command="{Binding ToggleGrundstueckCommand}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button"
                                              Binding="{Binding IsGrundstueckSelected}"
                                              Value="True">
-                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="ZV"
+                        <Button Text="Zwangsversteigerung"
                                 Style="{StaticResource FilterChipStyle}"
+                                Margin="0,0,6,6"
                                 Command="{Binding ToggleZwangsversteigerungCommand}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button"
                                              Binding="{Binding IsZwangsversteigerungSelected}"
                                              Value="True">
-                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                    </HorizontalStackLayout>
+                    </FlexLayout>
 
                     <!-- Anbietertyp-Chips -->
-                    <HorizontalStackLayout Spacing="6">
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start">
                         <Button Text="Privat"
                                 Style="{StaticResource FilterChipStyle}"
+                                Margin="0,0,6,6"
                                 Command="{Binding TogglePrivateCommand}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button"
                                              Binding="{Binding IsPrivateSelected}"
                                              Value="True">
-                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
                         <Button Text="Makler"
                                 Style="{StaticResource FilterChipStyle}"
+                                Margin="0,0,6,6"
                                 Command="{Binding ToggleBrokerCommand}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button"
                                              Binding="{Binding IsBrokerSelected}"
                                              Value="True">
-                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                    </HorizontalStackLayout>
+                    </FlexLayout>
 
                     <!-- Alters-Filter und Orte -->
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
@@ -195,19 +179,16 @@
                     <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="16" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Spacing="8"
-                                         VerticalOptions="Center"
-                                         HorizontalOptions="Center"
-                                         Padding="0,60,0,0">
-                        <Label Text="—"
-                               FontSize="32"
-                               HorizontalOptions="Center"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
-                        <Label Text="Keine Treffer"
-                               FontSize="14"
-                               HorizontalOptions="Center"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
-                    </VerticalStackLayout>
+                    <Grid Padding="24,60,24,24">
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center">
+                            <Label Text="🔍" Style="{StaticResource EmptyStateIcon}" />
+                            <Label Text="Keine Treffer" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="Passen Sie Ihre Filter an, um mehr Immobilien zu sehen."
+                                   Style="{StaticResource EmptyStateHint}" />
+                        </VerticalStackLayout>
+                    </Grid>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="api:PropertyListItemDto">
@@ -231,16 +212,17 @@
 
         <!-- Busy-Overlay -->
         <Grid Grid.Row="2"
-              BackgroundColor="#40000000"
+              Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsBusy}">
-            <VerticalStackLayout Spacing="8"
-                                 VerticalOptions="Center"
-                                 HorizontalOptions="Center">
-                <ActivityIndicator IsRunning="{Binding IsBusy}" />
-                <Label Text="{Binding BusyMessage}"
-                       FontSize="13"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-            </VerticalStackLayout>
+            <Border Style="{StaticResource BusyCard}">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" HorizontalOptions="Center" />
+                    <Label Text="{Binding BusyMessage}"
+                           FontSize="13"
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                </VerticalStackLayout>
+            </Border>
         </Grid>
     </Grid>
 </ContentPage>

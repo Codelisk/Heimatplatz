@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ueberschreibt Maui.MainTheme aus Microsoft.Maui (App-Ressourcen gewinnen beim Merge):
+         Status-/Navigationsleiste an das Heimatplatz-Design anpassen.
+         Light: weisse Bars mit dunklen System-Icons (windowLightStatusBar, minSdk 23 passt). -->
+    <style name="Maui.MainTheme" parent="Maui.MainTheme.Base">
+        <item name="android:statusBarColor">@color/systemBarBackground</item>
+        <item name="android:navigationBarColor">@color/systemBarBackground</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Ab API 27; aeltere Geraete ignorieren das Attribut -->
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

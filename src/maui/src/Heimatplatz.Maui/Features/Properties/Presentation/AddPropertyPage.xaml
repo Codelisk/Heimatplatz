@@ -10,208 +10,207 @@
 
     <Grid>
         <ScrollView>
-            <VerticalStackLayout Spacing="12" Padding="16">
+            <VerticalStackLayout Spacing="16"
+                                 Padding="16,24"
+                                 MaximumWidthRequest="640"
+                                 HorizontalOptions="Fill">
 
                 <!-- Fehlermeldung -->
-                <Border BackgroundColor="#FDECEA"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 6"
-                        Padding="12,8"
+                <Border Style="{StaticResource ErrorBanner}"
                         IsVisible="{Binding HasError}">
                     <Label Text="{Binding ErrorMessage}"
-                           FontSize="13"
-                           TextColor="#B22222" />
+                           Style="{StaticResource ErrorBannerText}" />
                 </Border>
 
+                <!-- Hinweis auf den KI-Primaerweg (nur Phones) -->
+                <Button Text="✨ Lieber mit KI erstellen? Fotos hochladen und diktieren"
+                        Command="{Binding SwitchToAiCommand}"
+                        Style="{StaticResource LinkButton}"
+                        IsVisible="{Binding ShowAiOption}" />
+
                 <!-- Immobilientyp -->
-                <Label Text="Immobilientyp"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Picker ItemsSource="{Binding PropertyTypes}"
-                        ItemDisplayBinding="{Binding DisplayName, x:DataType=models:PropertyTypeItem}"
-                        SelectedItem="{Binding SelectedPropertyTypeItem}" />
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Immobilientyp"
+                           Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding PropertyTypes}"
+                            ItemDisplayBinding="{Binding DisplayName, x:DataType=models:PropertyTypeItem}"
+                            SelectedItem="{Binding SelectedPropertyTypeItem}" />
+                </VerticalStackLayout>
 
                 <!-- Titel -->
-                <Label Text="Titel"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Entry Text="{Binding Titel}"
-                       Placeholder="z.B. Schönes Einfamilienhaus in ruhiger Lage" />
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Titel"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding Titel}"
+                           Placeholder="z.B. Schönes Einfamilienhaus in ruhiger Lage" />
+                </VerticalStackLayout>
 
                 <!-- Adresse -->
-                <Label Text="Straße"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Entry Text="{Binding Adresse}"
-                       Placeholder="z.B. Musterstraße 42" />
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Straße"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding Adresse}"
+                           Placeholder="z.B. Musterstraße 42" />
+                </VerticalStackLayout>
 
                 <!-- Ort-Auswahl mit Suche -->
-                <Label Text="Ort"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Label Text="{Binding SelectedOrtText}"
-                       FontSize="13"
-                       IsVisible="{Binding HasSelectedOrt}"
-                       TextColor="{StaticResource Primary}" />
-                <Entry Text="{Binding OrtSearchText}"
-                       Placeholder="Ort oder PLZ suchen..." />
-                <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"
-                                     IsVisible="{Binding HasOrtSuggestions}"
-                                     Spacing="0">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="services:LocationGemeindeDto">
-                            <Border StrokeThickness="1"
-                                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                    StrokeShape="RoundRectangle 4"
-                                    Padding="8,10"
-                                    Margin="0,0,0,2">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding SelectGemeindeCommand, Source={RelativeSource AncestorType={x:Type vm:AddPropertyViewModel}}, x:DataType=vm:AddPropertyViewModel}"
-                                                          CommandParameter="{Binding .}" />
-                                </Border.GestureRecognizers>
-                                <Label FontSize="13"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
-                                    <Label.Text>
-                                        <MultiBinding StringFormat="{}{0} ({1})">
-                                            <Binding Path="Name" />
-                                            <Binding Path="PostalCode" />
-                                        </MultiBinding>
-                                    </Label.Text>
-                                </Label>
-                            </Border>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Ort"
+                           Style="{StaticResource FieldLabel}" />
+                    <Label Text="{Binding SelectedOrtText}"
+                           FontSize="13"
+                           IsVisible="{Binding HasSelectedOrt}"
+                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                    <Entry Text="{Binding OrtSearchText}"
+                           Placeholder="Ort oder PLZ suchen..." />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"
+                                         IsVisible="{Binding HasOrtSuggestions}"
+                                         Spacing="0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="services:LocationGemeindeDto">
+                                <Border StrokeThickness="1"
+                                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="8,10"
+                                        Margin="0,0,0,2">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectGemeindeCommand, Source={RelativeSource AncestorType={x:Type vm:AddPropertyViewModel}}, x:DataType=vm:AddPropertyViewModel}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Label FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
+                                        <Label.Text>
+                                            <MultiBinding StringFormat="{}{0} ({1})">
+                                                <Binding Path="Name" />
+                                                <Binding Path="PostalCode" />
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
 
                 <!-- Preis -->
-                <Label Text="Preis (€)"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Entry Text="{Binding Preis}"
-                       Keyboard="Numeric"
-                       Placeholder="z.B. 450000" />
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Preis (€)"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding Preis}"
+                           Keyboard="Numeric"
+                           Placeholder="z.B. 450000" />
+                </VerticalStackLayout>
 
                 <!-- Typspezifische Felder: Haus -->
-                <VerticalStackLayout Spacing="12" IsVisible="{Binding IsHouseType}">
-                    <Label Text="Wohnfläche (m²)"
-                           FontSize="13"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                    <Entry Text="{Binding WohnflaecheM2}"
-                           Keyboard="Numeric"
-                           Placeholder="z.B. 180" />
+                <VerticalStackLayout Spacing="16" IsVisible="{Binding IsHouseType}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Wohnfläche (m²)"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding WohnflaecheM2}"
+                               Keyboard="Numeric"
+                               Placeholder="z.B. 180" />
+                    </VerticalStackLayout>
 
-                    <Label Text="Zimmer"
-                           FontSize="13"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                    <Entry Text="{Binding Zimmer}"
-                           Keyboard="Numeric"
-                           Placeholder="z.B. 5" />
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Zimmer"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Zimmer}"
+                               Keyboard="Numeric"
+                               Placeholder="z.B. 5" />
+                    </VerticalStackLayout>
 
-                    <Label Text="Baujahr"
-                           FontSize="13"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                    <Entry Text="{Binding Baujahr}"
-                           Keyboard="Numeric"
-                           Placeholder="z.B. 1985" />
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Baujahr"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Baujahr}"
+                               Keyboard="Numeric"
+                               Placeholder="z.B. 1985" />
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
 
                 <!-- Grundstücksfläche (Haus + Grundstück) -->
-                <Label Text="Grundstücksfläche (m²)"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Entry Text="{Binding GrundstuecksflaecheM2}"
-                       Keyboard="Numeric"
-                       Placeholder="z.B. 650" />
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Grundstücksfläche (m²)"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding GrundstuecksflaecheM2}"
+                           Keyboard="Numeric"
+                           Placeholder="z.B. 650" />
+                </VerticalStackLayout>
 
                 <!-- Beschreibung -->
-                <Label Text="Beschreibung"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Editor Text="{Binding Beschreibung}"
-                        HeightRequest="120"
-                        Placeholder="Beschreiben Sie die Immobilie (mindestens 50 Zeichen)..." />
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Beschreibung"
+                           Style="{StaticResource FieldLabel}" />
+                    <Editor Text="{Binding Beschreibung}"
+                            HeightRequest="120"
+                            Placeholder="Beschreiben Sie die Immobilie (mindestens 50 Zeichen)..." />
+                </VerticalStackLayout>
 
                 <!-- Bilder -->
-                <Label Text="Bilder"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <Label Text="Noch keine Bilder hinzugefügt"
-                       FontSize="12"
-                       IsVisible="{Binding HasNoImages}"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                <FlexLayout BindableLayout.ItemsSource="{Binding Images}"
-                            Wrap="Wrap"
-                            JustifyContent="Start"
-                            IsVisible="{Binding HasImages}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="models:ImageItem">
-                            <Grid Margin="0,0,8,8">
-                                <Border StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 6"
-                                        WidthRequest="90"
-                                        HeightRequest="90">
-                                    <Image Source="{Binding DisplaySource}"
-                                           Aspect="AspectFill" />
-                                </Border>
-                                <Button Text="✕"
-                                        FontSize="12"
-                                        TextColor="White"
-                                        BackgroundColor="#B0000000"
-                                        WidthRequest="26"
-                                        HeightRequest="26"
-                                        CornerRadius="13"
-                                        Padding="0"
-                                        VerticalOptions="Start"
-                                        HorizontalOptions="End"
-                                        Margin="4"
-                                        Command="{Binding RemoveImageCommand, Source={RelativeSource AncestorType={x:Type vm:AddPropertyViewModel}}, x:DataType=vm:AddPropertyViewModel}"
-                                        CommandParameter="{Binding .}" />
-                            </Grid>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </FlexLayout>
-                <Button Text="Bild hinzufügen"
-                        Command="{Binding AddPhotoCommand}"
-                        BackgroundColor="Transparent"
-                        BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Bilder"
+                           Style="{StaticResource FieldLabel}" />
+                    <Label Text="Noch keine Bilder hinzugefügt"
+                           Style="{StaticResource Caption}"
+                           IsVisible="{Binding HasNoImages}" />
+                    <FlexLayout BindableLayout.ItemsSource="{Binding Images}"
+                                Wrap="Wrap"
+                                JustifyContent="Start"
+                                IsVisible="{Binding HasImages}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:ImageItem">
+                                <Grid Margin="0,0,8,8">
+                                    <Border StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 6"
+                                            WidthRequest="90"
+                                            HeightRequest="90">
+                                        <Image Source="{Binding DisplaySource}"
+                                               Aspect="AspectFill" />
+                                    </Border>
+                                    <Button Text="✕"
+                                            FontSize="12"
+                                            TextColor="White"
+                                            BackgroundColor="#B0000000"
+                                            WidthRequest="26"
+                                            HeightRequest="26"
+                                            CornerRadius="13"
+                                            Padding="0"
+                                            VerticalOptions="Start"
+                                            HorizontalOptions="End"
+                                            Margin="4"
+                                            Command="{Binding RemoveImageCommand, Source={RelativeSource AncestorType={x:Type vm:AddPropertyViewModel}}, x:DataType=vm:AddPropertyViewModel}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                    <Button Text="＋ Bild hinzufügen"
+                            Command="{Binding AddPhotoCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                </VerticalStackLayout>
 
                 <!-- Aktionen -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,12,0,24">
                     <Button Grid.Column="0"
                             Text="Abbrechen"
                             Command="{Binding CancelCommand}"
-                            BackgroundColor="Transparent"
-                            BorderWidth="1"
-                            BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            Style="{StaticResource SecondaryButton}"
+                            HeightRequest="52" />
                     <Button Grid.Column="1"
                             Text="Speichern"
                             Command="{Binding SavePropertyCommand}"
-                            BackgroundColor="{StaticResource Primary}"
-                            TextColor="{StaticResource White}" />
+                            Style="{StaticResource PrimaryButton}" />
                 </Grid>
             </VerticalStackLayout>
         </ScrollView>
 
         <!-- Busy-Overlay -->
-        <Grid BackgroundColor="#40000000"
+        <Grid Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsBusy}">
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               VerticalOptions="Center"
-                               HorizontalOptions="Center" />
+            <Border Style="{StaticResource BusyCard}">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   HorizontalOptions="Center" />
+            </Border>
         </Grid>
     </Grid>
 </ContentPage>

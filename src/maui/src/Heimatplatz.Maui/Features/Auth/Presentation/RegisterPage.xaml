@@ -9,46 +9,35 @@
     <Grid>
 
         <ScrollView>
-            <VerticalStackLayout Padding="24,28" Spacing="24">
+            <VerticalStackLayout Padding="24,32"
+                                 Spacing="24"
+                                 MaximumWidthRequest="440"
+                                 HorizontalOptions="Fill">
 
                 <!-- Brand Header -->
                 <Label Text="HEIMATPLATZ"
-                       FontSize="16"
-                       FontAttributes="Bold"
-                       CharacterSpacing="6"
-                       TextColor="{StaticResource Primary}"
-                       HorizontalOptions="Center" />
+                       Style="{StaticResource BrandWordmark}" />
 
                 <!-- Title Section -->
                 <VerticalStackLayout Spacing="8">
                     <Label Text="Konto erstellen"
-                           FontSize="24"
-                           FontAttributes="Bold" />
+                           Style="{StaticResource PageTitle}" />
                     <Label Text="Registrieren Sie sich für exklusive Angebote"
-                           FontSize="14"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                           Style="{StaticResource PageSubtitle}" />
                 </VerticalStackLayout>
 
                 <!-- Error Message -->
                 <Border IsVisible="{Binding HasError}"
-                        BackgroundColor="#D32F2F"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 8"
-                        Padding="14">
+                        Style="{StaticResource ErrorBanner}">
                     <Label Text="{Binding ErrorMessage}"
-                           TextColor="{StaticResource White}"
-                           FontSize="13" />
+                           Style="{StaticResource ErrorBannerText}" />
                 </Border>
 
                 <!-- Success Message -->
                 <Border IsVisible="{Binding IsSuccess}"
-                        BackgroundColor="#2E7D32"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 8"
-                        Padding="14">
+                        Style="{StaticResource SuccessBanner}">
                     <Label Text="{Binding SuccessMessage}"
-                           TextColor="{StaticResource White}"
-                           FontSize="13" />
+                           Style="{StaticResource SuccessBannerText}" />
                 </Border>
 
                 <!-- Form Fields -->
@@ -60,8 +49,7 @@
                         <!-- Vorname -->
                         <VerticalStackLayout Grid.Column="0" Spacing="6">
                             <Label Text="Vorname"
-                                   FontSize="13"
-                                   FontAttributes="Bold" />
+                                   Style="{StaticResource FieldLabel}" />
                             <Entry Text="{Binding Vorname}"
                                    Placeholder="Max" />
                         </VerticalStackLayout>
@@ -69,8 +57,7 @@
                         <!-- Nachname -->
                         <VerticalStackLayout Grid.Column="1" Spacing="6">
                             <Label Text="Nachname"
-                                   FontSize="13"
-                                   FontAttributes="Bold" />
+                                   Style="{StaticResource FieldLabel}" />
                             <Entry Text="{Binding Nachname}"
                                    Placeholder="Mustermann" />
                         </VerticalStackLayout>
@@ -79,8 +66,7 @@
                     <!-- E-Mail -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="E-Mail Adresse"
-                               FontSize="13"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource FieldLabel}" />
                         <Entry Text="{Binding Email}"
                                Placeholder="max@beispiel.at"
                                Keyboard="Email" />
@@ -89,8 +75,7 @@
                     <!-- Passwort -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Passwort"
-                               FontSize="13"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource FieldLabel}" />
                         <Entry Text="{Binding Passwort}"
                                Placeholder="Mindestens 8 Zeichen"
                                IsPassword="True" />
@@ -99,8 +84,7 @@
                     <!-- Passwort bestaetigen -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Passwort bestätigen"
-                               FontSize="13"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource FieldLabel}" />
                         <Entry Text="{Binding PasswortBestaetigung}"
                                Placeholder="Passwort wiederholen"
                                IsPassword="True"
@@ -110,11 +94,9 @@
                     <!-- Rollenauswahl -->
                     <VerticalStackLayout Spacing="10" Margin="0,6,0,0">
                         <Label Text="Ich möchte..."
-                               FontSize="13"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource FieldLabel}" />
                         <Label Text="Wählen Sie mindestens eine Option"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                               Style="{StaticResource Caption}"
                                Margin="0,-4,0,4" />
 
                         <!-- Käufer Checkbox -->
@@ -124,11 +106,9 @@
                                       VerticalOptions="Start" />
                             <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                 <Label Text="Immobilien suchen"
-                                       FontSize="14"
-                                       FontAttributes="Bold" />
+                                       Style="{StaticResource BodyStrong}" />
                                 <Label Text="Als Käufer Angebote entdecken"
-                                       FontSize="12"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                       Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                         </Grid>
 
@@ -139,11 +119,9 @@
                                       VerticalOptions="Start" />
                             <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                 <Label Text="Immobilien anbieten"
-                                       FontSize="14"
-                                       FontAttributes="Bold" />
+                                       Style="{StaticResource BodyStrong}" />
                                 <Label Text="Als Verkäufer Objekte inserieren"
-                                       FontSize="12"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                       Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                         </Grid>
 
@@ -152,8 +130,7 @@
                                              Margin="28,6,0,0"
                                              IsVisible="{Binding IsSeller}">
                             <Label Text="Ich biete an als:"
-                                   FontSize="13"
-                                   FontAttributes="Bold" />
+                                   Style="{StaticResource FieldLabel}" />
 
                             <!-- Privatperson -->
                             <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
@@ -161,11 +138,9 @@
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
                                         <Label Text="Privatperson"
-                                               FontSize="14"
-                                               FontAttributes="Bold" />
+                                               Style="{StaticResource BodyStrong}" />
                                         <Label Text="Eigene Immobilie verkaufen"
-                                               FontSize="12"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                               Style="{StaticResource Caption}" />
                                     </VerticalStackLayout>
                                 </RadioButton.Content>
                             </RadioButton>
@@ -176,11 +151,9 @@
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
                                         <Label Text="Makler / Agentur"
-                                               FontSize="14"
-                                               FontAttributes="Bold" />
-                                        <Label Text="Als Immobilienmakler taetig"
-                                               FontSize="12"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                               Style="{StaticResource BodyStrong}" />
+                                        <Label Text="Als Immobilienmakler tätig"
+                                               Style="{StaticResource Caption}" />
                                     </VerticalStackLayout>
                                 </RadioButton.Content>
                             </RadioButton>
@@ -190,8 +163,7 @@
                                                  Margin="0,6,0,0"
                                                  IsVisible="{Binding IsBrokerSeller}">
                                 <Label Text="Firmenname"
-                                       FontSize="13"
-                                       FontAttributes="Bold" />
+                                       Style="{StaticResource FieldLabel}" />
                                 <Entry Text="{Binding CompanyName}"
                                        Placeholder="z.B. RE/MAX Premium" />
                             </VerticalStackLayout>
@@ -203,9 +175,7 @@
                 <!-- Register Button -->
                 <Button Text="Konto erstellen"
                         Command="{Binding RegisterCommand}"
-                        FontAttributes="Bold"
-                        FontSize="15"
-                        HeightRequest="52" />
+                        Style="{StaticResource PrimaryButton}" />
 
                 <!-- Login Link -->
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
@@ -215,13 +185,8 @@
                            VerticalOptions="Center" />
                     <Button Text="Anmelden"
                             Command="{Binding GoToLoginCommand}"
-                            BackgroundColor="Transparent"
-                            TextColor="{StaticResource Primary}"
-                            FontAttributes="Bold"
-                            FontSize="14"
-                            Padding="0"
-                            MinimumHeightRequest="0"
-                            MinimumWidthRequest="0" />
+                            Style="{StaticResource LinkButton}"
+                            FontSize="14" />
                 </HorizontalStackLayout>
 
             </VerticalStackLayout>
@@ -229,17 +194,16 @@
 
         <!-- Busy Overlay -->
         <Grid IsVisible="{Binding IsBusy}"
-              BackgroundColor="#80000000">
-            <VerticalStackLayout HorizontalOptions="Center"
-                                 VerticalOptions="Center"
-                                 Spacing="12">
-                <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                   Color="{StaticResource White}" />
-                <Label Text="{Binding BusyMessage}"
-                       TextColor="{StaticResource White}"
-                       FontSize="14"
-                       HorizontalOptions="Center" />
-            </VerticalStackLayout>
+              Style="{StaticResource BusyOverlay}">
+            <Border Style="{StaticResource BusyCard}">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" HorizontalOptions="Center" />
+                    <Label Text="{Binding BusyMessage}"
+                           FontSize="13"
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                </VerticalStackLayout>
+            </Border>
         </Grid>
 
     </Grid>

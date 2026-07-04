@@ -10,7 +10,7 @@
         <VerticalStackLayout Spacing="0">
 
             <!-- Hero Header mit Avatar -->
-            <Border BackgroundColor="{StaticResource Primary}"
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}"
                     StrokeThickness="0"
                     Padding="24,48,24,32">
                 <VerticalStackLayout HorizontalOptions="Center" Spacing="16">
@@ -55,107 +55,81 @@
             </Border>
 
             <!-- Info-Karten -->
-            <VerticalStackLayout Padding="20,24" Spacing="16">
+            <VerticalStackLayout Padding="16,24"
+                                 Spacing="16"
+                                 MaximumWidthRequest="600"
+                                 HorizontalOptions="Fill">
 
                 <!-- E-Mail Karte -->
-                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="16">
+                <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="E-Mail"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                               Style="{StaticResource Caption}" />
                         <Label Text="{Binding UserEmail}"
-                               FontSize="15"
-                               FontAttributes="Bold"
+                               Style="{StaticResource BodyStrong}"
                                LineBreakMode="WordWrap" />
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Rolle: Käufer -->
-                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="16"
+                <Border Style="{StaticResource Card}"
                         IsVisible="{Binding IsBuyer}">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Rolle"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                               Style="{StaticResource Caption}" />
                         <Label Text="Käufer"
-                               FontSize="15"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource BodyStrong}" />
                         <Label Text="Suche nach Immobilien und Anfragen stellen"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
-                               LineBreakMode="WordWrap" />
+                               Style="{StaticResource Caption}" />
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Rolle: Verkäufer -->
-                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="16"
+                <Border Style="{StaticResource Card}"
                         IsVisible="{Binding IsSeller}">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Rolle"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                               Style="{StaticResource Caption}" />
                         <Label Text="Verkäufer"
-                               FontSize="15"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource BodyStrong}" />
                         <Label Text="Immobilien anbieten und verwalten"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
-                               LineBreakMode="WordWrap" />
+                               Style="{StaticResource Caption}" />
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Konto-Status -->
-                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="16">
+                <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Konto-Status"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                               Style="{StaticResource Caption}" />
                         <Label Text="Aktiv"
-                               FontSize="15"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource BodyStrong}" />
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Abmelden -->
                 <Button Text="Abmelden"
                         Command="{Binding LogoutCommand}"
+                        Style="{StaticResource SecondaryButton}"
                         FontAttributes="Bold"
                         FontSize="15"
                         HeightRequest="52"
                         Margin="0,8,0,0" />
 
                 <!-- Gefahrenzone: Konto löschen -->
-                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="20"
+                <Border Style="{StaticResource Card}"
                         Margin="0,8,0,40">
                     <VerticalStackLayout Spacing="12">
                         <Label Text="Konto löschen"
-                               FontSize="16"
-                               FontAttributes="Bold" />
+                               Style="{StaticResource CardTitle}"
+                               TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
                         <Label Text="Wenn Sie Ihr Konto löschen, werden Ihr Profil, Ihre Inserate, Favoriten, Blockierungen und Benachrichtigungs-Einstellungen unwiderruflich entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
-                               FontSize="13"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
-                               LineBreakMode="WordWrap" />
+                               Style="{StaticResource Caption}" />
 
                         <HorizontalStackLayout Spacing="12">
                             <Button Text="Konto löschen"
                                     Command="{Binding DeleteAccountCommand}"
-                                    BackgroundColor="#D32F2F"
-                                    TextColor="{StaticResource White}"
+                                    Style="{StaticResource DangerButton}"
                                     HorizontalOptions="Start" />
 
                             <ActivityIndicator IsRunning="{Binding IsDeletingAccount}"

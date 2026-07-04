@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#512BD4</color>
-    <color name="colorPrimaryDark">#2B0B98</color>
-    <color name="colorAccent">#2B0B98</color>
+    <!-- Heimatplatz Design: monochrom Schwarz/Weiss/Slate (siehe Resources/Styles/Colors.xaml) -->
+    <color name="colorPrimary">#000000</color>
+    <color name="colorPrimaryDark">#1F1F1F</color>
+    <color name="colorAccent">#334155</color>
+    <!-- Status-/Navigationsleiste: passend zur Shell-NavBar (White / OffBlack) -->
+    <color name="systemBarBackground">#FFFFFF</color>
 </resources>

@@ -9,10 +9,31 @@
     Title="Heimatplatz"
     FlyoutBehavior="Flyout">
 
+    <Shell.FlyoutHeader>
+        <Grid Padding="20,32,20,20"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="HEIMATPLATZ"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       CharacterSpacing="4"
+                       TextColor="{StaticResource White}" />
+                <Label Text="Immobilien in Ihrer Region"
+                       FontSize="12"
+                       TextColor="{StaticResource Gray300}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <!-- Startseite als verstecktes ShellContent; der Flyout-Eintrag ist ein MenuItem mit
+         absoluter Route, damit der Navigation-Stack auch von gepushten Seiten
+         (z.B. Meine Immobilien) zurueck zur Startseite aufgeloest wird.
+         Ein sichtbares FlyoutItem wuerde bei erneutem Klick auf das aktive Item nichts tun. -->
     <ShellContent
         Title="Startseite"
         ContentTemplate="{DataTemplate properties:HomePage}"
-        Route="MainPage" />
+        Route="MainPage"
+        FlyoutItemIsVisible="False" />
 
     <!-- Login als verstecktes ShellContent, damit absolute Navigation (//Login) beim Logout funktioniert -->
     <ShellContent
@@ -21,10 +42,12 @@
         Route="Login"
         FlyoutItemIsVisible="False" />
 
+    <MenuItem Text="Startseite" shiny:Navigate.Route="///MainPage" />
     <MenuItem Text="Meine Immobilien" shiny:Navigate.Route="MyProperties" />
     <MenuItem Text="Favoriten" shiny:Navigate.Route="Favorites" />
     <MenuItem Text="Blockiert" shiny:Navigate.Route="Blocked" />
-    <MenuItem Text="Immobilie hinzufügen" shiny:Navigate.Route="AddProperty" />
+    <!-- Route wird im Code-Behind gesetzt: KI-Flow auf Phones, manuell sonst -->
+    <MenuItem x:Name="AddPropertyMenuItem" Text="Immobilie hinzufügen" shiny:Navigate.Route="AddProperty" />
     <MenuItem Text="Benachrichtigungen" shiny:Navigate.Route="NotificationSettings" />
     <MenuItem Text="Filtereinstellungen" shiny:Navigate.Route="FilterPreferences" />
     <MenuItem Text="Profil" shiny:Navigate.Route="UserProfile" />

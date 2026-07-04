@@ -24,6 +24,26 @@
     <Color x:Key="BadgeForeground">#64748B</Color>
     <Color x:Key="Placeholder">#E0E0E0</Color>
 
+    <!-- Semantische Statusfarben (Light/Dark) -->
+    <Color x:Key="Danger">#D32F2F</Color>
+    <Color x:Key="DangerDark">#EF5350</Color>
+    <Color x:Key="ErrorBannerBackground">#FDECEA</Color>
+    <Color x:Key="ErrorBannerBackgroundDark">#3B1F1F</Color>
+    <Color x:Key="ErrorBannerForeground">#B22222</Color>
+    <Color x:Key="ErrorBannerForegroundDark">#F2B8B5</Color>
+    <Color x:Key="SuccessBannerBackground">#E8F5E9</Color>
+    <Color x:Key="SuccessBannerBackgroundDark">#1E3B24</Color>
+    <Color x:Key="SuccessBannerForeground">#2E7D32</Color>
+    <Color x:Key="SuccessBannerForegroundDark">#A5D6A7</Color>
+    <Color x:Key="FavoriteRed">#FF6B6B</Color>
+
+    <!-- Flaechen fuer Karten/Overlays -->
+    <Color x:Key="CardBackground">#F7F7F9</Color>
+    <Color x:Key="CardBackgroundDark">#2B2B33</Color>
+    <Color x:Key="DividerColor">#E5E5EA</Color>
+    <Color x:Key="DividerColorDark">#3F3F49</Color>
+    <Color x:Key="ScrimColor">#66000000</Color>
+
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
     <Color x:Key="Magenta">#D600AA</Color>

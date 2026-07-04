@@ -36,6 +36,8 @@
 		<!-- iOS Push Entitlements (aps-environment) -->
 		<CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">Platforms\iOS\Entitlements.plist</CodesignEntitlements>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+		<!-- MAUI DevFlow braucht in Debug-Builds eingehende Netzwerkverbindungen (In-App-HTTP-Server) -->
+		<CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst' AND '$(Configuration)' == 'Debug'">Platforms\MacCatalyst\Entitlements.Debug.plist</CodesignEntitlements>
 		<!-- Android minimum SDK 23 (Firebase-Anforderung, wie Uno-App) -->
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
@@ -47,7 +49,7 @@
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#FFFEFEFE" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FEFEFE" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FEFEFE" BaseSize="256,256" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
@@ -82,6 +84,16 @@
 		<PackageReference Include="Shiny.Hosting.Maui" />
 		<PackageReference Include="Shiny.Push" />
 		<PackageReference Include="Shiny.Notifications" />
+	</ItemGroup>
+
+	<!-- MAUI DevFlow (Debug-only Runtime-Automation/-Diagnose) -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.DevFlow.Agent" />
+	</ItemGroup>
+
+	<!-- Shiny.Speech: Diktat fuer KI-gestuetzte Inseratserstellung (nur Android/iOS Phones) -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-android')) OR $(TargetFramework.Contains('-ios'))">
+		<PackageReference Include="Shiny.Speech" />
 	</ItemGroup>
 
 	<!-- Android In-App Updates (Google Play Core) -->

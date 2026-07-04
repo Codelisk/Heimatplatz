@@ -6,6 +6,7 @@ using Heimatplatz.Maui.Features.Notifications.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.DevFlow.Agent;
 using Shiny;
 using Shiny.Mediator;
 
@@ -27,9 +28,17 @@ public static class MauiProgram
             });
 
         // API-Endpunkt fuer den generierten Shiny.Mediator OpenAPI-Client
+        var apiBaseUrl = "https://heimatplatz-api.azurewebsites.net";
+#if DEBUG && ANDROID
+        // Debug im Android-Emulator: lokale API am Host (10.0.2.2 = Host-Loopback)
+        if (DeviceInfo.Current.DeviceType == DeviceType.Virtual)
+        {
+            apiBaseUrl = "http://10.0.2.2:5292";
+        }
+#endif
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Mediator:Http:Heimatplatz.Maui.ApiClient.Generated.*"] = "https://heimatplatz-api.azurewebsites.net"
+            ["Mediator:Http:Heimatplatz.Maui.ApiClient.Generated.*"] = apiBaseUrl
         });
 
         // Shiny-Serializer VOR AddShinyMediator konfigurieren (wie Uno Core.Startup):
@@ -66,6 +75,11 @@ public static class MauiProgram
         // Generierte OpenAPI-HTTP-Handler (Shiny.Mediator MediatorHttp, Projekt Heimatplatz.Maui.ApiClient)
         builder.Services.AddApiClientFeature();
 
+#if ANDROID || IOS
+        // Shiny.Speech: Speech-to-Text fuer das Diktat der KI-gestuetzten Inseratserstellung (Phones)
+        builder.Services.AddSpeechToText();
+#endif
+
         // Features
         builder.Services.AddNotificationsFeature();
         builder.Services.AddAppUpdateFeature();
@@ -73,6 +87,7 @@ public static class MauiProgram
 
 #if DEBUG
         builder.Logging.AddDebug();
+        builder.AddMauiDevFlowAgent();
 #endif
 
         return builder.Build();

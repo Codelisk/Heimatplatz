@@ -165,7 +165,7 @@
 
             <!-- Content: Zwei-Spalten Layout -->
             <Grid Grid.Row="1"
-                  Padding="12,10"
+                  Padding="14,12"
                   ColumnDefinitions="*,Auto">
 
                 <!-- Links: Ort, Adresse, Titel, Anbieter, Datum -->
@@ -174,7 +174,7 @@
                                      VerticalOptions="Center">
 
                     <Label x:Name="OrtText"
-                           FontSize="14"
+                           FontSize="15"
                            FontAttributes="Bold"
                            LineBreakMode="TailTruncation"
                            MaxLines="1"

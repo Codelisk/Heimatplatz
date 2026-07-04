@@ -10,6 +10,12 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Groessere Request-Bodies fuer Base64-Video-Uploads der KI-Inseratserstellung
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 150 * 1024 * 1024; // 150 MB
+});
+
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient("ImageProxy");
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
@@ -116,6 +122,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapEndpoints();
+
+// Health-Endpoint fuer Monitoring und Integrationstests
+app.MapGet("/health", () => Results.Ok(new { Status = "Healthy" })).ExcludeFromDescription();
 
 // Image proxy endpoint - bypasses CORS for external image URLs (e.g. edikte.justiz.gv.at)
 app.MapGet("/api/images/proxy", async (string url, IHttpClientFactory httpClientFactory, HttpContext ctx) =>

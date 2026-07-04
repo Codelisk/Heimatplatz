@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:services="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.AiAddPropertyPage"
+             x:DataType="vm:AiAddPropertyViewModel"
+             Title="Inserat erstellen">
+
+    <Grid>
+
+        <!-- ============ PHASE 0: EINGABE ============ -->
+        <ScrollView IsVisible="{Binding IsInputPhase}">
+            <VerticalStackLayout Spacing="16"
+                                 Padding="16,24"
+                                 MaximumWidthRequest="640"
+                                 HorizontalOptions="Fill">
+
+                <!-- Fehlermeldung -->
+                <Border Style="{StaticResource ErrorBanner}"
+                        IsVisible="{Binding HasError}">
+                    <Label Text="{Binding ErrorMessage}"
+                           Style="{StaticResource ErrorBannerText}" />
+                </Border>
+
+                <!-- Hero -->
+                <VerticalStackLayout Spacing="6" Margin="0,0,0,4">
+                    <Label Text="✨ Inserat mit KI erstellen"
+                           Style="{StaticResource PageTitle}" />
+                    <Label Text="Fotos aufnehmen, Beschreibung diktieren – die KI übernimmt den Rest."
+                           Style="{StaticResource PageSubtitle}" />
+                </VerticalStackLayout>
+
+                <!-- Schritt 1: Fotos & Videos -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                            <Border Grid.Column="0"
+                                    WidthRequest="26" HeightRequest="26"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 13"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                    VerticalOptions="Center">
+                                <Label Text="1"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                            </Border>
+                            <Label Grid.Column="1"
+                                   Text="Fotos &amp; Videos"
+                                   Style="{StaticResource SectionHeader}"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="2"
+                                   Text="{Binding MediaCountText}"
+                                   Style="{StaticResource Caption}"
+                                   IsVisible="{Binding HasMedia}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <Label Text="Außen- und Innenaufnahmen helfen der KI, Ihre Immobilie treffend zu beschreiben."
+                               Style="{StaticResource Caption}" />
+
+                        <FlexLayout BindableLayout.ItemsSource="{Binding Media}"
+                                    Wrap="Wrap"
+                                    JustifyContent="Start"
+                                    IsVisible="{Binding HasMedia}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:AiMediaItem">
+                                    <Grid Margin="0,0,8,8">
+                                        <!-- Foto-Kachel -->
+                                        <Border StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 8"
+                                                WidthRequest="90"
+                                                HeightRequest="90"
+                                                IsVisible="{Binding IsPhoto}">
+                                            <Image Source="{Binding DisplaySource}"
+                                                   Aspect="AspectFill" />
+                                        </Border>
+                                        <!-- Video-Kachel -->
+                                        <Border StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 8"
+                                                WidthRequest="90"
+                                                HeightRequest="90"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray600}}"
+                                                IsVisible="{Binding IsVideo}">
+                                            <VerticalStackLayout Spacing="2"
+                                                                 HorizontalOptions="Center"
+                                                                 VerticalOptions="Center">
+                                                <Label Text="▶"
+                                                       FontSize="22"
+                                                       HorizontalOptions="Center"
+                                                       TextColor="{StaticResource White}" />
+                                                <Label Text="{Binding DisplaySize}"
+                                                       FontSize="10"
+                                                       HorizontalOptions="Center"
+                                                       TextColor="{StaticResource Gray300}" />
+                                            </VerticalStackLayout>
+                                        </Border>
+                                        <Button Text="✕"
+                                                FontSize="12"
+                                                TextColor="White"
+                                                BackgroundColor="#B0000000"
+                                                WidthRequest="26"
+                                                HeightRequest="26"
+                                                CornerRadius="13"
+                                                Padding="0"
+                                                VerticalOptions="Start"
+                                                HorizontalOptions="End"
+                                                Margin="4"
+                                                Command="{Binding RemoveMediaCommand, Source={RelativeSource AncestorType={x:Type vm:AiAddPropertyViewModel}}, x:DataType=vm:AiAddPropertyViewModel}"
+                                                CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
+                              ColumnSpacing="10" RowSpacing="10">
+                            <Button Grid.Row="0" Grid.Column="0"
+                                    Text="📷 Foto aufnehmen"
+                                    Command="{Binding TakePhotoCommand}"
+                                    Style="{StaticResource SecondaryButton}" />
+                            <Button Grid.Row="0" Grid.Column="1"
+                                    Text="🖼 Aus Galerie"
+                                    Command="{Binding PickPhotosCommand}"
+                                    Style="{StaticResource SecondaryButton}" />
+                            <Button Grid.Row="1" Grid.Column="0"
+                                    Text="🎬 Video aufnehmen"
+                                    Command="{Binding RecordVideoCommand}"
+                                    Style="{StaticResource SecondaryButton}" />
+                            <Button Grid.Row="1" Grid.Column="1"
+                                    Text="🎞 Video wählen"
+                                    Command="{Binding PickVideoCommand}"
+                                    Style="{StaticResource SecondaryButton}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Schritt 2: Diktat -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <Border Grid.Column="0"
+                                    WidthRequest="26" HeightRequest="26"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 13"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                    VerticalOptions="Center">
+                                <Label Text="2"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                            </Border>
+                            <Label Grid.Column="1"
+                                   Text="Immobilie beschreiben"
+                                   Style="{StaticResource SectionHeader}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Mikrofon-Button mit Puls-Ring -->
+                        <Grid HeightRequest="120"
+                              IsVisible="{Binding DictationSupported}">
+                            <Ellipse x:Name="PulseRing"
+                                     WidthRequest="84"
+                                     HeightRequest="84"
+                                     Fill="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}"
+                                     Opacity="0"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     InputTransparent="True" />
+                            <Border WidthRequest="84"
+                                    HeightRequest="84"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 42"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border"
+                                                 Binding="{Binding IsListening}"
+                                                 Value="True">
+                                        <Setter Property="BackgroundColor"
+                                                Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleDictationCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="{Binding MicButtonText}"
+                                       FontSize="30"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                            </Border>
+                        </Grid>
+
+                        <Label Text="{Binding MicHintText}"
+                               Style="{StaticResource Caption}"
+                               HorizontalOptions="Center"
+                               IsVisible="{Binding DictationSupported}" />
+
+                        <!-- Live-Zwischenstand waehrend des Sprechens -->
+                        <Label Text="{Binding LivePartial}"
+                               FontAttributes="Italic"
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               IsVisible="{Binding HasLivePartial}" />
+
+                        <Editor Text="{Binding DictatedText}"
+                                HeightRequest="120"
+                                Placeholder="Oder Beschreibung hier eintippen: Lage, Zimmer, Flächen, Baujahr, Ausstattung…" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Schritt 3: Eckdaten (manuell, ohne KI) -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <Border Grid.Column="0"
+                                    WidthRequest="26" HeightRequest="26"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 13"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                    VerticalOptions="Center">
+                                <Label Text="3"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                            </Border>
+                            <Label Grid.Column="1"
+                                   Text="Eckdaten"
+                                   Style="{StaticResource SectionHeader}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <Label Text="Preis und Adresse legen Sie selbst fest – hier entscheidet keine KI."
+                               Style="{StaticResource Caption}" />
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Preis (€)"
+                                   Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding Preis}"
+                                   Keyboard="Numeric"
+                                   Placeholder="z.B. 450000" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Straße"
+                                   Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding Adresse}"
+                                   Placeholder="z.B. Musterstraße 42" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Ort"
+                                   Style="{StaticResource FieldLabel}" />
+                            <Label Text="{Binding SelectedOrtText}"
+                                   FontSize="13"
+                                   IsVisible="{Binding HasSelectedOrt}"
+                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                            <Entry Text="{Binding OrtSearchText}"
+                                   Placeholder="Ort oder PLZ suchen..." />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"
+                                                 IsVisible="{Binding HasOrtSuggestions}"
+                                                 Spacing="0">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="services:LocationGemeindeDto">
+                                        <Border StrokeThickness="1"
+                                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                                StrokeShape="RoundRectangle 4"
+                                                Padding="8,10"
+                                                Margin="0,0,0,2">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SelectGemeindeCommand, Source={RelativeSource AncestorType={x:Type vm:AiAddPropertyViewModel}}, x:DataType=vm:AiAddPropertyViewModel}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <Label FontSize="13"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
+                                                <Label.Text>
+                                                    <MultiBinding StringFormat="{}{0} ({1})">
+                                                        <Binding Path="Name" />
+                                                        <Binding Path="PostalCode" />
+                                                    </MultiBinding>
+                                                </Label.Text>
+                                            </Label>
+                                        </Border>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Aktionen -->
+                <Button Text="✨ Inserat mit KI erstellen"
+                        Command="{Binding StartAiCreationCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Margin="0,8,0,0" />
+                <Button Text="Lieber manuell erfassen"
+                        Command="{Binding SwitchToManualCommand}"
+                        Style="{StaticResource LinkButton}"
+                        Margin="0,0,0,24" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ============ PHASE 1: KI-ANALYSE ============ -->
+        <Grid IsVisible="{Binding IsAnalyzingPhase}">
+            <VerticalStackLayout Spacing="20"
+                                 Padding="32"
+                                 MaximumWidthRequest="480"
+                                 HorizontalOptions="Fill"
+                                 VerticalOptions="Center">
+
+                <ActivityIndicator IsRunning="{Binding IsAnalyzingPhase}"
+                                   WidthRequest="56"
+                                   HeightRequest="56"
+                                   HorizontalOptions="Center" />
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Ihr Inserat entsteht"
+                           Style="{StaticResource PageTitle}"
+                           HorizontalOptions="Center" />
+                    <Label Text="{Binding AnalysisStatusText}"
+                           Style="{StaticResource PageSubtitle}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+
+                <!-- Fortschritts-Schritte -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="24,*" ColumnSpacing="10">
+                            <Label Grid.Column="0" FontSize="15" HorizontalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding UploadStepDone}" Value="True">
+                                        <Setter Property="Text" Value="✓" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding UploadStepDone}" Value="False">
+                                        <Setter Property="Text" Value="●" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                            <Label Grid.Column="1" Text="Medien hochladen" Style="{StaticResource BodyStrong}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="24,*" ColumnSpacing="10">
+                            <Label Grid.Column="0" FontSize="15" HorizontalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding AnalysisStepDone}" Value="True">
+                                        <Setter Property="Text" Value="✓" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding AnalysisStepDone}" Value="False">
+                                        <Setter Property="Text" Value="●" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                            <Label Grid.Column="1" Text="KI analysiert Fotos und Diktat" Style="{StaticResource BodyStrong}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="24,*" ColumnSpacing="10">
+                            <Label Grid.Column="0" Text="○" FontSize="15" HorizontalOptions="Center" />
+                            <Label Grid.Column="1" Text="Inserat prüfen und veröffentlichen" Style="{StaticResource BodyStrong}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Abbrechen"
+                        Command="{Binding CancelAnalysisCommand}"
+                        Style="{StaticResource LinkButton}" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- ============ PHASE 2: REVIEW ============ -->
+        <ScrollView IsVisible="{Binding IsReviewPhase}">
+            <VerticalStackLayout Spacing="16"
+                                 Padding="16,24"
+                                 MaximumWidthRequest="640"
+                                 HorizontalOptions="Fill">
+
+                <Border Style="{StaticResource ErrorBanner}"
+                        IsVisible="{Binding HasError}">
+                    <Label Text="{Binding ErrorMessage}"
+                           Style="{StaticResource ErrorBannerText}" />
+                </Border>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Fast geschafft!"
+                           Style="{StaticResource PageTitle}" />
+                    <Label Text="Prüfen Sie den KI-Vorschlag und passen Sie ihn bei Bedarf an."
+                           Style="{StaticResource PageSubtitle}" />
+                </VerticalStackLayout>
+
+                <!-- KI-Zusammenfassung -->
+                <Border Style="{StaticResource SuccessBanner}"
+                        IsVisible="{Binding HasAiSummary}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="✨ Das hat die KI erkannt"
+                               FontAttributes="Bold"
+                               Style="{StaticResource SuccessBannerText}" />
+                        <Label Text="{Binding AiSummary}"
+                               Style="{StaticResource SuccessBannerText}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Titel"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding ReviewTitel}" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Beschreibung"
+                           Style="{StaticResource FieldLabel}" />
+                    <Editor Text="{Binding ReviewBeschreibung}"
+                            HeightRequest="160" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Immobilientyp"
+                           Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding PropertyTypes}"
+                            ItemDisplayBinding="{Binding DisplayName, x:DataType=models:PropertyTypeItem}"
+                            SelectedItem="{Binding ReviewTypItem}" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="16" IsVisible="{Binding IsReviewHouseType}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Zimmer"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding ReviewZimmer}"
+                               Keyboard="Numeric" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Wohnfläche (m²)"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding ReviewWohnflaeche}"
+                               Keyboard="Numeric" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Baujahr"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding ReviewBaujahr}"
+                               Keyboard="Numeric" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Grundstücksfläche (m²)"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding ReviewGrundstuecksflaeche}"
+                           Keyboard="Numeric" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Ausstattung (mit Komma getrennt)"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding ReviewFeatures}"
+                           Placeholder="z.B. Garage, Garten, Keller" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Preis (€)"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding Preis}"
+                           Keyboard="Numeric" />
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,12,0,24">
+                    <Button Grid.Column="0"
+                            Text="Zurück"
+                            Command="{Binding BackToInputCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            HeightRequest="52" />
+                    <Button Grid.Column="1"
+                            Text="Veröffentlichen"
+                            Command="{Binding PublishCommand}"
+                            Style="{StaticResource PrimaryButton}" />
+                </Grid>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Busy-Overlay (Veroeffentlichen) -->
+        <Grid Style="{StaticResource BusyOverlay}"
+              IsVisible="{Binding IsBusy}">
+            <Border Style="{StaticResource BusyCard}">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   HorizontalOptions="Center" />
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

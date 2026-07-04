@@ -1374,6 +1374,97 @@
           }
         }
       }
+    },
+    "/api/ai-listings/{AnalysisId}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetListingAnalysis",
+        "parameters": [
+          {
+            "name": "AnalysisId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetListingAnalysisResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-listings": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "StartListingAnalysis",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartListingAnalysisRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartListingAnalysisResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-listings/media": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UploadListingMedia",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadListingMediaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadListingMediaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1493,6 +1584,25 @@
         ]
       },
       "Base64ImageData": {
+        "required": [
+          "FileName",
+          "ContentType",
+          "Base64Data"
+        ],
+        "type": "object",
+        "properties": {
+          "FileName": {
+            "type": "string"
+          },
+          "ContentType": {
+            "type": "string"
+          },
+          "Base64Data": {
+            "type": "string"
+          }
+        }
+      },
+      "Base64MediaData": {
         "required": [
           "FileName",
           "ContentType",
@@ -1775,6 +1885,76 @@
             "items": {
               "$ref": "#/components/schemas/MunicipalityDto"
             }
+          }
+        }
+      },
+      "ExtractedListingData": {
+        "required": [
+          "Title",
+          "Description",
+          "Type"
+        ],
+        "type": "object",
+        "properties": {
+          "Title": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "Rooms": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "LivingAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PlotAreaSquareMeters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "YearBuilt": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Features": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "Summary": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2191,6 +2371,53 @@
                 "$ref": "#/components/schemas/ImprintDto"
               }
             ]
+          }
+        }
+      },
+      "GetListingAnalysisResponse": {
+        "required": [
+          "AnalysisId",
+          "Status",
+          "Result",
+          "ErrorMessage",
+          "CreatedAt",
+          "CompletedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "AnalysisId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/ListingAnalysisStatus"
+          },
+          "Result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ExtractedListingData"
+              }
+            ]
+          },
+          "ErrorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CompletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -3063,6 +3290,14 @@
           }
         }
       },
+      "ListingAnalysisStatus": {
+        "enum": [
+          "Queued",
+          "InProgress",
+          "Finished",
+          "Failed"
+        ]
+      },
       "LoginRequest": {
         "required": [
           "Email",
@@ -3865,6 +4100,57 @@
           }
         }
       },
+      "StartListingAnalysisRequest": {
+        "required": [
+          "ImageUrls"
+        ],
+        "type": "object",
+        "properties": {
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "VideoUrls": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "DictatedText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "UserNotes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "StartListingAnalysisResponse": {
+        "required": [
+          "AnalysisId",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "AnalysisId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/ListingAnalysisStatus"
+          }
+        }
+      },
       "TriggerForeclosureAuctionSyncRequest": {
         "type": "object"
       },
@@ -4098,6 +4384,41 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "UploadListingMediaRequest": {
+        "required": [
+          "Media"
+        ],
+        "type": "object",
+        "properties": {
+          "Media": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Base64MediaData"
+            }
+          }
+        }
+      },
+      "UploadListingMediaResponse": {
+        "required": [
+          "ImageUrls",
+          "VideoUrls"
+        ],
+        "type": "object",
+        "properties": {
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "VideoUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

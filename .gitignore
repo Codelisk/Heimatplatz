@@ -73,3 +73,6 @@ data/immocrawler/
 
 # Local cake build artifacts
 artifacts/
+
+# API Runtime-Uploads (AiListing Medien)
+src/api/src/Heimatplatz.Api/wwwroot/uploads/

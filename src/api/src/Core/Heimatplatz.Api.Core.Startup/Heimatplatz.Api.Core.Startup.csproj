@@ -32,6 +32,8 @@
     <ProjectReference Include="..\..\Features\Notifications\Heimatplatz.Api.Features.Notifications.Contracts\Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\PropertyImport\Heimatplatz.Api.Features.PropertyImport\Heimatplatz.Api.Features.PropertyImport.csproj" />
     <ProjectReference Include="..\..\Features\PropertyImport\Heimatplatz.Api.Features.PropertyImport.Contracts\Heimatplatz.Api.Features.PropertyImport.Contracts.csproj" />
+    <ProjectReference Include="..\..\Features\AiListing\Heimatplatz.Api.Features.AiListing\Heimatplatz.Api.Features.AiListing.csproj" />
+    <ProjectReference Include="..\..\Features\AiListing\Heimatplatz.Api.Features.AiListing.Contracts\Heimatplatz.Api.Features.AiListing.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

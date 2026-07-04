@@ -402,5 +402,16 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
     [RelayCommand]
     private Task Cancel() => _navigator.GoBack();
 
+    /// <summary>
+    /// True wenn der KI-Flow auf diesem Geraet der Primaerweg ist (Android/iOS-Phones)
+    /// </summary>
+    public bool ShowAiOption => PropertyCreationRoutes.IsAiDefault;
+
+    /// <summary>
+    /// Wechselt zur KI-gestuetzten Inseratserstellung
+    /// </summary>
+    [RelayCommand]
+    private Task SwitchToAi() => _navigator.NavigateTo(PropertyCreationRoutes.Ai);
+
     #endregion
 }

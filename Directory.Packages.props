@@ -39,7 +39,9 @@
     <PackageVersion Include="Shiny.Mediator.Maui" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Hosting.Maui" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Push.FirebaseMessaging" Version="5.0.1" />
+    <PackageVersion Include="Shiny.Speech" Version="2.1.0" />
     <PackageVersion Include="CommunityToolkit.Maui" Version="14.2.0" />
+    <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.11.26317.2" />
 
     <!-- Logging -->
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
