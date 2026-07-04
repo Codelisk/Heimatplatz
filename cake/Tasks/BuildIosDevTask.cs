@@ -36,20 +36,15 @@ public sealed class BuildIosDevTask : FrostingTask<BuildContext>
             context.Warning("MATCH_GIT_URL not configured. Using local signing identity.");
         }
 
-        Environment.SetEnvironmentVariable("UNO_SINGLE_TARGET", "ios");
-
-        context.Information("Restoring packages for net10.0-ios...");
+        context.Information("Restoring packages...");
         var restoreSettings = new DotNetRestoreSettings();
         restoreSettings.ConfigFile = Path.Combine(context.ProjectDirectory, "nuget.config");
-        restoreSettings.MSBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
-        restoreSettings.MSBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "ios" };
         context.DotNetRestore(context.CsprojPath, restoreSettings);
 
         var outputDir = Path.Combine(context.ProjectDirectory, "artifacts", "ios-dev");
         Directory.CreateDirectory(outputDir);
 
         var msBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
-        msBuildSettings.Properties["UNO_SINGLE_TARGET"] = new[] { "ios" };
         msBuildSettings.Properties["RuntimeIdentifier"] = new[] { "ios-arm64" };
 
         if (!string.IsNullOrEmpty(context.IosTeamId))
@@ -59,7 +54,7 @@ public sealed class BuildIosDevTask : FrostingTask<BuildContext>
 
         // Use development entitlements for device builds
         var devEntitlements = Path.Combine(context.ProjectDirectory,
-            "src", "uno", "src", "Heimatplatz.App", "Platforms", "iOS", "Entitlements.Development.plist");
+            "src", "maui", "src", "Heimatplatz.Maui", "Platforms", "iOS", "Entitlements.Development.plist");
         if (File.Exists(devEntitlements))
         {
             msBuildSettings.Properties["CodesignEntitlements"] = new[] { devEntitlements };

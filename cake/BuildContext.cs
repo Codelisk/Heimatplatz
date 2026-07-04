@@ -50,7 +50,7 @@ public class BuildContext : FrostingContext
             .Build();
 
         // Project settings
-        CsprojPath = Path.GetFullPath(Path.Combine(BuildDirectory, GetConfigValue("Project:CsprojPath", "../src/uno/src/Heimatplatz.App/Heimatplatz.App.csproj")));
+        CsprojPath = Path.GetFullPath(Path.Combine(BuildDirectory, GetConfigValue("Project:CsprojPath", "../src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj")));
         ApplicationId = GetConfigValue("Project:ApplicationId", "com.heimatplatz.app");
 
         // Android settings (prefer env vars, fallback to config)

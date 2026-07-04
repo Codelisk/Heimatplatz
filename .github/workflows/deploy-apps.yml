@@ -46,7 +46,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
           dotnet-quality: ${{ env.DOTNET_QUALITY }}
 
-      - name: Install Uno Workloads
+      - name: Install MAUI Workloads
         run: dotnet workload install ios maui
         working-directory: .
 
@@ -87,7 +87,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
           dotnet-quality: ${{ env.DOTNET_QUALITY }}
 
-      - name: Install Uno Workloads
+      - name: Install MAUI Workloads
         run: dotnet workload install android maui-android
         working-directory: .
 
