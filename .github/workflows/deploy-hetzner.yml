@@ -1,0 +1,60 @@
+name: Deploy API (Hetzner)
+
+# VORBEREITUNG - NOCH NICHT AKTIV: Es existiert noch kein Hetzner-Server und keine der unten
+# referenzierten Secrets (HETZNER_HOST/HETZNER_USER/HETZNER_SSH_KEY) sind gesetzt. Der SSH-Deploy-
+# Schritt ist nur ein Platzhalter fuer den spaeteren echten Rollout. Bis dahin bleibt
+# deploy-api.yml (Azure App Service) der einzige aktive Deploy-Weg.
+on:
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/heimatplatz-api
+
+jobs:
+  build-and-push:
+    name: Build and Push Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          # Kontext = Repo-Root (nicht src/api/) - siehe Kommentar in src/api/Dockerfile
+          context: .
+          file: src/api/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    name: Deploy to Hetzner
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    # Platzhalter: laeuft erst, sobald die drei Secrets unten existieren. Bis dahin wird dieser
+    # Job uebersprungen (if-Bedingung verhindert einen fehlschlagenden SSH-Connect-Versuch).
+    if: ${{ vars.HETZNER_DEPLOY_ENABLED == 'true' }}
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: |
+            cd /opt/heimatplatz/deploy/hetzner
+            docker compose pull api
+            docker compose up -d

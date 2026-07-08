@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/src/Core/">
     <Project Path="src/Core/Heimatplatz.Api.Core.Data/Heimatplatz.Api.Core.Data.csproj" />
+    <Project Path="src/Core/Heimatplatz.Api.Core.Data.Migrations.Postgres/Heimatplatz.Api.Core.Data.Migrations.Postgres.csproj" />
     <Project Path="src/Core/Heimatplatz.Api.Core.Startup/Heimatplatz.Api.Core.Startup.csproj" />
   </Folder>
   <Folder Name="/tests/UnitTests/">

@@ -7,12 +7,21 @@ namespace Heimatplatz.Api.Core.Data.Configuration;
 
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Name der separaten Migrations-Assembly fuer Postgres (siehe
+    /// Heimatplatz.Api.Core.Data.Migrations.Postgres). Postgres braucht eine eigene Migrations-
+    /// Historie, weil EF Core Migrationen pro (Assembly, DbContext-Typ) auflistet - SqlServer/
+    /// Sqlite teilen sich weiterhin die Migrations/ in diesem Projekt.
+    /// </summary>
+    private const string PostgresMigrationsAssembly = "Heimatplatz.Api.Core.Data.Migrations.Postgres";
+
     public static IServiceCollection AddAppData(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         // DatabaseOptions konfigurieren
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
+        var provider = configuration[$"{DatabaseOptions.SectionName}:Provider"];
 
         services.AddDbContext<AppDbContext>(options =>
         {
@@ -20,6 +29,10 @@ public static class ServiceCollectionExtensions
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 options.UseInMemoryDatabase("BuildTimeDb");
+            }
+            else if (string.Equals(provider, "Postgres", StringComparison.OrdinalIgnoreCase))
+            {
+                options.UseNpgsql(connectionString, x => x.MigrationsAssembly(PostgresMigrationsAssembly));
             }
             else if (connectionString.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
             {

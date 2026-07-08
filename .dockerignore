@@ -1,0 +1,14 @@
+# Docker-Build-Kontext ist das Repo-Root (Directory.Build.props/Directory.Packages.props unter
+# src/api/ importieren die Root-Varianten per GetPathOfFileAbove) - hier alles ausschliessen,
+# was der API-Build nicht braucht, damit der Kontext klein und der Build schnell bleibt.
+# Docker erfordert, dass jede Zwischen-Ebene eines Pfades einzeln un-ignored wird - ein !src/api
+# allein reicht nicht, wenn "src" selbst schon durch "*" ausgeschlossen ist.
+*
+!Directory.Build.props
+!Directory.Packages.props
+!nuget.config
+!src
+!src/api
+!src/api/**
+src/api/**/bin
+src/api/**/obj

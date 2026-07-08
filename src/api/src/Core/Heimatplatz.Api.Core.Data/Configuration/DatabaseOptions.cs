@@ -9,6 +9,13 @@ public class DatabaseOptions
     public const string SectionName = "Database";
 
     /// <summary>
+    /// Expliziter Provider-Name ("Postgres"). Wenn leer/nicht gesetzt, wird der Provider
+    /// weiterhin anhand der Form des Connection-Strings erkannt (Sqlite/SqlServer) -
+    /// das haelt bestehende Azure-Konfiguration ohne Aenderung funktionsfaehig.
+    /// </summary>
+    public string? Provider { get; set; }
+
+    /// <summary>
     /// Wenn true, werden Seeder beim App-Start ausgeführt.
     /// Sollte nur in Development aktiviert sein.
     /// </summary>

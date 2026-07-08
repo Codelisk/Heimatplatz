@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Heimatplatz.Api.Core.Startup\Heimatplatz.Api.Core.Startup.csproj" />
+    <!-- Nur damit die Postgres-Migrations-Assembly zur Laufzeit ladbar ist (MigrationsAssembly-Override) -->
+    <ProjectReference Include="..\Core\Heimatplatz.Api.Core.Data.Migrations.Postgres\Heimatplatz.Api.Core.Data.Migrations.Postgres.csproj" />
   </ItemGroup>
 
   <!-- APNs Auth Key for Push Notifications -->

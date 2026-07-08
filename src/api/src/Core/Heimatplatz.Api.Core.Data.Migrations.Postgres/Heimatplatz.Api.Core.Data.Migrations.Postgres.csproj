@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referenziert Core.Startup (nicht nur Core.Data), damit alle Feature-Assemblies mit
+         Entity-Configurations beim Scaffolding in den Output-Ordner kopiert werden - AppDbContext
+         registriert Entities per Reflection ueber AppDomain.CurrentDomain.GetAssemblies(), die
+         Assemblies muessen also physisch geladen sein (siehe AppDbContextFactory). -->
+    <ProjectReference Include="..\Heimatplatz.Api.Core.Startup\Heimatplatz.Api.Core.Startup.csproj" />
+  </ItemGroup>
+
+</Project>

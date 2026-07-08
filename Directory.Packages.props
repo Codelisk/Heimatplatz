@@ -104,6 +104,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
 
     <!-- Security: transitive Pins gegen bekannte Sicherheitsluecken (NU1903) -->
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />

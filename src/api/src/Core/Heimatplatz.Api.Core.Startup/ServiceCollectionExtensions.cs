@@ -182,7 +182,10 @@ public static class ServiceCollectionExtensions
     {
         try
         {
-            await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM __EFMigrationsHistory WHERE 1=0");
+            // Quoted Identifier: funktioniert unveraendert auf SQLite/SQL Server, verhindert aber
+            // dass Postgres den Namen auf "__efmigrationshistory" kleinschreibt und die (per EF
+            // Default gross/kleingeschrieben angelegte) Tabelle faelschlich nicht findet.
+            await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM \"__EFMigrationsHistory\" WHERE 1=0");
             return true;
         }
         catch
@@ -198,7 +201,7 @@ public static class ServiceCollectionExtensions
     {
         try
         {
-            await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM Properties WHERE 1=0");
+            await dbContext.Database.ExecuteSqlRawAsync("SELECT 1 FROM \"Properties\" WHERE 1=0");
             return true;
         }
         catch
@@ -236,6 +239,7 @@ public static class ServiceCollectionExtensions
 
         // Tabelle anlegen wenn fehlt (provider-aware)
         var isSqlServer = dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.SqlServer";
+        var isPostgres = dbContext.Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL";
         if (isSqlServer)
         {
             await dbContext.Database.ExecuteSqlRawAsync(@"
@@ -248,6 +252,8 @@ IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '__EFM
         }
         else
         {
+            // Gilt fuer SQLite UND Postgres: beide akzeptieren CREATE TABLE IF NOT EXISTS mit
+            // doppelt gequoteten Identifiern.
             await dbContext.Database.ExecuteSqlRawAsync(@"
 CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
     ""MigrationId"" TEXT NOT NULL CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY,
@@ -262,6 +268,15 @@ CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
                 await dbContext.Database.ExecuteSqlRawAsync(
                     "IF NOT EXISTS (SELECT 1 FROM __EFMigrationsHistory WHERE MigrationId = {0}) " +
                     "INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ({0}, {1})",
+                    id, productVersion);
+            }
+            else if (isPostgres)
+            {
+                // Postgres kennt kein "INSERT OR IGNORE" (SQLite-Syntax) - ON CONFLICT DO NOTHING
+                // ist das Postgres-Aequivalent fuer idempotente Inserts.
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) " +
+                    "ON CONFLICT (\"MigrationId\") DO NOTHING",
                     id, productVersion);
             }
             else

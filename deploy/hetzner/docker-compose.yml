@@ -1,0 +1,62 @@
+# Docker-Compose-Setup fuer die Heimatplatz-API auf einem einzelnen Hetzner-Server.
+# Aufruf vom Repo-Root: docker compose -f deploy/hetzner/docker-compose.yml up -d
+# Voraussetzung: deploy/hetzner/.env (aus .env.example kopieren und echte Werte eintragen).
+#
+# Noch KEIN echter Server vorhanden - dies ist die Vorbereitung fuer den spaeteren Umzug von
+# Azure App Service (SQL Server) auf Hetzner (PostgreSQL). Siehe README in diesem Ordner.
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: src/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Provider: Postgres
+      Database__AutoMigrate: "true"
+      Database__EnableSeeding: "false"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    # Kein Host-Port-Mapping - nur ueber das interne Docker-Netzwerk via Caddy erreichbar.
+    expose:
+      - "8080"
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

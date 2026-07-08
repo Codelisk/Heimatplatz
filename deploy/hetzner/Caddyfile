@@ -1,0 +1,4 @@
+{$API_DOMAIN} {
+	# Automatisches HTTPS via Let's Encrypt (Caddy-Standardverhalten)
+	reverse_proxy api:8080
+}
