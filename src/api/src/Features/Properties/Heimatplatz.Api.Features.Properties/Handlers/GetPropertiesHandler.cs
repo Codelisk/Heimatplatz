@@ -169,9 +169,9 @@ public class GetPropertiesHandler(
 
     // Zielbreite fuer Listen-Thumbnails (Karten sind min. 320dp breit, 640px deckt 2x-Displays ab
     // ohne die haeufig mehrere MB grossen Originalbilder ungeskaliert an den Client zu schicken).
-    internal const int ListThumbnailWidth = 640;
+    public const int ListThumbnailWidth = 640;
 
-    internal static List<string> ProxyImageUrls(List<string> urls, string baseUrl, int? width = null)
+    public static List<string> ProxyImageUrls(List<string> urls, string baseUrl, int? width = null)
     {
         if (urls.Count == 0 || string.IsNullOrEmpty(baseUrl))
             return urls;

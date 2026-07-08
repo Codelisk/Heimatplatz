@@ -2,6 +2,8 @@ using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Handlers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
 using Shiny.Mediator;
@@ -10,8 +12,10 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Handlers;
 
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/foreclosure-auctions")]
-public class GetForeclosureAuctionsHandler(AppDbContext dbContext)
-    : IRequestHandler<GetForeclosureAuctionsRequest, GetForeclosureAuctionsResponse>
+public class GetForeclosureAuctionsHandler(
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor
+) : IRequestHandler<GetForeclosureAuctionsRequest, GetForeclosureAuctionsResponse>
 {
     [MediatorHttpGet("/", OperationId = "GetForeclosureAuctions")]
     public async Task<GetForeclosureAuctionsResponse> Handle(
@@ -52,13 +56,17 @@ public class GetForeclosureAuctionsHandler(AppDbContext dbContext)
         // Total Count fuer Pagination
         var totalCount = await query.CountAsync(cancellationToken);
 
+        // Build base URL for image proxy
+        var req = httpContextAccessor.HttpContext?.Request;
+        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+
         // Laden und Sortieren (SQLite unterstuetzt DateTimeOffset nicht in ORDER BY)
         var entities = await query.ToListAsync(cancellationToken);
         var auctions = entities
             .OrderBy(fa => fa.AuctionDate)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(MapToDto)
+            .Select(fa => MapToDto(fa, baseUrl, GetPropertiesHandler.ListThumbnailWidth))
             .ToList();
 
         return new GetForeclosureAuctionsResponse
@@ -70,7 +78,7 @@ public class GetForeclosureAuctionsHandler(AppDbContext dbContext)
         };
     }
 
-    internal static ForeclosureAuctionDto MapToDto(ForeclosureAuction fa) => new()
+    internal static ForeclosureAuctionDto MapToDto(ForeclosureAuction fa, string baseUrl = "", int? imageWidth = null) => new()
     {
         Id = fa.Id,
         AuctionDate = fa.AuctionDate,
@@ -105,6 +113,7 @@ public class GetForeclosureAuctionsHandler(AppDbContext dbContext)
         SitePlanUrl = fa.SitePlanUrl,
         LongAppraisalUrl = fa.LongAppraisalUrl,
         ShortAppraisalUrl = fa.ShortAppraisalUrl,
+        ImageUrls = GetPropertiesHandler.ProxyImageUrls(fa.ImageUrls, baseUrl, width: imageWidth),
         CreatedAt = fa.CreatedAt,
         ExternalId = fa.ExternalId,
         State = fa.State,

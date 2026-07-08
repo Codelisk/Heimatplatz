@@ -34,6 +34,7 @@ export type ApiForeclosureAuction = {
   SitePlanUrl?: string | null;
   LongAppraisalUrl?: string | null;
   ShortAppraisalUrl?: string | null;
+  ImageUrls?: string[];
   CreatedAt: string;
   ExternalId?: string | null;
   State?: string | null;
@@ -51,6 +52,7 @@ type ForeclosureAuctionResponse = {
 };
 
 export const FORECLOSURE_BUILD_LIMIT = 128;
+const FALLBACK_AUCTION_IMAGE = "/og/heimatplatz-default.svg";
 
 const categoryLabels: Record<string, string> = {
   Einfamilienhaus: "Einfamilienhaus",
@@ -142,6 +144,10 @@ export function getForeclosureAuctionSlug(auction: ApiForeclosureAuction) {
 
 export function getForeclosureAuctionPath(auction: ApiForeclosureAuction) {
   return `/zwangsversteigerungen/${getForeclosureAuctionSlug(auction)}/`;
+}
+
+export function getAuctionImage(auction: ApiForeclosureAuction) {
+  return auction.ImageUrls?.[0] || FALLBACK_AUCTION_IMAGE;
 }
 
 export function getForeclosureCategoryLabel(category: string | null | undefined) {

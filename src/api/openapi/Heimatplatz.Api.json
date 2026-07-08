@@ -2235,6 +2235,12 @@
               "string"
             ]
           },
+          "ImageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "CreatedAt": {
             "type": "string",
             "format": "date-time"

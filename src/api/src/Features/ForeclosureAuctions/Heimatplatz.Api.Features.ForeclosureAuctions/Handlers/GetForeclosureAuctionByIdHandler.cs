@@ -2,6 +2,7 @@ using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
 using Shiny.Mediator;
@@ -10,8 +11,10 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Handlers;
 
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/foreclosure-auctions")]
-public class GetForeclosureAuctionByIdHandler(AppDbContext dbContext)
-    : IRequestHandler<GetForeclosureAuctionByIdRequest, GetForeclosureAuctionByIdResponse>
+public class GetForeclosureAuctionByIdHandler(
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor
+) : IRequestHandler<GetForeclosureAuctionByIdRequest, GetForeclosureAuctionByIdResponse>
 {
     [MediatorHttpGet("/{Id}", OperationId = "GetForeclosureAuctionById")]
     public async Task<GetForeclosureAuctionByIdResponse> Handle(
@@ -25,9 +28,12 @@ public class GetForeclosureAuctionByIdHandler(AppDbContext dbContext)
         if (entity == null)
             return new GetForeclosureAuctionByIdResponse { Auction = null };
 
+        var req = httpContextAccessor.HttpContext?.Request;
+        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+
         return new GetForeclosureAuctionByIdResponse
         {
-            Auction = GetForeclosureAuctionsHandler.MapToDto(entity)
+            Auction = GetForeclosureAuctionsHandler.MapToDto(entity, baseUrl)
         };
     }
 }

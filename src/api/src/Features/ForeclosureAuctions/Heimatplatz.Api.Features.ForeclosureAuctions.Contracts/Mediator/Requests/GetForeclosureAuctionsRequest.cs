@@ -83,6 +83,9 @@ public record ForeclosureAuctionDto
     public string? LongAppraisalUrl { get; init; }
     public string? ShortAppraisalUrl { get; init; }
 
+    // Bilder
+    public List<string> ImageUrls { get; init; } = [];
+
     public required DateTimeOffset CreatedAt { get; init; }
 
     // Scraping-Daten
