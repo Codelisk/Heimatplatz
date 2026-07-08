@@ -6,6 +6,7 @@ import HeartIcon from "@tabler/icons/outline/heart.svg";
 import ShareIcon from "@tabler/icons/outline/share.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ContactDock from "@/components/properties/ContactDock.astro";
+import ImageGallery from "@/components/properties/ImageGallery.astro";
 import { Button } from "@/components/starwind/button";
 import {
   fetchApiProperties,
@@ -19,6 +20,7 @@ import {
   getApiPropertyTypeLabel,
   getApiSellerLabel,
   getApiPropertyImage,
+  getApiPropertyImages,
   type ApiProperty,
   type ApiContact,
 } from "@/features/properties/live-api";
@@ -46,6 +48,7 @@ const canonicalPath = getApiPropertyPath(property);
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
 const description = getApiPropertyDescription(property);
 const imageUrl = getApiPropertyImage(property);
+const images = getApiPropertyImages(property);
 const facts = [
   ["Preis", formatApiPriceLong(property.Price)],
   ["Wohnflaeche", property.LivingAreaM2 ? `${property.LivingAreaM2} m2` : "Keine Angabe"],
@@ -87,22 +90,15 @@ const detailSections = getApiPropertyDetailSections(property);
 
     <section class="mx-auto grid max-w-7xl gap-8 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
       <div>
-        <div class="relative overflow-hidden rounded-lg bg-muted">
-          <img
-            src={imageUrl}
-            alt={property.Title}
-            class="h-[320px] w-full object-cover sm:h-[460px]"
-            loading="eager"
-            decoding="async"
-            data-fallback-image="/og/heimatplatz-default.svg"
-          />
-          <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+        <div class="relative">
+          <ImageGallery images={images} title={property.Title} />
+          <div class="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-2">
             <span class="rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background">{getApiPropertyTypeLabel(property.Type, property)}</span>
             <span class="rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground">{property.City}</span>
           </div>
-          <div class="absolute right-4 top-4 flex gap-2">
+          <div class="pointer-events-none absolute right-4 top-4 z-10 flex gap-2">
             <button
-              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
               aria-label="Merken"
               aria-pressed="false"
@@ -113,7 +109,7 @@ const detailSections = getApiPropertyDetailSections(property);
               <HeartIcon class="size-5" aria-hidden="true" />
             </button>
             <button
-              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
               aria-label="Blockieren"
               aria-pressed="false"
@@ -124,7 +120,7 @@ const detailSections = getApiPropertyDetailSections(property);
               <EyeOffIcon class="size-5" aria-hidden="true" />
             </button>
             <button
-              class="grid size-10 place-items-center rounded-full bg-black/60 text-white"
+              class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
               aria-label="Teilen"
               data-share-url={canonicalUrl}

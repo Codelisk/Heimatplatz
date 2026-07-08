@@ -5,7 +5,7 @@ import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import FileTextIcon from "@tabler/icons/outline/file-text.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import ShareIcon from "@tabler/icons/outline/share.svg";
-import AuctionGallery from "@/components/foreclosures/AuctionGallery.astro";
+import ImageGallery from "@/components/properties/ImageGallery.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import {
   fetchForeclosureAuctions,
@@ -99,7 +99,7 @@ const primaryFacts = [
 
     <section class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
       <div>
-        <AuctionGallery images={images} title={title} />
+        <ImageGallery images={images} title={title} />
 
         <dl class="mt-8 grid gap-3 sm:grid-cols-4">
           {primaryFacts.map(([label, value]) => (

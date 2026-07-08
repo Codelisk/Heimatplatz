@@ -178,23 +178,6 @@ export function getAuctionImages(auction: ApiForeclosureAuction) {
   });
 }
 
-/**
- * The list endpoint delivers proxied 640px thumbnails (`&w=640`). For the
- * lightbox we want the untouched original, so strip the width parameter
- * from our own proxy URLs.
- */
-export function getOriginalAuctionImageUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.pathname.endsWith("/api/images/proxy")) {
-      parsed.searchParams.delete("w");
-      return parsed.toString();
-    }
-  } catch {
-    // relative or malformed URL: leave untouched
-  }
-  return url;
-}
 
 export function getForeclosureCategoryLabel(category: string | null | undefined) {
   if (!category) return "Zwangsversteigerung";

@@ -66,6 +66,34 @@ export function getApiPropertyImage(property: ApiProperty) {
   return property.ImageUrls?.[0] || FALLBACK_PROPERTY_IMAGE;
 }
 
+/**
+ * Dedup key: die Quell-URL im API-Image-Proxy (`/api/images/proxy?url=...`).
+ * Aus Zwangsversteigerungen synchronisierte Inserate enthalten im Altbestand
+ * dasselbe Bild doppelt (nur Gross-/Kleinschreibung unterschiedlich), daher
+ * case-insensitiv auf der dekodierten Quell-URL vergleichen.
+ */
+function getImageDedupKey(url: string) {
+  try {
+    const parsed = new URL(url, "https://heimatplatz.at");
+    const source = parsed.searchParams.get("url");
+    if (source) return decodeURIComponent(source).toLowerCase();
+  } catch {
+    // Roh-URL als Key behalten
+  }
+  return url.toLowerCase();
+}
+
+export function getApiPropertyImages(property: ApiProperty) {
+  const seen = new Set<string>();
+  return (property.ImageUrls ?? []).filter((url) => {
+    if (!url) return false;
+    const key = getImageDedupKey(url);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 async function isApiImageReachable(imageUrl: string) {
   if (!imageUrl || imageUrl.startsWith("/") || !imageUrl.includes("/api/images/proxy")) return true;
 

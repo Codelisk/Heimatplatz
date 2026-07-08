@@ -5,7 +5,6 @@ import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import PhotoIcon from "@tabler/icons/outline/photo.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
-import { getOriginalAuctionImageUrl } from "@/features/foreclosures/api";
 
 interface Props {
   images: string[];
@@ -16,9 +15,27 @@ const FALLBACK_IMAGE = "/og/heimatplatz-default.svg";
 
 const { images, title } = Astro.props;
 
+/**
+ * Die List-Endpoints liefern proxied 640px-Thumbnails (`&w=640`). Fuer die
+ * Lightbox wollen wir das unveraenderte Original, daher den Breiten-Parameter
+ * aus unseren eigenen Proxy-URLs entfernen.
+ */
+function getOriginalImageUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith("/api/images/proxy")) {
+      parsed.searchParams.delete("w");
+      return parsed.toString();
+    }
+  } catch {
+    // relative oder ungueltige URL: unveraendert lassen
+  }
+  return url;
+}
+
 const items = images.map((url, index) => ({
   thumb: url,
-  full: getOriginalAuctionImageUrl(url),
+  full: getOriginalImageUrl(url),
   alt: `${title} – Bild ${index + 1} von ${images.length}`,
 }));
 
@@ -43,7 +60,7 @@ const remainingCount = items.length - 3;
 
 {
   hasImages && (
-    <div data-auction-gallery>
+    <div data-image-gallery>
       <div
         class:list={[
           "grid gap-2 overflow-hidden rounded-xl",
@@ -142,7 +159,7 @@ const remainingCount = items.length - 3;
           <img
             src={items[0].full}
             alt={items[0].alt}
-            class="max-h-full max-w-full select-none rounded-md object-contain opacity-0 transition-opacity duration-300"
+            class="h-full w-full select-none object-contain opacity-0 transition-opacity duration-300"
             data-lightbox-image
             decoding="async"
             draggable="false"
@@ -304,20 +321,40 @@ const remainingCount = items.length - 3;
       thumb.addEventListener("click", () => show(Number(thumb.dataset.lightboxThumb) || 0));
     }
 
-    // Klick auf den dunklen Hintergrund (nicht auf Bild/Buttons) schließt
+    // Klick auf den dunklen Hintergrund (nicht auf Bild/Buttons) schließt.
+    // Das <img> füllt die ganze Bühne (object-contain), daher zählt auch der
+    // Letterbox-Bereich um das tatsächlich gerenderte Bild als Hintergrund.
+    let pointerMoved = false;
     stage?.addEventListener("click", (event) => {
-      if (event.target === stage) close();
+      if (pointerMoved) return;
+      if (event.target === stage) {
+        close();
+        return;
+      }
+      if (event.target !== image || !image.naturalWidth || !image.naturalHeight) return;
+      const rect = image.getBoundingClientRect();
+      const scale = Math.min(rect.width / image.naturalWidth, rect.height / image.naturalHeight);
+      const renderedWidth = image.naturalWidth * scale;
+      const renderedHeight = image.naturalHeight * scale;
+      const left = rect.left + (rect.width - renderedWidth) / 2;
+      const top = rect.top + (rect.height - renderedHeight) / 2;
+      const insideImage =
+        event.clientX >= left && event.clientX <= left + renderedWidth &&
+        event.clientY >= top && event.clientY <= top + renderedHeight;
+      if (!insideImage) close();
     });
 
     // Swipe-Navigation auf Touch-Geräten
     let pointerStartX: number | null = null;
     stage?.addEventListener("pointerdown", (event) => {
       pointerStartX = event.clientX;
+      pointerMoved = false;
     });
     stage?.addEventListener("pointerup", (event) => {
       if (pointerStartX === null) return;
       const deltaX = event.clientX - pointerStartX;
       pointerStartX = null;
+      pointerMoved = Math.abs(deltaX) > 10;
       if (Math.abs(deltaX) < 48 || items.length < 2) return;
       show(deltaX < 0 ? current + 1 : current - 1);
     });
@@ -329,7 +366,7 @@ const remainingCount = items.length - 3;
     }, { passive: false });
   }
 
-  for (const root of document.querySelectorAll<HTMLElement>("[data-auction-gallery]")) {
+  for (const root of document.querySelectorAll<HTMLElement>("[data-image-gallery]")) {
     initGallery(root);
   }
 </script>
