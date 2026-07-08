@@ -9,5 +9,9 @@
         <item name="android:windowLightStatusBar">true</item>
         <!-- Ab API 27; aeltere Geraete ignorieren das Attribut -->
         <item name="android:windowLightNavigationBar">true</item>
+        <!-- Android 15 (API 35) erzwingt Edge-to-Edge und ignoriert statusBarColor/navigationBarColor
+             dabei komplett - sichtbar wird stattdessen der rohe Fensterhintergrund hinter den
+             (jetzt transparenten) System-Bars. Ohne dieses Override ist das Schwarz. -->
+        <item name="android:windowBackground">@color/systemBarBackground</item>
     </style>
 </resources>

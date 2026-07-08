@@ -407,6 +407,14 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
     </Style>
 
+    <!-- .NET MAUI 10 default ist Edge-to-Edge (Content unter Status-/Nav-Bar) - auf Android 15
+         erzwingt das eine transparente Status-Bar, wodurch der dunkle Fensterhintergrund dahinter
+         durchscheint. Container stellt das alte (System-Bars respektierende) Verhalten wieder her.
+         SafeAreaEdges existiert nur auf ContentPage, nicht auf der Basis-Page. -->
+    <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+        <Setter Property="SafeAreaEdges" Value="Container" />
+    </Style>
+
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
         <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
         <Setter Property="Shell.ForegroundColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />

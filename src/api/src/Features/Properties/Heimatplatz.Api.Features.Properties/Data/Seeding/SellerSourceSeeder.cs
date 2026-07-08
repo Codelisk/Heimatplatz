@@ -13,6 +13,11 @@ public class SellerSourceSeeder(AppDbContext dbContext) : ISeeder
 {
     public int Order => 5;
 
+    /// <summary>
+    /// Referenzdaten (bekannte Makler-Quellen fuer Filter) - laeuft auch in Produktion
+    /// </summary>
+    public bool IsDemoData => false;
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         if (await dbContext.Set<SellerSource>().AnyAsync(cancellationToken))

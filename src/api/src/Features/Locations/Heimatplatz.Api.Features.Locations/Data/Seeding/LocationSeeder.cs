@@ -25,6 +25,11 @@ public class LocationSeeder(
     /// </summary>
     public int Order => 1;
 
+    /// <summary>
+    /// Referenzdaten (Bundeslaender/Bezirke/Gemeinden) - laeuft auch in Produktion
+    /// </summary>
+    public bool IsDemoData => false;
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         // Idempotent: nur seeden wenn noch keine Bundeslaender vorhanden

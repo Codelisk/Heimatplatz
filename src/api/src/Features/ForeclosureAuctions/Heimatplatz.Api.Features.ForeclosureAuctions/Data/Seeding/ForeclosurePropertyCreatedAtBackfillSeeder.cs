@@ -18,6 +18,11 @@ public class ForeclosurePropertyCreatedAtBackfillSeeder(
 {
     public int Order => 101;
 
+    /// <summary>
+    /// Daten-Backfill auf echten EDIKTE-Properties, keine Demo-Daten - laeuft auch in Produktion
+    /// </summary>
+    public bool IsDemoData => false;
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         var properties = await dbContext.Set<Property>()

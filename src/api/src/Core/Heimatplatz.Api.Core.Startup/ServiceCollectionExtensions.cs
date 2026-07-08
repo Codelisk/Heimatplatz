@@ -93,13 +93,11 @@ public static class ServiceCollectionExtensions
             return;
         }
 
-        // Skip database initialization wenn weder Migration noch Seeding aktiviert sind
-        if (!options.AutoMigrate && !options.EnableSeeding)
-        {
-            logger.LogDebug("Database initialization skipped (AutoMigrate=false, EnableSeeding=false).");
-            return;
-        }
-
+        // Hinweis: KEIN frueher Return mehr wenn AutoMigrate=false und EnableSeeding=false - die
+        // essentiellen Referenzdaten-Seeder (ISeeder.IsDemoData=false: Locations, LegalSettings,
+        // SellerSources, SystemUser, Backfill) MUESSEN auch dann laufen (z.B. wenn Ops in Produktion
+        // auf manuelle Migrations umstellt: Database__AutoMigrate=false, EnableSeeding ist dort
+        // ohnehin false). Nur der Migrations-Teil wird ueberhalb per AutoMigrate gesteuert.
         logger.LogInformation("Database initialization started. AutoMigrate={AutoMigrate}, EnableSeeding={EnableSeeding}",
             options.AutoMigrate, options.EnableSeeding);
 
@@ -124,8 +122,8 @@ public static class ServiceCollectionExtensions
                 // Strategie:
                 //  - DB existiert nicht -> EnsureCreatedAsync (Schema aus Entity-Modell) + History seeden
                 //  - DB existiert ohne __EFMigrationsHistory -> Legacy (EnsureCreated) State,
-                //    History seeden mit allen alten Migrations als "applied", dann MigrateAsync
-                //    fuehrt nur neue (z.B. FixProductionSchemaDrift) idempotent aus
+                //    History seeden mit allen Migrations VOR FixProductionSchemaDrift als "applied",
+                //    dann fuehrt MigrateAsync den Drift-Fix und alle neueren Migrations idempotent aus
                 //  - DB existiert MIT __EFMigrationsHistory -> normaler MigrateAsync-Flow
                 logger.LogInformation("Ensuring database and tables exist...");
 
@@ -142,11 +140,11 @@ public static class ServiceCollectionExtensions
 
                     if (!hasHistoryTable && hasAppTables)
                     {
-                        // Legacy DB (EnsureCreatedAsync vorher): History mit allen alten Migrations
-                        // als "applied" seeden (Schema entspricht Entity-Modell vor FixProductionSchemaDrift),
-                        // damit nachfolgendes MigrateAsync nur FixProductionSchemaDrift faehrt.
+                        // Legacy DB (EnsureCreatedAsync vorher): Nur die Migrations VOR
+                        // FixProductionSchemaDrift als "applied" seeden, damit nachfolgendes
+                        // MigrateAsync den Drift-Fix UND alle neueren Migrations idempotent faehrt.
                         logger.LogWarning("Legacy DB detected (tables exist but no __EFMigrationsHistory). Seeding migrations history with all pre-drift migrations as applied.");
-                        await SeedMigrationsHistoryAsync(dbContext, logger, excludeNewest: true);
+                        await SeedMigrationsHistoryAsync(dbContext, logger, markOnlyPreDriftFix: true);
                     }
                     else if (!hasHistoryTable && !hasAppTables)
                     {
@@ -163,12 +161,15 @@ public static class ServiceCollectionExtensions
             logger.LogInformation("Database migrations completed.");
         }
 
-        // Seeding: Immer ausfuehren - Seeder sind idempotent und pruefen selbst ob Daten existieren
+        // Seeding: Essentielle Referenzdaten-Seeder (ISeeder.IsDemoData=false, z.B. Locations,
+        // Legal-Content, System-User) laufen immer und sind idempotent. Demo-/Test-Seeder
+        // (IsDemoData=true) laufen nur bei EnableSeeding=true und werden in Produktion
+        // zuverlaessig uebersprungen.
         {
-            logger.LogInformation("Running database seeders...");
+            logger.LogInformation("Running database seeders (EnableSeeding={EnableSeeding})...", options.EnableSeeding);
             using var scope = app.Services.CreateScope();
             var seederRunner = scope.ServiceProvider.GetRequiredService<SeederRunner>();
-            await seederRunner.RunAllSeedersAsync();
+            await seederRunner.RunAllSeedersAsync(includeDemoData: options.EnableSeeding);
             logger.LogInformation("Database seeding completed.");
         }
     }
@@ -209,18 +210,26 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Seedet __EFMigrationsHistory mit den Namen aller bisherigen Migrations als "applied",
     /// sodass MigrateAsync sie nicht erneut auszufuehren versucht.
-    /// Wenn <paramref name="excludeNewest"/>=true, wird die neueste Migration ausgelassen
-    /// (sie soll dann tatsaechlich laufen, z.B. fuer Schema-Drift-Korrekturen).
+    /// Wenn <paramref name="markOnlyPreDriftFix"/>=true, werden nur die Migrations VOR der
+    /// "FixProductionSchemaDrift"-Migration markiert - der Drift-Fix und alle neueren
+    /// Migrations (z.B. Demo-Daten-Cleanup) laufen dann tatsaechlich via MigrateAsync.
     /// </summary>
-    private static async Task SeedMigrationsHistoryAsync(AppDbContext dbContext, ILogger logger, bool excludeNewest = false)
+    private static async Task SeedMigrationsHistoryAsync(AppDbContext dbContext, ILogger logger, bool markOnlyPreDriftFix = false)
     {
         var migrationsAssembly = dbContext.GetService<IMigrationsAssembly>();
         var allMigrationIds = migrationsAssembly.Migrations.Keys.OrderBy(id => id).ToList();
         if (allMigrationIds.Count == 0) return;
 
-        var idsToMark = excludeNewest && allMigrationIds.Count > 1
-            ? allMigrationIds.Take(allMigrationIds.Count - 1).ToList()
-            : allMigrationIds;
+        var idsToMark = allMigrationIds;
+        if (markOnlyPreDriftFix)
+        {
+            var driftFixIndex = allMigrationIds.FindIndex(id => id.Contains("FixProductionSchemaDrift", StringComparison.Ordinal));
+
+            // Fallback: Drift-Fix-Migration nicht gefunden -> wie frueher nur die neueste auslassen
+            idsToMark = driftFixIndex >= 0
+                ? allMigrationIds.Take(driftFixIndex).ToList()
+                : allMigrationIds.Take(allMigrationIds.Count - 1).ToList();
+        }
 
         var productVersion = typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly
             .GetName().Version?.ToString() ?? "10.0.0";
@@ -263,7 +272,7 @@ CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
             }
         }
 
-        logger.LogInformation("Seeded __EFMigrationsHistory with {Count} migration(s) marked as applied (excludeNewest={ExcludeNewest}).",
-            idsToMark.Count, excludeNewest);
+        logger.LogInformation("Seeded __EFMigrationsHistory with {Count} migration(s) marked as applied (markOnlyPreDriftFix={MarkOnlyPreDriftFix}).",
+            idsToMark.Count, markOnlyPreDriftFix);
     }
 }

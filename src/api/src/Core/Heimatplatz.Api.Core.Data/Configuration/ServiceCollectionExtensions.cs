@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Heimatplatz.Api.Core.Data.Configuration;
 
@@ -38,30 +37,5 @@ public static class ServiceCollectionExtensions
         });
 
         return services;
-    }
-
-    /// <summary>
-    /// Initialisiert die Datenbank basierend auf den DatabaseOptions.
-    /// Sollte nach app.Build() aufgerufen werden.
-    /// </summary>
-    public static async Task InitializeDatabaseAsync(this IServiceProvider serviceProvider)
-    {
-        var options = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-
-        if (options.AutoMigrate)
-        {
-            await using var scope = serviceProvider.CreateAsyncScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-            // SQLite: EnsureCreated (keine SQL Server Migrations)
-            if (dbContext.Database.IsSqlite())
-            {
-                await dbContext.Database.EnsureCreatedAsync();
-            }
-            else
-            {
-                await dbContext.Database.MigrateAsync();
-            }
-        }
     }
 }

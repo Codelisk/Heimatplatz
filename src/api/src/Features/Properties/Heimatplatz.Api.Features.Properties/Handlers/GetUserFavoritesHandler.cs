@@ -76,7 +76,7 @@ public class GetUserFavoritesHandler(
         var req = httpContextAccessor.HttpContext?.Request;
         var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
         properties = properties
-            .Select(p => p with { ImageUrls = GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl) })
+            .Select(p => p with { ImageUrls = GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl, width: GetPropertiesHandler.ListThumbnailWidth) })
             .ToList();
 
         var hasMore = (request.Page + 1) * request.PageSize < total;

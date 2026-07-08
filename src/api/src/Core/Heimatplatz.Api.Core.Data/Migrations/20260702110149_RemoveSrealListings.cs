@@ -11,13 +11,24 @@ namespace Heimatplatz.Api.Core.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "SrealListingChanges");
+            // Idempotente DROPs: auf einer Legacy-DB (EnsureCreatedAsync vor dem Sreal-Feature)
+            // existieren diese Tabellen u.U. nie - ein ungeschuetztes DropTable wuerde
+            // InitializeDatabaseAsync/MigrateAsync mit "no such table" crashen lassen.
+            var isSqlServer = migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer";
 
-            migrationBuilder.DropTable(
-                name: "SrealListings");
+            if (isSqlServer)
+            {
+                migrationBuilder.Sql("IF OBJECT_ID(N'[SrealListingChanges]', 'U') IS NOT NULL DROP TABLE [SrealListingChanges];");
+                migrationBuilder.Sql("IF OBJECT_ID(N'[SrealListings]', 'U') IS NOT NULL DROP TABLE [SrealListings];");
+            }
+            else
+            {
+                migrationBuilder.Sql("DROP TABLE IF EXISTS \"SrealListingChanges\";");
+                migrationBuilder.Sql("DROP TABLE IF EXISTS \"SrealListings\";");
+            }
 
-            // Vom Sreal-Sync erzeugte Properties entfernen (werden ohne Feature nie mehr aktualisiert)
+            // Vom Sreal-Sync erzeugte Properties entfernen (werden ohne Feature nie mehr aktualisiert).
+            // Reine DELETEs auf Subselects sind bereits idempotent (kein Effekt bei bereits geloeschten Zeilen).
             migrationBuilder.Sql("DELETE FROM PropertyContactInfos WHERE PropertyId IN (SELECT Id FROM Properties WHERE SourceName = 'sreal.at')");
             migrationBuilder.Sql("DELETE FROM Favorites WHERE PropertyId IN (SELECT Id FROM Properties WHERE SourceName = 'sreal.at')");
             migrationBuilder.Sql("DELETE FROM BlockedProperties WHERE PropertyId IN (SELECT Id FROM Properties WHERE SourceName = 'sreal.at')");

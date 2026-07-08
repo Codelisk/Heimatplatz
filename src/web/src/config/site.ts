@@ -9,7 +9,8 @@ export const SITE = {
   titleTemplate: "%s | Heimatplatz",
   description:
     "Heimatplatz buendelt Haeuser, Wohnungen, Grundstuecke und Zwangsversteigerungen in Oberösterreich in einer schnellen, suchmaschinenfreundlichen Web-App.",
-  defaultImage: "/og/heimatplatz-default.svg",
+  // PNG statt SVG: Facebook/WhatsApp/LinkedIn rendern keine SVG-OG-Bilder
+  defaultImage: "/og/heimatplatz-default.png",
   themeColor: "#0a0a0a",
   keywords: [
     "Immobilien Oberoesterreich",

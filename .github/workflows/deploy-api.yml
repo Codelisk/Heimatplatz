@@ -10,7 +10,7 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  DOTNET_QUALITY: 'preview'
+  DOTNET_QUALITY: 'ga'
   AZURE_WEBAPP_NAME: heimatplatz-api
   WORKING_DIRECTORY: src/api/src/Heimatplatz.Api
 

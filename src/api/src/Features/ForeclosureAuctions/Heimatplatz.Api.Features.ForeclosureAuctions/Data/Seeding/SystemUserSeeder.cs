@@ -18,6 +18,12 @@ public class SystemUserSeeder(
 {
     public int Order => 6;
 
+    /// <summary>
+    /// System-User wird vom EDIKTE-Sync benoetigt - laeuft auch in Produktion
+    /// (Passwort ist ein zufaelliger GUID-Hash, kein bekanntes Test-Passwort)
+    /// </summary>
+    public bool IsDemoData => false;
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         var systemUserId = ForeclosureAuctionConstants.SystemUserId;

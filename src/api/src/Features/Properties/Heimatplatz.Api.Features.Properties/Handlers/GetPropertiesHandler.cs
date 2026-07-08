@@ -151,7 +151,7 @@ public class GetPropertiesHandler(
                 p.Type,
                 p.SellerType,
                 p.SellerName,
-                ProxyImageUrls(p.ImageUrls, baseUrl),
+                ProxyImageUrls(p.ImageUrls, baseUrl, width: ListThumbnailWidth),
                 p.CreatedAt,
                 p.InquiryType,
                 p.SourceName
@@ -167,7 +167,11 @@ public class GetPropertiesHandler(
         );
     }
 
-    internal static List<string> ProxyImageUrls(List<string> urls, string baseUrl)
+    // Zielbreite fuer Listen-Thumbnails (Karten sind min. 320dp breit, 640px deckt 2x-Displays ab
+    // ohne die haeufig mehrere MB grossen Originalbilder ungeskaliert an den Client zu schicken).
+    internal const int ListThumbnailWidth = 640;
+
+    internal static List<string> ProxyImageUrls(List<string> urls, string baseUrl, int? width = null)
     {
         if (urls.Count == 0 || string.IsNullOrEmpty(baseUrl))
             return urls;
@@ -183,7 +187,10 @@ public class GetPropertiesHandler(
                 return url;
 
             if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                return $"{baseUrl}/api/images/proxy?url={Uri.EscapeDataString(url)}";
+            {
+                var proxied = $"{baseUrl}/api/images/proxy?url={Uri.EscapeDataString(url)}";
+                return width.HasValue ? $"{proxied}&w={width.Value}" : proxied;
+            }
 
             return url;
         }).ToList();

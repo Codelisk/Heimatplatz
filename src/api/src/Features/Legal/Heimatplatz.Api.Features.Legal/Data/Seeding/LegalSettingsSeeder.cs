@@ -17,6 +17,11 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
     public int Order => 5; // Frueh ausfuehren, da keine Abhaengigkeiten
 
+    /// <summary>
+    /// Rechtsinhalte (Datenschutz/Impressum) sind Pflichtdaten - laeuft auch in Produktion
+    /// </summary>
+    public bool IsDemoData => false;
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         await SeedPrivacyPolicyAsync(cancellationToken);

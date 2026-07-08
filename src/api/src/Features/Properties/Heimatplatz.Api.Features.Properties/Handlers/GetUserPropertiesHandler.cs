@@ -68,7 +68,7 @@ public class GetUserPropertiesHandler(
                 p.Type,
                 p.SellerType,
                 p.SellerName,
-                GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl),
+                GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl, width: GetPropertiesHandler.ListThumbnailWidth),
                 p.CreatedAt,
                 p.InquiryType,
                 p.SourceName

@@ -13,6 +13,14 @@ public interface ISeeder
     int Order => 0;
 
     /// <summary>
+    /// True (default) = seeder creates demo/test data and only runs when
+    /// Database:EnableSeeding is true (never in production).
+    /// Essential reference-data seeders (e.g. locations, legal content) override
+    /// this with false so they run in every environment.
+    /// </summary>
+    bool IsDemoData => true;
+
+    /// <summary>
     /// Seeds the database with test data.
     /// Should be idempotent - check if data exists before inserting.
     /// </summary>

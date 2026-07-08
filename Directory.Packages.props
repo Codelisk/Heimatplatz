@@ -66,7 +66,9 @@
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.9" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.10" />
+    <PackageVersion Include="SkiaSharp" Version="4.148.0" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.148.0" />
 
     <!-- Push Notification Providers -->
     <PackageVersion Include="FirebaseAdmin" Version="3.5.0" />

@@ -21,7 +21,8 @@ public sealed class BuildAstroTask : FrostingTask<BuildContext>
         context.Information($"Installing npm dependencies in {webDir}...");
         RunProcess(context, "npm", "ci", webDir, environment: null);
 
-        // 2) Build the static site. PUBLIC_API_BASE_URL is read by src/config/site.ts at build time.
+        // 2) Validate + build the static site ('validate' = astro check && astro build).
+        //    PUBLIC_API_BASE_URL is read by src/config/site.ts at build time.
         var buildEnv = new Dictionary<string, string>();
         if (!string.IsNullOrEmpty(context.ApiBaseUrl))
         {
@@ -29,8 +30,8 @@ public sealed class BuildAstroTask : FrostingTask<BuildContext>
             context.Information($"Building with PUBLIC_API_BASE_URL={context.ApiBaseUrl}");
         }
 
-        context.Information("Building Astro static site (npm run build)...");
-        RunProcess(context, "npm", "run build", webDir, buildEnv);
+        context.Information("Validating and building Astro static site (npm run validate)...");
+        RunProcess(context, "npm", "run validate", webDir, buildEnv);
 
         var distDir = Path.Combine(webDir, "dist");
         if (!Directory.Exists(distDir))

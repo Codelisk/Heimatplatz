@@ -12,10 +12,14 @@ on:
           - DeployIos
           - DeployAndroid
           - DeployAstro
+  schedule:
+    # Alle 6h neu bauen, damit der statische Astro-Content (API-Daten zur Buildzeit) nicht einfriert.
+    # inputs.target ist bei schedule leer -> iOS/Android-Jobs laufen dabei bewusst NICHT an.
+    - cron: '0 3,9,15,21 * * *'
 
 env:
   DOTNET_VERSION: '10.0.x'
-  DOTNET_QUALITY: 'preview'
+  DOTNET_QUALITY: 'ga'
 
 jobs:
   deploy-ios:
@@ -111,7 +115,7 @@ jobs:
         run: rm -f heimatplatz.keystore play-store-key.json
 
   deploy-astro:
-    if: inputs.target == 'DeployAstro' || inputs.target == 'DeployAll'
+    if: inputs.target == 'DeployAstro' || inputs.target == 'DeployAll' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     name: Deploy Astro Web
     defaults:

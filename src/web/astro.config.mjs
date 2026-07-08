@@ -13,7 +13,6 @@ const noIndexRoutes = [
   '/benachrichtigungen/',
   '/filter-einstellungen/',
   '/profil/',
-  '/immobilien/live/',
   '/immobilien/bearbeiten/',
 ];
 
