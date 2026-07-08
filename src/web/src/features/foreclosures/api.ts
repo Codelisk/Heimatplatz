@@ -52,7 +52,7 @@ type ForeclosureAuctionResponse = {
 };
 
 export const FORECLOSURE_BUILD_LIMIT = 128;
-const FALLBACK_AUCTION_IMAGE = "/og/heimatplatz-default.svg";
+const FALLBACK_AUCTION_IMAGE = "/favicon.svg";
 
 const categoryLabels: Record<string, string> = {
   Einfamilienhaus: "Einfamilienhaus",

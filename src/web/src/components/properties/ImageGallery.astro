@@ -11,7 +11,7 @@ interface Props {
   title: string;
 }
 
-const FALLBACK_IMAGE = "/og/heimatplatz-default.svg";
+const FALLBACK_IMAGE = "/favicon.svg";
 
 const { images, title } = Astro.props;
 
@@ -219,7 +219,7 @@ const remainingCount = items.length - 3;
 <script>
   type GalleryItem = { thumb: string; full: string; alt: string };
 
-  const FALLBACK_IMAGE = "/og/heimatplatz-default.svg";
+  const FALLBACK_IMAGE = "/favicon.svg";
 
   function initGallery(root: HTMLElement) {
     const itemsJson = root.querySelector("[data-gallery-items]")?.textContent;

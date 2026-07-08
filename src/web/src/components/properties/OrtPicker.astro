@@ -53,7 +53,7 @@ const panelId = `${buttonId}-panel`;
   <button
     type="button"
     id={buttonId}
-    class="flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-xs transition-colors hover:bg-accent"
+    class="flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
     aria-haspopup="dialog"
     aria-expanded="false"
     aria-controls={panelId}
@@ -103,7 +103,7 @@ const panelId = `${buttonId}-panel`;
             )}
             <button
               type="button"
-              class="flex flex-1 items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-sm font-medium hover:bg-accent"
+              class="flex flex-1 items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-sm font-medium hover:bg-accent hover:text-accent-foreground"
               aria-expanded="false"
               aria-controls={`${panelId}-${region.slug}`}
               data-ort-picker-region-toggle={region.slug}
@@ -122,7 +122,7 @@ const panelId = `${buttonId}-panel`;
             hidden
           >
             {/* Bezirk-Hauptort als eigene Option (z.B. "Linz" selbst) */}
-            <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent">
+            <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
               <input
                 type={singleSelect ? "radio" : "checkbox"}
                 name={singleSelect ? `${name}-radio` : undefined}
@@ -134,7 +134,7 @@ const panelId = `${buttonId}-panel`;
               <span class="truncate">{region.name} (alle)</span>
             </label>
             {region.localities.map((locality) => (
-              <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent">
+              <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
                 <input
                   type={singleSelect ? "radio" : "checkbox"}
                   name={singleSelect ? `${name}-radio` : undefined}

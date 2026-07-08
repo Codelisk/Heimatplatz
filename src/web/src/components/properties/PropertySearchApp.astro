@@ -409,7 +409,7 @@ const totalInitialProperties = apiProperties.length;
       return firstImage;
     }
 
-    return "/og/heimatplatz-default.svg";
+    return "/favicon.svg";
   }
 
   function createApiCard(property: ApiProperty, verifiedImages: VerifiedImageMap) {
@@ -455,9 +455,9 @@ const totalInitialProperties = apiProperties.length;
     image.loading = "lazy";
     image.decoding = "async";
     image.className = "h-full w-full object-cover";
-    image.dataset.fallbackImage = "/og/heimatplatz-default.svg";
+    image.dataset.fallbackImage = "/favicon.svg";
     image.addEventListener("error", () => {
-      image.src = "/og/heimatplatz-default.svg";
+      image.src = "/favicon.svg";
     }, { once: true });
     link.append(image);
 

@@ -52,7 +52,7 @@ type SearchOptions = {
 };
 
 export const API_PROPERTY_BUILD_LIMIT = 96;
-const FALLBACK_PROPERTY_IMAGE = "/og/heimatplatz-default.svg";
+const FALLBACK_PROPERTY_IMAGE = "/favicon.svg";
 const apiPropertyCache = new Map<string, Promise<ApiProperty[]>>();
 const apiPropertyDetailCache = new Map<string, Promise<ApiProperty | null>>();
 const apiImageReachabilityCache = new Map<string, Promise<boolean>>();

@@ -759,7 +759,7 @@
       image.className = "h-full w-full object-cover";
       image.loading = "lazy";
       image.addEventListener("error", () => {
-        image.src = "/og/heimatplatz-default.svg";
+        image.src = "/favicon.svg";
       }, { once: true });
 
       const remove = document.createElement("button");
@@ -937,9 +937,9 @@
     image.className = "h-full w-full object-cover";
     image.alt = property.Title;
     image.loading = "lazy";
-    image.src = property.ImageUrls?.[0] || "/og/heimatplatz-default.svg";
+    image.src = property.ImageUrls?.[0] || "/favicon.svg";
     image.addEventListener("error", () => {
-      image.src = "/og/heimatplatz-default.svg";
+      image.src = "/favicon.svg";
     }, { once: true });
     const type = createText("span", "absolute left-3 top-3 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background", property.Type);
     const price = createText("span", "absolute bottom-3 right-3 rounded-md bg-black/90 px-4 py-2 text-lg font-bold text-white", formatPriceValue(property.Price));
@@ -1504,7 +1504,7 @@
   function bindFallbackImages() {
     document.querySelectorAll<HTMLImageElement>("[data-fallback-image]").forEach((image) => {
       image.addEventListener("error", () => {
-        image.src = image.dataset.fallbackImage || "/og/heimatplatz-default.svg";
+        image.src = image.dataset.fallbackImage || "/favicon.svg";
       }, { once: true });
     });
   }
@@ -1727,6 +1727,12 @@
         const slug = actionButton.getAttribute("data-property-slug");
         const propertyId = actionButton.getAttribute("data-property-id");
         if (!slug) return;
+
+        if (!readSession()) {
+          window.alert("Bitte melde dich an oder registriere dich, um Immobilien zu merken oder zu blockieren.");
+          return;
+        }
+
         let active = false;
 
         if (action === "favorite") {
