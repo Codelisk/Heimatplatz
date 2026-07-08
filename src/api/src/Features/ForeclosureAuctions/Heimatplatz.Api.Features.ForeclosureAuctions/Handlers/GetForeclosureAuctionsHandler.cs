@@ -113,7 +113,10 @@ public class GetForeclosureAuctionsHandler(
         SitePlanUrl = fa.SitePlanUrl,
         LongAppraisalUrl = fa.LongAppraisalUrl,
         ShortAppraisalUrl = fa.ShortAppraisalUrl,
-        ImageUrls = GetPropertiesHandler.ProxyImageUrls(fa.ImageUrls, baseUrl, width: imageWidth),
+        // Altbestand enthaelt dasselbe Bild doppelt (Direktlink vs. Thumbnail-abgeleitete URL,
+        // nur Gross-/Kleinschreibung unterschiedlich) - beim Ausliefern case-insensitive dedupen
+        ImageUrls = GetPropertiesHandler.ProxyImageUrls(
+            fa.ImageUrls.Distinct(StringComparer.OrdinalIgnoreCase).ToList(), baseUrl, width: imageWidth),
         CreatedAt = fa.CreatedAt,
         ExternalId = fa.ExternalId,
         State = fa.State,

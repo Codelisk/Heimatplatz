@@ -181,9 +181,13 @@ public partial class EdikteScraper(
         }
 
         // Alle Bild-Attachments extrahieren
-        var imageUrls = new List<string>();
+        // Domino liefert dasselbe Attachment mit unterschiedlicher Gross-/Kleinschreibung
+        // (Direktlink "Foto.JPG" vs. Thumbnail "th1foto.jpg"), daher case-insensitive dedupen
+        var seenImageUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // 1. Direkte Bild-Links aus <a href> (keine Thumbnails)
+        // 1. Direkte Bild-Links aus <a href> (keine Thumbnails) - in DOM-Reihenfolge
+        //    stehen hier Beilagen/Plaene vor den eigentlichen Fotos
+        var linkImages = new List<string>();
         var allLinks = document.QuerySelectorAll("a[href]");
         foreach (var link in allLinks)
         {
@@ -196,12 +200,16 @@ public partial class EdikteScraper(
                 && !lowerHref.Contains("/th1"))
             {
                 var fullImgUrl = href.StartsWith("http") ? href : $"{options.Value.BaseUrl}{href}";
-                if (!imageUrls.Contains(fullImgUrl))
-                    imageUrls.Add(fullImgUrl);
+                if (seenImageUrls.Add(fullImgUrl))
+                    linkImages.Add(fullImgUrl);
             }
         }
 
-        // 2. Vollbild-URLs aus Thumbnail <img> Tags ableiten (th1... -> Original)
+        // 2. Vollbild-URLs aus Thumbnail <img> Tags ableiten (th1... -> Original).
+        //    Die Thumbnails bilden die Foto-Sektion des Edikts - echte Fotos,
+        //    die im Ergebnis vor Plaenen/Beilagen stehen sollen
+        var photoImages = new List<string>();
+        var photoKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var allImages = document.QuerySelectorAll("img[src]");
         foreach (var img in allImages)
         {
@@ -231,9 +239,19 @@ public partial class EdikteScraper(
             if (!fullImgUrl.StartsWith("http"))
                 fullImgUrl = $"{options.Value.BaseUrl}{fullImgUrl}";
 
-            if (!imageUrls.Contains(fullImgUrl))
-                imageUrls.Add(fullImgUrl);
+            // Der Thumbnail-Dateiname ist lowercase - bevorzugt die Direktlink-Variante
+            // mit Original-Schreibweise verwenden
+            var linkVariant = linkImages.Find(u =>
+                string.Equals(u, fullImgUrl, StringComparison.OrdinalIgnoreCase)) ?? fullImgUrl;
+
+            if (photoKeys.Add(linkVariant))
+                photoImages.Add(linkVariant);
         }
+
+        // 3. Fotos zuerst, danach restliche Bild-Anhaenge (Plaene, Beilagen)
+        var imageUrls = photoImages
+            .Concat(linkImages.Where(u => !photoKeys.Contains(u)))
+            .ToList();
 
         // Publikations-Eintraege am Ende
         var publications = document.QuerySelectorAll("#druckbereich > div:last-of-type p");

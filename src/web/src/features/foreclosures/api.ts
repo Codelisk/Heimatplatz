@@ -147,7 +147,53 @@ export function getForeclosureAuctionPath(auction: ApiForeclosureAuction) {
 }
 
 export function getAuctionImage(auction: ApiForeclosureAuction) {
-  return auction.ImageUrls?.[0] || FALLBACK_AUCTION_IMAGE;
+  return getAuctionImages(auction)[0] ?? FALLBACK_AUCTION_IMAGE;
+}
+
+/**
+ * Dedup key for gallery images: the edikte source URL hidden inside the
+ * API image proxy (`/api/images/proxy?url=...`). Legacy scrapes stored the
+ * same attachment twice with different casing (direct link vs. thumbnail
+ * derived URL), so compare case-insensitively on the decoded source URL.
+ */
+function getImageDedupKey(url: string) {
+  try {
+    const parsed = new URL(url, "https://heimatplatz.at");
+    const source = parsed.searchParams.get("url");
+    if (source) return decodeURIComponent(source).toLowerCase();
+  } catch {
+    // keep raw URL as key
+  }
+  return url.toLowerCase();
+}
+
+export function getAuctionImages(auction: ApiForeclosureAuction) {
+  const seen = new Set<string>();
+  return (auction.ImageUrls ?? []).filter((url) => {
+    if (!url) return false;
+    const key = getImageDedupKey(url);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * The list endpoint delivers proxied 640px thumbnails (`&w=640`). For the
+ * lightbox we want the untouched original, so strip the width parameter
+ * from our own proxy URLs.
+ */
+export function getOriginalAuctionImageUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith("/api/images/proxy")) {
+      parsed.searchParams.delete("w");
+      return parsed.toString();
+    }
+  } catch {
+    // relative or malformed URL: leave untouched
+  }
+  return url;
 }
 
 export function getForeclosureCategoryLabel(category: string | null | undefined) {
@@ -279,12 +325,14 @@ export function getAuctionDetailSections(auction: ApiForeclosureAuction) {
 }
 
 export function getAuctionJsonLd(auction: ApiForeclosureAuction, url: string) {
+  const images = getAuctionImages(auction).slice(0, 6);
   return {
     "@context": "https://schema.org",
     "@type": "Event",
     name: getAuctionTitle(auction),
     description: getAuctionDescription(auction),
     url,
+    image: images.length > 0 ? images : undefined,
     startDate: isValidAuctionDate(auction.AuctionDate) ? auction.AuctionDate : undefined,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",

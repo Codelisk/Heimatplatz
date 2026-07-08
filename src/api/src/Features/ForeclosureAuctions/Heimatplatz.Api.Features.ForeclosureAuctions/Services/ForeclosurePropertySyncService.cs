@@ -339,15 +339,22 @@ public class ForeclosurePropertySyncService(
 
     private static List<string> CollectImageUrls(ForeclosureAuction auction)
     {
+        // Altbestand enthaelt Case-Duplikate (Direktlink vs. Thumbnail-abgeleitete URL),
+        // daher case-insensitive dedupen
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var urls = new List<string>();
 
         // Scraped image URLs first (Fotos)
-        urls.AddRange(auction.ImageUrls);
+        foreach (var url in auction.ImageUrls)
+        {
+            if (!string.IsNullOrEmpty(url) && seen.Add(url))
+                urls.Add(url);
+        }
 
         // Add SitePlan/FloorPlan if not already included
-        if (!string.IsNullOrEmpty(auction.SitePlanUrl) && !urls.Contains(auction.SitePlanUrl))
+        if (!string.IsNullOrEmpty(auction.SitePlanUrl) && seen.Add(auction.SitePlanUrl))
             urls.Add(auction.SitePlanUrl);
-        if (!string.IsNullOrEmpty(auction.FloorPlanUrl) && !urls.Contains(auction.FloorPlanUrl))
+        if (!string.IsNullOrEmpty(auction.FloorPlanUrl) && seen.Add(auction.FloorPlanUrl))
             urls.Add(auction.FloorPlanUrl);
 
         return urls;

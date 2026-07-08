@@ -89,7 +89,7 @@ public partial class ForeclosureAuctionSyncService(
                 scrapedExternalIds.Add(item.ExternalId);
 
                 var detail = await scraper.GetAuctionDetailAsync(item.ExternalId, ct);
-                var contentHash = ComputeContentHash(detail.AllFields);
+                var contentHash = ComputeContentHash(detail.AllFields, detail.ImageUrls);
 
                 if (existingAuctions.TryGetValue(item.ExternalId, out var existing))
                 {
@@ -311,10 +311,12 @@ public partial class ForeclosureAuctionSyncService(
 
     // === Parsing-Hilfsmethoden ===
 
-    private static string ComputeContentHash(Dictionary<string, string> fields)
+    private static string ComputeContentHash(Dictionary<string, string> fields, List<string> imageUrls)
     {
+        // Bilder gehoeren zum Inhalt: Aenderungen an den Attachments (oder an der
+        // Extraktion, z.B. Dedupe/Sortierung) loesen so ein Update des Altbestands aus
         var sorted = fields.OrderBy(f => f.Key).Select(f => $"{f.Key}={f.Value}");
-        var content = string.Join("|", sorted);
+        var content = string.Join("|", sorted.Concat(imageUrls));
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(content));
         return Convert.ToHexStringLower(bytes);
     }

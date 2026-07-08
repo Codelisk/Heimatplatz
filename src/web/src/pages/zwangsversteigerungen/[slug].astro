@@ -5,6 +5,7 @@ import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import FileTextIcon from "@tabler/icons/outline/file-text.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import ShareIcon from "@tabler/icons/outline/share.svg";
+import AuctionGallery from "@/components/foreclosures/AuctionGallery.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import {
   fetchForeclosureAuctions,
@@ -14,7 +15,7 @@ import {
   getAuctionDescription,
   getAuctionDetailSections,
   getAuctionDocumentLinks,
-  getAuctionImage,
+  getAuctionImages,
   getAuctionJsonLd,
   getAuctionPriceLabel,
   getAuctionPrimaryArea,
@@ -45,7 +46,7 @@ const title = getAuctionTitle(auction);
 const description = getAuctionDescription(auction);
 const detailSections = getAuctionDetailSections(auction);
 const documents = getAuctionDocumentLinks(auction);
-const imageUrl = getAuctionImage(auction);
+const images = getAuctionImages(auction);
 const primaryFacts = [
   ["Termin", formatAuctionDate(auction.AuctionDate)],
   ["Schätzwert", formatAuctionMoney(auction.EstimatedValue)],
@@ -58,6 +59,7 @@ const primaryFacts = [
   title={title}
   description={description}
   canonicalPath={canonicalPath}
+  image={images[0]}
   structuredData={[
     breadcrumbSchema([
       { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
@@ -97,16 +99,7 @@ const primaryFacts = [
 
     <section class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
       <div>
-        <div class="relative overflow-hidden rounded-lg bg-muted">
-          <img
-            src={imageUrl}
-            alt={title}
-            class="h-[320px] w-full object-cover sm:h-[460px]"
-            loading="eager"
-            decoding="async"
-            data-fallback-image="/og/heimatplatz-default.svg"
-          />
-        </div>
+        <AuctionGallery images={images} title={title} />
 
         <dl class="mt-8 grid gap-3 sm:grid-cols-4">
           {primaryFacts.map(([label, value]) => (
