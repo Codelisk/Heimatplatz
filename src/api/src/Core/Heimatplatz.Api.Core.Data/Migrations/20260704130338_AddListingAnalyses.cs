@@ -29,7 +29,7 @@ BEGIN
         [Status] int NOT NULL,
         [ImageUrls] nvarchar(max) NOT NULL,
         [VideoUrls] nvarchar(max) NOT NULL,
-        [DictatedText] nvarchar(8000) NULL,
+        [DictatedText] nvarchar(max) NULL,
         [UserNotes] nvarchar(4000) NULL,
         [ResultJson] nvarchar(max) NULL,
         [ErrorMessage] nvarchar(4000) NULL,
