@@ -32,6 +32,11 @@ workflows:
         script: |
           cd "$CM_BUILD_DIR/cake"
           export ASC_KEY_PATH="AuthKey.p8"
+          # TEMPORARY: Codemagic's egress path to App Store Connect is intermittently
+          # rejecting valid requests (401) as of 2026-07-09, unrelated to this pipeline.
+          # Remove this once ASC calls from Codemagic are confirmed reliable again -
+          # it only matters as a fallback if the live TestFlight query fails outright.
+          export MANUAL_BUILD_BASELINE="68"
           dotnet run -- --target=DeployIos
 
       - name: Cleanup App Store Connect key

@@ -27,6 +27,7 @@ public class BuildContext : FrostingContext
     public string AppStoreConnectApiKeyId { get; }
     public string AppStoreConnectIssuerId { get; }
     public string AppStoreConnectKeyPath { get; }
+    public int? ManualBuildBaseline { get; }
 
     // Azure Static Web Apps settings
     public string AzureStaticWebAppsApiToken { get; }
@@ -73,6 +74,12 @@ public class BuildContext : FrostingContext
         AppStoreConnectIssuerId = GetConfigValue("iOS:AppStoreConnectIssuerId", "ASC_ISSUER_ID");
         var ascKeyPath = GetConfigValue("iOS:AppStoreConnectKeyPath", "ASC_KEY_PATH");
         AppStoreConnectKeyPath = string.IsNullOrEmpty(ascKeyPath) ? string.Empty : Path.GetFullPath(Path.Combine(BuildDirectory, ascKeyPath));
+
+        // Fallback baseline for VersionBump when every configured store query fails
+        // (e.g. transient App Store Connect outage). Not read from appsettings.json -
+        // deliberately env-var-only so it can't accidentally become a persistent default.
+        var manualBaseline = Environment.GetEnvironmentVariable("MANUAL_BUILD_BASELINE");
+        ManualBuildBaseline = int.TryParse(manualBaseline, out var parsedBaseline) ? parsedBaseline : null;
 
         // Azure Static Web Apps settings
         AzureStaticWebAppsApiToken = GetConfigValue("Azure:StaticWebAppsApiToken", "AZURE_STATIC_WEB_APPS_API_TOKEN");
