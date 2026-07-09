@@ -84,11 +84,19 @@ public static class StoreVersionHelper
 
             // Resolve app numeric id by bundle id
             var appsResp = http.GetAsync($"v1/apps?filter[bundleId]={Uri.EscapeDataString(bundleId)}&fields[apps]=bundleId&limit=1").Result;
-            if (!appsResp.IsSuccessStatusCode) return null;
+            if (!appsResp.IsSuccessStatusCode)
+            {
+                Console.Error.WriteLine($"[StoreVersionHelper] apps lookup failed: {(int)appsResp.StatusCode} {appsResp.ReasonPhrase} - {appsResp.Content.ReadAsStringAsync().Result}");
+                return null;
+            }
             var appsJson = appsResp.Content.ReadAsStringAsync().Result;
             using var appsDoc = JsonDocument.Parse(appsJson);
             var dataArr = appsDoc.RootElement.GetProperty("data");
-            if (dataArr.GetArrayLength() == 0) return null;
+            if (dataArr.GetArrayLength() == 0)
+            {
+                Console.Error.WriteLine($"[StoreVersionHelper] no app found for bundleId={bundleId}");
+                return null;
+            }
             var appId = dataArr[0].GetProperty("id").GetString();
             if (string.IsNullOrEmpty(appId)) return null;
 
@@ -100,7 +108,11 @@ public static class StoreVersionHelper
             while (!string.IsNullOrEmpty(nextUrl))
             {
                 var resp = http.GetAsync(nextUrl).Result;
-                if (!resp.IsSuccessStatusCode) return seenAny ? max : null;
+                if (!resp.IsSuccessStatusCode)
+                {
+                    Console.Error.WriteLine($"[StoreVersionHelper] builds lookup failed: {(int)resp.StatusCode} {resp.ReasonPhrase} - {resp.Content.ReadAsStringAsync().Result}");
+                    return seenAny ? max : null;
+                }
                 var json = resp.Content.ReadAsStringAsync().Result;
                 using var doc = JsonDocument.Parse(json);
                 var builds = doc.RootElement.GetProperty("data");
@@ -132,6 +144,10 @@ public static class StoreVersionHelper
                 }
             }
 
+            if (!seenAny)
+            {
+                Console.Error.WriteLine($"[StoreVersionHelper] appId={appId} resolved but zero builds returned by App Store Connect");
+            }
             return seenAny ? max : null;
         }
         catch (Exception ex)
