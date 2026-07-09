@@ -122,6 +122,7 @@ const totalInitialProperties = apiProperties.length;
   const mobileBody = document.querySelector<HTMLElement>("[data-mobile-filter-body]");
   const config = document.querySelector<HTMLElement>("[data-search-config]");
   const ALL_TYPES = ["apartment", "house", "land", "foreclosure"];
+  const DEFAULT_TYPES = ["apartment", "house", "land"];
   const ALL_SELLERS = ["private", "agent", "court"];
   const PAGE_SIZE = 20;
   let currentPage = 0;
@@ -266,7 +267,7 @@ const totalInitialProperties = apiProperties.length;
       .flatMap((value) => splitSelection(value, allowed));
   }
 
-  function initialSelection(name: string, presetValue: string, storedValue: string, allowed: string[]) {
+  function initialSelection(name: string, presetValue: string, storedValue: string, allowed: string[], defaults: string[] = allowed) {
     const queryValues = getQuerySelection(name, allowed);
     if (queryValues.length > 0) return queryValues;
 
@@ -276,12 +277,12 @@ const totalInitialProperties = apiProperties.length;
     const storedValues = splitSelection(storedValue, allowed);
     if (storedValues.length > 0) return storedValues;
 
-    return [...allowed];
+    return [...defaults];
   }
 
   const initial = {
     q: params.get("q") ?? preset.q,
-    types: initialSelection("type", preset.type, storedInitial.type, ALL_TYPES),
+    types: initialSelection("type", preset.type, storedInitial.type, ALL_TYPES, DEFAULT_TYPES),
     sellers: initialSelection("seller", preset.seller, storedInitial.seller, ALL_SELLERS),
     region: initialValue("region", preset.region, storedInitial.region),
     age: initialValue("age", preset.age, storedInitial.age),
