@@ -1,6 +1,6 @@
 # Heimatplatz Web
 
-Astro-Web-App unter `src/web`, vorbereitet als spaeterer Ersatz fuer die Uno-WASM-Webauslieferung. Die mobilen Uno-Ziele bleiben separat in `src/uno`. Die Web-App soll funktional und visuell dem Uno-WASM-Flow folgen: Headerfilter, Kartenraster, Details, Auth, Favoriten, Blockieren, Inserieren und Nutzerbereiche.
+Astro-Web-App unter `src/web`. Die mobilen/Desktop-Ziele leben separat in `src/maui` (.NET MAUI). Die Web-App soll funktional und visuell dem MAUI-Flow folgen: Headerfilter, Kartenraster, Details, Auth, Favoriten, Blockieren, Inserieren und Nutzerbereiche.
 
 ## Stack
 

@@ -40,7 +40,7 @@ builder.Services.AddExceptionHandler<UnauthorizedExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddApiServices(builder.Configuration);
 
-// CORS fuer Uno WASM Frontend
+// CORS fuer das Astro-Web-Frontend (Browser-Cross-Origin-Requests)
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

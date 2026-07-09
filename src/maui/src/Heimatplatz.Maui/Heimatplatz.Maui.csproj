@@ -64,9 +64,6 @@
 	<ItemGroup>
 		<!-- Generierter OpenAPI-Client (eigenes Projekt: Source-Gen-Typen als Assembly-Referenz) -->
 		<ProjectReference Include="..\Heimatplatz.Maui.ApiClient\Heimatplatz.Maui.ApiClient.csproj" />
-		<!-- Wiederverwendbare plattformneutrale Contracts aus der Uno-App -->
-		<ProjectReference Include="..\..\..\uno\src\Features\Notifications\Heimatplatz.Features.Notifications.Contracts\Heimatplatz.Features.Notifications.Contracts.csproj" />
-		<ProjectReference Include="..\..\..\uno\src\Features\AppUpdate\Heimatplatz.Features.AppUpdate.Contracts\Heimatplatz.Features.AppUpdate.Contracts.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -5,7 +5,7 @@
 - **Sprache:** C# latest
 - **Framework:** .NET 10
 - **Frontend Web:** Astro (`src/web`, nutze Astro-AI-Skill und Astro Docs MCP)
-- **Frontend Mobile/Desktop:** Uno Platform (`src/uno`, nutze Uno MCP und definierte Skills)
+- **Frontend Mobile/Desktop:** .NET MAUI (`src/maui`, Shiny-First, nutze definierte Shiny-Skills)
 - **Backend:** ASP.NET (nutze Microsoft Docs MCP und definierte Skills)
 - **Architektur:** Shiny Mediator Pattern ([GitHub](https://github.com/shinyorg/mediator))
 
@@ -13,7 +13,7 @@
 
 **Alle Logik im Backend. Frontend nur für Anzeige.**
 
-| Backend (API) | Frontend (Uno) |
+| Backend (API) | Frontend (MAUI/Web) |
 |---------------|----------------|
 | Geschäftslogik, Validierung, Berechnungen | UI, Navigation, API-Aufrufe |
 | Datenbank, Security, externe Services | Loading-States, UX-Feedback |
@@ -32,13 +32,12 @@ using Heimatplatz.Api;
 public class MyService : IMyService { }
 ```
 
-**Uno-Services:**
+**MAUI-Services:**
 ```csharp
-using Heimatplatz;
-
-[Service(UnoService.Lifetime, TryAdd = UnoService.TryAdd)]
+[Singleton]
 public class MyService : IMyService { }
 ```
+HttpClient-basierte Services brauchen zusaetzlich explizite Registrierung ueber `AddHttpClient<TInterface, TImpl>()` in der Feature-`ServiceCollectionExtensions.cs` (siehe `shiny-di` Skill).
 
 ### Registrierung
 
@@ -51,7 +50,8 @@ services.AddShinyServiceRegistry();
 | Klasse | Namespace | Projekt | Lifetime | TryAdd |
 |--------|-----------|---------|----------|--------|
 | `ApiService` | `Heimatplatz.Api` | `src/api/src/Shared/Api.Shared` | `Scoped` | `true` |
-| `UnoService` | `Heimatplatz` | `src/uno/src/Shared/Shared` | `Singleton` | `true` |
+
+MAUI nutzt keine eigene Wrapper-Konstante, sondern die Shiny-DI-Attribute (`[Singleton]`, `[Scoped]`, `[Transient]`) direkt.
 
 Referenz: [shinylib.net/extensions/di](https://shinylib.net/extensions/di/)
 
@@ -83,19 +83,14 @@ Heimatplatz/
 │   │   │   └── pages/              # Astro file-based routes
 │   │   └── package.json
 │   │
-│   └── uno/                        # Mobile/Desktop Frontend (Uno Platform)
+│   └── maui/                        # Mobile/Desktop Frontend (.NET MAUI, Shiny-First)
 │       └── src/
-│           ├── *.App/                             # Hauptprojekt
-│           ├── Shared/
-│           │   └── *.Shared/                      # UnoService DI-Konstanten
-│           ├── Core/
-│           │   ├── *.Core.Startup/                # DI Setup
-│           │   └── *.Core.Styles/                 # Design System
-│           └── Features/{Name}/
-│               ├── *.Features.{Name}/             # Services, Presentation
-│               └── *.Features.{Name}.Contracts/
+│           ├── Heimatplatz.Maui/                  # Hauptprojekt (Single-Project, kein Feature-Split)
+│           │   ├── Core/                          # DeepLink, Startup etc.
+│           │   └── Features/{Name}/               # Configuration, Handlers, Presentation, Services
+│           └── Heimatplatz.Maui.ApiClient/        # Generierter OpenAPI-Client (eigenes Projekt, s.u.)
 │
-└── subm/uno/                       # UnoFramework Submodule
+└── subm/uno/                       # UnoFramework Submodule (Framework-Abhaengigkeit, keine App)
 ```
 
 > `*` = `Heimatplatz` Namespace-Prefix
@@ -239,85 +234,26 @@ public static IServiceCollection AddMyFeature(this IServiceCollection services)
 - Mindestens 5-10 realistische Eintraege pro Entity
 - Datenbank wird NICHT geloescht, Daten wachsen kontinuierlich
 
-## Uno Feature-Erweiterungsstruktur
+## MAUI Feature-Erweiterungsstruktur
 
-Bei neuen Uno-Features erstelle Projekte unter `src/uno/src/`:
-1. **Hauptprojekt** - Implementierungen
-2. **Contracts-Projekt** - Interfaces und Mediator-Contracts
-
-**Jedes dieser Projekte MUSS eine `README.md` enthalten.**
-
-### Namenskonventionen
-
-| Typ | Ordner | Benennung |
-|-----|--------|-----------|
-| Features | `src/uno/src/Features/` | `Heimatplatz.Features.FeatureName` |
-| Core Features | `src/uno/src/Core/` | `Heimatplatz.Core.FeatureName` |
-| Third Party | `src/uno/src/ThirdParty/` | `Heimatplatz.ThirdParty.FeatureName` |
-
-### Contracts-Projekt
+`Heimatplatz.Maui` ist ein Single-Project (kein Feature-Split in separate Projekte wie bei API). Neue Features leben als Ordner unter `src/maui/src/Heimatplatz.Maui/Features/{FeatureName}/`:
 
 ```
-src/uno/src/Features/{FeatureName}/Heimatplatz.Features.{FeatureName}.Contracts/
-├── README.md                     # Projektdokumentation (PFLICHT)
-├── Models/                       # Data Transfer Objects
-├── Enums/                        # Shared Enumerations
-├── Interfaces/                   # Service-Interfaces
-└── Mediator/
-    └── Requests/
-        ├── {Action}Request.cs    # IRequest<TResponse>
-        └── {Action}Command.cs    # ICommand
-```
-
-### Hauptprojekt
-
-```
-src/uno/src/Features/{FeatureName}/Heimatplatz.Features.{FeatureName}/
-├── README.md                     # Projektdokumentation (PFLICHT)
+Features/{FeatureName}/
 ├── Configuration/
-│   └── ServiceCollectionExtensions.cs    # Add{FeatureName}Feature()
+│   └── ServiceCollectionExtensions.cs    # nur falls explizite Registrierung noetig (z.B. HttpClient)
 ├── Services/
-│   ├── I{Service}.cs             # Service-Interfaces
-│   └── {Service}.cs              # Service-Implementierungen
-├── Mediator/
-│   ├── Commands/                 # Command-Handler
-│   ├── Requests/                 # Request-Handler
-│   └── Events/                   # Event-Handler
+│   ├── I{Service}.cs                     # Service-Interfaces
+│   └── {Service}.cs                      # [Singleton]/[Scoped]-Implementierungen
+├── Handlers/                             # Shiny.Mediator Request/Command-Handler
 └── Presentation/
     ├── {Page}Page.xaml
     ├── {Page}Page.xaml.cs
-    └── {Page}ViewModel.cs
+    └── {Page}ViewModel.cs                # [ObservableProperty] nur auf partial properties (MVVMTK0045)
 ```
 
-### Feature Registration (Uno)
+**OpenAPI-Client bleibt im eigenen Projekt** (`Heimatplatz.Maui.ApiClient`) - Source-Generatoren sehen einander nicht, sonst brechen `[RelayCommand]`/`[ObservableProperty]` mit generierten DTO-Typen (CS0246).
 
-Features werden in `Core.Startup/ServiceCollectionExtensions.cs` registriert:
+Features werden in `MauiProgram.cs` / `AddAppServices()` registriert (`services.AddShinyServiceRegistry()` scannt die `[Singleton]`/`[Scoped]`-Attribute automatisch). HttpClient-basierte Services brauchen zusaetzlich `services.AddHttpClient<IAuthApiClient, AuthApiClient>()` in der Feature-`ServiceCollectionExtensions.cs`.
 
-```csharp
-public static IServiceCollection AddAppServices(this IServiceCollection services)
-{
-    services.AddShinyServiceRegistry();  // [Service] Attribute scannen
-    services.AddShinyMediator();
-    services.AddSingleton<IEventCollector, UnoEventCollector>();
-    services.AddSingleton<BaseServices>();
-
-    // Features
-    services.Add{FeatureName}Feature();
-
-    return services;
-}
-```
-
-### Uno Feature Beispiel: Auth
-
-HttpClient-basierte Services erfordern explizite Registrierung:
-
-```csharp
-// In Feature Configuration/ServiceCollectionExtensions.cs
-public static IServiceCollection AddAuthFeature(this IServiceCollection services)
-{
-    // HttpClient erfordert explizite Registrierung
-    services.AddHttpClient<IAuthApiClient, AuthApiClient>();
-    return services;
-}
-```
+Referenz: `shiny-maui-shell`, `shiny-mediator`, `shiny-di` Skills.

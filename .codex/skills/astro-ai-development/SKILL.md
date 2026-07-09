@@ -7,7 +7,7 @@ description: Build and modify the Heimatplatz Astro web app in src/web using Ast
 
 ## Workflow
 
-1. Work from `src/web` for the Astro app; keep `src/api` as the business-logic source and `src/uno` for mobile/legacy Uno concerns.
+1. Work from `src/web` for the Astro app; keep `src/api` as the business-logic source and `src/maui` for mobile/desktop concerns.
 2. Check current Astro APIs before making framework-level changes. Prefer the Astro Docs MCP server; if unavailable, use official Astro docs.
 3. Use Astro's static-first model for public pages. Add SSR only when a requirement cannot be met with prerendered pages plus API calls.
 4. Build SEO at the layout/route layer: title, description, canonical URL, Open Graph, JSON-LD, `robots.txt`, `llms.txt`, and sitemap must stay coherent.

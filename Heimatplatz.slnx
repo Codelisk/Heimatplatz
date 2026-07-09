@@ -12,23 +12,12 @@
     <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Data/Heimatplatz.Api.Core.Data.csproj" />
     <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Startup/Heimatplatz.Api.Core.Startup.csproj" />
   </Folder>
-  <Folder Name="/src/uno/src/">
-    <Project Path="src/uno/src/Heimatplatz.App/Heimatplatz.App.csproj" />
-  </Folder>
   <Folder Name="/src/maui/src/">
     <Project Path="src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj" />
     <Project Path="src/maui/src/Heimatplatz.Maui.ApiClient/Heimatplatz.Maui.ApiClient.csproj" />
   </Folder>
-  <Folder Name="/src/uno/src/Core/">
-    <Project Path="src/uno/src/Core/Heimatplatz.Core.ApiClient/Heimatplatz.Core.ApiClient.csproj" />
-    <Project Path="src/uno/src/Core/Heimatplatz.Core.Startup/Heimatplatz.Core.Startup.csproj" />
-    <Project Path="src/uno/src/Core/Heimatplatz.Core.Styles/Heimatplatz.Core.Styles.csproj" />
-  </Folder>
   <Folder Name="/src/api/src/Shared/">
     <Project Path="src/api/src/Shared/Heimatplatz.Api.Shared/Heimatplatz.Api.Shared.csproj" />
-  </Folder>
-  <Folder Name="/src/uno/src/Shared/">
-    <Project Path="src/uno/src/Shared/Heimatplatz.Shared/Heimatplatz.Shared.csproj" />
   </Folder>
   <Folder Name="/subm/uno/">
     <Project Path="subm/uno/src/UnoFramework/UnoFramework.csproj" />

@@ -25,7 +25,7 @@ Diese Anleitung beschreibt die manuelle Konfiguration für Firebase Cloud Messag
 2. Android-Paketname: `com.heimatplatz.app` (muss mit App übereinstimmen)
 3. App-Nickname: "Heimatplatz Android"
 4. `google-services.json` herunterladen
-5. Datei nach `src/uno/src/Heimatplatz.App/Platforms/Android/` kopieren
+5. Datei nach `src/maui/src/Heimatplatz.Maui/Platforms/Android/` kopieren
 
 ### 1.3 Service Account für Server erstellen
 
@@ -112,16 +112,14 @@ Für Production sollten Secrets über Aspire/Azure Key Vault konfiguriert werden
 
 ---
 
-## 4. Client-Konfiguration (Uno Platform)
+## 4. Client-Konfiguration (.NET MAUI)
 
 ### 4.1 Android: google-services.json
 
-Stelle sicher, dass in `Heimatplatz.App.csproj`:
+Stelle sicher, dass in `Heimatplatz.Maui.csproj`:
 
 ```xml
-<ItemGroup Condition="$(TargetFramework.Contains('android'))">
-  <GoogleServicesJson Include="Platforms\Android\google-services.json" />
-</ItemGroup>
+<GoogleServicesJson Include="Platforms\Android\google-services.json" Condition="Exists('Platforms\Android\google-services.json')" />
 ```
 
 ### 4.2 iOS: Capabilities
@@ -155,8 +153,8 @@ In Xcode oder via Entitlements:
 |-------|-------------|--------|
 | `firebase-service-account.json` | `src/api/src/Heimatplatz.Api/` | Firebase Console |
 | `apns-auth-key.p8` | `src/api/src/Heimatplatz.Api/` | Apple Developer Portal |
-| `google-services.json` | `src/uno/src/Heimatplatz.App/Platforms/Android/` | Firebase Console |
-| `GoogleService-Info.plist` | `src/uno/src/Heimatplatz.App/Platforms/iOS/` | Firebase Console (optional) |
+| `google-services.json` | `src/maui/src/Heimatplatz.Maui/Platforms/Android/` | Firebase Console |
+| `GoogleService-Info.plist` | `src/maui/src/Heimatplatz.Maui/Platforms/iOS/` | Firebase Console (optional) |
 
 **Wichtig:** Alle Secret-Dateien sind in `.gitignore` eingetragen und werden NICHT committed!
 

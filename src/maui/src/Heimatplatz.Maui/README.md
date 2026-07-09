@@ -1,6 +1,6 @@
 # Heimatplatz.Maui
 
-.NET MAUI App (Migration der Uno-Platform-App `src/uno`) — Android, iOS, Mac Catalyst, Windows.
+.NET MAUI App (urspruenglich als Migration der frueheren Uno-Platform-App entstanden, die inzwischen entfernt wurde) — Android, iOS, Mac Catalyst, Windows.
 
 ## Architektur
 

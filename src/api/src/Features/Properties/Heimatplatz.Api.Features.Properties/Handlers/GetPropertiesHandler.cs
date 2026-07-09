@@ -181,7 +181,7 @@ public class GetPropertiesHandler(
             if (string.IsNullOrEmpty(url))
                 return url;
 
-            // Proxy all external URLs (CORS bypass for Uno WASM)
+            // Proxy all external URLs (CORS bypass for the Astro web frontend)
             // Only skip our own uploads (local paths starting with /)
             if (url.StartsWith("/"))
                 return url;

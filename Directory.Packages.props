@@ -27,9 +27,6 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 
-    <!-- Uno Extensions -->
-    <PackageVersion Include="Uno.Extensions.Reactive" Version="7.1.4" />
-
     <!-- MAUI App -->
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.80" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftVersion)" />
@@ -111,9 +108,6 @@
     <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
 
     <!-- UI Testing -->
-    <PackageVersion Include="Uno.UITest" Version="1.1.0-dev.92" />
-    <PackageVersion Include="Uno.UITest.Helpers" Version="1.1.0-dev.70" />
-    <PackageVersion Include="Uno.UITest.Selenium" Version="1.1.0-dev.70" />
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <PackageVersion Include="FluentAssertions" Version="8.10.0" />
