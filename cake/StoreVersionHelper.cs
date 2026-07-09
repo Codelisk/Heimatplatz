@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Build;
 
@@ -83,7 +84,7 @@ public static class StoreVersionHelper
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             // Resolve app numeric id by bundle id
-            var appsResp = http.GetAsync($"v1/apps?filter[bundleId]={Uri.EscapeDataString(bundleId)}&fields[apps]=bundleId&limit=1").Result;
+            var appsResp = GetWithRetry(http, $"v1/apps?filter[bundleId]={Uri.EscapeDataString(bundleId)}&fields[apps]=bundleId&limit=1");
             if (!appsResp.IsSuccessStatusCode)
             {
                 Console.Error.WriteLine($"[StoreVersionHelper] apps lookup failed: {(int)appsResp.StatusCode} {appsResp.ReasonPhrase} - {appsResp.Content.ReadAsStringAsync().Result}");
@@ -107,7 +108,7 @@ public static class StoreVersionHelper
             var nextUrl = $"v1/builds?filter[app]={appId}&fields[builds]=version&limit=200";
             while (!string.IsNullOrEmpty(nextUrl))
             {
-                var resp = http.GetAsync(nextUrl).Result;
+                var resp = GetWithRetry(http, nextUrl);
                 if (!resp.IsSuccessStatusCode)
                 {
                     Console.Error.WriteLine($"[StoreVersionHelper] builds lookup failed: {(int)resp.StatusCode} {resp.ReasonPhrase} - {resp.Content.ReadAsStringAsync().Result}");
@@ -155,6 +156,24 @@ public static class StoreVersionHelper
             Console.Error.WriteLine($"[StoreVersionHelper] TestFlight query failed: {ex}");
             return null;
         }
+    }
+
+    /// <summary>
+    /// App Store Connect intermittently returns transient 401/403/5xx right after an
+    /// account-level change (e.g. accepting an agreement) propagates. Retry a few times
+    /// before giving up.
+    /// </summary>
+    private static HttpResponseMessage GetWithRetry(HttpClient http, string url, int attempts = 5, int delayMs = 3000)
+    {
+        HttpResponseMessage? last = null;
+        for (var i = 0; i < attempts; i++)
+        {
+            if (i > 0) Thread.Sleep(delayMs);
+            last = http.GetAsync(url).Result;
+            if (last.IsSuccessStatusCode) return last;
+            Console.Error.WriteLine($"[StoreVersionHelper] attempt {i + 1}/{attempts} for {url} -> {(int)last.StatusCode} {last.ReasonPhrase}");
+        }
+        return last!;
     }
 
     private static string CreateAppStoreConnectJwt(string apiKeyId, string issuerId, string keyPath)
