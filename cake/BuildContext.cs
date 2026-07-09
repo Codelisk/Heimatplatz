@@ -46,6 +46,7 @@ public class BuildContext : FrostingContext
         Configuration = new ConfigurationBuilder()
             .SetBasePath(BuildDirectory)
             .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile("appsettings.Local.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
 

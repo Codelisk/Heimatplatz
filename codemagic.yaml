@@ -1,0 +1,50 @@
+workflows:
+  ios-testflight:
+    name: iOS - TestFlight Deploy
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      xcode: 26.5
+      vars:
+        DOTNET_ROOT: $CM_BUILD_DIR/dotnet
+      groups:
+        # Encrypted variable group "ios_deploy" - see setup instructions.
+        # Required vars: ASC_KEY_BASE64, ASC_KEY_ID, ASC_ISSUER_ID,
+        #                 APPLE_TEAM_ID, MATCH_GIT_URL, MATCH_PASSWORD
+        - ios_deploy
+    scripts:
+      - name: Install .NET 10 SDK
+        script: |
+          wget -q https://dot.net/v1/dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel 10.0 --quality ga --install-dir "$DOTNET_ROOT"
+          echo "PATH=$DOTNET_ROOT:$PATH" >> $CM_ENV
+
+      - name: Install MAUI iOS workload
+        script: |
+          dotnet workload install ios maui
+
+      - name: Decode App Store Connect API key
+        script: |
+          echo "$ASC_KEY_BASE64" | base64 --decode > "$CM_BUILD_DIR/cake/AuthKey.p8"
+
+      - name: Run Cake DeployIos (build + TestFlight upload)
+        script: |
+          cd "$CM_BUILD_DIR/cake"
+          export ASC_KEY_PATH="AuthKey.p8"
+          dotnet run -- --target=DeployIos
+
+      - name: Cleanup App Store Connect key
+        script: |
+          rm -f "$CM_BUILD_DIR/cake/AuthKey.p8"
+
+    artifacts:
+      - artifacts/ios/**/*.ipa
+
+    publishing:
+      email:
+        recipients:
+          - info@vorleistung.at
+        notify:
+          success: true
+          failure: true

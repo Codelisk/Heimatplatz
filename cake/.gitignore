@@ -17,6 +17,7 @@ secrets/
 *.json.key
 play-store-key.json
 AuthKey.p8
+appsettings.Local.json
 docs/
 
 # IDE

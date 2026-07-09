@@ -1,0 +1,14 @@
+{
+  "Android": {
+    "KeystorePassword": "",
+    "KeyAlias": "",
+    "KeyPassword": ""
+  },
+  "iOS": {
+    "TeamId": "",
+    "MatchPassword": "",
+    "AppStoreConnectApiKeyId": "",
+    "AppStoreConnectIssuerId": "",
+    "AppStoreConnectKeyPath": "secrets/AuthKey.p8"
+  }
+}
