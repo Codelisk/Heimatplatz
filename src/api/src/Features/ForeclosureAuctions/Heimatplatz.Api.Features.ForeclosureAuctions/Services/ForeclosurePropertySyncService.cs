@@ -1,6 +1,7 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
+using Heimatplatz.Api.Features.ForeclosureAuctions.Contracts;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
@@ -225,7 +226,7 @@ public class ForeclosurePropertySyncService(
         var property = new Property
         {
             Id = Guid.NewGuid(),
-            Title = auction.ObjectDescription,
+            Title = BuildTitle(auction),
             Address = auction.Address,
             MunicipalityId = municipalityId,
             Price = auction.MinimumBid ?? auction.EstimatedValue ?? 0,
@@ -260,7 +261,7 @@ public class ForeclosurePropertySyncService(
         ForeclosurePropertyData foreclosureData,
         DateTimeOffset now)
     {
-        property.Title = auction.ObjectDescription;
+        property.Title = BuildTitle(auction);
         property.Address = auction.Address;
         property.MunicipalityId = municipalityId;
         property.Price = auction.MinimumBid ?? auction.EstimatedValue ?? 0;
@@ -278,6 +279,27 @@ public class ForeclosurePropertySyncService(
         property.UpdatedAt = now;
 
         property.SetTypedData(foreclosureData);
+    }
+
+    /// <summary>
+    /// Kurzer Anzeige-Titel statt der vollen ObjectDescription (die als Description verwendet wird) -
+    /// sonst sind Titel und Beschreibung identisch (Bug: langer Fließtext als Kartentitel/Link-Name).
+    /// </summary>
+    private static string BuildTitle(ForeclosureAuction auction)
+    {
+        var categoryLabel = auction.Category switch
+        {
+            PropertyCategory.Einfamilienhaus => "Einfamilienhaus",
+            PropertyCategory.Zweifamilienhaus => "Zweifamilienhaus",
+            PropertyCategory.Mehrfamilienhaus => "Mehrfamilienhaus",
+            PropertyCategory.Wohnungseigentum => "Wohnung",
+            PropertyCategory.GewerblicheLiegenschaft => "Gewerbeobjekt",
+            PropertyCategory.Grundstueck => "Grundstück",
+            PropertyCategory.LandUndForstwirtschaft => "Land- und Forstwirtschaft",
+            _ => "Liegenschaft"
+        };
+
+        return $"Zwangsversteigerung: {categoryLabel} in {auction.City}";
     }
 
     private static PropertyContactInfo CreateContact(Property property, ForeclosureAuction auction)
