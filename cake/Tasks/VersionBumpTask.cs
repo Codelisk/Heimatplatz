@@ -28,14 +28,15 @@ public sealed class VersionBumpTask : FrostingTask<BuildContext>
         context.Information($"Current display version: {currentDisplayVersion}");
         context.Information($"Current build version: {currentBuildVersion}");
 
-        // Query stores for latest version codes
-        context.Information("Querying Google Play and TestFlight for latest version codes...");
-
+        // Query whichever stores are configured for this deploy target.
         int? googlePlayVersion = null;
         int? testFlightVersion = null;
 
+        var googlePlayConfigured = !string.IsNullOrEmpty(context.PlayStoreJsonKeyPath) && File.Exists(context.PlayStoreJsonKeyPath);
+        var appStoreConnectConfigured = !string.IsNullOrEmpty(context.AppStoreConnectKeyPath) && File.Exists(context.AppStoreConnectKeyPath);
+
         // Query Google Play
-        if (!string.IsNullOrEmpty(context.PlayStoreJsonKeyPath) && File.Exists(context.PlayStoreJsonKeyPath))
+        if (googlePlayConfigured)
         {
             context.Information("Checking Google Play internal track...");
             googlePlayVersion = StoreVersionHelper.GetGooglePlayVersionCode(
@@ -54,11 +55,11 @@ public sealed class VersionBumpTask : FrostingTask<BuildContext>
         }
         else
         {
-            context.Warning("Google Play JSON key not configured, skipping Google Play version check");
+            context.Information("Google Play JSON key not configured for this deploy - skipping Google Play version check");
         }
 
         // Query TestFlight
-        if (!string.IsNullOrEmpty(context.AppStoreConnectKeyPath) && File.Exists(context.AppStoreConnectKeyPath))
+        if (appStoreConnectConfigured)
         {
             context.Information("Checking TestFlight...");
             testFlightVersion = StoreVersionHelper.GetTestFlightBuildNumber(
@@ -79,16 +80,24 @@ public sealed class VersionBumpTask : FrostingTask<BuildContext>
         }
         else
         {
-            context.Warning("App Store Connect key not configured, skipping TestFlight version check");
+            context.Information("App Store Connect key not configured for this deploy - skipping TestFlight version check");
         }
 
-        // Stores are the source of truth. If BOTH queries fail, fall back to csproj
-        // to avoid resetting the build number to 1 (which stores would reject).
-        if (!googlePlayVersion.HasValue && !testFlightVersion.HasValue)
+        // Stores are the source of truth. If every *configured* store's query fails, fall
+        // back to csproj to avoid resetting the build number to 1 (which stores would reject).
+        // A store that isn't configured for this deploy target (e.g. Google Play on an
+        // iOS-only Codemagic run) doesn't count against this - only actual query failures do.
+        var anyConfigured = googlePlayConfigured || appStoreConnectConfigured;
+        var anySucceeded = googlePlayVersion.HasValue || testFlightVersion.HasValue;
+        if (anyConfigured && !anySucceeded)
         {
+            var failedStores = string.Join(" and ", new[]
+            {
+                googlePlayConfigured ? "Google Play" : null,
+                appStoreConnectConfigured ? "TestFlight" : null,
+            }.Where(s => s != null));
             throw new InvalidOperationException(
-                "Both Google Play and TestFlight version queries failed. " +
-                "Refusing to bump without a known store baseline.");
+                $"{failedStores} version query failed. Refusing to bump without a known store baseline.");
         }
 
         var highestStoreVersion = Math.Max(
