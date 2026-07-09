@@ -7,16 +7,42 @@
     xmlns:properties="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
     xmlns:auth="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
     Title="Heimatplatz"
-    FlyoutBehavior="Flyout">
+    FlyoutBehavior="Flyout"
+    FlyoutWidth="300"
+    FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
 
     <Shell.FlyoutHeader>
-        <Grid Padding="20,32,20,20"
-              BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}">
-            <VerticalStackLayout Spacing="4">
+        <Grid Padding="20,40,20,24"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}"
+              ColumnDefinitions="Auto,*"
+              ColumnSpacing="14">
+
+            <!-- Logo auf weisser Karte. Das Artwork hat grosse weisse Raender eingebaut,
+                 daher wird das Bild groesser gezeichnet und vom Border-Radius beschnitten. -->
+            <Border Grid.Column="0"
+                    BackgroundColor="{StaticResource White}"
+                    Stroke="Transparent"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 14"
+                    WidthRequest="56"
+                    HeightRequest="56"
+                    Padding="0">
+                <Image Source="logo.png"
+                       Aspect="AspectFit"
+                       WidthRequest="100"
+                       HeightRequest="100"
+                       Margin="-22"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1"
+                                 Spacing="3"
+                                 VerticalOptions="Center">
                 <Label Text="HEIMATPLATZ"
                        FontSize="16"
                        FontAttributes="Bold"
-                       CharacterSpacing="4"
+                       CharacterSpacing="3"
                        TextColor="{StaticResource White}" />
                 <Label Text="Immobilien in Ihrer Region"
                        FontSize="12"
@@ -24,6 +50,46 @@
             </VerticalStackLayout>
         </Grid>
     </Shell.FlyoutHeader>
+
+    <!-- Einheitliches Erscheinungsbild der Flyout-Eintraege: Icon + Text.
+         BindingContext ist das interne MenuShellItem (BaseShellItem), das Text/IconImageSource
+         des MenuItems auf Title/Icon spiegelt - daher NICHT auf MenuItem binden. -->
+    <Shell.MenuItemTemplate>
+        <DataTemplate x:DataType="BaseShellItem">
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="14"
+                  Padding="20,0"
+                  HeightRequest="48">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+
+                <Image Grid.Column="0"
+                       Source="{Binding Icon}"
+                       WidthRequest="20"
+                       HeightRequest="20"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="{Binding Title}"
+                       FontSize="14"
+                       VerticalTextAlignment="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            </Grid>
+        </DataTemplate>
+    </Shell.MenuItemTemplate>
 
     <!-- Startseite als verstecktes ShellContent; der Flyout-Eintrag ist ein MenuItem mit
          absoluter Route, damit der Navigation-Stack auch von gepushten Seiten
@@ -42,16 +108,25 @@
         Route="Login"
         FlyoutItemIsVisible="False" />
 
-    <MenuItem Text="Startseite" shiny:Navigate.Route="///MainPage" />
-    <MenuItem Text="Meine Immobilien" shiny:Navigate.Route="MyProperties" />
-    <MenuItem Text="Favoriten" shiny:Navigate.Route="Favorites" />
-    <MenuItem Text="Blockiert" shiny:Navigate.Route="Blocked" />
+    <MenuItem Text="Startseite" IconImageSource="icon_home.png" shiny:Navigate.Route="///MainPage" />
+    <MenuItem Text="Meine Immobilien" IconImageSource="icon_buildings.png" shiny:Navigate.Route="MyProperties" />
+    <MenuItem Text="Favoriten" IconImageSource="icon_heart.png" shiny:Navigate.Route="Favorites" />
+    <MenuItem Text="Blockiert" IconImageSource="icon_block.png" shiny:Navigate.Route="Blocked" />
     <!-- Route wird im Code-Behind gesetzt: KI-Flow auf Phones, manuell sonst -->
-    <MenuItem x:Name="AddPropertyMenuItem" Text="Immobilie hinzufügen" shiny:Navigate.Route="AddProperty" />
-    <MenuItem Text="Benachrichtigungen" shiny:Navigate.Route="NotificationSettings" />
-    <MenuItem Text="Filtereinstellungen" shiny:Navigate.Route="FilterPreferences" />
-    <MenuItem Text="Profil" shiny:Navigate.Route="UserProfile" />
-    <MenuItem Text="Impressum" shiny:Navigate.Route="Imprint" />
-    <MenuItem Text="Datenschutz" shiny:Navigate.Route="PrivacyPolicy" />
+    <MenuItem x:Name="AddPropertyMenuItem" Text="Immobilie hinzufügen" IconImageSource="icon_add.png" shiny:Navigate.Route="AddProperty" />
+    <MenuItem Text="Benachrichtigungen" IconImageSource="icon_bell.png" shiny:Navigate.Route="NotificationSettings" />
+    <MenuItem Text="Profil" IconImageSource="icon_user.png" shiny:Navigate.Route="UserProfile" />
+    <MenuItem Text="Impressum" IconImageSource="icon_info.png" shiny:Navigate.Route="Imprint" />
+    <MenuItem Text="Datenschutz" IconImageSource="icon_shield.png" shiny:Navigate.Route="PrivacyPolicy" />
+
+    <Shell.FlyoutFooter>
+        <VerticalStackLayout Padding="20,12,20,20" Spacing="10">
+            <BoxView HeightRequest="1"
+                     Color="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
+            <Label x:Name="VersionLabel"
+                   FontSize="11"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+        </VerticalStackLayout>
+    </Shell.FlyoutFooter>
 
 </shiny:ShinyShell>

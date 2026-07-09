@@ -37,9 +37,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private bool _hasMore;
     private SortOption _selectedSort = SortOption.Neueste;
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
-    private List<string> _selectedOrte = [];
     private List<LocationGemeindeDto> _municipalities = [];
     private bool _isSyncing;
+    private bool _suppressSearch;
+    private CancellationTokenSource? _saveDebounceCts;
 
     public ObservableCollection<PropertyListItemDto> Properties { get; } = [];
 
@@ -105,11 +106,32 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     [ObservableProperty]
     public partial int SelectedAgeFilterIndex { get; set; }
 
+    /// <summary>
+    /// Kurze Zusammenfassung der aktiven Filter fuer den eingeklappten Filter-Header
+    /// </summary>
     [ObservableProperty]
-    public partial string OrteInfoText { get; set; }
+    public partial string FilterSummary { get; set; }
 
     [ObservableProperty]
     public partial string SortLabel { get; set; }
+
+    // Ort-Auswahl (inline in der Filterleiste)
+    public ObservableCollection<string> SelectedOrte { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedOrte))]
+    public partial int SelectedOrteCount { get; set; }
+
+    public bool HasSelectedOrte => SelectedOrteCount > 0;
+
+    [ObservableProperty]
+    public partial string OrtSearchText { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOrtSuggestions))]
+    public partial List<LocationGemeindeDto> OrtSuggestions { get; set; }
+
+    public bool HasOrtSuggestions => OrtSuggestions.Count > 0;
 
     public HomeViewModel(
         IAuthService authService,
@@ -141,9 +163,13 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         IsBrokerSelected = true;
         SelectedAgeFilterIndex = 0;
         ResultCountText = "0 Objekte";
-        OrteInfoText = "Orte: Alle";
         SortLabel = "Neueste";
+        OrtSearchText = string.Empty;
+        OrtSuggestions = [];
+        FilterSummary = string.Empty;
         _isSyncing = false;
+
+        UpdateFilterSummary();
 
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
@@ -164,7 +190,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     public void OnAppearing()
     {
-        // Session-Filter-State wiederherstellen (z.B. nach Rueckkehr von FilterPreferencesPage)
+        // Session-Filter-State wiederherstellen (z.B. nach Rueckkehr von einer Detail-Seite)
         SyncFiltersFromService();
 
         if (Properties.Count == 0 && !IsBusy)
@@ -211,10 +237,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             IsBrokerSelected = state.IsBrokerSelected;
             _selectedAgeFilter = state.SelectedAgeFilter;
             SelectedAgeFilterIndex = (int)state.SelectedAgeFilter;
-            _selectedOrte = state.SelectedOrte.ToList();
+            ReplaceSelectedOrte(state.SelectedOrte);
             _selectedSort = state.SelectedSort;
             SortLabel = GetSortLabel(_selectedSort);
-            UpdateOrteInfoText();
+            UpdateFilterSummary();
         }
         finally
         {
@@ -262,10 +288,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             IsBrokerSelected = preferences.IsBrokerSelected;
             _selectedAgeFilter = preferences.SelectedAgeFilter;
             SelectedAgeFilterIndex = (int)preferences.SelectedAgeFilter;
-            _selectedOrte = preferences.SelectedOrte.ToList();
+            ReplaceSelectedOrte(preferences.SelectedOrte);
             _selectedSort = preferences.SelectedSort;
             SortLabel = GetSortLabel(_selectedSort);
-            UpdateOrteInfoText();
+            UpdateFilterSummary();
         }
         finally
         {
@@ -276,11 +302,39 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         _ = ReloadPropertiesAsync();
     }
 
-    private void UpdateOrteInfoText()
+    private void ReplaceSelectedOrte(IEnumerable<string> orte)
     {
-        OrteInfoText = _selectedOrte.Count == 0
-            ? "Orte: Alle"
-            : $"Orte: {_selectedOrte.Count} ausgewählt";
+        SelectedOrte.Clear();
+        foreach (var ort in orte)
+            SelectedOrte.Add(ort);
+        SelectedOrteCount = SelectedOrte.Count;
+    }
+
+    /// <summary>
+    /// Baut die Kurzform der aktiven Filter fuer den eingeklappten Header,
+    /// z.B. "Haus, Grundstück · Privat · 1 Woche · 2 Orte".
+    /// </summary>
+    private void UpdateFilterSummary()
+    {
+        var parts = new List<string>();
+
+        var types = new List<string>();
+        if (IsHausSelected) types.Add("Haus");
+        if (IsGrundstueckSelected) types.Add("Grundstück");
+        if (IsZwangsversteigerungSelected) types.Add("Zwangsversteigerung");
+        parts.Add(types.Count == 3 ? "Alle Typen" : string.Join(", ", types));
+
+        if (IsSellerFilterVisible && IsPrivateSelected != IsBrokerSelected)
+            parts.Add(IsPrivateSelected ? "Privat" : "Makler");
+
+        if (_selectedAgeFilter != AgeFilter.Alle)
+            parts.Add(AgeFilterOptions[(int)_selectedAgeFilter]);
+
+        parts.Add(SelectedOrte.Count == 0
+            ? "Alle Orte"
+            : SelectedOrte.Count == 1 ? SelectedOrte[0] : $"{SelectedOrte.Count} Orte");
+
+        FilterSummary = string.Join(" · ", parts);
     }
 
     partial void OnIsHausSelectedChanged(bool value)
@@ -391,8 +445,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     }
 
     /// <summary>
-    /// Wird bei jeder Filteraenderung aufgerufen - aktualisiert den FilterStateService
-    /// und loest einen server-seitigen Reload aus.
+    /// Wird bei jeder Filteraenderung aufgerufen - aktualisiert den FilterStateService,
+    /// speichert die Einstellungen (debounced, server-seitig) und loest einen Reload aus.
     /// </summary>
     private void OnFiltersChanged()
     {
@@ -407,7 +461,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                     IsGrundstueckSelected,
                     IsZwangsversteigerungSelected,
                     _selectedAgeFilter,
-                    _selectedOrte,
+                    SelectedOrte.ToList(),
                     IsPrivateSelected,
                     IsBrokerSelected,
                     selectedSort: _selectedSort);
@@ -416,9 +470,112 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             {
                 _filterStateService.FilterStateChanged += OnFilterStateChanged;
             }
+
+            ScheduleAutoSave();
         }
 
+        UpdateFilterSummary();
         _ = ReloadPropertiesAsync();
+    }
+
+    /// <summary>
+    /// Speichert die Filtereinstellungen nach kurzer Verzoegerung (Debounce) server-seitig,
+    /// damit sie ueber App-Starts hinweg erhalten bleiben.
+    /// </summary>
+    private void ScheduleAutoSave()
+    {
+        if (!_authService.IsAuthenticated) return;
+
+        _saveDebounceCts?.Cancel();
+        _saveDebounceCts = new CancellationTokenSource();
+        _ = AutoSaveAfterDelayAsync(_saveDebounceCts.Token);
+    }
+
+    private async Task AutoSaveAfterDelayAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(800, token);
+            if (token.IsCancellationRequested) return;
+
+            var preferences = new FilterPreferencesDto(
+                SelectedOrte: SelectedOrte.ToList(),
+                SelectedAgeFilter: _selectedAgeFilter,
+                IsHausSelected: IsHausSelected,
+                IsGrundstueckSelected: IsGrundstueckSelected,
+                IsZwangsversteigerungSelected: IsZwangsversteigerungSelected,
+                IsPrivateSelected: IsPrivateSelected,
+                IsBrokerSelected: IsBrokerSelected,
+                ExcludedSellerSourceIds: [],
+                SelectedSort: _selectedSort);
+
+            await _filterPreferencesService.SavePreferencesAsync(preferences, token);
+            _logger.LogInformation("[HomePage] Filter preferences auto-saved");
+        }
+        catch (OperationCanceledException)
+        {
+            // Debounce abgebrochen - ignorieren
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[HomePage] Filter preferences auto-save failed");
+        }
+    }
+
+    #endregion
+
+    #region Ort-Auswahl
+
+    partial void OnOrtSearchTextChanged(string value)
+    {
+        if (_suppressSearch) return;
+
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 2)
+        {
+            OrtSuggestions = [];
+            return;
+        }
+
+        var search = value.Trim();
+        OrtSuggestions = _municipalities
+            .Where(m => (m.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                      || m.PostalCode.StartsWith(search, StringComparison.OrdinalIgnoreCase))
+                     && !SelectedOrte.Contains(m.Name))
+            .Take(15)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Fuegt einen Ort zur Auswahl hinzu
+    /// </summary>
+    [RelayCommand]
+    private void AddOrt(LocationGemeindeDto gemeinde)
+    {
+        if (!SelectedOrte.Contains(gemeinde.Name))
+        {
+            SelectedOrte.Add(gemeinde.Name);
+            SelectedOrteCount = SelectedOrte.Count;
+        }
+
+        _suppressSearch = true;
+        OrtSearchText = string.Empty;
+        _suppressSearch = false;
+        OrtSuggestions = [];
+
+        OnFiltersChanged();
+    }
+
+    /// <summary>
+    /// Entfernt einen Ort aus der Auswahl
+    /// </summary>
+    [RelayCommand]
+    private void RemoveOrt(string ort)
+    {
+        if (SelectedOrte.Remove(ort))
+        {
+            SelectedOrteCount = SelectedOrte.Count;
+            OnFiltersChanged();
+        }
     }
 
     #endregion
@@ -575,10 +732,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             }
 
             // MunicipalityIds-Filter (Ortsnamen -> Ids)
-            if (_selectedOrte.Count > 0 && _municipalities.Count > 0)
+            if (SelectedOrte.Count > 0 && _municipalities.Count > 0)
             {
                 var ids = _municipalities
-                    .Where(m => _selectedOrte.Contains(m.Name))
+                    .Where(m => SelectedOrte.Contains(m.Name))
                     .Select(m => m.Id)
                     .ToList();
                 if (ids.Count > 0)
@@ -760,6 +917,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     public void Dispose()
     {
+        _saveDebounceCts?.Cancel();
         _authService.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         _filterStateService.FilterStateChanged -= OnFilterStateChanged;
     }

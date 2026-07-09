@@ -4,7 +4,7 @@ namespace Heimatplatz.Maui.Features.Properties.Services;
 
 /// <summary>
 /// Service fuer zentrales Filter-State Management (In-Memory Session-Filter).
-/// Synchronisiert Filter-State zwischen FilterPreferencesPage und HomePage.
+/// Haelt den Filter-State der Filterleiste auf der HomePage fuer die Session.
 /// </summary>
 public interface IFilterStateService
 {
