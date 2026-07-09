@@ -74,12 +74,15 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     public partial bool IsAuthenticated { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSellerFilterVisible))]
     public partial bool IsHausSelected { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSellerFilterVisible))]
     public partial bool IsGrundstueckSelected { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSellerFilterVisible))]
     public partial bool IsZwangsversteigerungSelected { get; set; }
 
     [ObservableProperty]
@@ -87,6 +90,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     [ObservableProperty]
     public partial bool IsBrokerSelected { get; set; }
+
+    /// <summary>
+    /// Bei Zwangsversteigerungen gibt es keinen Anbieter-Unterschied (immer Gericht/Edikt) -
+    /// Anbieter-Filter ist dann wirkungslos und wird ausgeblendet statt eine tote Auswahl zu zeigen.
+    /// </summary>
+    public bool IsSellerFilterVisible => !(IsZwangsversteigerungSelected && !IsHausSelected && !IsGrundstueckSelected);
 
     /// <summary>
     /// Optionen fuer den Alters-Filter Picker (Index == AgeFilter Enum-Wert)
@@ -287,6 +296,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             return;
         }
 
+        ResetSellerFilterIfOnlyForeclosureSelected();
         OnFiltersChanged();
     }
 
@@ -302,6 +312,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             return;
         }
 
+        ResetSellerFilterIfOnlyForeclosureSelected();
         OnFiltersChanged();
     }
 
@@ -317,7 +328,24 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             return;
         }
 
+        ResetSellerFilterIfOnlyForeclosureSelected();
         OnFiltersChanged();
+    }
+
+    /// <summary>
+    /// Wenn nur Zwangsversteigerung ausgewählt ist (Anbieter-Filter dadurch ausgeblendet, siehe
+    /// <see cref="IsSellerFilterVisible"/>), darf keine versteckte Anbieter-Auswahl aktive Ergebnisse
+    /// stumm ausfiltern - daher auf "alle Anbieter" zurücksetzen.
+    /// </summary>
+    private void ResetSellerFilterIfOnlyForeclosureSelected()
+    {
+        if (!IsSellerFilterVisible)
+        {
+            _isSyncing = true;
+            IsPrivateSelected = true;
+            IsBrokerSelected = true;
+            _isSyncing = false;
+        }
     }
 
     partial void OnIsPrivateSelectedChanged(bool value)

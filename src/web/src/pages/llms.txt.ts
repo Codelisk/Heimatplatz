@@ -10,16 +10,16 @@ const routes = [
 
 const body = `# ${SITE.name}
 
-> Immobilien-App fuer Oberoesterreich: Haeuser, Wohnungen, Grundstuecke und gerichtliche Zwangsversteigerungen mit Filtern, Favoriten und Push-Benachrichtigungen.
+> Immobilien-App für Oberösterreich: Häuser, Wohnungen, Grundstücke und gerichtliche Zwangsversteigerungen mit Filtern, Favoriten und Push-Benachrichtigungen.
 
-## Oeffentliche Seiten
+## Öffentliche Seiten
 
 ${routes.map((route) => `- ${new URL(route, SITE.url).toString()}`).join("\n")}
 
 ## Inhaltlicher Fokus
 
 - Immobilien suchen und filtern (Bezirk, Typ, Anbieter, Zeitraum, Sortierung).
-- Zwangsversteigerungen mit Termin, Gericht, Schaetzwert und Mindestgebot.
+- Zwangsversteigerungen mit Termin, Gericht, Schätzwert und Mindestgebot.
 - Rechtliche Anbieterinformationen: Datenschutz und Impressum.
 `;
 

@@ -106,8 +106,8 @@
                         </Button>
                     </FlexLayout>
 
-                    <!-- Anbietertyp-Chips -->
-                    <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                    <!-- Anbietertyp-Chips: bei Zwangsversteigerung (immer Gericht/Edikt) wirkungslos, daher ausgeblendet -->
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start" IsVisible="{Binding IsSellerFilterVisible}">
                         <Button Text="Privat"
                                 Style="{StaticResource FilterChipStyle}"
                                 Margin="0,0,6,6"

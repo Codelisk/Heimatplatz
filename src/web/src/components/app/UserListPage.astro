@@ -35,7 +35,7 @@ const emptyDefaults = {
   },
   mine: {
     title: "Noch keine eigenen Inserate",
-    text: "Inserieren Sie Ihre erste Immobilie ueber das Menue.",
+    text: "Inserieren Sie Ihre erste Immobilie über das Menü.",
     Icon: HomeIcon,
   },
 } as const;
@@ -45,7 +45,7 @@ const Icon = empty.Icon;
 const isMine = mode === "mine";
 const savedDraft = isMine && Astro.url.searchParams.has("gespeichert");
 const editedDraft = isMine && Astro.url.searchParams.has("bearbeitet");
-const statusMessage = editedDraft ? "Aenderungen gespeichert." : "Entwurf gespeichert.";
+const statusMessage = editedDraft ? "Änderungen gespeichert." : "Entwurf gespeichert.";
 ---
 
 <BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex>

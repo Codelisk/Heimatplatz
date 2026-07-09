@@ -6,23 +6,23 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
 
 <BaseLayout
   title="Filtereinstellungen"
-  description="Standardfilter fuer die Immobiliensuche in Oberösterreich speichern."
+  description="Standardfilter für die Immobiliensuche in Oberösterreich speichern."
   canonicalPath="/filter-einstellungen/"
   noindex
 >
   <section class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
     <h1 class="text-3xl font-bold">Filtereinstellungen</h1>
     <p class="mt-3 text-sm leading-6 text-muted-foreground">
-      Standardfilter fuer Ort, Immobilientyp, Anbieter, Zeitraum und Sortierung speichern.
+      Standardfilter für Ort, Immobilientyp, Anbieter, Zeitraum und Sortierung speichern.
     </p>
     <form class="mt-8 space-y-4" data-preferences-form="filters">
       <div class="rounded-lg border border-border bg-card p-4">
         <h2 class="text-base font-semibold">Orte</h2>
         <p class="mt-1 text-sm text-muted-foreground">
-          Mehrere Bezirke und Gemeinden auswaehlen. Keine Auswahl bedeutet: alle Orte in Oberoesterreich.
+          Mehrere Bezirke und Gemeinden auswählen. Keine Auswahl bedeutet: alle Orte in Oberösterreich.
         </p>
         <div class="mt-4">
-          <OrtPicker name="locations" placeholder="Orte auswaehlen" />
+          <OrtPicker name="locations" placeholder="Orte auswählen" />
         </div>
       </div>
 
@@ -60,11 +60,11 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
         <p class="mt-1 text-sm text-muted-foreground">Die Standardsortierung entspricht den Optionen der Immobiliensuche.</p>
         <select name="sort" class="mt-4 w-full rounded-md border-border text-sm">
           <option value="0">Neueste</option>
-          <option value="1">Aelteste</option>
+          <option value="1">Älteste</option>
           <option value="2">Preis aufsteigend</option>
           <option value="3">Preis absteigend</option>
-          <option value="4">Flaeche absteigend</option>
-          <option value="5">Flaeche aufsteigend</option>
+          <option value="4">Fläche absteigend</option>
+          <option value="5">Fläche aufsteigend</option>
           <option value="6">PLZ</option>
         </select>
       </div>

@@ -21,7 +21,7 @@ const titleByPath = [
   { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: "Immobilie" },
   { test: (path: string) => path.startsWith("/zwangsversteigerungen/") && path !== "/zwangsversteigerungen/", title: "Zwangsversteigerung" },
   { test: (path: string) => path.startsWith("/immobilien/bearbeiten"), title: "Immobilie bearbeiten" },
-  { test: (path: string) => path.startsWith("/inserieren"), title: "Immobilie hinzufuegen" },
+  { test: (path: string) => path.startsWith("/inserieren"), title: "Immobilie hinzufügen" },
   { test: (path: string) => path.startsWith("/meine-immobilien"), title: "Meine Immobilien" },
   { test: (path: string) => path.startsWith("/favoriten"), title: "Meine Favoriten" },
   { test: (path: string) => path.startsWith("/blockiert"), title: "Blockierte Immobilien" },
@@ -38,7 +38,7 @@ const navItems = [
   { label: "Meine Immobilien", href: "/meine-immobilien/", icon: HomeIcon, sellerOnly: true },
   { label: "Meine Favoriten", href: "/favoriten/", icon: HeartIcon },
   { label: "Blockierte Immobilien", href: "/blockiert/", icon: ShieldOffIcon },
-  { label: "Immobilie hinzufuegen", href: "/inserieren/", icon: PlusIcon, sellerOnly: true, separator: true },
+  { label: "Immobilie hinzufügen", href: "/inserieren/", icon: PlusIcon, sellerOnly: true, separator: true },
 ];
 
 // Wie Uno NavigationView.FooterMenuItems
@@ -58,7 +58,7 @@ function isActive(href: string) {
       <button
         type="button"
         class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground"
-        aria-label="Navigation oeffnen"
+        aria-label="Navigation öffnen"
         aria-expanded="false"
         data-site-nav-toggle
       >
@@ -73,9 +73,9 @@ function isActive(href: string) {
       showFilters && (
         <form action="/" method="get" class="hidden min-w-0 flex-1 items-center justify-center gap-2 xl:flex">
           <div class="w-44">
-            <OrtPicker name="region" placeholder="Ort auswaehlen" />
+            <OrtPicker name="region" placeholder="Ort auswählen" />
           </div>
-          <NativeSelect name="age" class="w-32">
+          <NativeSelect name="age" class="w-32" data-filter-age>
             <option value="">Zeitraum</option>
             <option value="day">24 Stunden</option>
             <option value="week">7 Tage</option>
@@ -91,12 +91,18 @@ function isActive(href: string) {
           <button type="button" class="rounded-md border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground" data-filter-type="foreclosure" aria-pressed="false">
             ZV
           </button>
-          <span class="mx-1 h-6 w-px bg-border" aria-hidden="true" />
-          <NativeSelect name="seller" class="w-36">
-            <option value="">Anbieter: Alle</option>
-            <option value="private">Privat</option>
-            <option value="agent">Makler</option>
-          </NativeSelect>
+          <div class="flex items-center gap-2" data-seller-filter-group>
+            <span class="mx-1 h-6 w-px bg-border" aria-hidden="true" />
+            <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="private" aria-pressed="true">
+              Privat
+            </button>
+            <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="agent" aria-pressed="true">
+              Makler
+            </button>
+            <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="court" aria-pressed="true">
+              Portal
+            </button>
+          </div>
         </form>
       )
     }
@@ -124,7 +130,7 @@ function isActive(href: string) {
   >
     <div class="flex h-14 items-center justify-between border-b border-border px-4">
       <a href="/" class="font-bold uppercase tracking-[0.15em]">Heimatplatz</a>
-      <button type="button" class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground" aria-label="Navigation schliessen" data-site-nav-close>
+      <button type="button" class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground" aria-label="Navigation schließen" data-site-nav-close>
         <XIcon class="size-5" aria-hidden="true" />
       </button>
     </div>

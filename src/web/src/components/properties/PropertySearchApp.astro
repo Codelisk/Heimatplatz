@@ -27,11 +27,11 @@ const totalInitialProperties = apiProperties.length;
         data-filter-sort
       >
         <option value="newest">Neueste</option>
-        <option value="oldest">Aelteste</option>
+        <option value="oldest">Älteste</option>
         <option value="price-asc">Preis ↑</option>
         <option value="price-desc">Preis ↓</option>
-        <option value="area-desc">Flaeche ↓</option>
-        <option value="area-asc">Flaeche ↑</option>
+        <option value="area-desc">Fläche ↓</option>
+        <option value="area-asc">Fläche ↑</option>
         <option value="postal-asc">PLZ</option>
       </select>
     </label>
@@ -44,7 +44,7 @@ const totalInitialProperties = apiProperties.length;
   </div>
   <p class="mx-auto mt-4 hidden max-w-7xl text-sm text-muted-foreground" data-live-status></p>
   <p class="mx-auto hidden max-w-7xl py-16 text-center text-sm text-muted-foreground" data-empty-state>
-    Keine Treffer fuer diese Filter. Bitte Ort, Zeitraum oder Anbieter anpassen.
+    Keine Treffer für diese Filter. Bitte Ort, Zeitraum oder Anbieter anpassen.
   </p>
   <nav
     class="mx-auto mt-5 hidden max-w-7xl items-center justify-center gap-4 border-t border-border pt-4"
@@ -63,7 +63,7 @@ const totalInitialProperties = apiProperties.length;
     <button
       type="button"
       class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-      aria-label="Naechste Seite"
+      aria-label="Nächste Seite"
       data-page-next
     >
       <ChevronRightIcon class="size-5" aria-hidden="true" />
@@ -113,6 +113,7 @@ const totalInitialProperties = apiProperties.length;
   const ageControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-age]"));
   const typeButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-type]"));
   const sellerButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-seller-chip]"));
+  const sellerFilterGroups = Array.from(document.querySelectorAll<HTMLElement>("[data-seller-filter-group]"));
   const sort = document.querySelector<HTMLSelectElement>("[data-filter-sort]");
   const pagination = document.querySelector<HTMLElement>("[data-pagination]");
   const prevPage = document.querySelector<HTMLButtonElement>("[data-page-prev]");
@@ -494,9 +495,9 @@ const totalInitialProperties = apiProperties.length;
     const facts = document.createElement("dl");
     facts.className = "text-right";
     facts.innerHTML = `
-      <dt class="sr-only">Flaeche</dt>
+      <dt class="sr-only">Fläche</dt>
       <dd class="text-2xl font-bold leading-none text-foreground">${area || "k.A."}</dd>
-      <dd class="text-xs text-muted-foreground">${area ? (property.PlotAreaM2 ? "m2 Grund" : "m2 Wfl") : "Flaeche"}</dd>
+      <dd class="text-xs text-muted-foreground">${area ? (property.PlotAreaM2 ? "m2 Grund" : "m2 Wfl") : "Fläche"}</dd>
       <dd class="mt-3 text-xs text-muted-foreground">${property.Rooms ? `${property.Rooms} Zi` : ""}</dd>
     `;
 
@@ -562,6 +563,14 @@ const totalInitialProperties = apiProperties.length;
       const value = button.dataset.filterType;
       setChipPressed(button, Boolean(value && selectedTypes.has(value)));
     });
+
+    // Bei Zwangsversteigerungen gibt es keinen Anbieter-Unterschied (immer Gericht/Edikt) -
+    // Anbieter-Filter ist dann wirkungslos und wird ausgeblendet statt eine tote Auswahl zu zeigen.
+    const activeTypes = getActiveTypes();
+    const onlyForeclosure = activeTypes.length === 1 && activeTypes[0] === "foreclosure";
+    if (onlyForeclosure) selectedSellers.clear();
+    sellerFilterGroups.forEach((group) => group.classList.toggle("hidden", onlyForeclosure));
+
     sellerButtons.forEach((button) => {
       const value = button.dataset.filterSellerChip;
       setChipPressed(button, Boolean(value && selectedSellers.has(value)));
@@ -685,10 +694,10 @@ const totalInitialProperties = apiProperties.length;
       const liveProperties = (payload.Properties ?? []).filter((property) => !existingIds.has(property.Id));
       const verifiedImages = await loadVerifiedImageMap();
       liveProperties.forEach((property) => grid.append(createApiCard(property, verifiedImages)));
-      setLiveStatus(liveProperties.length > 0 ? `${liveProperties.length} aktuelle Angebote ergaenzt.` : "Keine zusaetzlichen aktuellen Angebote gefunden.", liveProperties.length > 0);
+      setLiveStatus(liveProperties.length > 0 ? `${liveProperties.length} aktuelle Angebote ergänzt.` : "Keine zusätzlichen aktuellen Angebote gefunden.", liveProperties.length > 0);
       applyFilters();
     } catch {
-      setLiveStatus("Aktuelle Angebote konnten nicht geladen werden. Die vorhandenen Objektseiten bleiben verfuegbar.");
+      setLiveStatus("Aktuelle Angebote konnten nicht geladen werden. Die vorhandenen Objektseiten bleiben verfügbar.");
     }
   }
 

@@ -39,9 +39,9 @@ const structuredData = [
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: "Datenschutzerklaerung",
+    name: "Datenschutzerklärung",
     description:
-      "Datenschutzerklaerung von Heimatplatz mit Informationen zu personenbezogenen Daten, Rechtsgrundlagen, Speicherdauer und Betroffenenrechten.",
+      "Datenschutzerklärung von Heimatplatz mit Informationen zu personenbezogenen Daten, Rechtsgrundlagen, Speicherdauer und Betroffenenrechten.",
     url: pageUrl,
     inLanguage: "de-AT",
     dateModified: policy.lastUpdated || policy.effectiveDate || undefined,
@@ -67,7 +67,7 @@ const structuredData = [
 
 <BaseLayout
   title="Datenschutz"
-  description="Datenschutzerklaerung von Heimatplatz: personenbezogene Daten, Rechtsgrundlagen, Speicherdauer, Empfaenger und Betroffenenrechte."
+  description="Datenschutzerklärung von Heimatplatz: personenbezogene Daten, Rechtsgrundlagen, Speicherdauer, Empfänger und Betroffenenrechte."
   canonicalPath="/datenschutz/"
   structuredData={structuredData}
 >
@@ -82,7 +82,7 @@ const structuredData = [
         {updatedAt && <span>Stand: {updatedAt}</span>}
         {updatedAt && policy.version && <span> · </span>}
         {policy.version && <span>Version {policy.version}</span>}
-        {!updatedAt && effectiveAt && <span>Gueltig seit: {effectiveAt}</span>}
+        {!updatedAt && effectiveAt && <span>Gültig seit: {effectiveAt}</span>}
       </p>
     </header>
 
@@ -139,8 +139,8 @@ const structuredData = [
         <div class="rounded-lg border border-border bg-card p-5">
           <h2 class="text-lg font-bold">Betroffenenrechte</h2>
           <p class="mt-3 text-sm leading-6 text-muted-foreground">
-            Auskunft, Berichtigung, Loeschung, Einschraenkung, Datenuebertragbarkeit,
-            Widerspruch und Widerruf einer Einwilligung koennen per E-Mail geltend gemacht
+            Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit,
+            Widerspruch und Widerruf einer Einwilligung können per E-Mail geltend gemacht
             werden.
           </p>
         </div>

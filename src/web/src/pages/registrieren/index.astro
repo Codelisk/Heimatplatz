@@ -7,7 +7,7 @@ import { Label } from "@/components/starwind/label";
 
 <AuthShell
   title="Konto erstellen"
-  description="Registrieren Sie sich fuer Immobilien-Angebote, Favoriten und Inserate in Oberösterreich."
+  description="Registrieren Sie sich für Immobilien-Angebote, Favoriten und Inserate in Oberösterreich."
   mode="register"
 >
   <form class="mt-10 space-y-5" action="/meine-immobilien/" method="get" data-auth-form="register" data-success-redirect="/meine-immobilien/">
@@ -30,11 +30,11 @@ import { Label } from "@/components/starwind/label";
       <Input id="password" type="password" name="password" placeholder="Mindestens 8 Zeichen" autocomplete="new-password" minlength="8" required />
     </div>
     <div class="space-y-2">
-      <Label for="passwordConfirm">Passwort bestaetigen</Label>
+      <Label for="passwordConfirm">Passwort bestätigen</Label>
       <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder="Passwort erneut eingeben" autocomplete="new-password" minlength="8" required />
     </div>
     <fieldset class="space-y-3">
-      <legend class="text-sm font-semibold">Ich moechte...</legend>
+      <legend class="text-sm font-semibold">Ich möchte...</legend>
       <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
         <input type="checkbox" name="role" value="buyer" checked />
         <span><strong>Immobilien suchen</strong><br /><span class="text-muted-foreground">Angebote entdecken und Favoriten speichern</span></span>

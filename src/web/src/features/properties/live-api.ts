@@ -230,7 +230,7 @@ export function getApiAreaValue(property: ApiProperty) {
 export function getApiAreaLabel(property: ApiProperty) {
   if (property.PlotAreaM2) return `${property.PlotAreaM2} m2 Grund`;
   if (property.LivingAreaM2) return `${property.LivingAreaM2} m2 Wfl`;
-  return "Flaeche offen";
+  return "Fläche offen";
 }
 
 export function getApiPropertyDescription(property: ApiProperty) {

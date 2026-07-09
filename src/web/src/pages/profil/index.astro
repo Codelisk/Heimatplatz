@@ -3,7 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
 ---
 
-<BaseLayout title="Mein Konto" description="Profil und Konto fuer Heimatplatz verwalten." canonicalPath="/profil/" noindex>
+<BaseLayout title="Mein Konto" description="Profil und Konto für Heimatplatz verwalten." canonicalPath="/profil/" noindex>
   <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
     <div class="rounded-lg border border-border bg-card p-5" data-guest-only>
       <p class="text-sm text-muted-foreground">Nicht angemeldet</p>
@@ -29,12 +29,12 @@ import { Button } from "@/components/starwind/button";
     <div class="mt-5 grid gap-4 md:grid-cols-2" data-auth-only hidden>
       <div class="rounded-lg border border-border p-5" data-auth-role-buyer hidden>
         <p class="text-sm text-muted-foreground">Rolle</p>
-        <h2 class="mt-1 text-lg font-semibold">Kaeufer</h2>
+        <h2 class="mt-1 text-lg font-semibold">Käufer</h2>
         <p class="mt-2 text-sm text-muted-foreground">Immobilien suchen, Favoriten speichern und Anbieter kontaktieren.</p>
       </div>
       <div class="rounded-lg border border-border p-5" data-auth-role-seller hidden>
         <p class="text-sm text-muted-foreground">Rolle</p>
-        <h2 class="mt-1 text-lg font-semibold">Verkaeufer</h2>
+        <h2 class="mt-1 text-lg font-semibold">Verkäufer</h2>
         <p class="mt-2 text-sm text-muted-foreground">Eigene Immobilien anbieten, bearbeiten und verwalten.</p>
       </div>
     </div>

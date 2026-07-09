@@ -17,7 +17,7 @@ interface Props {
 const {
   name = "ortes",
   id,
-  placeholder = "Ort auswaehlen",
+  placeholder = "Ort auswählen",
   className = "",
   singleSelect = false,
 } = Astro.props;
@@ -78,13 +78,13 @@ const panelId = `${buttonId}-panel`;
     hidden
   >
     <div class="flex items-center justify-between border-b border-border px-3 py-2">
-      <p class="text-sm font-semibold">{singleSelect ? "Ort auswaehlen" : "Orte auswaehlen"}</p>
+      <p class="text-sm font-semibold">{singleSelect ? "Ort auswählen" : "Orte auswählen"}</p>
       <button
         type="button"
         class="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         data-ort-picker-clear
       >
-        Zuruecksetzen
+        Zurücksetzen
       </button>
     </div>
 
@@ -93,7 +93,7 @@ const panelId = `${buttonId}-panel`;
         <div class="border-b border-border/60 last:border-b-0" data-ort-picker-region={region.slug}>
           <div class="flex items-center gap-1 px-2 py-1">
             {!singleSelect && (
-              <label class="grid size-7 cursor-pointer place-items-center rounded hover:bg-accent" aria-label={`Alle Orte in ${region.name} auswaehlen`}>
+              <label class="grid size-7 cursor-pointer place-items-center rounded hover:bg-accent" aria-label={`Alle Orte in ${region.name} auswählen`}>
                 <input
                   type="checkbox"
                   class="size-4 cursor-pointer accent-foreground"
@@ -171,7 +171,7 @@ const panelId = `${buttonId}-panel`;
   function updateLabel(picker: HTMLElement, values: string[]) {
     const label = picker.querySelector<HTMLElement>("[data-ort-picker-label]");
     const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
-    const placeholder = trigger?.getAttribute("data-ort-picker-placeholder") ?? "Ort auswaehlen";
+    const placeholder = trigger?.getAttribute("data-ort-picker-placeholder") ?? "Ort auswählen";
     if (!label) return;
     if (values.length === 0) {
       label.textContent = placeholder;
@@ -191,7 +191,7 @@ const panelId = `${buttonId}-panel`;
       }
       return;
     }
-    label.textContent = `${values.length} Orte ausgewaehlt`;
+    label.textContent = `${values.length} Orte ausgewählt`;
   }
 
   function cssEscape(value: string) {
@@ -220,7 +220,7 @@ const panelId = `${buttonId}-panel`;
     }
     const countLabel = picker.querySelector<HTMLElement>(`[data-ort-picker-region-count="${cssEscape(regionSlug)}"]`);
     if (countLabel) {
-      countLabel.textContent = checkedCount > 0 ? `${checkedCount} ausgewaehlt` : "";
+      countLabel.textContent = checkedCount > 0 ? `${checkedCount} ausgewählt` : "";
     }
   }
 

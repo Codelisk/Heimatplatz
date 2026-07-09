@@ -174,9 +174,9 @@
   function getRoleBadgeText(roles: Set<string>) {
     const isBuyer = roles.has("buyer");
     const isSeller = roles.has("seller");
-    if (isBuyer && isSeller) return "Kaeufer & Verkaeufer";
-    if (isSeller) return "Verkaeufer";
-    if (isBuyer) return "Kaeufer";
+    if (isBuyer && isSeller) return "Käufer & Verkäufer";
+    if (isSeller) return "Verkäufer";
+    if (isBuyer) return "Käufer";
     return "Konto";
   }
 
@@ -382,9 +382,9 @@
     const sellerType = String(formData.get("sellerType") ?? "");
     const companyName = String(formData.get("companyName") ?? "").trim();
 
-    if (password !== passwordConfirm) return "Die Passwoerter stimmen nicht ueberein.";
-    if (roles.length === 0) return "Bitte mindestens eine Rolle auswaehlen.";
-    if (wantsSeller && !sellerType) return "Bitte einen Anbietertyp auswaehlen.";
+    if (password !== passwordConfirm) return "Die Passwörter stimmen nicht überein.";
+    if (roles.length === 0) return "Bitte mindestens eine Rolle auswählen.";
+    if (wantsSeller && !sellerType) return "Bitte einen Anbietertyp auswählen.";
     if (wantsSeller && sellerType === "Broker" && !companyName) return "Bitte den Firmennamen angeben.";
     return "";
   }
@@ -410,7 +410,7 @@
         }
 
         submit?.setAttribute("disabled", "true");
-        setFormStatus(form, mode === "register" ? "Konto wird erstellt..." : "Anmeldung wird geprueft...");
+        setFormStatus(form, mode === "register" ? "Konto wird erstellt..." : "Anmeldung wird geprüft...");
 
         try {
           const payload = mode === "register"
@@ -818,7 +818,7 @@
   async function uploadImages(form: HTMLFormElement, requireImage: boolean) {
     const state = getImageState(form);
     if (requireImage && state.length === 0) {
-      throw new Error("Bitte fuegen Sie mindestens ein Foto hinzu.");
+      throw new Error("Bitte fügen Sie mindestens ein Foto hinzu.");
     }
 
     const existingUrls = state.filter((item) => item.existing && item.url).map((item) => item.url);
@@ -868,7 +868,7 @@
         input.value = "";
         renderImageGrid(form);
         if (files.length > remaining) {
-          setFormStatus(form, `Nur ${remaining} weitere Bilder konnten hinzugefuegt werden.`, "error");
+          setFormStatus(form, `Nur ${remaining} weitere Bilder konnten hinzugefügt werden.`, "error");
         }
       });
     });
@@ -915,7 +915,7 @@
     const remove = document.createElement("button");
     remove.className = "inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background";
     remove.type = "button";
-    remove.textContent = "Loeschen";
+    remove.textContent = "Löschen";
     remove.setAttribute("data-draft-remove", draft.id || "");
 
     actions.append(edit, remove);
@@ -974,7 +974,7 @@
       actions.innerHTML = `
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/angebote/${property.Id}/">Details</a>
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">Bearbeiten</a>
-        <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" data-remote-delete="${property.Id}">Loeschen</button>
+        <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" data-remote-delete="${property.Id}">Löschen</button>
       `;
     } else {
       actions.innerHTML = `
@@ -1085,16 +1085,16 @@
   function validatePropertyDraft(draft: Draft) {
     if (requiredText(draft.title).length < 10) return "Titel muss mindestens 10 Zeichen lang sein.";
     if (requiredText(draft.description).length < 50) return "Beschreibung muss mindestens 50 Zeichen lang sein.";
-    if (!toNumber(draft.price)) return "Bitte geben Sie einen gueltigen Preis ein.";
-    if (!requiredText(draft.address)) return "Bitte geben Sie eine Strasse ein.";
-    if (!requiredText(draft.city) || !requiredText(draft.postalCode)) return "Bitte waehlen Sie einen Ort aus.";
-    if (!/^\d{4}$/.test(requiredText(draft.postalCode))) return "Bitte geben Sie eine gueltige vierstellige PLZ ein.";
+    if (!toNumber(draft.price)) return "Bitte geben Sie einen gültigen Preis ein.";
+    if (!requiredText(draft.address)) return "Bitte geben Sie eine Straße ein.";
+    if (!requiredText(draft.city) || !requiredText(draft.postalCode)) return "Bitte wählen Sie einen Ort aus.";
+    if (!/^\d{4}$/.test(requiredText(draft.postalCode))) return "Bitte geben Sie eine gültige vierstellige PLZ ein.";
 
     if (draft.propertyType !== "foreclosure") return "";
     if (!draft.foreclosureCourtName) return "Bitte das zuständige Gericht angeben.";
     if (!draft.foreclosureFileNumber) return "Bitte das Aktenzeichen angeben.";
-    if (!toIsoDateTime(draft.foreclosureAuctionDate)) return "Bitte einen gueltigen Versteigerungstermin angeben.";
-    if (!toNumber(draft.foreclosureMinimumBid)) return "Bitte ein Mindestgebot groesser als 0 angeben.";
+    if (!toIsoDateTime(draft.foreclosureAuctionDate)) return "Bitte einen gültigen Versteigerungstermin angeben.";
+    if (!toNumber(draft.foreclosureMinimumBid)) return "Bitte ein Mindestgebot größer als 0 angeben.";
     return "";
   }
 
@@ -1174,7 +1174,7 @@
         if (!select) return;
 
         select.textContent = "";
-        select.append(new Option("Ort auswaehlen", ""));
+        select.append(new Option("Ort auswählen", ""));
         municipalities.forEach((municipality) => {
           const option = new Option(`${municipality.PostalCode} ${municipality.Name} (${municipality.DistrictName})`, municipality.Id);
           option.dataset.name = municipality.Name;
@@ -1183,7 +1183,7 @@
         });
 
         syncLocationSelect(form);
-        setLocationStatus(form, "Ort auswaehlen oder Ort/PLZ manuell eintragen.");
+        setLocationStatus(form, "Ort auswählen oder Ort/PLZ manuell eintragen.");
       });
     } catch (error) {
       forms.forEach((form) => {
@@ -1236,7 +1236,7 @@
 
     const municipalityId = await findMunicipalityId(draft);
     if (!municipalityId) {
-      throw new Error("Der Ort konnte nicht eindeutig in Oberoesterreich gefunden werden.");
+      throw new Error("Der Ort konnte nicht eindeutig in Oberösterreich gefunden werden.");
     }
 
     const response = await apiRequest<{ PropertyId: string; Title: string; CreatedAt: string }>("/api/properties", {
@@ -1269,7 +1269,7 @@
 
     const municipalityId = await findMunicipalityId(draft);
     if (!municipalityId) {
-      throw new Error("Der Ort konnte nicht eindeutig in Oberoesterreich gefunden werden.");
+      throw new Error("Der Ort konnte nicht eindeutig in Oberösterreich gefunden werden.");
     }
 
     const response = await apiRequest<{ Success: boolean }>("/api/properties", {
@@ -1492,7 +1492,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const message = params.has("bearbeitet")
-      ? "Aenderungen gespeichert."
+      ? "Änderungen gespeichert."
       : params.has("gespeichert")
         ? "Entwurf gespeichert."
         : "";
@@ -1565,12 +1565,12 @@
         }
 
         if (!isEditForm && getImageState(form).length === 0) {
-          setFormStatus(form, "Bitte fuegen Sie mindestens ein Foto hinzu.", "error");
+          setFormStatus(form, "Bitte fügen Sie mindestens ein Foto hinzu.", "error");
           return;
         }
 
         submit?.setAttribute("disabled", "true");
-        setFormStatus(form, editId ? "Aenderungen werden gespeichert..." : readSession() ? "Inserat wird gespeichert..." : "Entwurf wird lokal gespeichert...");
+        setFormStatus(form, editId ? "Änderungen werden gespeichert..." : readSession() ? "Inserat wird gespeichert..." : "Entwurf wird lokal gespeichert...");
 
         try {
           if (editId && UUID_PATTERN.test(editId) && readSession()) {
@@ -1641,7 +1641,7 @@
         empty?.classList.toggle("hidden", container.querySelectorAll("article").length > 0);
       });
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Die Immobilie konnte nicht geloescht werden.");
+      window.alert(error instanceof Error ? error.message : "Die Immobilie konnte nicht gelöscht werden.");
       button.removeAttribute("disabled");
     }
   }
@@ -1763,7 +1763,7 @@
       const remoteDelete = target?.closest("[data-remote-delete]");
       if (remoteDelete instanceof HTMLButtonElement) {
         const id = remoteDelete.getAttribute("data-remote-delete");
-        if (id && window.confirm("Immobilie wirklich loeschen?")) {
+        if (id && window.confirm("Immobilie wirklich löschen?")) {
           void deleteRemoteProperty(id, remoteDelete);
         }
         return;

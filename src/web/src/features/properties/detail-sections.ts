@@ -14,10 +14,10 @@ type TypeSpecificData = Record<string, unknown>;
 
 const SECTION_ORDER = [
   "Basisdaten",
-  "Flaechen",
-  "Gebaeude",
+  "Flächen",
+  "Gebäude",
   "Ausstattung",
-  "Grundstueck",
+  "Grundstück",
   "Versteigerung",
   "Kosten",
 ] as const;
@@ -103,7 +103,7 @@ function formatCondition(value: unknown) {
     LikeNew: "Neuwertig",
     Good: "Gut",
     Average: "Durchschnittlich",
-    NeedsRenovation: "Sanierungsbeduerftig",
+    NeedsRenovation: "Sanierungsbedürftig",
   };
   const key = scalar({ value }, "value");
   return labels[key] ?? key;
@@ -133,7 +133,7 @@ function formatSoilQuality(value: unknown) {
 
 function formatLegalStatus(value: unknown) {
   const labels: Record<string, string> = {
-    Pending: "Anhaengig",
+    Pending: "Anhängig",
     Scheduled: "Terminiert",
     InProgress: "Laufend",
     Completed: "Abgeschlossen",
@@ -153,39 +153,39 @@ export function getApiPropertyDetailSections(property: ApiProperty): PropertyDet
   add(sections, "Basisdaten", "Ort", property.City);
   add(sections, "Basisdaten", "Adresse", property.Address);
 
-  add(sections, "Flaechen", "Wohnflaeche", formatArea(data.LivingAreaInSquareMeters) || formatArea(property.LivingAreaM2));
-  add(sections, "Flaechen", "Grundstuecksflaeche", formatArea(data.PlotSizeInSquareMeters) || formatArea(property.PlotAreaM2));
-  add(sections, "Flaechen", "Gesamtflaeche", formatArea(data.TotalArea));
-  add(sections, "Flaechen", "Bebaute Flaeche", formatArea(data.BuildingArea));
+  add(sections, "Flächen", "Wohnfläche", formatArea(data.LivingAreaInSquareMeters) || formatArea(property.LivingAreaM2));
+  add(sections, "Flächen", "Grundstücksfläche", formatArea(data.PlotSizeInSquareMeters) || formatArea(property.PlotAreaM2));
+  add(sections, "Flächen", "Gesamtfläche", formatArea(data.TotalArea));
+  add(sections, "Flächen", "Bebaute Fläche", formatArea(data.BuildingArea));
 
-  add(sections, "Gebaeude", "Zimmer", positiveText(data.TotalRooms) || positiveText(data.NumberOfRooms) || positiveText(property.Rooms));
-  add(sections, "Gebaeude", "Schlafzimmer", positiveText(data.Bedrooms));
-  add(sections, "Gebaeude", "Badezimmer", positiveText(data.Bathrooms));
-  add(sections, "Gebaeude", "Stockwerke", positiveText(data.Floors));
-  add(sections, "Gebaeude", "Baujahr", scalar(data, "YearBuilt") || (property.YearBuilt ? String(property.YearBuilt) : ""));
-  add(sections, "Gebaeude", "Zustand", formatCondition(data.Condition));
-  add(sections, "Gebaeude", "Etage", positiveText(data.ApartmentFloor));
-  add(sections, "Gebaeude", "Gebaeudezustand", scalar(data, "BuildingCondition"));
+  add(sections, "Gebäude", "Zimmer", positiveText(data.TotalRooms) || positiveText(data.NumberOfRooms) || positiveText(property.Rooms));
+  add(sections, "Gebäude", "Schlafzimmer", positiveText(data.Bedrooms));
+  add(sections, "Gebäude", "Badezimmer", positiveText(data.Bathrooms));
+  add(sections, "Gebäude", "Stockwerke", positiveText(data.Floors));
+  add(sections, "Gebäude", "Baujahr", scalar(data, "YearBuilt") || (property.YearBuilt ? String(property.YearBuilt) : ""));
+  add(sections, "Gebäude", "Zustand", formatCondition(data.Condition));
+  add(sections, "Gebäude", "Etage", positiveText(data.ApartmentFloor));
+  add(sections, "Gebäude", "Gebäudezustand", scalar(data, "BuildingCondition"));
 
   if (boolValue(data.HasGarage) === true) add(sections, "Ausstattung", "Garage", "Ja");
   if (boolValue(data.HasGarden) === true) add(sections, "Ausstattung", "Garten", "Ja");
   if (boolValue(data.HasBasement) === true) add(sections, "Ausstattung", "Keller", "Ja");
   if (boolValue(data.HasElevator) === true) add(sections, "Ausstattung", "Aufzug", "Ja");
 
-  add(sections, "Grundstueck", "Widmung", formatZoning(data.Zoning) || scalar(data, "ZoningDesignation"));
-  add(sections, "Grundstueck", "Baurecht", formatBool(data.HasBuildingRights));
-  add(sections, "Grundstueck", "Bebaubar", formatBool(data.IsBuildable));
-  add(sections, "Grundstueck", "Versorgung", formatBool(data.HasUtilities));
-  add(sections, "Grundstueck", "Bodenqualitaet", formatSoilQuality(data.SoilQuality));
-  add(sections, "Grundstueck", "Katastralgemeinde", scalar(data, "CadastralMunicipality"));
-  add(sections, "Grundstueck", "Grundstuecksnummer", scalar(data, "PlotNumber"));
-  add(sections, "Grundstueck", "Einlagezahl", scalar(data, "RegistrationNumber"));
+  add(sections, "Grundstück", "Widmung", formatZoning(data.Zoning) || scalar(data, "ZoningDesignation"));
+  add(sections, "Grundstück", "Baurecht", formatBool(data.HasBuildingRights));
+  add(sections, "Grundstück", "Bebaubar", formatBool(data.IsBuildable));
+  add(sections, "Grundstück", "Versorgung", formatBool(data.HasUtilities));
+  add(sections, "Grundstück", "Bodenqualität", formatSoilQuality(data.SoilQuality));
+  add(sections, "Grundstück", "Katastralgemeinde", scalar(data, "CadastralMunicipality"));
+  add(sections, "Grundstück", "Grundstücksnummer", scalar(data, "PlotNumber"));
+  add(sections, "Grundstück", "Einlagezahl", scalar(data, "RegistrationNumber"));
 
   add(sections, "Versteigerung", "Gericht", scalar(data, "CourtName"));
   add(sections, "Versteigerung", "Aktenzeichen", scalar(data, "FileNumber"));
   add(sections, "Versteigerung", "Termin", formatDateTime(data.AuctionDate));
   add(sections, "Versteigerung", "Mindestgebot", formatMoney(data.MinimumBid));
-  add(sections, "Versteigerung", "Schaetzwert", formatMoney(data.EstimatedValue));
+  add(sections, "Versteigerung", "Schätzwert", formatMoney(data.EstimatedValue));
   add(sections, "Versteigerung", "Status", formatLegalStatus(data.Status));
   add(sections, "Versteigerung", "Besichtigung", formatDateTime(data.ViewingDate));
   add(sections, "Versteigerung", "Bietfrist", formatDateTime(data.BiddingDeadline));

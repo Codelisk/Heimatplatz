@@ -51,7 +51,7 @@ const imageUrl = getApiPropertyImage(property);
 const images = getApiPropertyImages(property);
 const facts = [
   ["Preis", formatApiPriceLong(property.Price)],
-  ["Wohnflaeche", property.LivingAreaM2 ? `${property.LivingAreaM2} m2` : "Keine Angabe"],
+  ["Wohnfläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m2` : "Keine Angabe"],
   ["Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m2` : "Keine Angabe"],
   ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
 ];
@@ -84,7 +84,7 @@ const detailSections = getApiPropertyDetailSections(property);
     <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
       <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon class="size-4" aria-hidden="true" />
-        Zurueck
+        Zurück
       </a>
     </header>
 
@@ -223,7 +223,7 @@ const detailSections = getApiPropertyDetailSections(property);
         <div class="mt-5 grid gap-2">
           {primaryEmail && <Button href={`mailto:${primaryEmail}`} variant="default" class="w-full">E-Mail schreiben</Button>}
           {primaryPhone && <Button href={`tel:${primaryPhone.replace(/\s+/g, "")}`} variant={primaryEmail ? "outline" : "default"} class="w-full">Anrufen</Button>}
-          {!(primaryEmail || primaryPhone) && <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">Kontakt ueber Anbieterangaben oder Originalinserat.</p>}
+          {!(primaryEmail || primaryPhone) && <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">Kontakt über Anbieterangaben oder Originalinserat.</p>}
         </div>
         {originalUrl && (
           <a

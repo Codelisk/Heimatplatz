@@ -24,7 +24,7 @@ const pageUrl = new URL("/impressum/", Astro.site).toString();
 
 const rawDetailGroups: Array<{ title: string; items: DetailItem[] }> = [
   {
-    title: "Angaben gemaess ECG und UGB",
+    title: "Angaben gemäß ECG und UGB",
     items: [
       { label: "Unternehmen", value: imprint.companyName },
       { label: "Rechtsform", value: imprint.legalForm },
@@ -45,7 +45,7 @@ const rawDetailGroups: Array<{ title: string; items: DetailItem[] }> = [
     items: [
       { label: "Gewerbe", value: imprint.trade },
       { label: "GISA-Zahl", value: imprint.gisaNumber },
-      { label: "Gewerbebehoerde", value: imprint.tradeAuthority },
+      { label: "Gewerbebehörde", value: imprint.tradeAuthority },
       { label: "Berufsrecht", value: imprint.professionalLaw },
     ],
   },
@@ -121,7 +121,7 @@ const structuredData = [
         {updatedAt && <span>Stand: {updatedAt}</span>}
         {updatedAt && imprint.version && <span> · </span>}
         {imprint.version && <span>Version {imprint.version}</span>}
-        {!updatedAt && effectiveAt && <span>Gueltig seit: {effectiveAt}</span>}
+        {!updatedAt && effectiveAt && <span>Gültig seit: {effectiveAt}</span>}
       </p>
     </header>
 
