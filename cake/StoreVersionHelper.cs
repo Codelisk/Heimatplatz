@@ -134,8 +134,9 @@ public static class StoreVersionHelper
 
             return seenAny ? max : null;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"[StoreVersionHelper] TestFlight query failed: {ex}");
             return null;
         }
     }
