@@ -448,6 +448,16 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
         }
         finally
         {
+            // ScreenshotMode-Statuszeilen der App aus dem os_log ziehen (Login/Navigation
+            // sichtbar machen, auch wenn alle Shots "erfolgreich" waren)
+            var (_, modeLog) = RunProcess(context, "bash",
+            [
+                "-c",
+                $"xcrun simctl spawn {device.Udid} log show --last 10m --style compact " +
+                "--predicate 'process == \"Heimatplatz.Maui\"' 2>/dev/null | grep -F '[ScreenshotMode]' | tail -30"
+            ], throwOnError: false);
+            context.Information($"[ScreenshotMode] app log ({device.Name}):\n{modeLog}");
+
             RunXcrun(context, ["simctl", "terminate", device.Udid, context.ApplicationId], throwOnError: false);
             if (bootedByUs)
             {

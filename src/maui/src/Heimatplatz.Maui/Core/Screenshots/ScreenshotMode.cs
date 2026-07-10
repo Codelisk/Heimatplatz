@@ -1,7 +1,6 @@
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Maui.Core.Screenshots;
@@ -11,6 +10,8 @@ namespace Heimatplatz.Maui.Core.Screenshots;
 /// Aktivierung ausschliesslich ueber Prozess-Umgebungsvariablen, die "xcrun simctl launch"
 /// mit dem Prefix SIMCTL_CHILD_ an den Simulator-Prozess durchreicht - auf echten Geraeten
 /// und im App Store Build sind diese Variablen nie gesetzt, der Modus bleibt inaktiv.
+/// Status geht via Console.WriteLine ins os_log (Cake liest es mit "log show" aus);
+/// Shell.Loaded feuert auf iOS nicht zuverlaessig, daher Delay + Dispatcher statt Event.
 /// </summary>
 public static class ScreenshotMode
 {
@@ -29,42 +30,47 @@ public static class ScreenshotMode
         Environment.GetEnvironmentVariable("SCREENSHOT_LOGIN_PASSWORD");
 
     /// <summary>
-    /// Wartezeit in Millisekunden nach Shell.Loaded, bevor navigiert wird -
-    /// gibt der Startseite Zeit, ihre Daten zu laden (SCREENSHOT_NAV_DELAY_MS).
+    /// Wartezeit in Millisekunden nach dem Start, bevor Login/Navigation laufen -
+    /// gibt der Shell Zeit zu laden (SCREENSHOT_NAV_DELAY_MS).
     /// </summary>
     public static int NavigationDelayMs =>
         int.TryParse(Environment.GetEnvironmentVariable("SCREENSHOT_NAV_DELAY_MS"), out var ms) ? ms : 1500;
 
     /// <summary>
-    /// Meldet nach dem Laden der Shell optional den Test-User an und navigiert
-    /// deterministisch zur konfigurierten Route.
-    /// Muss vor dem Anzeigen der Shell aufgerufen werden (App.CreateWindow).
+    /// Meldet nach dem Start optional den Test-User an und navigiert deterministisch
+    /// zur konfigurierten Route. Muss vor dem Anzeigen der Shell aufgerufen werden
+    /// (App.CreateWindow).
     /// </summary>
     public static void TryApply(Shell shell, IServiceProvider services)
     {
         if (!IsActive)
             return;
 
-        shell.Loaded += async (_, _) =>
-        {
-            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("ScreenshotMode");
-            try
-            {
-                await LoginAsync(services, logger);
-                await Task.Delay(NavigationDelayMs);
-
-                if (!string.IsNullOrWhiteSpace(Route))
-                    await shell.GoToAsync(Route);
-            }
-            catch (Exception ex)
-            {
-                // Screenshot faellt dann sichtbar falsch aus - Fehler nur loggen, nicht crashen
-                logger.LogError(ex, "Screenshot-Modus: Login/Navigation fehlgeschlagen");
-            }
-        };
+        Log($"active, route='{Route}', login={!string.IsNullOrEmpty(LoginEmail)}");
+        _ = ApplyAsync(shell, services);
     }
 
-    private static async Task LoginAsync(IServiceProvider services, ILogger logger)
+    private static async Task ApplyAsync(Shell shell, IServiceProvider services)
+    {
+        try
+        {
+            await Task.Delay(NavigationDelayMs);
+            await LoginAsync(services);
+
+            if (!string.IsNullOrWhiteSpace(Route))
+            {
+                await shell.Dispatcher.DispatchAsync(() => shell.GoToAsync(Route));
+                Log($"navigated to '{Route}'");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Screenshot faellt dann sichtbar falsch aus - Fehler nur loggen, nicht crashen
+            Log($"FAILED: {ex}");
+        }
+    }
+
+    private static async Task LoginAsync(IServiceProvider services)
     {
         var email = LoginEmail;
         var password = LoginPassword;
@@ -83,7 +89,7 @@ public static class ScreenshotMode
 
         if (result == null)
         {
-            logger.LogWarning("Screenshot-Modus: Login fuer {Email} lieferte kein Ergebnis", email);
+            Log($"login for {email} returned no result");
             return;
         }
 
@@ -97,6 +103,10 @@ public static class ScreenshotMode
 
         // Bewusst KEIN UserLoggedInEvent und kein Push-Init: der iOS-Permission-Dialog
         // wuerde ueber dem Screenshot liegen
-        logger.LogInformation("Screenshot-Modus: angemeldet als {Email}", email);
+        Log($"logged in as {email}");
     }
+
+    /// <summary>Console.WriteLine landet auf iOS im os_log und ist via "log show" auslesbar.</summary>
+    private static void Log(string message) =>
+        Console.WriteLine($"[ScreenshotMode] {message}");
 }
