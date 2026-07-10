@@ -55,6 +55,14 @@
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Heimatplatz nutzt Ihren Standort, um Immobilien in Ihrer Nähe anzuzeigen.</string>
 
+	<!-- Lokales HTTP erlauben (Simulator-Screenshots gegen die lokale Test-API auf localhost);
+	     betrifft nur localhost/lokales Netz - Remote-Verbindungen bleiben HTTPS-only -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+
 	<!-- Deep Link URL Schema -->
 	<key>CFBundleURLTypes</key>
 	<array>

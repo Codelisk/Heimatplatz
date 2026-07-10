@@ -51,6 +51,7 @@ app.db
 screenshots/
 .playwright-mcp/
 !store-assets/**/screenshots/
+!src/maui/src/Heimatplatz.Maui/Core/Screenshots/
 temp_*.png
 /*.png
 

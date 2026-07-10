@@ -42,6 +42,14 @@ public static class MauiProgram
             apiBaseUrl = "http://localhost:5292";
         }
 #endif
+        // Override per Umgebungsvariable (z.B. Screenshot-Runs im Simulator gegen die
+        // Test-API via SIMCTL_CHILD_HEIMATPLATZ_API_URL) - auf Geraeten nie gesetzt
+        var envApiUrl = Environment.GetEnvironmentVariable("HEIMATPLATZ_API_URL");
+        if (!string.IsNullOrWhiteSpace(envApiUrl))
+        {
+            apiBaseUrl = envApiUrl;
+        }
+
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Mediator:Http:Heimatplatz.Maui.ApiClient.Generated.*"] = apiBaseUrl
