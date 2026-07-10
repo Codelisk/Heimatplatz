@@ -217,6 +217,9 @@ platform :ios do
       api_key: api_key,
       app_identifier: "at.heimatplatz.app",
       screenshots_path: ENV["DELIVER_SCREENSHOTS_PATH"] || "../artifacts/screenshots/ios",
+      # skip_metadata laesst deliver trotzdem den Default-Pfad ./fastlane/metadata
+      # validieren (ios/android sind keine Locale-Ordner) - daher explizit setzen
+      metadata_path: "./metadata/ios",
       skip_binary_upload: true,
       skip_metadata: true,
       skip_app_version_update: true,
