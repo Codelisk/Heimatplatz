@@ -277,6 +277,11 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
             throw new InvalidOperationException($"No .app bundle found under {binDir}");
         }
 
+        // Apple Silicon fuehrt nur signierten arm64-Code aus (mindestens ad-hoc) - ohne
+        // Signatur killt der Kernel den Simulator-Prozess direkt nach dem Launch
+        context.Information("Ad-hoc signing app bundle...");
+        RunXcrun(context, ["codesign", "--force", "--deep", "--sign", "-", appBundle]);
+
         context.Information($"App bundle: {appBundle}");
         return appBundle;
     }
