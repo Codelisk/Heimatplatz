@@ -89,35 +89,20 @@ public sealed class VersionBumpTask : FrostingTask<BuildContext>
         // iOS-only Codemagic run) doesn't count against this - only actual query failures do.
         var anyConfigured = googlePlayConfigured || appStoreConnectConfigured;
         var anySucceeded = googlePlayVersion.HasValue || testFlightVersion.HasValue;
-
-        int highestStoreVersion;
         if (anyConfigured && !anySucceeded)
         {
-            if (context.ManualBuildBaseline.HasValue)
+            var failedStores = string.Join(" and ", new[]
             {
-                context.Warning(
-                    $"All configured store queries failed. Using MANUAL_BUILD_BASELINE={context.ManualBuildBaseline.Value} " +
-                    "as a fallback instead of the live store baseline - verify this is still current.");
-                highestStoreVersion = context.ManualBuildBaseline.Value;
-            }
-            else
-            {
-                var failedStores = string.Join(" and ", new[]
-                {
-                    googlePlayConfigured ? "Google Play" : null,
-                    appStoreConnectConfigured ? "TestFlight" : null,
-                }.Where(s => s != null));
-                throw new InvalidOperationException(
-                    $"{failedStores} version query failed. Refusing to bump without a known store baseline. " +
-                    "Set MANUAL_BUILD_BASELINE to override in an emergency.");
-            }
+                googlePlayConfigured ? "Google Play" : null,
+                appStoreConnectConfigured ? "TestFlight" : null,
+            }.Where(s => s != null));
+            throw new InvalidOperationException(
+                $"{failedStores} version query failed. Refusing to bump without a known store baseline.");
         }
-        else
-        {
-            highestStoreVersion = Math.Max(
-                googlePlayVersion ?? 0,
-                testFlightVersion ?? 0);
-        }
+
+        var highestStoreVersion = Math.Max(
+            googlePlayVersion ?? 0,
+            testFlightVersion ?? 0);
 
         context.Information($"Highest store version: {highestStoreVersion}");
 
