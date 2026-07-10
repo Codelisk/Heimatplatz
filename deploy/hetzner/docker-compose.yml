@@ -51,8 +51,11 @@ services:
       - "443:443"
     environment:
       API_DOMAIN: ${API_DOMAIN}
+      WEB_DOMAIN: ${WEB_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Statisches Astro-Web (Deploy via rsync aus deploy-apps.yml)
+      - /srv/heimatplatz-web:/srv/web:ro
       - caddy_data:/data
       - caddy_config:/config
 

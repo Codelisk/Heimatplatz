@@ -2,3 +2,29 @@
 	# Automatisches HTTPS via Let's Encrypt (Caddy-Standardverhalten)
 	reverse_proxy api:8080
 }
+
+# Statisches Astro-Web (ersetzt Azure Static Web Apps seit 10.7.2026).
+# Security-Header und 404-Fallback portiert aus src/web/public/staticwebapp.config.json.
+{$WEB_DOMAIN} {
+	root * /srv/web
+	encode gzip zstd
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+
+	handle_errors {
+		@notfound expression {http.error.status_code} == 404
+		rewrite @notfound /404.html
+		file_server
+	}
+
+	file_server
+}
+
+www.{$WEB_DOMAIN} {
+	redir https://{$WEB_DOMAIN}{uri} permanent
+}

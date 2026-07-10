@@ -28,9 +28,12 @@ public class BuildContext : FrostingContext
     public string AppStoreConnectIssuerId { get; }
     public string AppStoreConnectKeyPath { get; }
 
-    // Azure Static Web Apps settings
-    public string AzureStaticWebAppsApiToken { get; }
+    // Web-Deploy settings (Hetzner, statisches Astro-Web via rsync)
     public string ApiBaseUrl { get; }
+    public string HetznerHost { get; }
+    public string HetznerUser { get; }
+    public string HetznerSshKeyPath { get; }
+    public string HetznerWebRoot { get; }
 
     // Computed paths
     public string BuildDirectory { get; }
@@ -74,9 +77,13 @@ public class BuildContext : FrostingContext
         var ascKeyPath = GetConfigValue("iOS:AppStoreConnectKeyPath", "ASC_KEY_PATH");
         AppStoreConnectKeyPath = string.IsNullOrEmpty(ascKeyPath) ? string.Empty : Path.GetFullPath(Path.Combine(BuildDirectory, ascKeyPath));
 
-        // Azure Static Web Apps settings
-        AzureStaticWebAppsApiToken = GetConfigValue("Azure:StaticWebAppsApiToken", "AZURE_STATIC_WEB_APPS_API_TOKEN");
-        ApiBaseUrl = GetConfigValue("Azure:ApiBaseUrl", "API_BASE_URL");
+        // Web-Deploy settings (Hetzner)
+        ApiBaseUrl = GetConfigValue("Web:ApiBaseUrl", "API_BASE_URL");
+        HetznerHost = GetConfigValue("Hetzner:Host", "HETZNER_HOST");
+        HetznerUser = GetConfigValue("Hetzner:User", "HETZNER_USER");
+        var hetznerKeyPath = GetConfigValue("Hetzner:SshKeyPath", "HETZNER_SSH_KEY_PATH");
+        HetznerSshKeyPath = string.IsNullOrEmpty(hetznerKeyPath) ? string.Empty : Path.GetFullPath(Path.Combine(BuildDirectory, hetznerKeyPath));
+        HetznerWebRoot = GetConfigValue("Hetzner:WebRoot", "HETZNER_WEB_ROOT");
     }
 
     private string GetConfigValue(string configKey, string envVarFallback)
