@@ -1,6 +1,8 @@
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
 using Microsoft.Extensions.DependencyInjection;
+using Shiny;
+using Shiny.Extensions.Stores;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Maui.Core.Screenshots;
@@ -35,6 +37,21 @@ public static class ScreenshotMode
     /// </summary>
     public static int NavigationDelayMs =>
         int.TryParse(Environment.GetEnvironmentVariable("SCREENSHOT_NAV_DELAY_MS"), out var ms) ? ms : 1500;
+
+    /// <summary>
+    /// Ersetzt im Screenshot-Modus den Secure Store (Keychain) durch den Default-Store:
+    /// die Ad-hoc-Simulator-Signatur darf keine Keychain-Entitlements tragen (launchd
+    /// verweigert sonst den Spawn), Keychain-Zugriffe schlagen mit MissingEntitlement
+    /// fehl. Muss vor dem ersten Store-Zugriff laufen (Anfang von CreateMauiApp).
+    /// </summary>
+    public static void TryOverrideSecureStore()
+    {
+        if (!IsActive)
+            return;
+
+        Stores.Register(StoreKeys.Secure, Stores.Default);
+        Log("secure store overridden with default store");
+    }
 
     /// <summary>
     /// Meldet nach dem Start optional den Test-User an und navigiert deterministisch

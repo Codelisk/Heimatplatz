@@ -279,27 +279,20 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
 
         // Apple Silicon fuehrt nur signierten arm64-Code aus (mindestens ad-hoc) - ohne
         // Signatur killt der Kernel den Simulator-Prozess direkt nach dem Launch.
-        // Entitlements wie bei Xcode-Simulator-Builds mitgeben: get-task-allow plus
-        // application-identifier/keychain-access-groups, sonst schlagen Keychain-Zugriffe
-        // (Shiny Secure Store fuer Auth-Tokens) mit MissingEntitlement fehl.
+        // NUR get-task-allow wie bei Xcode-Simulator-Builds: restricted Entitlements
+        // (application-identifier, keychain-access-groups) in einer Ad-hoc-Signatur
+        // lehnt launchd beim Spawn ab ("Launchd job spawn failed", POSIX 162).
+        // Keychain wird deshalb app-seitig umgangen (ScreenshotMode.TryOverrideSecureStore).
         context.Information("Ad-hoc signing app bundle (with simulator entitlements)...");
-        var teamId = string.IsNullOrEmpty(context.IosTeamId) ? "SIM" : context.IosTeamId;
-        var appIdentifier = $"{teamId}.{context.ApplicationId}";
         var entitlementsPath = Path.Combine(Path.GetTempPath(), "sim-entitlements.plist");
         File.WriteAllText(entitlementsPath,
-            $"""
+            """
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
             <plist version="1.0">
             <dict>
                 <key>com.apple.security.get-task-allow</key>
                 <true/>
-                <key>application-identifier</key>
-                <string>{appIdentifier}</string>
-                <key>keychain-access-groups</key>
-                <array>
-                    <string>{appIdentifier}</string>
-                </array>
             </dict>
             </plist>
             """);
