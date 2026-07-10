@@ -2,8 +2,8 @@
 # Aufruf vom Repo-Root: docker compose -f deploy/hetzner/docker-compose.yml up -d
 # Voraussetzung: deploy/hetzner/.env (aus .env.example kopieren und echte Werte eintragen).
 #
-# Noch KEIN echter Server vorhanden - dies ist die Vorbereitung fuer den spaeteren Umzug von
-# Azure App Service (SQL Server) auf Hetzner (PostgreSQL). Siehe README in diesem Ordner.
+# Laeuft produktiv auf dem Hetzner-Server "heimatplatz" (128.140.33.238) unter
+# /srv/heimatplatz/deploy/hetzner. Siehe README in diesem Ordner.
 
 services:
   api:

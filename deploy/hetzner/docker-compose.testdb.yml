@@ -1,0 +1,31 @@
+# Separater Test-Postgres auf dem Hetzner-Server - unabhaengig vom Prod-Stack (docker-compose.yml).
+# Lokale Dev-Umgebungen verbinden sich von aussen auf Port 5433 (Prod-Postgres bleibt intern).
+#
+# Aufruf auf dem Server (in /srv/heimatplatz/deploy/hetzner, TESTDB_PASSWORD steht in der .env dort):
+#   docker compose -f docker-compose.testdb.yml up -d
+#
+# Verbindung von lokal:
+#   Host=128.140.33.238;Port=5433;Database=heimatplatz_test;Username=heimatplatz_test;Password=<TESTDB_PASSWORD>
+
+name: heimatplatz-testdb
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: heimatplatz_test
+      POSTGRES_USER: heimatplatz_test
+      POSTGRES_PASSWORD: ${TESTDB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heimatplatz_test -d heimatplatz_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_test_data:

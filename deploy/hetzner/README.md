@@ -1,8 +1,8 @@
-# Hetzner-Deployment (Vorbereitung)
+# Hetzner-Deployment
 
 Docker-Compose-Setup fuer die Heimatplatz-API auf einem einzelnen Hetzner-Server (API + PostgreSQL + Caddy als Reverse-Proxy mit automatischem HTTPS).
 
-**Status:** Vorbereitung. Es existiert noch kein Server; `.github/workflows/deploy-hetzner.yml` ist inaktiv (siehe Kommentar dort).
+**Status:** LIVE seit 8.7.2026. Server `heimatplatz` (CX23, Nuernberg, `128.140.33.238`), Projekt "Vorleistung" in der Hetzner Console. Stack laeuft unter `/srv/heimatplatz/deploy/hetzner`, API erreichbar via `https://api.heimatplatz.at/health`. `.github/workflows/deploy-hetzner.yml` ist weiterhin inaktiv (Deploy bisher manuell auf dem Server). SSH: `root@128.140.33.238` (Key-only; hinterlegt sind der `vorleistung-key` und Daniels `id_ed25519`).
 
 ## Erstinbetriebnahme (sobald ein Server existiert)
 
@@ -13,6 +13,31 @@ Docker-Compose-Setup fuer die Heimatplatz-API auf einem einzelnen Hetzner-Server
    - `API_DOMAIN`: die tatsaechliche Domain (DNS muss vorher auf den Server zeigen, damit Caddy das Let's-Encrypt-Zertifikat bekommt)
 3. `docker compose -f deploy/hetzner/docker-compose.yml up -d --build`
 4. `curl https://<API_DOMAIN>/health` sollte `{"Status":"Healthy"}` liefern.
+
+## Testdatenbank (docker-compose.testdb.yml)
+
+Separater Postgres-16-Container fuer Entwicklung/Tests auf demselben Server - unabhaengig vom Prod-Stack, eigenes Volume, von aussen erreichbar auf **Port 5433** (UFW-Regel vorhanden; Schutz ueber starkes Passwort, `TESTDB_PASSWORD` in der Server-`.env` und der lokalen `deploy/hetzner/.env`).
+
+```
+Host=128.140.33.238;Port=5433;Database=heimatplatz_test;Username=heimatplatz_test;Password=<TESTDB_PASSWORD>
+```
+
+Lokale Dev-Umgebung umstellen (User-Secrets, nicht git-getrackt):
+
+```
+dotnet user-secrets set "Database:Provider" "Postgres" --project src/api/src/Heimatplatz.Api/Heimatplatz.Api.csproj
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<Connection-String oben>" --project src/api/src/Heimatplatz.Api/Heimatplatz.Api.csproj
+```
+
+Zurueck auf lokales SQLite: `dotnet user-secrets clear --project src/api/src/Heimatplatz.Api/Heimatplatz.Api.csproj` (dann greift wieder `appsettings.Development.json`). Beim ersten API-Start mit `AutoMigrate=true`/`EnableSeeding=true` (Development-Default) werden Migrationen und Seed-Daten automatisch eingespielt.
+
+Test-DB zuruecksetzen (auf dem Server):
+
+```
+cd /srv/heimatplatz/deploy/hetzner
+docker compose -f docker-compose.testdb.yml down -v   # loescht auch das Volume
+docker compose -f docker-compose.testdb.yml up -d
+```
 
 ## Datenuebernahme aus Azure SQL
 

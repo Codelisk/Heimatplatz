@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <!-- OpenAPI Build-Time Generation -->
   <PropertyGroup>
     <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
     <OpenApiDocumentsDirectory>$(MSBuildProjectDirectory)/../../openapi</OpenApiDocumentsDirectory>
+    <UserSecretsId>aaa2ecab-7438-4296-84cd-793e5dd27c34</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
