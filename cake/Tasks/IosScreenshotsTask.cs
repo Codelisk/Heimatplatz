@@ -391,17 +391,34 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
                     env["SIMCTL_CHILD_SCREENSHOT_LOGIN_PASSWORD"] = config.LoginPassword;
                 }
 
-                RunXcrun(context,
+                var (launchExit, _) = RunXcrun(context,
                 [
                     "simctl", "launch", device.Udid, context.ApplicationId,
                     "-AppleLanguages", $"({config.AppleLanguage})",
                     "-AppleLocale", config.AppleLocale
-                ], env: env);
+                ], env: env, throwOnError: false);
+                if (launchExit != 0)
+                {
+                    DumpLaunchDiagnostics(context, device);
+                    throw new InvalidOperationException($"App launch failed for shot '{shot.Name}' (see diagnostics above)");
+                }
 
                 Thread.Sleep(TimeSpan.FromSeconds(shot.DelaySeconds));
 
                 var file = Path.Combine(outputDir, $"{deviceSlug}_{shot.Name}.png");
                 RunXcrun(context, ["simctl", "io", device.Udid, "screenshot", file]);
+
+                // Liveness-Check: terminate schlaegt fehl, wenn die App beim Screenshot
+                // nicht mehr lief - dann zeigt das PNG nur den Home-Screen
+                var (terminateExit, _) = RunXcrun(context,
+                    ["simctl", "terminate", device.Udid, context.ApplicationId], throwOnError: false);
+                if (terminateExit != 0)
+                {
+                    DumpLaunchDiagnostics(context, device);
+                    throw new InvalidOperationException(
+                        $"App was no longer running when shot '{shot.Name}' was captured - startup crash? (see diagnostics above)");
+                }
+
                 captured.Add(file);
             }
         }
@@ -420,15 +437,53 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
     private static string ToSlug(string name) =>
         new(name.ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '-').ToArray());
 
+    /// <summary>
+    /// Kippt Crash-Reports und das App-Log in das Build-Log, wenn die App nicht
+    /// (mehr) laeuft - Simulator-Prozesse crashen auf dem Host, die Reports liegen
+    /// daher in ~/Library/Logs/DiagnosticReports.
+    /// </summary>
+    private void DumpLaunchDiagnostics(BuildContext context, SimulatorDevice device)
+    {
+        context.Warning("Collecting crash diagnostics...");
+
+        var (_, reports) = RunProcess(context, "bash",
+            ["-c", "ls -t ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -10"], throwOnError: false);
+        context.Information($"Newest crash reports on host:\n{reports}");
+
+        var (_, crash) = RunProcess(context, "bash",
+        [
+            "-c",
+            "f=$(ls -t ~/Library/Logs/DiagnosticReports/ 2>/dev/null | grep -i heimatplatz | head -1); " +
+            "if [ -n \"$f\" ]; then echo \"--- $f ---\"; head -c 8000 ~/Library/Logs/DiagnosticReports/\"$f\"; else echo 'no Heimatplatz crash report found'; fi"
+        ], throwOnError: false);
+        context.Information(crash);
+
+        var (_, appLog) = RunProcess(context, "bash",
+        [
+            "-c",
+            $"xcrun simctl spawn {device.Udid} log show --last 5m --style compact " +
+            "--predicate 'processImagePath CONTAINS \"Heimatplatz\"' 2>/dev/null | tail -120"
+        ], throwOnError: false);
+        context.Information($"Simulator log (Heimatplatz, last 5m):\n{appLog}");
+    }
+
     private (int ExitCode, string Output) RunXcrun(
         BuildContext context,
+        IReadOnlyList<string> arguments,
+        IDictionary<string, string>? env = null,
+        bool throwOnError = true)
+        => RunProcess(context, "xcrun", arguments, env, throwOnError);
+
+    private (int ExitCode, string Output) RunProcess(
+        BuildContext context,
+        string fileName,
         IReadOnlyList<string> arguments,
         IDictionary<string, string>? env = null,
         bool throwOnError = true)
     {
         var processInfo = new ProcessStartInfo
         {
-            FileName = "xcrun",
+            FileName = fileName,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -447,7 +502,7 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
         }
 
         using var process = Process.Start(processInfo)
-            ?? throw new InvalidOperationException("Failed to start xcrun process");
+            ?? throw new InvalidOperationException($"Failed to start {fileName} process");
 
         var output = process.StandardOutput.ReadToEnd();
         var error = process.StandardError.ReadToEnd();
@@ -455,7 +510,7 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
 
         if (process.ExitCode != 0)
         {
-            var message = $"xcrun {string.Join(' ', arguments)} failed with exit code {process.ExitCode}: {error}";
+            var message = $"{fileName} {string.Join(' ', arguments)} failed with exit code {process.ExitCode}: {error}";
             if (throwOnError)
             {
                 throw new InvalidOperationException(message);
