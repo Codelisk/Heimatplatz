@@ -100,7 +100,7 @@ const totalInitialProperties = apiProperties.length;
 
   type VerifiedImageMap = Record<string, string>;
 
-  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://heimatplatz-api.azurewebsites.net";
+  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
   const params = new URLSearchParams(window.location.search);
   let cards = Array.from(document.querySelectorAll<HTMLElement>("[data-property-card]"));
   const resultCount = document.querySelector<HTMLElement>("[data-result-count]");

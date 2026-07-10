@@ -40,5 +40,5 @@ Kopiere die benoetigten Werte aus `.env.example`, wenn lokal andere URLs verwend
 
 ```sh
 PUBLIC_SITE_URL=https://heimatplatz.at
-PUBLIC_API_BASE_URL=https://heimatplatz-api.azurewebsites.net
+PUBLIC_API_BASE_URL=https://api.heimatplatz.at
 ```

@@ -2,7 +2,7 @@ export const SITE = {
   name: "Heimatplatz",
   url: import.meta.env.PUBLIC_SITE_URL ?? "https://heimatplatz.at",
   apiBaseUrl:
-    import.meta.env.PUBLIC_API_BASE_URL ?? "https://heimatplatz-api.azurewebsites.net",
+    import.meta.env.PUBLIC_API_BASE_URL ?? "https://api.heimatplatz.at",
   locale: "de_AT",
   language: "de-AT",
   title: "Heimatplatz - Immobilien in Oberösterreich finden",
