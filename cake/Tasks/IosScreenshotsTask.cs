@@ -294,7 +294,17 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
             </dict>
             </plist>
             """);
-        RunXcrun(context, ["codesign", "--force", "--deep", "--sign", "-", "--entitlements", entitlementsPath, appBundle]);
+        // Erst alle eingebetteten Mach-O-Dateien einzeln signieren: "--deep" erfasst dylibs
+        // im Bundle-Root nicht (MAUI legt die Mono-Runtime-dylibs dort ab, sie gelten als
+        // Ressourcen) - dyld killt den Prozess sonst mit codesigning/invalid-page(2).
+        RunProcess(context, "bash",
+        [
+            "-c",
+            $"find \"{appBundle}\" -name '*.dylib' -exec codesign --force --sign - {{}} ';' && " +
+            $"find \"{appBundle}\" -name '*.framework' -exec codesign --force --sign - {{}} ';'"
+        ]);
+        // Bundle selbst zuletzt signieren (versiegelt die Ressourcen inkl. der dylibs)
+        RunXcrun(context, ["codesign", "--force", "--sign", "-", "--entitlements", entitlementsPath, appBundle]);
 
         context.Information($"App bundle: {appBundle}");
         return appBundle;
@@ -463,10 +473,11 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
         // Direktester Weg zum Managed-Stacktrace: Launch mit angebundener Konsole -
         // bei einem Startup-Crash landet die .NET-Exception auf stderr. timeout killt
         // die Diagnose-Instanz, falls die App (ohne Screenshot-Env) doch weiterlaeuft.
+        // macOS hat kein GNU "timeout" - perl alarm als Ersatz
         var (_, consoleOut) = RunProcess(context, "bash",
         [
             "-c",
-            $"timeout 40 xcrun simctl launch --console-pty {device.Udid} {context.ApplicationId} 2>&1 | tail -200"
+            $"perl -e 'alarm 40; exec @ARGV' xcrun simctl launch --console-pty {device.Udid} {context.ApplicationId} 2>&1 | tail -200"
         ], throwOnError: false);
         context.Information($"Console launch output:\n{consoleOut}");
 
