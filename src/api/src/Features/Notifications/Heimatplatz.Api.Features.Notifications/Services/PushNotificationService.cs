@@ -108,7 +108,7 @@ public class PushNotificationService(
 
             // Step 4: Send notifications
             var notificationTitle = "Neue Immobilie verfügbar!";
-            var notificationBody = $"{title} in {city} - CHF {price:N0}";
+            var notificationBody = $"{title} in {city} - € {price:N0}";
             var data = new Dictionary<string, string>
             {
                 ["propertyId"] = propertyId.ToString(),
