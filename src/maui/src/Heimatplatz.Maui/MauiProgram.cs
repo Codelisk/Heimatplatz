@@ -28,12 +28,18 @@ public static class MauiProgram
             });
 
         // API-Endpunkt fuer den generierten Shiny.Mediator OpenAPI-Client
-        var apiBaseUrl = "https://heimatplatz-api.azurewebsites.net";
+        var apiBaseUrl = "https://api.heimatplatz.at";
 #if DEBUG && ANDROID
         // Debug im Android-Emulator: lokale API am Host (10.0.2.2 = Host-Loopback)
         if (DeviceInfo.Current.DeviceType == DeviceType.Virtual)
         {
             apiBaseUrl = "http://10.0.2.2:5292";
+        }
+        else
+        {
+            // Physisches Geraet via USB-Debugging: "adb reverse tcp:5292 tcp:5292" leitet
+            // localhost:5292 am Geraet auf die lokale API am Entwicklungsrechner um.
+            apiBaseUrl = "http://localhost:5292";
         }
 #endif
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
