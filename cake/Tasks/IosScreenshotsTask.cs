@@ -278,9 +278,23 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
         }
 
         // Apple Silicon fuehrt nur signierten arm64-Code aus (mindestens ad-hoc) - ohne
-        // Signatur killt der Kernel den Simulator-Prozess direkt nach dem Launch
-        context.Information("Ad-hoc signing app bundle...");
-        RunXcrun(context, ["codesign", "--force", "--deep", "--sign", "-", appBundle]);
+        // Signatur killt der Kernel den Simulator-Prozess direkt nach dem Launch.
+        // get-task-allow wie bei Xcode-Simulator-Builds mitgeben: "codesign --sign -"
+        // ohne Entitlements strippt alle Rechte, was den Mono-Prozess ebenfalls killt.
+        context.Information("Ad-hoc signing app bundle (with simulator entitlements)...");
+        var entitlementsPath = Path.Combine(Path.GetTempPath(), "sim-entitlements.plist");
+        File.WriteAllText(entitlementsPath,
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+                <key>com.apple.security.get-task-allow</key>
+                <true/>
+            </dict>
+            </plist>
+            """);
+        RunXcrun(context, ["codesign", "--force", "--deep", "--sign", "-", "--entitlements", entitlementsPath, appBundle]);
 
         context.Information($"App bundle: {appBundle}");
         return appBundle;
@@ -446,23 +460,31 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
     {
         context.Warning("Collecting crash diagnostics...");
 
-        var (_, reports) = RunProcess(context, "bash",
-            ["-c", "ls -t ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -10"], throwOnError: false);
-        context.Information($"Newest crash reports on host:\n{reports}");
+        // Direktester Weg zum Managed-Stacktrace: Launch mit angebundener Konsole -
+        // bei einem Startup-Crash landet die .NET-Exception auf stderr. timeout killt
+        // die Diagnose-Instanz, falls die App (ohne Screenshot-Env) doch weiterlaeuft.
+        var (_, consoleOut) = RunProcess(context, "bash",
+        [
+            "-c",
+            $"timeout 40 xcrun simctl launch --console-pty {device.Udid} {context.ApplicationId} 2>&1 | tail -200"
+        ], throwOnError: false);
+        context.Information($"Console launch output:\n{consoleOut}");
 
         var (_, crash) = RunProcess(context, "bash",
         [
             "-c",
-            "f=$(ls -t ~/Library/Logs/DiagnosticReports/ 2>/dev/null | grep -i heimatplatz | head -1); " +
-            "if [ -n \"$f\" ]; then echo \"--- $f ---\"; head -c 8000 ~/Library/Logs/DiagnosticReports/\"$f\"; else echo 'no Heimatplatz crash report found'; fi"
+            "for dir in ~/Library/Logs/DiagnosticReports ~/Library/Logs/DiagnosticReports/Retired; do " +
+            "echo \"--- $dir ---\"; ls -t \"$dir\" 2>/dev/null | head -8; " +
+            "f=$(ls -t \"$dir\" 2>/dev/null | grep -i heimatplatz | head -1); " +
+            "if [ -n \"$f\" ]; then echo \"--- $dir/$f ---\"; head -c 8000 \"$dir/$f\"; fi; done"
         ], throwOnError: false);
-        context.Information(crash);
+        context.Information($"Crash reports:\n{crash}");
 
         var (_, appLog) = RunProcess(context, "bash",
         [
             "-c",
             $"xcrun simctl spawn {device.Udid} log show --last 5m --style compact " +
-            "--predicate 'processImagePath CONTAINS \"Heimatplatz\"' 2>/dev/null | tail -120"
+            "--predicate 'process == \"Heimatplatz.Maui\" OR eventMessage CONTAINS[c] \"heimatplatz\"' 2>/dev/null | tail -150"
         ], throwOnError: false);
         context.Information($"Simulator log (Heimatplatz, last 5m):\n{appLog}");
     }
