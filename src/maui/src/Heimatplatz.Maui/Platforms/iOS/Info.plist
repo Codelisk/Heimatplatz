@@ -45,6 +45,16 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Heimatplatz greift auf Ihre Fotos zu, um Bilder und Videos Ihrer Immobilie auszuwählen.</string>
 
+	<!-- Von referenzierten SDKs benoetigte Purpose-Strings (ITMS-90683), auch ohne aktive Nutzung Pflicht -->
+	<key>NSCalendarsUsageDescription</key>
+	<string>Heimatplatz nutzt Ihren Kalender, um Besichtigungstermine für Sie einzutragen.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Heimatplatz greift auf Ihre Kontakte zu, um Kontaktdaten bei Anfragen bequem auszufüllen.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Heimatplatz nutzt Ihren Standort, um Immobilien in Ihrer Nähe anzuzeigen.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Heimatplatz nutzt Ihren Standort, um Immobilien in Ihrer Nähe anzuzeigen.</string>
+
 	<!-- Deep Link URL Schema -->
 	<key>CFBundleURLTypes</key>
 	<array>
