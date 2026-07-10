@@ -254,6 +254,9 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
 
         var msBuildSettings = new Cake.Common.Tools.DotNet.MSBuild.DotNetMSBuildSettings();
         msBuildSettings.Properties["RuntimeIdentifier"] = new[] { SimulatorRuntimeIdentifier };
+        // Simulator-Apps laufen unsigniert; ohne das sucht _DetectSigningIdentity wegen der
+        // gesetzten Entitlements.plist auf der leeren CI-Keychain nach Zertifikaten und bricht ab
+        msBuildSettings.Properties["EnableCodeSigning"] = new[] { "false" };
 
         context.DotNetBuild(context.CsprojPath, new DotNetBuildSettings
         {
