@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Xml.Linq;
 using Cake.Common.Diagnostics;
 using Cake.Frosting;
 
@@ -40,7 +41,15 @@ public sealed class UploadIosScreenshotsTask : FrostingTask<BuildContext>
                 $"No screenshots found under {screenshotsDir}. Run the IosScreenshots task first.");
         }
 
+        // Screenshots haengen an einer App-Store-Version - deliver braucht eine editierbare
+        // Version und legt sie mit app_version bei Bedarf an ("Prepare for Submission")
+        var doc = XDocument.Load(context.CsprojPath);
+        var ns = doc.Root?.Name.Namespace ?? XNamespace.None;
+        var displayVersion = doc.Descendants(ns + "ApplicationDisplayVersion").FirstOrDefault()?.Value
+            ?? throw new InvalidOperationException("ApplicationDisplayVersion not found in csproj");
+
         context.Information($"Uploading screenshots from: {screenshotsDir}");
+        context.Information($"Target App Store version: {displayVersion}");
         context.Information($"Running Fastlane from: {context.FastlaneDirectory}");
 
         var processInfo = new ProcessStartInfo
@@ -58,6 +67,7 @@ public sealed class UploadIosScreenshotsTask : FrostingTask<BuildContext>
         processInfo.Environment["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] = context.AppStoreConnectIssuerId;
         processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] = context.AppStoreConnectKeyPath;
         processInfo.Environment["DELIVER_SCREENSHOTS_PATH"] = screenshotsDir;
+        processInfo.Environment["DELIVER_APP_VERSION"] = displayVersion;
 
         using var process = Process.Start(processInfo);
         if (process == null)

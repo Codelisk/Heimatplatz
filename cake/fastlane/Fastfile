@@ -220,9 +220,12 @@ platform :ios do
       # skip_metadata laesst deliver trotzdem den Default-Pfad ./fastlane/metadata
       # validieren (ios/android sind keine Locale-Ordner) - daher explizit setzen
       metadata_path: "./metadata/ios",
+      # Ohne editierbare Version bricht deliver ab ("Could not find a version to edit") -
+      # app_version legt die Version bei Bedarf an ("Prepare for Submission")
+      app_version: ENV["DELIVER_APP_VERSION"],
       skip_binary_upload: true,
       skip_metadata: true,
-      skip_app_version_update: true,
+      skip_app_version_update: false,
       overwrite_screenshots: true,
       force: true,
       precheck_include_in_app_purchases: false,
