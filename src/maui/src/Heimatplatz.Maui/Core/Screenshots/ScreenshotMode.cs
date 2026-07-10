@@ -55,7 +55,17 @@ public static class ScreenshotMode
         try
         {
             await Task.Delay(NavigationDelayMs);
-            await LoginAsync(services);
+
+            // Login-Fehler nicht die Navigation blocken lassen - der Screenshot zeigt
+            // dann den nicht angemeldeten Zustand, was im Log klar erkennbar ist
+            try
+            {
+                await LoginAsync(services);
+            }
+            catch (Exception ex)
+            {
+                Log($"login FAILED: {ex}");
+            }
 
             if (!string.IsNullOrWhiteSpace(Route))
             {
