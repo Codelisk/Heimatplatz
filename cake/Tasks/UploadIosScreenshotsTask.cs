@@ -68,6 +68,8 @@ public sealed class UploadIosScreenshotsTask : FrostingTask<BuildContext>
         processInfo.Environment["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] = context.AppStoreConnectKeyPath;
         processInfo.Environment["DELIVER_SCREENSHOTS_PATH"] = screenshotsDir;
         processInfo.Environment["DELIVER_APP_VERSION"] = displayVersion;
+        // sync_screenshots ist ein (stabiles, aber als Beta markiertes) deliver-Feature
+        processInfo.Environment["FASTLANE_ENABLE_BETA_DELIVER_SYNC_SCREENSHOTS"] = "1";
 
         using var process = Process.Start(processInfo);
         if (process == null)
