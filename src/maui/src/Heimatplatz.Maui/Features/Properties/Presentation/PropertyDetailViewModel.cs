@@ -348,7 +348,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         // Kontaktperson (erster Kontakt falls vorhanden)
         var firstContact = Property.Contacts?.FirstOrDefault();
         HasContactPerson = firstContact != null;
-        ContactPersonText = firstContact != null ? $"Herr/Frau {firstContact.Name}" : string.Empty;
+        // Nur der Name: "Herr/Frau"-Praefix waere bei Firmenkontakten (GmbH, Makler) falsch
+        ContactPersonText = firstContact?.Name ?? string.Empty;
 
         // Primaere Kontaktdaten fuer die Footer-Leiste
         PrimaryContactEmail = firstContact?.Email;
@@ -447,7 +448,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             else
                 AddIfHasValue(items, "Baujahr", Property.YearBuilt, v => v.ToString(), PropertyDataCategory.Gebaeude);
 
-            items.Add(new PropertyDetailItem("Zustand", FormatCondition(houseData.Condition), PropertyDataCategory.Gebaeude));
+            // Default(0) ist kein definierter Enum-Wert (z.B. bei leerem TypeSpecificData "{}")
+            if (Enum.IsDefined(houseData.Condition))
+                items.Add(new PropertyDetailItem("Zustand", FormatCondition(houseData.Condition), PropertyDataCategory.Gebaeude));
 
             if (houseData.ApartmentFloor.HasValue)
                 items.Add(new PropertyDetailItem("Etage", houseData.ApartmentFloor.Value.ToString(), PropertyDataCategory.Gebaeude));
@@ -475,7 +478,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         // --- Grundstueck (Land) ---
         if (landData != null)
         {
-            items.Add(new PropertyDetailItem("Widmung", FormatZoning(landData.Zoning), PropertyDataCategory.Grundstueck));
+            if (Enum.IsDefined(landData.Zoning))
+                items.Add(new PropertyDetailItem("Widmung", FormatZoning(landData.Zoning), PropertyDataCategory.Grundstueck));
             items.Add(new PropertyDetailItem("Baurecht", FormatBool(landData.HasBuildingRights), PropertyDataCategory.Grundstueck));
             items.Add(new PropertyDetailItem("Bebaubar", FormatBool(landData.IsBuildable), PropertyDataCategory.Grundstueck));
             items.Add(new PropertyDetailItem("Versorgung", FormatBool(landData.HasUtilities), PropertyDataCategory.Grundstueck));
@@ -488,9 +492,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         {
             AddIfNotEmpty(items, "Gericht", foreclosureData.CourtName, PropertyDataCategory.Versteigerung);
             AddIfNotEmpty(items, "Aktenzeichen", foreclosureData.FileNumber, PropertyDataCategory.Versteigerung);
-            items.Add(new PropertyDetailItem("Termin", foreclosureData.AuctionDate.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung));
-            items.Add(new PropertyDetailItem("Mindestgebot", $"{foreclosureData.MinimumBid:N0} €".Replace(",", "."), PropertyDataCategory.Versteigerung));
-            items.Add(new PropertyDetailItem("Status", FormatLegalStatus(foreclosureData.Status), PropertyDataCategory.Versteigerung));
+            if (foreclosureData.AuctionDate != default)
+                items.Add(new PropertyDetailItem("Termin", foreclosureData.AuctionDate.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung));
+            if (foreclosureData.MinimumBid > 0)
+                items.Add(new PropertyDetailItem("Mindestgebot", $"{foreclosureData.MinimumBid:N0} €".Replace(",", "."), PropertyDataCategory.Versteigerung));
+            if (Enum.IsDefined(foreclosureData.Status))
+                items.Add(new PropertyDetailItem("Status", FormatLegalStatus(foreclosureData.Status), PropertyDataCategory.Versteigerung));
         }
 
         // --- Kosten ---

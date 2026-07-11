@@ -65,7 +65,10 @@ public partial class ImprintViewModel(IMediator mediator) : ObservableObject, IP
             CompanyLine = $"{imprint.CompanyName} {imprint.LegalForm}".Trim();
             OwnerLine = imprint.Owner ?? string.Empty;
             AddressLine = $"{imprint.Street}, {imprint.PostalCode} {imprint.City}, {imprint.Country}";
-            ContactLine = $"E-Mail: {imprint.Email}  Tel: {imprint.Phone}";
+            // "Tel:" nur anzeigen wenn eine Nummer vorhanden ist
+            ContactLine = string.IsNullOrWhiteSpace(imprint.Phone)
+                ? $"E-Mail: {imprint.Email}"
+                : $"E-Mail: {imprint.Email}  Tel: {imprint.Phone}";
             UidLine = string.IsNullOrEmpty(imprint.UidNumber) ? string.Empty : $"UID: {imprint.UidNumber}";
             VersionLine = $"Version {imprint.Version} - Stand: {imprint.LastUpdated:d}";
 

@@ -607,25 +607,39 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     #region Laden / Pagination
 
+    // Reload-Wunsch waehrend eines laufenden Loads (z.B. Filter-Preferences kommen
+    // waehrend des Initial-Loads an) - wird nach dem laufenden Load nachgeholt,
+    // sonst zeigt die Liste nicht die restaurierten Filter/Sortierung
+    private bool _reloadQueued;
+
     /// <summary>
     /// Laedt die erste Seite neu (mit Busy-Anzeige)
     /// </summary>
     private async Task ReloadPropertiesAsync()
     {
-        if (IsBusy) return;
+        if (IsBusy)
+        {
+            _reloadQueued = true;
+            return;
+        }
 
         IsBusy = true;
         BusyMessage = "Lade Immobilien...";
         try
         {
-            _currentPage = 0;
-            var items = await LoadPageAsync(0, CancellationToken.None);
+            do
+            {
+                _reloadQueued = false;
+                _currentPage = 0;
+                var items = await LoadPageAsync(0, CancellationToken.None);
 
-            Properties.Clear();
-            foreach (var item in items)
-                Properties.Add(item);
+                Properties.Clear();
+                foreach (var item in items)
+                    Properties.Add(item);
 
-            UpdateResultCount();
+                UpdateResultCount();
+            }
+            while (_reloadQueued);
         }
         finally
         {

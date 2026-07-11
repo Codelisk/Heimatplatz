@@ -15,6 +15,9 @@ public partial class PropertyCard : ContentView
         InitializeComponent();
     }
 
+    // Zuletzt gesetzte Bild-URL, um beim Card-Recycling unnoetige Reloads zu vermeiden
+    private string? _currentImageUrl;
+
     /// <summary>
     /// Die anzuzeigende Immobilie
     /// </summary>
@@ -219,25 +222,25 @@ public partial class PropertyCard : ContentView
 
         // Bild (erstes Bild) und Bild-Counter
         var imageUrls = property.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList();
-        if (imageUrls?.Count > 0)
+        var newImageUrl = imageUrls?.Count > 0 ? imageUrls[0] : null;
+        if (newImageUrl != _currentImageUrl)
         {
-            MainImage.Source = ImageSource.FromUri(new Uri(imageUrls[0]));
-            MainImage.IsVisible = true;
+            _currentImageUrl = newImageUrl;
+            // Beim Card-Recycling zuerst leeren: WinUI zeigt sonst das alte Foto
+            // weiter, bis das neue geladen ist (falsches Bild auf falscher Immobilie)
+            MainImage.Source = null;
+            if (newImageUrl != null)
+                MainImage.Source = ImageSource.FromUri(new Uri(newImageUrl));
+        }
+        MainImage.IsVisible = newImageUrl != null;
 
-            if (imageUrls.Count > 1)
-            {
-                ImageCounterBadge.IsVisible = true;
-                ImageCounterText.Text = $"1/{imageUrls.Count}";
-            }
-            else
-            {
-                ImageCounterBadge.IsVisible = false;
-            }
+        if (imageUrls?.Count > 1)
+        {
+            ImageCounterBadge.IsVisible = true;
+            ImageCounterText.Text = $"1/{imageUrls.Count}";
         }
         else
         {
-            MainImage.Source = null;
-            MainImage.IsVisible = false;
             ImageCounterBadge.IsVisible = false;
         }
 

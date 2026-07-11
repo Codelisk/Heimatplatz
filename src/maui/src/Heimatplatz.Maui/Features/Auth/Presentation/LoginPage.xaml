@@ -46,19 +46,10 @@
                                Keyboard="Email" />
                     </VerticalStackLayout>
 
-                    <!-- Passwort -->
+                    <!-- Passwort ("Vergessen?"-Link entfernt: es gibt noch keinen Passwort-Reset-Flow) -->
                     <VerticalStackLayout Spacing="6">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0"
-                                   Text="Passwort"
-                                   Style="{StaticResource FieldLabel}"
-                                   VerticalOptions="Center" />
-                            <Label Grid.Column="1"
-                                   Text="Vergessen?"
-                                   FontSize="12"
-                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
-                                   VerticalOptions="Center" />
-                        </Grid>
+                        <Label Text="Passwort"
+                               Style="{StaticResource FieldLabel}" />
                         <Entry Text="{Binding Passwort}"
                                Placeholder="Ihr Passwort"
                                IsPassword="True"

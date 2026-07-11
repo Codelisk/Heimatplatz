@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Notifications.Contracts.Models;
 using Heimatplatz.Maui.Features.Notifications.Services;
+using Heimatplatz.Maui.Features.Properties.Services;
 using Microsoft.Extensions.Logging;
 using Shiny;
 
@@ -16,20 +17,29 @@ namespace Heimatplatz.Maui.Features.Notifications.Presentation;
 public partial class NotificationSettingsViewModel : ObservableObject, IPageLifecycleAware
 {
     private readonly INotificationService _notificationService;
+    private readonly ILocationService _locationService;
     private readonly ILogger<NotificationSettingsViewModel> _logger;
 
     // true bis zum ersten Laden, damit die Initialwerte aus dem Konstruktor
     // und dem Load keine Auto-Save-Aufrufe ausloesen
     private bool _isLoading = true;
 
+    // Gemeinden fuer die Ort-Suche (cached vom LocationService)
+    private List<LocationGemeindeDto> _municipalities = [];
+    private bool _suppressSearch;
+
     public NotificationSettingsViewModel(
         INotificationService notificationService,
+        ILocationService locationService,
         ILogger<NotificationSettingsViewModel> logger)
     {
         _notificationService = notificationService;
+        _locationService = locationService;
         _logger = logger;
 
         SelectedOrte = [];
+        OrtSearchText = string.Empty;
+        OrtSuggestions = [];
         IsFilterModeAll = true;
         IsHausSelected = true;
         IsGrundstueckSelected = true;
@@ -60,12 +70,20 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     // Custom filter visibility
     public bool IsCustomFilterVisible => FilterMode == NotificationFilterMode.Custom;
 
-    // Custom filter: Orte (werden aktuell nur angezeigt und beim Speichern unveraendert
-    // zurueckgeschickt - der OrtPicker der Uno-App benoetigt das Properties-Feature)
+    // Custom filter: Orte (Suche wie im Home-Filter, Auswahl als Chips)
     [ObservableProperty]
     public partial List<string> SelectedOrte { get; set; }
 
     public bool HasSelectedOrte => SelectedOrte.Count > 0;
+
+    [ObservableProperty]
+    public partial string OrtSearchText { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOrtSuggestions))]
+    public partial List<LocationGemeindeDto> OrtSuggestions { get; set; }
+
+    public bool HasOrtSuggestions => OrtSuggestions.Count > 0;
 
     // Custom filter: PropertyType
     [ObservableProperty]
@@ -87,6 +105,19 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     public void OnAppearing()
     {
         _ = LoadPreferencesAsync();
+        _ = LoadMunicipalitiesAsync();
+    }
+
+    private async Task LoadMunicipalitiesAsync()
+    {
+        try
+        {
+            _municipalities = await _locationService.GetAllMunicipalitiesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Gemeinden fuer die Ort-Suche konnten nicht geladen werden");
+        }
     }
 
     public void OnDisappearing()
@@ -146,6 +177,54 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         OnPropertyChanged(nameof(HasSelectedOrte));
         if (_isLoading) return;
         _ = SavePreferencesAsync();
+    }
+
+    partial void OnOrtSearchTextChanged(string value)
+    {
+        if (_suppressSearch) return;
+
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 2)
+        {
+            OrtSuggestions = [];
+            return;
+        }
+
+        var search = value.Trim();
+        OrtSuggestions = _municipalities
+            .Where(m => (m.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                      || m.PostalCode.StartsWith(search, StringComparison.OrdinalIgnoreCase))
+                     && !SelectedOrte.Contains(m.Name))
+            .Take(15)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Fuegt einen Ort zur Auswahl hinzu (neue Liste, damit Auto-Save ausgeloest wird)
+    /// </summary>
+    [RelayCommand]
+    private void AddOrt(LocationGemeindeDto gemeinde)
+    {
+        if (!SelectedOrte.Contains(gemeinde.Name))
+        {
+            SelectedOrte = [.. SelectedOrte, gemeinde.Name];
+        }
+
+        _suppressSearch = true;
+        OrtSearchText = string.Empty;
+        _suppressSearch = false;
+        OrtSuggestions = [];
+    }
+
+    /// <summary>
+    /// Entfernt einen Ort aus der Auswahl (neue Liste, damit Auto-Save ausgeloest wird)
+    /// </summary>
+    [RelayCommand]
+    private void RemoveOrt(string ort)
+    {
+        if (SelectedOrte.Contains(ort))
+        {
+            SelectedOrte = SelectedOrte.Where(o => o != ort).ToList();
+        }
     }
 
     partial void OnIsHausSelectedChanged(bool value)
