@@ -226,7 +226,10 @@ platform :ios do
       skip_binary_upload: true,
       skip_metadata: true,
       skip_app_version_update: false,
-      overwrite_screenshots: true,
+      # sync statt overwrite: das Loeschen via overwrite_screenshots schlaegt mit der
+      # neuen ASC-API oft fehl ("Failed to delete screenshot"); sync gleicht per
+      # Checksumme ab und ersetzt nur geaenderte Bilder
+      sync_screenshots: true,
       force: true,
       precheck_include_in_app_purchases: false,
       submit_for_review: false,
