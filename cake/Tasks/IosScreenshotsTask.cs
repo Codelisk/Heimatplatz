@@ -432,7 +432,7 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
                 Thread.Sleep(TimeSpan.FromSeconds(shot.DelaySeconds));
 
                 var file = Path.Combine(outputDir, $"{deviceSlug}_{shot.Name}.png");
-                RunXcrun(context, ["simctl", "io", device.Udid, "screenshot", file]);
+                CaptureSettledScreenshot(context, device, file);
 
                 // Liveness-Check: terminate schlaegt fehl, wenn die App beim Screenshot
                 // nicht mehr lief - dann zeigt das PNG nur den Home-Screen
@@ -472,6 +472,45 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
 
     private static string ToSlug(string name) =>
         new(name.ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '-').ToArray());
+
+    /// <summary>
+    /// Screenshottet, bis zwei aufeinanderfolgende Aufnahmen identisch sind - ein
+    /// animierter Spinner/Lade-Dialog erzeugt immer Pixel-Differenzen, waehrend die
+    /// fertige Seite (Status-Bar ist eingefroren) ein stabiles Bild liefert.
+    /// </summary>
+    private void CaptureSettledScreenshot(BuildContext context, SimulatorDevice device, string file)
+    {
+        const int maxAttempts = 12;
+        const int settleIntervalSeconds = 3;
+
+        RunXcrun(context, ["simctl", "io", device.Udid, "screenshot", file]);
+        var previousHash = HashFile(file);
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(settleIntervalSeconds));
+            RunXcrun(context, ["simctl", "io", device.Udid, "screenshot", file]);
+
+            var hash = HashFile(file);
+            if (hash == previousHash)
+            {
+                context.Information($"Screen settled after {attempt} check(s).");
+                return;
+            }
+            previousHash = hash;
+        }
+
+        context.Warning(
+            $"Screen did not settle within {maxAttempts * settleIntervalSeconds}s - " +
+            "keeping last capture (page may still be loading/animating).");
+    }
+
+    private static string HashFile(string path)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        using var stream = File.OpenRead(path);
+        return Convert.ToHexString(sha.ComputeHash(stream));
+    }
 
     /// <summary>
     /// Kippt Crash-Reports und das App-Log in das Build-Log, wenn die App nicht
