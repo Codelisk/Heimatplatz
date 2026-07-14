@@ -22,7 +22,6 @@ public partial class FavoritesViewModel(
     protected override string RemovingMessage => "Entferne Favorit...";
     protected override string RemoveConfirmTitle => "Favorit entfernen?";
     protected override string RemoveErrorTitle => "Fehler beim Entfernen";
-    protected override string LoadErrorTitle => "Fehler beim Laden";
 
     protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
         => $"Möchten Sie \"{property.Title}\" wirklich aus Ihren Favoriten entfernen?";

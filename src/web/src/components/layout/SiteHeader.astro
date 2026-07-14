@@ -1,5 +1,6 @@
 ---
 import BellIcon from "@tabler/icons/outline/bell.svg";
+import BugIcon from "@tabler/icons/outline/bug.svg";
 import FilterIcon from "@tabler/icons/outline/filter.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import HomeIcon from "@tabler/icons/outline/home.svg";
@@ -45,6 +46,8 @@ const navItems = [
 const navFooterItems = [
   { label: "Benachrichtigungen", href: "/benachrichtigungen/", icon: BellIcon },
   { label: "Filtereinstellungen", href: "/filter-einstellungen/", icon: FilterIcon },
+  // Nur auf Debug-Hosts (localhost/LAN-IP) sichtbar - Client-Script blendet ein
+  { label: "Debug", href: "/debug/", icon: BugIcon, debugOnly: true },
 ];
 
 function isActive(href: string) {
@@ -185,6 +188,8 @@ function isActive(href: string) {
               active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
             ]}
             aria-current={active ? "page" : undefined}
+            data-debug-only={item.debugOnly ? "" : undefined}
+            hidden={item.debugOnly ? true : undefined}
           >
             <Icon class="size-4" aria-hidden="true" />
             <span>{item.label}</span>
@@ -210,6 +215,15 @@ function isActive(href: string) {
 </header>
 
 <script>
+  import { isDebugHost } from "@/lib/utils/debug-host";
+
+  // Debug-Eintrag nur einblenden, wenn die Seite vom Entwicklungs-PC (localhost/LAN) laeuft
+  if (isDebugHost()) {
+    document.querySelectorAll<HTMLElement>("[data-debug-only]").forEach((element) => {
+      element.hidden = false;
+    });
+  }
+
   const toggle = document.querySelector<HTMLButtonElement>("[data-site-nav-toggle]");
   const close = document.querySelector<HTMLButtonElement>("[data-site-nav-close]");
   const panel = document.querySelector<HTMLElement>("[data-site-nav-panel]");

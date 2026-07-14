@@ -19,7 +19,7 @@
                     <Label Text="Anmeldestatus" Style="{StaticResource CardTitle}" />
 
                     <Label Text="{Binding CurrentAuthenticationState, StringFormat='Aktuell: {0}'}"
-                           Style="{StaticResource Body}"
+                           Style="{StaticResource BodyStrong}"
                            AutomationId="Debug_CurrentAuthenticationState" />
 
                     <Button Text="Ausgeloggt"
@@ -44,8 +44,7 @@
 
                     <Label Text="{Binding ErrorMessage}"
                            IsVisible="{Binding HasError}"
-                           TextColor="{StaticResource Error}"
-                           Style="{StaticResource Caption}"
+                           Style="{StaticResource ErrorBannerText}"
                            AutomationId="Debug_AuthenticationError" />
 
                     <Label Text="Verwendet die Testkonten des aktuell gewählten API-Endpunkts. Dadurch funktionieren auch authentifizierte API-Aufrufe mit der ausgewählten Rolle."

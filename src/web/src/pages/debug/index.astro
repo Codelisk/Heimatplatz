@@ -1,0 +1,251 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+---
+
+<BaseLayout
+  title="Debug"
+  description="Debug-Werkzeuge für die lokale Entwicklung."
+  canonicalPath="/debug/"
+  noindex
+>
+  <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold">Debug</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">
+      Entwicklungs-Werkzeuge wie in der MAUI-App: Testbenutzer anmelden und zwischen
+      lokaler Entwicklungs-API, Test-API und Produktions-API umschalten.
+    </p>
+
+    <p class="mt-8 hidden rounded-lg border border-border bg-muted p-4 text-sm text-muted-foreground" data-debug-blocked>
+      Die Debug-Werkzeuge sind nur verfügbar, wenn die Seite vom Entwicklungs-PC aus
+      aufgerufen wird (localhost oder LAN-IP).
+    </p>
+
+    <div class="mt-8 hidden space-y-6" data-debug-tools>
+      <section class="rounded-lg border border-border bg-card p-5" aria-label="Anmeldestatus">
+        <h2 class="text-base font-semibold">Anmeldestatus</h2>
+        <p class="mt-2 text-sm font-semibold" data-debug-auth-state>Aktuell: Ausgeloggt</p>
+
+        <div class="mt-4 grid gap-2">
+          <Button type="button" variant="outline" class="w-full" data-debug-logout>Ausgeloggt</Button>
+          <Button type="button" variant="default" class="w-full" data-debug-login="seller">Als Verkäufer anmelden</Button>
+          <Button type="button" variant="default" class="w-full" data-debug-login="buyer">Als Käufer anmelden</Button>
+        </div>
+
+        <p class="mt-3 hidden text-sm" data-debug-auth-status></p>
+
+        <p class="mt-3 text-xs leading-5 text-muted-foreground">
+          Verwendet die Testkonten des aktuell gewählten API-Endpunkts. Dadurch funktionieren
+          auch authentifizierte API-Aufrufe mit der ausgewählten Rolle.
+        </p>
+      </section>
+
+      <section class="rounded-lg border border-border bg-card p-5" aria-label="API-Endpunkt">
+        <h2 class="text-base font-semibold">API-Endpunkt</h2>
+
+        <div class="mt-4 space-y-2">
+          <label class="flex cursor-pointer items-center gap-3 rounded-md border border-border px-4 py-3 text-sm hover:bg-accent">
+            <input type="radio" name="debug-api" value="development" class="size-4 accent-foreground" data-debug-api-option="development" />
+            <span>Entwicklung — <span class="text-muted-foreground" data-debug-api-url-label="development"></span></span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-3 rounded-md border border-border px-4 py-3 text-sm hover:bg-accent">
+            <input type="radio" name="debug-api" value="test" class="size-4 accent-foreground" data-debug-api-option="test" />
+            <span>Test — <span class="text-muted-foreground">https://test-api.heimatplatz.at</span></span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-3 rounded-md border border-border px-4 py-3 text-sm hover:bg-accent">
+            <input type="radio" name="debug-api" value="production" class="size-4 accent-foreground" data-debug-api-option="production" />
+            <span>Produktion — <span class="text-muted-foreground">https://api.heimatplatz.at</span></span>
+          </label>
+        </div>
+
+        <p class="mt-3 text-xs text-muted-foreground">Aktiv: <span data-debug-api-active></span></p>
+
+        <p class="mt-3 text-xs leading-5 text-muted-foreground">
+          Wirkt sofort für alle folgenden API-Aufrufe im Browser (Live-Angebote, Favoriten,
+          Anmeldung usw.). Nach dem Wechsel ggf. neu anmelden, da Tokens nur für die jeweilige
+          API gelten. Statisch gebaute Inhalte (z.B. Detailseiten) stammen weiterhin aus dem Build.
+        </p>
+      </section>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { DEBUG_API_URL_KEY, isDebugHost } from "@/lib/utils/debug-host";
+
+  type Session = {
+    AccessToken: string;
+    RefreshToken: string;
+    UserId: string;
+    Email: string;
+    FullName: string;
+    ExpiresAt: string;
+  };
+
+  // Muss zum Session-Handling in PropertyStateScript.astro passen
+  const SESSION_KEY = "heimatplatz:session";
+  const TEST_PASSWORD = "Test123!";
+  const TEST_USERS = {
+    buyer: { email: "test.buyer@heimatplatz.dev", label: "Käufer" },
+    seller: { email: "test.seller@heimatplatz.dev", label: "Verkäufer" },
+  } as const;
+
+  const DEFAULT_API_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+
+  // Entwicklung zeigt auf denselben Host wie der Dev-Server: am PC localhost,
+  // vom Handy aus die LAN-IP des PCs (API muss dort auf 5292 erreichbar sein).
+  const ENDPOINTS = {
+    development: `http://${window.location.hostname}:5292`,
+    test: "https://test-api.heimatplatz.at",
+    production: "https://api.heimatplatz.at",
+  } as const;
+
+  type EndpointKind = keyof typeof ENDPOINTS;
+
+  const blocked = document.querySelector<HTMLElement>("[data-debug-blocked]");
+  const tools = document.querySelector<HTMLElement>("[data-debug-tools]");
+
+  if (!isDebugHost()) {
+    blocked?.classList.remove("hidden");
+  } else if (tools) {
+    tools.classList.remove("hidden");
+    initDebugTools(tools);
+  }
+
+  function initDebugTools(root: HTMLElement) {
+    const authState = root.querySelector<HTMLElement>("[data-debug-auth-state]");
+    const authStatus = root.querySelector<HTMLElement>("[data-debug-auth-status]");
+    const activeLabel = root.querySelector<HTMLElement>("[data-debug-api-active]");
+    const devUrlLabel = root.querySelector<HTMLElement>("[data-debug-api-url-label='development']");
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>("[data-debug-api-option]"));
+
+    if (devUrlLabel) devUrlLabel.textContent = ENDPOINTS.development;
+
+    function getActiveUrl(): string {
+      try {
+        return window.localStorage.getItem(DEBUG_API_URL_KEY) || DEFAULT_API_URL;
+      } catch {
+        return DEFAULT_API_URL;
+      }
+    }
+
+    function matchEndpoint(url: string): EndpointKind | null {
+      const normalized = url.replace(/\/+$/, "");
+      const entries = Object.entries(ENDPOINTS) as Array<[EndpointKind, string]>;
+      return entries.find(([, value]) => value === normalized)?.[0] ?? null;
+    }
+
+    function renderEndpoint() {
+      const active = getActiveUrl();
+      if (activeLabel) activeLabel.textContent = active;
+      const kind = matchEndpoint(active);
+      radios.forEach((radio) => {
+        radio.checked = radio.value === kind;
+      });
+    }
+
+    radios.forEach((radio) => {
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+        try {
+          window.localStorage.setItem(DEBUG_API_URL_KEY, ENDPOINTS[radio.value as EndpointKind]);
+        } catch {
+          // Local storage kann deaktiviert sein - dann bleibt der Build-Default aktiv.
+        }
+        renderEndpoint();
+      });
+    });
+
+    function readSession(): Session | null {
+      try {
+        const value = window.localStorage.getItem(SESSION_KEY);
+        const session = value ? (JSON.parse(value) as Session) : null;
+        return session?.AccessToken ? session : null;
+      } catch {
+        return null;
+      }
+    }
+
+    // Rollen aus dem JWT-Payload lesen (wie readSessionRoles in PropertyStateScript)
+    function readRoles(session: Session | null): Set<string> {
+      const roles = new Set<string>();
+      if (!session?.AccessToken) return roles;
+      try {
+        const payload = session.AccessToken.split(".")[1] ?? "";
+        const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
+        const parsed = JSON.parse(window.atob(padded)) as Record<string, unknown>;
+        const claim = parsed.user_role;
+        (Array.isArray(claim) ? claim : [claim]).forEach((role) => {
+          if (typeof role === "string") roles.add(role.toLowerCase());
+        });
+      } catch {
+        // Ohne Rollen bleibt der Status generisch
+      }
+      return roles;
+    }
+
+    function renderAuthState() {
+      const session = readSession();
+      if (!authState) return;
+      if (!session) {
+        authState.textContent = "Aktuell: Ausgeloggt";
+        return;
+      }
+      const roles = readRoles(session);
+      const roleText = roles.has("buyer") && roles.has("seller")
+        ? "Käufer & Verkäufer"
+        : roles.has("seller") ? "Verkäufer" : roles.has("buyer") ? "Käufer" : "Eingeloggt";
+      authState.textContent = `Aktuell: ${roleText} — ${session.Email}`;
+    }
+
+    function setStatus(message: string, tone: "info" | "error" | "success") {
+      if (!authStatus) return;
+      authStatus.textContent = message;
+      authStatus.classList.remove("hidden", "text-muted-foreground", "text-red-700", "text-green-700");
+      authStatus.classList.add(tone === "error" ? "text-red-700" : tone === "success" ? "text-green-700" : "text-muted-foreground");
+    }
+
+    root.querySelector<HTMLButtonElement>("[data-debug-logout]")?.addEventListener("click", () => {
+      try {
+        window.localStorage.removeItem(SESSION_KEY);
+      } catch {
+        // ignorieren
+      }
+      renderAuthState();
+      setStatus("Sitzung entfernt.", "info");
+    });
+
+    root.querySelectorAll<HTMLButtonElement>("[data-debug-login]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const kind = button.getAttribute("data-debug-login") as keyof typeof TEST_USERS;
+        const user = TEST_USERS[kind];
+        if (!user) return;
+
+        button.setAttribute("disabled", "true");
+        setStatus(`Anmeldung als ${user.label}...`, "info");
+        try {
+          const response = await fetch(new URL("/api/auth/login", getActiveUrl()), {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ Email: user.email, Passwort: TEST_PASSWORD }),
+          });
+          if (!response.ok) throw new Error(`API ${response.status}`);
+          const session = (await response.json()) as Session;
+          window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+          renderAuthState();
+          setStatus(`Als ${user.label} angemeldet.`, "success");
+        } catch (error) {
+          setStatus(
+            `Anmeldung als ${user.label} fehlgeschlagen. Läuft der gewählte API-Endpunkt und sind die Testbenutzer vorhanden? (${error instanceof Error ? error.message : "Fehler"})`,
+            "error",
+          );
+        } finally {
+          button.removeAttribute("disabled");
+        }
+      });
+    });
+
+    renderEndpoint();
+    renderAuthState();
+  }
+</script>

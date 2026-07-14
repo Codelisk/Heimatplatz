@@ -30,7 +30,7 @@
                         <VerticalStackLayout Spacing="8"
                                              VerticalOptions="Start"
                                              HorizontalOptions="Center"
-                                             IsVisible="{Binding IsLoggedIn}">
+                                             IsVisible="{Binding ShowRegularEmptyState}">
                             <Label Text="🏠"
                                    Style="{StaticResource EmptyStateIcon}"
                                    Opacity="0.5" />
@@ -73,6 +73,22 @@
                             <Label Text="Nur für Verkäufer" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="Eigene Inserate sind nur mit einem Verkäufer-Konto möglich. Ihr Konto ist als Käufer registriert."
                                    Style="{StaticResource EmptyStateHint}" />
+                        </VerticalStackLayout>
+
+                        <!-- Lade-Fehler inline statt als modaler Dialog (blockiert keine Eingaben) -->
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding HasLoadError}">
+                            <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
+                            <Label Text="Laden fehlgeschlagen" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding LoadErrorMessage}" Style="{StaticResource EmptyStateHint}" />
+                            <Button Text="Erneut versuchen"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding RetryLoadCommand}"
+                                    Margin="0,10,0,0"
+                                    HorizontalOptions="Center"
+                                    AutomationId="MyProperties_RetryLoad" />
                         </VerticalStackLayout>
                     </Grid>
                 </CollectionView.EmptyView>

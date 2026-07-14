@@ -24,7 +24,6 @@ public partial class MyPropertiesViewModel(
     protected override string RemovingMessage => "Lösche Immobilie...";
     protected override string RemoveConfirmTitle => "Immobilie löschen?";
     protected override string RemoveErrorTitle => "Fehler beim Löschen";
-    protected override string LoadErrorTitle => "Fehler beim Laden";
 
     // Immer neu laden um neu erstellte/bearbeitete Immobilien anzuzeigen
     protected override bool AlwaysReloadOnAppearing => true;

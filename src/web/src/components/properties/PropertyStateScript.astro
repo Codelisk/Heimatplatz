@@ -1,4 +1,6 @@
 <script>
+  import { readDebugApiUrl } from "@/lib/utils/debug-host";
+
   type Draft = {
     id?: string;
     updatedAt?: string;
@@ -90,7 +92,8 @@
     filterPreferences: "heimatplatz:filter-preferences",
   };
 
-  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+  // Debug-Tab kann den Endpunkt zur Laufzeit umschalten (nur localhost/LAN, wie MAUI-DebugPage)
+  const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
   const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const MAX_PROPERTY_IMAGES = 20;
   const imageFormState = new WeakMap<HTMLFormElement, PropertyImageItem[]>();

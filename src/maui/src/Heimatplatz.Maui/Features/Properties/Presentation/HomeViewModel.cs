@@ -58,6 +58,20 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     [ObservableProperty]
     public partial bool IsEmpty { get; set; }
 
+    /// <summary>
+    /// Fehlermeldung wenn das Laden der Liste fehlschlaegt. Wird inline im Listenbereich
+    /// angezeigt (mit Retry-Button) statt als modaler Dialog - ein Dialog wuerde beim
+    /// App-Start jede Eingabe blockieren und das Busy-Overlay festhaengen lassen.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLoadError))]
+    [NotifyPropertyChangedFor(nameof(HasNoLoadError))]
+    public partial string? LoadErrorMessage { get; set; }
+
+    public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
+
+    public bool HasNoLoadError => !HasLoadError;
+
     [ObservableProperty]
     public partial string ResultCountText { get; set; }
 
@@ -842,6 +856,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         IsBusy = true;
         BusyMessage = "Lade Immobilien...";
+        LoadErrorMessage = null;
         try
         {
             do
@@ -873,6 +888,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         try
         {
+            LoadErrorMessage = null;
             _currentPage = 0;
             var items = await LoadPageAsync(0, CancellationToken.None);
 
@@ -1025,13 +1041,26 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         {
             _logger.LogError(ex, "[HomePage] Error loading page {Page}", page);
             _hasMore = false;
-            if (page == 0) _totalCount = 0;
-            await _dialogs.Alert(
-                "Fehler beim Laden",
-                "Die Immobilien konnten nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.");
+
+            // Kein modaler Dialog: der wuerde (v.a. beim App-Start) alle Eingaben blockieren
+            // und das Busy-Overlay bis zum OK-Tap festhaengen. Stattdessen Inline-Fehlerzustand
+            // mit Retry-Button; Folgeseiten-Fehler (Infinite Scroll) bleiben still.
+            if (page == 0)
+            {
+                _totalCount = 0;
+                LoadErrorMessage = ex is HttpRequestException
+                    ? "Die Immobilien konnten nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung."
+                    : "Die Immobilien konnten nicht geladen werden. Bitte versuchen Sie es später erneut.";
+            }
             return [];
         }
     }
+
+    /// <summary>
+    /// Erneut versuchen nach fehlgeschlagenem Laden (Inline-Fehlerzustand)
+    /// </summary>
+    [RelayCommand]
+    private Task RetryLoadAsync() => ReloadPropertiesAsync();
 
     private void UpdateResultCount()
     {

@@ -270,11 +270,30 @@
                     <Grid Padding="24,60,24,24">
                         <VerticalStackLayout Spacing="8"
                                              VerticalOptions="Start"
-                                             HorizontalOptions="Center">
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding HasNoLoadError}">
                             <Label Text="🔍" Style="{StaticResource EmptyStateIcon}" />
                             <Label Text="Keine Treffer" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="Passen Sie Ihre Filter an, um mehr Immobilien zu sehen."
                                    Style="{StaticResource EmptyStateHint}" />
+                        </VerticalStackLayout>
+
+                        <!-- Lade-Fehler inline statt als modaler Dialog (blockiert keine Eingaben) -->
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding HasLoadError}">
+                            <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
+                            <Label Text="Laden fehlgeschlagen" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding LoadErrorMessage}"
+                                   Style="{StaticResource EmptyStateHint}"
+                                   AutomationId="Home_LoadErrorMessage" />
+                            <Button Text="Erneut versuchen"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding RetryLoadCommand}"
+                                    Margin="0,10,0,0"
+                                    HorizontalOptions="Center"
+                                    AutomationId="Home_RetryLoad" />
                         </VerticalStackLayout>
                     </Grid>
                 </CollectionView.EmptyView>

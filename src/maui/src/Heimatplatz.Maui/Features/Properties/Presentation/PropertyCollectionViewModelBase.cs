@@ -48,11 +48,33 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     public bool IsNotEmpty => !IsEmpty;
 
     /// <summary>
+    /// Fehlermeldung wenn das Laden fehlschlaegt. Wird inline im Leer-Zustand angezeigt
+    /// (mit Retry-Button) statt als modaler Dialog - ein Dialog blockiert alle Eingaben
+    /// und laesst das Busy-Overlay bis zum OK-Tap stehen.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLoadError))]
+    [NotifyPropertyChangedFor(nameof(HasNoLoadError))]
+    [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
+    public partial string? LoadErrorMessage { get; set; }
+
+    public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
+
+    public bool HasNoLoadError => !HasLoadError;
+
+    /// <summary>
+    /// Regulaerer Leer-Zustand: nur wenn angemeldet und kein Lade-Fehler ansteht
+    /// (sonst wuerden Leer- und Fehler-Zustand gleichzeitig angezeigt).
+    /// </summary>
+    public bool ShowRegularEmptyState => IsLoggedIn && !HasLoadError;
+
+    /// <summary>
     /// True wenn kein Benutzer angemeldet ist - die Seiten zeigen dann statt des
     /// regulaeren Leer-Zustands einen Anmelde-Hinweis mit Login-Button.
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
+    [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
     public partial bool IsLoggedOut { get; set; }
 
     /// <summary>
@@ -61,6 +83,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
+    [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
     public partial bool IsSellerBlocked { get; set; }
 
     public bool IsLoggedIn => !IsLoggedOut && !IsSellerBlocked;
@@ -75,7 +98,6 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     protected abstract string RemovingMessage { get; }
     protected abstract string RemoveConfirmTitle { get; }
     protected abstract string RemoveErrorTitle { get; }
-    protected abstract string LoadErrorTitle { get; }
 
     /// <summary>
     /// Bestaetigungstext fuer das Entfernen einer Immobilie
@@ -181,6 +203,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
         IsBusy = true;
         BusyMessage = LoadingMessage;
+        LoadErrorMessage = null;
         try
         {
             _currentPage = 0;
@@ -200,6 +223,12 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     }
 
     /// <summary>
+    /// Erneut versuchen nach fehlgeschlagenem Laden (Inline-Fehlerzustand)
+    /// </summary>
+    [RelayCommand]
+    private Task RetryLoadAsync() => ReloadAsync();
+
+    /// <summary>
     /// Pull-to-Refresh
     /// </summary>
     [RelayCommand]
@@ -207,6 +236,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     {
         try
         {
+            LoadErrorMessage = null;
             _currentPage = 0;
             var items = await LoadPageSafeAsync(0);
 
@@ -267,11 +297,17 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         {
             Logger.LogError(ex, "[{Type}] Error loading page {Page}", GetType().Name, page);
             _hasMore = false;
-            // Keine rohen HTTP-/Exception-Texte im Dialog - benutzerfreundliche Meldung
-            var hint = ex is HttpRequestException
-                ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
-                : "Bitte versuchen Sie es später erneut.";
-            await Dialogs.Alert(LoadErrorTitle, GetLoadErrorMessage(hint));
+
+            // Kein modaler Dialog (blockiert Eingaben, haelt das Busy-Overlay fest) -
+            // Inline-Fehlerzustand mit Retry; Folgeseiten-Fehler (Infinite Scroll) bleiben still.
+            if (page == 0)
+            {
+                // Keine rohen HTTP-/Exception-Texte - benutzerfreundliche Meldung
+                var hint = ex is HttpRequestException
+                    ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+                    : "Bitte versuchen Sie es später erneut.";
+                LoadErrorMessage = GetLoadErrorMessage(hint);
+            }
             return [];
         }
     }

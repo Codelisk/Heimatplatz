@@ -23,7 +23,6 @@ public partial class BlockedViewModel(
     protected override string RemovingMessage => "Hebe Blockierung auf...";
     protected override string RemoveConfirmTitle => "Blockierung aufheben?";
     protected override string RemoveErrorTitle => "Fehler beim Aufheben";
-    protected override string LoadErrorTitle => "Fehler beim Laden";
 
     protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
         => $"Möchten Sie die Blockierung von \"{property.Title}\" wirklich aufheben? Die Immobilie wird wieder in der Hauptliste angezeigt.";

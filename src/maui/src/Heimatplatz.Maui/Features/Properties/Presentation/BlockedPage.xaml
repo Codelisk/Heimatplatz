@@ -25,11 +25,27 @@
                         <VerticalStackLayout Spacing="8"
                                              VerticalOptions="Start"
                                              HorizontalOptions="Center"
-                                             IsVisible="{Binding IsLoggedIn}">
+                                             IsVisible="{Binding ShowRegularEmptyState}">
                             <Label Text="⊘" Style="{StaticResource EmptyStateIcon}" />
                             <Label Text="Keine blockierten Immobilien" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="Immobilien, die Sie blockieren, werden hier angezeigt und aus der Hauptliste ausgeblendet."
                                    Style="{StaticResource EmptyStateHint}" />
+                        </VerticalStackLayout>
+
+                        <!-- Lade-Fehler inline statt als modaler Dialog (blockiert keine Eingaben) -->
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding HasLoadError}">
+                            <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
+                            <Label Text="Laden fehlgeschlagen" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding LoadErrorMessage}" Style="{StaticResource EmptyStateHint}" />
+                            <Button Text="Erneut versuchen"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding RetryLoadCommand}"
+                                    Margin="0,10,0,0"
+                                    HorizontalOptions="Center"
+                                    AutomationId="Blocked_RetryLoad" />
                         </VerticalStackLayout>
 
                         <!-- Nicht angemeldet: Anmelde-Hinweis statt irrefuehrendem Leer-Zustand -->

@@ -28,11 +28,12 @@ const totalInitialProperties = apiProperties.length;
       >
         <option value="newest">Neueste</option>
         <option value="oldest">Älteste</option>
-        <option value="price-asc">Preis ↑</option>
-        <option value="price-desc">Preis ↓</option>
-        <option value="area-desc">Fläche ↓</option>
-        <option value="area-asc">Fläche ↑</option>
-        <option value="postal-asc">PLZ</option>
+        <option value="price-asc">Preis aufsteigend</option>
+        <option value="price-desc">Preis absteigend</option>
+        <option value="area-desc">Fläche absteigend</option>
+        <option value="area-asc">Fläche aufsteigend</option>
+        <option value="postal-asc">PLZ aufsteigend</option>
+        <option value="postal-desc">PLZ absteigend</option>
       </select>
     </label>
   </div>
@@ -72,6 +73,8 @@ const totalInitialProperties = apiProperties.length;
 </section>
 
 <script>
+  import { readDebugApiUrl } from "@/lib/utils/debug-host";
+
   type ApiProperty = {
     Id: string;
     Title: string;
@@ -100,7 +103,8 @@ const totalInitialProperties = apiProperties.length;
 
   type VerifiedImageMap = Record<string, string>;
 
-  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+  // Debug-Tab kann den Endpunkt zur Laufzeit umschalten (nur localhost/LAN, wie MAUI-DebugPage)
+  const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
   const params = new URLSearchParams(window.location.search);
   let cards = Array.from(document.querySelectorAll<HTMLElement>("[data-property-card]"));
   const resultCount = document.querySelector<HTMLElement>("[data-result-count]");
@@ -222,6 +226,7 @@ const totalInitialProperties = apiProperties.length;
     if (mode === 4) return "area-desc";
     if (mode === 5) return "area-asc";
     if (mode === 6) return "postal-asc";
+    if (mode === 7) return "postal-desc";
     return "newest";
   }
 
@@ -652,6 +657,9 @@ const totalInitialProperties = apiProperties.length;
       }
       if (mode === "postal-asc") {
         return (a.dataset.postal ?? "").localeCompare(b.dataset.postal ?? "", "de-AT", { numeric: true });
+      }
+      if (mode === "postal-desc") {
+        return (b.dataset.postal ?? "").localeCompare(a.dataset.postal ?? "", "de-AT", { numeric: true });
       }
       if (mode === "oldest") {
         return (a.dataset.updated ?? "").localeCompare(b.dataset.updated ?? "");
