@@ -32,6 +32,7 @@ public partial class OrtBezirkItem : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ExpandGlyph))]
+    [NotifyPropertyChangedFor(nameof(VisibleGemeinden))]
     public partial bool IsExpanded { get; set; }
 
     [ObservableProperty]
@@ -48,6 +49,14 @@ public partial class OrtBezirkItem : ObservableObject
     public string CheckGlyph => IsAllSelected ? "✓" : HasSelection ? "–" : string.Empty;
     public string CountLabel => HasSelection ? $"{SelectedCount} ausgewählt" : string.Empty;
     public string ExpandGlyph => IsExpanded ? "▾" : "▸";
+
+    /// <summary>
+    /// Gemeinden erst an das BindableLayout geben, wenn der Bezirk wirklich offen ist.
+    /// Andernfalls materialisiert MAUI alle Gemeinde-Views bereits im geschlossenen
+    /// Bottom Sheet und blockiert die Homepage beim ersten Aufbau mehrere Sekunden.
+    /// </summary>
+    public IReadOnlyList<OrtGemeindeItem> VisibleGemeinden
+        => IsExpanded ? Gemeinden : [];
 
     public void RefreshSelectedCount()
         => SelectedCount = Gemeinden.Count(g => g.IsSelected);

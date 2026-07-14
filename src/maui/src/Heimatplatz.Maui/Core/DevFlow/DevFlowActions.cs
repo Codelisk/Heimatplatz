@@ -38,5 +38,21 @@ public static class DevFlowActions
         MainThread.InvokeOnMainThreadAsync(() =>
             Services.GetRequiredService<INavigator>()
                 .NavigateTo<EditPropertyViewModel>(vm => vm.PropertyId = propertyId));
+
+    [DevFlowAction("mock-home-properties", Description = "Laedt einen Debug-Datensatz in die Homepage, optional API-seitenweise")]
+    public static Task MockHomeProperties(
+        [Description("Anzahl der Mock-Immobilien")] int count = 3000,
+        [Description("Nur die aktuelle API-Seite anzeigen")] bool usePagination = false) =>
+        MainThread.InvokeOnMainThreadAsync(async () =>
+            await GetHomeViewModel().LoadDebugMockPropertiesAsync(count, usePagination));
+
+    [DevFlowAction("clear-home-property-mock", Description = "Entfernt den Debug-Datensatz und laedt wieder von der API")]
+    public static Task ClearHomePropertyMock() =>
+        MainThread.InvokeOnMainThreadAsync(async () =>
+            await GetHomeViewModel().ClearDebugMockPropertiesAsync());
+
+    private static HomeViewModel GetHomeViewModel()
+        => Shell.Current?.CurrentPage?.BindingContext as HomeViewModel
+           ?? throw new InvalidOperationException("Die Homepage muss fuer diesen Test geoeffnet sein");
 }
 #endif

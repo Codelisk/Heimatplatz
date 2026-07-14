@@ -241,6 +241,7 @@
         <!-- Toolbar-Zeile: Ergebnis-Count + Sortierung -->
         <Grid Grid.Row="1"
               ColumnDefinitions="*,Auto"
+              RowDefinitions="Auto,Auto"
               Padding="12,8">
             <Label Grid.Column="0"
                    Text="{Binding ResultCountText}"
@@ -252,16 +253,34 @@
                     Text="{Binding SortLabel}"
                     Style="{StaticResource FilterChipStyle}"
                     Command="{Binding ShowSortOptionsCommand}" />
+
+            <HorizontalStackLayout Grid.Row="1"
+                                   Grid.ColumnSpan="2"
+                                   Margin="0,6,0,0"
+                                   Spacing="8"
+                                   HorizontalOptions="End"
+                                   VerticalOptions="Center">
+                <Label Text="Pro Seite"
+                       FontSize="12"
+                       VerticalOptions="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                <Picker ItemsSource="{Binding PageSizeOptions}"
+                        SelectedItem="{Binding SelectedPageSize, Mode=TwoWay}"
+                        WidthRequest="82"
+                        HeightRequest="38"
+                        AutomationId="Home_PageSize" />
+            </HorizontalStackLayout>
         </Grid>
 
-        <!-- Liste mit Pull-to-Refresh und Infinite Scroll -->
+        <!-- Liste mit Pull-to-Refresh; die API-Seiten werden explizit gewechselt. -->
         <RefreshView Grid.Row="2"
                      IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshCommand}">
-            <CollectionView ItemsSource="{Binding Properties}"
-                            RemainingItemsThreshold="4"
-                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
+            <CollectionView x:Name="PropertiesCollection"
+                            ItemsSource="{Binding Properties}"
                             ItemSizingStrategy="MeasureFirstItem"
+                            ItemsUpdatingScrollMode="KeepItemsInView"
+                            AutomationId="Home_Properties"
                             controls:ResponsiveGrid.MinItemWidth="320">
                 <CollectionView.ItemsLayout>
                     <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="16" />
@@ -309,10 +328,31 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
                 <CollectionView.Footer>
-                    <ActivityIndicator IsRunning="{Binding IsLoadingMore}"
-                                       IsVisible="{Binding IsLoadingMore}"
-                                       Margin="0,8,0,16"
-                                       HorizontalOptions="Center" />
+                    <Grid ColumnDefinitions="Auto,*,Auto"
+                          ColumnSpacing="10"
+                          Padding="12,12,12,20"
+                          IsVisible="{Binding HasPagination}"
+                          AutomationId="Home_Pagination">
+                        <Button Grid.Column="0"
+                                Text="‹ Zurück"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding GoToPreviousPageCommand}"
+                                IsEnabled="{Binding CanGoToPreviousPage}"
+                                AutomationId="Home_PreviousPage" />
+                        <Label Grid.Column="1"
+                               Text="{Binding PageNumberText}"
+                               FontSize="13"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                               AutomationId="Home_PageNumber" />
+                        <Button Grid.Column="2"
+                                Text="Weiter ›"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding GoToNextPageCommand}"
+                                IsEnabled="{Binding CanGoToNextPage}"
+                                AutomationId="Home_NextPage" />
+                    </Grid>
                 </CollectionView.Footer>
             </CollectionView>
         </RefreshView>
@@ -463,7 +503,7 @@
 
                                     <!-- Gemeinden des Bezirks -->
                                     <VerticalStackLayout IsVisible="{Binding IsExpanded}"
-                                                         BindableLayout.ItemsSource="{Binding Gemeinden}"
+                                                         BindableLayout.ItemsSource="{Binding VisibleGemeinden}"
                                                          Spacing="0"
                                                          Padding="0,0,0,6">
                                         <BindableLayout.ItemTemplate>

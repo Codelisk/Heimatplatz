@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,13 +15,18 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
 /// <summary>
 /// ViewModel fuer die HomePage (Immobilien-Liste mit Filterleiste,
-/// Pull-to-Refresh, Infinite-Scroll-Pagination und Sortierung).
+/// Pull-to-Refresh, expliziter API-Pagination und Sortierung).
 /// Wird als ShellContent "MainPage" eingebunden (registerRoute: false).
 /// </summary>
 [ShellMap<HomePage>(registerRoute: false)]
 public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDisposable
 {
-    private const int PageSize = 20;
+    private const int DefaultPageSize = 20;
+    private const string PageSizePreferenceKey = "properties.page-size";
+#if DEBUG
+    private const string DebugMockCountPreferenceKey = "debug.properties.mock-count";
+    private const string DebugMockPaginationPreferenceKey = "debug.properties.mock-pagination";
+#endif
 
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
@@ -34,14 +40,40 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     private int _currentPage;
     private int _totalCount;
-    private bool _hasMore;
     private SortOption _selectedSort = SortOption.Neueste;
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
     private List<LocationGemeindeDto> _municipalities = [];
     private bool _isSyncing;
     private CancellationTokenSource? _saveDebounceCts;
+    private Task? _filterPreferencesLoadTask;
+    private bool _filterPreferencesLoaded;
+#if DEBUG
+    private bool _debugMockPreferencesChecked;
+#endif
+    private bool _isShowingAllDebugMock;
+#if DEBUG
+    private List<PropertyListItemDto>? _debugMockProperties;
+#endif
 
-    public ObservableCollection<PropertyListItemDto> Properties { get; } = [];
+    [ObservableProperty]
+    public partial ObservableCollection<PropertyListItemDto> Properties { get; set; }
+
+    public IReadOnlyList<int> PageSizeOptions { get; } = [10, 20, 50];
+
+    [ObservableProperty]
+    public partial int SelectedPageSize { get; set; }
+
+    public int PageCount => _totalCount == 0
+        ? 0
+        : (int)Math.Ceiling(_totalCount / (double)SelectedPageSize);
+
+    public string PageNumberText => PageCount == 0
+        ? string.Empty
+        : $"Seite {_currentPage + 1} von {PageCount}";
+
+    public bool HasPagination => !_isShowingAllDebugMock && PageCount > 1;
+    public bool CanGoToPreviousPage => _currentPage > 0;
+    public bool CanGoToNextPage => _currentPage + 1 < PageCount;
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
@@ -51,9 +83,6 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     [ObservableProperty]
     public partial bool IsRefreshing { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsLoadingMore { get; set; }
 
     [ObservableProperty]
     public partial bool IsEmpty { get; set; }
@@ -195,6 +224,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         // Initialwerte (partial properties koennen keine Initializer haben)
         _isSyncing = true;
+        Properties = [];
         IsHausSelected = true;
         IsGrundstueckSelected = true;
         IsZwangsversteigerungSelected = true;
@@ -207,6 +237,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         OrtPanelSearchResults = [];
         OrtPanelApplyText = "Übernehmen";
         FilterSummary = string.Empty;
+        SelectedPageSize = NormalizePageSize(Preferences.Default.Get(PageSizePreferenceKey, DefaultPageSize));
         _isSyncing = false;
 
         UpdateFilterSummary();
@@ -216,16 +247,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         UpdateAuthState();
 
-        // Gemeinden fuer Namens->Id-Mapping und Bezirk-Baum fuer das Ort-Panel laden
-        // (gleicher API-Call, LocationService cached und dedupliziert)
-        _ = LoadMunicipalitiesAsync();
-        _ = EnsureOrtTreeAsync();
-
-        // Gespeicherte Filter laden wenn bereits angemeldet
-        if (_authService.IsAuthenticated)
-        {
-            _ = LoadFilterPreferencesAsync();
-        }
+        // Den Ort-Baum bewusst NICHT hier aufbauen. Das geschlossene Bottom Sheet
+        // wuerde sonst beim Homepage-Aufbau bereits hunderte Gemeinde-Views erzeugen.
+        // BuildPropertiesRequestAsync und OpenOrtPanelAsync laden die Daten bei Bedarf.
     }
 
     #region IPageLifecycleAware
@@ -235,6 +259,22 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         // Session-Filter-State wiederherstellen (z.B. nach Rueckkehr von einer Detail-Seite)
         SyncFiltersFromService();
 
+#if DEBUG
+        // Erlaubt reproduzierbare Emulator-Stresstests auch dann, wenn DevFlow-Actions
+        // wegen eingebetteter Android-Assemblies nicht reflektiert werden koennen.
+        if (!_debugMockPreferencesChecked)
+        {
+            _debugMockPreferencesChecked = true;
+            var mockCount = Preferences.Default.Get(DebugMockCountPreferenceKey, 0);
+            if (mockCount > 0)
+            {
+                var usePagination = Preferences.Default.Get(DebugMockPaginationPreferenceKey, false);
+                _ = LoadDebugMockPropertiesAsync(mockCount, usePagination);
+                return;
+            }
+        }
+#endif
+
         if (Properties.Count == 0 && !IsBusy)
         {
             _ = ReloadPropertiesAsync();
@@ -242,6 +282,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         if (_authService.IsAuthenticated)
         {
+            _ = LoadFilterPreferencesAsync();
             _ = _propertyStatusService.EnsureLoadedAsync();
         }
     }
@@ -317,24 +358,56 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         }
     }
 
-    private async Task LoadFilterPreferencesAsync()
+    private Task LoadFilterPreferencesAsync()
+    {
+        if (_filterPreferencesLoaded)
+            return Task.CompletedTask;
+
+        return _filterPreferencesLoadTask ??= LoadFilterPreferencesCoreAsync();
+    }
+
+    private async Task LoadFilterPreferencesCoreAsync()
     {
         try
         {
             var preferences = await _filterPreferencesService.GetPreferencesAsync();
-            if (preferences != null)
+            _filterPreferencesLoaded = true;
+            if (preferences != null && ApplyFilterPreferences(preferences))
             {
-                ApplyFilterPreferences(preferences);
+                _logger.LogInformation("[HomePage] Gespeicherte Filter unterscheiden sich - lade Treffer einmal neu");
+                await ReloadPropertiesAsync();
+            }
+            else
+            {
+                _logger.LogInformation("[HomePage] Gespeicherte Filter unveraendert - kein zusaetzlicher Reload");
             }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "[HomePage] Failed to load filter preferences");
         }
+        finally
+        {
+            _filterPreferencesLoadTask = null;
+        }
     }
 
-    private void ApplyFilterPreferences(FilterPreferencesDto preferences)
+    private bool ApplyFilterPreferences(FilterPreferencesDto preferences)
     {
+        var selectedOrteChanged = !SelectedOrte.ToHashSet(StringComparer.OrdinalIgnoreCase)
+            .SetEquals(preferences.SelectedOrte);
+        var changed = IsHausSelected != preferences.IsHausSelected
+            || IsGrundstueckSelected != preferences.IsGrundstueckSelected
+            || IsZwangsversteigerungSelected != preferences.IsZwangsversteigerungSelected
+            || IsPrivateSelected != preferences.IsPrivateSelected
+            || IsBrokerSelected != preferences.IsBrokerSelected
+            || _selectedAgeFilter != preferences.SelectedAgeFilter
+            || _selectedSort != preferences.SelectedSort
+            || selectedOrteChanged;
+
+        if (!changed)
+            return false;
+
         _isSyncing = true;
         try
         {
@@ -355,8 +428,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             _isSyncing = false;
         }
 
-        // Mit neuen Filtern neu laden (server-seitig)
-        _ = ReloadPropertiesAsync();
+        return true;
     }
 
     private void ReplaceSelectedOrte(IEnumerable<string> orte)
@@ -818,6 +890,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         MainThread.BeginInvokeOnMainThread(() =>
         {
             UpdateAuthState();
+            _filterPreferencesLoaded = false;
 
             // Neu laden wenn sich der Auth-Status aendert (Blockiert-Filter haengt davon ab)
             _ = ReloadPropertiesAsync();
@@ -864,11 +937,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 _reloadQueued = false;
                 _currentPage = 0;
                 var items = await LoadPageAsync(0, CancellationToken.None);
-
-                Properties.Clear();
-                foreach (var item in items)
-                    Properties.Add(item);
-
+                ReplaceProperties(items);
                 UpdateResultCount();
             }
             while (_reloadQueued);
@@ -891,11 +960,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             LoadErrorMessage = null;
             _currentPage = 0;
             var items = await LoadPageAsync(0, CancellationToken.None);
-
-            Properties.Clear();
-            foreach (var item in items)
-                Properties.Add(item);
-
+            ReplaceProperties(items);
             UpdateResultCount();
         }
         finally
@@ -904,31 +969,40 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         }
     }
 
-    /// <summary>
-    /// Naechste Seite laden (Infinite Scroll via RemainingItemsThreshold)
-    /// </summary>
     [RelayCommand]
-    private async Task LoadMoreAsync()
+    private Task GoToPreviousPageAsync()
+        => LoadRequestedPageAsync(_currentPage - 1);
+
+    [RelayCommand]
+    private Task GoToNextPageAsync()
+        => LoadRequestedPageAsync(_currentPage + 1);
+
+    private async Task LoadRequestedPageAsync(int page)
     {
-        if (IsLoadingMore || IsBusy || IsRefreshing || !_hasMore)
+        if (IsBusy || IsRefreshing || page < 0 || page >= PageCount || page == _currentPage)
             return;
 
-        IsLoadingMore = true;
+        IsBusy = true;
+        BusyMessage = $"Lade Seite {page + 1}...";
         try
         {
-            var items = await LoadPageAsync(_currentPage + 1, CancellationToken.None);
-            if (items.Count > 0)
-            {
-                _currentPage++;
-                foreach (var item in items)
-                    Properties.Add(item);
-            }
+            var items = await LoadPageAsync(page, CancellationToken.None);
+            if (items.Count == 0 && _totalCount > 0)
+                return;
+
+            _currentPage = page;
+            ReplaceProperties(items);
+            UpdatePaginationState();
         }
         finally
         {
-            IsLoadingMore = false;
+            IsBusy = false;
+            BusyMessage = null;
         }
     }
+
+    private void ReplaceProperties(IEnumerable<PropertyListItemDto> items)
+        => Properties = new ObservableCollection<PropertyListItemDto>(items);
 
     /// <summary>
     /// Baut den API-Request mit allen server-seitigen Filtern. Die Ort-Auswahl wird
@@ -1022,17 +1096,29 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// </summary>
     private async Task<List<PropertyListItemDto>> LoadPageAsync(int page, CancellationToken ct)
     {
-        _logger.LogInformation("[HomePage] Loading page {Page} with pageSize {PageSize}", page, PageSize);
+        _logger.LogInformation("[HomePage] Loading page {Page} with pageSize {PageSize}", page, SelectedPageSize);
 
         try
         {
-            var request = await BuildPropertiesRequestAsync(page, PageSize, SelectedOrte.ToList());
+#if DEBUG
+            if (_debugMockProperties != null)
+            {
+                _totalCount = _debugMockProperties.Count;
+                var mockPage = _debugMockProperties
+                    .Skip(page * SelectedPageSize)
+                    .Take(SelectedPageSize)
+                    .ToList();
+                _logger.LogInformation("[HomePage] Mock page {Page} returned {Count} of {Total} properties",
+                    page, mockPage.Count, _totalCount);
+                return mockPage;
+            }
+#endif
+            var request = await BuildPropertiesRequestAsync(page, SelectedPageSize, SelectedOrte.ToList());
             var (_, response) = await _mediator.Request(request, ct);
 
             _logger.LogInformation("[HomePage] Response received. Properties count: {Count}, HasMore: {HasMore}",
                 response?.Properties?.Count ?? 0, response?.HasMore ?? false);
 
-            _hasMore = response?.HasMore ?? false;
             _totalCount = response?.Total ?? 0;
 
             return response?.Properties?.ToList() ?? [];
@@ -1040,11 +1126,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         catch (Exception ex)
         {
             _logger.LogError(ex, "[HomePage] Error loading page {Page}", page);
-            _hasMore = false;
-
             // Kein modaler Dialog: der wuerde (v.a. beim App-Start) alle Eingaben blockieren
             // und das Busy-Overlay bis zum OK-Tap festhaengen. Stattdessen Inline-Fehlerzustand
-            // mit Retry-Button; Folgeseiten-Fehler (Infinite Scroll) bleiben still.
+            // mit Retry-Button; Fehler beim expliziten Seitenwechsel bleiben still.
             if (page == 0)
             {
                 _totalCount = 0;
@@ -1067,7 +1151,129 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         IsEmpty = _totalCount == 0;
         ResultCountText = FormatObjektCount(_totalCount);
         _filterStateService.SetResultCount(_totalCount);
+        UpdatePaginationState();
     }
+
+    private void UpdatePaginationState()
+    {
+        OnPropertyChanged(nameof(PageCount));
+        OnPropertyChanged(nameof(PageNumberText));
+        OnPropertyChanged(nameof(HasPagination));
+        OnPropertyChanged(nameof(CanGoToPreviousPage));
+        OnPropertyChanged(nameof(CanGoToNextPage));
+    }
+
+    partial void OnSelectedPageSizeChanged(int value)
+    {
+        if (_isSyncing)
+            return;
+
+        var normalized = NormalizePageSize(value);
+        if (normalized != value)
+        {
+            _isSyncing = true;
+            SelectedPageSize = normalized;
+            _isSyncing = false;
+        }
+
+        Preferences.Default.Set(PageSizePreferenceKey, normalized);
+        _currentPage = 0;
+        _ = ReloadPropertiesAsync();
+    }
+
+    private static int NormalizePageSize(int value)
+        => value is 10 or 20 or 50 ? value : DefaultPageSize;
+
+#if DEBUG
+    /// <summary>
+    /// Debug-only Datensatz fuer reproduzierbare CollectionView-Stresstests. Im
+    /// unpaginierten Modus landen alle Eintraege in der CollectionView; mit
+    /// Pagination verhaelt sich der Mock wie die serverseitige API.
+    /// </summary>
+    internal async Task LoadDebugMockPropertiesAsync(int count, bool usePagination)
+    {
+        count = Math.Clamp(count, 1, 20_000);
+        var templates = Properties.Count > 0
+            ? Properties.ToList()
+            : [CreateFallbackMockProperty()];
+
+        var stopwatch = Stopwatch.StartNew();
+        var mockProperties = await Task.Run(() => Enumerable.Range(0, count)
+            .Select(index => CloneForMock(templates[index % templates.Count], index))
+            .ToList());
+        stopwatch.Stop();
+
+        _debugMockProperties = mockProperties;
+        _isShowingAllDebugMock = !usePagination;
+        _currentPage = 0;
+        _totalCount = count;
+
+        if (usePagination)
+        {
+            await ReloadPropertiesAsync();
+        }
+        else
+        {
+            ReplaceProperties(mockProperties);
+            UpdateResultCount();
+        }
+
+        _logger.LogInformation(
+            "[HomePage] Debug mock loaded: {Count} properties, pagination={Pagination}, generation={ElapsedMs}ms",
+            count, usePagination, stopwatch.ElapsedMilliseconds);
+    }
+
+    internal async Task ClearDebugMockPropertiesAsync()
+    {
+        _debugMockProperties = null;
+        _isShowingAllDebugMock = false;
+        await ReloadPropertiesAsync();
+    }
+
+    private static PropertyListItemDto CloneForMock(PropertyListItemDto source, int index)
+        => new()
+        {
+            Id = Guid.NewGuid(),
+            Title = $"{source.Title} · Mock {index + 1}",
+            Address = source.Address,
+            MunicipalityId = source.MunicipalityId,
+            City = source.City,
+            PostalCode = source.PostalCode,
+            Price = source.Price + (index % 17) * 1_000,
+            LivingAreaM2 = source.LivingAreaM2,
+            PlotAreaM2 = source.PlotAreaM2,
+            Rooms = source.Rooms,
+            Type = source.Type,
+            SellerType = source.SellerType,
+            SellerName = source.SellerName,
+            ImageUrls = source.ImageUrls?.ToList() ?? [],
+            CreatedAt = source.CreatedAt.AddMinutes(-index),
+            InquiryType = source.InquiryType,
+            SourceName = source.SourceName
+        };
+
+    private static PropertyListItemDto CreateFallbackMockProperty()
+        => new()
+        {
+            Id = Guid.NewGuid(),
+            Title = "Performance-Test Immobilie",
+            Address = "Teststraße 20",
+            MunicipalityId = Guid.NewGuid(),
+            City = "Linz",
+            PostalCode = "4020",
+            Price = 450_000,
+            LivingAreaM2 = 110,
+            PlotAreaM2 = 600,
+            Rooms = 4,
+            Type = PropertyType.House,
+            SellerType = SellerType.Private,
+            SellerName = "Performance Mock",
+            ImageUrls = [],
+            CreatedAt = DateTimeOffset.UtcNow,
+            InquiryType = default,
+            SourceName = "Performance Mock"
+        };
+#endif
 
     private static string FormatObjektCount(int count)
         => count == 1 ? "1 Objekt" : $"{count} Objekte";
