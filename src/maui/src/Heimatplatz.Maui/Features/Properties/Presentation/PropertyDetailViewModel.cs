@@ -98,12 +98,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     public partial bool HasDescription { get; set; }
 
     [ObservableProperty]
-    public partial List<string> FeaturesList { get; set; }
-
-    [ObservableProperty]
-    public partial bool HasFeatures { get; set; }
-
-    [ObservableProperty]
     public partial bool IsBroker { get; set; }
 
     [ObservableProperty]
@@ -183,7 +177,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         TypeBadgeText = string.Empty;
         TypeBadgeColor = Colors.Gray;
         DetailSections = [];
-        FeaturesList = [];
         ImageUrls = [];
         Contacts = [];
         IsAuthenticated = authService.IsAuthenticated;
@@ -286,8 +279,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             DetailSections = [];
             Description = null;
             HasDescription = false;
-            FeaturesList = [];
-            HasFeatures = false;
             return;
         }
 
@@ -371,10 +362,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         // Beschreibung
         Description = Property.Description;
         HasDescription = !string.IsNullOrWhiteSpace(Property.Description);
-
-        // Ausstattung
-        FeaturesList = Property.Features ?? [];
-        HasFeatures = FeaturesList.Count > 0;
 
         // Strukturierte Datentabelle aufbauen
         BuildDetailSections();

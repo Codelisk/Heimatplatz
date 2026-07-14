@@ -71,6 +71,28 @@
                                TextColor="White" />
                     </Border>
 
+                    <!-- Teilen als kontextuelle Bildaktion -->
+                    <ImageButton Source="icon_share.png"
+                                 Command="{Binding SharePropertyCommand}"
+                                 BackgroundColor="White"
+                                 BorderColor="#22000000"
+                                 BorderWidth="1"
+                                 CornerRadius="22"
+                                 WidthRequest="44"
+                                 HeightRequest="44"
+                                 Padding="11"
+                                 Margin="12"
+                                 VerticalOptions="Start"
+                                 HorizontalOptions="End"
+                                 SemanticProperties.Description="Immobilie teilen">
+                        <ImageButton.Shadow>
+                            <Shadow Brush="Black"
+                                    Opacity="0.22"
+                                    Radius="8"
+                                    Offset="0,3" />
+                        </ImageButton.Shadow>
+                    </ImageButton>
+
                     <!-- Bild-Zaehler (unten links) -->
                     <Border BackgroundColor="#80000000"
                             StrokeThickness="0"
@@ -87,7 +109,7 @@
                     </Border>
                 </Grid>
 
-                <!-- Kopf: Titel, Preis, Adresse, Aktionen -->
+                <!-- Kopf: Titel, Preis, Adresse, Merken -->
                 <VerticalStackLayout Spacing="6"
                                      Padding="16,0"
                                      MaximumWidthRequest="800"
@@ -108,7 +130,7 @@
                            FontSize="13"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
-                    <!-- Aktionen: Merken + Teilen -->
+                    <!-- Merken bleibt beim Objekt; Teilen liegt direkt auf dem Bild -->
                     <HorizontalStackLayout Spacing="8" Margin="0,8,0,0">
                         <Button Command="{Binding ToggleFavoriteCommand}"
                                 IsVisible="{Binding IsAuthenticated}"
@@ -120,15 +142,6 @@
                                 </MultiBinding>
                             </Button.Text>
                         </Button>
-
-                        <Button Text="Teilen"
-                                Command="{Binding SharePropertyCommand}"
-                                Style="{StaticResource FilterChipStyle}" />
-
-                        <Button Text="Zum Original-Inserat"
-                                Command="{Binding OpenOriginalListingCommand}"
-                                IsVisible="{Binding HasOriginalListingUrl}"
-                                Style="{StaticResource FilterChipStyle}" />
                     </HorizontalStackLayout>
 
                     <Label Text="{Binding CopyFeedback}"
@@ -136,6 +149,66 @@
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
                            IsVisible="{Binding HasCopyFeedback}" />
                 </VerticalStackLayout>
+
+                <!-- Quellenkarte: klar getrennt von Objekt- und Kontaktaktionen -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="14"
+                        Margin="16,2"
+                        MaximumWidthRequest="768"
+                        HorizontalOptions="Fill"
+                        IsVisible="{Binding HasOriginalListingUrl}">
+                    <Grid ColumnDefinitions="44,*,Auto"
+                          ColumnSpacing="12">
+                        <Border Grid.Column="0"
+                                WidthRequest="44"
+                                HeightRequest="44"
+                                Padding="11"
+                                BackgroundColor="White"
+                                Stroke="#16000000"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 22"
+                                VerticalOptions="Center">
+                            <Image Source="icon_external_link.png"
+                                   Aspect="AspectFit" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1"
+                                             Spacing="1"
+                                             VerticalOptions="Center">
+                            <Label Text="QUELLE"
+                                   FontSize="10"
+                                   FontAttributes="Bold"
+                                   CharacterSpacing="1"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                            <Label Text="Original-Inserat öffnen"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="Alle Angaben direkt beim Anbieter ansehen"
+                                   FontSize="11"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="2"
+                               Text="›"
+                               FontSize="28"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+                        <Button Grid.ColumnSpan="3"
+                                BackgroundColor="Transparent"
+                                BorderColor="Transparent"
+                                BorderWidth="0"
+                                Padding="0"
+                                MinimumHeightRequest="0"
+                                Command="{Binding OpenOriginalListingCommand}"
+                                SemanticProperties.Description="Original-Inserat beim Anbieter öffnen" />
+                    </Grid>
+                </Border>
 
                 <!-- Beschreibung -->
                 <VerticalStackLayout Spacing="6"
@@ -148,33 +221,6 @@
                     <Label Text="{Binding Description}"
                            FontSize="14"
                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                </VerticalStackLayout>
-
-                <!-- Ausstattung -->
-                <VerticalStackLayout Spacing="6"
-                                     Padding="16,0"
-                                     MaximumWidthRequest="800"
-                                     HorizontalOptions="Fill"
-                                     IsVisible="{Binding HasFeatures}">
-                    <Label Text="AUSSTATTUNG"
-                           Style="{StaticResource SectionHeader}" />
-                    <FlexLayout BindableLayout.ItemsSource="{Binding FeaturesList}"
-                                Wrap="Wrap"
-                                JustifyContent="Start">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 4"
-                                        Padding="8,4"
-                                        Margin="0,0,6,6">
-                                    <Label Text="{Binding .}"
-                                           FontSize="12"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                                </Border>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </FlexLayout>
                 </VerticalStackLayout>
 
                 <!-- Datentabelle: gruppierte Sektionen -->
@@ -385,11 +431,6 @@
                            HorizontalOptions="Center"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
 
-                    <!-- Originalinserat -->
-                    <Button Text="Originalinserat ansehen"
-                            Style="{StaticResource SecondaryButton}"
-                            Command="{Binding OpenOriginalListingCommand}"
-                            IsVisible="{Binding HasOriginalListingUrl}" />
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>
