@@ -15,8 +15,26 @@
             MaximumWidthRequest="600"
             HorizontalOptions="Fill">
 
+            <!-- Nicht angemeldet: Einstellungen sind ohne Login wirkungslos -->
+            <VerticalStackLayout Spacing="8"
+                                 Padding="8,36"
+                                 HorizontalOptions="Center"
+                                 IsVisible="{Binding IsLoggedOut}">
+                <Label Text="🔒"
+                       Style="{StaticResource EmptyStateIcon}"
+                       Opacity="0.5" />
+                <Label Text="Nicht angemeldet" Style="{StaticResource EmptyStateTitle}" />
+                <Label Text="Melden Sie sich an, um Benachrichtigungen zu konfigurieren."
+                       Style="{StaticResource EmptyStateHint}" />
+                <Button Text="Anmelden"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding GoToLoginCommand}"
+                        HorizontalOptions="Center"
+                        Margin="0,16,0,0" />
+            </VerticalStackLayout>
+
             <!-- Description with auto-save indicator -->
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsLoggedIn}">
                 <Label
                     Grid.Column="0"
                     Text="Konfigurieren Sie, wann Sie über neue Immobilien benachrichtigt werden möchten."
@@ -42,7 +60,7 @@
             </Grid>
 
             <!-- Enable/Disable Toggle -->
-            <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_EnableCard">
+            <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_EnableCard" IsVisible="{Binding IsLoggedIn}">
                 <VerticalStackLayout Spacing="8">
                     <Grid ColumnDefinitions="*,Auto">
                         <Label
@@ -62,8 +80,8 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Filter & Info (only visible when notifications are enabled) -->
-            <VerticalStackLayout Spacing="24" IsVisible="{Binding IsEnabled}">
+            <!-- Filter & Info (nur sichtbar wenn angemeldet UND Benachrichtigungen aktiviert) -->
+            <VerticalStackLayout Spacing="24" IsVisible="{Binding IsFilterSectionVisible}">
 
                 <!-- Filter Mode Selection -->
                 <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_FilterModeCard">

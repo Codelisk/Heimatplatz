@@ -49,16 +49,10 @@ public partial class RegisterViewModel : ObservableObject
     public partial string? ErrorMessage { get; set; }
 
     [ObservableProperty]
-    public partial bool IsSuccess { get; set; }
-
-    [ObservableProperty]
     public partial bool IsBuyer { get; set; }
 
     [ObservableProperty]
     public partial bool IsSeller { get; set; }
-
-    [ObservableProperty]
-    public partial string? SuccessMessage { get; set; }
 
     [ObservableProperty]
     public partial bool IsPrivateSeller { get; set; }
@@ -103,16 +97,9 @@ public partial class RegisterViewModel : ObservableObject
     /// <summary>True wenn eine Fehlermeldung angezeigt werden soll</summary>
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
-    partial void OnVornameChanged(string value) => OnPropertyChanged(nameof(CanRegister));
-    partial void OnNachnameChanged(string value) => OnPropertyChanged(nameof(CanRegister));
-    partial void OnEmailChanged(string value) => OnPropertyChanged(nameof(CanRegister));
-    partial void OnPasswortChanged(string value) => OnPropertyChanged(nameof(CanRegister));
-    partial void OnPasswortBestaetigungChanged(string value) => OnPropertyChanged(nameof(CanRegister));
     partial void OnErrorMessageChanged(string? value) => OnPropertyChanged(nameof(HasError));
-    partial void OnIsBuyerChanged(bool value) => OnPropertyChanged(nameof(CanRegister));
     partial void OnIsSellerChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanRegister));
         // Beim Deaktivieren von Seller: SellerType-Felder zuruecksetzen
         if (!value)
         {
@@ -124,14 +111,11 @@ public partial class RegisterViewModel : ObservableObject
     partial void OnIsPrivateSellerChanged(bool value)
     {
         if (value) IsBrokerSeller = false;
-        OnPropertyChanged(nameof(CanRegister));
     }
     partial void OnIsBrokerSellerChanged(bool value)
     {
         if (value) IsPrivateSeller = false;
-        OnPropertyChanged(nameof(CanRegister));
     }
-    partial void OnCompanyNameChanged(string value) => OnPropertyChanged(nameof(CanRegister));
 
     [RelayCommand]
     private async Task RegisterAsync()
@@ -143,7 +127,6 @@ public partial class RegisterViewModel : ObservableObject
         }
 
         ErrorMessage = null;
-        IsSuccess = false;
         IsBusy = true;
         BusyMessage = "Registrierung wird durchgeführt...";
 
@@ -205,6 +188,14 @@ public partial class RegisterViewModel : ObservableObject
             {
                 _logger.LogWarning(pushEx, "Push Notifications konnten nicht initialisiert werden (nicht auf dieser Plattform verfuegbar)");
             }
+
+            // Formular zuruecksetzen (insbesondere Passwoerter nicht im Speicher behalten)
+            Vorname = string.Empty;
+            Nachname = string.Empty;
+            Email = string.Empty;
+            Passwort = string.Empty;
+            PasswortBestaetigung = string.Empty;
+            CompanyName = string.Empty;
 
             // Absolute Navigation zur Root (Auth-Pages haben keinen Pop-History-Eintrag)
             await _navigator.NavigateTo("MainPage", relativeNavigation: false);

@@ -11,7 +11,7 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 /// ViewModel fuer die MyPropertiesPage - verwaltet die eigenen Immobilien des Benutzers
 /// (bearbeiten, loeschen, neue hinzufuegen).
 /// </summary>
-[ShellMap<MyPropertiesPage>("MyProperties")]
+[ShellMap<MyPropertiesPage>("MyProperties", registerRoute: false)]
 public partial class MyPropertiesViewModel(
     IAuthService authService,
     IMediator mediator,
@@ -29,14 +29,17 @@ public partial class MyPropertiesViewModel(
     // Immer neu laden um neu erstellte/bearbeitete Immobilien anzuzeigen
     protected override bool AlwaysReloadOnAppearing => true;
 
+    // Eigene Inserate gibt es nur fuer Verkaeufer-Konten (API: RequireSeller)
+    protected override bool RequiresSellerRole => true;
+
     protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
         => $"Möchten Sie \"{property.Title}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.";
 
     protected override string GetRemoveErrorMessage(string errorDetails)
-        => $"Die Immobilie konnte nicht gelöscht werden: {errorDetails}";
+        => $"Die Immobilie konnte nicht gelöscht werden. {errorDetails}";
 
     protected override string GetLoadErrorMessage(string errorDetails)
-        => $"Die Immobilien konnten nicht geladen werden: {errorDetails}";
+        => $"Die Immobilien konnten nicht geladen werden. {errorDetails}";
 
     protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, CancellationToken ct)

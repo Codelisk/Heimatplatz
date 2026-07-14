@@ -9,7 +9,7 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 /// <summary>
 /// ViewModel fuer die FavoritesPage - verwaltet die favorisierten Immobilien des Benutzers.
 /// </summary>
-[ShellMap<FavoritesPage>("Favorites")]
+[ShellMap<FavoritesPage>("Favorites", registerRoute: false)]
 public partial class FavoritesViewModel(
     IAuthService authService,
     IMediator mediator,
@@ -28,10 +28,10 @@ public partial class FavoritesViewModel(
         => $"Möchten Sie \"{property.Title}\" wirklich aus Ihren Favoriten entfernen?";
 
     protected override string GetRemoveErrorMessage(string errorDetails)
-        => $"Die Immobilie konnte nicht aus den Favoriten entfernt werden: {errorDetails}";
+        => $"Die Immobilie konnte nicht aus den Favoriten entfernt werden. {errorDetails}";
 
     protected override string GetLoadErrorMessage(string errorDetails)
-        => $"Die Favoriten konnten nicht geladen werden: {errorDetails}";
+        => $"Die Favoriten konnten nicht geladen werden. {errorDetails}";
 
     protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, CancellationToken ct)

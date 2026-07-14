@@ -77,7 +77,9 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
         {
             var photos = Media.Count(m => m.IsPhoto);
             var videos = Media.Count(m => m.IsVideo);
-            return videos > 0 ? $"{photos} Fotos · {videos} Videos" : $"{photos} Fotos";
+            var photoText = photos == 1 ? "1 Foto" : $"{photos} Fotos";
+            var videoText = videos == 1 ? "1 Video" : $"{videos} Videos";
+            return videos > 0 ? $"{photoText} · {videoText}" : photoText;
         }
     }
 
@@ -231,17 +233,34 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
         ReviewBaujahr = string.Empty;
         ReviewFeatures = string.Empty;
         AiSummary = string.Empty;
-
-        _dictation.PartialResult += OnDictationPartial;
-        _dictation.FinalResult += OnDictationFinal;
-        _dictation.Failed += OnDictationFailed;
-        _dictation.Stopped += OnDictationStopped;
     }
 
     #region IPageLifecycleAware
 
     public void OnAppearing()
     {
+        // Inserieren erfordert ein angemeldetes Verkaeufer-Konto (API: RequireSeller) -
+        // frueh abfangen statt spaeter mit rohem 401/403 zu scheitern
+        if (!_authService.IsAuthenticated)
+        {
+            _ = _navigator.NavigateTo("Login", relativeNavigation: false);
+            return;
+        }
+
+        if (!_authService.IsSeller)
+        {
+            ErrorMessage = "Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.";
+        }
+
+        // Dictation-Events pro Sichtbarkeit koppeln: der DictationService ist ein
+        // Singleton, das VM wird aber pro Navigation neu erstellt - Konstruktor-Abos
+        // wuerden sich dort ansammeln (Leak + doppelte Callbacks)
+        UnsubscribeDictation();
+        _dictation.PartialResult += OnDictationPartial;
+        _dictation.FinalResult += OnDictationFinal;
+        _dictation.Failed += OnDictationFailed;
+        _dictation.Stopped += OnDictationStopped;
+
         if (_municipalities.Count == 0)
             _ = LoadMunicipalitiesAsync();
     }
@@ -250,6 +269,16 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
     {
         if (IsListening)
             _ = _dictation.StopAsync();
+
+        UnsubscribeDictation();
+    }
+
+    private void UnsubscribeDictation()
+    {
+        _dictation.PartialResult -= OnDictationPartial;
+        _dictation.FinalResult -= OnDictationFinal;
+        _dictation.Failed -= OnDictationFailed;
+        _dictation.Stopped -= OnDictationStopped;
     }
 
     #endregion
@@ -749,6 +778,18 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
             return;
         }
 
+        if (!SelectedGemeindeId.HasValue)
+        {
+            ErrorMessage = "Bitte wählen Sie einen Ort aus";
+            return;
+        }
+
+        if (!_authService.IsSeller)
+        {
+            ErrorMessage = "Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.";
+            return;
+        }
+
         IsBusy = true;
         var publishSucceeded = false;
 
@@ -758,6 +799,14 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
             int? wohnflaeche = int.TryParse(ReviewWohnflaeche, out var wf) ? wf : null;
             int? grundstueck = int.TryParse(ReviewGrundstuecksflaeche, out var gs) ? gs : null;
             int? baujahr = int.TryParse(ReviewBaujahr, out var bj) ? bj : null;
+
+            // Typfremde Felder nicht mitsenden (Review-Felder sind bei Nicht-Haus ausgeblendet)
+            if (!IsReviewHouseType)
+            {
+                zimmer = null;
+                wohnflaeche = null;
+                baujahr = null;
+            }
 
             var features = ReviewFeatures
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -769,7 +818,7 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
                 {
                     Title = ReviewTitel.Trim(),
                     Address = Adresse.Trim(),
-                    MunicipalityId = SelectedGemeindeId!.Value,
+                    MunicipalityId = SelectedGemeindeId.Value,
                     Price = (double)preisValue,
                     Type = ReviewTypItem?.Value ?? PropertyType.House,
                     SellerType = SellerType.Private,
@@ -789,7 +838,7 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
         catch (Exception ex)
         {
             _logger.LogError(ex, "[AiAddProperty] Fehler beim Veroeffentlichen");
-            ErrorMessage = $"Ein Fehler ist aufgetreten: {ex.Message}";
+            ErrorMessage = "Das Inserat konnte nicht veröffentlicht werden. Bitte versuchen Sie es erneut.";
         }
         finally
         {
@@ -799,7 +848,11 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
         if (publishSucceeded)
         {
             _logger.LogInformation("[AiAddProperty] Inserat veroeffentlicht, Navigation zu MyProperties");
-            await _navigator.NavigateTo("MyProperties");
+            // Erst die gepushte(n) Erfassungsseite(n) vom Stack der Ursprungs-Section
+            // nehmen, dann zur MyProperties-Root wechseln - sonst bliebe die
+            // Erfassungsseite beim Rueckwechsel in die Ursprungs-Section sichtbar.
+            await _navigator.PopToRoot();
+            await _navigator.NavigateTo("MyProperties", relativeNavigation: false);
         }
     }
 

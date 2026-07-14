@@ -1,30 +1,34 @@
 Heimatplatz ist deine Immobilienplattform für Oberösterreich. Finde Häuser, Grundstücke und Zwangsversteigerungen – übersichtlich, schnell und ohne Umwege.
 
-IMMOBILIEN ENTDECKEN
-Durchsuche aktuelle Angebote aus ganz Oberösterreich. Filtere nach Immobilientyp, Ort, Preis, Wohnfläche und Grundstücksgröße. Sortiere nach Relevanz, Preis oder Aktualität – und finde genau das, was zu dir passt.
+GEZIELT SUCHEN
+Durchsuche aktuelle Angebote aus ganz Oberösterreich – von Linz über Wels und Steyr bis ins Innviertel, Mühlviertel und Salzkammergut. Filtere nach Immobilientyp, Bezirk und Gemeinde, Preis, Anbieter und Aktualität des Inserats. Mit der Mehrfach-Ortsauswahl durchsuchst du mehrere Bezirke und Gemeinden gleichzeitig.
 
 ZWANGSVERSTEIGERUNGEN
-Heimatplatz zeigt dir aktuelle Versteigerungen aus der österreichischen Ediktsdatei. Mit Schätzwert, Mindestgebot, Versteigerungstermin und Gerichtsinformationen hast du alle Details auf einen Blick.
+Heimatplatz zeigt dir aktuelle Gerichtsversteigerungen aus der österreichischen Ediktsdatei – mit Schätzwert, Mindestgebot, Versteigerungstermin und allen Gerichtsinformationen auf einen Blick.
+
+PUSH-BENACHRICHTIGUNGEN
+Werde sofort informiert, wenn neue Immobilien zu deinen Suchkriterien online gehen – wahlweise für deine gespeicherten Filter, eigene Kriterien oder alle neuen Objekte.
+
+FAVORITEN & AUSBLENDEN
+Speichere interessante Objekte als Favoriten – auf allen deinen Geräten synchronisiert. Uninteressante Inserate blendest du dauerhaft aus und musst nichts doppelt sichten.
 
 PRIVAT ODER MAKLER
 Entscheide selbst: Filtere gezielt nach privaten Inseraten oder Maklerangeboten. Heimatplatz zeigt dir transparent, wer hinter jedem Inserat steht.
 
-FAVORITEN & BENACHRICHTIGUNGEN
-Speichere interessante Objekte als Favoriten. Aktiviere Push-Benachrichtigungen für deine Wunschorte und werde sofort informiert, wenn neue Immobilien online gehen.
-
 SELBST INSERIEREN
-Du möchtest verkaufen? Erstelle in wenigen Schritten dein eigenes Inserat mit Fotos, Beschreibung und Kontaktdaten. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
+Du möchtest verkaufen – privat oder als Makler? Erstelle in wenigen Minuten dein eigenes Inserat mit Fotos, Adresse, Preis und allen Details. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
 
 DATENSCHUTZ
 Heimatplatz setzt auf Datensparsamkeit. Du kannst anonym stöbern, ohne ein Konto zu erstellen. Deine Daten gehören dir.
 
 FUNKTIONEN IM ÜBERBLICK
 • Immobiliensuche mit umfangreichen Filtern
-• Zwangsversteigerungen mit Gerichtsdaten
+• Mehrere Bezirke und Gemeinden gleichzeitig durchsuchen
+• Zwangsversteigerungen mit Terminen und Gerichtsdaten
 • Push-Benachrichtigungen für neue Objekte
-• Favoriten speichern und verwalten
-• Eigene Inserate erstellen und bearbeiten
+• Favoriten speichern – geräteübergreifend synchron
+• Inserate dauerhaft ausblenden
 • Privat- und Maklerangebote filtern
-• Minimalistisches, übersichtliches Design
+• Eigene Inserate erstellen und verwalten
 
-Heimatplatz – Dein Zuhause beginnt hier.
+Heimatplatz – dein Zuhause beginnt hier.

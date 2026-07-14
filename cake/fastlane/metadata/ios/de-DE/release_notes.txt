@@ -1,5 +1,5 @@
-• Neue Immobilien entdecken und filtern
-• Zwangsversteigerungen aus der Ediktsdatei
-• Push-Benachrichtigungen für Wunschorte
-• Favoriten speichern
-• Eigene Inserate erstellen
+• Überarbeitete Oberfläche für Suche, Filter und Inserate
+• Push-Benachrichtigungen für gespeicherte Filter und Wunschorte
+• Zwangsversteigerungen mit Termin, Schätzwert und Gerichtsdaten
+• Favoriten geräteübergreifend synchronisiert
+• Verbesserte Stabilität und Fehlerbehebungen

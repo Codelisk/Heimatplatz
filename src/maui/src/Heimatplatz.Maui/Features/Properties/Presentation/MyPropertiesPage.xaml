@@ -26,14 +26,52 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <Grid Padding="24,60,24,24">
+                        <!-- Angemeldet: regulaerer Leer-Zustand mit direktem Hinzufuegen-Button -->
                         <VerticalStackLayout Spacing="8"
                                              VerticalOptions="Start"
-                                             HorizontalOptions="Center">
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding IsLoggedIn}">
                             <Label Text="🏠"
                                    Style="{StaticResource EmptyStateIcon}"
                                    Opacity="0.5" />
                             <Label Text="Noch keine Immobilien" Style="{StaticResource EmptyStateTitle}" />
-                            <Label Text="Fügen Sie Ihre erste Immobilie über den Button „Neu“ hinzu."
+                            <Label Text="Fügen Sie Ihre erste Immobilie hinzu."
+                                   Style="{StaticResource EmptyStateHint}" />
+                            <Button Text="Immobilie hinzufügen"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding NavigateToAddPropertyCommand}"
+                                    HorizontalOptions="Center"
+                                    Margin="0,16,0,0" />
+                        </VerticalStackLayout>
+
+                        <!-- Nicht angemeldet: Anmelde-Hinweis statt irrefuehrendem Leer-Zustand -->
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding IsLoggedOut}">
+                            <Label Text="🔒"
+                                   Style="{StaticResource EmptyStateIcon}"
+                                   Opacity="0.5" />
+                            <Label Text="Nicht angemeldet" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="Melden Sie sich an, um Ihre Immobilien zu verwalten."
+                                   Style="{StaticResource EmptyStateHint}" />
+                            <Button Text="Anmelden"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding GoToLoginCommand}"
+                                    HorizontalOptions="Center"
+                                    Margin="0,16,0,0" />
+                        </VerticalStackLayout>
+
+                        <!-- Angemeldet, aber keine Verkaeufer-Rolle: Hinweis statt 403-Fehler -->
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding IsSellerBlocked}">
+                            <Label Text="🏠"
+                                   Style="{StaticResource EmptyStateIcon}"
+                                   Opacity="0.5" />
+                            <Label Text="Nur für Verkäufer" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="Eigene Inserate sind nur mit einem Verkäufer-Konto möglich. Ihr Konto ist als Käufer registriert."
                                    Style="{StaticResource EmptyStateHint}" />
                         </VerticalStackLayout>
                     </Grid>

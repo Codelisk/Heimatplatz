@@ -181,7 +181,7 @@ public partial class PropertyCard : ContentView
         if (property.PlotAreaM2.HasValue)
         {
             GrundstueckPanel.IsVisible = true;
-            GrundstueckText.Text = property.PlotAreaM2.Value.ToString("N0");
+            GrundstueckText.Text = PropertyDisplay.Number(property.PlotAreaM2.Value);
         }
         else
         {
@@ -192,7 +192,7 @@ public partial class PropertyCard : ContentView
         if (property.LivingAreaM2.HasValue)
         {
             WohnflaechePanel.IsVisible = true;
-            WohnflaecheText.Text = $"{property.LivingAreaM2.Value:N0} Wfl";
+            WohnflaecheText.Text = $"{PropertyDisplay.Number(property.LivingAreaM2.Value)} Wfl";
         }
         else
         {
@@ -266,10 +266,10 @@ public partial class PropertyCard : ContentView
     private static string FormatPrice(decimal price)
     {
         if (price >= 1_000_000)
-            return $"{price / 1_000_000:0.##} Mio €";
+            return string.Format(PropertyDisplay.Culture, "{0:0.##} Mio €", price / 1_000_000);
         if (price >= 1_000)
-            return $"{price / 1_000:0} T€";
-        return $"{price:N0} €";
+            return string.Format(PropertyDisplay.Culture, "{0:0} T€", price / 1_000);
+        return PropertyDisplay.Price(price);
     }
 
     private void OnCardTapped(object? sender, TappedEventArgs e)

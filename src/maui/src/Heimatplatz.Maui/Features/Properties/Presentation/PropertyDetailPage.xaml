@@ -7,10 +7,22 @@
              x:DataType="vm:PropertyDetailViewModel"
              Title="{Binding Title}">
 
-    <Grid RowDefinitions="*,Auto">
+    <!-- Single-Cell-Grid: Der Kontakt-Footer liegt als Bottom-Sheet UEBER dem Inhalt.
+         Bewusst kein Auto-Row-Resize: dynamisches Zeilenwachstum beim Aufklappen
+         loest auf Android keinen Relayout des ScrollViews aus (stale Bounds). -->
+    <Grid>
 
-        <ScrollView Grid.Row="0">
-            <VerticalStackLayout Spacing="16" Padding="0,0,0,16">
+        <ScrollView>
+            <!-- Bottom-Padding reserviert Platz fuer die eingeklappte Kontakt-Leiste -->
+            <VerticalStackLayout Spacing="16" Padding="0,0,0,96">
+
+                <!-- Fehler-/Nicht-mehr-verfuegbar-Hinweis -->
+                <Border IsVisible="{Binding HasLoadError}"
+                        Style="{StaticResource ErrorBanner}"
+                        Margin="16,16,16,0">
+                    <Label Text="{Binding LoadErrorText}"
+                           Style="{StaticResource ErrorBannerText}" />
+                </Border>
 
                 <!-- Bilder-Carousel -->
                 <Grid HeightRequest="260">
@@ -26,6 +38,7 @@
                     <CarouselView ItemsSource="{Binding ImageUrls}"
                                   IndicatorView="ImageIndicator"
                                   IsVisible="{Binding HasImages}"
+                                  Position="{Binding CurrentImagePosition}"
                                   Loop="False">
                         <CarouselView.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
@@ -55,6 +68,21 @@
                                FontSize="10"
                                FontAttributes="Bold"
                                CharacterSpacing="0.8"
+                               TextColor="White" />
+                    </Border>
+
+                    <!-- Bild-Zaehler (unten links) -->
+                    <Border BackgroundColor="#80000000"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="10,4"
+                            Margin="12"
+                            VerticalOptions="End"
+                            HorizontalOptions="Start"
+                            IsVisible="{Binding HasImages}">
+                        <Label Text="{Binding ImageCounterText}"
+                               FontSize="12"
+                               FontAttributes="Bold"
                                TextColor="White" />
                     </Border>
                 </Grid>
@@ -188,48 +216,186 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Kontakt-Footer -->
-        <Border Grid.Row="1"
-                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                StrokeThickness="0"
-                Padding="16,10"
-                IsVisible="{Binding HasContactPerson}">
-            <VerticalStackLayout Spacing="4"
-                                 MaximumWidthRequest="800"
-                                 HorizontalOptions="Fill">
-                <Label Text="{Binding ContactPersonText}"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+        <!-- Kontakt-Footer als Bottom-Sheet: liegt ueber dem Inhalt, hebt sich per Karte+Schatten ab.
+             Zwei getrennte Borders mit konstanter Groesse: ein Border, der beim Aufklappen selbst
+             waechst, behaelt auf Android seinen alten Clip-Pfad (StrokeShape) und schneidet
+             Hintergrund + Inhalt ab. Hier waechst nur der aeussere Stack (ohne Clip). -->
+        <VerticalStackLayout x:Name="ContactFooter"
+                             VerticalOptions="End"
+                             Spacing="0"
+                             IsVisible="{Binding HasContactFooter}">
 
-                <HorizontalStackLayout Spacing="12">
-                    <Label Text="{Binding PrimaryContactEmail}"
-                           FontSize="12"
-                           IsVisible="{Binding HasPrimaryEmail}"
-                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding CopyToClipboardCommand}"
-                                                  CommandParameter="{Binding PrimaryContactEmail}" />
-                        </Label.GestureRecognizers>
-                    </Label>
+            <!-- Kopfzeile: immer sichtbar, Tippen klappt Details auf/zu -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource CardBackgroundDark}}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 16,16,0,0"
+                    Padding="0">
+                <Border.Shadow>
+                    <Shadow Brush="{StaticResource Black}"
+                            Opacity="0.3"
+                            Radius="14"
+                            Offset="0,-4" />
+                </Border.Shadow>
+                <Grid MaximumWidthRequest="800"
+                      HorizontalOptions="Fill"
+                      AutomationId="Detail_ContactHeader">
 
-                    <Label Text="{Binding PrimaryContactPhone}"
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="12"
+                          Padding="16,12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="ANBIETER"
+                                   FontSize="10"
+                                   CharacterSpacing="1"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                            <Label Text="{Binding SellerName}"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="{Binding ContactPersonText}"
+                                   FontSize="12"
+                                   IsVisible="{Binding HasContactPerson}"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        </VerticalStackLayout>
+
+                        <HorizontalStackLayout Grid.Column="1"
+                                               Spacing="6"
+                                               VerticalOptions="Center">
+                            <Label Text="Kontakt"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                            <Label Text="{Binding ContactExpandIcon}"
+                                   FontSize="10"
+                                   VerticalOptions="Center"
+                                   AutomationId="Detail_ContactChevron"
+                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                        </HorizontalStackLayout>
+                    </Grid>
+
+                    <!-- Unsichtbarer vollflaechiger Button statt TapGestureRecognizer:
+                         loest zuverlaessig genau einmal aus (Android) und ist auch unter
+                         WinUI per DevFlow tapbar -->
+                    <Button BackgroundColor="Transparent"
+                            BorderColor="Transparent"
+                            BorderWidth="0"
+                            Padding="0"
+                            MinimumHeightRequest="0"
+                            Command="{Binding ToggleContactExpandedCommand}"
+                            AutomationId="Detail_ContactToggle" />
+                </Grid>
+            </Border>
+
+            <!-- Aufklappbarer Bereich: eigener Border konstanter Groesse (nur Sichtbarkeit toggelt),
+                 Hoehe gedeckelt, viele Kontakte scrollen intern -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource CardBackgroundDark}}"
+                    StrokeThickness="0"
+                    Padding="0"
+                    IsVisible="{Binding IsContactExpanded}"
+                    AutomationId="Detail_ContactPanel">
+                <VerticalStackLayout Padding="16,0,16,16"
+                                     Spacing="12"
+                                     MaximumWidthRequest="800"
+                                     HorizontalOptions="Fill">
+                    <BoxView Style="{StaticResource Divider}" />
+
+                    <ScrollView MaximumHeightRequest="240"
+                                VerticalScrollBarVisibility="Default">
+                        <VerticalStackLayout Spacing="14"
+                                             BindableLayout.ItemsSource="{Binding Contacts}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:ContactDisplayItem">
+                                    <VerticalStackLayout Spacing="6">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               IsVisible="{Binding HasName}"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+
+                                        <!-- E-Mail: Tippen oeffnet Mail-App, Button kopiert -->
+                                        <Grid ColumnDefinitions="Auto,*,Auto"
+                                              ColumnSpacing="8"
+                                              IsVisible="{Binding HasEmail}">
+                                            <Label Grid.Column="0"
+                                                   Text="✉️"
+                                                   FontSize="13"
+                                                   VerticalOptions="Center" />
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Email}"
+                                                   FontSize="13"
+                                                   VerticalOptions="Center"
+                                                   LineBreakMode="TailTruncation"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding ContactByEmailCommand, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}}"
+                                                                          CommandParameter="{Binding Email}" />
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                            <Button Grid.Column="2"
+                                                    Text="Kopieren"
+                                                    Style="{StaticResource LinkButton}"
+                                                    FontSize="11"
+                                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                                    Command="{Binding CopyToClipboardCommand, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}}"
+                                                    CommandParameter="{Binding Email}" />
+                                        </Grid>
+
+                                        <!-- Telefon: Tippen oeffnet Telefon-App, Button kopiert -->
+                                        <Grid ColumnDefinitions="Auto,*,Auto"
+                                              ColumnSpacing="8"
+                                              IsVisible="{Binding HasPhone}">
+                                            <Label Grid.Column="0"
+                                                   Text="📞"
+                                                   FontSize="13"
+                                                   VerticalOptions="Center" />
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Phone}"
+                                                   FontSize="13"
+                                                   VerticalOptions="Center"
+                                                   LineBreakMode="TailTruncation"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding CallPhoneCommand, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}}"
+                                                                          CommandParameter="{Binding Phone}" />
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                            <Button Grid.Column="2"
+                                                    Text="Kopieren"
+                                                    Style="{StaticResource LinkButton}"
+                                                    FontSize="11"
+                                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                                    Command="{Binding CopyToClipboardCommand, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}}"
+                                                    CommandParameter="{Binding Phone}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <!-- Kopiert-Feedback: feste Hoehe, damit der Panel-Border beim Einblenden
+                         nicht resized (Android-Clip-Problem bei dynamischer Border-Groesse) -->
+                    <Label Text="{Binding CopyFeedback}"
                            FontSize="12"
-                           IsVisible="{Binding HasPrimaryPhone}"
-                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding CopyToClipboardCommand}"
-                                                  CommandParameter="{Binding PrimaryContactPhone}" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
-        </Border>
+                           FontAttributes="Bold"
+                           HeightRequest="16"
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+
+                    <!-- Originalinserat -->
+                    <Button Text="Originalinserat ansehen"
+                            Style="{StaticResource SecondaryButton}"
+                            Command="{Binding OpenOriginalListingCommand}"
+                            IsVisible="{Binding HasOriginalListingUrl}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
 
         <!-- Busy-Overlay -->
-        <Grid Grid.Row="0"
-              Grid.RowSpan="2"
-              Style="{StaticResource BusyOverlay}"
+        <Grid Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsBusy}">
             <Border Style="{StaticResource BusyCard}">
                 <VerticalStackLayout Spacing="10" HorizontalOptions="Center">

@@ -14,6 +14,12 @@ Docker-Compose-Setup fuer die Heimatplatz-API auf einem einzelnen Hetzner-Server
 3. `docker compose -f deploy/hetzner/docker-compose.yml up -d --build`
 4. `curl https://<API_DOMAIN>/health` sollte `{"Status":"Healthy"}` liefern.
 
+## Test-API (api-test in docker-compose.yml)
+
+Seit 14.7.2026: `https://test-api.heimatplatz.at` - gleicher Code/Build wie die Prod-API, verbunden mit der Testdatenbank (Port 5433). Seeding ist aktiv: Nach einem Test-DB-Reset genuegt `docker compose restart api-test`, dann wird automatisch migriert und neu geseedet. Eigener JWT-Key (`TEST_JWT_KEY` in der Server-`.env`), damit Test-Tokens nicht auf Prod gelten. DNS-A-Record `test-api` liegt in der Hetzner-DNS-Zone (verwaltbar via Cloud-API mit `HCLOUD_TOKEN`).
+
+Benoetigte Variablen in der Server-`.env`: `TEST_API_DOMAIN=test-api.heimatplatz.at`, `TEST_JWT_KEY` (`openssl rand -base64 64`), `TESTDB_PASSWORD` (wie bisher).
+
 ## Testdatenbank (docker-compose.testdb.yml)
 
 Separater Postgres-16-Container fuer Entwicklung/Tests auf demselben Server - unabhaengig vom Prod-Stack, eigenes Volume, von aussen erreichbar auf **Port 5433** (UFW-Regel vorhanden; Schutz ueber starkes Passwort, `TESTDB_PASSWORD` in der Server-`.env` und der lokalen `deploy/hetzner/.env`).

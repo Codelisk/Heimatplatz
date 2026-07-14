@@ -13,7 +13,7 @@ namespace Heimatplatz.Maui.Features.Auth.Presentation;
 /// ViewModel fuer die Anmeldeseite (portiert aus der Uno-App)
 /// </summary>
 [ShellMap<LoginPage>("Login", registerRoute: false)]
-public partial class LoginViewModel : ObservableObject
+public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
 {
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
@@ -57,9 +57,21 @@ public partial class LoginViewModel : ObservableObject
     /// <summary>True wenn eine Fehlermeldung angezeigt werden soll</summary>
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
-    partial void OnEmailChanged(string value) => OnPropertyChanged(nameof(CanLogin));
-    partial void OnPasswortChanged(string value) => OnPropertyChanged(nameof(CanLogin));
     partial void OnErrorMessageChanged(string? value) => OnPropertyChanged(nameof(HasError));
+
+    /// <summary>
+    /// Die Login-Seite ist ein gecachtes Shell-Root: alte Fehlermeldung und
+    /// eingegebenes Passwort duerfen bei erneutem Besuch nicht stehen bleiben.
+    /// </summary>
+    public void OnAppearing()
+    {
+        ErrorMessage = null;
+        Passwort = string.Empty;
+    }
+
+    public void OnDisappearing()
+    {
+    }
 
     [RelayCommand]
     private async Task LoginAsync()

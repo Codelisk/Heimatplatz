@@ -140,6 +140,19 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
 
     public void OnAppearing()
     {
+        // Inserieren erfordert ein angemeldetes Verkaeufer-Konto (API: RequireSeller) -
+        // frueh abfangen statt spaeter mit rohem 401/403 zu scheitern
+        if (!_authService.IsAuthenticated)
+        {
+            _ = _navigator.NavigateTo("Login", relativeNavigation: false);
+            return;
+        }
+
+        if (!_authService.IsSeller)
+        {
+            ErrorMessage = "Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.";
+        }
+
         if (_municipalities.Count == 0)
         {
             _ = LoadMunicipalitiesAsync();
@@ -259,10 +272,36 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
 
     #region Speichern
 
+    /// <summary>
+    /// Parst ein optionales Ganzzahl-Feld; ungueltige Eingaben werden nicht still
+    /// verworfen, sondern erzeugen eine Fehlermeldung.
+    /// </summary>
+    private bool TryParseOptionalInt(string input, string fieldName, out int? value)
+    {
+        value = null;
+        if (string.IsNullOrWhiteSpace(input))
+            return true;
+
+        if (int.TryParse(input.Trim(), out var parsed) && parsed >= 0)
+        {
+            value = parsed;
+            return true;
+        }
+
+        ErrorMessage = $"Bitte geben Sie für {fieldName} eine gültige Zahl ein.";
+        return false;
+    }
+
     [RelayCommand]
     private async Task SavePropertyAsync()
     {
         ErrorMessage = null;
+
+        if (!_authService.IsSeller)
+        {
+            ErrorMessage = "Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.";
+            return;
+        }
 
         // Validierung
         if (string.IsNullOrWhiteSpace(Titel) || Titel.Length < 10)
@@ -301,28 +340,29 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
             return;
         }
 
+        // Optionale Zahlenfelder validieren - ungueltige Eingaben nicht still verwerfen
+        if (!TryParseOptionalInt(WohnflaecheM2, "Wohnfläche", out var wohnflaecheValue) ||
+            !TryParseOptionalInt(GrundstuecksflaecheM2, "Grundstücksfläche", out var grundstuecksValue) ||
+            !TryParseOptionalInt(Zimmer, "Zimmer", out var zimmerValue) ||
+            !TryParseOptionalInt(Baujahr, "Baujahr", out var baujahrValue))
+        {
+            return;
+        }
+
+        // Typfremde Felder nicht mitsenden (z.B. Wohnflaeche/Zimmer/Baujahr bei Grundstueck -
+        // die Eingaben koennen von einem frueher gewaehlten Typ stammen und sind ausgeblendet)
+        if (!IsHouseType)
+        {
+            wohnflaecheValue = null;
+            zimmerValue = null;
+            baujahrValue = null;
+        }
+
         IsBusy = true;
         var saveSucceeded = false;
 
         try
         {
-            // Optionale Felder parsen
-            int? wohnflaecheValue = null;
-            if (!string.IsNullOrWhiteSpace(WohnflaecheM2) && int.TryParse(WohnflaecheM2, out var wf))
-                wohnflaecheValue = wf;
-
-            int? grundstuecksValue = null;
-            if (!string.IsNullOrWhiteSpace(GrundstuecksflaecheM2) && int.TryParse(GrundstuecksflaecheM2, out var gs))
-                grundstuecksValue = gs;
-
-            int? zimmerValue = null;
-            if (!string.IsNullOrWhiteSpace(Zimmer) && int.TryParse(Zimmer, out var z))
-                zimmerValue = z;
-
-            int? baujahrValue = null;
-            if (!string.IsNullOrWhiteSpace(Baujahr) && int.TryParse(Baujahr, out var bj))
-                baujahrValue = bj;
-
             var sellerName = _authService.UserFullName ?? "Unbekannt";
             var municipalityId = SelectedGemeindeId!.Value;
 
@@ -351,7 +391,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[AddProperty] FEHLER beim Hochladen der Bilder");
-                ErrorMessage = $"Fehler beim Hochladen der Bilder: {ex.Message}";
+                ErrorMessage = "Fehler beim Hochladen der Bilder. Bitte versuchen Sie es erneut.";
                 return;
             }
 
@@ -382,7 +422,8 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Ein Fehler ist aufgetreten: {ex.Message}";
+            _logger.LogError(ex, "[AddProperty] Fehler beim Speichern");
+            ErrorMessage = "Die Immobilie konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.";
         }
         finally
         {
@@ -392,7 +433,11 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
         if (saveSucceeded)
         {
             _logger.LogInformation("[AddProperty] Navigating to MyProperties after create");
-            await _navigator.NavigateTo("MyProperties");
+            // Erst die gepushte(n) Erfassungsseite(n) vom Stack der Ursprungs-Section
+            // nehmen, dann zur MyProperties-Root wechseln - sonst bliebe die
+            // Erfassungsseite beim Rueckwechsel in die Ursprungs-Section sichtbar.
+            await _navigator.PopToRoot();
+            await _navigator.NavigateTo("MyProperties", relativeNavigation: false);
         }
     }
 

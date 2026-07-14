@@ -21,13 +21,33 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <Grid Padding="24,60,24,24">
+                        <!-- Angemeldet: regulaerer Leer-Zustand -->
                         <VerticalStackLayout Spacing="8"
                                              VerticalOptions="Start"
-                                             HorizontalOptions="Center">
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding IsLoggedIn}">
                             <Label Text="⊘" Style="{StaticResource EmptyStateIcon}" />
                             <Label Text="Keine blockierten Immobilien" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="Immobilien, die Sie blockieren, werden hier angezeigt und aus der Hauptliste ausgeblendet."
                                    Style="{StaticResource EmptyStateHint}" />
+                        </VerticalStackLayout>
+
+                        <!-- Nicht angemeldet: Anmelde-Hinweis statt irrefuehrendem Leer-Zustand -->
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding IsLoggedOut}">
+                            <Label Text="🔒"
+                                   Style="{StaticResource EmptyStateIcon}"
+                                   Opacity="0.5" />
+                            <Label Text="Nicht angemeldet" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="Melden Sie sich an, um blockierte Immobilien zu verwalten."
+                                   Style="{StaticResource EmptyStateHint}" />
+                            <Button Text="Anmelden"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding GoToLoginCommand}"
+                                    HorizontalOptions="Center"
+                                    Margin="0,16,0,0" />
                         </VerticalStackLayout>
                     </Grid>
                 </CollectionView.EmptyView>

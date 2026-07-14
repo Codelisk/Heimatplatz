@@ -13,7 +13,7 @@ namespace Heimatplatz.Maui.Features.Auth.Presentation;
 /// Zeigt alle verfuegbaren Benutzerdaten aus dem IAuthService an, bietet Logout
 /// und die Moeglichkeit, das Konto endgueltig zu loeschen (Apple Guideline 5.1.1(v)).
 /// </summary>
-[ShellMap<UserProfilePage>("UserProfile")]
+[ShellMap<UserProfilePage>("UserProfile", registerRoute: false)]
 public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAware
 {
     private readonly IAuthService _authService;
@@ -42,7 +42,11 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
     /// <summary>True waehrend die Konto-Loeschung laeuft (zeigt Ladeindikator, blockiert UI).</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotDeletingAccount))]
     public partial bool IsDeletingAccount { get; set; }
+
+    /// <summary>Sperrt z.B. den Abmelden-Button waehrend der Konto-Loeschung.</summary>
+    public bool IsNotDeletingAccount => !IsDeletingAccount;
 
     public UserProfileViewModel(
         IAuthService authService,

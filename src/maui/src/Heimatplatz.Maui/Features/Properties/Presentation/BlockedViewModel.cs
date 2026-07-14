@@ -10,7 +10,7 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 /// ViewModel fuer die BlockedPage - verwaltet die blockierten Immobilien des Benutzers.
 /// Blockierte Immobilien werden in der Hauptliste ausgeblendet.
 /// </summary>
-[ShellMap<BlockedPage>("Blocked")]
+[ShellMap<BlockedPage>("Blocked", registerRoute: false)]
 public partial class BlockedViewModel(
     IAuthService authService,
     IMediator mediator,
@@ -29,10 +29,10 @@ public partial class BlockedViewModel(
         => $"Möchten Sie die Blockierung von \"{property.Title}\" wirklich aufheben? Die Immobilie wird wieder in der Hauptliste angezeigt.";
 
     protected override string GetRemoveErrorMessage(string errorDetails)
-        => $"Die Blockierung konnte nicht aufgehoben werden: {errorDetails}";
+        => $"Die Blockierung konnte nicht aufgehoben werden. {errorDetails}";
 
     protected override string GetLoadErrorMessage(string errorDetails)
-        => $"Die blockierten Immobilien konnten nicht geladen werden: {errorDetails}";
+        => $"Die blockierten Immobilien konnten nicht geladen werden. {errorDetails}";
 
     protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, CancellationToken ct)

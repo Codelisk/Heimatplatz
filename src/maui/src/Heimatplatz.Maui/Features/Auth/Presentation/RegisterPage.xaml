@@ -33,13 +33,6 @@
                            Style="{StaticResource ErrorBannerText}" />
                 </Border>
 
-                <!-- Success Message -->
-                <Border IsVisible="{Binding IsSuccess}"
-                        Style="{StaticResource SuccessBanner}">
-                    <Label Text="{Binding SuccessMessage}"
-                           Style="{StaticResource SuccessBannerText}" />
-                </Border>
-
                 <!-- Form Fields -->
                 <VerticalStackLayout Spacing="18">
 
@@ -50,44 +43,58 @@
                         <VerticalStackLayout Grid.Column="0" Spacing="6">
                             <Label Text="Vorname"
                                    Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding Vorname}"
-                                   Placeholder="Max" />
+                            <Entry x:Name="VornameEntry"
+                                   Text="{Binding Vorname}"
+                                   Placeholder="Max"
+                                   ReturnType="Next"
+                                   Completed="OnVornameCompleted" />
                         </VerticalStackLayout>
 
                         <!-- Nachname -->
                         <VerticalStackLayout Grid.Column="1" Spacing="6">
                             <Label Text="Nachname"
                                    Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding Nachname}"
-                                   Placeholder="Mustermann" />
+                            <Entry x:Name="NachnameEntry"
+                                   Text="{Binding Nachname}"
+                                   Placeholder="Mustermann"
+                                   ReturnType="Next"
+                                   Completed="OnNachnameCompleted" />
                         </VerticalStackLayout>
                     </Grid>
 
                     <!-- E-Mail -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="E-Mail Adresse"
+                        <Label Text="E-Mail-Adresse"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry Text="{Binding Email}"
+                        <Entry x:Name="EmailEntry"
+                               Text="{Binding Email}"
                                Placeholder="max@beispiel.at"
-                               Keyboard="Email" />
+                               Keyboard="Email"
+                               ReturnType="Next"
+                               Completed="OnEmailCompleted" />
                     </VerticalStackLayout>
 
                     <!-- Passwort -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Passwort"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry Text="{Binding Passwort}"
+                        <Entry x:Name="PasswortEntry"
+                               Text="{Binding Passwort}"
                                Placeholder="Mindestens 8 Zeichen"
-                               IsPassword="True" />
+                               IsPassword="True"
+                               ReturnType="Next"
+                               Completed="OnPasswortCompleted" />
                     </VerticalStackLayout>
 
                     <!-- Passwort bestaetigen -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Passwort bestätigen"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry Text="{Binding PasswortBestaetigung}"
+                        <Entry x:Name="PasswortBestaetigungEntry"
+                               Text="{Binding PasswortBestaetigung}"
                                Placeholder="Passwort wiederholen"
                                IsPassword="True"
+                               ReturnType="Done"
                                ReturnCommand="{Binding RegisterCommand}" />
                     </VerticalStackLayout>
 

@@ -21,13 +21,33 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <Grid Padding="24,60,24,24">
+                        <!-- Angemeldet: regulaerer Leer-Zustand -->
                         <VerticalStackLayout Spacing="8"
                                              VerticalOptions="Start"
-                                             HorizontalOptions="Center">
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding IsLoggedIn}">
                             <Label Text="♡" Style="{StaticResource EmptyStateIcon}" />
                             <Label Text="Noch keine Favoriten" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="Markieren Sie Immobilien als Favoriten, um sie hier zu sehen."
                                    Style="{StaticResource EmptyStateHint}" />
+                        </VerticalStackLayout>
+
+                        <!-- Nicht angemeldet: Anmelde-Hinweis statt irrefuehrendem Leer-Zustand -->
+                        <VerticalStackLayout Spacing="8"
+                                             VerticalOptions="Start"
+                                             HorizontalOptions="Center"
+                                             IsVisible="{Binding IsLoggedOut}">
+                            <Label Text="🔒"
+                                   Style="{StaticResource EmptyStateIcon}"
+                                   Opacity="0.5" />
+                            <Label Text="Nicht angemeldet" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="Melden Sie sich an, um Ihre Favoriten zu sehen."
+                                   Style="{StaticResource EmptyStateHint}" />
+                            <Button Text="Anmelden"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding GoToLoginCommand}"
+                                    HorizontalOptions="Center"
+                                    Margin="0,16,0,0" />
                         </VerticalStackLayout>
                     </Grid>
                 </CollectionView.EmptyView>

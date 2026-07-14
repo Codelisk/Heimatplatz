@@ -1,9 +1,71 @@
+using System.ComponentModel;
+
 namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
 public partial class PropertyDetailPage : ContentPage
 {
+    private PropertyDetailViewModel? _viewModel;
+
     public PropertyDetailPage()
     {
         InitializeComponent();
     }
+
+    protected override void OnBindingContextChanged()
+    {
+        base.OnBindingContextChanged();
+
+        if (_viewModel != null)
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+
+        _viewModel = BindingContext as PropertyDetailViewModel;
+
+        if (_viewModel != null)
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PropertyDetailViewModel.IsContactExpanded))
+            ForceFooterRelayout();
+    }
+
+    /// <summary>
+    /// Android zeichnet den End-verankerten Footer nach Groessenaenderung (Panel-Toggle)
+    /// nicht zuverlaessig neu: der Visual Tree stimmt, aber der native Layout-Pass bleibt
+    /// aus (stale Render). Expliziter RequestLayout/Invalidate auf dem nativen View heilt das.
+    /// </summary>
+    private void ForceFooterRelayout()
+    {
+        Dispatcher.Dispatch(() =>
+        {
+            ((IView)ContactFooter).InvalidateMeasure();
+#if ANDROID
+            if (ContactFooter.Handler?.PlatformView is Android.Views.View nativeView)
+                InvalidateNativeTree(nativeView);
+#endif
+        });
+    }
+
+#if ANDROID
+    /// <summary>
+    /// Invalidiert rekursiv alle Views des Footers: Invalidate() auf dem Root reicht nicht,
+    /// weil Kinder (z.B. das Chevron-Label) sonst mit altem Inhalt weitergezeichnet werden.
+    /// </summary>
+    private static void InvalidateNativeTree(Android.Views.View view)
+    {
+        view.RequestLayout();
+        view.Invalidate();
+
+        if (view is Android.Views.ViewGroup group)
+        {
+            for (var i = 0; i < group.ChildCount; i++)
+            {
+                var child = group.GetChildAt(i);
+                if (child != null)
+                    InvalidateNativeTree(child);
+            }
+        }
+    }
+#endif
 }

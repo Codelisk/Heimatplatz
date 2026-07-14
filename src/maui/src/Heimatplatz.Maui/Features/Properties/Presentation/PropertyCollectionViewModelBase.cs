@@ -47,6 +47,29 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
     public bool IsNotEmpty => !IsEmpty;
 
+    /// <summary>
+    /// True wenn kein Benutzer angemeldet ist - die Seiten zeigen dann statt des
+    /// regulaeren Leer-Zustands einen Anmelde-Hinweis mit Login-Button.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
+    public partial bool IsLoggedOut { get; set; }
+
+    /// <summary>
+    /// True wenn der Benutzer angemeldet ist, die Seite aber die Verkaeufer-Rolle
+    /// erfordert und das Konto sie nicht hat (verhindert 403-Fehlerdialoge).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
+    public partial bool IsSellerBlocked { get; set; }
+
+    public bool IsLoggedIn => !IsLoggedOut && !IsSellerBlocked;
+
+    /// <summary>
+    /// Ob die Seite die Verkaeufer-Rolle erfordert (z.B. Meine Immobilien)
+    /// </summary>
+    protected virtual bool RequiresSellerRole => false;
+
     // Abstrakte Texte (von abgeleiteten Klassen zu implementieren)
     protected abstract string LoadingMessage { get; }
     protected abstract string RemovingMessage { get; }
@@ -88,6 +111,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         Logger = logger;
 
         IsEmpty = true;
+        IsLoggedOut = !AuthService.IsAuthenticated;
 
         AuthService.AuthenticationStateChanged += OnAuthenticationStateChanged;
     }
@@ -96,7 +120,10 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            if (isAuthenticated)
+            IsLoggedOut = !isAuthenticated;
+            IsSellerBlocked = isAuthenticated && RequiresSellerRole && !AuthService.IsSeller;
+
+            if (isAuthenticated && !IsSellerBlocked)
             {
                 _ = ReloadAsync();
             }
@@ -112,7 +139,10 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
     public void OnAppearing()
     {
-        if (!AuthService.IsAuthenticated)
+        IsLoggedOut = !AuthService.IsAuthenticated;
+        IsSellerBlocked = !IsLoggedOut && RequiresSellerRole && !AuthService.IsSeller;
+
+        if (IsLoggedOut || IsSellerBlocked)
         {
             Properties.Clear();
             IsEmpty = true;
@@ -237,7 +267,11 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         {
             Logger.LogError(ex, "[{Type}] Error loading page {Page}", GetType().Name, page);
             _hasMore = false;
-            await Dialogs.Alert(LoadErrorTitle, GetLoadErrorMessage(ex.Message));
+            // Keine rohen HTTP-/Exception-Texte im Dialog - benutzerfreundliche Meldung
+            var hint = ex is HttpRequestException
+                ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+                : "Bitte versuchen Sie es später erneut.";
+            await Dialogs.Alert(LoadErrorTitle, GetLoadErrorMessage(hint));
             return [];
         }
     }
@@ -266,7 +300,11 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         }
         catch (Exception ex)
         {
-            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(ex.Message));
+            Logger.LogError(ex, "[{Type}] Error removing property {PropertyId}", GetType().Name, property.Id);
+            var hint = ex is HttpRequestException
+                ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+                : "Bitte versuchen Sie es später erneut.";
+            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(hint));
         }
         finally
         {
@@ -274,6 +312,12 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             BusyMessage = null;
         }
     }
+
+    /// <summary>
+    /// Navigiert zur Login-Seite (aus dem Anmelde-Hinweis im Leer-Zustand)
+    /// </summary>
+    [RelayCommand]
+    private Task GoToLoginAsync() => Navigator.NavigateTo("Login", relativeNavigation: false);
 
     /// <summary>
     /// Navigiert zur Detail-Seite (Zwangsversteigerungen zur ForeclosureDetailPage)

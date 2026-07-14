@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Notifications.Contracts.Models;
+using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Notifications.Services;
 using Heimatplatz.Maui.Features.Properties.Services;
 using Microsoft.Extensions.Logging;
@@ -13,11 +14,13 @@ namespace Heimatplatz.Maui.Features.Notifications.Presentation;
 /// Unterstuetzt 3 Filtermodi: All, SameAsSearch, Custom.
 /// Einstellungen werden bei jeder Aenderung automatisch gespeichert.
 /// </summary>
-[ShellMap<NotificationSettingsPage>("NotificationSettings")]
+[ShellMap<NotificationSettingsPage>("NotificationSettings", registerRoute: false)]
 public partial class NotificationSettingsViewModel : ObservableObject, IPageLifecycleAware
 {
     private readonly INotificationService _notificationService;
     private readonly ILocationService _locationService;
+    private readonly IAuthService _authService;
+    private readonly INavigator _navigator;
     private readonly ILogger<NotificationSettingsViewModel> _logger;
 
     // true bis zum ersten Laden, damit die Initialwerte aus dem Konstruktor
@@ -31,10 +34,14 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     public NotificationSettingsViewModel(
         INotificationService notificationService,
         ILocationService locationService,
+        IAuthService authService,
+        INavigator navigator,
         ILogger<NotificationSettingsViewModel> logger)
     {
         _notificationService = notificationService;
         _locationService = locationService;
+        _authService = authService;
+        _navigator = navigator;
         _logger = logger;
 
         SelectedOrte = [];
@@ -51,8 +58,23 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
 
+    /// <summary>
+    /// True wenn kein Benutzer angemeldet ist - die Seite zeigt dann einen
+    /// Anmelde-Hinweis statt der (ohne Login wirkungslosen) Einstellungen.
+    /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
+    [NotifyPropertyChangedFor(nameof(IsFilterSectionVisible))]
+    public partial bool IsLoggedOut { get; set; }
+
+    public bool IsLoggedIn => !IsLoggedOut;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFilterSectionVisible))]
     public partial bool IsEnabled { get; set; }
+
+    /// <summary>Filter-/Info-Bereich nur zeigen wenn angemeldet und Benachrichtigungen aktiv</summary>
+    public bool IsFilterSectionVisible => IsLoggedIn && IsEnabled;
 
     [ObservableProperty]
     public partial NotificationFilterMode FilterMode { get; set; }
@@ -104,12 +126,32 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 
     public void OnAppearing()
     {
+        IsLoggedOut = !_authService.IsAuthenticated;
+
+        // Ohne Login keine Preferences laden/speichern - die Seite zeigt den Anmelde-Hinweis.
+        // _isLoading bleibt true, damit Aenderungs-Handler keine Auto-Saves ausloesen.
+        if (IsLoggedOut)
+        {
+            _isLoading = true;
+            return;
+        }
+
         _ = LoadPreferencesAsync();
         _ = LoadMunicipalitiesAsync();
     }
 
+    /// <summary>
+    /// Navigiert zur Login-Seite (aus dem Anmelde-Hinweis)
+    /// </summary>
+    [RelayCommand]
+    private Task GoToLoginAsync() => _navigator.NavigateTo("Login", relativeNavigation: false);
+
     private async Task LoadMunicipalitiesAsync()
     {
+        // Bereits geladen - Gemeinde-Liste aendert sich zur Laufzeit nicht
+        if (_municipalities.Count > 0)
+            return;
+
         try
         {
             _municipalities = await _locationService.GetAllMunicipalitiesAsync();
@@ -283,6 +325,12 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
             IsPrivateSelected = preferences.IsPrivateSelected;
             IsBrokerSelected = preferences.IsBrokerSelected;
+
+            // Verlassene Ort-Suche zuruecksetzen (Seite ist ein gecachtes Shell-Root)
+            _suppressSearch = true;
+            OrtSearchText = string.Empty;
+            _suppressSearch = false;
+            OrtSuggestions = [];
         }
         catch (Exception ex)
         {

@@ -97,19 +97,10 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Konto-Status -->
-                <Border Style="{StaticResource Card}">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="Konto-Status"
-                               Style="{StaticResource Caption}" />
-                        <Label Text="Aktiv"
-                               Style="{StaticResource BodyStrong}" />
-                    </VerticalStackLayout>
-                </Border>
-
-                <!-- Abmelden -->
+                <!-- Abmelden (waehrend der Konto-Loeschung gesperrt) -->
                 <Button Text="Abmelden"
                         Command="{Binding LogoutCommand}"
+                        IsEnabled="{Binding IsNotDeletingAccount}"
                         Style="{StaticResource SecondaryButton}"
                         FontAttributes="Bold"
                         FontSize="15"

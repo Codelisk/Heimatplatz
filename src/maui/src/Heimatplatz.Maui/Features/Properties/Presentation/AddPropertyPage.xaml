@@ -9,7 +9,7 @@
              Title="Immobilie hinzufügen">
 
     <Grid>
-        <ScrollView>
+        <ScrollView x:Name="FormScroll">
             <VerticalStackLayout Spacing="16"
                                  Padding="16,24"
                                  MaximumWidthRequest="640"

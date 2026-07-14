@@ -3,6 +3,11 @@
 	reverse_proxy api:8080
 }
 
+# Test-API (haengt an der Testdatenbank, siehe api-test in docker-compose.yml)
+{$TEST_API_DOMAIN} {
+	reverse_proxy api-test:8080
+}
+
 # Statisches Astro-Web (ersetzt Azure Static Web Apps seit 10.7.2026).
 # Security-Header und 404-Fallback portiert aus src/web/public/staticwebapp.config.json.
 {$WEB_DOMAIN} {

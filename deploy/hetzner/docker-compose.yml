@@ -26,6 +26,27 @@ services:
     expose:
       - "8080"
 
+  # Test-API: gleicher Code/Build wie Prod, haengt aber an der Testdatenbank
+  # (docker-compose.testdb.yml, Port 5433 auf demselben Host). Seeding aktiv,
+  # damit die Test-DB nach einem Reset beim naechsten Start automatisch neu
+  # migriert und geseedet wird. Eigener JWT-Key: Test-Tokens gelten nicht auf Prod.
+  api-test:
+    build:
+      context: ../..
+      dockerfile: src/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Provider: Postgres
+      Database__AutoMigrate: "true"
+      Database__EnableSeeding: "true"
+      ConnectionStrings__DefaultConnection: "Host=128.140.33.238;Port=5433;Database=heimatplatz_test;Username=heimatplatz_test;Password=${TESTDB_PASSWORD}"
+      Authentication__Jwt__Key: ${TEST_JWT_KEY}
+    expose:
+      - "8080"
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -46,11 +67,13 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+      - api-test
     ports:
       - "80:80"
       - "443:443"
     environment:
       API_DOMAIN: ${API_DOMAIN}
+      TEST_API_DOMAIN: ${TEST_API_DOMAIN}
       WEB_DOMAIN: ${WEB_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro

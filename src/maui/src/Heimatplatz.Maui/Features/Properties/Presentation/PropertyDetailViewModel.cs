@@ -53,15 +53,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     public partial string FormattedPrice { get; set; }
 
     [ObservableProperty]
-    public partial string PricePerSqmText { get; set; }
-
-    [ObservableProperty]
-    public partial string PlotAreaText { get; set; }
-
-    [ObservableProperty]
-    public partial string YearBuiltText { get; set; }
-
-    [ObservableProperty]
     public partial string AddressText { get; set; }
 
     [ObservableProperty]
@@ -84,8 +75,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     [NotifyPropertyChangedFor(nameof(FavoriteButtonIcon))]
     public partial bool IsFavorite { get; set; }
 
+    /// <summary>True wenn die Immobilie nicht geladen werden konnte (Fehler oder geloescht)</summary>
     [ObservableProperty]
-    public partial bool IsHouseType { get; set; }
+    public partial bool HasLoadError { get; set; }
+
+    [ObservableProperty]
+    public partial string? LoadErrorText { get; set; }
 
     [ObservableProperty]
     public partial string TypeBadgeText { get; set; }
@@ -124,16 +119,37 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     public partial List<string> ImageUrls { get; set; }
 
     [ObservableProperty]
-    public partial string? PrimaryContactEmail { get; set; }
+    public partial string? SellerName { get; set; }
 
     [ObservableProperty]
-    public partial string? PrimaryContactPhone { get; set; }
+    public partial List<ContactDisplayItem> Contacts { get; set; }
 
     [ObservableProperty]
-    public partial bool HasPrimaryEmail { get; set; }
+    public partial bool HasContacts { get; set; }
+
+    /// <summary>True wenn der Kontakt-Footer angezeigt wird (Anbieter oder Kontakte vorhanden)</summary>
+    [ObservableProperty]
+    public partial bool HasContactFooter { get; set; }
 
     [ObservableProperty]
-    public partial bool HasPrimaryPhone { get; set; }
+    [NotifyPropertyChangedFor(nameof(ContactExpandIcon))]
+    public partial bool IsContactExpanded { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ImageCounterText))]
+    public partial int CurrentImagePosition { get; set; }
+
+    /// <summary>
+    /// Chevron: nach oben wenn zugeklappt (= aufklappen), nach unten wenn aufgeklappt (= zuklappen)
+    /// </summary>
+    public string ContactExpandIcon => IsContactExpanded ? "▼" : "▲";
+
+    /// <summary>
+    /// Bild-Zaehler fuer das Carousel, z.B. "2 / 7"
+    /// </summary>
+    public string ImageCounterText => ImageUrls.Count > 0
+        ? $"{CurrentImagePosition + 1} / {ImageUrls.Count}"
+        : string.Empty;
 
     /// <summary>
     /// Text fuer den Favoriten-Button je nach Status
@@ -162,9 +178,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
         Title = "Immobilie";
         FormattedPrice = string.Empty;
-        PricePerSqmText = "-";
-        PlotAreaText = "-";
-        YearBuiltText = "-";
         AddressText = string.Empty;
         ContactPersonText = string.Empty;
         TypeBadgeText = string.Empty;
@@ -172,6 +185,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         DetailSections = [];
         FeaturesList = [];
         ImageUrls = [];
+        Contacts = [];
         IsAuthenticated = authService.IsAuthenticated;
     }
 
@@ -199,6 +213,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     {
         IsBusy = true;
         BusyMessage = "Lade Immobilie...";
+        HasLoadError = false;
+        LoadErrorText = null;
 
         try
         {
@@ -215,6 +231,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             {
                 Property = null;
                 _logger.LogWarning("[PropertyDetail] Property {PropertyId} not found", propertyId);
+                HasLoadError = true;
+                LoadErrorText = "Diese Immobilie ist nicht mehr verfügbar.";
             }
 
             // Favoriten-Status laden
@@ -231,6 +249,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyDetail] Error loading property {PropertyId}", propertyId);
+            Property = null;
+            UpdateDisplayProperties();
+            HasLoadError = true;
+            LoadErrorText = "Die Immobilie konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
         }
         finally
         {
@@ -245,22 +267,21 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         {
             Title = "Immobilie";
             FormattedPrice = string.Empty;
-            PricePerSqmText = "-";
-            PlotAreaText = "-";
-            YearBuiltText = "-";
             AddressText = string.Empty;
             ContactPersonText = string.Empty;
             HasContactPerson = false;
-            IsHouseType = false;
             IsBroker = false;
             OriginalListingUrl = null;
             HasOriginalListingUrl = false;
             HasImages = false;
             ImageUrls = [];
-            PrimaryContactEmail = null;
-            PrimaryContactPhone = null;
-            HasPrimaryEmail = false;
-            HasPrimaryPhone = false;
+            SellerName = null;
+            Contacts = [];
+            HasContacts = false;
+            HasContactFooter = false;
+            IsContactExpanded = false;
+            CurrentImagePosition = 0;
+            OnPropertyChanged(nameof(ImageCounterText));
             TypeBadgeText = string.Empty;
             DetailSections = [];
             Description = null;
@@ -271,10 +292,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         }
 
         Title = Property.Title;
-
-        // Haus-Typ: Wohnflaeche/Zimmer/Baujahr nur fuer Haus oder ZV mit Gebaeudedaten anzeigen
-        IsHouseType = Property.Type == PropertyType.House ||
-                      (Property.Type == PropertyType.Foreclosure && (Property.LivingAreaM2.HasValue || Property.Rooms.HasValue));
 
         // Typ-Badge Text
         TypeBadgeText = Property.Type switch
@@ -294,29 +311,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             _ => Colors.Gray
         };
 
-        var price = (decimal)Property.Price;
-
         // Preis formatieren: "3.590.000 €"
-        FormattedPrice = $"{price:N0} €".Replace(",", ".");
-
-        // Preis pro Quadratmeter
-        if (Property.LivingAreaM2.HasValue && Property.LivingAreaM2.Value > 0)
-        {
-            var pricePerSqm = price / Property.LivingAreaM2.Value;
-            PricePerSqmText = $"{pricePerSqm:N2} €".Replace(",", ".");
-        }
-        else
-        {
-            PricePerSqmText = "-";
-        }
-
-        // Grundstuecksflaeche
-        PlotAreaText = Property.PlotAreaM2.HasValue
-            ? $"{Property.PlotAreaM2:N0} m²".Replace(",", ".")
-            : "-";
-
-        // Baujahr
-        YearBuiltText = Property.YearBuilt?.ToString() ?? "-";
+        FormattedPrice = PropertyDisplay.Price((decimal)Property.Price);
 
         // Volle Adresse: "Strasse, PLZ Ort"
         AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
@@ -344,18 +340,33 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         // Bilder
         ImageUrls = Property.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList() ?? [];
         HasImages = ImageUrls.Count > 0;
+        CurrentImagePosition = 0;
+        OnPropertyChanged(nameof(ImageCounterText));
 
-        // Kontaktperson (erster Kontakt falls vorhanden)
-        var firstContact = Property.Contacts?.FirstOrDefault();
-        HasContactPerson = firstContact != null;
+        // Kontaktperson (erster Kontakt falls vorhanden); ausblenden wenn identisch
+        // mit dem Anbieternamen (sonst steht derselbe Name doppelt im Footer)
         // Nur der Name: "Herr/Frau"-Praefix waere bei Firmenkontakten (GmbH, Makler) falsch
+        var firstContact = Property.Contacts?.FirstOrDefault();
         ContactPersonText = firstContact?.Name ?? string.Empty;
+        HasContactPerson = !string.IsNullOrWhiteSpace(ContactPersonText)
+            && !string.Equals(ContactPersonText, Property.SellerName, StringComparison.OrdinalIgnoreCase);
 
-        // Primaere Kontaktdaten fuer die Footer-Leiste
-        PrimaryContactEmail = firstContact?.Email;
-        PrimaryContactPhone = firstContact?.Phone;
-        HasPrimaryEmail = !string.IsNullOrWhiteSpace(PrimaryContactEmail);
-        HasPrimaryPhone = !string.IsNullOrWhiteSpace(PrimaryContactPhone);
+        // Alle Kontakte fuer den aufklappbaren Kontaktbereich; Kontakte ohne
+        // E-Mail/Telefon (nur Original-URL) deckt der Originalinserat-Button ab.
+        // Kontaktname = Anbietername wird unterdrueckt (steht schon in der Kopfzeile).
+        SellerName = Property.SellerName;
+        Contacts = Property.Contacts?
+            .OrderBy(c => c.DisplayOrder)
+            .Select(c => new ContactDisplayItem(
+                string.Equals(c.Name, Property.SellerName, StringComparison.OrdinalIgnoreCase)
+                    ? string.Empty
+                    : c.Name ?? string.Empty,
+                c.Email,
+                c.Phone))
+            .Where(c => c.HasEmail || c.HasPhone)
+            .ToList() ?? [];
+        HasContacts = Contacts.Count > 0;
+        HasContactFooter = HasContacts || !string.IsNullOrWhiteSpace(SellerName);
 
         // Beschreibung
         Description = Property.Description;
@@ -420,14 +431,14 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
         // --- Flaechen ---
         if (houseData != null && houseData.LivingAreaInSquareMeters > 0)
-            items.Add(new PropertyDetailItem("Wohnfläche", FormatArea(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
+            items.Add(new PropertyDetailItem("Wohnfläche", PropertyDisplay.Area(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
         else
-            AddIfHasValue(items, "Wohnfläche", Property.LivingAreaM2, v => $"{v:N0} m²".Replace(",", "."), PropertyDataCategory.Flaechen);
+            AddIfHasValue(items, "Wohnfläche", Property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
 
         if (landData != null && landData.PlotSizeInSquareMeters > 0)
-            items.Add(new PropertyDetailItem("Grundstücksfläche", FormatArea(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
+            items.Add(new PropertyDetailItem("Grundstücksfläche", PropertyDisplay.Area(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
         else
-            AddIfHasValue(items, "Grundstücksfläche", Property.PlotAreaM2, v => $"{v:N0} m²".Replace(",", "."), PropertyDataCategory.Flaechen);
+            AddIfHasValue(items, "Grundstücksfläche", Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
 
         // --- Gebaeude (Haus) ---
         if (houseData != null)
@@ -495,16 +506,16 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             if (foreclosureData.AuctionDate != default)
                 items.Add(new PropertyDetailItem("Termin", foreclosureData.AuctionDate.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung));
             if (foreclosureData.MinimumBid > 0)
-                items.Add(new PropertyDetailItem("Mindestgebot", $"{foreclosureData.MinimumBid:N0} €".Replace(",", "."), PropertyDataCategory.Versteigerung));
+                items.Add(new PropertyDetailItem("Mindestgebot", PropertyDisplay.Price(foreclosureData.MinimumBid), PropertyDataCategory.Versteigerung));
             if (Enum.IsDefined(foreclosureData.Status))
-                items.Add(new PropertyDetailItem("Status", FormatLegalStatus(foreclosureData.Status), PropertyDataCategory.Versteigerung));
+                items.Add(new PropertyDetailItem("Status", PropertyDisplay.LegalStatusText(foreclosureData.Status), PropertyDataCategory.Versteigerung));
         }
 
         // --- Kosten ---
         if (Property.LivingAreaM2.HasValue && Property.LivingAreaM2.Value > 0)
         {
             var pricePerSqm = price / Property.LivingAreaM2.Value;
-            items.Add(new PropertyDetailItem("Preis / m²", $"{pricePerSqm:N2} €".Replace(",", "."), PropertyDataCategory.Kosten));
+            items.Add(new PropertyDetailItem("Preis / m²", PropertyDisplay.PriceExact(pricePerSqm), PropertyDataCategory.Kosten));
         }
 
         // --- Basisdaten: Eingestellt am ---
@@ -522,14 +533,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     private static string FormatBool(bool value) => value ? "Ja" : "Nein";
 
-    private static string FormatArea(decimal sqm) => $"{sqm:N0} m²".Replace(",", ".");
-
     private static string FormatCondition(PropertyCondition condition) => condition switch
     {
         PropertyCondition.LikeNew => "Neuwertig",
         PropertyCondition.Good => "Gut",
         PropertyCondition.Average => "Durchschnittlich",
-        PropertyCondition.NeedsRenovation => "Sanierungsbeduerftig",
+        PropertyCondition.NeedsRenovation => "Sanierungsbedürftig",
         _ => condition.ToString()
     };
 
@@ -549,16 +558,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         SoilQuality.Medium => "Mittel",
         SoilQuality.Low => "Niedrig",
         _ => quality.ToString()
-    };
-
-    private static string FormatLegalStatus(LegalStatus status) => status switch
-    {
-        LegalStatus.Pending => "Anhaengig",
-        LegalStatus.Scheduled => "Terminiert",
-        LegalStatus.InProgress => "Laufend",
-        LegalStatus.Completed => "Abgeschlossen",
-        LegalStatus.Cancelled => "Aufgehoben",
-        _ => status.ToString()
     };
 
     private static string GetCategoryTitle(PropertyDataCategory category) => category switch
@@ -649,6 +648,61 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         {
             await ShowCopyFeedbackAsync("In Zwischenablage kopiert!", 2000);
         }
+    }
+
+    /// <summary>
+    /// Klappt die Kontaktdetails im Footer auf/zu
+    /// </summary>
+    [RelayCommand]
+    private void ToggleContactExpanded()
+    {
+        IsContactExpanded = !IsContactExpanded;
+        _logger.LogDebug("[PropertyDetail] ToggleContactExpanded -> {State}", IsContactExpanded);
+    }
+
+    /// <summary>
+    /// Oeffnet die Mail-App fuer eine Kontakt-E-Mail, Fallback: Adresse kopieren
+    /// </summary>
+    [RelayCommand]
+    private async Task ContactByEmailAsync(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return;
+
+        try
+        {
+            var subject = Uri.EscapeDataString($"Anfrage: {Property?.Title}");
+            await Launcher.Default.OpenAsync(new Uri($"mailto:{email}?subject={subject}"));
+            return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[PropertyDetail] Mail-App konnte nicht geoeffnet werden");
+        }
+
+        await CopyToClipboardAsync(email);
+    }
+
+    /// <summary>
+    /// Oeffnet die Telefon-App fuer eine Kontakt-Nummer, Fallback: Nummer kopieren
+    /// </summary>
+    [RelayCommand]
+    private async Task CallPhoneAsync(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            return;
+
+        try
+        {
+            await Launcher.Default.OpenAsync(new Uri($"tel:{phone.Replace(" ", string.Empty)}"));
+            return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[PropertyDetail] Telefon-App konnte nicht geoeffnet werden");
+        }
+
+        await CopyToClipboardAsync(phone);
     }
 
     /// <summary>

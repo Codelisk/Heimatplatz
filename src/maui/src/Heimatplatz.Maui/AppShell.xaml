@@ -6,10 +6,58 @@
     xmlns:shiny="clr-namespace:Shiny;assembly=Shiny.Maui.Shell"
     xmlns:properties="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
     xmlns:auth="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
+    xmlns:notifications="clr-namespace:Heimatplatz.Maui.Features.Notifications.Presentation"
     Title="Heimatplatz"
     FlyoutBehavior="Flyout"
     FlyoutWidth="300"
     FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+
+    <Shell.Resources>
+        <!-- Einheitliches Erscheinungsbild aller Flyout-Eintraege (FlyoutItems und MenuItems):
+             Icon + Text. BindingContext ist das jeweilige BaseShellItem; MenuShellItems spiegeln
+             Text/IconImageSource des MenuItems auf Title/Icon (siehe SyncMenuItemIcons). -->
+        <DataTemplate x:Key="FlyoutEntryTemplate" x:DataType="BaseShellItem">
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="14"
+                  Padding="20,0"
+                  HeightRequest="48">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Selected">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+
+                <Image Grid.Column="0"
+                       Source="{Binding Icon}"
+                       WidthRequest="20"
+                       HeightRequest="20"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="{Binding Title}"
+                       FontSize="14"
+                       VerticalTextAlignment="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            </Grid>
+        </DataTemplate>
+    </Shell.Resources>
+
+    <!-- ItemTemplate + MenuItemTemplate werden im Code-Behind auf FlyoutEntryTemplate gesetzt -->
 
     <Shell.FlyoutHeader>
         <Grid Padding="20,40,20,24"
@@ -51,56 +99,38 @@
         </Grid>
     </Shell.FlyoutHeader>
 
-    <!-- Einheitliches Erscheinungsbild der Flyout-Eintraege: Icon + Text.
-         BindingContext ist das interne MenuShellItem (BaseShellItem), das Text/IconImageSource
-         des MenuItems auf Title/Icon spiegelt - daher NICHT auf MenuItem binden. -->
-    <Shell.MenuItemTemplate>
-        <DataTemplate x:DataType="BaseShellItem">
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="14"
-                  Padding="20,0"
-                  HeightRequest="48">
-                <VisualStateManager.VisualStateGroups>
-                    <VisualStateGroupList>
-                        <VisualStateGroup x:Name="CommonStates">
-                            <VisualState x:Name="Normal">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="Transparent" />
-                                </VisualState.Setters>
-                            </VisualState>
-                            <VisualState x:Name="PointerOver">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
-                                </VisualState.Setters>
-                            </VisualState>
-                        </VisualStateGroup>
-                    </VisualStateGroupList>
-                </VisualStateManager.VisualStateGroups>
-
-                <Image Grid.Column="0"
-                       Source="{Binding Icon}"
-                       WidthRequest="20"
-                       HeightRequest="20"
-                       VerticalOptions="Center" />
-                <Label Grid.Column="1"
-                       Text="{Binding Title}"
-                       FontSize="14"
-                       VerticalTextAlignment="Center"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-            </Grid>
-        </DataTemplate>
-    </Shell.MenuItemTemplate>
-
-    <!-- Startseite als verstecktes ShellContent; der Flyout-Eintrag ist ein MenuItem mit
-         absoluter Route, damit der Navigation-Stack auch von gepushten Seiten
-         (z.B. Meine Immobilien) zurueck zur Startseite aufgeloest wird.
-         Ein sichtbares FlyoutItem wuerde bei erneutem Klick auf das aktive Item nichts tun. -->
+    <!-- Sichtbare Shell-Roots: Das Framework regelt das Navigations-Icon selbst -
+         Hamburger auf den Root-Seiten, Zurueck-Pfeil nur auf gepushten Detailseiten. -->
     <ShellContent
         Title="Startseite"
+        Icon="icon_home.png"
         ContentTemplate="{DataTemplate properties:HomePage}"
-        Route="MainPage"
-        FlyoutItemIsVisible="False" />
-
+        Route="MainPage" />
+    <ShellContent
+        Title="Meine Immobilien"
+        Icon="icon_buildings.png"
+        ContentTemplate="{DataTemplate properties:MyPropertiesPage}"
+        Route="MyProperties" />
+    <ShellContent
+        Title="Favoriten"
+        Icon="icon_heart.png"
+        ContentTemplate="{DataTemplate properties:FavoritesPage}"
+        Route="Favorites" />
+    <ShellContent
+        Title="Blockiert"
+        Icon="icon_block.png"
+        ContentTemplate="{DataTemplate properties:BlockedPage}"
+        Route="Blocked" />
+    <ShellContent
+        Title="Benachrichtigungen"
+        Icon="icon_bell.png"
+        ContentTemplate="{DataTemplate notifications:NotificationSettingsPage}"
+        Route="NotificationSettings" />
+    <ShellContent
+        Title="Profil"
+        Icon="icon_user.png"
+        ContentTemplate="{DataTemplate auth:UserProfilePage}"
+        Route="UserProfile" />
     <!-- Login als verstecktes ShellContent, damit absolute Navigation (//Login) beim Logout funktioniert -->
     <ShellContent
         Title="Anmelden"
@@ -108,21 +138,40 @@
         Route="Login"
         FlyoutItemIsVisible="False" />
 
-    <MenuItem Text="Startseite" IconImageSource="icon_home.png" shiny:Navigate.Route="///MainPage" />
-    <MenuItem Text="Meine Immobilien" IconImageSource="icon_buildings.png" shiny:Navigate.Route="MyProperties" />
-    <MenuItem Text="Favoriten" IconImageSource="icon_heart.png" shiny:Navigate.Route="Favorites" />
-    <MenuItem Text="Blockiert" IconImageSource="icon_block.png" shiny:Navigate.Route="Blocked" />
-    <!-- Route wird im Code-Behind gesetzt: KI-Flow auf Phones, manuell sonst -->
-    <MenuItem x:Name="AddPropertyMenuItem" Text="Immobilie hinzufügen" IconImageSource="icon_add.png" shiny:Navigate.Route="AddProperty" />
-    <MenuItem Text="Benachrichtigungen" IconImageSource="icon_bell.png" shiny:Navigate.Route="NotificationSettings" />
-    <MenuItem Text="Profil" IconImageSource="icon_user.png" shiny:Navigate.Route="UserProfile" />
-    <MenuItem Text="Impressum" IconImageSource="icon_info.png" shiny:Navigate.Route="Imprint" />
-    <MenuItem Text="Datenschutz" IconImageSource="icon_shield.png" shiny:Navigate.Route="PrivacyPolicy" />
+    <!-- Aktion statt Ziel: pusht die Erfassungsseite (mit Zurueck-Pfeil zum Abbrechen).
+         Route wird im Code-Behind gesetzt: KI-Flow auf Phones, manuell sonst -->
+    <MenuItem x:Name="AddPropertyMenuItem" Text="Immobilie hinzufügen" IconImageSource="icon_add.png" />
 
     <Shell.FlyoutFooter>
         <VerticalStackLayout Padding="20,12,20,20" Spacing="10">
             <BoxView HeightRequest="1"
                      Color="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
+
+            <!-- Rechtliches dezent im Footer statt als eigene Menuepunkte -->
+            <HorizontalStackLayout Spacing="6">
+                <Label Text="Impressum"
+                       FontSize="11"
+                       TextDecorations="Underline"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                       AutomationId="Flyout_ImprintLink">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnImprintTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="·"
+                       FontSize="11"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                <Label Text="Datenschutz"
+                       FontSize="11"
+                       TextDecorations="Underline"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                       AutomationId="Flyout_PrivacyPolicyLink">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnPrivacyPolicyTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+
             <Label x:Name="VersionLabel"
                    FontSize="11"
                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />

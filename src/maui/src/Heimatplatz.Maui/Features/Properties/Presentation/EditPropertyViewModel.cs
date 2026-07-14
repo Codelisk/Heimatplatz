@@ -146,6 +146,13 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
 
     public void OnAppearing()
     {
+        // Bearbeiten erfordert ein angemeldetes Verkaeufer-Konto (API: RequireSeller)
+        if (!_authService.IsAuthenticated)
+        {
+            _ = _navigator.NavigateTo("Login", relativeNavigation: false);
+            return;
+        }
+
         if (_isLoaded) return;
         _isLoaded = true;
 
@@ -225,8 +232,13 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
                 {
                     foreach (var url in prop.ImageUrls)
                     {
+                        // Relative URLs nicht mit new Uri() crashen lassen
+                        var fileName = Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                            ? Path.GetFileName(uri.LocalPath)
+                            : Path.GetFileName(url);
+
                         Images.Add(new ImageItem(
-                            Path.GetFileName(new Uri(url).LocalPath),
+                            fileName,
                             "image/jpeg",
                             Array.Empty<byte>(),
                             Url: url));
@@ -237,7 +249,8 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden der Immobilie: {ex.Message}";
+            _logger.LogError(ex, "[EditProperty] Fehler beim Laden der Immobilie {PropertyId}", PropertyId);
+            ErrorMessage = "Die Immobilie konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
         }
         finally
         {
@@ -340,6 +353,26 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
 
     #region Speichern
 
+    /// <summary>
+    /// Parst ein optionales Ganzzahl-Feld; ungueltige Eingaben werden nicht still
+    /// verworfen, sondern erzeugen eine Fehlermeldung.
+    /// </summary>
+    private bool TryParseOptionalInt(string input, string fieldName, out int? value)
+    {
+        value = null;
+        if (string.IsNullOrWhiteSpace(input))
+            return true;
+
+        if (int.TryParse(input.Trim(), out var parsed) && parsed >= 0)
+        {
+            value = parsed;
+            return true;
+        }
+
+        ErrorMessage = $"Bitte geben Sie für {fieldName} eine gültige Zahl ein.";
+        return false;
+    }
+
     [RelayCommand]
     private async Task UpdatePropertyAsync()
     {
@@ -382,67 +415,74 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
             return;
         }
 
+        if (Images.Count == 0)
+        {
+            ErrorMessage = "Bitte fügen Sie mindestens ein Bild hinzu";
+            return;
+        }
+
+        // Optionale Zahlenfelder validieren - ungueltige Eingaben nicht still verwerfen
+        if (!TryParseOptionalInt(WohnflaecheM2, "Wohnfläche", out var wohnflaecheValue) ||
+            !TryParseOptionalInt(GrundstuecksflaecheM2, "Grundstücksfläche", out var grundstuecksValue) ||
+            !TryParseOptionalInt(Zimmer, "Zimmer", out var zimmerValue) ||
+            !TryParseOptionalInt(Baujahr, "Baujahr", out var baujahrValue))
+        {
+            return;
+        }
+
+        // Typfremde Felder nicht mitsenden (Eingaben koennen von einem frueher gewaehlten Typ stammen)
+        if (!IsHouseType)
+        {
+            wohnflaecheValue = null;
+            zimmerValue = null;
+            baujahrValue = null;
+        }
+
         IsBusy = true;
         var saveSucceeded = false;
 
         try
         {
-            // Optionale Felder parsen
-            int? wohnflaecheValue = null;
-            if (!string.IsNullOrWhiteSpace(WohnflaecheM2) && int.TryParse(WohnflaecheM2, out var wf))
-                wohnflaecheValue = wf;
-
-            int? grundstuecksValue = null;
-            if (!string.IsNullOrWhiteSpace(GrundstuecksflaecheM2) && int.TryParse(GrundstuecksflaecheM2, out var gs))
-                grundstuecksValue = gs;
-
-            int? zimmerValue = null;
-            if (!string.IsNullOrWhiteSpace(Zimmer) && int.TryParse(Zimmer, out var z))
-                zimmerValue = z;
-
-            int? baujahrValue = null;
-            if (!string.IsNullOrWhiteSpace(Baujahr) && int.TryParse(Baujahr, out var bj))
-                baujahrValue = bj;
-
             var sellerName = _authService.UserFullName ?? "Unbekannt";
             var municipalityId = SelectedGemeindeId!.Value;
 
             // Bestehende URLs beibehalten, nur neue Bilder hochladen
-            List<string>? imageUrls = null;
-            if (Images.Count > 0)
+            List<string> imageUrls;
+            try
             {
-                try
-                {
-                    var existingUrls = Images.Where(img => img.IsExisting).Select(img => img.Url!).ToList();
+                var existingUrls = Images.Where(img => img.IsExisting).Select(img => img.Url!).ToList();
 
-                    var newImages = Images.Where(img => !img.IsExisting).ToList();
-                    List<string> newUrls = [];
-                    if (newImages.Count > 0)
+                var newImages = Images.Where(img => !img.IsExisting).ToList();
+                List<string> newUrls = [];
+                if (newImages.Count > 0)
+                {
+                    var base64Images = newImages.Select(img => new Base64ImageData
                     {
-                        var base64Images = newImages.Select(img => new Base64ImageData
+                        FileName = img.FileName,
+                        ContentType = img.ContentType,
+                        Base64Data = img.ToBase64()
+                    }).ToList();
+
+                    var (_, uploadResult) = await _mediator.Request(
+                        new UploadPropertyImagesHttpRequest
                         {
-                            FileName = img.FileName,
-                            ContentType = img.ContentType,
-                            Base64Data = img.ToBase64()
-                        }).ToList();
+                            Body = new UploadPropertyImagesRequest { Images = base64Images }
+                        });
 
-                        var (_, uploadResult) = await _mediator.Request(
-                            new UploadPropertyImagesHttpRequest
-                            {
-                                Body = new UploadPropertyImagesRequest { Images = base64Images }
-                            });
-
-                        newUrls = uploadResult?.ImageUrls ?? [];
-                    }
-
-                    imageUrls = [.. existingUrls, .. newUrls];
-                    _logger.LogInformation("{Count} Bilder gesamt ({Existing} bestehend, {New} neu)",
-                        imageUrls.Count, existingUrls.Count, newUrls.Count);
+                    newUrls = uploadResult?.ImageUrls ?? [];
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Fehler beim Hochladen der Bilder");
-                }
+
+                imageUrls = [.. existingUrls, .. newUrls];
+                _logger.LogInformation("{Count} Bilder gesamt ({Existing} bestehend, {New} neu)",
+                    imageUrls.Count, existingUrls.Count, newUrls.Count);
+            }
+            catch (Exception ex)
+            {
+                // Update abbrechen - sonst wuerde ImageUrls unvollstaendig/leer gespeichert
+                // und bestehende Bilder gingen still verloren
+                _logger.LogError(ex, "Fehler beim Hochladen der Bilder");
+                ErrorMessage = "Fehler beim Hochladen der Bilder. Die Änderungen wurden nicht gespeichert.";
+                return;
             }
 
             await _mediator.Request(new UpdatePropertyHttpRequest
@@ -470,7 +510,8 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Ein Fehler ist aufgetreten: {ex.Message}";
+            _logger.LogError(ex, "[EditProperty] Fehler beim Speichern");
+            ErrorMessage = "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.";
         }
         finally
         {

@@ -9,4 +9,6 @@ public partial class LoginPage : ContentPage
     {
         InitializeComponent();
     }
+
+    private void OnEmailCompleted(object? sender, EventArgs e) => PasswortEntry.Focus();
 }

@@ -27,6 +27,15 @@ public partial class AiAddPropertyPage : ContentPage
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // Fehler-Banner sitzt oben, die Aktions-Buttons unten - bei einem
+        // Validierungsfehler die gerade sichtbare Phase nach oben scrollen
+        if (e.PropertyName == nameof(AiAddPropertyViewModel.HasError) && _viewModel?.HasError == true)
+        {
+            var scroll = _viewModel.IsReviewPhase ? ReviewScroll : InputScroll;
+            MainThread.BeginInvokeOnMainThread(() => _ = scroll.ScrollToAsync(0, 0, animated: true));
+            return;
+        }
+
         if (e.PropertyName != nameof(AiAddPropertyViewModel.IsListening))
             return;
 

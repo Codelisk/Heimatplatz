@@ -11,7 +11,7 @@
     <Grid>
 
         <!-- ============ PHASE 0: EINGABE ============ -->
-        <ScrollView IsVisible="{Binding IsInputPhase}">
+        <ScrollView x:Name="InputScroll" IsVisible="{Binding IsInputPhase}">
             <VerticalStackLayout Spacing="16"
                                  Padding="16,24"
                                  MaximumWidthRequest="640"
@@ -376,7 +376,7 @@
         </Grid>
 
         <!-- ============ PHASE 2: REVIEW ============ -->
-        <ScrollView IsVisible="{Binding IsReviewPhase}">
+        <ScrollView x:Name="ReviewScroll" IsVisible="{Binding IsReviewPhase}">
             <VerticalStackLayout Spacing="16"
                                  Padding="16,24"
                                  MaximumWidthRequest="640"
@@ -457,7 +457,7 @@
                 </VerticalStackLayout>
 
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Ausstattung (mit Komma getrennt)"
+                    <Label Text="Ausstattung (durch Komma getrennt)"
                            Style="{StaticResource FieldLabel}" />
                     <Entry Text="{Binding ReviewFeatures}"
                            Placeholder="z.B. Garage, Garten, Keller" />

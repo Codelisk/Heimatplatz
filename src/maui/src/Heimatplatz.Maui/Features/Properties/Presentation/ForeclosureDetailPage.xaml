@@ -12,6 +12,14 @@
         <ScrollView Grid.Row="0">
             <VerticalStackLayout Spacing="16" Padding="0,0,0,16">
 
+                <!-- Fehler-/Nicht-mehr-verfuegbar-Hinweis -->
+                <Border IsVisible="{Binding HasLoadError}"
+                        Style="{StaticResource ErrorBanner}"
+                        Margin="16,16,16,0">
+                    <Label Text="{Binding LoadErrorText}"
+                           Style="{StaticResource ErrorBannerText}" />
+                </Border>
+
                 <!-- Bilder-Carousel -->
                 <Grid HeightRequest="260">
                     <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
@@ -71,9 +79,11 @@
                            LineBreakMode="TailTruncation"
                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
 
+                    <!-- Bei ZV oft kein Kaufpreis (0) - dann ausblenden statt "0 €" -->
                     <Label Text="{Binding FormattedPrice}"
                            FontSize="24"
                            FontAttributes="Bold"
+                           IsVisible="{Binding HasPrice}"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
 
                     <Label Text="{Binding AddressText}"

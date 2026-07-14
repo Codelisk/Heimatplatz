@@ -1,1 +1,1 @@
-Immobilien,Oberösterreich,Haus,Grundstück,Wohnung,Zwangsversteigerung,kaufen,verkaufen,Makler,privat
+haus,wohnung,grundstück,zwangsversteigerung,kaufen,makler,privat,linz,wels,steyr,edikt,immo,oö

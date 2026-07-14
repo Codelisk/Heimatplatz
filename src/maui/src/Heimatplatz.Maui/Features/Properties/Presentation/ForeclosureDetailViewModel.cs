@@ -51,6 +51,20 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     [ObservableProperty]
     public partial string FormattedPrice { get; set; }
 
+    /// <summary>
+    /// Zwangsversteigerungen haben oft keinen Kaufpreis (0) - massgeblich sind
+    /// Schaetzwert/Mindestgebot. Ein prominentes "0 €" wird dann ausgeblendet.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool HasPrice { get; set; }
+
+    /// <summary>True wenn die Zwangsversteigerung nicht geladen werden konnte (Fehler oder geloescht)</summary>
+    [ObservableProperty]
+    public partial bool HasLoadError { get; set; }
+
+    [ObservableProperty]
+    public partial string? LoadErrorText { get; set; }
+
     [ObservableProperty]
     public partial string AddressText { get; set; }
 
@@ -190,6 +204,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     {
         IsBusy = true;
         BusyMessage = "Lade Zwangsversteigerung...";
+        HasLoadError = false;
+        LoadErrorText = null;
 
         try
         {
@@ -206,6 +222,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             {
                 Property = null;
                 _logger.LogWarning("[ForeclosureDetail] Property {PropertyId} not found", propertyId);
+                HasLoadError = true;
+                LoadErrorText = "Diese Zwangsversteigerung ist nicht mehr verfügbar.";
             }
 
             // Favoriten-Status laden
@@ -222,6 +240,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ForeclosureDetail] Error loading property {PropertyId}", propertyId);
+            Property = null;
+            UpdateDisplayProperties();
+            HasLoadError = true;
+            LoadErrorText = "Die Zwangsversteigerung konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
         }
         finally
         {
@@ -235,6 +257,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         if (Property == null)
         {
             FormattedPrice = string.Empty;
+            HasPrice = false;
             AddressText = string.Empty;
             TypeBadgeText = "ZV";
             DetailSections = [];
@@ -252,8 +275,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         TypeBadgeText = "ZV";
         TypeBadgeColor = Color.FromArgb("#B22222");
 
-        // Preis formatieren
-        FormattedPrice = $"{(decimal)Property.Price:N0} €".Replace(",", ".");
+        // Preis formatieren; 0 € (kein Kaufpreis, nur Schaetzwert/Mindestgebot) ausblenden
+        HasPrice = Property.Price > 0;
+        FormattedPrice = HasPrice ? PropertyDisplay.Price((decimal)Property.Price) : string.Empty;
 
         // Volle Adresse
         AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
@@ -289,7 +313,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         // --- VERSTEIGERUNG (wichtigste Daten zuerst) ---
         items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung, true));
         AddJsonDateTime(items, data, "AuctionDate", "Versteigerungstermin", PropertyDataCategory.Versteigerung, true);
-        AddJsonDecimalCurrency(items, data, "EstimatedValue", "Schaetzwert", PropertyDataCategory.Versteigerung, true);
+        AddJsonDecimalCurrency(items, data, "EstimatedValue", "Schätzwert", PropertyDataCategory.Versteigerung, true);
         AddJsonDecimalCurrency(items, data, "MinimumBid", "Mindestgebot", PropertyDataCategory.Versteigerung, true);
         AddJsonString(items, data, "OwnershipShare", "Eigentumsanteil", PropertyDataCategory.Versteigerung);
 
@@ -313,7 +337,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
         // --- FLÄCHEN ---
         AddJsonDecimalArea(items, data, "TotalArea", "Gesamtfläche", PropertyDataCategory.Flaechen);
-        AddIfHasValue(items, "Grundstück", Property.PlotAreaM2, v => $"{v:N0} m²".Replace(",", "."), PropertyDataCategory.Flaechen);
+        AddIfHasValue(items, "Grundstück", Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
         AddJsonDecimalArea(items, data, "BuildingArea", "Bebaute Fläche", PropertyDataCategory.Flaechen);
 
         // --- GRUNDBUCH ---
@@ -421,13 +445,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     private static void AddJsonDecimalCurrency(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category, bool highlighted = false)
     {
         if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var val))
-            items.Add(new PropertyDetailItem(label, $"{val:N0} €".Replace(",", "."), category, highlighted));
+            items.Add(new PropertyDetailItem(label, PropertyDisplay.Price(val), category, highlighted));
     }
 
     private static void AddJsonDecimalArea(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)
     {
         if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var val) && val > 0)
-            items.Add(new PropertyDetailItem(label, $"{val:N0} m²".Replace(",", "."), category));
+            items.Add(new PropertyDetailItem(label, PropertyDisplay.Area(val), category));
     }
 
     private static void AddJsonStatus(List<PropertyDetailItem> items, JsonElement? data, PropertyDataCategory category, bool highlighted = false)
@@ -435,17 +459,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         if (data.HasValue && data.Value.TryGetProperty("Status", out var prop) && prop.ValueKind == JsonValueKind.String)
         {
             var statusValue = prop.GetString() ?? "";
-            var translated = statusValue switch
-            {
-                "Pending" => "Anhaengig",
-                "Scheduled" => "Termin angesetzt",
-                "InProgress" => "Laufend",
-                "Completed" => "Abgeschlossen",
-                "Cancelled" => "Abgebrochen",
-                "Suspended" => "Ausgesetzt",
-                _ => statusValue
-            };
-            items.Add(new PropertyDetailItem("Status", translated, category, highlighted));
+            items.Add(new PropertyDetailItem("Status", PropertyDisplay.LegalStatusText(statusValue), category, highlighted));
         }
     }
 

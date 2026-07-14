@@ -2,6 +2,7 @@ using Heimatplatz.Maui.ApiClient.Configuration;
 using Heimatplatz.Maui.Core.DeepLink.Configuration;
 using Heimatplatz.Maui.Features.AppUpdate.Configuration;
 using Heimatplatz.Maui.Features.Auth.Infrastructure;
+using Heimatplatz.Maui.Features.Debug.Services;
 using Heimatplatz.Maui.Features.Notifications.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,19 +32,12 @@ public static class MauiProgram
             });
 
         // API-Endpunkt fuer den generierten Shiny.Mediator OpenAPI-Client
-        var apiBaseUrl = "https://api.heimatplatz.at";
-#if DEBUG && ANDROID
-        // Debug im Android-Emulator: lokale API am Host (10.0.2.2 = Host-Loopback)
-        if (DeviceInfo.Current.DeviceType == DeviceType.Virtual)
-        {
-            apiBaseUrl = "http://10.0.2.2:5292";
-        }
-        else
-        {
-            // Physisches Geraet via USB-Debugging: "adb reverse tcp:5292 tcp:5292" leitet
-            // localhost:5292 am Geraet auf die lokale API am Entwicklungsrechner um.
-            apiBaseUrl = "http://localhost:5292";
-        }
+        var apiBaseUrl = ApiEndpoints.ProductionUrl;
+#if DEBUG
+        // Debug: zuletzt auf der DebugPage (Flyout "Debug") gewaehlter Endpunkt
+        // (Entwicklung/Test/Produktion); Default je Plattform: Android lokal,
+        // sonst Produktion. Zur Laufzeit umschaltbar.
+        apiBaseUrl = ApiEndpoints.GetUrl(ApiEndpoints.GetSelectedEndpoint());
 #endif
         // Override per Umgebungsvariable (z.B. Screenshot-Runs im Simulator gegen die
         // Test-API via SIMCTL_CHILD_HEIMATPLATZ_API_URL) - auf Geraeten nie gesetzt
@@ -55,7 +49,7 @@ public static class MauiProgram
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Mediator:Http:Heimatplatz.Maui.ApiClient.Generated.*"] = apiBaseUrl
+            [ApiEndpoints.MediatorHttpConfigKey] = apiBaseUrl
         });
 
         // Shiny-Serializer VOR AddShinyMediator konfigurieren (wie Uno Core.Startup):

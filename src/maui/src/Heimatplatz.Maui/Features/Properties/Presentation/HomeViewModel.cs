@@ -248,15 +248,30 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         }
     }
 
-    private async Task LoadMunicipalitiesAsync()
+    private Task? _municipalitiesLoadTask;
+
+    /// <summary>
+    /// Laedt die Gemeinden genau einmal (single-flight). Nach einem Fehlschlag wird
+    /// beim naechsten Aufruf erneut versucht.
+    /// </summary>
+    private Task LoadMunicipalitiesAsync()
     {
-        try
+        if (_municipalities.Count > 0)
+            return Task.CompletedTask;
+
+        return _municipalitiesLoadTask ??= LoadMunicipalitiesCoreAsync();
+
+        async Task LoadMunicipalitiesCoreAsync()
         {
-            _municipalities = await _locationService.GetAllMunicipalitiesAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[HomePage] Failed to load locations from API");
+            try
+            {
+                _municipalities = await _locationService.GetAllMunicipalitiesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[HomePage] Failed to load locations from API");
+                _municipalitiesLoadTask = null; // beim naechsten Bedarf erneut versuchen
+            }
         }
     }
 
@@ -715,6 +730,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 SortOption.FlaecheAb => ("PlotArea", true),
                 SortOption.FlaecheAuf => ("PlotArea", false),
                 SortOption.PlzAuf => ("PostalCode", false),
+                SortOption.PlzAb => ("PostalCode", true),
                 _ => ((string?)null, true)
             };
 
@@ -745,9 +761,13 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 request.SellerTypesJson = JsonSerializer.Serialize(selectedSellerTypes);
             }
 
-            // MunicipalityIds-Filter (Ortsnamen -> Ids)
-            if (SelectedOrte.Count > 0 && _municipalities.Count > 0)
+            // MunicipalityIds-Filter (Ortsnamen -> Ids). Gemeinden bei Bedarf nachladen,
+            // sonst wuerde der Ort-Filter beim Kaltstart (Race mit dem Gemeinden-Load)
+            // still ignoriert und die Liste zeigt trotz Filter alle Objekte.
+            if (SelectedOrte.Count > 0)
             {
+                await LoadMunicipalitiesAsync();
+
                 var ids = _municipalities
                     .Where(m => SelectedOrte.Contains(m.Name))
                     .Select(m => m.Id)
@@ -755,6 +775,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 if (ids.Count > 0)
                 {
                     request.MunicipalityIdsJson = JsonSerializer.Serialize(ids);
+                }
+                else
+                {
+                    _logger.LogWarning("[HomePage] Ort-Filter aktiv, aber keine Gemeinde-Ids aufloesbar ({Orte})",
+                        string.Join(", ", SelectedOrte));
                 }
             }
 
@@ -834,7 +859,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         var choice = await _dialogs.ActionSheet(
             "Sortierung",
             "Abbrechen",
-            "Neueste", "Älteste", "Preis ↑", "Preis ↓", "Fläche ↓", "Fläche ↑", "PLZ");
+            null,
+            "Neueste", "Älteste", "Preis ↑", "Preis ↓", "Fläche ↓", "Fläche ↑", "PLZ ↑", "PLZ ↓");
 
         var newSort = choice switch
         {
@@ -844,7 +870,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             "Preis ↓" => SortOption.PreisAb,
             "Fläche ↓" => SortOption.FlaecheAb,
             "Fläche ↑" => SortOption.FlaecheAuf,
-            "PLZ" => SortOption.PlzAuf,
+            "PLZ ↑" => SortOption.PlzAuf,
+            "PLZ ↓" => SortOption.PlzAb,
             _ => (SortOption?)null
         };
 
@@ -863,7 +890,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         SortOption.PreisAb => "Preis ↓",
         SortOption.FlaecheAb => "Fläche ↓",
         SortOption.FlaecheAuf => "Fläche ↑",
-        SortOption.PlzAuf => "PLZ",
+        SortOption.PlzAuf => "PLZ ↑",
+        SortOption.PlzAb => "PLZ ↓",
         _ => "Neueste"
     };
 

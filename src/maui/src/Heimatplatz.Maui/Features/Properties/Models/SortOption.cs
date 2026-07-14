@@ -24,5 +24,8 @@ public enum SortOption
     FlaecheAuf,
 
     /// <summary>PLZ aufsteigend</summary>
-    PlzAuf
+    PlzAuf,
+
+    /// <summary>PLZ absteigend</summary>
+    PlzAb
 }

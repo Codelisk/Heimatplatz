@@ -39,20 +39,25 @@
 
                     <!-- E-Mail -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="E-Mail Adresse"
+                        <Label Text="E-Mail-Adresse"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry Text="{Binding Email}"
+                        <Entry x:Name="EmailEntry"
+                               Text="{Binding Email}"
                                Placeholder="max@beispiel.at"
-                               Keyboard="Email" />
+                               Keyboard="Email"
+                               ReturnType="Next"
+                               Completed="OnEmailCompleted" />
                     </VerticalStackLayout>
 
                     <!-- Passwort ("Vergessen?"-Link entfernt: es gibt noch keinen Passwort-Reset-Flow) -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Passwort"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry Text="{Binding Passwort}"
+                        <Entry x:Name="PasswortEntry"
+                               Text="{Binding Passwort}"
                                Placeholder="Ihr Passwort"
                                IsPassword="True"
+                               ReturnType="Go"
                                ReturnCommand="{Binding LoginCommand}" />
                     </VerticalStackLayout>
 
