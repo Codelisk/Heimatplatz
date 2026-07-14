@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         // Seeder registrieren
         services.AddSeeder<SellerSourceSeeder>();
         services.AddSeeder<PropertySeeder>();
+        services.AddSeeder<PropertyMunicipalityFixSeeder>();
         services.AddSeeder<FavoriteSeeder>();
         services.AddSeeder<BlockedSeeder>();
 

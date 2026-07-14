@@ -9,13 +9,14 @@ using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific.Enums;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 
 /// <summary>
 /// Seeder fuer Beispiel-Immobilien in Oberoesterreich
 /// </summary>
-public class PropertySeeder(AppDbContext dbContext) : ISeeder
+public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logger) : ISeeder
 {
     public int Order => 10;
 
@@ -37,30 +38,28 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
             return;
         }
 
-        // Municipalities laden fuer FK-Zuordnung
-        var municipalities = await dbContext.Set<Municipality>()
-            .ToDictionaryAsync(m => m.Name.ToLowerInvariant(), m => m.Id, cancellationToken);
+        // Municipalities laden fuer FK-Zuordnung (Umlaut-normalisiert, Duplikat-sicher:
+        // gleichnamige Gemeinden in verschiedenen Bezirken duerfen das Seeding nicht crashen)
+        var municipalityList = await dbContext.Set<Municipality>().ToListAsync(cancellationToken);
 
-        if (municipalities.Count == 0)
+        if (municipalityList.Count == 0)
         {
             // Keine Municipalities vorhanden - Seeding ueberspringen
             return;
         }
 
-        // Helper: Municipality ID by Name (case-insensitive, partial match)
-        Guid GetMunicipalityId(string cityName)
+        var municipalities = municipalityList
+            .GroupBy(m => MunicipalityNameResolver.NormalizeCityKey(m.Name))
+            .ToDictionary(g => g.Key, g => g.First().Id);
+
+        // Helper: Municipality ID by Name. Kein stiller Fallback - eine falsche Zuordnung
+        // macht den Ort-Filter kaputt (Objekt erscheint bei fremden Gemeinden, fehlt bei der eigenen).
+        Guid? GetMunicipalityId(string cityName)
         {
-            var key = cityName.ToLowerInvariant();
-            if (municipalities.TryGetValue(key, out var id))
-                return id;
-
-            // Partial match (e.g. "Braunau am Inn" -> "Braunau")
-            var partialMatch = municipalities.Keys.FirstOrDefault(k => k.Contains(key) || key.Contains(k));
-            if (partialMatch != null)
-                return municipalities[partialMatch];
-
-            // Fallback: erste Municipality
-            return municipalities.Values.First();
+            var id = MunicipalityNameResolver.Resolve(municipalities, cityName);
+            if (id == null)
+                logger.LogError("[PropertySeeder] Gemeinde '{City}' nicht aufloesbar - Objekt wird uebersprungen", cityName);
+            return id;
         }
 
         // Properties gleichmaessig auf Seller verteilen
@@ -73,7 +72,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
         }
 
         var now = DateTimeOffset.UtcNow;
-        var properties = new List<Property>
+        var seedCandidates = new List<Property?>
         {
             // Haeuser
             CreateProperty("Einfamilienhaus in Linz-Urfahr", "Hauptstrasse 15", "Linz", 349000,
@@ -149,8 +148,16 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
                 125, 280, 4, 2019, PropertyType.House, SellerType.Broker, "Hausfreund Immobilien",
                 "Neuwertige Doppelhaushaelfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
                 ["Garage", "Garten", "Terrasse", "Fussbodenheizung", "Waermepumpe"],
-                "https://picsum.photos/seed/doppel1/800/600", GetMunicipalityId)
+                "https://picsum.photos/seed/doppel1/800/600", GetMunicipalityId),
+
+            CreateProperty("Einfamilienhaus am Traunfall", "Traunfallstrasse 12", "Roitham am Traunfall", 365000,
+                140, 610, 5, 2012, PropertyType.House, SellerType.Private, "Familie Berger",
+                "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Grosser Garten mit altem Baumbestand.",
+                ["Garage", "Garten", "Terrasse", "Keller", "Kachelofen"],
+                "https://picsum.photos/seed/traunfall1/800/600", GetMunicipalityId)
         };
+
+        var properties = seedCandidates.OfType<Property>().ToList();
 
         // UserId und CreatedAt fuer alle Properties setzen
         // Unterschiedliche CreatedAt-Zeiten fuer Age-Filter Tests
@@ -193,21 +200,27 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
     }
 
     /// <summary>
-    /// Helper: Create a Property with MunicipalityId lookup
+    /// Helper: Create a Property with MunicipalityId lookup.
+    /// Liefert null wenn die Gemeinde nicht aufloesbar ist (Objekt wird uebersprungen).
+    /// Internal: wird auch vom PropertyMunicipalityFixSeeder fuer nachgelegte Objekte genutzt.
     /// </summary>
-    private static Property CreateProperty(
+    internal static Property? CreateProperty(
         string title, string address, string cityName, decimal price,
         int? livingArea, int? plotArea, int? rooms, int? yearBuilt,
         PropertyType type, SellerType sellerType, string sellerName,
         string description, List<string> features, string imageUrl,
-        Func<string, Guid> getMunicipalityId)
+        Func<string, Guid?> getMunicipalityId)
     {
+        var municipalityId = getMunicipalityId(cityName);
+        if (municipalityId == null)
+            return null;
+
         return new Property
         {
             Id = Guid.NewGuid(),
             Title = title,
             Address = address,
-            MunicipalityId = getMunicipalityId(cityName),
+            MunicipalityId = municipalityId.Value,
             Price = price,
             LivingAreaSquareMeters = livingArea,
             PlotAreaSquareMeters = plotArea,
@@ -225,7 +238,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
     /// <summary>
     /// Setzt TypeSpecificData fuer alle Properties basierend auf ihrem Typ
     /// </summary>
-    private static void SetTypeSpecificData(List<Property> properties)
+    internal static void SetTypeSpecificData(List<Property> properties)
     {
         foreach (var property in properties)
         {
@@ -315,7 +328,7 @@ public class PropertySeeder(AppDbContext dbContext) : ISeeder
     /// <summary>
     /// Generiert Kontaktdaten fuer alle Properties
     /// </summary>
-    private static void SetContactData(List<Property> properties)
+    internal static void SetContactData(List<Property> properties)
     {
         var emailDomains = new[] { "gmail.com", "gmx.at", "outlook.com", "immobilien.at" };
         var phonePrefix = new[] { "+43 650", "+43 664", "+43 676", "+43 699" };
