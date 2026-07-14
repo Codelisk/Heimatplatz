@@ -1,6 +1,6 @@
 # Push Notifications Setup Guide
 
-Diese Anleitung beschreibt die manuelle Konfiguration für Firebase Cloud Messaging (Android) und Apple Push Notification Service (iOS/macOS).
+Diese Anleitung beschreibt die Konfiguration von `Shiny.Extensions.Push` für Firebase Cloud Messaging (Android) und Apple Push Notification Service (iOS/macOS). Der MAUI-Client verwendet weiterhin `Shiny.Push`.
 
 ## Voraussetzungen
 
@@ -22,7 +22,7 @@ Diese Anleitung beschreibt die manuelle Konfiguration für Firebase Cloud Messag
 ### 1.2 Android-App hinzufügen
 
 1. Im Firebase-Projekt: "App hinzufügen" → Android-Symbol
-2. Android-Paketname: `com.heimatplatz.app` (muss mit App übereinstimmen)
+2. Android-Paketname: `at.heimatplatz.app` (muss mit App übereinstimmen)
 3. App-Nickname: "Heimatplatz Android"
 4. `google-services.json` herunterladen
 5. Datei nach `src/maui/src/Heimatplatz.Maui/Platforms/Android/` kopieren
@@ -60,7 +60,7 @@ Diese Anleitung beschreibt die manuelle Konfiguration für Firebase Cloud Messag
 
 Falls du Firebase auch für iOS nutzen willst:
 1. Firebase Console → Projekt → "App hinzufügen" → iOS
-2. Bundle ID: `com.heimatplatz.app`
+2. Bundle ID: `at.heimatplatz.app`
 3. `GoogleService-Info.plist` herunterladen
 4. In Firebase: Project Settings → Cloud Messaging → APNs Auth Key hochladen
 
@@ -82,8 +82,7 @@ Bearbeite `src/api/src/Heimatplatz.Api/appsettings.json`:
       "TeamId": "DEIN_TEAM_ID",
       "KeyId": "DEIN_KEY_ID",
       "PrivateKeyPath": "apns-auth-key.p8",
-      "BundleId": "com.heimatplatz.app",
-      "UseProduction": false
+      "BundleId": "at.heimatplatz.app"
     }
   }
 }
@@ -103,8 +102,7 @@ Für Production sollten Secrets über Aspire/Azure Key Vault konfiguriert werden
       "TeamId": "${APNS_TEAM_ID}",
       "KeyId": "${APNS_KEY_ID}",
       "PrivateKeyPath": "/secrets/apns-auth-key.p8",
-      "BundleId": "com.heimatplatz.app",
-      "UseProduction": true
+      "BundleId": "at.heimatplatz.app"
     }
   }
 }
@@ -128,6 +126,8 @@ In Xcode oder via Entitlements:
 - Push Notifications Capability aktivieren
 - Background Modes → Remote notifications aktivieren
 
+`Debug` verwendet `Entitlements.Debug.plist` und registriert den Token als `Sandbox`. Release/TestFlight verwendet `Entitlements.plist` und registriert ihn als `Production`. Die API speichert diese Umgebung pro Gerät; eine globale `UseProduction`-Option gibt es nicht mehr.
+
 ---
 
 ## 5. Testen
@@ -142,8 +142,10 @@ In Xcode oder via Entitlements:
 
 ### 5.2 APNs Sandbox vs Production
 
-- `UseProduction: false` → APNs Sandbox (Development Builds)
-- `UseProduction: true` → APNs Production (App Store Builds)
+- `Environment = Sandbox` → APNs Sandbox (Debug/Development Builds)
+- `Environment = Production` → APNs Production (Release, TestFlight und App Store)
+
+Die Umgebung wird vom Client bei jeder Registrierung mitgesendet und in `PushSubscriptions.Environment` gespeichert.
 
 ---
 
@@ -166,14 +168,12 @@ In Xcode oder via Entitlements:
 
 1. **Token registriert?** - Prüfe DB `PushSubscriptions` Tabelle
 2. **Correct Platform?** - Android-Token nur für FCM, iOS-Token nur für APNs
-3. **APNs Sandbox?** - Development Build braucht `UseProduction: false`
-4. **Firebase konfiguriert?** - Prüfe Logs auf "Firebase is not configured"
+3. **APNs-Umgebung korrekt?** - Debug braucht `Sandbox`, Release/TestFlight `Production`
+4. **Provider konfiguriert?** - Prüfe die Logs auf `No provider can deliver`
 
 ### Invalid Token Errors
 
-Tokens werden automatisch aus der DB entfernt wenn:
-- FCM: `Unregistered` oder `InvalidArgument`
-- APNs: `BadDeviceToken`, `Unregistered`, `ExpiredToken`
+`Shiny.Extensions.Push` entfernt Tokens automatisch aus der DB, wenn FCM oder APNs sie als abgelaufen beziehungsweise ungültig meldet.
 
 ### Logs prüfen
 

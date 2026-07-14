@@ -11,8 +11,7 @@
     <PackageReference Include="Shiny.Mediator" />
     <PackageReference Include="Shiny.Mediator.AspNet" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <!-- Push Notification Providers -->
-    <PackageReference Include="FirebaseAdmin" />
+    <PackageReference Include="Shiny.Extensions.Push" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,7 @@
 using Heimatplatz.Api.Features.Notifications.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shiny.Extensions.Push;
 
 namespace Heimatplatz.Api.Features.Notifications.Data.Configurations;
 
@@ -23,6 +24,32 @@ public class PushSubscriptionConfiguration : IEntityTypeConfiguration<PushSubscr
             .IsRequired()
             .HasMaxLength(50);
 
+        builder.Property(ps => ps.DeviceId)
+            .HasMaxLength(100);
+
+        builder.Property(ps => ps.AppId)
+            .HasMaxLength(100);
+
+        builder.Property(ps => ps.Environment)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(PushEnvironment.Production)
+            .IsRequired();
+
+        builder.Property(ps => ps.TagsJson)
+            .IsRequired()
+            .HasDefaultValue("[]");
+
+        builder.Property(ps => ps.TopicsJson)
+            .IsRequired()
+            .HasDefaultValue("[]");
+
+        builder.Property(ps => ps.Locale)
+            .HasMaxLength(35);
+
+        builder.Property(ps => ps.AppVersion)
+            .HasMaxLength(50);
+
         builder.Property(ps => ps.SubscribedAt)
             .IsRequired();
 
@@ -34,6 +61,10 @@ public class PushSubscriptionConfiguration : IEntityTypeConfiguration<PushSubscr
 
         // Index for efficient querying by user
         builder.HasIndex(ps => ps.UserId);
+
+        // DeviceId is deliberately not unique: legacy clients may not provide one and
+        // uniqueness semantics for nullable columns differ between supported databases.
+        builder.HasIndex(ps => ps.DeviceId);
 
         // Unique constraint on device token
         builder.HasIndex(ps => ps.DeviceToken)

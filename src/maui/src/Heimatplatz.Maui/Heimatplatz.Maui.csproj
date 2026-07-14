@@ -33,8 +33,9 @@
 		<WindowsPackageType>None</WindowsPackageType>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
-		<!-- iOS Push Entitlements (aps-environment) -->
-		<CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">Platforms\iOS\Entitlements.plist</CodesignEntitlements>
+        <!-- iOS Push Entitlements: Debug tokens use APNs sandbox, Release/TestFlight production -->
+        <CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' AND '$(Configuration)' == 'Debug'">Platforms\iOS\Entitlements.Debug.plist</CodesignEntitlements>
+        <CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' AND '$(Configuration)' != 'Debug'">Platforms\iOS\Entitlements.plist</CodesignEntitlements>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<!-- MAUI DevFlow braucht in Debug-Builds eingehende Netzwerkverbindungen (In-App-HTTP-Server) -->
 		<CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst' AND '$(Configuration)' == 'Debug'">Platforms\MacCatalyst\Entitlements.Debug.plist</CodesignEntitlements>

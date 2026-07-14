@@ -14,6 +14,8 @@ public class NotificationService(
     ILogger<NotificationService> logger
 ) : INotificationService
 {
+    private const string PushDeviceIdKey = "Push.DeviceId";
+
     public async Task<NotificationPreferenceDto> GetPreferencesAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -94,7 +96,9 @@ public class NotificationService(
                     Body = new ApiGenerated.RegisterDeviceRequest
                     {
                         DeviceToken = deviceToken,
-                        Platform = platform
+                        Platform = platform,
+                        Environment = GetPushEnvironment(platform),
+                        DeviceId = GetOrCreateDeviceId()
                     }
                 },
                 cancellationToken);
@@ -106,6 +110,29 @@ public class NotificationService(
             logger.LogError(ex, "Error registering device for push notifications");
             return false;
         }
+    }
+
+    private static string GetPushEnvironment(string platform)
+    {
+        if (!string.Equals(platform, "iOS", StringComparison.OrdinalIgnoreCase))
+            return "Production";
+
+#if DEBUG
+        return "Sandbox";
+#else
+        return "Production";
+#endif
+    }
+
+    private static string GetOrCreateDeviceId()
+    {
+        var deviceId = Preferences.Default.Get<string?>(PushDeviceIdKey, null);
+        if (!string.IsNullOrWhiteSpace(deviceId))
+            return deviceId;
+
+        deviceId = Guid.NewGuid().ToString("N");
+        Preferences.Default.Set(PushDeviceIdKey, deviceId);
+        return deviceId;
     }
 
     private static NotificationFilterMode MapFilterMode(ApiGenerated.NotificationFilterMode apiMode) =>

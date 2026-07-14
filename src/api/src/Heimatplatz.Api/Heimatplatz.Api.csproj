@@ -26,9 +26,10 @@
     <ProjectReference Include="..\Core\Heimatplatz.Api.Core.Data.Migrations.Postgres\Heimatplatz.Api.Core.Data.Migrations.Postgres.csproj" />
   </ItemGroup>
 
-  <!-- APNs Auth Key for Push Notifications -->
+  <!-- Server credentials for push notifications (files are gitignored and optional) -->
   <ItemGroup>
     <None Include="apns-auth-key.p8" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="Exists('apns-auth-key.p8')" />
+    <None Update="firebase-service-account.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="Exists('firebase-service-account.json')" />
   </ItemGroup>
 
 </Project>

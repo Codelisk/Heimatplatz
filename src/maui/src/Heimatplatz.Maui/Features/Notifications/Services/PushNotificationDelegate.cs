@@ -91,7 +91,9 @@ public class PushNotificationDelegate(
     /// </summary>
     private static Uri? ResolveDeepLinkUri(IDictionary<string, string>? data)
     {
-        var raw = GetDataValue(data, "deepLink") ?? GetDataValue(data, "url");
+        var raw = GetDataValue(data, "deepLink")
+                  ?? GetDataValue(data, "deeplink")
+                  ?? GetDataValue(data, "url");
         if (raw is not null && Uri.TryCreate(raw, UriKind.Absolute, out var uri))
             return uri;
 
@@ -180,7 +182,7 @@ public class PushNotificationDelegate(
     /// </summary>
     public async Task OnNewToken(string token)
     {
-        logger.LogInformation("New push token received: {Token}", token);
+        logger.LogInformation("New push token received: {Token}", MaskToken(token));
 
         // Register the new token with our API
         try
@@ -208,9 +210,12 @@ public class PushNotificationDelegate(
     /// </summary>
     public Task OnUnRegistered(string token)
     {
-        logger.LogInformation("Push notifications unregistered for token: {Token}", token);
+        logger.LogInformation("Push notifications unregistered for token: {Token}", MaskToken(token));
         return Task.CompletedTask;
     }
+
+    private static string MaskToken(string token)
+        => token.Length <= 8 ? "***" : $"{token[..4]}…{token[^4..]}";
 
     /// <summary>
     /// Gets the current platform identifier

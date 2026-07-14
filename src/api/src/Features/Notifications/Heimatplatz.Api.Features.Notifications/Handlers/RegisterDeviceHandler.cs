@@ -1,12 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Heimatplatz.Api;
-using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
-using Heimatplatz.Api.Features.Notifications.Data.Entities;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Shiny;
+using Shiny.Extensions.Push;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Notifications.Handlers;
@@ -17,8 +15,8 @@ namespace Heimatplatz.Api.Features.Notifications.Handlers;
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/notifications")]
 public class RegisterDeviceHandler(
-    AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IPushManager pushManager
 ) : IRequestHandler<RegisterDeviceRequest, RegisterDeviceResponse>
 {
     [MediatorHttpPost("/register-device", OperationId = "RegisterDevice")]
@@ -39,35 +37,38 @@ public class RegisterDeviceHandler(
             throw new UnauthorizedAccessException("Invalid User ID in token");
         }
 
-        // Check if subscription already exists
-        var existingSubscription = await dbContext.Set<PushSubscription>()
-            .FirstOrDefaultAsync(ps => ps.DeviceToken == request.DeviceToken, cancellationToken);
+        var platform = ParsePlatform(request.Platform);
+        var environment = ParseEnvironment(request.Environment);
 
-        if (existingSubscription != null)
+        await pushManager.RegisterDevice(new DeviceRegistration
         {
-            // Update existing subscription
-            existingSubscription.UserId = userId;
-            existingSubscription.Platform = request.Platform;
-            existingSubscription.SubscribedAt = DateTimeOffset.UtcNow;
-        }
-        else
-        {
-            // Create new subscription
-            var subscription = new PushSubscription
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                DeviceToken = request.DeviceToken,
-                Platform = request.Platform,
-                SubscribedAt = DateTimeOffset.UtcNow,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
-
-            dbContext.Set<PushSubscription>().Add(subscription);
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+            DeviceToken = request.DeviceToken,
+            DeviceId = request.DeviceId,
+            UserIdentifier = userId.ToString(),
+            Platform = platform,
+            Environment = environment
+        }, cancellationToken);
 
         return new RegisterDeviceResponse(true);
+    }
+
+    private static DevicePlatform ParsePlatform(string platform) => platform.ToLowerInvariant() switch
+    {
+        "ios" => DevicePlatform.iOS,
+        "macos" or "maccatalyst" => DevicePlatform.MacOS,
+        "android" => DevicePlatform.Android,
+        "windows" or "desktop" => DevicePlatform.Windows,
+        "web" or "webbrowser" => DevicePlatform.WebBrowser,
+        _ => throw new ArgumentException($"Unsupported push platform '{platform}'.", nameof(platform))
+    };
+
+    private static PushEnvironment ParseEnvironment(string? environment)
+    {
+        if (string.IsNullOrWhiteSpace(environment))
+            return PushEnvironment.Production;
+
+        return Enum.TryParse<PushEnvironment>(environment, ignoreCase: true, out var parsed)
+            ? parsed
+            : throw new ArgumentException($"Unsupported push environment '{environment}'.", nameof(environment));
     }
 }

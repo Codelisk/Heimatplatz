@@ -1,20 +1,17 @@
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Heimatplatz.Api.Features.Notifications.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Shiny.Extensions.Push;
+using Shiny.Extensions.Push.Apns;
+using Shiny.Extensions.Push.Fcm;
 
 namespace Heimatplatz.Api.Features.Notifications.Configuration;
 
 /// <summary>
-/// Configuration for push notification providers (Firebase + APNs)
+/// Configures Shiny.Extensions.Push with the Heimatplatz EF registration repository.
 /// </summary>
 public static class PushProvidersConfiguration
 {
-    /// <summary>
-    /// Adds and configures push notification providers
-    /// </summary>
     public static IServiceCollection AddPushProviders(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -26,70 +23,71 @@ public static class PushProvidersConfiguration
         services.Configure<PushNotificationOptions>(
             configuration.GetSection(PushNotificationOptions.SectionName));
 
-        // Initialize Firebase if configured
-        if (options.Firebase.Enabled)
+        var firebaseCredentialPath = ResolveCredentialPath(options.Firebase.ServiceAccountPath);
+        var apnsPrivateKeyPath = ResolveCredentialPath(options.Apns.PrivateKeyPath);
+
+        services.AddPushNotifications(push =>
         {
-            InitializeFirebase(options.Firebase);
-        }
+            push.UseRepository<EfPushRepository>();
 
-        // Register APNs service if configured
-        if (options.Apns.Enabled)
-        {
-            // Resolve key content: Priority 1 = direct content, Priority 2 = file
-            string? keyContent = null;
-
-            if (!string.IsNullOrEmpty(options.Apns.PrivateKeyContent))
+            if (options.Firebase.Enabled
+                && (!string.IsNullOrWhiteSpace(options.Firebase.ServiceAccountJson)
+                    || firebaseCredentialPath is not null))
             {
-                keyContent = options.Apns.PrivateKeyContent;
-            }
-            else if (!string.IsNullOrEmpty(options.Apns.PrivateKeyPath) && File.Exists(options.Apns.PrivateKeyPath))
-            {
-                keyContent = File.ReadAllText(options.Apns.PrivateKeyPath);
+                push.AddFcm(fcm =>
+                {
+                    fcm.ServiceAccountJson = options.Firebase.ServiceAccountJson;
+                    fcm.ServiceAccountJsonPath = firebaseCredentialPath;
+                });
             }
 
-            if (!string.IsNullOrEmpty(keyContent))
+            if (options.Apns.Enabled
+                && (!string.IsNullOrWhiteSpace(options.Apns.PrivateKeyContent)
+                    || apnsPrivateKeyPath is not null))
             {
-                // Normalize to raw Base64
-                keyContent = keyContent
-                    .Replace("-----BEGIN PRIVATE KEY-----", "")
-                    .Replace("-----END PRIVATE KEY-----", "")
-                    .Replace("\n", "")
-                    .Replace("\r", "")
-                    .Trim();
+                push.AddApns(apns =>
+                {
+                    apns.TeamId = options.Apns.TeamId!;
+                    apns.KeyId = options.Apns.KeyId!;
+                    apns.BundleId = options.Apns.BundleId;
 
-                var capturedKey = keyContent;
-                var capturedOptions = options.Apns;
-
-                services.AddSingleton<IApnsService>(sp =>
-                    new ApnsService(
-                        capturedOptions,
-                        capturedKey,
-                        sp.GetRequiredService<ILogger<ApnsService>>()));
+                    if (!string.IsNullOrWhiteSpace(options.Apns.PrivateKeyContent))
+                    {
+                        apns.PrivateKey = NormalizePrivateKey(options.Apns.PrivateKeyContent);
+                    }
+                    else
+                    {
+                        apns.PrivateKeyPath = apnsPrivateKeyPath;
+                    }
+                });
             }
-        }
+        });
 
         return services;
     }
 
-    private static void InitializeFirebase(FirebaseOptions options)
+    private static string? ResolveCredentialPath(string? configuredPath)
     {
-        if (FirebaseApp.DefaultInstance != null)
-            return;
+        if (string.IsNullOrWhiteSpace(configuredPath))
+            return null;
 
-        GoogleCredential? credential = null;
+        if (Path.IsPathRooted(configuredPath))
+            return File.Exists(configuredPath) ? configuredPath : null;
 
-        if (!string.IsNullOrEmpty(options.ServiceAccountJson))
-        {
-            credential = CredentialFactory.FromJson<ServiceAccountCredential>(options.ServiceAccountJson).ToGoogleCredential();
-        }
-        else if (!string.IsNullOrEmpty(options.ServiceAccountPath) && File.Exists(options.ServiceAccountPath))
-        {
-            credential = CredentialFactory.FromFile<ServiceAccountCredential>(options.ServiceAccountPath).ToGoogleCredential();
-        }
+        var outputPath = Path.Combine(AppContext.BaseDirectory, configuredPath);
+        if (File.Exists(outputPath))
+            return outputPath;
 
-        if (credential != null)
-        {
-            FirebaseApp.Create(new AppOptions { Credential = credential });
-        }
+        var workingDirectoryPath = Path.GetFullPath(configuredPath);
+        return File.Exists(workingDirectoryPath) ? workingDirectoryPath : null;
+    }
+
+    private static string NormalizePrivateKey(string key)
+    {
+        var trimmed = key.Trim();
+        if (trimmed.Contains("BEGIN PRIVATE KEY", StringComparison.Ordinal))
+            return trimmed;
+
+        return $"-----BEGIN PRIVATE KEY-----\n{trimmed}\n-----END PRIVATE KEY-----";
     }
 }

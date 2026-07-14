@@ -7,9 +7,13 @@ namespace Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 /// </summary>
 /// <param name="DeviceToken">Push notification device token</param>
 /// <param name="Platform">Platform (iOS, Android, Desktop, Web)</param>
+/// <param name="Environment">Push environment (Production or Sandbox)</param>
+/// <param name="DeviceId">Stable app-installation identifier used across token rotations</param>
 public record RegisterDeviceRequest(
     string DeviceToken,
-    string Platform
+    string Platform,
+    string? Environment = null,
+    string? DeviceId = null
 ) : IRequest<RegisterDeviceResponse>;
 
 /// <summary>

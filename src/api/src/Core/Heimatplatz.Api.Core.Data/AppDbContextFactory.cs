@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -14,8 +15,31 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
     {
+        // Referenced feature assemblies are loaded lazily. Load the copies present in the
+        // startup output so OnModelCreating can discover every feature configuration.
+        foreach (var dll in Directory.GetFiles(AppContext.BaseDirectory, "Heimatplatz.Api.*.dll"))
+        {
+            try
+            {
+                Assembly.LoadFrom(dll);
+            }
+            catch
+            {
+                // Already loaded or not a managed assembly.
+            }
+        }
+
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlite("Data Source=design-time.db");
+        if (args.Any(x => string.Equals(x, "Postgres", StringComparison.OrdinalIgnoreCase)))
+        {
+            optionsBuilder.UseNpgsql(
+                "Host=localhost;Database=heimatplatz;Username=postgres;Password=postgres",
+                x => x.MigrationsAssembly("Heimatplatz.Api.Core.Data.Migrations.Postgres"));
+        }
+        else
+        {
+            optionsBuilder.UseSqlite("Data Source=design-time.db");
+        }
         return new AppDbContext(optionsBuilder.Options);
     }
 }

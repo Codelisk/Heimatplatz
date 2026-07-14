@@ -37,7 +37,8 @@ public class FirebaseOptions
     /// <summary>
     /// Whether Firebase is enabled
     /// </summary>
-    public bool Enabled => !string.IsNullOrEmpty(ServiceAccountJson) || !string.IsNullOrEmpty(ServiceAccountPath);
+    public bool Enabled => !string.IsNullOrWhiteSpace(ServiceAccountJson)
+                           || !string.IsNullOrWhiteSpace(ServiceAccountPath);
 }
 
 /// <summary>
@@ -72,14 +73,10 @@ public class ApnsOptions
     public string BundleId { get; set; } = "at.heimatplatz.app";
 
     /// <summary>
-    /// Whether to use the production APNs server (false = sandbox)
-    /// </summary>
-    public bool UseProduction { get; set; } = false;
-
-    /// <summary>
     /// Whether APNs is enabled
     /// </summary>
     public bool Enabled => !string.IsNullOrEmpty(TeamId)
                            && !string.IsNullOrEmpty(KeyId)
-                           && (!string.IsNullOrEmpty(PrivateKeyPath) || !string.IsNullOrEmpty(PrivateKeyContent));
+                           && (!string.IsNullOrWhiteSpace(PrivateKeyContent)
+                               || !string.IsNullOrWhiteSpace(PrivateKeyPath));
 }

@@ -3737,6 +3737,18 @@
           },
           "Platform": {
             "type": "string"
+          },
+          "Environment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DeviceId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

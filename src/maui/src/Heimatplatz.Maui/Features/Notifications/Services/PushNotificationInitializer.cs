@@ -41,7 +41,7 @@ public class PushNotificationInitializer(
             {
                 case AccessState.Available:
                     logger.LogInformation("[PushNotificationInitializer] Push notifications enabled. Token: {Token}",
-                        result.RegistrationToken);
+                        MaskToken(result.RegistrationToken));
 
                     // Register token with API (OnNewToken is only called on token change, not on every RequestAccess)
                     if (!string.IsNullOrEmpty(result.RegistrationToken))
@@ -107,6 +107,11 @@ public class PushNotificationInitializer(
         return "iOS";
 #endif
     }
+
+    private static string? MaskToken(string? token)
+        => string.IsNullOrEmpty(token) || token.Length <= 8
+            ? "***"
+            : $"{token[..4]}…{token[^4..]}";
 }
 #else
 /// <summary>
