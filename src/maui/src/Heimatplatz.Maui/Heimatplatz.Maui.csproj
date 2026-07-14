@@ -75,6 +75,7 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" />
 		<!-- Shiny -->
 		<PackageReference Include="Shiny.Maui.Shell" />
+		<PackageReference Include="Shiny.Maui.Controls" />
 		<PackageReference Include="Shiny.Extensions.MauiHosting" />
 		<PackageReference Include="Shiny.Extensions.DependencyInjection" />
 		<PackageReference Include="Shiny.Extensions.Stores" />
