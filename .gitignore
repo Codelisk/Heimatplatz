@@ -61,6 +61,7 @@ temp_*.png
 # Push Notification Secrets (Firebase + APNs)
 firebase-service-account.json
 apns-auth-key.p8
+/deploy/hetzner/secrets/
 google-services.json
 GoogleService-Info.plist
 

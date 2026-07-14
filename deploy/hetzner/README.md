@@ -18,7 +18,12 @@ Docker-Compose-Setup fuer die Heimatplatz-API auf einem einzelnen Hetzner-Server
 
 Seit 14.7.2026: `https://test-api.heimatplatz.at` - gleicher Code/Build wie die Prod-API, verbunden mit der Testdatenbank (Port 5433). Seeding ist aktiv: Nach einem Test-DB-Reset genuegt `docker compose restart api-test`, dann wird automatisch migriert und neu geseedet. Eigener JWT-Key (`TEST_JWT_KEY` in der Server-`.env`), damit Test-Tokens nicht auf Prod gelten. DNS-A-Record `test-api` liegt in der Hetzner-DNS-Zone (verwaltbar via Cloud-API mit `HCLOUD_TOKEN`).
 
-Benoetigte Variablen in der Server-`.env`: `TEST_API_DOMAIN=test-api.heimatplatz.at`, `TEST_JWT_KEY` (`openssl rand -base64 64`), `TESTDB_PASSWORD` (wie bisher).
+Benoetigte Variablen in der Server-`.env`: `TEST_API_DOMAIN=test-api.heimatplatz.at`, `TEST_JWT_KEY` (`openssl rand -base64 64`), `TESTDB_PASSWORD` (wie bisher), `APNS_TEAM_ID`, `APNS_KEY_ID` und `APNS_BUNDLE_ID=at.heimatplatz.app`.
+
+Der APNs Private Key wird nicht ins Image eingebaut. Er liegt auf dem Server unter
+`/srv/heimatplatz/deploy/hetzner/secrets/apns-auth-key.p8` und wird fuer `api-test`
+read-only nach `/run/secrets/apns-auth-key.p8` gemountet. Das Verzeichnis `secrets/`
+ist gitignoriert.
 
 ## Testdatenbank (docker-compose.testdb.yml)
 

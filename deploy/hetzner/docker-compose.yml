@@ -44,6 +44,12 @@ services:
       Database__EnableSeeding: "true"
       ConnectionStrings__DefaultConnection: "Host=128.140.33.238;Port=5433;Database=heimatplatz_test;Username=heimatplatz_test;Password=${TESTDB_PASSWORD}"
       Authentication__Jwt__Key: ${TEST_JWT_KEY}
+      PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
+      PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
+      PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}
+      PushNotifications__Apns__PrivateKeyPath: /run/secrets/apns-auth-key.p8
+    volumes:
+      - ./secrets/apns-auth-key.p8:/run/secrets/apns-auth-key.p8:ro
     expose:
       - "8080"
 

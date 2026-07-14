@@ -11,7 +11,8 @@ using Shiny;
 namespace Heimatplatz.Api.Features.Notifications.Data.Seeding;
 
 /// <summary>
-/// Seeder for notification preferences and push subscriptions test data
+/// Seeder for notification preferences test data.
+/// Push subscriptions are never seeded because provider tokens must come from real devices.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
@@ -20,6 +21,13 @@ public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        // Older test data contained synthetic provider tokens. They can never be delivered by
+        // FCM/APNs and would make every broadcast look partially broken. Keep this cleanup before
+        // the preference early-return so existing test databases are repaired on the next start.
+        await dbContext.Set<PushSubscription>()
+            .Where(x => x.DeviceToken.StartsWith("test-device-token-"))
+            .ExecuteDeleteAsync(cancellationToken);
+
         // Only seed if no notification preferences exist
         if (await dbContext.Set<NotificationPreference>().AnyAsync(cancellationToken))
             return;
@@ -30,8 +38,6 @@ public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
             return;
 
         var preferences = new List<NotificationPreference>();
-        var subscriptions = new List<PushSubscription>();
-
         // Cities to use for preferences (matching PropertySeeder)
         var cities = new[] { "Linz", "Wels", "Gmunden", "Bad Ischl", "Steyr", "Leonding", "Freistadt", "Traun" };
 
@@ -57,26 +63,9 @@ public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
                 IsBrokerSelected = true,
                 CreatedAt = DateTimeOffset.UtcNow.AddDays(-Random.Shared.Next(1, 30))
             });
-
-            // Create push subscription for this user
-            subscriptions.Add(new PushSubscription
-            {
-                Id = Guid.NewGuid(),
-                UserId = user.Id,
-                DeviceToken = $"test-device-token-{user.Id:N}",
-                Platform = Random.Shared.Next(0, 3) switch
-                {
-                    0 => "Desktop",
-                    1 => "iOS",
-                    _ => "Android"
-                },
-                SubscribedAt = DateTimeOffset.UtcNow.AddDays(-Random.Shared.Next(1, 15)),
-                CreatedAt = DateTimeOffset.UtcNow.AddDays(-Random.Shared.Next(1, 15))
-            });
         }
 
         dbContext.Set<NotificationPreference>().AddRange(preferences);
-        dbContext.Set<PushSubscription>().AddRange(subscriptions);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
