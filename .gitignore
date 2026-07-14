@@ -1,5 +1,8 @@
 # Build results
 [Dd]ebug/
+# Quellcode-Feature, kein Build-Ausgabeordner
+!src/maui/src/Heimatplatz.Maui/Features/Debug/
+!src/maui/src/Heimatplatz.Maui/Features/Debug/**
 [Rr]elease/
 x64/
 x86/

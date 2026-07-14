@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Heimatplatz.Maui.Features.Debug.Presentation.DebugPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:presentation="clr-namespace:Heimatplatz.Maui.Features.Debug.Presentation"
+    x:DataType="presentation:DebugViewModel"
+    Title="Debug">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="16,24"
+            Spacing="24"
+            MaximumWidthRequest="600"
+            HorizontalOptions="Fill">
+
+            <Border Style="{StaticResource Card}" AutomationId="Debug_AuthenticationCard">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Anmeldestatus" Style="{StaticResource CardTitle}" />
+
+                    <Label Text="{Binding CurrentAuthenticationState, StringFormat='Aktuell: {0}'}"
+                           Style="{StaticResource Body}"
+                           AutomationId="Debug_CurrentAuthenticationState" />
+
+                    <Button Text="Ausgeloggt"
+                            Command="{Binding SetLoggedOutCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            Style="{StaticResource SecondaryButton}"
+                            AutomationId="Debug_SetLoggedOut" />
+                    <Button Text="Als Verkäufer anmelden"
+                            Command="{Binding LoginAsSellerCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            Style="{StaticResource PrimaryButton}"
+                            AutomationId="Debug_LoginAsSeller" />
+                    <Button Text="Als Käufer anmelden"
+                            Command="{Binding LoginAsBuyerCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            Style="{StaticResource PrimaryButton}"
+                            AutomationId="Debug_LoginAsBuyer" />
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       HorizontalOptions="Center" />
+
+                    <Label Text="{Binding ErrorMessage}"
+                           IsVisible="{Binding HasError}"
+                           TextColor="{StaticResource Error}"
+                           Style="{StaticResource Caption}"
+                           AutomationId="Debug_AuthenticationError" />
+
+                    <Label Text="Verwendet die Testkonten des aktuell gewählten API-Endpunkts. Dadurch funktionieren auch authentifizierte API-Aufrufe mit der ausgewählten Rolle."
+                           Style="{StaticResource Caption}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}" AutomationId="Debug_ApiEndpointCard">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="API-Endpunkt" Style="{StaticResource CardTitle}" />
+
+                    <RadioButton GroupName="ApiEndpoint"
+                                 Content="{Binding DevelopmentUrl, StringFormat='Entwicklung — {0}'}"
+                                 IsChecked="{Binding IsDevelopmentSelected, Mode=TwoWay}"
+                                 AutomationId="Debug_ApiDevelopment" />
+                    <RadioButton GroupName="ApiEndpoint"
+                                 Content="{Binding TestUrl, StringFormat='Test — {0}'}"
+                                 IsChecked="{Binding IsTestSelected, Mode=TwoWay}"
+                                 AutomationId="Debug_ApiTest" />
+                    <RadioButton GroupName="ApiEndpoint"
+                                 Content="{Binding ProductionUrl, StringFormat='Produktion — {0}'}"
+                                 IsChecked="{Binding IsProductionSelected, Mode=TwoWay}"
+                                 AutomationId="Debug_ApiProduction" />
+
+                    <Label Text="{Binding CurrentUrl, StringFormat='Aktiv: {0}'}"
+                           Style="{StaticResource Caption}"
+                           AutomationId="Debug_CurrentApiUrl" />
+
+                    <Label Text="Wirkt sofort für alle folgenden API-Aufrufe. Nach dem Wechsel ggf. neu anmelden, da Tokens nur für die jeweilige API gelten. Entwicklung braucht die lokale API (am Gerät zusätzlich adb reverse tcp:5292 tcp:5292)."
+                           Style="{StaticResource Caption}"
+                           Margin="0,8,0,0" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
