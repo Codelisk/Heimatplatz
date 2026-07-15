@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Shiny;
 using Shiny.Mediator;
 
@@ -19,7 +20,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [MediatorHttpGroup("/api/properties")]
 public class GetUserPropertiesHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration
 ) : IRequestHandler<GetUserPropertiesRequest, GetUserPropertiesResponse>
 {
     [MediatorHttpGet("/user", OperationId = "GetUserProperties", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
@@ -45,8 +47,7 @@ public class GetUserPropertiesHandler(
         // Get total count
         var total = await query.CountAsync(cancellationToken);
 
-        var req = httpContextAccessor.HttpContext?.Request;
-        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+        var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
 
         // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);

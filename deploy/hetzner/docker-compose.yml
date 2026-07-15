@@ -25,6 +25,11 @@ services:
       # KI-Inseratserstellung ueber den AiConnector-Workspace projects/heimatplatz
       AiListing__Provider: AiConnector
       AiListing__AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
+      # Oeffentliche Basis-URL fuer absolute Links (Bild-Proxy etc.), UNABHAENGIG vom Host der
+      # eingehenden Anfrage - der Astro-SSR-Server (web) ruft diese API teils direkt ueber das
+      # interne Docker-Netz auf (http://api:8080), dessen Host fuer echte Browser nicht aufloesbar
+      # waere. Siehe GetPropertiesHandler.ResolveApiBaseUrl.
+      Api__PublicBaseUrl: https://${API_DOMAIN}
     # Kein Host-Port-Mapping - nur ueber das interne Docker-Netzwerk via Caddy erreichbar.
     expose:
       - "8080"
@@ -49,6 +54,7 @@ services:
       Authentication__Jwt__Key: ${TEST_JWT_KEY}
       AiListing__Provider: AiConnector
       AiListing__AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
+      Api__PublicBaseUrl: https://${TEST_API_DOMAIN}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}

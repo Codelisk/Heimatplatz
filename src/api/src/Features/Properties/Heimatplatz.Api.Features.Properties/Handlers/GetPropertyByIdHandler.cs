@@ -6,6 +6,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Shiny;
 using Shiny.Mediator;
 
@@ -18,7 +19,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [MediatorHttpGroup("/api/properties")]
 public class GetPropertyByIdHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration
 ) : IRequestHandler<GetPropertyByIdRequest, GetPropertyByIdResponse>
 {
     [MediatorHttpGet("/{Id}", OperationId = "GetPropertyById")]
@@ -67,8 +69,7 @@ public class GetPropertyByIdHandler(
 
         if (property != null && property.ImageUrls.Count > 0)
         {
-            var req = httpContextAccessor.HttpContext?.Request;
-            var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+            var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
             var proxied = GetPropertiesHandler.ProxyImageUrls(property.ImageUrls, baseUrl);
             property = property with { ImageUrls = proxied };
         }

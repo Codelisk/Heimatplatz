@@ -5,6 +5,7 @@ using Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Handlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Shiny;
 using Shiny.Mediator;
 
@@ -14,7 +15,8 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Handlers;
 [MediatorHttpGroup("/api/foreclosure-auctions")]
 public class GetForeclosureAuctionsHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration
 ) : IRequestHandler<GetForeclosureAuctionsRequest, GetForeclosureAuctionsResponse>
 {
     [MediatorHttpGet("/", OperationId = "GetForeclosureAuctions")]
@@ -57,8 +59,7 @@ public class GetForeclosureAuctionsHandler(
         var totalCount = await query.CountAsync(cancellationToken);
 
         // Build base URL for image proxy
-        var req = httpContextAccessor.HttpContext?.Request;
-        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+        var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
 
         // Laden und Sortieren (SQLite unterstuetzt DateTimeOffset nicht in ORDER BY)
         var entities = await query.ToListAsync(cancellationToken);

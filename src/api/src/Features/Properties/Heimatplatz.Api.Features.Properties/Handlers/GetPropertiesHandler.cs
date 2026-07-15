@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -22,6 +23,7 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 public class GetPropertiesHandler(
     AppDbContext dbContext,
     IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration,
     ILogger<GetPropertiesHandler> logger
 ) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
 {
@@ -113,8 +115,7 @@ public class GetPropertiesHandler(
         var hasMore = (request.Page + 1) * request.PageSize < total;
 
         // Build base URL for image proxy
-        var req = httpContextAccessor.HttpContext?.Request;
-        var baseUrl = req != null ? $"{req.Scheme}://{req.Host}" : "";
+        var baseUrl = ResolveApiBaseUrl(httpContextAccessor, configuration);
 
         // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);
@@ -170,6 +171,23 @@ public class GetPropertiesHandler(
     // Zielbreite fuer Listen-Thumbnails (Karten sind min. 320dp breit, 640px deckt 2x-Displays ab
     // ohne die haeufig mehrere MB grossen Originalbilder ungeskaliert an den Client zu schicken).
     public const int ListThumbnailWidth = 640;
+
+    /// <summary>
+    /// Basis-URL fuer absolute, browser-erreichbare Links (Bild-Proxy etc.). Nutzt bevorzugt die
+    /// konfigurierte oeffentliche URL (Api:PublicBaseUrl) statt Scheme+Host der eingehenden Anfrage -
+    /// SSR-Server (Astro-Web) rufen die API teils direkt ueber das interne Docker-Netz
+    /// (http://api:8080) auf, dessen Host fuer echte Browser nicht erreichbar ist. Ohne konfigurierte
+    /// PublicBaseUrl (z.B. lokale Entwicklung) faellt die Methode auf Scheme+Host der Anfrage zurueck.
+    /// </summary>
+    public static string ResolveApiBaseUrl(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+    {
+        var configured = configuration["Api:PublicBaseUrl"];
+        if (!string.IsNullOrWhiteSpace(configured))
+            return configured.TrimEnd('/');
+
+        var req = httpContextAccessor.HttpContext?.Request;
+        return req != null ? $"{req.Scheme}://{req.Host}" : "";
+    }
 
     public static List<string> ProxyImageUrls(List<string> urls, string baseUrl, int? width = null)
     {
