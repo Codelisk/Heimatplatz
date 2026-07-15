@@ -1,4 +1,5 @@
 using Heimatplatz.Api;
+using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,12 @@ public class TriggerForeclosureAuctionSyncHandler(
     ILogger<TriggerForeclosureAuctionSyncHandler> logger
 ) : IRequestHandler<TriggerForeclosureAuctionSyncRequest, TriggerForeclosureAuctionSyncResponse>
 {
-    [MediatorHttpPost("/sync", OperationId = "TriggerForeclosureAuctionSync")]
+    // War zuvor komplett unauthentifiziert oeffentlich aufrufbar (jeder im Internet konnte den
+    // Scraper anstossen). Der Sync laeuft jetzt primaer automatisch (ForeclosureAuctionSyncWorker);
+    // der manuelle Trigger bleibt fuer Admin-Zwecke, braucht aber mindestens einen angemeldeten
+    // Benutzer - kein dedizierter Admin-Policy vorhanden, RequireAnyRole ist die naechstbeste Stufe.
+    [MediatorHttpPost("/sync", OperationId = "TriggerForeclosureAuctionSync",
+        RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
     public Task<TriggerForeclosureAuctionSyncResponse> Handle(
         TriggerForeclosureAuctionSyncRequest request,
         IMediatorContext context,

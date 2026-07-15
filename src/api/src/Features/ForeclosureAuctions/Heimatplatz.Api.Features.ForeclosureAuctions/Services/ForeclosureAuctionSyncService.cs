@@ -68,21 +68,12 @@ public partial class ForeclosureAuctionSyncService(
         var scrapedExternalIds = new HashSet<string>();
 
         // 2. Bestehende Eintraege laden
-        Dictionary<string, ForeclosureAuction> existingAuctions;
-        try
-        {
-            existingAuctions = await dbContext.Set<ForeclosureAuction>()
-                .Where(a => a.ExternalId != null)
-                .ToDictionaryAsync(a => a.ExternalId!, ct);
-        }
-        catch (Exception ex) when (ex.Message.Contains("Invalid column") || ex.InnerException?.Message?.Contains("Invalid column") == true
-                                   || ex.Message.Contains("no such column") || ex.InnerException?.Message?.Contains("no such column") == true)
-        {
-            logger.LogWarning(ex, "Schema mismatch detected - recreating database to apply new schema");
-            await dbContext.Database.EnsureDeletedAsync(ct);
-            await dbContext.Database.EnsureCreatedAsync(ct);
-            existingAuctions = new Dictionary<string, ForeclosureAuction>();
-        }
+        var existingAuctions = await dbContext.Set<ForeclosureAuction>()
+            .Where(a => a.ExternalId != null)
+            .ToDictionaryAsync(a => a.ExternalId!, ct);
+
+        var skippedConcluded = 0;
+        var skippedExcluded = 0;
 
         // 3. Fuer jeden Listeneintrag die Details holen und verarbeiten
         foreach (var item in listItems)
@@ -92,6 +83,46 @@ public partial class ForeclosureAuctionSyncService(
                 scrapedExternalIds.Add(item.ExternalId);
 
                 var detail = await scraper.GetAuctionDetailAsync(item.ExternalId, ct);
+
+                // Abgeschlossene Verfahren ("Zuschlag mit/ohne Ueberbot", "Meistbotsverteilung",
+                // "Verschiebung" ohne neuen Termin, ...) haben keinen gueltigen zukuenftigen
+                // Versteigerungstermin - die Liegenschaft ist nicht (mehr) ersteigerbar und darf
+                // nicht als aktives Inserat gefuehrt werden.
+                var auctionDate = ParseAuctionDate(detail.AuctionDateText);
+                var isUpcoming = auctionDate.HasValue && auctionDate.Value > now;
+
+                // Kategorie-Ausschluss zusaetzlich gegen den zuverlaessigeren Detailseiten-Text
+                // pruefen - die Listenseiten-Kategorie (GetAuctionListAsync) ist eine grobe
+                // Heuristik und kann z.B. Wohnungen trotz Konfiguration durchlassen.
+                var isExcludedCategory = excludedCategories.Count > 0
+                    && excludedCategories.Any(exc =>
+                        detail.CategoryText?.Contains(exc, StringComparison.OrdinalIgnoreCase) == true);
+
+                if (!isUpcoming || isExcludedCategory)
+                {
+                    if (existingAuctions.TryGetValue(item.ExternalId, out var concluded) && concluded.IsActive)
+                    {
+                        concluded.IsActive = false;
+                        concluded.RemovedAt = now;
+                        concluded.LastScrapedAt = now;
+                        LogChange(concluded, "Concluded", concluded.ContentHash, null);
+                        removed++;
+                    }
+                    else if (!isUpcoming)
+                    {
+                        skippedConcluded++;
+                    }
+                    else
+                    {
+                        skippedExcluded++;
+                    }
+
+                    continue;
+                }
+
+                // isUpcoming garantiert HasValue - Compiler kann das ueber den fruehen
+                // continue-Ausstieg oben nicht selbst herleiten.
+                var confirmedAuctionDate = auctionDate!.Value;
                 var contentHash = ComputeContentHash(detail.AllFields, detail.ImageUrls);
 
                 if (existingAuctions.TryGetValue(item.ExternalId, out var existing))
@@ -119,7 +150,7 @@ public partial class ForeclosureAuctionSyncService(
                     {
                         // Geaendert - Entity aktualisieren
                         var changedFields = DetectChangedFields(existing, detail);
-                        UpdateEntityFromDetail(existing, detail, item);
+                        UpdateEntityFromDetail(existing, detail, item, confirmedAuctionDate);
                         existing.ContentHash = contentHash;
                         existing.LastScrapedAt = now;
                         existing.IsActive = true;
@@ -131,7 +162,7 @@ public partial class ForeclosureAuctionSyncService(
                 else
                 {
                     // Neuer Eintrag
-                    var auction = CreateEntityFromDetail(detail, item, contentHash, now);
+                    var auction = CreateEntityFromDetail(detail, item, contentHash, confirmedAuctionDate, now);
                     dbContext.Set<ForeclosureAuction>().Add(auction);
                     LogChange(auction, "Created", null, contentHash);
                     created++;
@@ -146,6 +177,13 @@ public partial class ForeclosureAuctionSyncService(
             }
         }
 
+        if (skippedConcluded > 0 || skippedExcluded > 0)
+        {
+            logger.LogInformation(
+                "{Concluded} Edikte ohne gueltigen Termin (abgeschlossen/verschoben) und {Excluded} nach Kategorie-Ausschluss uebersprungen",
+                skippedConcluded, skippedExcluded);
+        }
+
         // 4. Entfernte Eintraege markieren (in DB aber nicht mehr auf Website)
         foreach (var existing in existingAuctions.Values)
         {
@@ -158,24 +196,12 @@ public partial class ForeclosureAuctionSyncService(
             }
         }
 
-        try
-        {
-            await dbContext.SaveChangesAsync(ct);
-        }
-        catch (Exception ex) when (ex.InnerException?.Message?.Contains("truncated") == true
-                                   || ex.Message.Contains("truncated"))
-        {
-            logger.LogWarning(ex, "Data truncation detected - recreating database with updated schema and retrying sync");
-            // Detach all tracked entities so EF doesn't try to save stale state
-            foreach (var entry in dbContext.ChangeTracker.Entries().ToList())
-                entry.State = Microsoft.EntityFrameworkCore.EntityState.Detached;
-
-            await dbContext.Database.EnsureDeletedAsync(ct);
-            await dbContext.Database.EnsureCreatedAsync(ct);
-
-            // Retry the full sync with the new schema
-            return await SyncAllAsync(ct);
-        }
+        // Kein Auto-Heal per EnsureDeleted/EnsureCreated mehr (siehe Git-Historie): das haette
+        // bei einem Schema-/Truncation-Fehler die GESAMTE Produktionsdatenbank geloescht und
+        // leer neu angelegt - nicht nur diese Tabelle. Ein echtes Schema-Problem gehoert per
+        // EF-Migration behoben, nicht durch Datenverlust "repariert". Der Fehler wird hier
+        // bewusst durchgereicht; der aufrufende Handler faengt und loggt ihn.
+        await dbContext.SaveChangesAsync(ct);
 
         // 5. Properties aus Zwangsversteigerungen synchronisieren
         try
@@ -200,11 +226,13 @@ public partial class ForeclosureAuctionSyncService(
         return new SyncResult(created, updated, removed, unchanged, errors, errorMessages);
     }
 
-    private ForeclosureAuction CreateEntityFromDetail(EdiktDetail detail, EdiktListItem listItem, string contentHash, DateTimeOffset now)
+    private ForeclosureAuction CreateEntityFromDetail(EdiktDetail detail, EdiktListItem listItem, string contentHash, DateTimeOffset auctionDate, DateTimeOffset now)
     {
         var auction = new ForeclosureAuction
         {
-            AuctionDate = ParseAuctionDate(detail.AuctionDateText) ?? DateTimeOffset.MinValue,
+            // Aufrufer garantiert bereits einen gueltigen, in der Zukunft liegenden Termin
+            // (siehe isUpcoming-Pruefung in SyncAllAsync) - kein MinValue-Fallback mehr noetig.
+            AuctionDate = auctionDate,
             Category = ParseCategory(detail.CategoryText),
             ObjectDescription = detail.ObjectDescription ?? listItem.ObjectDescription ?? "Keine Beschreibung",
             Status = detail.StatusText,
@@ -243,9 +271,9 @@ public partial class ForeclosureAuctionSyncService(
         return auction;
     }
 
-    private void UpdateEntityFromDetail(ForeclosureAuction entity, EdiktDetail detail, EdiktListItem listItem)
+    private void UpdateEntityFromDetail(ForeclosureAuction entity, EdiktDetail detail, EdiktListItem listItem, DateTimeOffset auctionDate)
     {
-        entity.AuctionDate = ParseAuctionDate(detail.AuctionDateText) ?? entity.AuctionDate;
+        entity.AuctionDate = auctionDate;
         entity.PublicationDate = ParsePublicationDate(detail.PublicationDateText) ?? entity.PublicationDate;
         entity.Category = ParseCategory(detail.CategoryText);
         entity.ObjectDescription = detail.ObjectDescription ?? listItem.ObjectDescription ?? entity.ObjectDescription;

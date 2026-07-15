@@ -1,5 +1,6 @@
 using Heimatplatz.Api.Core.Data.Seeding.Configuration;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Data.Seeding;
+using Heimatplatz.Api.Features.ForeclosureAuctions.Infrastructure;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,9 @@ public static class ServiceCollectionExtensions
         services.AddSeeder<SystemUserSeeder>();
         services.AddSeeder<ForeclosureAuctionSeeder>();
         services.AddSeeder<ForeclosurePropertyCreatedAtBackfillSeeder>();
+
+        // Periodischer Hintergrund-Sync (Konfiguration: SyncIntervalHours)
+        services.AddHostedService<ForeclosureAuctionSyncWorker>();
 
         return services;
     }

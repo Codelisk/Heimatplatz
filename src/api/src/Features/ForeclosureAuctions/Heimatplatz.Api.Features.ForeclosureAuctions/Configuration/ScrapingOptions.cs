@@ -9,6 +9,13 @@ public class ScrapingOptions
     public int DelayBetweenRequestsMs { get; set; } = 1000;
 
     /// <summary>
+    /// Intervall des automatischen Hintergrund-Syncs (ForeclosureAuctionSyncWorker) in Stunden.
+    /// 0 oder negativ deaktiviert die automatische Ausfuehrung (nur manueller Trigger via
+    /// POST /api/foreclosure-auctions/sync).
+    /// </summary>
+    public int SyncIntervalHours { get; set; } = 6;
+
+    /// <summary>
     /// Bundesland-Code fuer die Suche (3 = Oberoesterreich).
     /// Lotus Notes Codes: 1=Burgenland, 2=Kaernten, 3=OOe, 4=NOe, 5=Salzburg, 6=Steiermark, 7=Tirol, 8=Vorarlberg, 9=Wien
     /// </summary>

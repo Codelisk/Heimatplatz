@@ -78,21 +78,16 @@ public class ForeclosurePropertySyncService(
             }
         }
 
-        // 3. Alle aktiven ForeclosureAuctions laden (nur echte Versteigerungen, keine abgeschlossenen Verfahren)
-        var allActiveAuctions = await dbContext.Set<ForeclosureAuction>()
+        // 3. Alle aktiven ForeclosureAuctions laden. IsActive bedeutet hier bereits "hat einen
+        // gueltigen, in der Zukunft liegenden Versteigerungstermin und ist nicht nach Kategorie
+        // ausgeschlossen" - ForeclosureAuctionSyncService.SyncAllAsync setzt abgeschlossene
+        // Verfahren (Zuschlag/Meistbotsverteilung/Verschiebung ohne neuen Termin) bereits dort
+        // auf IsActive=false. Ein zusaetzlicher Status-Text-Filter hier waere redundant.
+        var activeAuctions = await dbContext.Set<ForeclosureAuction>()
             .Where(a => a.IsActive && a.ExternalId != null)
             .ToListAsync(ct);
 
-        // Nur Versteigerungen syncen - Meistbotsverteilung/Zuschlag sind abgeschlossene Verfahren
-        var activeAuctions = allActiveAuctions
-            .Where(a => a.Status != null
-                && !a.Status.StartsWith("Meistbotsverteilung", StringComparison.OrdinalIgnoreCase)
-                && !a.Status.StartsWith("Zuschlag", StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        logger.LogInformation(
-            "Aktive Auctions: {Total}, davon fuer Property-Sync: {Filtered} (uebersprungen: {Skipped} abgeschlossene Verfahren)",
-            allActiveAuctions.Count, activeAuctions.Count, allActiveAuctions.Count - activeAuctions.Count);
+        logger.LogInformation("Aktive Auctions fuer Property-Sync: {Count}", activeAuctions.Count);
 
         // 4. Bestehende Properties mit SourceName laden
         var existingProperties = await dbContext.Set<Property>()
