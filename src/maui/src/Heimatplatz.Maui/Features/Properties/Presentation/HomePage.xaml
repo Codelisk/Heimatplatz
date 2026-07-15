@@ -3,278 +3,29 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:api="clr-namespace:Heimatplatz.Maui.ApiClient.Generated;assembly=Heimatplatz.Maui.ApiClient"
              xmlns:controls="clr-namespace:Heimatplatz.Maui.Features.Properties.Controls"
-             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
-             xmlns:shiny="http://shiny.net/maui/controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.HomePage"
              x:DataType="vm:HomeViewModel"
              Title="HEIMATPLATZ">
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Sortieren"
+                     IconImageSource="icon_sort.png"
+                     Order="Primary"
+                     Priority="0"
+                     Command="{Binding ShowSortOptionsCommand}" />
+        <ToolbarItem Text="Filter"
+                     IconImageSource="icon_filter.png"
+                     Order="Primary"
+                     Priority="1"
+                     Command="{Binding OpenFilterSettingsCommand}" />
+    </ContentPage.ToolbarItems>
+
     <Grid>
-
-    <Grid RowDefinitions="Auto,Auto,*">
-
-        <!-- Einklappbare Filterleiste (einzige Filter-UI der App) -->
-        <Border Grid.Row="0"
-                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
-                StrokeThickness="0"
-                Padding="0">
-            <VerticalStackLayout>
-
-                <!-- Filter-Header: immer sichtbar, ganzer Bereich klickbar -->
-                <Grid ColumnDefinitions="Auto,*,Auto"
-                      ColumnSpacing="10"
-                      Padding="14,10">
-                    <Grid.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding ToggleFilterExpandedCommand}" />
-                    </Grid.GestureRecognizers>
-
-                    <Image Grid.Column="0"
-                           Source="icon_filter.png"
-                           WidthRequest="18"
-                           HeightRequest="18"
-                           VerticalOptions="Center" />
-
-                    <VerticalStackLayout Grid.Column="1" Spacing="1">
-                        <Label Text="Filter"
-                               FontSize="13"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                        <Label Text="{Binding FilterSummary}"
-                               FontSize="11"
-                               LineBreakMode="TailTruncation"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                    </VerticalStackLayout>
-
-                    <Label Grid.Column="2"
-                           Text="{Binding FilterToggleGlyph}"
-                           FontSize="10"
-                           VerticalOptions="Center"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                </Grid>
-
-                <!-- Filter-Body: einklappbar -->
-                <VerticalStackLayout Spacing="14"
-                                     Padding="14,2,14,16"
-                                     IsVisible="{Binding IsFilterExpanded}">
-
-                    <!-- Immobilientyp -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="IMMOBILIENTYP" Style="{StaticResource SectionHeader}" />
-                        <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                            <Button Text="Haus"
-                                    Style="{StaticResource FilterChipStyle}"
-                                    Margin="0,0,6,6"
-                                    Command="{Binding ToggleHausCommand}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding IsHausSelected}"
-                                                 Value="True">
-                                        <Setter Property="Text" Value="✓ Haus" />
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                            <Button Text="Grundstück"
-                                    Style="{StaticResource FilterChipStyle}"
-                                    Margin="0,0,6,6"
-                                    Command="{Binding ToggleGrundstueckCommand}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding IsGrundstueckSelected}"
-                                                 Value="True">
-                                        <Setter Property="Text" Value="✓ Grundstück" />
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                            <Button Text="Zwangsversteigerung"
-                                    Style="{StaticResource FilterChipStyle}"
-                                    Margin="0,0,6,6"
-                                    Command="{Binding ToggleZwangsversteigerungCommand}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding IsZwangsversteigerungSelected}"
-                                                 Value="True">
-                                        <Setter Property="Text" Value="✓ Zwangsversteigerung" />
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                        </FlexLayout>
-                    </VerticalStackLayout>
-
-                    <!-- Anbietertyp: bei Zwangsversteigerung (immer Gericht/Edikt) wirkungslos, daher ausgeblendet -->
-                    <VerticalStackLayout Spacing="6" IsVisible="{Binding IsSellerFilterVisible}">
-                        <Label Text="ANBIETER" Style="{StaticResource SectionHeader}" />
-                        <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                            <Button Text="Privat"
-                                    Style="{StaticResource FilterChipStyle}"
-                                    Margin="0,0,6,6"
-                                    Command="{Binding TogglePrivateCommand}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding IsPrivateSelected}"
-                                                 Value="True">
-                                        <Setter Property="Text" Value="✓ Privat" />
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                            <Button Text="Makler"
-                                    Style="{StaticResource FilterChipStyle}"
-                                    Margin="0,0,6,6"
-                                    Command="{Binding ToggleBrokerCommand}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button"
-                                                 Binding="{Binding IsBrokerSelected}"
-                                                 Value="True">
-                                        <Setter Property="Text" Value="✓ Makler" />
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                        </FlexLayout>
-                    </VerticalStackLayout>
-
-                    <!-- Eingestellt seit -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="EINGESTELLT SEIT" Style="{StaticResource SectionHeader}" />
-                        <Border StrokeThickness="1"
-                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                                StrokeShape="RoundRectangle 10"
-                                Padding="10,0"
-                                HorizontalOptions="Start"
-                                MinimumWidthRequest="160">
-                            <Picker ItemsSource="{Binding AgeFilterOptions}"
-                                    SelectedIndex="{Binding SelectedAgeFilterIndex}" />
-                        </Border>
-                    </VerticalStackLayout>
-
-                    <!-- Orte -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="ORTE" Style="{StaticResource SectionHeader}" />
-
-                        <!-- Ausgewaehlte Orte als Chips (komplett gewaehlte Bezirke zusammengefasst) -->
-                        <FlexLayout BindableLayout.ItemsSource="{Binding OrtChips}"
-                                    Wrap="Wrap"
-                                    JustifyContent="Start"
-                                    IsVisible="{Binding HasSelectedOrte}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="models:OrtChip">
-                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
-                                            StrokeThickness="0"
-                                            StrokeShape="RoundRectangle 14"
-                                            Padding="10,5"
-                                            Margin="0,0,6,6">
-                                        <HorizontalStackLayout Spacing="6">
-                                            <Label Text="{Binding Label}"
-                                                   FontSize="12"
-                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
-                                                   VerticalOptions="Center" />
-                                            <Label Text="✕"
-                                                   FontSize="12"
-                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
-                                                   VerticalOptions="Center">
-                                                <Label.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding RemoveOrtChipCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
-                                                                          CommandParameter="{Binding .}" />
-                                                </Label.GestureRecognizers>
-                                            </Label>
-                                        </HorizontalStackLayout>
-                                    </Border>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </FlexLayout>
-
-                        <!-- Oeffnet das Ort-Auswahl-Panel (auf Desktop nicht ueber die volle Breite) -->
-                        <Border StrokeThickness="1"
-                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                                StrokeShape="RoundRectangle 10"
-                                HorizontalOptions="{OnIdiom Default=Fill, Desktop=Start}"
-                                WidthRequest="{OnIdiom Default=-1, Desktop=520}"
-                                Padding="0">
-                            <Grid>
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Padding="12,10">
-                                    <Label Grid.Column="0"
-                                           Text="📍"
-                                           FontSize="13"
-                                           VerticalOptions="Center"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                                    <Label Grid.Column="1"
-                                           Text="{Binding OrtFieldLabel}"
-                                           FontSize="13"
-                                           LineBreakMode="TailTruncation"
-                                           VerticalOptions="Center"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                    <Label Grid.Column="2"
-                                           Text="▼"
-                                           FontSize="10"
-                                           VerticalOptions="Center"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                                </Grid>
-
-                                <!-- Unsichtbarer vollflaechiger Button statt TapGestureRecognizer:
-                                     loest zuverlaessig genau einmal aus (Android) und ist auch unter
-                                     WinUI per DevFlow tapbar -->
-                                <Button BackgroundColor="Transparent"
-                                        BorderColor="Transparent"
-                                        BorderWidth="0"
-                                        Padding="0"
-                                        MinimumHeightRequest="0"
-                                        Command="{Binding OpenOrtPanelCommand}"
-                                        AutomationId="Home_OrtFieldButton" />
-                            </Grid>
-                        </Border>
-                    </VerticalStackLayout>
-                </VerticalStackLayout>
-
-                <BoxView Style="{StaticResource Divider}" />
-            </VerticalStackLayout>
-        </Border>
-
-        <!-- Toolbar-Zeile: Ergebnis-Count + Sortierung -->
-        <Grid Grid.Row="1"
-              ColumnDefinitions="*,Auto"
-              RowDefinitions="Auto,Auto"
-              Padding="12,8">
-            <Label Grid.Column="0"
-                   Text="{Binding ResultCountText}"
-                   FontSize="13"
-                   VerticalOptions="Center"
-                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-
-            <Button Grid.Column="1"
-                    Text="{Binding SortLabel}"
-                    Style="{StaticResource FilterChipStyle}"
-                    Command="{Binding ShowSortOptionsCommand}" />
-
-            <HorizontalStackLayout Grid.Row="1"
-                                   Grid.ColumnSpan="2"
-                                   Margin="0,6,0,0"
-                                   Spacing="8"
-                                   HorizontalOptions="End"
-                                   VerticalOptions="Center">
-                <Label Text="Pro Seite"
-                       FontSize="12"
-                       VerticalOptions="Center"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                <Picker ItemsSource="{Binding PageSizeOptions}"
-                        SelectedItem="{Binding SelectedPageSize, Mode=TwoWay}"
-                        WidthRequest="82"
-                        HeightRequest="38"
-                        AutomationId="Home_PageSize" />
-            </HorizontalStackLayout>
-        </Grid>
-
-        <!-- Liste mit Pull-to-Refresh; die API-Seiten werden explizit gewechselt. -->
-        <RefreshView Grid.Row="2"
-                     IsRefreshing="{Binding IsRefreshing}"
+        <!-- Liste mit Pull-to-Refresh; die API-Seiten werden explizit gewechselt.
+             Count/Seitenzahl stehen im Footer, Sortierung/Filter in der Toolbar -
+             die Liste startet dadurch ohne eigene Kopfzeile direkt oben. -->
+        <RefreshView IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshCommand}">
             <CollectionView x:Name="PropertiesCollection"
                             ItemsSource="{Binding Properties}"
@@ -331,13 +82,14 @@
                     <Grid ColumnDefinitions="Auto,*,Auto"
                           ColumnSpacing="10"
                           Padding="12,12,12,20"
-                          IsVisible="{Binding HasPagination}"
+                          IsVisible="{Binding HasResults}"
                           AutomationId="Home_Pagination">
                         <Button Grid.Column="0"
                                 Text="‹ Zurück"
                                 Style="{StaticResource SecondaryButton}"
                                 Command="{Binding GoToPreviousPageCommand}"
                                 IsEnabled="{Binding CanGoToPreviousPage}"
+                                IsVisible="{Binding HasPagination}"
                                 AutomationId="Home_PreviousPage" />
                         <Label Grid.Column="1"
                                Text="{Binding PageNumberText}"
@@ -351,6 +103,7 @@
                                 Style="{StaticResource SecondaryButton}"
                                 Command="{Binding GoToNextPageCommand}"
                                 IsEnabled="{Binding CanGoToNextPage}"
+                                IsVisible="{Binding HasPagination}"
                                 AutomationId="Home_NextPage" />
                     </Grid>
                 </CollectionView.Footer>
@@ -358,8 +111,7 @@
         </RefreshView>
 
         <!-- Busy-Overlay -->
-        <Grid Grid.Row="2"
-              Style="{StaticResource BusyOverlay}"
+        <Grid Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsBusy}">
             <Border Style="{StaticResource BusyCard}">
                 <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
@@ -371,271 +123,5 @@
                 </VerticalStackLayout>
             </Border>
         </Grid>
-    </Grid>
-
-    <!-- Ort-Auswahl als Bottom Sheet: Suche + Bezirk->Gemeinde-Browse mit Sammelauswahl -->
-    <shiny:OverlayHost>
-        <!-- Detents werden im Code-Behind gesetzt (XAML-Syntax addiert nur zu den Defaults) -->
-        <shiny:FloatingPanel x:Name="OrtPanel"
-                             IsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
-                             IsContentScrollEnabled="False"
-                             PanelCornerRadius="20"
-                             PanelBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
-            <Grid RowDefinitions="Auto,Auto,*,Auto"
-                  RowSpacing="10"
-                  Padding="16,4,16,12">
-
-                <!-- Kopf: Titel + Zuruecksetzen -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                    <Label Text="Orte auswählen"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           VerticalOptions="Center"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                    <Button Grid.Column="1"
-                            Text="Zurücksetzen"
-                            FontSize="13"
-                            Padding="8,6"
-                            MinimumHeightRequest="0"
-                            BackgroundColor="Transparent"
-                            BorderColor="Transparent"
-                            BorderWidth="0"
-                            VerticalOptions="Center"
-                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
-                            Command="{Binding ResetOrtPanelCommand}"
-                            AutomationId="OrtPanel_Reset" />
-                </Grid>
-
-                <!-- Suche -->
-                <Border Grid.Row="1"
-                        StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                        StrokeShape="RoundRectangle 10"
-                        Padding="12,0">
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                        <Label Grid.Column="0"
-                               Text="🔍"
-                               FontSize="13"
-                               VerticalOptions="Center"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                        <Entry Grid.Column="1"
-                               Text="{Binding OrtPanelSearchText}"
-                               Placeholder="Ort oder PLZ suchen..."
-                               AutomationId="OrtPanel_Search" />
-                    </Grid>
-                </Border>
-
-                <!-- Browse-Liste: Bezirke aufklappbar mit Sammel-Checkbox -->
-                <ScrollView Grid.Row="2" IsVisible="{Binding IsOrtPanelBrowseVisible}">
-                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtBezirke}" Spacing="0">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="models:OrtBezirkItem">
-                                <VerticalStackLayout>
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" HeightRequest="48">
-                                        <!-- Sammel-Checkbox: ✓ = alle, – = teilweise -->
-                                        <Grid Grid.Column="0" WidthRequest="40">
-                                            <Border WidthRequest="22"
-                                                    HeightRequest="22"
-                                                    StrokeShape="RoundRectangle 6"
-                                                    StrokeThickness="1.5"
-                                                    Stroke="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
-                                                    BackgroundColor="Transparent"
-                                                    HorizontalOptions="Center"
-                                                    VerticalOptions="Center">
-                                                <Border.Triggers>
-                                                    <DataTrigger TargetType="Border"
-                                                                 Binding="{Binding HasSelection}"
-                                                                 Value="True">
-                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                                        <Setter Property="Stroke" Value="Transparent" />
-                                                    </DataTrigger>
-                                                </Border.Triggers>
-                                                <Label Text="{Binding CheckGlyph}"
-                                                       FontSize="13"
-                                                       FontAttributes="Bold"
-                                                       HorizontalOptions="Center"
-                                                       VerticalOptions="Center"
-                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                            </Border>
-
-                                            <!-- Unsichtbarer Button (siehe Ort-Feld): Sammelauswahl togglen -->
-                                            <Button BackgroundColor="Transparent"
-                                                    BorderColor="Transparent"
-                                                    BorderWidth="0"
-                                                    Padding="0"
-                                                    MinimumHeightRequest="0"
-                                                    Command="{Binding ToggleBezirkSelectionCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
-                                                    CommandParameter="{Binding .}"
-                                                    AutomationId="OrtPanel_BezirkCheck" />
-                                        </Grid>
-
-                                        <!-- Bezirk-Name + Zaehler + Chevron: Tap klappt auf/zu -->
-                                        <Grid Grid.Column="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                                            <Label Grid.Column="0"
-                                                   Text="{Binding Name}"
-                                                   FontSize="14"
-                                                   FontAttributes="Bold"
-                                                   VerticalOptions="Center"
-                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                            <Label Grid.Column="1"
-                                                   Text="{Binding CountLabel}"
-                                                   FontSize="11"
-                                                   VerticalOptions="Center"
-                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                                            <Label Grid.Column="2"
-                                                   Text="{Binding ExpandGlyph}"
-                                                   FontSize="13"
-                                                   VerticalOptions="Center"
-                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-
-                                            <!-- Unsichtbarer Button (siehe Ort-Feld): auf-/zuklappen -->
-                                            <Button Grid.ColumnSpan="3"
-                                                    BackgroundColor="Transparent"
-                                                    BorderColor="Transparent"
-                                                    BorderWidth="0"
-                                                    Padding="0"
-                                                    MinimumHeightRequest="0"
-                                                    Command="{Binding ToggleBezirkExpandedCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
-                                                    CommandParameter="{Binding .}"
-                                                    AutomationId="OrtPanel_BezirkRow" />
-                                        </Grid>
-                                    </Grid>
-
-                                    <!-- Gemeinden des Bezirks -->
-                                    <VerticalStackLayout IsVisible="{Binding IsExpanded}"
-                                                         BindableLayout.ItemsSource="{Binding VisibleGemeinden}"
-                                                         Spacing="0"
-                                                         Padding="0,0,0,6">
-                                        <BindableLayout.ItemTemplate>
-                                            <DataTemplate x:DataType="models:OrtGemeindeItem">
-                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" HeightRequest="44" Padding="24,0,0,0">
-                                                    <Grid Grid.Column="0" WidthRequest="40">
-                                                        <Border WidthRequest="22"
-                                                                HeightRequest="22"
-                                                                StrokeShape="RoundRectangle 6"
-                                                                StrokeThickness="1.5"
-                                                                Stroke="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
-                                                                BackgroundColor="Transparent"
-                                                                HorizontalOptions="Center"
-                                                                VerticalOptions="Center">
-                                                            <Border.Triggers>
-                                                                <DataTrigger TargetType="Border"
-                                                                             Binding="{Binding IsSelected}"
-                                                                             Value="True">
-                                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                                                    <Setter Property="Stroke" Value="Transparent" />
-                                                                </DataTrigger>
-                                                            </Border.Triggers>
-                                                            <Label Text="✓"
-                                                                   FontSize="13"
-                                                                   FontAttributes="Bold"
-                                                                   IsVisible="{Binding IsSelected}"
-                                                                   HorizontalOptions="Center"
-                                                                   VerticalOptions="Center"
-                                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                                        </Border>
-                                                    </Grid>
-                                                    <Label Grid.Column="1"
-                                                           Text="{Binding DisplayName}"
-                                                           FontSize="13"
-                                                           VerticalOptions="Center"
-                                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-
-                                                    <!-- Unsichtbarer Button (siehe Ort-Feld): Gemeinde togglen -->
-                                                    <Button Grid.ColumnSpan="2"
-                                                            BackgroundColor="Transparent"
-                                                            BorderColor="Transparent"
-                                                            BorderWidth="0"
-                                                            Padding="0"
-                                                            MinimumHeightRequest="0"
-                                                            Command="{Binding ToggleOrtGemeindeCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
-                                                            CommandParameter="{Binding .}"
-                                                            AutomationId="OrtPanel_GemeindeRow" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </BindableLayout.ItemTemplate>
-                                    </VerticalStackLayout>
-
-                                    <BoxView HeightRequest="1"
-                                             Color="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
-                                </VerticalStackLayout>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
-                </ScrollView>
-
-                <!-- Suchergebnisse (ersetzen die Browse-Liste waehrend der Suche) -->
-                <ScrollView Grid.Row="2" IsVisible="{Binding IsOrtPanelSearchActive}">
-                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtPanelSearchResults}" Spacing="0">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="models:OrtGemeindeItem">
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" HeightRequest="44">
-                                    <Grid Grid.Column="0" WidthRequest="40">
-                                        <Border WidthRequest="22"
-                                                HeightRequest="22"
-                                                StrokeShape="RoundRectangle 6"
-                                                StrokeThickness="1.5"
-                                                Stroke="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
-                                                BackgroundColor="Transparent"
-                                                HorizontalOptions="Center"
-                                                VerticalOptions="Center">
-                                            <Border.Triggers>
-                                                <DataTrigger TargetType="Border"
-                                                             Binding="{Binding IsSelected}"
-                                                             Value="True">
-                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                                    <Setter Property="Stroke" Value="Transparent" />
-                                                </DataTrigger>
-                                            </Border.Triggers>
-                                            <Label Text="✓"
-                                                   FontSize="13"
-                                                   FontAttributes="Bold"
-                                                   IsVisible="{Binding IsSelected}"
-                                                   HorizontalOptions="Center"
-                                                   VerticalOptions="Center"
-                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                        </Border>
-                                    </Grid>
-                                    <Label Grid.Column="1"
-                                           Text="{Binding DisplayName}"
-                                           FontSize="13"
-                                           VerticalOptions="Center"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                    <Label Grid.Column="2"
-                                           Text="{Binding BezirkName}"
-                                           FontSize="11"
-                                           VerticalOptions="Center"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-
-                                    <!-- Unsichtbarer Button (siehe Ort-Feld): Gemeinde togglen -->
-                                    <Button Grid.ColumnSpan="3"
-                                            BackgroundColor="Transparent"
-                                            BorderColor="Transparent"
-                                            BorderWidth="0"
-                                            Padding="0"
-                                            MinimumHeightRequest="0"
-                                            Command="{Binding ToggleOrtGemeindeCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType=vm:HomeViewModel}"
-                                            CommandParameter="{Binding .}"
-                                            AutomationId="OrtPanel_SearchRow" />
-                                </Grid>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
-                </ScrollView>
-
-                <!-- Uebernehmen mit Treffer-Vorschau -->
-                <Button Grid.Row="3"
-                        Text="{Binding OrtPanelApplyText}"
-                        Command="{Binding ApplyOrtPanelCommand}"
-                        AutomationId="OrtPanel_Apply"
-                        HeightRequest="46"
-                        CornerRadius="12"
-                        FontAttributes="Bold"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
-                        TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-            </Grid>
-        </shiny:FloatingPanel>
-    </shiny:OverlayHost>
-
     </Grid>
 </ContentPage>

@@ -4,12 +4,16 @@ using Heimatplatz.Maui.Features.AppUpdate.Configuration;
 using Heimatplatz.Maui.Features.Auth.Infrastructure;
 using Heimatplatz.Maui.Features.Debug.Services;
 using Heimatplatz.Maui.Features.Notifications.Configuration;
+using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.DevFlow.Agent;
 using Shiny;
+using Shiny.DocumentDb;
+using Shiny.DocumentDb.Sqlite;
 using Shiny.Mediator;
+using Shiny.Mediator.Infrastructure;
 
 namespace Heimatplatz.Maui;
 
@@ -48,10 +52,12 @@ public static class MauiProgram
             apiBaseUrl = envApiUrl;
         }
 
-        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        var mediatorConfiguration = new Dictionary<string, string?>
         {
             [ApiEndpoints.MediatorHttpConfigKey] = apiBaseUrl
-        });
+        };
+        OfflineDataConfiguration.AddTo(mediatorConfiguration);
+        builder.Configuration.AddInMemoryCollection(mediatorConfiguration);
 
         // Shiny-Serializer VOR AddShinyMediator konfigurieren (wie Uno Core.Startup):
         // Der explizite DefaultJsonTypeInfoResolver erlaubt Deserialisierung der
@@ -63,11 +69,35 @@ public static class MauiProgram
         });
         builder.Services.AddJsonSerialization();
 
-        // Shiny Mediator mit MAUI-Integration (MainThread, Event-Safety)
+        // Echte lokale SQLite-Datenbank fuer Offline-Antworten und Mediator-Cache.
+        // AppDataDirectory (nicht CacheDirectory) verhindert, dass das Betriebssystem
+        // die Offline-Daten bei Speicherknappheit entfernt.
+        var offlineDatabasePath = Path.Combine(FileSystem.Current.AppDataDirectory, "heimatplatz-offline.db");
+        builder.Services.AddDocumentStore(options =>
+        {
+            options.DatabaseProvider = new SqliteDatabaseProvider($"Data Source={offlineDatabasePath}");
+            options.JsonSerializerOptions = OfflineStorageJsonContext.Default.Options;
+            options.UseReflectionFallback = false;
+            options.MapTypeToTable<MediatorStorageRecord>("mediator_storage");
+        });
+        builder.Services.AddSingleton<IStorageService, ShinyDocumentStorageService>();
+        builder.Services.AddSingleton<IContractKeyProvider, UserScopedContractKeyProvider>();
+        builder.Services.AddSingleton<LocalFirstRefreshCoordinator>();
+
+        // Reihenfolge im Request-Pipeline:
+        // lokal sofort -> persistenter Cache -> Offline-Fallback -> Netzwerk-Schranke
+        // -> Token-Refresh -> generierter HTTP-Handler.
         builder.Services.AddShinyMediator(cfg =>
         {
+            cfg.AddOpenRequestMiddleware(
+                typeof(LocalFirstRequestMiddleware<,>),
+                ServiceLifetime.Singleton);
+            cfg.AddMauiPersistentCache();
             cfg.UseMaui();
             cfg.PreventEventExceptions();
+            cfg.AddOpenRequestMiddleware(
+                typeof(OfflineNetworkGuardMiddleware<,>),
+                ServiceLifetime.Singleton);
             // 401-Handling: Token-Refresh + Auth-State-Cleanup
             cfg.AddOpenRequestMiddleware(typeof(TokenRefreshMiddleware<,>), ServiceLifetime.Singleton);
             cfg.Services.AddSingleton<IExceptionHandler, AuthExceptionHandler>();

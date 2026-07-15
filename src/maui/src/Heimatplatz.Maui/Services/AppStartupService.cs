@@ -1,6 +1,7 @@
 using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -57,6 +58,11 @@ public class AppStartupService(
     /// </summary>
     public async Task Handle(LogoutRequestedEvent @event, IMediatorContext context, CancellationToken cancellationToken)
     {
+        var userCachePrefix = UserScopedContractKeyProvider.GetScopePrefix(authService.UserId);
+        await context.FlushStores(
+            userCachePrefix,
+            partialMatch: true,
+            cancellationToken: cancellationToken);
         authService.ClearAuthentication();
         await navigator.NavigateTo("Login", relativeNavigation: false);
     }

@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:shiny="http://shiny.net/maui/controls"
+             xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.FilterSettingsPage"
+             x:DataType="vm:FilterSettingsViewModel"
+             Title="Filtereinstellungen">
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="16,24,16,32"
+                                 Spacing="24"
+                                 MaximumWidthRequest="600"
+                                 HorizontalOptions="Fill">
+
+                <!-- Kopf: Beschreibung + Live-Ergebnis (kein doppelter Seitentitel) -->
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Legen Sie fest, welche Immobilien auf der Startseite angezeigt werden. Änderungen werden automatisch übernommen."
+                           Style="{StaticResource PageSubtitle}"
+                           LineBreakMode="WordWrap"
+                           AutomationId="FilterSettings_Description" />
+
+                    <Border Style="{StaticResource Card}" AutomationId="FilterSettings_ResultSummary">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding ResultCountText}"
+                                   Style="{StaticResource CardTitle}"
+                                   AutomationId="FilterSettings_ResultCount" />
+                            <Label Text="{Binding FilterSummary}"
+                                   Style="{StaticResource Caption}"
+                                   AutomationId="FilterSettings_FilterSummary" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Immobilientyp -->
+                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_TypeCard">
+                    <VerticalStackLayout Spacing="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Immobilientyp" Style="{StaticResource CardTitle}" />
+                            <Label Text="Mindestens ein Typ bleibt immer ausgewählt."
+                                   Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                        <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                            <Button Text="Haus"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding ToggleHausCommand}"
+                                    AutomationId="FilterSettings_Chip_Haus">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsHausSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Text="Grundstück"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding ToggleGrundstueckCommand}"
+                                    AutomationId="FilterSettings_Chip_Grundstueck">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsGrundstueckSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Text="Zwangsversteigerung"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding ToggleZwangsversteigerungCommand}"
+                                    AutomationId="FilterSettings_Chip_Zwangsversteigerung">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsZwangsversteigerungSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Anbieter (entfällt, wenn nur Zwangsversteigerungen gewählt sind) -->
+                <Border Style="{StaticResource Card}"
+                        IsVisible="{Binding IsSellerFilterVisible}"
+                        AutomationId="FilterSettings_SellerCard">
+                    <VerticalStackLayout Spacing="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Anbieter" Style="{StaticResource CardTitle}" />
+                            <Label Text="Von wem die Immobilie angeboten wird."
+                                   Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                        <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                            <Button Text="Privat"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding TogglePrivateCommand}"
+                                    AutomationId="FilterSettings_Chip_Privat">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsPrivateSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Text="Makler"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding ToggleBrokerCommand}"
+                                    AutomationId="FilterSettings_Chip_Makler">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsBrokerSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Eingestellt seit -->
+                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_AgeCard">
+                    <VerticalStackLayout Spacing="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Eingestellt seit" Style="{StaticResource CardTitle}" />
+                            <Label Text="Zeigt nur Immobilien, die innerhalb des Zeitraums eingestellt wurden."
+                                   Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                        <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                            <Button Text="Alle"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding SelectAgeFilterCommand}"
+                                    AutomationId="FilterSettings_Chip_AgeAlle">
+                                <Button.CommandParameter>
+                                    <x:Int32>0</x:Int32>
+                                </Button.CommandParameter>
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="0">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Text="1 Tag"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding SelectAgeFilterCommand}"
+                                    AutomationId="FilterSettings_Chip_AgeTag">
+                                <Button.CommandParameter>
+                                    <x:Int32>1</x:Int32>
+                                </Button.CommandParameter>
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="1">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Text="1 Woche"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding SelectAgeFilterCommand}"
+                                    AutomationId="FilterSettings_Chip_AgeWoche">
+                                <Button.CommandParameter>
+                                    <x:Int32>2</x:Int32>
+                                </Button.CommandParameter>
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="2">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Text="1 Monat"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding SelectAgeFilterCommand}"
+                                    AutomationId="FilterSettings_Chip_AgeMonat">
+                                <Button.CommandParameter>
+                                    <x:Int32>3</x:Int32>
+                                </Button.CommandParameter>
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="3">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Text="1 Jahr"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding SelectAgeFilterCommand}"
+                                    AutomationId="FilterSettings_Chip_AgeJahr">
+                                <Button.CommandParameter>
+                                    <x:Int32>4</x:Int32>
+                                </Button.CommandParameter>
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="4">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Orte -->
+                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_OrtCard">
+                    <VerticalStackLayout Spacing="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Orte" Style="{StaticResource CardTitle}" />
+                            <Label Text="Ohne Auswahl werden Immobilien aus allen Orten angezeigt."
+                                   Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+
+                        <FlexLayout BindableLayout.ItemsSource="{Binding OrtChips}"
+                                    Wrap="Wrap"
+                                    JustifyContent="Start"
+                                    IsVisible="{Binding HasSelectedOrte}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:OrtChip">
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 14"
+                                            Padding="12,4,4,4"
+                                            Margin="0,0,8,8">
+                                        <HorizontalStackLayout Spacing="2">
+                                            <Label Text="{Binding Label}"
+                                                   FontSize="12"
+                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                                                   VerticalOptions="Center" />
+                                            <Label Text="✕"
+                                                   FontSize="12"
+                                                   Padding="8,6"
+                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                                                   VerticalOptions="Center">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding RemoveOrtChipCommand, Source={RelativeSource AncestorType={x:Type vm:FilterSettingsViewModel}}, x:DataType=vm:FilterSettingsViewModel}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <Border StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
+                                Padding="0">
+                            <Grid>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Padding="12,12">
+                                    <Label Grid.Column="0" Text="📍" FontSize="13" VerticalOptions="Center" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding OrtFieldLabel}"
+                                           FontSize="13"
+                                           LineBreakMode="TailTruncation"
+                                           VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                    <Label Grid.Column="2"
+                                           Text="▼"
+                                           FontSize="10"
+                                           VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                </Grid>
+                                <Button BackgroundColor="Transparent"
+                                        BorderColor="Transparent"
+                                        BorderWidth="0"
+                                        Padding="0"
+                                        MinimumHeightRequest="0"
+                                        Command="{Binding OpenOrtPanelCommand}"
+                                        AutomationId="FilterSettings_OrtFieldButton" />
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Darstellung (Anzeige-Einstellung, kein Filter) -->
+                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_DisplayCard">
+                    <VerticalStackLayout Spacing="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Darstellung" Style="{StaticResource CardTitle}" />
+                            <Label Text="Wie viele Immobilien pro Seite geladen werden."
+                                   Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <Label Text="Objekte pro Seite"
+                                   Style="{StaticResource BodyStrong}"
+                                   VerticalOptions="Center" />
+                            <Border Grid.Column="1"
+                                    StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                    StrokeShape="RoundRectangle 10"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
+                                    Padding="10,0"
+                                    MinimumWidthRequest="90">
+                                <Picker ItemsSource="{Binding PageSizeOptions}"
+                                        SelectedItem="{Binding SelectedPageSize, Mode=TwoWay}"
+                                        HorizontalTextAlignment="Center"
+                                        AutomationId="FilterSettings_PageSize" />
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Alle Filter zurücksetzen"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ResetFiltersCommand}"
+                        HorizontalOptions="Fill"
+                        AutomationId="FilterSettings_Reset" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <shiny:OverlayHost>
+            <shiny:FloatingPanel x:Name="OrtPanel"
+                                 IsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
+                                 IsContentScrollEnabled="False"
+                                 PanelCornerRadius="20"
+                                 PanelBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
+                <Grid RowDefinitions="Auto,Auto,*,Auto"
+                      RowSpacing="10"
+                      Padding="16,4,16,12">
+
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <Label Text="Orte auswählen"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                        <Button Grid.Column="1"
+                                Text="Zurücksetzen"
+                                FontSize="13"
+                                Padding="8,6"
+                                MinimumHeightRequest="0"
+                                BackgroundColor="Transparent"
+                                BorderColor="Transparent"
+                                BorderWidth="0"
+                                VerticalOptions="Center"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                Command="{Binding ResetOrtPanelCommand}"
+                                AutomationId="FilterSettings_OrtPanel_Reset" />
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="10,0">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <Label Text="⌕"
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                            <Entry Grid.Column="1"
+                                   Placeholder="Gemeinde oder PLZ suchen"
+                                   Text="{Binding OrtPanelSearchText, Mode=TwoWay}"
+                                   BackgroundColor="Transparent"
+                                   AutomationId="FilterSettings_OrtPanel_Search" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollView Grid.Row="2" IsVisible="{Binding IsOrtPanelBrowseVisible}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtBezirke}" Spacing="0">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:OrtBezirkItem">
+                                    <VerticalStackLayout Spacing="0">
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" HeightRequest="48">
+                                            <Grid Grid.Column="0" WidthRequest="40">
+                                                <Border WidthRequest="22"
+                                                        HeightRequest="22"
+                                                        StrokeShape="RoundRectangle 6"
+                                                        StrokeThickness="1.5"
+                                                        Stroke="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                                        BackgroundColor="Transparent"
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center">
+                                                    <Border.Triggers>
+                                                        <DataTrigger TargetType="Border" Binding="{Binding HasSelection}" Value="True">
+                                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                                            <Setter Property="Stroke" Value="Transparent" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+                                                    <Label Text="{Binding CheckGlyph}"
+                                                           FontSize="13"
+                                                           FontAttributes="Bold"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center"
+                                                           TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                                </Border>
+                                                <Button BackgroundColor="Transparent"
+                                                        BorderColor="Transparent"
+                                                        BorderWidth="0"
+                                                        Padding="0"
+                                                        MinimumHeightRequest="0"
+                                                        Command="{Binding ToggleBezirkSelectionCommand, Source={RelativeSource AncestorType={x:Type vm:FilterSettingsViewModel}}, x:DataType=vm:FilterSettingsViewModel}"
+                                                        CommandParameter="{Binding .}" />
+                                            </Grid>
+
+                                            <Grid Grid.Column="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding Name}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold"
+                                                       VerticalOptions="Center"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding CountLabel}"
+                                                       FontSize="11"
+                                                       VerticalOptions="Center"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                                <Label Grid.Column="2"
+                                                       Text="{Binding ExpandGlyph}"
+                                                       FontSize="13"
+                                                       VerticalOptions="Center"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                                <Button Grid.ColumnSpan="3"
+                                                        BackgroundColor="Transparent"
+                                                        BorderColor="Transparent"
+                                                        BorderWidth="0"
+                                                        Padding="0"
+                                                        MinimumHeightRequest="0"
+                                                        Command="{Binding ToggleBezirkExpandedCommand, Source={RelativeSource AncestorType={x:Type vm:FilterSettingsViewModel}}, x:DataType=vm:FilterSettingsViewModel}"
+                                                        CommandParameter="{Binding .}" />
+                                            </Grid>
+                                        </Grid>
+
+                                        <VerticalStackLayout IsVisible="{Binding IsExpanded}"
+                                                             BindableLayout.ItemsSource="{Binding VisibleGemeinden}"
+                                                             Spacing="0"
+                                                             Padding="0,0,0,6">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate x:DataType="models:OrtGemeindeItem">
+                                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" HeightRequest="44" Padding="24,0,0,0">
+                                                        <Grid Grid.Column="0" WidthRequest="40">
+                                                            <Border WidthRequest="22"
+                                                                    HeightRequest="22"
+                                                                    StrokeShape="RoundRectangle 6"
+                                                                    StrokeThickness="1.5"
+                                                                    Stroke="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                                                    BackgroundColor="Transparent"
+                                                                    HorizontalOptions="Center"
+                                                                    VerticalOptions="Center">
+                                                                <Border.Triggers>
+                                                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                                                        <Setter Property="Stroke" Value="Transparent" />
+                                                                    </DataTrigger>
+                                                                </Border.Triggers>
+                                                                <Label Text="✓"
+                                                                       FontSize="13"
+                                                                       FontAttributes="Bold"
+                                                                       IsVisible="{Binding IsSelected}"
+                                                                       HorizontalOptions="Center"
+                                                                       VerticalOptions="Center"
+                                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                                            </Border>
+                                                        </Grid>
+                                                        <Label Grid.Column="1"
+                                                               Text="{Binding DisplayName}"
+                                                               FontSize="13"
+                                                               VerticalOptions="Center"
+                                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                                        <Button Grid.ColumnSpan="2"
+                                                                BackgroundColor="Transparent"
+                                                                BorderColor="Transparent"
+                                                                BorderWidth="0"
+                                                                Padding="0"
+                                                                MinimumHeightRequest="0"
+                                                                Command="{Binding ToggleOrtGemeindeCommand, Source={RelativeSource AncestorType={x:Type vm:FilterSettingsViewModel}}, x:DataType=vm:FilterSettingsViewModel}"
+                                                                CommandParameter="{Binding .}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+
+                                        <BoxView HeightRequest="1"
+                                                 Color="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <ScrollView Grid.Row="2" IsVisible="{Binding IsOrtPanelSearchActive}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtPanelSearchResults}" Spacing="0">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:OrtGemeindeItem">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" HeightRequest="44">
+                                        <Grid Grid.Column="0" WidthRequest="40">
+                                            <Border WidthRequest="22"
+                                                    HeightRequest="22"
+                                                    StrokeShape="RoundRectangle 6"
+                                                    StrokeThickness="1.5"
+                                                    Stroke="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                                    BackgroundColor="Transparent"
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="Center">
+                                                <Border.Triggers>
+                                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                                        <Setter Property="Stroke" Value="Transparent" />
+                                                    </DataTrigger>
+                                                </Border.Triggers>
+                                                <Label Text="✓"
+                                                       FontSize="13"
+                                                       FontAttributes="Bold"
+                                                       IsVisible="{Binding IsSelected}"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center"
+                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                            </Border>
+                                        </Grid>
+                                        <Label Grid.Column="1"
+                                               Text="{Binding DisplayName}"
+                                               FontSize="13"
+                                               VerticalOptions="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                        <Label Grid.Column="2"
+                                               Text="{Binding BezirkName}"
+                                               FontSize="11"
+                                               VerticalOptions="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                        <Button Grid.ColumnSpan="3"
+                                                BackgroundColor="Transparent"
+                                                BorderColor="Transparent"
+                                                BorderWidth="0"
+                                                Padding="0"
+                                                MinimumHeightRequest="0"
+                                                Command="{Binding ToggleOrtGemeindeCommand, Source={RelativeSource AncestorType={x:Type vm:FilterSettingsViewModel}}, x:DataType=vm:FilterSettingsViewModel}"
+                                                CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <Button Grid.Row="3"
+                            Text="{Binding OrtPanelApplyText}"
+                            Command="{Binding ApplyOrtPanelCommand}"
+                            AutomationId="FilterSettings_OrtPanel_Apply"
+                            HeightRequest="46"
+                            CornerRadius="12"
+                            FontAttributes="Bold"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                            TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                </Grid>
+            </shiny:FloatingPanel>
+        </shiny:OverlayHost>
+    </Grid>
+</ContentPage>

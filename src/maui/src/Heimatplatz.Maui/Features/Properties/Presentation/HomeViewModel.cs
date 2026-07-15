@@ -14,15 +14,13 @@ using Shiny.Mediator;
 namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
 /// <summary>
-/// ViewModel fuer die HomePage (Immobilien-Liste mit Filterleiste,
-/// Pull-to-Refresh, expliziter API-Pagination und Sortierung).
+/// ViewModel fuer die HomePage (Immobilien-Liste mit Pull-to-Refresh,
+/// expliziter API-Pagination und Sortierung).
 /// Wird als ShellContent "MainPage" eingebunden (registerRoute: false).
 /// </summary>
 [ShellMap<HomePage>(registerRoute: false)]
 public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDisposable
 {
-    private const int DefaultPageSize = 20;
-    private const string PageSizePreferenceKey = "properties.page-size";
 #if DEBUG
     private const string DebugMockCountPreferenceKey = "debug.properties.mock-count";
     private const string DebugMockPaginationPreferenceKey = "debug.properties.mock-pagination";
@@ -58,8 +56,6 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     [ObservableProperty]
     public partial ObservableCollection<PropertyListItemDto> Properties { get; set; }
 
-    public IReadOnlyList<int> PageSizeOptions { get; } = [10, 20, 50];
-
     [ObservableProperty]
     public partial int SelectedPageSize { get; set; }
 
@@ -67,10 +63,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         ? 0
         : (int)Math.Ceiling(_totalCount / (double)SelectedPageSize);
 
-    public string PageNumberText => PageCount == 0
-        ? string.Empty
-        : $"Seite {_currentPage + 1} von {PageCount}";
+    /// <summary>Footer-Text: Treffer-Anzahl, bei mehreren Seiten inkl. Seitenzahl</summary>
+    public string PageNumberText => PageCount <= 1
+        ? FormatObjektCount(_totalCount)
+        : $"Seite {_currentPage + 1} von {PageCount} · {FormatObjektCount(_totalCount)}";
 
+    public bool HasResults => _totalCount > 0;
     public bool HasPagination => !_isShowingAllDebugMock && PageCount > 1;
     public bool CanGoToPreviousPage => _currentPage > 0;
     public bool CanGoToNextPage => _currentPage + 1 < PageCount;
@@ -100,18 +98,6 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
 
     public bool HasNoLoadError => !HasLoadError;
-
-    [ObservableProperty]
-    public partial string ResultCountText { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FilterToggleGlyph))]
-    public partial bool IsFilterExpanded { get; set; }
-
-    /// <summary>
-    /// Chevron-Glyph fuer den Filter-Toggle-Button
-    /// </summary>
-    public string FilterToggleGlyph => IsFilterExpanded ? "▲" : "▼";
 
     [ObservableProperty]
     public partial bool IsAuthenticated { get; set; }
@@ -153,9 +139,6 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// </summary>
     [ObservableProperty]
     public partial string FilterSummary { get; set; }
-
-    [ObservableProperty]
-    public partial string SortLabel { get; set; }
 
     // Ort-Auswahl (Filter-Zustand; die Auswahl selbst erfolgt im Ort-Panel)
     public ObservableCollection<string> SelectedOrte { get; } = [];
@@ -231,13 +214,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         IsPrivateSelected = true;
         IsBrokerSelected = true;
         SelectedAgeFilterIndex = 0;
-        ResultCountText = "0 Objekte";
-        SortLabel = "Neueste";
         OrtPanelSearchText = string.Empty;
         OrtPanelSearchResults = [];
         OrtPanelApplyText = "Übernehmen";
         FilterSummary = string.Empty;
-        SelectedPageSize = NormalizePageSize(Preferences.Default.Get(PageSizePreferenceKey, DefaultPageSize));
+        SelectedPageSize = PageSizePreference.Get();
         _isSyncing = false;
 
         UpdateFilterSummary();
@@ -258,6 +239,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         // Session-Filter-State wiederherstellen (z.B. nach Rueckkehr von einer Detail-Seite)
         SyncFiltersFromService();
+
+        // "Pro Seite" wird auf der FilterSettingsPage geaendert - beim Zurueckkommen
+        // uebernehmen (der Property-Setter persistiert und laedt neu)
+        var storedPageSize = PageSizePreference.Get();
+        if (storedPageSize != SelectedPageSize)
+            SelectedPageSize = storedPageSize;
 
 #if DEBUG
         // Erlaubt reproduzierbare Emulator-Stresstests auch dann, wenn DevFlow-Actions
@@ -322,7 +309,6 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             SelectedAgeFilterIndex = (int)state.SelectedAgeFilter;
             ReplaceSelectedOrte(state.SelectedOrte);
             _selectedSort = state.SelectedSort;
-            SortLabel = GetSortLabel(_selectedSort);
             UpdateFilterSummary();
         }
         finally
@@ -420,12 +406,32 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             SelectedAgeFilterIndex = (int)preferences.SelectedAgeFilter;
             ReplaceSelectedOrte(preferences.SelectedOrte);
             _selectedSort = preferences.SelectedSort;
-            SortLabel = GetSortLabel(_selectedSort);
             UpdateFilterSummary();
         }
         finally
         {
             _isSyncing = false;
+        }
+
+        // Die separate Filterseite liest denselben Session-State. Den eigenen Handler
+        // kurz ausnehmen, damit der ohnehin folgende Reload nicht doppelt ausgeloest wird.
+        _filterStateService.FilterStateChanged -= OnFilterStateChanged;
+        try
+        {
+            _filterStateService.UpdateFilters(
+                IsHausSelected,
+                IsGrundstueckSelected,
+                IsZwangsversteigerungSelected,
+                _selectedAgeFilter,
+                SelectedOrte.ToList(),
+                IsPrivateSelected,
+                IsBrokerSelected,
+                preferences.ExcludedSellerSourceIds,
+                _selectedSort);
+        }
+        finally
+        {
+            _filterStateService.FilterStateChanged += OnFilterStateChanged;
         }
 
         return true;
@@ -959,7 +965,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         {
             LoadErrorMessage = null;
             _currentPage = 0;
-            var items = await LoadPageAsync(0, CancellationToken.None);
+            var items = await LoadPageAsync(0, CancellationToken.None, forceRemoteRefresh: true);
             ReplaceProperties(items);
             UpdateResultCount();
         }
@@ -1094,7 +1100,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// <summary>
     /// Laedt eine Seite von der API mit allen server-seitigen Filtern
     /// </summary>
-    private async Task<List<PropertyListItemDto>> LoadPageAsync(int page, CancellationToken ct)
+    private async Task<List<PropertyListItemDto>> LoadPageAsync(
+        int page,
+        CancellationToken ct,
+        bool forceRemoteRefresh = false)
     {
         _logger.LogInformation("[HomePage] Loading page {Page} with pageSize {PageSize}", page, SelectedPageSize);
 
@@ -1114,7 +1123,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             }
 #endif
             var request = await BuildPropertiesRequestAsync(page, SelectedPageSize, SelectedOrte.ToList());
-            var (_, response) = await _mediator.Request(request, ct);
+            Action<IMediatorContext>? configure = forceRemoteRefresh
+                ? static context => context.ForceCacheRefresh()
+                : null;
+            var (_, response) = await _mediator.Request(request, ct, configure);
 
             _logger.LogInformation("[HomePage] Response received. Properties count: {Count}, HasMore: {HasMore}",
                 response?.Properties?.Count ?? 0, response?.HasMore ?? false);
@@ -1149,13 +1161,13 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private void UpdateResultCount()
     {
         IsEmpty = _totalCount == 0;
-        ResultCountText = FormatObjektCount(_totalCount);
         _filterStateService.SetResultCount(_totalCount);
         UpdatePaginationState();
     }
 
     private void UpdatePaginationState()
     {
+        OnPropertyChanged(nameof(HasResults));
         OnPropertyChanged(nameof(PageCount));
         OnPropertyChanged(nameof(PageNumberText));
         OnPropertyChanged(nameof(HasPagination));
@@ -1168,7 +1180,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         if (_isSyncing)
             return;
 
-        var normalized = NormalizePageSize(value);
+        var normalized = PageSizePreference.Normalize(value);
         if (normalized != value)
         {
             _isSyncing = true;
@@ -1176,13 +1188,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             _isSyncing = false;
         }
 
-        Preferences.Default.Set(PageSizePreferenceKey, normalized);
+        PageSizePreference.Set(normalized);
         _currentPage = 0;
         _ = ReloadPropertiesAsync();
     }
-
-    private static int NormalizePageSize(int value)
-        => value is 10 or 20 or 50 ? value : DefaultPageSize;
 
 #if DEBUG
     /// <summary>
@@ -1283,10 +1292,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     #region Commands
 
     [RelayCommand]
-    private void ToggleFilterExpanded()
-    {
-        IsFilterExpanded = !IsFilterExpanded;
-    }
+    private Task OpenFilterSettingsAsync()
+        => _navigator.NavigateTo<FilterSettingsViewModel>();
 
     [RelayCommand]
     private void ToggleHaus() => IsHausSelected = !IsHausSelected;
@@ -1304,13 +1311,13 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private void ToggleBroker() => IsBrokerSelected = !IsBrokerSelected;
 
     /// <summary>
-    /// Zeigt die Sortieroptionen als ActionSheet
+    /// Zeigt die Sortieroptionen als ActionSheet (Toolbar-Button)
     /// </summary>
     [RelayCommand]
     private async Task ShowSortOptionsAsync()
     {
         var choice = await _dialogs.ActionSheet(
-            "Sortierung",
+            $"Sortierung (aktuell: {GetSortLabel(_selectedSort)})",
             "Abbrechen",
             null,
             "Neueste", "Älteste", "Preis ↑", "Preis ↓", "Fläche ↓", "Fläche ↑", "PLZ ↑", "PLZ ↓");
@@ -1332,7 +1339,6 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             return;
 
         _selectedSort = newSort.Value;
-        SortLabel = GetSortLabel(_selectedSort);
         OnFiltersChanged();
     }
 

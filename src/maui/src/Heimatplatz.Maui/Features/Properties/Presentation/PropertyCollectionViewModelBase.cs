@@ -187,7 +187,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// Ruft eine Seite der Immobilien von der API ab. Von abgeleiteten Klassen zu implementieren.
     /// </summary>
     protected abstract Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
-        int page, int pageSize, CancellationToken ct);
+        int page, int pageSize, bool forceRemoteRefresh, CancellationToken ct);
 
     /// <summary>
     /// Entfernt eine Immobilie via API aus der Sammlung. Von abgeleiteten Klassen zu implementieren.
@@ -207,7 +207,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         try
         {
             _currentPage = 0;
-            var items = await LoadPageSafeAsync(0);
+            var items = await LoadPageSafeAsync(0, forceRemoteRefresh: false);
 
             Properties.Clear();
             foreach (var item in items)
@@ -238,7 +238,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         {
             LoadErrorMessage = null;
             _currentPage = 0;
-            var items = await LoadPageSafeAsync(0);
+            var items = await LoadPageSafeAsync(0, forceRemoteRefresh: true);
 
             Properties.Clear();
             foreach (var item in items)
@@ -264,7 +264,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         IsLoadingMore = true;
         try
         {
-            var items = await LoadPageSafeAsync(_currentPage + 1);
+            var items = await LoadPageSafeAsync(_currentPage + 1, forceRemoteRefresh: false);
             if (items.Count > 0)
             {
                 _currentPage++;
@@ -278,13 +278,17 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         }
     }
 
-    private async Task<List<PropertyListItemDto>> LoadPageSafeAsync(int page)
+    private async Task<List<PropertyListItemDto>> LoadPageSafeAsync(int page, bool forceRemoteRefresh)
     {
         Logger.LogInformation("[{Type}] Loading page {Page} with pageSize {PageSize}", GetType().Name, page, PageSize);
 
         try
         {
-            var (items, hasMore, totalCount) = await FetchPageAsync(page, PageSize, CancellationToken.None);
+            var (items, hasMore, totalCount) = await FetchPageAsync(
+                page,
+                PageSize,
+                forceRemoteRefresh,
+                CancellationToken.None);
             _hasMore = hasMore;
 
             var itemsList = items.ToList();

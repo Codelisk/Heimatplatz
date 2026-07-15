@@ -7,6 +7,7 @@
     <OpenTelemetryVersion>1.16.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.6.2</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.2</ShinyExtensionsVersion>
+    <ShinyDocumentDbVersion>11.1.0</ShinyDocumentDbVersion>
     <ShinyPushVersion>5.1.1</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
@@ -16,6 +17,7 @@
     <PackageVersion Include="Shiny.Mediator" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Mediator.AspNet" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Mediator.Contracts" Version="$(ShinyMediatorVersion)" />
+    <PackageVersion Include="Shiny.DocumentDb.Sqlite" Version="$(ShinyDocumentDbVersion)" />
     <PackageVersion Include="Shiny.Extensions.DependencyInjection" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Extensions.Stores" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Hosting.Native" Version="$(ShinyPushVersion)" />
@@ -103,6 +105,8 @@
 
     <!-- Security: transitive Pins gegen bekannte Sicherheitsluecken (NU1903) -->
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.android" Version="2.1.12" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.ios" Version="2.1.12" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
 
     <!-- UI Testing -->

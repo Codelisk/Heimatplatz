@@ -33,15 +33,19 @@ public partial class FavoritesViewModel(
         => $"Die Favoriten konnten nicht geladen werden. {errorDetails}";
 
     protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
-        int page, int pageSize, CancellationToken ct)
+        int page, int pageSize, bool forceRemoteRefresh, CancellationToken ct)
     {
+        Action<IMediatorContext>? configure = forceRemoteRefresh
+            ? static context => context.ForceCacheRefresh()
+            : null;
         var (_, response) = await Mediator.Request(
             new GetUserFavoritesHttpRequest
             {
                 Page = page,
                 PageSize = pageSize
             },
-            ct
+            ct,
+            configure
         );
 
         if (response?.Properties == null)

@@ -18,7 +18,15 @@ public class AuthService(AuthSession session) : IAuthService
     private bool _rolesLoaded;
 
     /// <inheritdoc />
-    public bool IsAuthenticated => !string.IsNullOrEmpty(session.AccessToken) && ExpiresAtValue > DateTimeOffset.UtcNow;
+    // Ein abgelaufener Access-Token beendet die lokale Session nicht. Online erneuert
+    // TokenRefreshMiddleware ihn vor dem Request; offline darf der Benutzer weiterhin
+    // auf seine lokal gespeicherten Daten zugreifen. Erst ein abgelehnter Refresh oder
+    // ein expliziter Logout loescht die Session.
+    public bool IsAuthenticated =>
+        !string.IsNullOrEmpty(session.AccessToken) &&
+        !string.IsNullOrEmpty(session.RefreshToken) &&
+        Guid.TryParse(session.UserId, out _) &&
+        ExpiresAtValue is not null;
 
     /// <inheritdoc />
     public string? AccessToken => session.AccessToken;

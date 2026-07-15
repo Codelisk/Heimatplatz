@@ -1,4 +1,5 @@
 using System.Net;
+using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny.Mediator;
 
@@ -13,19 +14,21 @@ public class AuthExceptionHandler(
     ILogger<AuthExceptionHandler> logger
 ) : IExceptionHandler
 {
-    public Task<bool> Handle(IMediatorContext context, Exception exception)
+    public async Task<bool> Handle(IMediatorContext context, Exception exception)
     {
         if (!IsUnauthorizedError(exception))
-            return Task.FromResult(false);
+            return false;
 
         logger.LogWarning(
             "[AuthExceptionHandler] 401 after failed refresh attempt for {MessageType} - clearing auth state",
             context.Message.GetType().Name);
 
+        var userCachePrefix = UserScopedContractKeyProvider.GetScopePrefix(authService.UserId);
+        await context.FlushStores(userCachePrefix, partialMatch: true);
         authService.ClearAuthentication();
 
         // Die Exception wird trotzdem weiter geworfen, damit der aufrufende Code sie behandeln kann
-        return Task.FromResult(false);
+        return false;
     }
 
     private static bool IsUnauthorizedError(Exception exception)

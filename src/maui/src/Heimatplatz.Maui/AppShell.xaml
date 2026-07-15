@@ -106,6 +106,12 @@
         Icon="icon_home.png"
         ContentTemplate="{DataTemplate properties:HomePage}"
         Route="MainPage" />
+    <!-- Gleiche eigenstaendige Seite wie ueber das Filter-Symbol der Startseite.
+         Als MenuItem bleibt die Startseite Shell-Root und ihr Hamburger stabil sichtbar. -->
+    <MenuItem x:Name="FilterSettingsMenuItem"
+              Text="Filtereinstellungen"
+              IconImageSource="icon_filter.png"
+              Clicked="OnFilterSettingsTapped" />
     <ShellContent
         Title="Meine Immobilien"
         Icon="icon_buildings.png"
