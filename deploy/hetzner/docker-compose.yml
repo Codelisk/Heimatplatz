@@ -31,6 +31,10 @@ services:
       # interne Docker-Netz auf (http://api:8080), dessen Host fuer echte Browser nicht aufloesbar
       # waere. Siehe GetPropertiesHandler.ResolveApiBaseUrl.
       Api__PublicBaseUrl: https://${API_DOMAIN}
+    volumes:
+      # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
+      # Container-Rebuilds ueberleben.
+      - api_uploads:/app/wwwroot/uploads
     # Kein Host-Port-Mapping - nur ueber das interne Docker-Netzwerk via Caddy erreichbar.
     expose:
       - "8080"
@@ -62,6 +66,7 @@ services:
       PushNotifications__Apns__PrivateKeyPath: /run/secrets/apns-auth-key.p8
     volumes:
       - ./secrets/apns-auth-key.p8:/run/secrets/apns-auth-key.p8:ro
+      - api_test_uploads:/app/wwwroot/uploads
     expose:
       - "8080"
 
@@ -125,5 +130,7 @@ services:
 
 volumes:
   postgres_data:
+  api_uploads:
+  api_test_uploads:
   caddy_data:
   caddy_config:

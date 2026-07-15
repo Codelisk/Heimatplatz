@@ -18,6 +18,7 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public partial class ForeclosureAuctionSyncService(
     IEdikteScraper scraper,
+    IForeclosureImageService imageService,
     AppDbContext dbContext,
     IOptions<ScrapingOptions> scrapingOptions,
     IForeclosurePropertySyncService propertySyncService,
@@ -123,6 +124,12 @@ public partial class ForeclosureAuctionSyncService(
                 // isUpcoming garantiert HasValue - Compiler kann das ueber den fruehen
                 // continue-Ausstieg oben nicht selbst herleiten.
                 var confirmedAuctionDate = auctionDate!.Value;
+
+                // Nur fuer aktive, nicht ausgeschlossene Edikte Bilder bewerten.
+                // Die PDF-Extraktion ist ein gecachter Fallback und laeuft nur,
+                // wenn die direkten Justiz-Anhaenge technisch unbrauchbar sind.
+                var preparedImageUrls = await imageService.PrepareImageUrlsAsync(detail, ct);
+                detail = detail with { ImageUrls = preparedImageUrls };
                 var contentHash = ComputeContentHash(detail.AllFields, detail.ImageUrls);
 
                 if (existingAuctions.TryGetValue(item.ExternalId, out var existing))

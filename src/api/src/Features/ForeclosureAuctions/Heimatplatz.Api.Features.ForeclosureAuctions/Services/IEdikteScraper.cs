@@ -78,6 +78,11 @@ public record EdiktDetail
     // Bilder (alle Bild-Attachments von der Seite)
     public List<string> ImageUrls { get; init; } = [];
 
+    // Interne Metadaten fuer Qualitaets- und Relevanzbewertung. Die Ediktsdatei
+    // liefert Breite/Hoehe bereits im imgwin-Aufruf, ohne dass jedes Bild erst
+    // heruntergeladen werden muss.
+    public List<EdiktImageCandidate> ImageCandidates { get; init; } = [];
+
     // Status
     public string? StatusText { get; init; }
     public string? LastChangeDateText { get; init; }
@@ -85,4 +90,18 @@ public record EdiktDetail
 
     // Alle Felder als Dictionary fuer Hashing
     public Dictionary<string, string> AllFields { get; init; } = new();
+}
+
+/// <summary>
+/// Originalbild-Anhang eines Edikts samt den auf der Detailseite verfuegbaren Metadaten.
+/// </summary>
+public record EdiktImageCandidate
+{
+    public required string Url { get; init; }
+    public string? Title { get; init; }
+    public string? AltText { get; init; }
+    public int? Width { get; init; }
+    public int? Height { get; init; }
+    public bool IsPhoto { get; init; }
+    public int DocumentOrder { get; init; }
 }

@@ -180,77 +180,15 @@ public partial class EdikteScraper(
             }
         }
 
-        // Alle Bild-Attachments extrahieren
-        // Domino liefert dasselbe Attachment mit unterschiedlicher Gross-/Kleinschreibung
-        // (Direktlink "Foto.JPG" vs. Thumbnail "th1foto.jpg"), daher case-insensitive dedupen
-        var seenImageUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        // 1. Direkte Bild-Links aus <a href> (keine Thumbnails) - in DOM-Reihenfolge
-        //    stehen hier Beilagen/Plaene vor den eigentlichen Fotos
-        var linkImages = new List<string>();
-        var allLinks = document.QuerySelectorAll("a[href]");
-        foreach (var link in allLinks)
-        {
-            var href = link.GetAttribute("href");
-            if (string.IsNullOrEmpty(href)) continue;
-
-            var lowerHref = href.ToLowerInvariant();
-            if ((lowerHref.EndsWith(".jpg") || lowerHref.EndsWith(".jpeg")
-                || lowerHref.EndsWith(".png") || lowerHref.EndsWith(".gif"))
-                && !lowerHref.Contains("/th1"))
-            {
-                var fullImgUrl = href.StartsWith("http") ? href : $"{options.Value.BaseUrl}{href}";
-                if (seenImageUrls.Add(fullImgUrl))
-                    linkImages.Add(fullImgUrl);
-            }
-        }
-
-        // 2. Vollbild-URLs aus Thumbnail <img> Tags ableiten (th1... -> Original).
-        //    Die Thumbnails bilden die Foto-Sektion des Edikts - echte Fotos,
-        //    die im Ergebnis vor Plaenen/Beilagen stehen sollen
-        var photoImages = new List<string>();
-        var photoKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var allImages = document.QuerySelectorAll("img[src]");
-        foreach (var img in allImages)
-        {
-            var src = img.GetAttribute("src");
-            if (string.IsNullOrEmpty(src)) continue;
-
-            var lowerSrc = src.ToLowerInvariant();
-            if (!lowerSrc.Contains("/$file/th1")) continue;
-
-            // Thumbnail: /$file/th1bildansicht.jpg -> Vollbild: /$file/BildAnsicht.jpg
-            // Entferne th1 prefix aus dem Dateinamen
-            var fileIdx = src.IndexOf("/$file/", StringComparison.OrdinalIgnoreCase);
-            if (fileIdx < 0) continue;
-
-            // Hole den Verzeichnispfad (vor $file) - dort liegt das Vollbild unter gleichem Pfad
-            var basePath = src[..(fileIdx + "/$file/".Length)];
-            var thumbFileName = src[(fileIdx + "/$file/".Length)..];
-
-            // Entferne th1 prefix (case-insensitive)
-            var originalFileName = thumbFileName.StartsWith("th1", StringComparison.OrdinalIgnoreCase)
-                ? thumbFileName[3..]
-                : thumbFileName;
-
-            if (string.IsNullOrEmpty(originalFileName)) continue;
-
-            var fullImgUrl = $"{basePath}{originalFileName}";
-            if (!fullImgUrl.StartsWith("http"))
-                fullImgUrl = $"{options.Value.BaseUrl}{fullImgUrl}";
-
-            // Der Thumbnail-Dateiname ist lowercase - bevorzugt die Direktlink-Variante
-            // mit Original-Schreibweise verwenden
-            var linkVariant = linkImages.Find(u =>
-                string.Equals(u, fullImgUrl, StringComparison.OrdinalIgnoreCase)) ?? fullImgUrl;
-
-            if (photoKeys.Add(linkVariant))
-                photoImages.Add(linkVariant);
-        }
-
-        // 3. Fotos zuerst, danach restliche Bild-Anhaenge (Plaene, Beilagen)
-        var imageUrls = photoImages
-            .Concat(linkImages.Where(u => !photoKeys.Contains(u)))
+        // Original-Anhaenge samt den von Domino im imgwin-Aufruf gelieferten
+        // Abmessungen erfassen. Dadurch kann die nachgelagerte Bildpipeline
+        // 225px-Miniaturen und "siehe Beilagen"-Platzhalter aussortieren, ohne
+        // fuer jedes Edikt erst alle Dateien herunterzuladen.
+        var imageCandidates = ExtractImageCandidates(document);
+        var imageUrls = imageCandidates
+            .OrderByDescending(image => image.IsPhoto)
+            .ThenBy(image => image.DocumentOrder)
+            .Select(image => image.Url)
             .ToList();
 
         // Publikations-Eintraege am Ende
@@ -297,6 +235,7 @@ public partial class EdikteScraper(
             SitePlanUrl = sitePlanUrl,
             FloorPlanUrl = floorPlanUrl,
             ImageUrls = imageUrls,
+            ImageCandidates = imageCandidates,
             StatusText = statusFromPublications ?? title,
             LastChangeDateText = allFields.GetValueOrDefault("Letzte Änderung am"),
             PublicationDateText = publicationDate,
@@ -313,6 +252,113 @@ public partial class EdikteScraper(
 
     [GeneratedRegex(@"alldoc/([a-f0-9]+)!OpenDocument", RegexOptions.IgnoreCase)]
     private static partial Regex ExternalIdPattern();
+
+    private List<EdiktImageCandidate> ExtractImageCandidates(IDocument document)
+    {
+        // Domino verlinkt dasselbe Attachment teils als "Foto.JPG" und als
+        // Thumbnail "th1foto.jpg". URLs daher case-insensitiv deduplizieren.
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var candidates = new List<EdiktImageCandidate>();
+        var documentOrder = 0;
+
+        foreach (var link in document.QuerySelectorAll("a[href]"))
+        {
+            var href = link.GetAttribute("href");
+            if (string.IsNullOrWhiteSpace(href) || !IsImageAttachment(href))
+                continue;
+
+            var fullUrl = ToAbsoluteUrl(href);
+            if (!seen.Add(fullUrl))
+                continue;
+
+            var thumbnail = link.QuerySelector("img[src]");
+            var thumbnailSource = thumbnail?.GetAttribute("src") ?? "";
+            var isPhoto = thumbnailSource.Contains("/$file/th1", StringComparison.OrdinalIgnoreCase);
+            var dimensions = ParseImageDimensions(link.GetAttribute("onclick"));
+
+            candidates.Add(new EdiktImageCandidate
+            {
+                Url = fullUrl,
+                Title = link.GetAttribute("title"),
+                AltText = thumbnail?.GetAttribute("alt"),
+                Width = dimensions.Width,
+                Height = dimensions.Height,
+                IsPhoto = isPhoto,
+                DocumentOrder = documentOrder++
+            });
+        }
+
+        // Defensive Fallback fuer Edikte, die nur ein Thumbnail ohne umgebenden
+        // Vollbild-Link ausliefern. Bei regulaeren Seiten greift die Dedup-Liste.
+        foreach (var image in document.QuerySelectorAll("img[src]"))
+        {
+            var source = image.GetAttribute("src");
+            if (string.IsNullOrWhiteSpace(source)
+                || !source.Contains("/$file/th1", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var fileIndex = source.IndexOf("/$file/", StringComparison.OrdinalIgnoreCase);
+            if (fileIndex < 0)
+                continue;
+
+            var basePath = source[..(fileIndex + "/$file/".Length)];
+            var thumbnailFileName = source[(fileIndex + "/$file/".Length)..];
+            var originalFileName = thumbnailFileName.StartsWith("th1", StringComparison.OrdinalIgnoreCase)
+                ? thumbnailFileName[3..]
+                : thumbnailFileName;
+            if (string.IsNullOrWhiteSpace(originalFileName))
+                continue;
+
+            var fullUrl = ToAbsoluteUrl($"{basePath}{originalFileName}");
+            if (!seen.Add(fullUrl))
+                continue;
+
+            candidates.Add(new EdiktImageCandidate
+            {
+                Url = fullUrl,
+                AltText = image.GetAttribute("alt"),
+                IsPhoto = true,
+                DocumentOrder = documentOrder++
+            });
+        }
+
+        return candidates;
+    }
+
+    private string ToAbsoluteUrl(string url)
+    {
+        if (Uri.TryCreate(url, UriKind.Absolute, out var absolute))
+            return absolute.ToString();
+
+        return new Uri(new Uri(options.Value.BaseUrl.TrimEnd('/') + "/"), url).ToString();
+    }
+
+    private static bool IsImageAttachment(string href)
+    {
+        var path = href.Split('?', '#')[0];
+        return !path.Contains("/$file/th1", StringComparison.OrdinalIgnoreCase)
+            && (path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".gif", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static (int? Width, int? Height) ParseImageDimensions(string? onclick)
+    {
+        if (string.IsNullOrWhiteSpace(onclick))
+            return (null, null);
+
+        var match = ImageWindowDimensionsPattern().Match(onclick);
+        return match.Success
+            ? (int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value))
+            : (null, null);
+    }
+
+    [GeneratedRegex("imgwin\\(\\s*['\\\"][^'\\\"]+['\\\"]\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)", RegexOptions.IgnoreCase)]
+    private static partial Regex ImageWindowDimensionsPattern();
 
     [GeneratedRegex(@"^(\d{4})\s")]
     private static partial Regex PlzPattern();

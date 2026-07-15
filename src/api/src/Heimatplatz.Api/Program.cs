@@ -403,11 +403,13 @@ app.MapGet("/api/images/proxy", async (string url, int? w, IHttpClientFactory ht
                 if (original is not null && original.Width > w)
                 {
                     var newHeight = (int)Math.Round(original.Height * (w.Value / (double)original.Width));
-                    using var resized = original.Resize(new SKSizeI(w.Value, newHeight), new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear));
+                    using var resized = original.Resize(
+                        new SKSizeI(w.Value, newHeight),
+                        new SKSamplingOptions(SKCubicResampler.Mitchell));
                     if (resized is not null)
                     {
                         using var image = SKImage.FromBitmap(resized);
-                        using var data = image.Encode(SKEncodedImageFormat.Jpeg, 80);
+                        using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
                         return Results.File(data.ToArray(), "image/jpeg");
                     }
                 }

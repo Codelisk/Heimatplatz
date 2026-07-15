@@ -9,6 +9,18 @@ public class ScrapingOptions
     public int DelayBetweenRequestsMs { get; set; } = 1000;
 
     /// <summary>
+    /// Extrahiert Fotos aus dem Langgutachten, wenn die separat verlinkten
+    /// Edikt-Bilder keine brauchbare Hero-Aufloesung besitzen.
+    /// </summary>
+    public bool EnablePdfImageFallback { get; set; } = true;
+
+    /// <summary>Harte Download-Grenze fuer ein Langgutachten (Default: 50 MB).</summary>
+    public int MaxAppraisalPdfBytes { get; set; } = 50 * 1024 * 1024;
+
+    /// <summary>Maximale Zahl ausgegebener Fotos pro Versteigerung.</summary>
+    public int MaxImagesPerAuction { get; set; } = 20;
+
+    /// <summary>
     /// Intervall des automatischen Hintergrund-Syncs (ForeclosureAuctionSyncWorker) in Stunden.
     /// 0 oder negativ (Default) deaktiviert die automatische Ausfuehrung - der Sync wird
     /// bewusst nur manuell ausgeloest (interner IP-gesperrter Bereich unter /intern auf

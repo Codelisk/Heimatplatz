@@ -28,6 +28,23 @@ public static class ServiceCollectionExtensions
         })
         .AddStandardResilienceHandler();
 
+        // Langgutachten werden nur bei unbrauchbaren Direktbildern geladen.
+        // Redirects werden im Service pro Hop erneut gegen justiz.gv.at geprueft.
+        services.AddHttpClient(ForeclosureImageService.HttpClientName, client =>
+        {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            client.Timeout = TimeSpan.FromSeconds(
+                configuration.GetValue($"{ScrapingOptions.SectionName}:TimeoutSeconds", 30));
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            AllowAutoRedirect = false,
+            MaxConnectionsPerServer = 4
+        });
+
+        services.AddScoped<IForeclosureImageService, ForeclosureImageService>();
+
         // SyncService
         services.AddScoped<IForeclosureAuctionSyncService, ForeclosureAuctionSyncService>();
 

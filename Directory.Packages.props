@@ -64,6 +64,9 @@
     <!-- HTML Scraping -->
     <PackageVersion Include="AngleSharp" Version="1.5.1" />
 
+    <!-- PDF image extraction (foreclosure appraisal fallback) -->
+    <PackageVersion Include="PdfPig" Version="0.1.15" />
+
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(MicrosoftVersion)" />

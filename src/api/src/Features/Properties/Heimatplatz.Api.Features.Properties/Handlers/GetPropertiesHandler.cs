@@ -199,10 +199,13 @@ public class GetPropertiesHandler(
             if (string.IsNullOrEmpty(url))
                 return url;
 
-            // Proxy all external URLs (CORS bypass for the Astro web frontend)
-            // Only skip our own uploads (local paths starting with /)
+            // Lokale Uploads als absolute API-URL ausliefern. Das Astro-Frontend
+            // laeuft auf einer separaten Origin; ein nacktes /uploads/... wuerde
+            // sonst irrtuemlich gegen heimatplatz.at statt api.heimatplatz.at laden.
             if (url.StartsWith("/"))
-                return url;
+                return $"{baseUrl}{url}";
+
+            // Externe Quellen ueber den abgesicherten Bild-Proxy ausliefern.
 
             if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
