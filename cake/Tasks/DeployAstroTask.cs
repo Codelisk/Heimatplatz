@@ -60,13 +60,15 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
 
         // Compose + Caddyfile mitdeployen: /srv/heimatplatz ist KEIN Git-Checkout,
         // sondern ein Datei-Abzug - die Stack-Definition kommt daher aus dem CI-Checkout.
-        // Bewusst ohne --delete (im Zielordner liegen .env und secrets/).
+        // Bewusst ohne --delete (im Zielordner liegen .env und secrets/). --inplace ist
+        // Pflicht: Das Caddyfile ist als Einzeldatei in den Container gemountet - ein
+        // rsync-Rename (neuer Inode) waere im Container unsichtbar und der Reload wirkungslos.
         var deployDir = Path.Combine(context.ProjectDirectory, "deploy", "hetzner");
         var stackTarget = $"{context.HetznerUser}@{context.HetznerHost}:/srv/heimatplatz/deploy/hetzner/";
         RunProcess(
             context,
             "rsync",
-            $"-az -e \"{sshCommand}\" \"{Path.Combine(deployDir, "docker-compose.yml")}\" \"{Path.Combine(deployDir, "Caddyfile")}\" \"{stackTarget}\"",
+            $"-az --inplace -e \"{sshCommand}\" \"{Path.Combine(deployDir, "docker-compose.yml")}\" \"{Path.Combine(deployDir, "Caddyfile")}\" \"{stackTarget}\"",
             "rsync (stack config)");
 
         // web-Container (er)stellen und neu starten, damit das frische Bundle laeuft;
