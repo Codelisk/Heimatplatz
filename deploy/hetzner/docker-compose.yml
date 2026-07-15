@@ -22,6 +22,9 @@ services:
       Database__AutoMigrate: "true"
       Database__EnableSeeding: "false"
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      # KI-Inseratserstellung ueber den AiConnector-Workspace projects/heimatplatz
+      AiListing__Provider: AiConnector
+      AiListing__AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
     # Kein Host-Port-Mapping - nur ueber das interne Docker-Netzwerk via Caddy erreichbar.
     expose:
       - "8080"
@@ -44,6 +47,8 @@ services:
       Database__EnableSeeding: "true"
       ConnectionStrings__DefaultConnection: "Host=128.140.33.238;Port=5433;Database=heimatplatz_test;Username=heimatplatz_test;Password=${TESTDB_PASSWORD}"
       Authentication__Jwt__Key: ${TEST_JWT_KEY}
+      AiListing__Provider: AiConnector
+      AiListing__AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}

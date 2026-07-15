@@ -20,9 +20,20 @@ public static class ServiceCollectionExtensions
         services.Configure<AiListingOptions>(configuration.GetSection(AiListingOptions.SectionName));
         services.AddGeneratedServices();
 
-        // Extraktions-Provider je nach Konfiguration (Mock = Dev, Cli = Server mit Agent-CLI)
+        // Extraktions-Provider je nach Konfiguration
+        // (Mock = Dev, Cli = Server mit Agent-CLI, AiConnector = externer KI-Backend-Service)
         var options = configuration.GetSection(AiListingOptions.SectionName).Get<AiListingOptions>() ?? new AiListingOptions();
-        if (string.Equals(options.Provider, "Cli", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(options.Provider, "AiConnector", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHttpClient<IListingExtractionService, AiConnectorListingExtractionService>(client =>
+            {
+                client.BaseAddress = new Uri(options.AiConnector.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                if (!string.IsNullOrWhiteSpace(options.AiConnector.ApiKey))
+                    client.DefaultRequestHeaders.Add("X-Api-Key", options.AiConnector.ApiKey);
+            });
+        }
+        else if (string.Equals(options.Provider, "Cli", StringComparison.OrdinalIgnoreCase))
             services.AddScoped<IListingExtractionService, CliListingExtractionService>();
         else
             services.AddScoped<IListingExtractionService, MockListingExtractionService>();

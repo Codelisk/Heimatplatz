@@ -28,26 +28,36 @@ Alle Endpoints erfordern die Rolle `Seller`.
 |----------|--------|------------|
 | `Mock` (Default) | `MockListingExtractionService` | Dev: heuristische Extraktion aus dem Diktat (Regex fuer Zimmer/m²/Baujahr, Feature-Keywords), simulierte Laufzeit |
 | `Cli` | `CliListingExtractionService` | Server: ruft eine installierte Agent-CLI auf (z.B. `claude` oder `codex`). Prompt via stdin, Mediendateipfade im Prompt, Antwort muss ein einzelnes JSON-Objekt im `ExtractedListingData`-Schema sein |
+| `AiConnector` | `AiConnectorListingExtractionService` | Produktion: ruft den externen AiConnector-Backend-Service (`POST /api/prompt`, `X-Api-Key`) auf. Der Prompt laeuft im Workspace `projects/heimatplatz`, dessen `AGENTS.md`/`CLAUDE.md` die Experten-Rolle und das `ExtractedListingData`-JSON-Schema vorgeben. Nur Textangaben (Diktat/Notizen) werden uebertragen — Medien nicht |
 
 ## Konfiguration (`AiListing` Section)
 
 ```json
 {
   "AiListing": {
-    "Provider": "Cli",
+    "Provider": "AiConnector",
     "CliCommand": "claude",
     "CliArguments": "-p --output-format text",
     "WorkingDirectory": "/home/site",
     "TimeoutSeconds": 300,
     "MaxImages": 20,
     "MaxVideos": 3,
-    "MaxVideoSizeMb": 60
+    "MaxVideoSizeMb": 60,
+    "AiConnector": {
+      "BaseUrl": "https://ai.danielhufnagl.at",
+      "ApiKey": "",
+      "WorkspaceId": "projects/heimatplatz",
+      "Model": null
+    }
   }
 }
 ```
 
 Default ist `Provider: "Mock"` (siehe `appsettings.json`), damit der Flow lokal
-ohne installierte CLI funktioniert.
+ohne installierte CLI funktioniert. Der `AiConnector.ApiKey` wird NICHT committet,
+sondern auf dem Server per Env-Variable `AiListing__AiConnector__ApiKey` gesetzt.
+Die Server-IP der API muss zusaetzlich in der Caddy-Whitelist des AiConnectors
+(`/etc/caddy/aiconnector.env`, `AICONNECTOR_HOME_IP`) eingetragen sein.
 
 ## Abhaengigkeiten
 

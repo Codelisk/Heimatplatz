@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Heimatplatz.Api.Features.AiListing.Configuration;
 using Heimatplatz.Api.Features.AiListing.Contracts.Models;
 using Microsoft.Extensions.Logging;
@@ -20,12 +18,6 @@ public class CliListingExtractionService(
     ILogger<CliListingExtractionService> logger
 ) : IListingExtractionService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
-    };
-
     public async Task<ExtractedListingData> ExtractAsync(ListingExtractionInput input, CancellationToken ct = default)
     {
         var opts = options.Value;
@@ -88,26 +80,8 @@ public class CliListingExtractionService(
         return result;
     }
 
-    private static ExtractedListingData ParseResult(string stdout)
-    {
-        // Erstes vollstaendiges JSON-Objekt aus der Ausgabe extrahieren
-        // (CLIs geben teils zusaetzlichen Text vor/nach dem JSON aus)
-        var start = stdout.IndexOf('{');
-        var end = stdout.LastIndexOf('}');
-        if (start < 0 || end <= start)
-            throw new InvalidOperationException(
-                $"KI-Antwort enthaelt kein JSON-Objekt: {Truncate(stdout, 500)}");
-
-        var json = stdout.Substring(start, end - start + 1);
-
-        var result = JsonSerializer.Deserialize<ExtractedListingData>(json, JsonOptions)
-            ?? throw new InvalidOperationException("KI-Antwort konnte nicht deserialisiert werden.");
-
-        if (string.IsNullOrWhiteSpace(result.Title) || string.IsNullOrWhiteSpace(result.Description))
-            throw new InvalidOperationException("KI-Antwort enthaelt keinen Titel oder keine Beschreibung.");
-
-        return result;
-    }
+    private static ExtractedListingData ParseResult(string stdout) =>
+        ListingResultParser.Parse(stdout);
 
     private static string BuildPrompt(ListingExtractionInput input)
     {

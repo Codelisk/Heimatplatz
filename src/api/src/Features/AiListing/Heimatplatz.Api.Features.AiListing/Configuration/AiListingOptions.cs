@@ -9,8 +9,9 @@ public class AiListingOptions
 
     /// <summary>
     /// Welcher Extraktions-Provider verwendet wird:
-    /// "Mock" (Dev, heuristische Extraktion ohne KI) oder
-    /// "Cli" (Server: ruft eine installierte Agent-CLI wie claude oder codex auf).
+    /// "Mock" (Dev, heuristische Extraktion ohne KI),
+    /// "Cli" (Server: ruft eine installierte Agent-CLI wie claude oder codex auf) oder
+    /// "AiConnector" (externer AiConnector-Backend-Service, Workspace-basiert).
     /// </summary>
     public string Provider { get; set; } = "Mock";
 
@@ -37,4 +38,30 @@ public class AiListingOptions
 
     /// <summary>Maximale Groesse eines Videos in MB</summary>
     public int MaxVideoSizeMb { get; set; } = 60;
+
+    /// <summary>Einstellungen fuer den "AiConnector"-Provider</summary>
+    public AiConnectorOptions AiConnector { get; set; } = new();
+}
+
+/// <summary>
+/// Konfiguration fuer den externen AiConnector-Backend-Service.
+/// Der Prompt laeuft dort in einem dedizierten Workspace, dessen
+/// AGENTS.md/CLAUDE.md die Inserats-Regeln und das Ausgabeformat vorgeben.
+/// </summary>
+public class AiConnectorOptions
+{
+    /// <summary>Basis-URL des AiConnector-Backends</summary>
+    public string BaseUrl { get; set; } = "https://ai.danielhufnagl.at";
+
+    /// <summary>
+    /// API-Key fuer den X-Api-Key Header. Nicht in appsettings.json committen,
+    /// sondern per Env-Variable AiListing__AiConnector__ApiKey setzen.
+    /// </summary>
+    public string ApiKey { get; set; } = "";
+
+    /// <summary>Workspace, in dem der Prompt ausgefuehrt wird</summary>
+    public string WorkspaceId { get; set; } = "projects/heimatplatz";
+
+    /// <summary>Optionales Claude-Modell (leer = Default des AiConnectors)</summary>
+    public string? Model { get; set; }
 }
