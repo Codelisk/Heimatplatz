@@ -140,11 +140,15 @@ public partial class ForeclosureAuctionSyncService(
                         // Keine Aenderung - nur LastScrapedAt aktualisieren
                         existing.LastScrapedAt = now;
 
-                        // Edikte, die vor dem Fix des Publikationsdatum-Parsers gescraped wurden,
-                        // haben kein PublicationDate. Der ContentHash aendert sich dadurch nicht
-                        // (das Feld steckte immer in AllFields), deshalb wuerde dieser Zweig es
-                        // sonst bis zur naechsten inhaltlichen Aenderung nie nachtragen.
-                        existing.PublicationDate ??= ParsePublicationDate(detail.PublicationDateText);
+                        // Publikationsdatum bei jedem Lauf neu parsen statt nur bei null: Edikte aus
+                        // der Zeit vor dem Parser-Fix haben entweder gar kein PublicationDate oder
+                        // eines mit dem alten Mitternachts-Anker (= Vortag in jeder UTC-Anzeige).
+                        // Der ContentHash aendert sich dadurch nicht (das Feld steckte immer in
+                        // AllFields), deshalb wuerde dieser Zweig beides sonst bis zur naechsten
+                        // inhaltlichen Aenderung nie korrigieren. Das Parsen ist deterministisch,
+                        // erneutes Anwenden also unschaedlich - wie im Changed-Zweig unten.
+                        existing.PublicationDate = ParsePublicationDate(detail.PublicationDateText)
+                            ?? existing.PublicationDate;
 
                         // Reappeared?
                         if (!existing.IsActive)
