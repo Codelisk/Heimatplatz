@@ -31,18 +31,32 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
             throw new InvalidOperationException("Hetzner:Host, Hetzner:User and Hetzner:WebRoot must be configured (appsettings.json or HETZNER_HOST/HETZNER_USER/HETZNER_WEB_ROOT).");
         }
 
+        var webDir = Path.Combine(context.ProjectDirectory, "src", "web");
         var sshCommand = $"ssh -i {context.HetznerSshKeyPath} -o StrictHostKeyChecking=accept-new";
         var target = $"{context.HetznerUser}@{context.HetznerHost}:{context.HetznerWebRoot}/";
         context.Information($"Deploying {distDir} -> {target}");
 
+        // Der @astrojs/node-Standalone-Server buendelt NICHT alle Abhaengigkeiten
+        // (piccolore, devalue, send, unstorage, ... bleiben externe Imports) -
+        // die Production-node_modules muessen daher mit aufs Ziel. devDeps vorher
+        // entfernen (Build ist bereits gelaufen, danach werden sie nicht mehr gebraucht).
+        context.Information("Pruning dev dependencies (npm prune --omit=dev)...");
+        RunProcess(context, "npm", "prune --omit=dev", "npm prune", webDir);
+
         // rsync --delete haelt das Zielverzeichnis exakt auf dem Stand des Builds.
-        // dist/ enthaelt das komplette SSR-Bundle (server/entry.mjs + client-Assets);
-        // der Node-Container laedt es nach dem Restart unten.
+        // dist/ enthaelt das SSR-Bundle (server/entry.mjs + client-Assets); das separat
+        // gesyncte node_modules im Ziel wird per --exclude vor --delete geschuetzt.
         RunProcess(
             context,
             "rsync",
-            $"-az --delete -e \"{sshCommand}\" \"{distDir}/\" \"{target}\"",
+            $"-az --delete --exclude=/node_modules -e \"{sshCommand}\" \"{distDir}/\" \"{target}\"",
             "rsync (dist)");
+
+        RunProcess(
+            context,
+            "rsync",
+            $"-az --delete -e \"{sshCommand}\" \"{Path.Combine(webDir, "node_modules")}/\" \"{target}node_modules/\"",
+            "rsync (node_modules)");
 
         // Compose + Caddyfile mitdeployen: /srv/heimatplatz ist KEIN Git-Checkout,
         // sondern ein Datei-Abzug - die Stack-Definition kommt daher aus dem CI-Checkout.
@@ -71,13 +85,13 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
         context.Information("Astro SSR deployment to Hetzner completed!");
     }
 
-    private static void RunProcess(BuildContext context, string fileName, string arguments, string label)
+    private static void RunProcess(BuildContext context, string fileName, string arguments, string label, string? workingDirectory = null)
     {
         var processInfo = new ProcessStartInfo
         {
             FileName = fileName,
             Arguments = arguments,
-            WorkingDirectory = context.ProjectDirectory,
+            WorkingDirectory = workingDirectory ?? context.ProjectDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
