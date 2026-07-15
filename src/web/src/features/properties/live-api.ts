@@ -1,4 +1,5 @@
-import { SITE } from "@/config/site";
+import { getServerApiBaseUrl } from "@/lib/server/api-base";
+import { cached, TTL } from "@/lib/server/ttl-cache";
 
 export type ApiContact = {
   Name?: string | null;
@@ -51,11 +52,8 @@ type SearchOptions = {
   sellerTypes?: string[];
 };
 
-export const API_PROPERTY_BUILD_LIMIT = 96;
+export const API_PROPERTY_LIST_LIMIT = 96;
 const FALLBACK_PROPERTY_IMAGE = "/favicon.svg";
-const apiPropertyCache = new Map<string, Promise<ApiProperty[]>>();
-const apiPropertyDetailCache = new Map<string, Promise<ApiProperty | null>>();
-const apiImageReachabilityCache = new Map<string, Promise<boolean>>();
 
 export function getApiPropertyPath(propertyOrId: ApiProperty | string) {
   const id = typeof propertyOrId === "string" ? propertyOrId : propertyOrId.Id;
@@ -104,30 +102,26 @@ async function isApiImageReachable(imageUrl: string) {
     probeUrl = imageUrl;
   }
 
-  if (!apiImageReachabilityCache.has(probeUrl)) {
-    apiImageReachabilityCache.set(probeUrl, (async () => {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 2500);
+  return cached(`img-reachable:${probeUrl}`, TTL.images, async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
 
-      try {
-        let response = await fetch(probeUrl, { method: "HEAD", signal: controller.signal });
-        if (response.status === 405) {
-          response = await fetch(probeUrl, {
-            headers: { Range: "bytes=0-0" },
-            signal: controller.signal,
-          });
-          await response.body?.cancel();
-        }
-        return response.ok;
-      } catch {
-        return true;
-      } finally {
-        clearTimeout(timeout);
+    try {
+      let response = await fetch(probeUrl, { method: "HEAD", signal: controller.signal });
+      if (response.status === 405) {
+        response = await fetch(probeUrl, {
+          headers: { Range: "bytes=0-0" },
+          signal: controller.signal,
+        });
+        await response.body?.cancel();
       }
-    })());
-  }
-
-  return apiImageReachabilityCache.get(probeUrl) as Promise<boolean>;
+      return response.ok;
+    } catch {
+      return true;
+    } finally {
+      clearTimeout(timeout);
+    }
+  });
 }
 
 export async function getVerifiedApiPropertyImage(property: ApiProperty) {
@@ -276,9 +270,9 @@ export function getApiPropertyJsonLd(property: ApiProperty, url: string, image =
 }
 
 function buildSearchUrl(options: SearchOptions) {
-  const url = new URL("/api/properties", SITE.apiBaseUrl);
+  const url = new URL("/api/properties", getServerApiBaseUrl());
   url.searchParams.set("Page", String(options.page ?? 0));
-  url.searchParams.set("PageSize", String(options.pageSize ?? API_PROPERTY_BUILD_LIMIT));
+  url.searchParams.set("PageSize", String(options.pageSize ?? API_PROPERTY_LIST_LIMIT));
   url.searchParams.set("SortBy", "CreatedAt");
   url.searchParams.set("SortDescending", "true");
   if (options.propertyTypes?.length) {
@@ -297,36 +291,28 @@ async function fetchApiPropertiesUncached(options: SearchOptions = {}) {
     const payload = await response.json() as ApiPropertyResponse;
     return await Promise.all((payload.Properties ?? []).map(withVerifiedPrimaryImage));
   } catch (error) {
-    console.warn("[Heimatplatz] API properties could not be pre-rendered", error);
+    console.warn("[Heimatplatz] API properties could not be loaded", error);
     return [];
   }
 }
 
 export function fetchApiProperties(options: SearchOptions = {}) {
-  const key = JSON.stringify(options);
-  if (!apiPropertyCache.has(key)) {
-    apiPropertyCache.set(key, fetchApiPropertiesUncached(options));
-  }
-
-  return apiPropertyCache.get(key) as Promise<ApiProperty[]>;
+  return cached(`properties:${JSON.stringify(options)}`, TTL.properties, () =>
+    fetchApiPropertiesUncached(options));
 }
 
 async function fetchApiPropertyByIdUncached(id: string) {
   try {
-    const response = await fetch(new URL(`/api/properties/${encodeURIComponent(id)}`, SITE.apiBaseUrl));
+    const response = await fetch(new URL(`/api/properties/${encodeURIComponent(id)}`, getServerApiBaseUrl()));
     if (!response.ok) throw new Error(`API ${response.status}`);
     const payload = await response.json() as ApiPropertyDetailResponse;
     return payload.Property ? await withVerifiedPrimaryImage(payload.Property) : null;
   } catch (error) {
-    console.warn(`[Heimatplatz] API property ${id} could not be pre-rendered`, error);
+    console.warn(`[Heimatplatz] API property ${id} could not be loaded`, error);
     return null;
   }
 }
 
 export function fetchApiPropertyById(id: string) {
-  if (!apiPropertyDetailCache.has(id)) {
-    apiPropertyDetailCache.set(id, fetchApiPropertyByIdUncached(id));
-  }
-
-  return apiPropertyDetailCache.get(id) as Promise<ApiProperty | null>;
+  return cached(`property:${id}`, TTL.properties, () => fetchApiPropertyByIdUncached(id));
 }

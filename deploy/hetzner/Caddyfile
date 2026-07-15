@@ -8,10 +8,11 @@
 	reverse_proxy api-test:8080
 }
 
-# Statisches Astro-Web (ersetzt Azure Static Web Apps seit 10.7.2026).
-# Security-Header und 404-Fallback portiert aus src/web/public/staticwebapp.config.json.
+# Astro-Web als SSR (Node-Container "web", seit 15.7.2026 - vorher statisches
+# file_server-Hosting). Der Node-Server rendert Seiten pro Request und liefert
+# auch die Client-Assets (dist/client) inkl. Immutable-Cache-Headern; 404s
+# rendert Astro selbst (src/pages/404.astro).
 {$WEB_DOMAIN} {
-	root * /srv/web
 	encode gzip zstd
 
 	header {
@@ -21,13 +22,7 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 	}
 
-	handle_errors {
-		@notfound expression {http.error.status_code} == 404
-		rewrite @notfound /404.html
-		file_server
-	}
-
-	file_server
+	reverse_proxy web:8080
 }
 
 www.{$WEB_DOMAIN} {

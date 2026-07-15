@@ -53,6 +53,27 @@ services:
     expose:
       - "8080"
 
+  # Astro-Web als SSR-Node-Server (seit 15.7.2026, vorher statisches file_server-Hosting).
+  # Das Build-Artefakt (dist/: server/entry.mjs + client/) kommt per rsync aus
+  # deploy-apps.yml nach /srv/heimatplatz-web; nach jedem Deploy wird dieser
+  # Container neu gestartet. Kein eigenes Image noetig - Standalone-Bundle des
+  # @astrojs/node-Adapters enthaelt alle Abhaengigkeiten.
+  web:
+    image: node:22-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    command: ["node", "/srv/web/server/entry.mjs"]
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      # SSR-Fetches gehen direkt ans interne Docker-Netz statt ueber die oeffentliche Domain
+      API_BASE_URL_SERVER: http://api:8080
+    volumes:
+      - /srv/heimatplatz-web:/srv/web:ro
+    expose:
+      - "8080"
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -74,6 +95,7 @@ services:
     depends_on:
       - api
       - api-test
+      - web
     ports:
       - "80:80"
       - "443:443"
@@ -83,8 +105,6 @@ services:
       WEB_DOMAIN: ${WEB_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # Statisches Astro-Web (Deploy via rsync aus deploy-apps.yml)
-      - /srv/heimatplatz-web:/srv/web:ro
       - caddy_data:/data
       - caddy_config:/config
 

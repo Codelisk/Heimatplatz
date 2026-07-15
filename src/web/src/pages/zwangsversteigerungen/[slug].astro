@@ -8,7 +8,7 @@ import ShareIcon from "@tabler/icons/outline/share.svg";
 import ImageGallery from "@/components/properties/ImageGallery.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import {
-  fetchForeclosureAuctions,
+  fetchForeclosureAuctionById,
   formatAuctionArea,
   formatAuctionDate,
   formatAuctionMoney,
@@ -23,23 +23,24 @@ import {
   getForeclosureAuctionPath,
   getForeclosureAuctionSlug,
   getForeclosureCategoryLabel,
-  type ApiForeclosureAuction,
 } from "@/features/foreclosures/api";
 import { breadcrumbSchema } from "@/lib/seo";
 
-export async function getStaticPaths() {
-  const auctions = await fetchForeclosureAuctions();
-  return auctions.map((auction) => ({
-    params: { slug: getForeclosureAuctionSlug(auction) },
-    props: { auction },
-  }));
+// SSR: Der Slug endet auf die Auktions-GUID (siehe getForeclosureAuctionSlug) -
+// daraus laden wir die Versteigerung pro Request. Unbekannte Ids liefern 404,
+// veraltete Slug-Varianten (z.B. geaenderte Kategorie) leiten 301 auf die kanonische URL.
+const { slug } = Astro.params;
+const id = slug?.slice(-36) ?? "";
+const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+const auction = isGuid ? await fetchForeclosureAuctionById(id) : null;
+
+if (!auction) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
-interface Props {
-  auction: ApiForeclosureAuction;
+if (slug !== getForeclosureAuctionSlug(auction)) {
+  return Astro.redirect(getForeclosureAuctionPath(auction), 301);
 }
-
-const { auction } = Astro.props;
 const canonicalPath = getForeclosureAuctionPath(auction);
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
 const title = getAuctionTitle(auction);

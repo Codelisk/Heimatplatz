@@ -7,7 +7,8 @@ Sitemap: ${sitemapUrl.href}
 `;
 
 export const GET: APIRoute = ({ site }) => {
-  const sitemapUrl = new URL("sitemap-index.xml", site);
+  // Dynamische SSR-Sitemap (src/pages/sitemap.xml.ts) statt @astrojs/sitemap-Index
+  const sitemapUrl = new URL("sitemap.xml", site);
 
   return new Response(getRobotsTxt(sitemapUrl), {
     headers: {

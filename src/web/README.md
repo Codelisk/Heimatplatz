@@ -4,10 +4,11 @@ Astro-Web-App unter `src/web`. Die mobilen/Desktop-Ziele leben separat in `src/m
 
 ## Stack
 
-- Astro 6, static output
+- Astro 7, vollstaendig SSR (`output: 'server'` + `@astrojs/node` standalone; laeuft produktiv als Node-Container am Hetzner-Server, siehe `deploy/hetzner/README.md`)
 - Tailwind CSS 4 via `@tailwindcss/vite`
 - Starwind UI fuer Astro-native Komponenten
-- `@astrojs/sitemap`, dynamisches `robots.txt`, `llms.txt`, Canonicals, Open Graph, Breadcrumbs und JSON-LD
+- Dynamische `sitemap.xml`, `robots.txt`, `llms.txt`, Canonicals, Open Graph, Breadcrumbs und JSON-LD
+- Serverseitige API-Fetches mit kurzer TTL gecacht (`src/lib/server/ttl-cache.ts`); Basis-URL zur Laufzeit via `API_BASE_URL_SERVER` (`src/lib/server/api-base.ts`)
 - Regionale SEO-Seiten fuer Oberösterreich und alle 18 Bezirke/Statutarstaedte
 - Backend-first: API-Integration laeuft ueber `src/lib/api/client.ts` und browserseitige Flows fuer Auth, Favoriten, Blockieren, Inserieren und Praeferenzen
 

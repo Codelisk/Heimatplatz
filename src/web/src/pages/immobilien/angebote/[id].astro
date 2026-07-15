@@ -11,7 +11,6 @@ import ContactDock from "@/components/properties/ContactDock.astro";
 import ImageGallery from "@/components/properties/ImageGallery.astro";
 import { Button } from "@/components/starwind/button";
 import {
-  fetchApiProperties,
   fetchApiPropertyById,
   formatApiDate,
   formatApiPriceLong,
@@ -23,29 +22,19 @@ import {
   getApiSellerLabel,
   getApiPropertyImage,
   getApiPropertyImages,
-  type ApiProperty,
   type ApiContact,
 } from "@/features/properties/live-api";
 import { getApiPropertyDetailSections } from "@/features/properties/detail-sections";
 import { breadcrumbSchema } from "@/lib/seo";
 
-export async function getStaticPaths() {
-  const properties = await fetchApiProperties();
-  const detailedProperties = await Promise.all(
-    properties.map(async (property) => await fetchApiPropertyById(property.Id) ?? property),
-  );
+// SSR: Immobilie pro Request laden - neue Inserate sind sofort erreichbar,
+// entfernte liefern 404 (rendert src/pages/404.astro).
+const { id } = Astro.params;
+const property = id ? await fetchApiPropertyById(id) : null;
 
-  return detailedProperties.map((property) => ({
-    params: { id: property.Id },
-    props: { property },
-  }));
+if (!property) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
-
-interface Props {
-  property: ApiProperty;
-}
-
-const { property } = Astro.props;
 const canonicalPath = getApiPropertyPath(property);
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
 const description = getApiPropertyDescription(property);

@@ -1,4 +1,5 @@
-import { SITE } from "@/config/site";
+import { getServerApiBaseUrl } from "@/lib/server/api-base";
+import { cached, TTL } from "@/lib/server/ttl-cache";
 
 export type ApiForeclosureAuction = {
   Id: string;
@@ -108,32 +109,59 @@ function getAuctionRelevanceRank(auction: ApiForeclosureAuction) {
 }
 
 function buildForeclosureUrl(pageSize = FORECLOSURE_BUILD_LIMIT) {
-  const url = new URL("/api/foreclosure-auctions", SITE.apiBaseUrl);
+  const url = new URL("/api/foreclosure-auctions", getServerApiBaseUrl());
   url.searchParams.set("Page", "1");
   url.searchParams.set("PageSize", String(pageSize));
   url.searchParams.set("IsActive", "true");
   return url;
 }
 
-export async function fetchForeclosureAuctions(pageSize = FORECLOSURE_BUILD_LIMIT) {
-  try {
-    const response = await fetch(buildForeclosureUrl(pageSize));
-    if (!response.ok) throw new Error(`API ${response.status}`);
-    const payload = (await response.json()) as ForeclosureAuctionResponse;
-    return (payload.Auctions ?? [])
-      .filter(isUpperAustriaAuction)
-      .sort((a, b) => {
-        const rankDiff = getAuctionRelevanceRank(a) - getAuctionRelevanceRank(b);
-        if (rankDiff !== 0) return rankDiff;
+export function fetchForeclosureAuctions(pageSize = FORECLOSURE_BUILD_LIMIT) {
+  return cached(`foreclosures:${pageSize}`, TTL.properties, async () => {
+    try {
+      const response = await fetch(buildForeclosureUrl(pageSize));
+      if (!response.ok) throw new Error(`API ${response.status}`);
+      const payload = (await response.json()) as ForeclosureAuctionResponse;
+      return (payload.Auctions ?? [])
+        .filter(isUpperAustriaAuction)
+        .sort((a, b) => {
+          const rankDiff = getAuctionRelevanceRank(a) - getAuctionRelevanceRank(b);
+          if (rankDiff !== 0) return rankDiff;
 
-        const dateA = isValidAuctionDate(a.AuctionDate) ? new Date(a.AuctionDate).valueOf() : 0;
-        const dateB = isValidAuctionDate(b.AuctionDate) ? new Date(b.AuctionDate).valueOf() : 0;
-        return dateB - dateA;
-      });
-  } catch (error) {
-    console.warn("[Heimatplatz] Foreclosure auctions could not be pre-rendered", error);
-    return [];
-  }
+          const dateA = isValidAuctionDate(a.AuctionDate) ? new Date(a.AuctionDate).valueOf() : 0;
+          const dateB = isValidAuctionDate(b.AuctionDate) ? new Date(b.AuctionDate).valueOf() : 0;
+          return dateB - dateA;
+        });
+    } catch (error) {
+      console.warn("[Heimatplatz] Foreclosure auctions could not be loaded", error);
+      return [];
+    }
+  });
+}
+
+type ForeclosureAuctionDetailResponse = {
+  Auction?: ApiForeclosureAuction | null;
+};
+
+/**
+ * Einzelne Versteigerung fuer die SSR-Detailseite. Nicht-OOe-Eintraege werden
+ * wie in der Liste ausgefiltert (die Seite existierte vorher nur fuer OOe).
+ */
+export function fetchForeclosureAuctionById(id: string) {
+  return cached(`foreclosure:${id}`, TTL.properties, async () => {
+    try {
+      const response = await fetch(
+        new URL(`/api/foreclosure-auctions/${encodeURIComponent(id)}`, getServerApiBaseUrl()),
+      );
+      if (!response.ok) throw new Error(`API ${response.status}`);
+      const payload = (await response.json()) as ForeclosureAuctionDetailResponse;
+      const auction = payload.Auction ?? null;
+      return auction && isUpperAustriaAuction(auction) ? auction : null;
+    } catch (error) {
+      console.warn(`[Heimatplatz] Foreclosure auction ${id} could not be loaded`, error);
+      return null;
+    }
+  });
 }
 
 export function getForeclosureAuctionSlug(auction: ApiForeclosureAuction) {

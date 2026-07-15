@@ -21,8 +21,9 @@ public sealed class BuildAstroTask : FrostingTask<BuildContext>
         context.Information($"Installing npm dependencies in {webDir}...");
         RunProcess(context, "npm", "ci", webDir, environment: null);
 
-        // 2) Validate + build the static site ('validate' = astro check && astro build).
-        //    PUBLIC_API_BASE_URL is read by src/config/site.ts at build time.
+        // 2) Validate + build the SSR bundle ('validate' = astro check && astro build).
+        //    PUBLIC_API_BASE_URL wird in die Client-Skripte eingebettet; serverseitige
+        //    SSR-Fetches nutzen zur Laufzeit API_BASE_URL_SERVER (docker-compose).
         var buildEnv = new Dictionary<string, string>();
         if (!string.IsNullOrEmpty(context.ApiBaseUrl))
         {
@@ -30,7 +31,7 @@ public sealed class BuildAstroTask : FrostingTask<BuildContext>
             context.Information($"Building with PUBLIC_API_BASE_URL={context.ApiBaseUrl}");
         }
 
-        context.Information("Validating and building Astro static site (npm run validate)...");
+        context.Information("Validating and building Astro SSR bundle (npm run validate)...");
         RunProcess(context, "npm", "run validate", webDir, buildEnv);
 
         var distDir = Path.Combine(webDir, "dist");

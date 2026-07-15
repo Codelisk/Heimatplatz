@@ -10,7 +10,7 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        context.Information("=== Deploy Astro Web Task (Hetzner via rsync) ===");
+        context.Information("=== Deploy Astro Web Task (Hetzner via rsync, SSR-Node-Container) ===");
 
         var distDir = Path.Combine(context.ProjectDirectory, "src", "web", "dist");
 
@@ -31,17 +31,39 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
             throw new InvalidOperationException("Hetzner:Host, Hetzner:User and Hetzner:WebRoot must be configured (appsettings.json or HETZNER_HOST/HETZNER_USER/HETZNER_WEB_ROOT).");
         }
 
+        var sshCommand = $"ssh -i {context.HetznerSshKeyPath} -o StrictHostKeyChecking=accept-new";
         var target = $"{context.HetznerUser}@{context.HetznerHost}:{context.HetznerWebRoot}/";
         context.Information($"Deploying {distDir} -> {target}");
 
-        // rsync --delete haelt das Zielverzeichnis exakt auf dem Stand des Builds
-        // (alte Assets verschwinden). Trailing Slash am Quellpfad = Inhalt kopieren.
-        var sshCommand = $"ssh -i {context.HetznerSshKeyPath} -o StrictHostKeyChecking=accept-new";
-        var arguments = $"-az --delete -e \"{sshCommand}\" \"{distDir}/\" \"{target}\"";
+        // rsync --delete haelt das Zielverzeichnis exakt auf dem Stand des Builds.
+        // dist/ enthaelt das komplette SSR-Bundle (server/entry.mjs + client-Assets);
+        // der Node-Container laedt es nach dem Restart unten.
+        RunProcess(
+            context,
+            "rsync",
+            $"-az --delete -e \"{sshCommand}\" \"{distDir}/\" \"{target}\"",
+            "rsync");
 
+        // Server-Stack aktualisieren: Compose/Caddyfile-Aenderungen aus dem Repo ziehen,
+        // web-Container (er)stellen und neu starten, damit das frische Bundle laeuft.
+        var remoteScript =
+            "cd /srv/heimatplatz && git pull --ff-only && " +
+            "cd deploy/hetzner && docker compose up -d web && docker compose restart web";
+        context.Information("Restarting SSR web container on the server...");
+        RunProcess(
+            context,
+            "ssh",
+            $"-i {context.HetznerSshKeyPath} -o StrictHostKeyChecking=accept-new {context.HetznerUser}@{context.HetznerHost} \"{remoteScript}\"",
+            "ssh (web restart)");
+
+        context.Information("Astro SSR deployment to Hetzner completed!");
+    }
+
+    private static void RunProcess(BuildContext context, string fileName, string arguments, string label)
+    {
         var processInfo = new ProcessStartInfo
         {
-            FileName = "rsync",
+            FileName = fileName,
             Arguments = arguments,
             WorkingDirectory = context.ProjectDirectory,
             RedirectStandardOutput = true,
@@ -53,7 +75,7 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
         using var process = Process.Start(processInfo);
         if (process == null)
         {
-            throw new InvalidOperationException("Failed to start rsync. Make sure rsync and ssh are installed (Standard auf ubuntu-latest Runnern).");
+            throw new InvalidOperationException($"Failed to start {fileName}. Make sure rsync and ssh are installed (Standard auf ubuntu-latest Runnern).");
         }
 
         // WICHTIG: stdout UND stderr gleichzeitig (asynchron) leeren, sonst Deadlock,
@@ -64,13 +86,16 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
         if (!process.WaitForExit(10 * 60_000))
         {
             try { process.Kill(entireProcessTree: true); } catch { /* ignore */ }
-            throw new TimeoutException("rsync hat das Zeitlimit von 10 Minuten ueberschritten und wurde abgebrochen.");
+            throw new TimeoutException($"{label} hat das Zeitlimit von 10 Minuten ueberschritten und wurde abgebrochen.");
         }
 
         var output = outputTask.GetAwaiter().GetResult();
         var error = errorTask.GetAwaiter().GetResult();
 
-        context.Information(output);
+        if (!string.IsNullOrEmpty(output))
+        {
+            context.Information(output);
+        }
         if (!string.IsNullOrEmpty(error))
         {
             context.Warning(error);
@@ -78,9 +103,7 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
 
         if (process.ExitCode != 0)
         {
-            throw new InvalidOperationException($"rsync failed with exit code {process.ExitCode}.");
+            throw new InvalidOperationException($"{label} failed with exit code {process.ExitCode}.");
         }
-
-        context.Information("Astro web deployment to Hetzner completed!");
     }
 }

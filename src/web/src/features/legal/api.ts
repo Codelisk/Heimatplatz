@@ -1,4 +1,5 @@
-import { SITE } from "@/config/site";
+import { getServerApiBaseUrl } from "@/lib/server/api-base";
+import { cached, TTL } from "@/lib/server/ttl-cache";
 
 export type LegalSection = {
   sortOrder: number;
@@ -288,9 +289,10 @@ function hasPrivacyPolicyContent(policy: PrivacyPolicy) {
   return Boolean(policy.responsibleParty.companyName && policy.sections.length);
 }
 
-export async function fetchImprint(): Promise<Imprint> {
+export function fetchImprint(): Promise<Imprint> {
+  return cached("legal:imprint", TTL.legal, async () => {
   try {
-    const response = await fetch(new URL("/api/legal/imprint", SITE.apiBaseUrl), {
+    const response = await fetch(new URL("/api/legal/imprint", getServerApiBaseUrl()), {
       headers: { Accept: "application/json" },
     });
     if (!response.ok) throw new Error(`API ${response.status}`);
@@ -298,14 +300,16 @@ export async function fetchImprint(): Promise<Imprint> {
     const imprint = normalizeImprint(extractPayload(await response.json(), "Imprint"));
     return hasImprintContent(imprint) ? imprint : fallbackImprint;
   } catch (error) {
-    console.warn("[Heimatplatz] Imprint could not be pre-rendered", error);
+    console.warn("[Heimatplatz] Imprint could not be loaded", error);
     return fallbackImprint;
   }
+  });
 }
 
-export async function fetchPrivacyPolicy(): Promise<PrivacyPolicy> {
+export function fetchPrivacyPolicy(): Promise<PrivacyPolicy> {
+  return cached("legal:privacy-policy", TTL.legal, async () => {
   try {
-    const response = await fetch(new URL("/api/legal/privacy-policy", SITE.apiBaseUrl), {
+    const response = await fetch(new URL("/api/legal/privacy-policy", getServerApiBaseUrl()), {
       headers: { Accept: "application/json" },
     });
     if (!response.ok) throw new Error(`API ${response.status}`);
@@ -313,9 +317,10 @@ export async function fetchPrivacyPolicy(): Promise<PrivacyPolicy> {
     const policy = normalizePrivacyPolicy(extractPayload(await response.json(), "PrivacyPolicy"));
     return hasPrivacyPolicyContent(policy) ? policy : fallbackPrivacyPolicy;
   } catch (error) {
-    console.warn("[Heimatplatz] Privacy policy could not be pre-rendered", error);
+    console.warn("[Heimatplatz] Privacy policy could not be loaded", error);
     return fallbackPrivacyPolicy;
   }
+  });
 }
 
 export function visibleLegalSections(sections: LegalSection[]) {
