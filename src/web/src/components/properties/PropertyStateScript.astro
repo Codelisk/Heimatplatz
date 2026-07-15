@@ -1,4 +1,5 @@
 <script>
+  import { getResponsiveImage } from "@/lib/images";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
 
   type Draft = {
@@ -712,9 +713,12 @@
   function formatPriceValue(value: number | string | undefined) {
     const number = Number(value);
     if (!Number.isFinite(number) || number <= 0) return "Preis offen";
-    if (number >= 1_000_000) return `${(number / 1_000_000).toLocaleString("de-AT", { maximumFractionDigits: 1 })} Mio. EUR`;
-    if (number >= 1000) return `${Math.round(number / 1000).toLocaleString("de-AT")} Tsd. EUR`;
-    return `${number.toLocaleString("de-AT")} EUR`;
+    // Branchenuebliche Schreibweise ("€ 365.000") statt "365 Tsd. EUR"
+    return new Intl.NumberFormat("de-AT", {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(number);
   }
 
   function createText<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text: string) {
@@ -940,23 +944,30 @@
     image.className = "h-full w-full object-cover";
     image.alt = property.Title;
     image.loading = "lazy";
-    image.src = property.ImageUrls?.[0] || "/favicon.svg";
+    const responsiveImage = getResponsiveImage(property.ImageUrls?.[0] || "/favicon.svg");
+    image.src = responsiveImage.src;
+    if (responsiveImage.srcset) image.srcset = responsiveImage.srcset;
+    image.sizes = "(min-width: 1280px) 400px, (min-width: 640px) 50vw, 100vw";
+    image.dataset.smartImage = "";
     image.addEventListener("error", () => {
       image.src = "/favicon.svg";
     }, { once: true });
     const type = createText("span", "absolute left-3 top-3 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background", property.Type);
-    const price = createText("span", "absolute bottom-3 right-3 rounded-md bg-black/90 px-4 py-2 text-lg font-bold text-white", formatPriceValue(property.Price));
-    imageWrap.append(image, type, price);
+    imageWrap.append(image, type);
 
     const body = document.createElement("div");
     body.className = "p-4";
+    const head = document.createElement("div");
+    head.className = "flex items-start justify-between gap-3";
     const title = document.createElement("h2");
-    title.className = "text-base font-semibold";
+    title.className = "min-w-0 text-base font-semibold";
     const titleLink = document.createElement("a");
     titleLink.href = `/immobilien/angebote/${encodeURIComponent(property.Id)}/`;
     titleLink.className = "hover:underline";
     titleLink.textContent = property.City || property.Title;
     title.append(titleLink);
+    const price = createText("p", "shrink-0 whitespace-nowrap text-lg font-bold leading-tight", formatPriceValue(property.Price));
+    head.append(title, price);
     const place = [property.PostalCode, property.City].filter(Boolean).join(" ");
     const addressText = (property.Address ?? "").trim();
     // Adressen aus Importen enthalten oft schon "PLZ Ort" - nicht doppelt anzeigen
@@ -966,8 +977,8 @@
       "p",
       "mt-4 text-sm font-semibold",
       [
-        property.LivingAreaM2 ? `${property.LivingAreaM2} m2 Wfl` : null,
-        property.PlotAreaM2 ? `${property.PlotAreaM2} m2 Grund` : null,
+        property.LivingAreaM2 ? `${property.LivingAreaM2} m² Wfl` : null,
+        property.PlotAreaM2 ? `${property.PlotAreaM2} m² Grund` : null,
         property.Rooms ? `${property.Rooms} Zi` : null,
       ].filter(Boolean).join(" · ") || property.SellerName,
     );
@@ -985,7 +996,7 @@
         <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">Blockieren</button>
       `;
     }
-    body.append(title, address, subtitle, meta, actions);
+    body.append(head, address, subtitle, meta, actions);
     card.append(imageWrap, body);
     return card;
   }
@@ -1512,6 +1523,54 @@
     });
   }
 
+  // Edikte-Anhaenge sind oft kleine A4-Hochformat-Scans. object-cover wuerde sie
+  // hochskalieren und beschneiden (unscharf) - stattdessen einpassen und den
+  // Rahmen mit einer weichgezeichneten Kopie des Bilds fuellen.
+  function applySmartImageFit(image: HTMLImageElement) {
+    if (image.dataset.smartImageApplied || !image.naturalWidth || !image.naturalHeight) return;
+    const parent = image.parentElement;
+    if (!parent) return;
+
+    const source = image.currentSrc || image.src;
+    const isFallbackLogo = source.endsWith("/favicon.svg");
+    const frameWidth = parent.getBoundingClientRect().width;
+    const isPortrait = image.naturalHeight > image.naturalWidth;
+    const wouldUpscale = frameWidth > 0 && image.naturalWidth < frameWidth * 0.75;
+    if (!isFallbackLogo && !isPortrait && !wouldUpscale) return;
+
+    image.dataset.smartImageApplied = "true";
+    image.classList.remove("object-cover");
+    image.classList.add("object-contain");
+
+    if (isFallbackLogo) {
+      // Logo-Platzhalter nie beschneiden oder weichzeichnen, nur verkleinert zentrieren
+      image.classList.add("p-8", "opacity-70");
+      return;
+    }
+
+    parent.classList.add("relative", "isolate", "overflow-hidden");
+    const backdrop = document.createElement("div");
+    backdrop.setAttribute("aria-hidden", "true");
+    backdrop.className = "absolute inset-0 -z-10 scale-110 bg-cover bg-center blur-md opacity-60";
+    backdrop.style.backgroundImage = `url("${source}")`;
+    parent.insertBefore(backdrop, image);
+  }
+
+  function bindSmartImages() {
+    document.querySelectorAll<HTMLImageElement>("img[data-smart-image]").forEach((image) => {
+      if (image.dataset.smartImageBound) return;
+      image.dataset.smartImageBound = "true";
+      if (image.complete && image.naturalWidth > 0) applySmartImageFit(image);
+      image.addEventListener("load", () => applySmartImageFit(image));
+    });
+  }
+
+  function observeSmartImages() {
+    bindSmartImages();
+    // Suchergebnis- und Favoritenkarten entstehen client-seitig nach dem Boot
+    new MutationObserver(() => bindSmartImages()).observe(document.body, { childList: true, subtree: true });
+  }
+
   async function renderRemoteUserLists() {
     const session = readSession();
     if (!session) return;
@@ -1813,6 +1872,7 @@
   function bootPropertyState() {
     refreshActionButtons();
     bindFallbackImages();
+    observeSmartImages();
     renderAuthState();
     syncUserLists();
     renderMineStatus();

@@ -1,4 +1,5 @@
 ---
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
 import FilterIcon from "@tabler/icons/outline/filter.svg";
 import { NativeSelect } from "@/components/starwind/native-select";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
@@ -6,7 +7,7 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
 
 <section class="border-b border-border bg-background lg:hidden" data-mobile-filter>
   <button
-    class="grid min-h-11 w-full grid-cols-[1fr_auto] items-center px-3 text-left"
+    class="group grid min-h-11 w-full grid-cols-[1fr_auto] items-center px-3 text-left"
     type="button"
     data-mobile-filter-toggle
     aria-expanded="false"
@@ -17,7 +18,7 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
     </span>
     <span class="flex items-center gap-2 text-sm text-muted-foreground">
       <span data-mobile-result-count>0 Objekte</span>
-      <span aria-hidden="true">⌄</span>
+      <ChevronDownIcon class="size-4 transition-transform duration-200 group-aria-expanded:rotate-180" aria-hidden="true" />
     </span>
   </button>
 
@@ -37,7 +38,7 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
       <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="apartment" aria-pressed="true">Wohnung</button>
       <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="house" aria-pressed="true">Haus</button>
       <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="land" aria-pressed="true">Grund</button>
-      <button type="button" class="rounded-md border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground" data-filter-type="foreclosure" aria-pressed="false">ZV</button>
+      <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="foreclosure" aria-pressed="true">ZV</button>
       <span class="basis-full"></span>
       <div class="flex flex-wrap gap-2" data-seller-filter-group>
         <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="private" aria-pressed="true">Privat</button>
@@ -45,5 +46,13 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
         <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="court" aria-pressed="true">Portal</button>
       </div>
     </div>
+
+    <button
+      type="button"
+      class="mt-3 w-full rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:border-foreground hover:text-foreground"
+      data-filter-reset
+    >
+      Filter zurücksetzen
+    </button>
   </form>
 </section>

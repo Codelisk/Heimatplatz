@@ -5,6 +5,7 @@ import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import PhotoIcon from "@tabler/icons/outline/photo.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
+import { getOriginalProxyImage, getResponsiveImage, withProxyImageWidth } from "@/lib/images";
 
 interface Props {
   images: string[];
@@ -15,29 +16,16 @@ const FALLBACK_IMAGE = "/favicon.svg";
 
 const { images, title } = Astro.props;
 
-/**
- * Die List-Endpoints liefern proxied 640px-Thumbnails (`&w=640`). Fuer die
- * Lightbox wollen wir das unveraenderte Original, daher den Breiten-Parameter
- * aus unseren eigenen Proxy-URLs entfernen.
- */
-function getOriginalImageUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.pathname.endsWith("/api/images/proxy")) {
-      parsed.searchParams.delete("w");
-      return parsed.toString();
-    }
-  } catch {
-    // relative oder ungueltige URL: unveraendert lassen
-  }
-  return url;
-}
-
-const items = images.map((url, index) => ({
-  thumb: url,
-  full: getOriginalImageUrl(url),
-  alt: `${title} – Bild ${index + 1} von ${images.length}`,
-}));
+const items = images.map((url, index) => {
+  const responsive = getResponsiveImage(url);
+  return {
+    thumb: responsive.src,
+    thumbSrcset: responsive.srcset,
+    preview: withProxyImageWidth(url, 320),
+    full: getOriginalProxyImage(url),
+    alt: `${title} – Bild ${index + 1} von ${images.length}`,
+  };
+});
 
 const hasImages = items.length > 0;
 const sideItems = items.slice(1, 3);
@@ -50,7 +38,7 @@ const remainingCount = items.length - 3;
       <img
         src={FALLBACK_IMAGE}
         alt={title}
-        class="h-[320px] w-full object-cover sm:h-[460px]"
+        class="h-[320px] w-full object-contain p-10 opacity-70 sm:h-[460px]"
         loading="eager"
         decoding="async"
       />
@@ -78,11 +66,14 @@ const remainingCount = items.length - 3;
         >
           <img
             src={items[0].thumb}
+            srcset={items[0].thumbSrcset}
+            sizes="(min-width: 1024px) 600px, (min-width: 640px) 67vw, 100vw"
             alt={items[0].alt}
             class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
             loading="eager"
             decoding="async"
             data-fallback-image={FALLBACK_IMAGE}
+            data-smart-image
           />
           <span class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <span class="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-full bg-black/70 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
@@ -101,11 +92,14 @@ const remainingCount = items.length - 3;
           >
             <img
               src={item.thumb}
+              srcset={item.thumbSrcset}
+              sizes="(min-width: 1024px) 300px, 33vw"
               alt={item.alt}
               class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
               loading="lazy"
               decoding="async"
               data-fallback-image={FALLBACK_IMAGE}
+              data-smart-image
             />
             {index === sideItems.length - 1 && remainingCount > 0 && (
               <span class="absolute inset-0 grid place-items-center bg-black/55 text-lg font-bold text-white backdrop-blur-[2px] transition-colors duration-300 group-hover:bg-black/45">
@@ -198,7 +192,7 @@ const remainingCount = items.length - 3;
                   aria-label={`Bild ${index + 1} anzeigen`}
                 >
                   <img
-                    src={item.thumb}
+                    src={item.preview}
                     alt=""
                     class="h-full w-full object-cover"
                     loading="lazy"

@@ -37,13 +37,15 @@ if (!property) {
 }
 const canonicalPath = getApiPropertyPath(property);
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
+// Viele Titel enthalten den Ort bereits ("... in Pettenbach") - nicht doppelt anhaengen
+const pageTitle = property.Title.includes(property.City) ? property.Title : `${property.Title} in ${property.City}`;
 const description = getApiPropertyDescription(property);
 const imageUrl = getApiPropertyImage(property);
 const images = getApiPropertyImages(property);
 const facts = [
   ["Preis", formatApiPriceLong(property.Price)],
-  ["Wohnfläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m2` : "Keine Angabe"],
-  ["Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m2` : "Keine Angabe"],
+  ["Wohnfläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : "Keine Angabe"],
+  ["Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : "Keine Angabe"],
   ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
 ];
 const features = property.Features?.length
@@ -59,7 +61,7 @@ const detailSections = getApiPropertyDetailSections(property);
 ---
 
 <BaseLayout
-  title={`${property.Title} in ${property.City}`}
+  title={pageTitle}
   description={`${property.Title} in ${property.PostalCode} ${property.City}, Oberösterreich. ${formatApiPriceLong(property.Price)}. ${getApiAreaLabel(property)}.`}
   canonicalPath={canonicalPath}
   image={imageUrl}
@@ -79,11 +81,14 @@ const detailSections = getApiPropertyDetailSections(property);
       </a>
     </header>
 
-    <section class="mx-auto grid max-w-7xl gap-8 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
+    {/* grid-cols-[minmax(0,1fr)] auch unterhalb lg: sonst sprengt die intrinsische
+        Bildbreite die implizite Spalte und die Seite wird breiter als der Viewport */}
+    <section class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
       <div>
         <div class="relative">
           <ImageGallery images={images} title={property.Title} />
-          <div class="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-2">
+          {/* right-40 laesst Platz fuer die drei Action-Buttons, sonst ueberlappen die Badges */}
+          <div class="pointer-events-none absolute left-4 right-40 top-4 z-10 flex flex-wrap gap-2">
             <span class="rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background">{getApiPropertyTypeLabel(property.Type, property)}</span>
             <span class="rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground">{property.City}</span>
           </div>
@@ -124,7 +129,7 @@ const detailSections = getApiPropertyDetailSections(property);
 
         <div class="mt-6">
           <p class="text-sm font-semibold text-muted-foreground">{property.PostalCode} {property.City} · {property.Address}</p>
-          <h1 class="mt-3 max-w-3xl text-4xl font-bold leading-tight">{property.Title}</h1>
+          <h1 class="mt-3 max-w-3xl break-words text-3xl font-bold leading-tight sm:text-4xl">{property.Title}</h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{description}</p>
         </div>
 

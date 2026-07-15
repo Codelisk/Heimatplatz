@@ -183,9 +183,12 @@ export function getApiSellerLabel(sellerType: string | number | null) {
 export function formatApiPrice(value: number | string | null | undefined) {
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) return "Preis offen";
-  if (number >= 1_000_000) return `${(number / 1_000_000).toLocaleString("de-AT", { maximumFractionDigits: 1 })} Mio. EUR`;
-  if (number >= 1000) return `${Math.round(number / 1000).toLocaleString("de-AT")} Tsd. EUR`;
-  return `${number.toLocaleString("de-AT")} EUR`;
+  // Branchenuebliche Schreibweise ("€ 365.000") statt "365 Tsd. EUR"
+  return new Intl.NumberFormat("de-AT", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(number);
 }
 
 export function formatApiPriceLong(value: number | string | null | undefined) {
@@ -222,8 +225,8 @@ export function getApiAreaValue(property: ApiProperty) {
 }
 
 export function getApiAreaLabel(property: ApiProperty) {
-  if (property.PlotAreaM2) return `${property.PlotAreaM2} m2 Grund`;
-  if (property.LivingAreaM2) return `${property.LivingAreaM2} m2 Wfl`;
+  if (property.PlotAreaM2) return `${property.PlotAreaM2} m² Grund`;
+  if (property.LivingAreaM2) return `${property.LivingAreaM2} m² Wfl`;
   return "Fläche offen";
 }
 

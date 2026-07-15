@@ -66,7 +66,7 @@ function add(sectionMap: Map<string, DetailItem[]>, section: string, label: stri
 function formatArea(value: unknown) {
   const number = numberValue(value);
   if (!number) return "";
-  return `${new Intl.NumberFormat("de-AT", { maximumFractionDigits: 0 }).format(number)} m2`;
+  return `${new Intl.NumberFormat("de-AT", { maximumFractionDigits: 0 }).format(number)} m²`;
 }
 
 function formatMoney(value: unknown) {
@@ -194,7 +194,7 @@ export function getApiPropertyDetailSections(property: ApiProperty): PropertyDet
   const livingArea = numberValue(property.LivingAreaM2) ?? numberValue(data.LivingAreaInSquareMeters);
   const price = numberValue(property.Price);
   if (livingArea && price) {
-    add(sections, "Kosten", "Preis / m2", formatMoney(price / livingArea));
+    add(sections, "Kosten", "Preis / m²", formatMoney(price / livingArea));
   }
   add(sections, "Basisdaten", "Eingestellt am", formatApiDate(property.CreatedAt));
 
