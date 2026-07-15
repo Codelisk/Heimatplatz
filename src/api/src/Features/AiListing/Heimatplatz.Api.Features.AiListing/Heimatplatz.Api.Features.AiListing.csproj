@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Heimatplatz.Api.Features.AiListing.Contracts\Heimatplatz.Api.Features.AiListing.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.AiConnectorClient\Heimatplatz.Api.Core.AiConnectorClient.csproj" />
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
     <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
   </ItemGroup>

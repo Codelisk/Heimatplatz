@@ -44,21 +44,12 @@ public class AiListingOptions
 }
 
 /// <summary>
-/// Konfiguration fuer den externen AiConnector-Backend-Service.
-/// Der Prompt laeuft dort in einem dedizierten Workspace, dessen
-/// AGENTS.md/CLAUDE.md die Inserats-Regeln und das Ausgabeformat vorgeben.
+/// Feature-spezifische Einstellungen fuer den "AiConnector"-Provider.
+/// Basis-URL und API-Key des AiConnector-Backends selbst werden zentral im
+/// Heimatplatz.Api.Core.AiConnectorClient konfiguriert (Mediator:Http:... bzw. AiConnector:ApiKey).
 /// </summary>
 public class AiConnectorOptions
 {
-    /// <summary>Basis-URL des AiConnector-Backends</summary>
-    public string BaseUrl { get; set; } = "https://ai.danielhufnagl.at";
-
-    /// <summary>
-    /// API-Key fuer den X-Api-Key Header. Nicht in appsettings.json committen,
-    /// sondern per Env-Variable AiListing__AiConnector__ApiKey setzen.
-    /// </summary>
-    public string ApiKey { get; set; } = "";
-
     /// <summary>Workspace, in dem der Prompt ausgefuehrt wird</summary>
     public string WorkspaceId { get; set; } = "projects/heimatplatz";
 

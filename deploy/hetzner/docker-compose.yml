@@ -23,8 +23,9 @@ services:
       Database__EnableSeeding: "false"
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       # KI-Inseratserstellung ueber den AiConnector-Workspace projects/heimatplatz
+      # (generierter Shiny.Mediator-OpenAPI-Client, Heimatplatz.Api.Core.AiConnectorClient)
       AiListing__Provider: AiConnector
-      AiListing__AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
+      AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
       # Oeffentliche Basis-URL fuer absolute Links (Bild-Proxy etc.), UNABHAENGIG vom Host der
       # eingehenden Anfrage - der Astro-SSR-Server (web) ruft diese API teils direkt ueber das
       # interne Docker-Netz auf (http://api:8080), dessen Host fuer echte Browser nicht aufloesbar
@@ -53,7 +54,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=128.140.33.238;Port=5433;Database=heimatplatz_test;Username=heimatplatz_test;Password=${TESTDB_PASSWORD}"
       Authentication__Jwt__Key: ${TEST_JWT_KEY}
       AiListing__Provider: AiConnector
-      AiListing__AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
+      AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
       Api__PublicBaseUrl: https://${TEST_API_DOMAIN}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}

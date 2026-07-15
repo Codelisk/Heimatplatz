@@ -1,3 +1,4 @@
+using Heimatplatz.Api.Core.AiConnectorClient.Configuration;
 using Heimatplatz.Api.Features.AiListing.Infrastructure;
 using Heimatplatz.Api.Features.AiListing.Services;
 using Microsoft.Extensions.Configuration;
@@ -25,13 +26,8 @@ public static class ServiceCollectionExtensions
         var options = configuration.GetSection(AiListingOptions.SectionName).Get<AiListingOptions>() ?? new AiListingOptions();
         if (string.Equals(options.Provider, "AiConnector", StringComparison.OrdinalIgnoreCase))
         {
-            services.AddHttpClient<IListingExtractionService, AiConnectorListingExtractionService>(client =>
-            {
-                client.BaseAddress = new Uri(options.AiConnector.BaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-                if (!string.IsNullOrWhiteSpace(options.AiConnector.ApiKey))
-                    client.DefaultRequestHeaders.Add("X-Api-Key", options.AiConnector.ApiKey);
-            });
+            services.AddAiConnectorClient(configuration);
+            services.AddScoped<IListingExtractionService, AiConnectorListingExtractionService>();
         }
         else if (string.Equals(options.Provider, "Cli", StringComparison.OrdinalIgnoreCase))
             services.AddScoped<IListingExtractionService, CliListingExtractionService>();

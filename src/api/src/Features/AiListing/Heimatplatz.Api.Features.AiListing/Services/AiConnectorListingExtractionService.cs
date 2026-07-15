@@ -1,10 +1,10 @@
-using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json;
+using Heimatplatz.Api.Core.AiConnectorClient.Generated;
 using Heimatplatz.Api.Features.AiListing.Configuration;
 using Heimatplatz.Api.Features.AiListing.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.AiListing.Services;
 
@@ -12,17 +12,16 @@ namespace Heimatplatz.Api.Features.AiListing.Services;
 /// Extrahiert Inseratsdaten ueber den externen AiConnector-Backend-Service.
 /// Der Prompt wird im konfigurierten Workspace (Default: projects/heimatplatz)
 /// ausgefuehrt - dessen AGENTS.md/CLAUDE.md definieren die Experten-Rolle und
-/// das erwartete JSON-Ausgabeformat. Der Service uebertraegt daher nur die
-/// Textangaben des Verkaeufers und parst die JSON-Antwort.
+/// das erwartete JSON-Ausgabeformat. Der Aufruf laeuft ueber den aus
+/// AiConnector.json generierten Shiny.Mediator-HTTP-Client
+/// (Heimatplatz.Api.Core.AiConnectorClient) statt ueber einen manuellen HttpClient.
 /// </summary>
 public class AiConnectorListingExtractionService(
-    HttpClient httpClient,
+    IMediator mediator,
     IOptions<AiListingOptions> options,
     ILogger<AiConnectorListingExtractionService> logger
 ) : IListingExtractionService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
     public async Task<ExtractedListingData> ExtractAsync(ListingExtractionInput input, CancellationToken ct = default)
     {
         var opts = options.Value.AiConnector;
@@ -34,25 +33,17 @@ public class AiConnectorListingExtractionService(
         var prompt = BuildPrompt(input);
         logger.LogInformation("[AiListing] Starte AiConnector-Extraktion im Workspace {WorkspaceId}", opts.WorkspaceId);
 
-        using var response = await httpClient.PostAsJsonAsync("/api/prompt", new
+        var response = await mediator.Request(new RunPromptHttpRequest
         {
-            prompt,
-            workspaceId = opts.WorkspaceId,
-            model = opts.Model
-        }, JsonOptions, ct);
+            Body = new PromptRequest
+            {
+                Prompt = prompt,
+                WorkspaceId = opts.WorkspaceId,
+                Model = opts.Model
+            }
+        }, ct);
 
-        var body = await response.Content.ReadAsStringAsync(ct);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            logger.LogError("[AiListing] AiConnector antwortete mit {StatusCode}: {Body}",
-                (int)response.StatusCode, ListingResultParser.Truncate(body, 2000));
-            throw new InvalidOperationException(
-                $"AiConnector antwortete mit HTTP {(int)response.StatusCode}: {ListingResultParser.Truncate(body, 500)}");
-        }
-
-        var promptResponse = JsonSerializer.Deserialize<AiConnectorPromptResponse>(body, JsonOptions)
-            ?? throw new InvalidOperationException("AiConnector-Antwort konnte nicht gelesen werden.");
+        var promptResponse = response.Result;
 
         if (!promptResponse.Success || string.IsNullOrWhiteSpace(promptResponse.Output))
         {
@@ -103,15 +94,4 @@ public class AiConnectorListingExtractionService(
 
         return sb.ToString();
     }
-
-    /// <summary>Antwort-Shape von POST /api/prompt des AiConnectors</summary>
-    private sealed record AiConnectorPromptResponse(
-        bool Success,
-        int? ExitCode,
-        string? Output,
-        string? Error,
-        long? DurationMs,
-        bool TimedOut,
-        bool Canceled,
-        string? RequestId);
 }
