@@ -140,6 +140,12 @@ public partial class ForeclosureAuctionSyncService(
                         // Keine Aenderung - nur LastScrapedAt aktualisieren
                         existing.LastScrapedAt = now;
 
+                        // Edikte, die vor dem Fix des Publikationsdatum-Parsers gescraped wurden,
+                        // haben kein PublicationDate. Der ContentHash aendert sich dadurch nicht
+                        // (das Feld steckte immer in AllFields), deshalb wuerde dieser Zweig es
+                        // sonst bis zur naechsten inhaltlichen Aenderung nie nachtragen.
+                        existing.PublicationDate ??= ParsePublicationDate(detail.PublicationDateText);
+
                         // Reappeared?
                         if (!existing.IsActive)
                         {
@@ -473,9 +479,9 @@ public partial class ForeclosureAuctionSyncService(
 
     /// <summary>
     /// Parst das Veröffentlichungsdatum aus dem PublicationDateText.
-    /// Typische Formate: "Bekanntmachung vom 15.01.2026", "15.01.2026", etc.
+    /// Typische Formate: "Bekannt gemacht am 15.1.2026", "15.01.2026", etc.
     /// </summary>
-    private static DateTimeOffset? ParsePublicationDate(string? text)
+    internal static DateTimeOffset? ParsePublicationDate(string? text)
     {
         if (string.IsNullOrEmpty(text)) return null;
 
@@ -489,7 +495,12 @@ public partial class ForeclosureAuctionSyncService(
             DateTimeStyles.None,
             out var localDate))
         {
-            var utc = TimeZoneInfo.ConvertTimeToUtc(localDate, ViennaTimeZone);
+            // Das Edikt nennt nur einen Kalendertag, keine Uhrzeit. Auf Wiener MITTAG verankern
+            // statt Mitternacht: Mitternacht Wien ist 22:00 UTC des Vortags, und da Web-SSR und
+            // MAUI den Wert als Datum ohne Zeitzonen-Umrechnung ausgeben, waere sonst ueberall
+            // der Vortag zu sehen. Mittag haelt den Kalendertag in jeder Anzeige-Zeitzone stabil.
+            var viennaNoon = localDate.Date.AddHours(12);
+            var utc = TimeZoneInfo.ConvertTimeToUtc(viennaNoon, ViennaTimeZone);
             return new DateTimeOffset(utc, TimeSpan.Zero);
         }
 

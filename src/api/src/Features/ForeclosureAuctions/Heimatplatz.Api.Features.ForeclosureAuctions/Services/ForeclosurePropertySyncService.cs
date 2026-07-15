@@ -271,6 +271,11 @@ public class ForeclosurePropertySyncService(
         property.Description = auction.ObjectDescription;
         property.SourceUrl = auction.EdictUrl;
         property.SourceLastUpdated = auction.LastScrapedAt;
+
+        // "Eingestellt am" zeigt die Bekanntmachung des Edikts, nicht den Scrape-Zeitpunkt.
+        // Bei jedem Sync nachziehen, damit nachtraeglich ergaenzte PublicationDates auch auf
+        // bestehenden Inseraten ankommen (bisher nur beim Anlegen bzw. per Backfill-Seeder).
+        property.CreatedAt = auction.PublicationDate ?? auction.FirstSeenAt ?? property.CreatedAt;
         property.UpdatedAt = now;
 
         property.SetTypedData(foreclosureData);

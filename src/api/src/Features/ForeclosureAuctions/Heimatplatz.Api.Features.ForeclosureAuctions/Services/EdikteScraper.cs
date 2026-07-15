@@ -191,11 +191,18 @@ public partial class EdikteScraper(
             .Select(image => image.Url)
             .ToList();
 
-        // Publikations-Eintraege am Ende
-        var publications = document.QuerySelectorAll("#druckbereich > div:last-of-type p");
+        // Aenderungsprotokoll am Ende: je Eintrag "Bekannt gemacht am ..." gefolgt vom Titel.
+        // Nur Edikte MIT Protokoll haben diesen Block - Edikte ohne fuehren das Datum als
+        // beschriftete Zeile "Bekannt gemacht am:" (steht dann bereits in allFields).
+        // Frueher wurde hier "#druckbereich > div:last-of-type" abgefragt: bei Edikten ohne
+        // Protokoll traf das den Block "Alle Edikte zum Fall" und lieferte nie ein Datum.
+        var publications = document
+            .QuerySelectorAll("#druckbereich div.edibody")
+            .LastOrDefault()?
+            .QuerySelectorAll("p");
         string? publicationDate = null;
         string? statusFromPublications = null;
-        if (publications.Length >= 2)
+        if (publications is { Length: >= 2 })
         {
             publicationDate = publications[0].TextContent.Trim();
             statusFromPublications = publications[1].TextContent.Trim();
@@ -238,7 +245,7 @@ public partial class EdikteScraper(
             ImageCandidates = imageCandidates,
             StatusText = statusFromPublications ?? title,
             LastChangeDateText = allFields.GetValueOrDefault("Letzte Änderung am"),
-            PublicationDateText = publicationDate,
+            PublicationDateText = allFields.GetValueOrDefault("Bekannt gemacht am") ?? publicationDate,
             AllFields = allFields
         };
     }
