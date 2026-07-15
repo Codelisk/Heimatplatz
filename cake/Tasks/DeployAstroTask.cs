@@ -42,13 +42,25 @@ public sealed class DeployAstroTask : FrostingTask<BuildContext>
             context,
             "rsync",
             $"-az --delete -e \"{sshCommand}\" \"{distDir}/\" \"{target}\"",
-            "rsync");
+            "rsync (dist)");
 
-        // Server-Stack aktualisieren: Compose/Caddyfile-Aenderungen aus dem Repo ziehen,
-        // web-Container (er)stellen und neu starten, damit das frische Bundle laeuft.
+        // Compose + Caddyfile mitdeployen: /srv/heimatplatz ist KEIN Git-Checkout,
+        // sondern ein Datei-Abzug - die Stack-Definition kommt daher aus dem CI-Checkout.
+        // Bewusst ohne --delete (im Zielordner liegen .env und secrets/).
+        var deployDir = Path.Combine(context.ProjectDirectory, "deploy", "hetzner");
+        var stackTarget = $"{context.HetznerUser}@{context.HetznerHost}:/srv/heimatplatz/deploy/hetzner/";
+        RunProcess(
+            context,
+            "rsync",
+            $"-az -e \"{sshCommand}\" \"{Path.Combine(deployDir, "docker-compose.yml")}\" \"{Path.Combine(deployDir, "Caddyfile")}\" \"{stackTarget}\"",
+            "rsync (stack config)");
+
+        // web-Container (er)stellen und neu starten, damit das frische Bundle laeuft;
+        // Caddy laedt seine (ggf. geaenderte) Konfiguration idempotent neu.
         var remoteScript =
-            "cd /srv/heimatplatz && git pull --ff-only && " +
-            "cd deploy/hetzner && docker compose up -d web && docker compose restart web";
+            "cd /srv/heimatplatz/deploy/hetzner && " +
+            "docker compose up -d web && docker compose restart web && " +
+            "docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile";
         context.Information("Restarting SSR web container on the server...");
         RunProcess(
             context,

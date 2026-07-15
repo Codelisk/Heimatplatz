@@ -6,7 +6,7 @@ Docker-Compose-Setup fuer Heimatplatz auf einem einzelnen Hetzner-Server (API + 
 
 Seit 15.7.2026 laeuft das Web-Frontend als SSR-Node-Server (vorher statisches file_server-Hosting): `node:22-alpine` fuehrt das Standalone-Bundle des `@astrojs/node`-Adapters aus (`/srv/heimatplatz-web/server/entry.mjs`, read-only gemountet). Seiten werden pro Request gerendert - Immobilien-Daten sind immer aktuell, der fruehere 6h-Rebuild-Schedule entfaellt. SSR-Fetches gehen ueber `API_BASE_URL_SERVER=http://api:8080` direkt ins interne Docker-Netz.
 
-Deploy: `deploy-apps.yml` (Target `DeployAstro`) baut das Bundle in CI, rsynct `dist/` nach `/srv/heimatplatz-web` und fuehrt danach per SSH `git pull` + `docker compose up -d web` + `docker compose restart web` aus (siehe `cake/Tasks/DeployAstroTask.cs`).
+Deploy: `deploy-apps.yml` (Target `DeployAstro`) baut das Bundle in CI, rsynct `dist/` nach `/srv/heimatplatz-web` sowie `docker-compose.yml`/`Caddyfile` nach `/srv/heimatplatz/deploy/hetzner` (kein Git-Checkout am Server!) und fuehrt danach per SSH `docker compose up -d web`, `docker compose restart web` und einen Caddy-Reload aus (siehe `cake/Tasks/DeployAstroTask.cs`).
 
 **Status:** LIVE seit 8.7.2026. Server `heimatplatz` (CX23, Nuernberg, `128.140.33.238`), Projekt "Vorleistung" in der Hetzner Console. Stack laeuft unter `/srv/heimatplatz/deploy/hetzner`, API erreichbar via `https://api.heimatplatz.at/health`. `.github/workflows/deploy-hetzner.yml` ist weiterhin inaktiv (Deploy bisher manuell auf dem Server). SSH: `root@128.140.33.238` (Key-only; hinterlegt sind der `vorleistung-key` und Daniels `id_ed25519`).
 
