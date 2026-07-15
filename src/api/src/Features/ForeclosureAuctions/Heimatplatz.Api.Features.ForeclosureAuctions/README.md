@@ -88,11 +88,16 @@ Der `ForeclosureAuctionSeeder` erstellt automatisch 12 realistische Testeinträg
 
 ## Sync (Scraping)
 
-- **Automatisch**: `ForeclosureAuctionSyncWorker` (BackgroundService) ruft den Sync alle
-  `ForeclosureAuctions:Scraping:SyncIntervalHours` Stunden auf (Default 6, erster Lauf kurz
-  nach dem Start). `0` oder negativ deaktiviert den automatischen Sync.
-- **Manuell**: `POST /api/foreclosure-auctions/sync` (authentifiziert, `RequireAnyRole`) -
-  läuft fire-and-forget im Hintergrund, Status via `GET /api/foreclosure-auctions/sync/status`.
+- **Manuell (Standard)**: Der Sync läuft bewusst nur auf Anfrage, kein automatischer Zeitplan.
+  Auslösen über den internen Bereich `/intern` auf `heimatplatz.at` (nur von `HOME_IP`
+  erreichbar, siehe `deploy/hetzner/Caddyfile`) oder direkt `POST /api/foreclosure-auctions/sync`
+  (ebenfalls nur von `HOME_IP` erreichbar - kein App-Login nötig, die IP-Sperre ist die
+  Zugriffsschranke). Läuft fire-and-forget im Hintergrund, Status via
+  `GET /api/foreclosure-auctions/sync/status` (öffentlich, nur Zähler, keine sensiblen Daten).
+- **Optional automatisch**: `ForeclosureAuctionSyncWorker` (BackgroundService) kann den Sync
+  periodisch auslösen - Konfiguration `ForeclosureAuctions:Scraping:SyncIntervalHours`
+  (Default `0` = deaktiviert). Bei einem Wert > 0 läuft der erste Sync kurz nach App-Start,
+  danach im konfigurierten Intervall.
 - **Nur echte, künftige Versteigerungen werden übernommen**: Edikte ohne gültigen,
   in der Zukunft liegenden Versteigerungstermin (z.B. "Zuschlag mit/ohne Überbot",
   "Meistbotsverteilung", "Verschiebung" ohne neuen Termin - allesamt abgeschlossene

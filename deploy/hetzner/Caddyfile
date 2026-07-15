@@ -1,5 +1,15 @@
 {$API_DOMAIN} {
 	# Automatisches HTTPS via Let's Encrypt (Caddy-Standardverhalten)
+
+	# Interner Admin-Endpunkt (Edikte-Sync manuell auslösen): nur von HOME_IP erreichbar.
+	# HOME_IP kann mehrere Werte enthalten (Leerzeichen-getrennt, IPs oder CIDR-Ranges),
+	# z.B. als Puffer bei wechselnder Heim-IP. Siehe deploy/hetzner/.env.example.
+	@syncBlocked {
+		path /api/foreclosure-auctions/sync
+		not remote_ip {$HOME_IP}
+	}
+	respond @syncBlocked "Forbidden" 403
+
 	reverse_proxy api:8080
 }
 
@@ -21,6 +31,13 @@
 		Referrer-Policy strict-origin-when-cross-origin
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 	}
+
+	# Interner Bereich (/intern) - Admin-UI fuer den Edikte-Sync, nur von HOME_IP erreichbar.
+	@internBlocked {
+		path /intern*
+		not remote_ip {$HOME_IP}
+	}
+	respond @internBlocked "Forbidden" 403
 
 	reverse_proxy web:8080
 }

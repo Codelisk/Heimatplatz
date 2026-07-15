@@ -10,10 +10,11 @@ public class ScrapingOptions
 
     /// <summary>
     /// Intervall des automatischen Hintergrund-Syncs (ForeclosureAuctionSyncWorker) in Stunden.
-    /// 0 oder negativ deaktiviert die automatische Ausfuehrung (nur manueller Trigger via
-    /// POST /api/foreclosure-auctions/sync).
+    /// 0 oder negativ (Default) deaktiviert die automatische Ausfuehrung - der Sync wird
+    /// bewusst nur manuell ausgeloest (interner IP-gesperrter Bereich unter /intern auf
+    /// heimatplatz.at bzw. POST /api/foreclosure-auctions/sync).
     /// </summary>
-    public int SyncIntervalHours { get; set; } = 6;
+    public int SyncIntervalHours { get; set; } = 0;
 
     /// <summary>
     /// Bundesland-Code fuer die Suche (3 = Oberoesterreich).

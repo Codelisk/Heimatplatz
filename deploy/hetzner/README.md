@@ -8,6 +8,15 @@ Seit 15.7.2026 laeuft das Web-Frontend als SSR-Node-Server (vorher statisches fi
 
 Deploy: `deploy-apps.yml` (Target `DeployAstro`) baut das Bundle in CI, rsynct `dist/` nach `/srv/heimatplatz-web` sowie `docker-compose.yml`/`Caddyfile` nach `/srv/heimatplatz/deploy/hetzner` (kein Git-Checkout am Server!) und fuehrt danach per SSH `docker compose up -d web`, `docker compose restart web` und einen Caddy-Reload aus (siehe `cake/Tasks/DeployAstroTask.cs`).
 
+## Interner Bereich (`/intern`) + `HOME_IP`
+
+`/intern` auf `WEB_DOMAIN` (Admin-UI: manueller Edikte-Sync-Trigger) und
+`POST /api/foreclosure-auctions/sync` auf `API_DOMAIN` sind in Caddy per `remote_ip`-Matcher
+auf `HOME_IP` beschraenkt (Server-`.env`, Leerzeichen-getrennt IPs/CIDR-Ranges - siehe
+`.env.example`). Alles andere bekommt `403`. Kein App-Login noetig, die IP-Sperre ist die
+Zugriffsschranke. Bei geaenderter Heim-IP: `HOME_IP` in der Server-`.env` aktualisieren und
+`docker compose restart caddy`.
+
 **Status:** LIVE seit 8.7.2026. Server `heimatplatz` (CX23, Nuernberg, `128.140.33.238`), Projekt "Vorleistung" in der Hetzner Console. Stack laeuft unter `/srv/heimatplatz/deploy/hetzner`, API erreichbar via `https://api.heimatplatz.at/health`. `.github/workflows/deploy-hetzner.yml` ist weiterhin inaktiv (Deploy bisher manuell auf dem Server). SSH: `root@128.140.33.238` (Key-only; hinterlegt sind der `vorleistung-key` und Daniels `id_ed25519`).
 
 ## Erstinbetriebnahme (sobald ein Server existiert)

@@ -1,0 +1,103 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { getServerApiBaseUrl } from "@/lib/server/api-base";
+
+// Erreichbarkeit ist bereits durch Caddy auf IP-Ebene beschraenkt (siehe
+// deploy/hetzner/Caddyfile, @internBlocked auf /intern*) - kein weiterer Check noetig,
+// wenn eine Anfrage hier ankommt, hat sie den Netzwerk-Filter bereits passiert.
+
+type SyncStatus = {
+  LastSyncAt: string | null;
+  TotalActiveAuctions: number;
+  TotalRemovedAuctions: number;
+  TotalChanges: number;
+};
+
+async function fetchSyncStatus(): Promise<SyncStatus | null> {
+  try {
+    const response = await fetch(new URL("/api/foreclosure-auctions/sync/status", getServerApiBaseUrl()));
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+const status = await fetchSyncStatus();
+const triggered = Astro.url.searchParams.get("triggered") === "1";
+const triggerFailed = Astro.url.searchParams.get("triggered") === "0";
+
+function formatDate(value: string | null) {
+  if (!value) return "Noch nie";
+  return new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+---
+
+<BaseLayout
+  title="Intern"
+  description="Interner Bereich."
+  canonicalPath="/intern/"
+  noindex
+>
+  <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold">Intern</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">
+      Nur von der freigegebenen IP erreichbar (siehe Caddyfile). Kein Login noetig -
+      die Netzwerk-Sperre ist die Zugriffsschranke.
+    </p>
+
+    {triggered && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        Sync wurde gestartet und läuft im Hintergrund (Scraping mit Verzögerung pro
+        Edikt - je nach Anzahl ein bis wenige Minuten). Lade diese Seite in 1-2 Minuten
+        neu, um das Ergebnis zu sehen.
+      </div>
+    )}
+    {triggerFailed && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        Sync konnte nicht gestartet werden. Ist die API erreichbar?
+      </div>
+    )}
+
+    <section class="mt-8 rounded-lg border border-border bg-card p-5">
+      <h2 class="text-base font-semibold">Edikte-Sync (Zwangsversteigerungen)</h2>
+
+      {status ? (
+        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <dt class="text-muted-foreground">Letzter Sync</dt>
+            <dd class="font-medium">{formatDate(status.LastSyncAt)}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Aktive Auktionen</dt>
+            <dd class="font-medium">{status.TotalActiveAuctions}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Entfernt/Abgeschlossen</dt>
+            <dd class="font-medium">{status.TotalRemovedAuctions}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Änderungen (gesamt)</dt>
+            <dd class="font-medium">{status.TotalChanges}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p class="mt-4 text-sm text-muted-foreground">Status konnte nicht geladen werden.</p>
+      )}
+
+      <form method="POST" action="/intern/sync" class="mt-6">
+        <Button type="submit" variant="default">Sync jetzt starten</Button>
+      </form>
+
+      <p class="mt-3 text-xs leading-5 text-muted-foreground">
+        Holt die aktuelle Ediktsliste (Oberösterreich) von edikte.justiz.gv.at, aktualisiert
+        die Zwangsversteigerungen und leitet daraus Immobilien-Inserate ab. Läuft nicht
+        automatisch - nur bei manuellem Auslösen hier.
+      </p>
+    </section>
+  </section>
+</BaseLayout>

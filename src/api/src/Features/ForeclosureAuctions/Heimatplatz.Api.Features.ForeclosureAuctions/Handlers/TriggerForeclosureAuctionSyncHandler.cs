@@ -1,5 +1,4 @@
 using Heimatplatz.Api;
-using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Services;
 using Microsoft.Extensions.Logging;
@@ -15,12 +14,12 @@ public class TriggerForeclosureAuctionSyncHandler(
     ILogger<TriggerForeclosureAuctionSyncHandler> logger
 ) : IRequestHandler<TriggerForeclosureAuctionSyncRequest, TriggerForeclosureAuctionSyncResponse>
 {
-    // War zuvor komplett unauthentifiziert oeffentlich aufrufbar (jeder im Internet konnte den
-    // Scraper anstossen). Der Sync laeuft jetzt primaer automatisch (ForeclosureAuctionSyncWorker);
-    // der manuelle Trigger bleibt fuer Admin-Zwecke, braucht aber mindestens einen angemeldeten
-    // Benutzer - kein dedizierter Admin-Policy vorhanden, RequireAnyRole ist die naechstbeste Stufe.
-    [MediatorHttpPost("/sync", OperationId = "TriggerForeclosureAuctionSync",
-        RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    // Kein App-Login noetig: Es gibt auf Prod keinen echten registrierten Nutzer-Account
+    // (nur der Properties-System-User ohne Passwort/Rolle), ein Login-Zwang waere hier reine
+    // Reibung ohne echten Sicherheitsgewinn. Die eigentliche Zugriffsschranke ist die IP-Sperre
+    // in Caddy (nur HOME_IP, siehe deploy/hetzner/Caddyfile) - dieser Pfad ist ausschliesslich
+    // ueber Caddy erreichbar (UFW blockiert direkten Zugriff auf den Container-Port).
+    [MediatorHttpPost("/sync", OperationId = "TriggerForeclosureAuctionSync")]
     public Task<TriggerForeclosureAuctionSyncResponse> Handle(
         TriggerForeclosureAuctionSyncRequest request,
         IMediatorContext context,

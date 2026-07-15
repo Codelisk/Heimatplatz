@@ -103,6 +103,9 @@ services:
       API_DOMAIN: ${API_DOMAIN}
       TEST_API_DOMAIN: ${TEST_API_DOMAIN}
       WEB_DOMAIN: ${WEB_DOMAIN}
+      # Erlaubte IP(s) fuer /intern (Web) und /api/foreclosure-auctions/sync (API).
+      # Leerzeichen-getrennt, IPs oder CIDR-Ranges, siehe .env.example.
+      HOME_IP: ${HOME_IP}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
