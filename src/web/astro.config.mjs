@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 const site = process.env.PUBLIC_SITE_URL ?? 'https://heimatplatz.at';
+const siteUrl = new URL(site);
+const allowedDomain = {
+  protocol: siteUrl.protocol.slice(0, -1),
+  hostname: siteUrl.hostname,
+  ...(siteUrl.port ? { port: siteUrl.port } : {}),
+};
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,6 +20,13 @@ export default defineConfig({
   // vorgerenderte Seiten auflisten).
   output: 'server',
   adapter: node({ mode: 'standalone' }),
+  // Der SSR-Server laeuft hinter Caddy. Astro vertraut Forwarded-Host/-Proto nur
+  // fuer explizit erlaubte Domains; andernfalls wird der interne HTTP-Origin
+  // verwendet und gleich-originige Formular-POSTs werden faelschlich als
+  // Cross-Site-Requests abgewiesen. Der Origin-/CSRF-Schutz bleibt aktiv.
+  security: {
+    allowedDomains: [allowedDomain],
+  },
   prefetch: true,
   devToolbar: {
     enabled: false,
