@@ -47,9 +47,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private bool _filterPreferencesLoaded;
 #if DEBUG
     private bool _debugMockPreferencesChecked;
-#endif
     private bool _isShowingAllDebugMock;
-#if DEBUG
     private List<PropertyListItemDto>? _debugMockProperties;
 #endif
 
@@ -69,7 +67,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         : $"Seite {_currentPage + 1} von {PageCount} · {FormatObjektCount(_totalCount)}";
 
     public bool HasResults => _totalCount > 0;
-    public bool HasPagination => !_isShowingAllDebugMock && PageCount > 1;
+    public bool HasPagination =>
+#if DEBUG
+        !_isShowingAllDebugMock &&
+#endif
+        PageCount > 1;
     public bool CanGoToPreviousPage => _currentPage > 0;
     public bool CanGoToNextPage => _currentPage + 1 < PageCount;
 
