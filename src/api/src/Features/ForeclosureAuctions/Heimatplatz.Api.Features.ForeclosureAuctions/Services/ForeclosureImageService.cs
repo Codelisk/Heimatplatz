@@ -6,6 +6,7 @@ using Heimatplatz.Api.Features.ForeclosureAuctions.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SkiaSharp;
 using UglyToad.PdfPig;
 
 namespace Heimatplatz.Api.Features.ForeclosureAuctions.Services;
@@ -150,7 +151,13 @@ public sealed class ForeclosureImageService(
         foreach (var page in document.GetPages())
         {
             var imageOrder = 0;
-            foreach (var pdfImage in page.GetImages())
+            // PDF-Objektreihenfolge ist nicht zwingend die sichtbare Lesereihenfolge.
+            // Von oben nach unten sortiert landet die typische Aussenansicht zuerst.
+            var pageImages = page.GetImages()
+                .OrderByDescending(image => image.BoundingBox.Centroid.Y)
+                .ThenBy(image => image.BoundingBox.Centroid.X);
+
+            foreach (var pdfImage in pageImages)
             {
                 try
                 {
@@ -173,6 +180,15 @@ public sealed class ForeclosureImageService(
                         continue;
                     }
 
+                    var normalized = ApplyPdfRotation(
+                        bytes,
+                        extension,
+                        pdfImage.WidthInSamples,
+                        pdfImage.HeightInSamples,
+                        pdfImage.BoundingBox.Rotation);
+                    bytes = normalized.Bytes;
+                    extension = normalized.Extension;
+
                     var hash = ComputeHash(bytes);
                     if (!seenHashes.Add(hash))
                     {
@@ -184,8 +200,8 @@ public sealed class ForeclosureImageService(
                         page.Number,
                         imageOrder++,
                         page.Text,
-                        pdfImage.WidthInSamples,
-                        pdfImage.HeightInSamples,
+                        normalized.Width,
+                        normalized.Height,
                         bytes,
                         extension));
                 }
@@ -198,6 +214,75 @@ public sealed class ForeclosureImageService(
         }
 
         return candidates;
+    }
+
+    /// <summary>
+    /// Eingebettete JPEGs enthalten die PDF-Platzierungsrotation nicht selbst.
+    /// Ohne diese Korrektur erscheinen manche Gutachten-Fotos seitlich gedreht.
+    /// Positive PDF-Winkel sind gegen den Uhrzeigersinn definiert.
+    /// </summary>
+    internal static (byte[] Bytes, int Width, int Height, string Extension) ApplyPdfRotation(
+        byte[] bytes,
+        string extension,
+        int width,
+        int height,
+        double rotationDegrees)
+    {
+        var snappedRotation = (int)Math.Round(rotationDegrees / 90d) * 90;
+        if (Math.Abs(rotationDegrees - snappedRotation) > 1d)
+            return (bytes, width, height, extension);
+
+        var normalizedRotation = ((snappedRotation % 360) + 360) % 360;
+        if (normalizedRotation == 0)
+            return (bytes, width, height, extension);
+
+        using var source = SKBitmap.Decode(bytes)
+            ?? throw new InvalidOperationException("Eingebettetes PDF-Bild konnte nicht dekodiert werden");
+        var swapsDimensions = normalizedRotation is 90 or 270;
+        using var destination = new SKBitmap(
+            swapsDimensions ? source.Height : source.Width,
+            swapsDimensions ? source.Width : source.Height,
+            source.ColorType,
+            source.AlphaType);
+        using var canvas = new SKCanvas(destination);
+        canvas.Clear(SKColors.Transparent);
+
+        switch (normalizedRotation)
+        {
+            case 90:
+                canvas.Translate(0, destination.Height);
+                canvas.RotateDegrees(-90);
+                break;
+            case 180:
+                canvas.Translate(destination.Width, destination.Height);
+                canvas.RotateDegrees(180);
+                break;
+            case 270:
+                canvas.Translate(destination.Width, 0);
+                canvas.RotateDegrees(90);
+                break;
+        }
+
+        canvas.DrawBitmap(
+            source,
+            0,
+            0,
+            new SKSamplingOptions(SKFilterMode.Nearest),
+            paint: null);
+        canvas.Flush();
+
+        using var image = SKImage.FromBitmap(destination);
+        var format = string.Equals(extension, ".png", StringComparison.OrdinalIgnoreCase)
+            ? SKEncodedImageFormat.Png
+            : SKEncodedImageFormat.Jpeg;
+        using var encoded = image.Encode(format, format == SKEncodedImageFormat.Jpeg ? 90 : 100)
+            ?? throw new InvalidOperationException("Gedrehtes PDF-Bild konnte nicht kodiert werden");
+
+        return (
+            encoded.ToArray(),
+            destination.Width,
+            destination.Height,
+            format == SKEncodedImageFormat.Png ? ".png" : ".jpg");
     }
 
     private async Task<byte[]> DownloadPdfAsync(Uri initialUri, CancellationToken ct)

@@ -78,7 +78,7 @@ public static class ForeclosureImageSelector
             .Where(candidate =>
             {
                 var ratio = candidate.Width / (double)candidate.Height;
-                return ratio is >= 0.70 and <= 2.40;
+                return ratio is >= 0.60 and <= 2.40;
             })
             .Where(candidate => !IsPlaceholderOrPlan(Normalize(candidate.PageText)))
             .OrderByDescending(ScorePdfImage)
