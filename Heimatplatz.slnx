@@ -19,12 +19,4 @@
   <Folder Name="/src/api/src/Shared/">
     <Project Path="src/api/src/Shared/Heimatplatz.Api.Shared/Heimatplatz.Api.Shared.csproj" />
   </Folder>
-  <Folder Name="/subm/uno/">
-    <Project Path="subm/uno/src/UnoFramework/UnoFramework.csproj" />
-    <Project Path="subm/uno/src/UnoFramework.Contracts/UnoFramework.Contracts.csproj" />
-    <Project Path="subm/uno/src/UnoFramework.Generators/UnoFramework.Generators.csproj" />
-  </Folder>
-  <Folder Name="/subm/cli/">
-    <Project Path="subm/cli/Automation.Cli.csproj" />
-  </Folder>
 </Solution>

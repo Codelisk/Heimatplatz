@@ -89,8 +89,6 @@ Heimatplatz/
 │           │   ├── Core/                          # DeepLink, Startup etc.
 │           │   └── Features/{Name}/               # Configuration, Handlers, Presentation, Services
 │           └── Heimatplatz.Maui.ApiClient/        # Generierter OpenAPI-Client (eigenes Projekt, s.u.)
-│
-└── subm/uno/                       # UnoFramework Submodule (Framework-Abhaengigkeit, keine App)
 ```
 
 > `*` = `Heimatplatz` Namespace-Prefix
