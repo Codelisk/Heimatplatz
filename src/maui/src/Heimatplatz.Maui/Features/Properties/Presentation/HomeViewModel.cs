@@ -129,7 +129,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// <summary>
     /// Optionen fuer den Alters-Filter Picker (Index == AgeFilter Enum-Wert)
     /// </summary>
-    public IReadOnlyList<string> AgeFilterOptions { get; } = ["Alle", "1 Tag", "1 Woche", "1 Monat", "1 Jahr"];
+    public IReadOnlyList<string> AgeFilterOptions { get; } = ["Alle", "24 Stunden", "7 Tage", "30 Tage", "12 Monate"];
 
     [ObservableProperty]
     public partial int SelectedAgeFilterIndex { get; set; }

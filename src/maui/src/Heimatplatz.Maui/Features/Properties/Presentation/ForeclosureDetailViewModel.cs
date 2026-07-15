@@ -139,10 +139,21 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     public partial List<string> ImageUrls { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ImageCounterText))]
+    public partial int CurrentImagePosition { get; set; }
+
+    [ObservableProperty]
     public partial string CourtName { get; set; }
 
     [ObservableProperty]
     public partial bool HasCourtName { get; set; }
+
+    /// <summary>
+    /// Bild-Zaehler fuer das Carousel, z.B. "2 / 7"
+    /// </summary>
+    public string ImageCounterText => ImageUrls.Count > 0
+        ? $"{CurrentImagePosition + 1} / {ImageUrls.Count}"
+        : string.Empty;
 
     /// <summary>
     /// Text fuer den Favoriten-Button je nach Status
@@ -266,6 +277,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             HasDocuments = false;
             HasImages = false;
             ImageUrls = [];
+            CurrentImagePosition = 0;
+            OnPropertyChanged(nameof(ImageCounterText));
             CourtName = string.Empty;
             HasCourtName = false;
             return;
@@ -285,6 +298,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         // Bilder
         ImageUrls = Property.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList() ?? [];
         HasImages = ImageUrls.Count > 0;
+        CurrentImagePosition = 0;
+        OnPropertyChanged(nameof(ImageCounterText));
 
         // TypeSpecificData parsen und Sektionen aufbauen
         BuildDetailSections();
@@ -395,7 +410,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         HasLongAppraisalUrl = !string.IsNullOrEmpty(LongAppraisalUrl);
         HasShortAppraisalUrl = !string.IsNullOrEmpty(ShortAppraisalUrl);
 
-        HasDocuments = HasEdictUrl || HasFloorPlanUrl || HasSitePlanUrl || HasLongAppraisalUrl || HasShortAppraisalUrl;
+        // Edikt hat eine eigene Quellenkarte; DOKUMENTE zeigt nur die uebrigen Anhaenge
+        HasDocuments = HasFloorPlanUrl || HasSitePlanUrl || HasLongAppraisalUrl || HasShortAppraisalUrl;
 
         // Nach Kategorie gruppieren mit eigener Reihenfolge (Versteigerung zuerst)
         var categoryOrder = new[]

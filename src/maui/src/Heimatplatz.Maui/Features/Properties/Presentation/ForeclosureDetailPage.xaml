@@ -34,6 +34,7 @@
                     <CarouselView ItemsSource="{Binding ImageUrls}"
                                   IndicatorView="ImageIndicator"
                                   IsVisible="{Binding HasImages}"
+                                  Position="{Binding CurrentImagePosition}"
                                   Loop="False">
                         <CarouselView.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
@@ -65,9 +66,46 @@
                                CharacterSpacing="0.8"
                                TextColor="White" />
                     </Border>
+
+                    <!-- Teilen als kontextuelle Bildaktion -->
+                    <ImageButton Source="icon_share.png"
+                                 Command="{Binding SharePropertyCommand}"
+                                 BackgroundColor="White"
+                                 BorderColor="#22000000"
+                                 BorderWidth="1"
+                                 CornerRadius="22"
+                                 WidthRequest="44"
+                                 HeightRequest="44"
+                                 Padding="11"
+                                 Margin="12"
+                                 VerticalOptions="Start"
+                                 HorizontalOptions="End"
+                                 SemanticProperties.Description="Zwangsversteigerung teilen">
+                        <ImageButton.Shadow>
+                            <Shadow Brush="Black"
+                                    Opacity="0.22"
+                                    Radius="8"
+                                    Offset="0,3" />
+                        </ImageButton.Shadow>
+                    </ImageButton>
+
+                    <!-- Bild-Zaehler (unten links) -->
+                    <Border BackgroundColor="#80000000"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="10,4"
+                            Margin="12"
+                            VerticalOptions="End"
+                            HorizontalOptions="Start"
+                            IsVisible="{Binding HasImages}">
+                        <Label Text="{Binding ImageCounterText}"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+                    </Border>
                 </Grid>
 
-                <!-- Kopf: Titel, Preis, Adresse, Aktionen -->
+                <!-- Kopf: Titel, Preis, Adresse, Merken -->
                 <VerticalStackLayout Spacing="6"
                                      Padding="16,0"
                                      MaximumWidthRequest="800"
@@ -90,7 +128,7 @@
                            FontSize="13"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
-                    <!-- Aktionen: Merken + Teilen + Edikt -->
+                    <!-- Merken bleibt beim Objekt; Teilen liegt direkt auf dem Bild -->
                     <HorizontalStackLayout Spacing="8" Margin="0,8,0,0">
                         <Button Command="{Binding ToggleFavoriteCommand}"
                                 IsVisible="{Binding IsAuthenticated}"
@@ -102,15 +140,6 @@
                                 </MultiBinding>
                             </Button.Text>
                         </Button>
-
-                        <Button Text="Teilen"
-                                Command="{Binding SharePropertyCommand}"
-                                Style="{StaticResource FilterChipStyle}" />
-
-                        <Button Text="Zum Edikt"
-                                Command="{Binding OpenEdictCommand}"
-                                IsVisible="{Binding HasEdictUrl}"
-                                Style="{StaticResource FilterChipStyle}" />
                     </HorizontalStackLayout>
 
                     <Label Text="{Binding CopyFeedback}"
@@ -118,6 +147,66 @@
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
                            IsVisible="{Binding HasCopyFeedback}" />
                 </VerticalStackLayout>
+
+                <!-- Quellenkarte: klar getrennt von Objekt- und Dokumentaktionen -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="14"
+                        Margin="16,2"
+                        MaximumWidthRequest="768"
+                        HorizontalOptions="Fill"
+                        IsVisible="{Binding HasEdictUrl}">
+                    <Grid ColumnDefinitions="44,*,Auto"
+                          ColumnSpacing="12">
+                        <Border Grid.Column="0"
+                                WidthRequest="44"
+                                HeightRequest="44"
+                                Padding="11"
+                                BackgroundColor="White"
+                                Stroke="#16000000"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 22"
+                                VerticalOptions="Center">
+                            <Image Source="icon_external_link.png"
+                                   Aspect="AspectFit" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1"
+                                             Spacing="1"
+                                             VerticalOptions="Center">
+                            <Label Text="AMTLICHES DOKUMENT"
+                                   FontSize="10"
+                                   FontAttributes="Bold"
+                                   CharacterSpacing="1"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                            <Label Text="Edikt öffnen"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="Alle Angaben im Original-Edikt ansehen"
+                                   FontSize="11"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="2"
+                               Text="›"
+                               FontSize="28"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+                        <Button Grid.ColumnSpan="3"
+                                BackgroundColor="Transparent"
+                                BorderColor="Transparent"
+                                BorderWidth="0"
+                                Padding="0"
+                                MinimumHeightRequest="0"
+                                Command="{Binding OpenEdictCommand}"
+                                SemanticProperties.Description="Edikt öffnen" />
+                    </Grid>
+                </Border>
 
                 <!-- Beschreibung -->
                 <VerticalStackLayout Spacing="6"
@@ -141,11 +230,6 @@
                     <Label Text="DOKUMENTE"
                            Style="{StaticResource SectionHeader}" />
                     <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                        <Button Text="Edikt"
-                                Command="{Binding OpenDocumentCommand}"
-                                CommandParameter="{Binding EdictUrl}"
-                                IsVisible="{Binding HasEdictUrl}"
-                                Style="{StaticResource DocumentChipButton}" />
                         <Button Text="Grundriss"
                                 Command="{Binding OpenDocumentCommand}"
                                 CommandParameter="{Binding FloorPlanUrl}"
@@ -208,19 +292,29 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Gericht-Footer -->
+        <!-- Gericht-Footer: gleiche Bottom-Sheet-Optik wie der Kontakt-Footer bei Immobilien -->
         <Border Grid.Row="1"
-                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource CardBackgroundDark}}"
                 StrokeThickness="0"
-                Padding="16,10"
+                StrokeShape="RoundRectangle 16,16,0,0"
+                Padding="0"
                 IsVisible="{Binding HasCourtName}">
+            <Border.Shadow>
+                <Shadow Brush="{StaticResource Black}"
+                        Opacity="0.3"
+                        Radius="14"
+                        Offset="0,-4" />
+            </Border.Shadow>
             <VerticalStackLayout Spacing="2"
+                                 Padding="16,12"
                                  MaximumWidthRequest="800"
                                  HorizontalOptions="Fill">
-                <Label Text="Zuständiges Gericht"
-                       Style="{StaticResource Caption}" />
+                <Label Text="ZUSTÄNDIGES GERICHT"
+                       FontSize="10"
+                       CharacterSpacing="1"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                 <Label Text="{Binding CourtName}"
-                       FontSize="13"
+                       FontSize="14"
                        FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
             </VerticalStackLayout>

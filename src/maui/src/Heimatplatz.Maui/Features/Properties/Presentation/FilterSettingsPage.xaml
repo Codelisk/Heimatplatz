@@ -10,38 +10,31 @@
 
     <Grid>
         <ScrollView>
-            <VerticalStackLayout Padding="16,24,16,32"
-                                 Spacing="24"
+            <VerticalStackLayout Padding="16,16,16,32"
+                                 Spacing="12"
                                  MaximumWidthRequest="600"
                                  HorizontalOptions="Fill">
 
-                <!-- Kopf: Beschreibung + Live-Ergebnis (kein doppelter Seitentitel) -->
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Legen Sie fest, welche Immobilien auf der Startseite angezeigt werden. Änderungen werden automatisch übernommen."
-                           Style="{StaticResource PageSubtitle}"
-                           LineBreakMode="WordWrap"
-                           AutomationId="FilterSettings_Description" />
+                <!-- Live-Ergebnis -->
+                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_ResultSummary">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding ResultCountText}"
+                               Style="{StaticResource CardTitle}"
+                               AutomationId="FilterSettings_ResultCount" />
+                        <Label Text="{Binding FilterSummary}"
+                               Style="{StaticResource Caption}"
+                               AutomationId="FilterSettings_FilterSummary" />
+                    </VerticalStackLayout>
+                </Border>
 
-                    <Border Style="{StaticResource Card}" AutomationId="FilterSettings_ResultSummary">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="{Binding ResultCountText}"
-                                   Style="{StaticResource CardTitle}"
-                                   AutomationId="FilterSettings_ResultCount" />
-                            <Label Text="{Binding FilterSummary}"
-                                   Style="{StaticResource Caption}"
-                                   AutomationId="FilterSettings_FilterSummary" />
-                        </VerticalStackLayout>
-                    </Border>
-                </VerticalStackLayout>
+                <!-- Alle Filtergruppen kompakt in einer Karte -->
+                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_FilterCard">
+                    <VerticalStackLayout Spacing="10">
 
-                <!-- Immobilientyp -->
-                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_TypeCard">
-                    <VerticalStackLayout Spacing="14">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="Immobilientyp" Style="{StaticResource CardTitle}" />
-                            <Label Text="Mindestens ein Typ bleibt immer ausgewählt."
-                                   Style="{StaticResource Caption}" />
-                        </VerticalStackLayout>
+                        <!-- Immobilientyp -->
+                        <Label Text="IMMOBILIENTYP"
+                               Style="{StaticResource SectionHeader}"
+                               AutomationId="FilterSettings_TypeCard" />
                         <FlexLayout Wrap="Wrap" JustifyContent="Start">
                             <Button Text="Haus"
                                     Style="{StaticResource FilterChipStyle}"
@@ -83,58 +76,49 @@
                                 </Button.Triggers>
                             </Button>
                         </FlexLayout>
-                    </VerticalStackLayout>
-                </Border>
 
-                <!-- Anbieter (entfällt, wenn nur Zwangsversteigerungen gewählt sind) -->
-                <Border Style="{StaticResource Card}"
-                        IsVisible="{Binding IsSellerFilterVisible}"
-                        AutomationId="FilterSettings_SellerCard">
-                    <VerticalStackLayout Spacing="14">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="Anbieter" Style="{StaticResource CardTitle}" />
-                            <Label Text="Von wem die Immobilie angeboten wird."
-                                   Style="{StaticResource Caption}" />
+                        <!-- Anbieter (entfällt, wenn nur Zwangsversteigerungen gewählt sind) -->
+                        <VerticalStackLayout Spacing="10"
+                                             IsVisible="{Binding IsSellerFilterVisible}"
+                                             AutomationId="FilterSettings_SellerCard">
+                            <BoxView Style="{StaticResource Divider}" />
+                            <Label Text="ANBIETER" Style="{StaticResource SectionHeader}" />
+                            <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                                <Button Text="Privat"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Margin="0,0,8,8"
+                                        Command="{Binding TogglePrivateCommand}"
+                                        AutomationId="FilterSettings_Chip_Privat">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsPrivateSelected}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Text="Makler"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Margin="0,0,8,8"
+                                        Command="{Binding ToggleBrokerCommand}"
+                                        AutomationId="FilterSettings_Chip_Makler">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsBrokerSelected}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </FlexLayout>
                         </VerticalStackLayout>
-                        <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                            <Button Text="Privat"
-                                    Style="{StaticResource FilterChipStyle}"
-                                    Margin="0,0,8,8"
-                                    Command="{Binding TogglePrivateCommand}"
-                                    AutomationId="FilterSettings_Chip_Privat">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding IsPrivateSelected}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                            <Button Text="Makler"
-                                    Style="{StaticResource FilterChipStyle}"
-                                    Margin="0,0,8,8"
-                                    Command="{Binding ToggleBrokerCommand}"
-                                    AutomationId="FilterSettings_Chip_Makler">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding IsBrokerSelected}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                        </FlexLayout>
-                    </VerticalStackLayout>
-                </Border>
 
-                <!-- Eingestellt seit -->
-                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_AgeCard">
-                    <VerticalStackLayout Spacing="14">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="Eingestellt seit" Style="{StaticResource CardTitle}" />
-                            <Label Text="Zeigt nur Immobilien, die innerhalb des Zeitraums eingestellt wurden."
-                                   Style="{StaticResource Caption}" />
-                        </VerticalStackLayout>
+                        <BoxView Style="{StaticResource Divider}" />
+
+                        <!-- Eingestellt seit -->
+                        <Label Text="EINGESTELLT SEIT"
+                               Style="{StaticResource SectionHeader}"
+                               AutomationId="FilterSettings_AgeCard" />
                         <FlexLayout Wrap="Wrap" JustifyContent="Start">
                             <Button Text="Alle"
                                     Style="{StaticResource FilterChipStyle}"
@@ -152,7 +136,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="1 Tag"
+                            <Button Text="24 Stunden"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -168,7 +152,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="1 Woche"
+                            <Button Text="7 Tage"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -184,7 +168,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="1 Monat"
+                            <Button Text="30 Tage"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -200,7 +184,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="1 Jahr"
+                            <Button Text="12 Monate"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -217,17 +201,13 @@
                                 </Button.Triggers>
                             </Button>
                         </FlexLayout>
-                    </VerticalStackLayout>
-                </Border>
 
-                <!-- Orte -->
-                <Border Style="{StaticResource Card}" AutomationId="FilterSettings_OrtCard">
-                    <VerticalStackLayout Spacing="14">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="Orte" Style="{StaticResource CardTitle}" />
-                            <Label Text="Ohne Auswahl werden Immobilien aus allen Orten angezeigt."
-                                   Style="{StaticResource Caption}" />
-                        </VerticalStackLayout>
+                        <BoxView Style="{StaticResource Divider}" />
+
+                        <!-- Orte -->
+                        <Label Text="ORTE"
+                               Style="{StaticResource SectionHeader}"
+                               AutomationId="FilterSettings_OrtCard" />
 
                         <FlexLayout BindableLayout.ItemsSource="{Binding OrtChips}"
                                     Wrap="Wrap"
@@ -295,30 +275,23 @@
 
                 <!-- Darstellung (Anzeige-Einstellung, kein Filter) -->
                 <Border Style="{StaticResource Card}" AutomationId="FilterSettings_DisplayCard">
-                    <VerticalStackLayout Spacing="14">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="Darstellung" Style="{StaticResource CardTitle}" />
-                            <Label Text="Wie viele Immobilien pro Seite geladen werden."
-                                   Style="{StaticResource Caption}" />
-                        </VerticalStackLayout>
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                            <Label Text="Objekte pro Seite"
-                                   Style="{StaticResource BodyStrong}"
-                                   VerticalOptions="Center" />
-                            <Border Grid.Column="1"
-                                    StrokeThickness="1"
-                                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                                    StrokeShape="RoundRectangle 10"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
-                                    Padding="10,0"
-                                    MinimumWidthRequest="90">
-                                <Picker ItemsSource="{Binding PageSizeOptions}"
-                                        SelectedItem="{Binding SelectedPageSize, Mode=TwoWay}"
-                                        HorizontalTextAlignment="Center"
-                                        AutomationId="FilterSettings_PageSize" />
-                            </Border>
-                        </Grid>
-                    </VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Label Text="Objekte pro Seite"
+                               Style="{StaticResource BodyStrong}"
+                               VerticalOptions="Center" />
+                        <Border Grid.Column="1"
+                                StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
+                                Padding="10,0"
+                                MinimumWidthRequest="90">
+                            <Picker ItemsSource="{Binding PageSizeOptions}"
+                                    SelectedItem="{Binding SelectedPageSize, Mode=TwoWay}"
+                                    HorizontalTextAlignment="Center"
+                                    AutomationId="FilterSettings_PageSize" />
+                        </Border>
+                    </Grid>
                 </Border>
 
                 <Button Text="Alle Filter zurücksetzen"
