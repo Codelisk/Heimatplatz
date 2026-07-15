@@ -24,6 +24,9 @@ public partial class ForeclosureAuctionSyncService(
     ILogger<ForeclosureAuctionSyncService> logger
 ) : IForeclosureAuctionSyncService
 {
+    // Ediktsdatei liefert Wiener Ortszeit (CET/CEST) - "Europe/Vienna" ist die
+    // plattformuebergreifend gueltige IANA-Zone (funktioniert auf Linux/macOS/Windows).
+    private static readonly TimeZoneInfo ViennaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna");
     public async Task<SyncResult> SyncAllAsync(CancellationToken ct = default)
     {
         logger.LogInformation("Starte Zwangsversteigerungs-Sync");
@@ -332,15 +335,17 @@ public partial class ForeclosureAuctionSyncService(
         var dateStr = match.Groups[1].Value;
         var timeStr = match.Groups[2].Value;
 
-        if (DateTimeOffset.TryParseExact(
+        if (DateTime.TryParseExact(
             $"{dateStr} {timeStr}",
             ["d.M.yyyy HH:mm", "dd.MM.yyyy HH:mm", "d.MM.yyyy HH:mm", "dd.M.yyyy HH:mm"],
             CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal,
-            out var result))
+            DateTimeStyles.None,
+            out var localDateTime))
         {
-            // CET/CEST: Wien ist UTC+1 oder UTC+2
-            return result.ToOffset(TimeSpan.FromHours(1));
+            // Wiener Ortszeit korrekt (inkl. CET/CEST-Umstellung) nach UTC konvertieren -
+            // Postgres' "timestamp with time zone" akzeptiert ausschliesslich Offset=0.
+            var utc = TimeZoneInfo.ConvertTimeToUtc(localDateTime, ViennaTimeZone);
+            return new DateTimeOffset(utc, TimeSpan.Zero);
         }
 
         return null;
@@ -442,14 +447,15 @@ public partial class ForeclosureAuctionSyncService(
         var match = PublicationDatePattern().Match(text);
         if (!match.Success) return null;
 
-        if (DateTimeOffset.TryParseExact(
+        if (DateTime.TryParseExact(
             match.Groups[1].Value,
             ["d.M.yyyy", "dd.MM.yyyy", "d.MM.yyyy", "dd.M.yyyy"],
             CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal,
-            out var result))
+            DateTimeStyles.None,
+            out var localDate))
         {
-            return result.ToOffset(TimeSpan.FromHours(1));
+            var utc = TimeZoneInfo.ConvertTimeToUtc(localDate, ViennaTimeZone);
+            return new DateTimeOffset(utc, TimeSpan.Zero);
         }
 
         return null;
