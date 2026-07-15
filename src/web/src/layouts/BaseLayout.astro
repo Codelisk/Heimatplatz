@@ -74,7 +74,7 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
           const dark = mode === "dark" || (mode === "system" && media.matches);
           root.classList.toggle("dark", dark);
           const meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute("content", dark ? "#101917" : "#fbfaf6");
+          if (meta) meta.setAttribute("content", dark ? "#0b0808" : "#fffdfc");
           window.dispatchEvent(new CustomEvent("heimatplatz:theme-changed", { detail: { mode } }));
         };
         apply();
