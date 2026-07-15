@@ -13,17 +13,33 @@ const { title, description, mode } = Astro.props;
 <BaseLayout title={title} description={description} canonicalPath={mode === "login" ? "/anmelden/" : "/registrieren/"} chrome={false} noindex>
   <div class="grid min-h-screen lg:grid-cols-[minmax(420px,560px)_1fr]">
     <section class="bg-background px-6 py-8 sm:px-12">
-      <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">← Zurück</a>
+      <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">← Zurück</a>
       <div class="mt-12 max-w-md">
         <h1 class="text-3xl font-bold">{title}</h1>
         <p class="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
         <slot />
       </div>
     </section>
-    <aside class="hidden bg-foreground text-background lg:grid lg:place-items-center">
-      <div class="max-w-md px-12">
-        <p class="text-5xl font-bold uppercase">Heimatplatz</p>
-        <p class="mt-5 text-lg text-background/80">
+    {/* Markenpanel: bewusst themenunabhaengig im dunklen Fichtengruen gehalten,
+        damit es neben dem hellen wie dem dunklen Formularbereich funktioniert */}
+    <aside class="relative hidden overflow-hidden bg-[linear-gradient(160deg,#2c6b53,#14352b)] text-white lg:grid lg:place-items-center">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="0.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="pointer-events-none absolute -right-24 -top-16 size-[34rem] text-white/10"
+        aria-hidden="true"
+      >
+        <path d="M3.5 12.5 12 5l8.5 7.5" />
+        <path d="M6.5 11.5V19h11v-7.5" />
+        <path d="M12 19v-4" />
+      </svg>
+      <div class="relative max-w-md px-12">
+        <p class="text-5xl font-extrabold uppercase tracking-tight">Heimatplatz</p>
+        <p class="mt-5 text-lg leading-8 text-white/80">
           Immobilien-Favoriten, Inserate und Suchprofile für Oberösterreich an einem Ort.
         </p>
       </div>

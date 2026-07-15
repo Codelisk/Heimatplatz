@@ -1,0 +1,27 @@
+---
+/**
+ * Heimatplatz-Signet: Giebel mit Tuer auf Fichtengruen.
+ * Wird in Header, Navigation und Footer als Wiedererkennungszeichen genutzt.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className = "size-8" } = Astro.props;
+---
+
+<span class:list={["grid shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground", className]} aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="size-[62%]"
+  >
+    <path d="M3.5 12.5 12 5l8.5 7.5" />
+    <path d="M6.5 11.5V19h11v-7.5" />
+    <path d="M12 19v-4" />
+  </svg>
+</span>

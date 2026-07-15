@@ -1,0 +1,67 @@
+---
+import MoonIcon from "@tabler/icons/outline/moon.svg";
+import SunIcon from "@tabler/icons/outline/sun.svg";
+import SunMoonIcon from "@tabler/icons/outline/sun-moon.svg";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+{/* Drei Zustaende: System folgt dem Geraet, Hell/Dunkel sind feste Wahl.
+    Das Init-Script in BaseLayout stellt window.__heimatplatzTheme bereit. */}
+<button
+  type="button"
+  class:list={[
+    "grid size-10 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+    className,
+  ]}
+  data-theme-toggle
+  aria-label="Design wechseln"
+>
+  <span class="grid place-items-center" data-theme-icon="system"><SunMoonIcon class="size-5" aria-hidden="true" /></span>
+  <span class="grid place-items-center" data-theme-icon="light" hidden><SunIcon class="size-5" aria-hidden="true" /></span>
+  <span class="grid place-items-center" data-theme-icon="dark" hidden><MoonIcon class="size-5" aria-hidden="true" /></span>
+</button>
+
+<script>
+  type ThemeMode = "system" | "light" | "dark";
+
+  const themeApi = (window as any).__heimatplatzTheme as
+    | { get: () => ThemeMode; set: (mode: ThemeMode) => void }
+    | undefined;
+
+  const ORDER: ThemeMode[] = ["system", "light", "dark"];
+  const LABELS: Record<ThemeMode, string> = {
+    system: "Design: automatisch (System)",
+    light: "Design: hell",
+    dark: "Design: dunkel",
+  };
+
+  function render(mode: ThemeMode) {
+    document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((button) => {
+      button.setAttribute("aria-label", `${LABELS[mode]} – klicken zum Wechseln`);
+      button.title = LABELS[mode];
+      button.querySelectorAll<HTMLElement>("[data-theme-icon]").forEach((icon) => {
+        icon.toggleAttribute("hidden", icon.dataset.themeIcon !== mode);
+      });
+    });
+  }
+
+  if (themeApi) {
+    render(themeApi.get());
+    document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const next = ORDER[(ORDER.indexOf(themeApi.get()) + 1) % ORDER.length];
+        themeApi.set(next);
+      });
+    });
+    // Haelt alle Toggle-Instanzen synchron, auch bei programmatischen Wechseln
+    window.addEventListener("heimatplatz:theme-changed", (event) => {
+      const mode = (event as CustomEvent<{ mode: ThemeMode }>).detail?.mode;
+      if (mode) render(mode);
+    });
+  }
+</script>

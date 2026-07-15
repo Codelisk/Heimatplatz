@@ -106,7 +106,7 @@ const hasDirectContact = Boolean(primaryEmail || primaryPhone);
 
         <div class="grid gap-2 sm:grid-cols-2 lg:w-72 lg:grid-cols-1">
           {primaryEmail && (
-            <a class="inline-flex h-10 items-center justify-center rounded-md bg-foreground px-4 text-sm font-semibold text-background" href={`mailto:${primaryEmail}`}>
+            <a class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-accent" href={`mailto:${primaryEmail}`}>
               E-Mail schreiben
             </a>
           )}

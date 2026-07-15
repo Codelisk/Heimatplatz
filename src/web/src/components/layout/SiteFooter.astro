@@ -1,10 +1,22 @@
 ---
+import BrandMark from "@/components/layout/BrandMark.astro";
+
+const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-border">
-  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-6 px-4 py-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
-    <a class="hover:text-foreground" href="/impressum/">Impressum</a>
-    <a class="hover:text-foreground" href="/datenschutz/">Datenschutz</a>
-    <span class="opacity-70">Heimatplatz</span>
+<footer class="border-t border-border bg-card">
+  <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+    <div class="flex items-center gap-2.5">
+      <BrandMark class="size-7" />
+      <div>
+        <p class="text-sm font-extrabold uppercase tracking-[0.14em]">Heimatplatz</p>
+        <p class="text-xs text-muted-foreground">Immobilien in Oberösterreich – Häuser, Grundstücke, Zwangsversteigerungen.</p>
+      </div>
+    </div>
+    <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label="Rechtliches">
+      <a class="transition-colors hover:text-foreground" href="/impressum/">Impressum</a>
+      <a class="transition-colors hover:text-foreground" href="/datenschutz/">Datenschutz</a>
+      <span>© {year} Heimatplatz</span>
+    </nav>
   </div>
 </footer>

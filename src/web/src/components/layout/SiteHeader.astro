@@ -13,6 +13,8 @@ import UserPlusIcon from "@tabler/icons/outline/user-plus.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
 import { Button } from "@/components/starwind/button";
 import { NativeSelect } from "@/components/starwind/native-select";
+import BrandMark from "@/components/layout/BrandMark.astro";
+import ThemeToggle from "@/components/layout/ThemeToggle.astro";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
 
 const pathname = Astro.url.pathname;
@@ -67,8 +69,9 @@ function isActive(href: string) {
       >
         <MenuIcon class="size-5" aria-hidden="true" />
       </button>
-      <a href="/" class="min-w-0 px-1 font-bold uppercase text-foreground" aria-label="Heimatplatz Startseite">
-        <span class="block truncate text-xs tracking-[0.15em] sm:text-sm">{currentTitle}</span>
+      <a href="/" class="flex min-w-0 items-center gap-2 px-1 text-foreground" aria-label="Heimatplatz Startseite">
+        <BrandMark class="size-8" />
+        <span class="block truncate text-xs font-extrabold uppercase tracking-[0.14em] sm:text-sm">{currentTitle}</span>
       </a>
     </div>
 
@@ -85,24 +88,24 @@ function isActive(href: string) {
             <option value="month">30 Tage</option>
             <option value="year">1 Jahr</option>
           </NativeSelect>
-          <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="house" aria-pressed="true">
+          <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="house" aria-pressed="true">
             Haus
           </button>
-          <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="land" aria-pressed="true">
+          <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">
             Grund
           </button>
-          <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-type="foreclosure" aria-pressed="true">
+          <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="true">
             ZV
           </button>
           <div class="flex items-center gap-2" data-seller-filter-group>
             <span class="mx-1 h-6 w-px bg-border" aria-hidden="true" />
-            <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="private" aria-pressed="true">
+            <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="private" aria-pressed="true">
               Privat
             </button>
-            <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="agent" aria-pressed="true">
+            <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="agent" aria-pressed="true">
               Makler
             </button>
-            <button type="button" class="rounded-md border border-foreground bg-foreground px-4 py-2.5 text-sm font-semibold text-background" data-filter-seller-chip="court" aria-pressed="true">
+            <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="court" aria-pressed="true">
               Portal
             </button>
           </div>
@@ -110,16 +113,19 @@ function isActive(href: string) {
       )
     }
 
-    <div class="hidden shrink-0 items-center gap-2 sm:flex">
-      <Button href="/profil/" variant="outline" size="sm" class="max-w-36 truncate" data-auth-only hidden>
-        <span data-auth-email></span>
-      </Button>
-      <Button href="/anmelden/" variant="ghost" size="sm" data-guest-only>
-        Anmelden
-      </Button>
-      <Button href="/registrieren/" variant="default" size="sm" class="hidden sm:inline-flex" data-guest-only>
-        Registrieren
-      </Button>
+    <div class="flex shrink-0 items-center gap-1.5">
+      <ThemeToggle />
+      <div class="hidden items-center gap-2 sm:flex">
+        <Button href="/profil/" variant="outline" size="sm" class="max-w-36 truncate" data-auth-only hidden>
+          <span data-auth-email></span>
+        </Button>
+        <Button href="/anmelden/" variant="ghost" size="sm" data-guest-only>
+          Anmelden
+        </Button>
+        <Button href="/registrieren/" variant="default" size="sm" class="hidden sm:inline-flex" data-guest-only>
+          Registrieren
+        </Button>
+      </div>
     </div>
   </div>
 
@@ -132,7 +138,10 @@ function isActive(href: string) {
     data-site-nav-panel
   >
     <div class="flex h-14 items-center justify-between border-b border-border px-4">
-      <a href="/" class="font-bold uppercase tracking-[0.15em]">Heimatplatz</a>
+      <a href="/" class="flex items-center gap-2 font-extrabold uppercase tracking-[0.14em]">
+        <BrandMark class="size-8" />
+        Heimatplatz
+      </a>
       <button type="button" class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground" aria-label="Navigation schließen" data-site-nav-close>
         <XIcon class="size-5" aria-hidden="true" />
       </button>

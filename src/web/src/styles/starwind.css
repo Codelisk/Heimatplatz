@@ -1,9 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fontsource-variable/schibsted-grotesk";
 @plugin "@tailwindcss/forms";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Schibsted Grotesk: Grotesk mit Charakter, entworfen für skandinavische
+     Marktplatz-Portale - traegt die Heimatplatz-Identitaet in Wordmark und Text */
+  --font-sans: "Schibsted Grotesk Variable", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
@@ -26,10 +32,18 @@
   }
 }
 
+/* Merken/Blockieren-Buttons auf Fotos: gedrueckt = gefuellt statt transparent */
 [data-property-action][aria-pressed="true"] {
   background-color: var(--background);
   color: var(--foreground);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--background) 75%, transparent);
+}
+
+/* Gemerkt = rotes Herz, in beiden Themes eindeutig lesbar */
+[data-property-action="favorite"][aria-pressed="true"] {
+  background-color: oklch(0.58 0.21 25);
+  color: white;
+  box-shadow: 0 0 0 2px color-mix(in srgb, white 60%, transparent);
 }
 
 @theme inline {
@@ -79,85 +93,91 @@
   --color-sidebar-outline: var(--sidebar-outline);
 }
 
+/*
+ * Heimatplatz-Palette
+ * Fichtengruen + warme Steintoene: geerdet, regional, vertrauenswuerdig.
+ * Hell: Steinweiss-Grund, weisse Karten, dunkles Fichtengruen als Primaerfarbe.
+ */
 :root {
-  --background: var(--color-white);
-  --foreground: var(--color-neutral-950);
-  --card: var(--color-white);
-  --card-foreground: var(--color-neutral-950);
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-neutral-950);
-  --primary: var(--color-neutral-950);
-  --primary-foreground: var(--color-neutral-50);
-  --primary-accent: var(--color-neutral-800);
-  --secondary: var(--color-slate-100);
-  --secondary-foreground: var(--color-slate-700);
-  --secondary-accent: var(--color-slate-900);
-  --muted: var(--color-neutral-100);
-  --muted-foreground: var(--color-neutral-600);
-  --accent: var(--color-neutral-950);
-  --accent-foreground: var(--color-neutral-50);
+  --background: oklch(0.984 0.0035 95);
+  --foreground: oklch(0.235 0.02 170);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.235 0.02 170);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.235 0.02 170);
+  --primary: oklch(0.44 0.075 165);
+  --primary-foreground: oklch(0.985 0.005 150);
+  --primary-accent: oklch(0.38 0.07 166);
+  --secondary: oklch(0.945 0.01 150);
+  --secondary-foreground: oklch(0.36 0.03 168);
+  --secondary-accent: oklch(0.28 0.03 168);
+  --muted: oklch(0.952 0.0065 120);
+  --muted-foreground: oklch(0.49 0.022 165);
+  --accent: oklch(0.936 0.015 158);
+  --accent-foreground: oklch(0.25 0.035 168);
   --info: var(--color-sky-300);
   --info-foreground: var(--color-sky-950);
-  --success: var(--color-green-300);
-  --success-foreground: var(--color-green-950);
-  --warning: var(--color-amber-300);
-  --warning-foreground: var(--color-amber-950);
-  --error: var(--color-red-700);
-  --error-foreground: var(--color-neutral-50);
-  --border: var(--color-neutral-200);
-  --input: var(--color-neutral-200);
-  --outline: var(--color-neutral-400);
-  --radius: 0.625rem;
+  --success: oklch(0.85 0.1 160);
+  --success-foreground: oklch(0.27 0.06 155);
+  --warning: oklch(0.86 0.12 85);
+  --warning-foreground: oklch(0.3 0.07 65);
+  --error: oklch(0.5 0.19 27);
+  --error-foreground: oklch(0.985 0.005 150);
+  --border: oklch(0.905 0.009 120);
+  --input: oklch(0.905 0.009 120);
+  --outline: oklch(0.6 0.05 165);
+  --radius: 0.75rem;
 
   /* sidebar variables */
-  --sidebar-background: var(--color-neutral-50);
-  --sidebar-foreground: var(--color-neutral-950);
-  --sidebar-primary: var(--color-neutral-950);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: var(--color-neutral-100);
-  --sidebar-accent-foreground: var(--color-neutral-900);
-  --sidebar-border: var(--color-neutral-200);
-  --sidebar-outline: var(--color-neutral-400);
+  --sidebar-background: oklch(0.968 0.005 110);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-outline: var(--outline);
 }
 
+/* Dunkel: Nadelwald bei Nacht - gruenstichiges Anthrazit, helles Fichtengruen als Akzent */
 .dark {
-  --background: var(--color-neutral-950);
-  --foreground: var(--color-neutral-50);
-  --card: var(--color-neutral-900);
-  --card-foreground: var(--color-neutral-50);
-  --popover: var(--color-neutral-800);
-  --popover-foreground: var(--color-neutral-50);
-  --primary: var(--color-neutral-50);
-  --primary-foreground: var(--color-neutral-50);
-  --primary-accent: var(--color-neutral-200);
-  --secondary: var(--color-neutral-800);
-  --secondary-foreground: var(--color-neutral-100);
-  --secondary-accent: var(--color-neutral-50);
-  --muted: var(--color-neutral-800);
-  --muted-foreground: var(--color-neutral-400);
-  --accent: var(--color-neutral-50);
-  --accent-foreground: var(--color-neutral-950);
+  --background: oklch(0.185 0.012 180);
+  --foreground: oklch(0.93 0.007 145);
+  --card: oklch(0.225 0.013 178);
+  --card-foreground: oklch(0.93 0.007 145);
+  --popover: oklch(0.25 0.014 178);
+  --popover-foreground: oklch(0.93 0.007 145);
+  --primary: oklch(0.78 0.09 160);
+  --primary-foreground: oklch(0.21 0.04 170);
+  --primary-accent: oklch(0.84 0.09 158);
+  --secondary: oklch(0.27 0.015 175);
+  --secondary-foreground: oklch(0.9 0.01 150);
+  --secondary-accent: oklch(0.97 0.005 150);
+  --muted: oklch(0.258 0.013 178);
+  --muted-foreground: oklch(0.7 0.015 155);
+  --accent: oklch(0.3 0.02 172);
+  --accent-foreground: oklch(0.95 0.008 150);
   --info: var(--color-sky-300);
   --info-foreground: var(--color-sky-950);
-  --success: var(--color-green-300);
-  --success-foreground: var(--color-green-950);
-  --warning: var(--color-amber-300);
-  --warning-foreground: var(--color-amber-950);
-  --error: var(--color-red-800);
-  --error-foreground: var(--color-neutral-50);
-  --border: --alpha(var(--color-neutral-50) / 10%);
-  --input: --alpha(var(--color-neutral-50) / 15%);
-  --outline: var(--color-neutral-500);
+  --success: oklch(0.8 0.11 160);
+  --success-foreground: oklch(0.25 0.06 155);
+  --warning: oklch(0.82 0.12 85);
+  --warning-foreground: oklch(0.28 0.07 65);
+  --error: oklch(0.63 0.19 25);
+  --error-foreground: oklch(0.985 0.005 150);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --outline: oklch(0.72 0.06 160);
 
   /* sidebars variables */
-  --sidebar-background: var(--color-neutral-900);
-  --sidebar-foreground: var(--color-neutral-50);
-  --sidebar-primary: var(--color-neutral-50);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: var(--color-neutral-800);
-  --sidebar-accent-foreground: var(--color-neutral-100);
-  --sidebar-border: var(--color-neutral-800);
-  --sidebar-outline: var(--color-neutral-600);
+  --sidebar-background: oklch(0.215 0.013 178);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-outline: var(--outline);
 }
 
 @layer base {
@@ -166,8 +186,44 @@
   }
   body {
     @apply bg-background text-foreground scheme-light dark:scheme-dark;
+    accent-color: var(--primary);
+  }
+  /* @tailwindcss/forms nutzt currentColor als Haken-Hintergrund;
+     Hintergrund/Rahmen/Fokus folgen den Theme-Tokens statt Weiss/Blau */
+  input[type="checkbox"],
+  input[type="radio"] {
+    color: var(--primary);
+    background-color: var(--background);
+    border-color: var(--outline);
+  }
+  input[type="checkbox"]:focus,
+  input[type="radio"]:focus,
+  input[type="checkbox"]:focus-visible,
+  input[type="radio"]:focus-visible,
+  select:focus {
+    --tw-ring-color: color-mix(in oklch, var(--primary) 50%, transparent);
+    border-color: var(--outline);
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+    text-wrap: balance;
   }
   button {
     @apply cursor-pointer;
+  }
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 25%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

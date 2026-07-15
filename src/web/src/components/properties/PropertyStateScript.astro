@@ -920,7 +920,7 @@
     edit.textContent = "Bearbeiten";
 
     const remove = document.createElement("button");
-    remove.className = "inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background";
+    remove.className = "inline-flex h-9 items-center rounded-md bg-error px-3 text-sm font-medium text-error-foreground";
     remove.type = "button";
     remove.textContent = "Löschen";
     remove.setAttribute("data-draft-remove", draft.id || "");
@@ -952,7 +952,11 @@
     image.addEventListener("error", () => {
       image.src = "/favicon.svg";
     }, { once: true });
-    const type = createText("span", "absolute left-3 top-3 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background", property.Type);
+    const type = createText(
+      "span",
+      `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${property.Type === "Foreclosure" ? "bg-warning text-warning-foreground" : "bg-primary text-primary-foreground"}`,
+      property.Type,
+    );
     imageWrap.append(image, type);
 
     const body = document.createElement("div");
@@ -966,7 +970,7 @@
     titleLink.className = "hover:underline";
     titleLink.textContent = property.City || property.Title;
     title.append(titleLink);
-    const price = createText("p", "shrink-0 whitespace-nowrap text-lg font-bold leading-tight", formatPriceValue(property.Price));
+    const price = createText("p", "shrink-0 whitespace-nowrap text-lg font-bold leading-tight text-primary", formatPriceValue(property.Price));
     head.append(title, price);
     const place = [property.PostalCode, property.City].filter(Boolean).join(" ");
     const addressText = (property.Address ?? "").trim();
@@ -988,12 +992,12 @@
       actions.innerHTML = `
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/angebote/${property.Id}/">Details</a>
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">Bearbeiten</a>
-        <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" data-remote-delete="${property.Id}">Löschen</button>
+        <button type="button" class="inline-flex h-9 items-center rounded-md bg-error px-3 text-sm font-medium text-error-foreground" data-remote-delete="${property.Id}">Löschen</button>
       `;
     } else {
       actions.innerHTML = `
         <button type="button" class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" aria-label="Favorit speichern" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">Merken</button>
-        <button type="button" class="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-sm font-medium text-background" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">Blockieren</button>
+        <button type="button" class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">Blockieren</button>
       `;
     }
     body.append(head, address, subtitle, meta, actions);

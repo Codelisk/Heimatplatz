@@ -53,6 +53,49 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content={SITE.themeColor} />
     <meta name="description" content={description} />
+
+    {/* Theme-Init vor dem ersten Paint: verhindert Aufblitzen des falschen Modus (FOUC).
+        Stellt window.__heimatplatzTheme fuer den ThemeToggle bereit. */}
+    <script is:inline>
+      (() => {
+        const KEY = "heimatplatz:theme";
+        const root = document.documentElement;
+        const media = window.matchMedia("(prefers-color-scheme: dark)");
+        const readStored = () => {
+          try {
+            const value = localStorage.getItem(KEY);
+            return value === "light" || value === "dark" ? value : "system";
+          } catch {
+            return "system";
+          }
+        };
+        let mode = readStored();
+        const apply = () => {
+          const dark = mode === "dark" || (mode === "system" && media.matches);
+          root.classList.toggle("dark", dark);
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#101917" : "#fbfaf6");
+          window.dispatchEvent(new CustomEvent("heimatplatz:theme-changed", { detail: { mode } }));
+        };
+        apply();
+        media.addEventListener("change", () => {
+          if (mode === "system") apply();
+        });
+        window.__heimatplatzTheme = {
+          get: () => mode,
+          set: (next) => {
+            mode = next === "light" || next === "dark" ? next : "system";
+            try {
+              if (mode === "system") localStorage.removeItem(KEY);
+              else localStorage.setItem(KEY, mode);
+            } catch {
+              /* Speichern optional - Theme gilt dann nur fuer diese Seite */
+            }
+            apply();
+          },
+        };
+      })();
+    </script>
     <meta name="robots" content={getRobotsDirective(noindex)} />
     <meta name="keywords" content={SITE.keywords.join(", ")} />
 
@@ -77,9 +120,9 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
 
     <script is:inline type="application/ld+json" set:html={jsonLd}></script>
   </head>
-  <body class:list={["min-h-screen bg-background text-foreground antialiased", bodyClass]}>
+  <body class:list={["flex min-h-screen flex-col bg-background text-foreground antialiased", bodyClass]}>
     {chrome && <SiteHeader />}
-    <main>
+    <main class="flex-1">
       <slot />
     </main>
     {chrome && <SiteFooter />}

@@ -14,7 +14,7 @@ import { Button } from "@/components/starwind/button";
     <div class="mt-5 rounded-lg border border-border bg-card p-5" data-auth-only hidden>
       <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-4">
-          <div class="grid size-16 shrink-0 place-items-center rounded-full bg-foreground text-xl font-bold text-background" data-auth-initials>?</div>
+          <div class="grid size-16 shrink-0 place-items-center rounded-full bg-primary text-xl font-bold text-primary-foreground" data-auth-initials>?</div>
           <div>
             <p class="text-sm text-muted-foreground">Angemeldet als</p>
             <p class="mt-1 text-xl font-semibold" data-auth-name>Nicht angemeldet</p>
@@ -40,9 +40,9 @@ import { Button } from "@/components/starwind/button";
     </div>
 
     <div class="mt-8 grid gap-4 md:grid-cols-3">
-      <a class="rounded-lg border border-border p-5 hover:border-foreground" href="/favoriten/">Favoriten</a>
-      <a class="rounded-lg border border-border p-5 hover:border-foreground" href="/meine-immobilien/">Meine Immobilien</a>
-      <a class="rounded-lg border border-border p-5 hover:border-foreground" href="/benachrichtigungen/">Benachrichtigungen</a>
+      <a class="rounded-lg border border-border bg-card p-5 font-medium transition-colors hover:border-primary/50 hover:bg-accent" href="/favoriten/">Favoriten</a>
+      <a class="rounded-lg border border-border bg-card p-5 font-medium transition-colors hover:border-primary/50 hover:bg-accent" href="/meine-immobilien/">Meine Immobilien</a>
+      <a class="rounded-lg border border-border bg-card p-5 font-medium transition-colors hover:border-primary/50 hover:bg-accent" href="/benachrichtigungen/">Benachrichtigungen</a>
     </div>
 
     <div class="mt-8 rounded-lg border border-error/40 bg-card p-5" data-auth-only hidden>

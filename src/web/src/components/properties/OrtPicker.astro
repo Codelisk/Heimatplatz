@@ -53,7 +53,7 @@ const panelId = `${buttonId}-panel`;
   <button
     type="button"
     id={buttonId}
-    class="group flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+    class="group flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-primary"
     aria-haspopup="dialog"
     aria-expanded="false"
     aria-controls={panelId}
@@ -61,10 +61,10 @@ const panelId = `${buttonId}-panel`;
     data-ort-picker-placeholder={placeholder}
   >
     <span class="flex min-w-0 items-center gap-2">
-      <MapPinIcon class="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-accent-foreground" aria-hidden="true" />
-      <span class="truncate text-left transition-colors group-hover:text-accent-foreground" data-ort-picker-label>{placeholder}</span>
+      <MapPinIcon class="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-accent-primary" aria-hidden="true" />
+      <span class="truncate text-left transition-colors group-hover:text-accent-primary" data-ort-picker-label>{placeholder}</span>
     </span>
-    <ChevronDownIcon class="size-4 shrink-0 text-muted-foreground transition-transform group-hover:text-accent-foreground" aria-hidden="true" data-ort-picker-chevron />
+    <ChevronDownIcon class="size-4 shrink-0 text-muted-foreground transition-transform group-hover:text-accent-primary" aria-hidden="true" data-ort-picker-chevron />
   </button>
 
   <input type="hidden" name={name} value="" data-ort-picker-input />
@@ -81,7 +81,7 @@ const panelId = `${buttonId}-panel`;
       <p class="text-sm font-semibold">{singleSelect ? "Ort auswählen" : "Orte auswählen"}</p>
       <button
         type="button"
-        class="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        class="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-primary"
         data-ort-picker-clear
       >
         Zurücksetzen
@@ -96,23 +96,23 @@ const panelId = `${buttonId}-panel`;
               <label class="grid size-7 cursor-pointer place-items-center rounded hover:bg-accent" aria-label={`Alle Orte in ${region.name} auswählen`}>
                 <input
                   type="checkbox"
-                  class="size-4 cursor-pointer accent-foreground"
+                  class="size-4 cursor-pointer accent-primary"
                   data-ort-picker-region-checkbox={region.slug}
                 />
               </label>
             )}
             <button
               type="button"
-              class="group flex flex-1 items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              class="group flex flex-1 items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-sm font-medium hover:bg-accent hover:text-accent-primary"
               aria-expanded="false"
               aria-controls={`${panelId}-${region.slug}`}
               data-ort-picker-region-toggle={region.slug}
             >
               <span class="flex items-center gap-2">
-                <ChevronRightIcon class="size-3.5 text-muted-foreground transition-transform group-hover:text-accent-foreground" aria-hidden="true" data-ort-picker-region-chevron />
+                <ChevronRightIcon class="size-3.5 text-muted-foreground transition-transform group-hover:text-accent-primary" aria-hidden="true" data-ort-picker-region-chevron />
                 {region.name}
               </span>
-              <span class="text-xs text-muted-foreground group-hover:text-accent-foreground" data-ort-picker-region-count={region.slug}></span>
+              <span class="text-xs text-muted-foreground group-hover:text-accent-primary" data-ort-picker-region-count={region.slug}></span>
             </button>
           </div>
           <div
@@ -122,11 +122,11 @@ const panelId = `${buttonId}-panel`;
             hidden
           >
             {/* Bezirk-Hauptort als eigene Option (z.B. "Linz" selbst) */}
-            <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
+            <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-primary">
               <input
                 type={singleSelect ? "radio" : "checkbox"}
                 name={singleSelect ? `${name}-radio` : undefined}
-                class="size-4 cursor-pointer accent-foreground"
+                class="size-4 cursor-pointer accent-primary"
                 data-ort-picker-locality={region.slug}
                 data-ort-picker-locality-region={region.slug}
                 value={region.slug}
@@ -134,11 +134,11 @@ const panelId = `${buttonId}-panel`;
               <span class="truncate">{region.name} (alle)</span>
             </label>
             {region.localities.map((locality) => (
-              <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
+              <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-primary">
                 <input
                   type={singleSelect ? "radio" : "checkbox"}
                   name={singleSelect ? `${name}-radio` : undefined}
-                  class="size-4 cursor-pointer accent-foreground"
+                  class="size-4 cursor-pointer accent-primary"
                   data-ort-picker-locality={locality.slug}
                   data-ort-picker-locality-region={region.slug}
                   data-ort-picker-locality-base={locality.baseSlug}
