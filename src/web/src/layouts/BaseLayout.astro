@@ -61,26 +61,6 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
         const KEY = "heimatplatz:theme";
         const root = document.documentElement;
         const media = window.matchMedia("(prefers-color-scheme: dark)");
-
-        /* TEMPORAER - Tafel-Ton-Feinschliff (siehe /design/dark-theme):
-           ?brett=a|b|c aktiviert eine Ton-Variante nur fuer diesen Browser
-           (und schaltet auf Dunkel), ?brett=aus setzt zurueck. Wird nach der
-           Ton-Entscheidung wieder entfernt. */
-        const BRETT_KEY = "heimatplatz:brett";
-        try {
-          const requested = new URLSearchParams(location.search).get("brett");
-          if (requested === "a" || requested === "b" || requested === "c") {
-            localStorage.setItem(BRETT_KEY, requested);
-            localStorage.setItem(KEY, "dark");
-          } else if (requested === "aus") {
-            localStorage.removeItem(BRETT_KEY);
-          }
-          const brett = localStorage.getItem(BRETT_KEY);
-          if (brett) root.dataset.brett = brett;
-        } catch {
-          /* Vorschau optional */
-        }
-
         const readStored = () => {
           try {
             const value = localStorage.getItem(KEY);
@@ -94,7 +74,7 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
           const dark = mode === "dark" || (mode === "system" && media.matches);
           root.classList.toggle("dark", dark);
           const meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute("content", dark ? "#100a06" : "#f9f5f1");
+          if (meta) meta.setAttribute("content", dark ? "#2d1403" : "#f9f5f1");
           window.dispatchEvent(new CustomEvent("heimatplatz:theme-changed", { detail: { mode } }));
         };
         apply();
