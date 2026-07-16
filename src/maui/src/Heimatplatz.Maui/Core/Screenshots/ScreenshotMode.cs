@@ -8,10 +8,11 @@ using Shiny.Mediator;
 namespace Heimatplatz.Maui.Core.Screenshots;
 
 /// <summary>
-/// Deterministischer Screenshot-Modus fuer App-Store-Aufnahmen (Cake-Task "IosScreenshots").
-/// Aktivierung ausschliesslich ueber Prozess-Umgebungsvariablen, die "xcrun simctl launch"
-/// mit dem Prefix SIMCTL_CHILD_ an den Simulator-Prozess durchreicht - auf echten Geraeten
-/// und im App Store Build sind diese Variablen nie gesetzt, der Modus bleibt inaktiv.
+/// Deterministischer Screenshot-Modus fuer Store-Aufnahmen (Cake-Tasks "IosScreenshots"
+/// und "AndroidScreenshots"). Aktivierung ausschliesslich ueber Prozess-Umgebungsvariablen:
+/// auf iOS reicht "xcrun simctl launch" sie mit dem Prefix SIMCTL_CHILD_ durch, auf Android
+/// uebersetzt ScreenshotSysProps (nur im Emulator) "debug.heimatplatz.*"-Sysprops in Env-Vars.
+/// Auf echten Geraeten und im Store-Build sind diese Variablen nie gesetzt, der Modus bleibt inaktiv.
 /// Status geht via Console.WriteLine ins os_log (Cake liest es mit "log show" aus);
 /// Shell.Loaded feuert auf iOS nicht zuverlaessig, daher Delay + Dispatcher statt Event.
 /// </summary>

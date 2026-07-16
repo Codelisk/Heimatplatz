@@ -17,5 +17,12 @@ public class MainApplication : MauiApplication
 	{
 	}
 
-	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+	protected override MauiApp CreateMauiApp()
+	{
+		// Screenshot-Runs (Cake "AndroidScreenshots"): debug.heimatplatz.*-Sysprops in
+		// Env-Vars uebersetzen, BEVOR CreateMauiApp die API-URL fixiert. No-op ausserhalb
+		// des Emulators.
+		Platforms.Android.ScreenshotSysProps.TryImport();
+		return MauiProgram.CreateMauiApp();
+	}
 }

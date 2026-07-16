@@ -28,11 +28,17 @@ Available Targets:
     BuildAndroid         Build Android APK
     BuildIos             Build iOS IPA (macOS only)
     BuildAstro           Build Astro web (src/web -> dist)
-    DeployAndroid        Build and deploy to Play Store internal
+    DeployAndroid        Build and deploy to Play Store internal (fastlane, legacy)
     DeployIos            Build and deploy to TestFlight (macOS only)
-    DeployAstro          Build and deploy Astro web to Azure Static Web Apps
-    DeployAll            Deploy to all platforms (Android, iOS, Astro web)
+    DeployAstro          Build and deploy Astro web (Prod) to Hetzner
+    DeployAstroTest      Build and deploy Astro web (Test, test.heimatplatz.at) to Hetzner
+    DeployAll            Deploy to all platforms (Android, iOS, Astro web Prod)
     ComplianceCheck      Check store agreements
+    ReleaseAndroid       Full Play Store release: bump + Claude texts + screenshots + AAB + upload (see release-android.ps1)
+    AndroidStoreTexts    Claude CLI: review/update Play texts (de/en) + release notes
+    AndroidScreenshots   Deterministic Play Store screenshots via Android emulator
+    UpdateMetadataAndroid Upload Play listing texts/images/screenshots only (no binary)
+    PlayStoreVersionCheck Show highest Play version code (connectivity check)
 
 Examples:
     ./build.ps1                           # Run default task

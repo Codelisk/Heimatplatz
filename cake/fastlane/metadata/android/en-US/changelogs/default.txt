@@ -1,0 +1,5 @@
+• Discover and filter new properties
+• Foreclosure auctions from the edict database
+• Push notifications for preferred locations
+• Save favorites
+• Create your own listings

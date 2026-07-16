@@ -1,0 +1,6 @@
+Welcome to Heimatplatz – our very first version!
+
+• Discover properties, building plots and foreclosure auctions in Upper Austria
+• Filter by property type, location and time period, sort by price, area or recency
+• Create listings easily with AI from photos and voice input
+• Save favorites and get push notifications for your preferred locations

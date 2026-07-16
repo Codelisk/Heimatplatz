@@ -1,0 +1,6 @@
+Willkommen bei Heimatplatz – unsere erste Version!
+
+• Immobilien, Grundstücke und Zwangsversteigerungen in Oberösterreich entdecken
+• Nach Immobilientyp, Ort und Zeitraum filtern, nach Preis, Fläche oder Aktualität sortieren
+• Inserate ganz einfach per KI aus Fotos und Sprachaufnahme erstellen
+• Favoriten speichern und Push-Benachrichtigungen für deine Wunschorte erhalten

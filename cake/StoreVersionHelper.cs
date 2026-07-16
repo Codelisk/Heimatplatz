@@ -1,10 +1,8 @@
-using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Build;
@@ -15,55 +13,23 @@ namespace Build;
 public static class StoreVersionHelper
 {
     /// <summary>
-    /// Gets the latest version code from Google Play internal track
+    /// Gets the highest version code across all Google Play tracks.
+    /// Uses the Play Developer API directly (PlayStoreClient) - no fastlane/Ruby needed,
+    /// so this also works on Windows. The edit is never committed and expires server-side.
+    /// The fastlaneDir parameter is kept for call-site compatibility and is unused.
     /// </summary>
     public static int? GetGooglePlayVersionCode(string jsonKeyPath, string packageName, string fastlaneDir)
     {
         try
         {
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = "fastlane",
-                Arguments = "run google_play_track_version_codes track:internal",
-                WorkingDirectory = fastlaneDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            processInfo.Environment["SUPPLY_JSON_KEY"] = jsonKeyPath;
-            processInfo.Environment["SUPPLY_PACKAGE_NAME"] = packageName;
-
-            using var process = Process.Start(processInfo);
-            if (process == null) return null;
-
-            var output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-
-            if (process.ExitCode != 0) return null;
-
-            // Parse output like: "Result: [144]" (highest first)
-            var match = Regex.Match(output, @"Result:\s*\[([^\]]+)\]");
-            if (match.Success)
-            {
-                var max = 0;
-                var seen = false;
-                foreach (var token in match.Groups[1].Value.Split(','))
-                {
-                    if (int.TryParse(token.Trim(), out var v))
-                    {
-                        if (!seen || v > max) max = v;
-                        seen = true;
-                    }
-                }
-                if (seen) return max;
-            }
-
-            return null;
+            using var client = new PlayStoreClient(jsonKeyPath, packageName);
+            var editId = client.CreateEdit();
+            var highest = client.GetHighestVersionCode(editId);
+            return highest > 0 ? highest : null;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"[StoreVersionHelper] Google Play query failed: {ex.Message}");
             return null;
         }
     }
