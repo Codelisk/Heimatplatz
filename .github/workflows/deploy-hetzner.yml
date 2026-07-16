@@ -1,9 +1,22 @@
 name: Deploy API (Hetzner)
 
-# VORBEREITUNG - NOCH NICHT AKTIV: Es existiert noch kein Hetzner-Server und keine der unten
-# referenzierten Secrets (HETZNER_HOST/HETZNER_USER/HETZNER_SSH_KEY) sind gesetzt. Der SSH-Deploy-
-# Schritt ist nur ein Platzhalter fuer den spaeteren echten Rollout. Bis dahin bleibt
-# deploy-api.yml (Azure App Service) der einzige aktive Deploy-Weg.
+# INAKTIV - der API-Deploy laeuft MANUELL, nicht ueber diesen Workflow (Stand 16.7.2026).
+#
+# Der Server existiert laengst (siehe deploy/hetzner/README.md) und HETZNER_HOST/HETZNER_USER/
+# HETZNER_SSH_KEY sind gesetzt. Was fehlt, ist die Repo-Variable HETZNER_DEPLOY_ENABLED - ohne
+# sie wird der deploy-Job unten uebersprungen. Dieser Workflow ist noch nie gelaufen.
+#
+# ACHTUNG, vor dem Aktivieren zu klaeren: der deploy-Job passt NICHT zum tatsaechlichen Stack.
+# In deploy/hetzner/docker-compose.yml ist "api" ein build:-Service (Kontext = Repo-Root, wird
+# auf dem Server gebaut) und referenziert KEIN Registry-Image. "docker compose pull api" kann
+# das hier gebaute GHCR-Image also gar nicht ziehen. Zum Aktivieren muesste der api-Service auf
+# "image: ghcr.io/..." umgestellt werden - eine bewusste Entscheidung, kein Ein-Zeilen-Fix.
+#
+# Der real genutzte Weg (siehe README + Memory): kompletten src/api-Baum vom Entwicklerrechner
+# auf den Server kopieren (lokal ist kein rsync verfuegbar, git archive/tar ueber SSH tut es),
+# dann auf dem Server "docker compose up -d --build api". Kein Git-Checkout am Server.
+#
+# Der build-and-push-Job unten funktioniert unabhaengig davon und legt das Image in der GHCR ab.
 on:
   workflow_dispatch:
 
@@ -43,8 +56,10 @@ jobs:
     name: Deploy to Hetzner
     needs: build-and-push
     runs-on: ubuntu-latest
-    # Platzhalter: laeuft erst, sobald die drei Secrets unten existieren. Bis dahin wird dieser
-    # Job uebersprungen (if-Bedingung verhindert einen fehlschlagenden SSH-Connect-Versuch).
+    # Die Secrets existieren bereits - dieser Job haengt allein an der Repo-Variable, die bewusst
+    # nicht gesetzt ist. Siehe Kopf der Datei: der Job ist ungetestet und der pull-Schritt passt
+    # nicht zum build:-Service in der Compose-Datei. Nicht ohne die dort genannte Umstellung
+    # aktivieren.
     if: ${{ vars.HETZNER_DEPLOY_ENABLED == 'true' }}
 
     steps:
@@ -55,6 +70,9 @@ jobs:
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
-            cd /opt/heimatplatz/deploy/hetzner
+            # Stack liegt unter /srv, nicht /opt (frueher hier falsch hinterlegt).
+            cd /srv/heimatplatz/deploy/hetzner
             docker compose pull api
-            docker compose up -d
+            # Nur die API neu starten - ein nacktes "up -d" wuerde den ganzen Stack
+            # (postgres, caddy, web, api-test) mit anfassen.
+            docker compose up -d api

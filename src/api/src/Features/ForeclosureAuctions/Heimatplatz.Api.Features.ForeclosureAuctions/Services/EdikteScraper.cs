@@ -336,8 +336,16 @@ public partial class EdikteScraper(
 
     private string ToAbsoluteUrl(string url)
     {
-        if (Uri.TryCreate(url, UriKind.Absolute, out var absolute))
+        // Nur echte http(s)-URLs gelten als bereits absolut. Uri.TryCreate mit UriKind.Absolute
+        // allein reicht NICHT: auf Linux parst ein fuehrender "/" als absoluter Dateisystempfad
+        // und liefert erfolgreich file:///edikte/... - auf Windows schlaegt derselbe Aufruf fehl.
+        // Ohne die Schema-Pruefung landen die Edikt-Bilder deshalb nur im Container (= Prod) als
+        // file:///-URLs in der DB, und der Bild-Proxy reicht sie ungeproxt an den Browser durch.
+        if (Uri.TryCreate(url, UriKind.Absolute, out var absolute)
+            && (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps))
+        {
             return absolute.ToString();
+        }
 
         return new Uri(new Uri(options.Value.BaseUrl.TrimEnd('/') + "/"), url).ToString();
     }
