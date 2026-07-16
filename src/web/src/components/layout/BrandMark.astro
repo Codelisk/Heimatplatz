@@ -1,9 +1,10 @@
 ---
 /**
- * Heimatplatz-Huettenmarke: handgezeichnetes Etikett mit Almhuette, Rauchkringel
- * und Tanne zwischen rot-weiss-roten Baendern (logo-mark.svg).
- * `tile` liefert die Kachel-Variante (weisse Kachel, favicon.svg) fuer
- * Flaechen, auf denen das freistehende Etikett nicht traegt (z.B. rotes Panel).
+ * Heimatplatz-Marke im Stil des Ursprungslogos: zwei rot-weiss-rote Balken,
+ * das Haus steht weiss freigestellt auf dem unteren Balken, Tanne rechts
+ * (logo-mark.svg, Querformat). `tile` liefert die Kachel-Variante (weisse
+ * Kachel, favicon.svg) fuer Flaechen, auf denen die freistehende Marke nicht
+ * traegt (z.B. rotes Panel).
  * Wird in Header, Navigation, Footer und Auth-Panel als Wiedererkennungszeichen genutzt.
  */
 interface Props {
@@ -18,7 +19,7 @@ const { class: className = "h-8", tile = false } = Astro.props;
   src={tile ? "/favicon.svg" : "/logo-mark.svg"}
   alt=""
   aria-hidden="true"
-  width="48"
-  height="48"
+  width={tile ? 48 : 58}
+  height={tile ? 48 : 32}
   class:list={["w-auto shrink-0", className]}
 />

@@ -65,8 +65,7 @@
               ColumnDefinitions="Auto,*"
               ColumnSpacing="14">
 
-            <!-- Huettenmarke auf weisser Karte; das Etikett bringt seinen eigenen
-                 Tusche-Rahmen mit und wird daher nur leicht eingerueckt. -->
+            <!-- Marke (Querformat: Balken + Haus + Tanne) mittig auf weisser Karte. -->
             <Border Grid.Column="0"
                     BackgroundColor="{StaticResource White}"
                     Stroke="Transparent"
