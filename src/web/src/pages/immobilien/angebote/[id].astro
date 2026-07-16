@@ -15,7 +15,6 @@ import {
   formatApiDate,
   formatApiPriceLong,
   getApiAreaLabel,
-  getApiPropertyDescription,
   getApiPropertyJsonLd,
   getApiPropertyPath,
   getApiPropertyTypeLabel,
@@ -25,6 +24,7 @@ import {
   type ApiContact,
 } from "@/features/properties/live-api";
 import { getApiPriceFact, getApiPropertyDetailSections } from "@/features/properties/detail-sections";
+import { getDisplayTitle } from "@/features/properties/format";
 import { breadcrumbSchema } from "@/lib/seo";
 
 // SSR: Immobilie pro Request laden - neue Inserate sind sofort erreichbar,
@@ -39,9 +39,9 @@ const canonicalPath = getApiPropertyPath(property);
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
 // Viele Titel enthalten den Ort bereits ("... in Pettenbach") - nicht doppelt anhaengen
 const pageTitle = property.Title.includes(property.City) ? property.Title : `${property.Title} in ${property.City}`;
-const description = getApiPropertyDescription(property);
 const imageUrl = getApiPropertyImage(property);
 const images = getApiPropertyImages(property);
+const description = property.Description?.trim() ?? "";
 // Zwangsversteigerungen: Price ist Mindestgebot/Schaetzwert, die Kernfelder tragen
 // Edikt-Semantik (LivingAreaM2 = bebaute Flaeche, PlotAreaM2 = Gesamtflaeche).
 const priceFact = getApiPriceFact(property);
@@ -61,9 +61,12 @@ const facts = isForeclosure
     ];
 const priceText = isForeclosure ? `${priceFact.label} ${priceFact.value}` : formatApiPriceLong(property.Price);
 const sellerRoleLabel = isForeclosure ? "Gericht" : getApiSellerLabel(property.SellerType);
+// SourceName ist nur als echte Fremdquelle eine Info; "Heimatplatz" (unser eigenes Portal) sagt dem Nutzer nichts.
+const externalSource = property.SourceName && property.SourceName !== "Heimatplatz" ? property.SourceName : null;
+const sellerMeta = [sellerRoleLabel, externalSource].filter(Boolean).join(" · ");
 const features = property.Features?.length
   ? property.Features
-  : [getApiPropertyTypeLabel(property.Type, property), property.City, getApiAreaLabel(property), property.SourceName ?? "Heimatplatz"];
+  : [getApiPropertyTypeLabel(property.Type, property), property.City, getApiAreaLabel(property)].filter(Boolean);
 const contactCards: ApiContact[] = property.Contacts?.length
   ? property.Contacts
   : [{ Name: property.SellerName, SourceName: property.SourceName, Email: null, Phone: null }];
@@ -153,8 +156,7 @@ const detailSections = getApiPropertyDetailSections(property);
 
         <div class="mt-6">
           <p class="text-sm font-semibold text-muted-foreground">{property.PostalCode} {property.City} · {property.Address}</p>
-          <h1 class="mt-3 max-w-3xl break-words text-3xl font-bold leading-tight sm:text-4xl">{property.Title}</h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{description}</p>
+          <h1 class="mt-3 max-w-3xl break-words text-3xl font-bold leading-tight sm:text-4xl">{getDisplayTitle(property.Title)}</h1>
         </div>
 
         <dl class="mt-6 grid gap-3 sm:grid-cols-4">
@@ -194,16 +196,20 @@ const detailSections = getApiPropertyDetailSections(property);
           </ul>
         </section>
 
-        <section class="mt-8" aria-labelledby="api-description">
-          <h2 id="api-description" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
-          <p class="mt-4 max-w-3xl text-base leading-7">{description}</p>
-        </section>
+        {description && (
+          <section class="mt-8" aria-labelledby="api-description">
+            <h2 id="api-description" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
+            <p class="mt-4 max-w-3xl text-base leading-7">{description}</p>
+          </section>
+        )}
       </div>
 
       <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
-        <p class="text-sm text-muted-foreground">Anbieter</p>
+        <p class="text-sm text-muted-foreground">{isForeclosure ? "Gericht" : "Anbieter"}</p>
         <h2 class="mt-1 text-xl font-bold">{property.SellerName}</h2>
-        <p class="mt-2 text-sm text-muted-foreground">{sellerRoleLabel} · {property.SourceName ?? "Heimatplatz"}</p>
+        {!isForeclosure && sellerMeta && (
+          <p class="mt-2 text-sm text-muted-foreground">{sellerMeta}</p>
+        )}
         <p class="mt-2 text-sm text-muted-foreground">Aktualisiert: {formatApiDate(property.CreatedAt) || "Live-Angebot"}</p>
         <div class="mt-5 space-y-3">
           {contactCards.map((contact) => (
@@ -267,7 +273,7 @@ const detailSections = getApiPropertyDetailSections(property);
     </section>
     <ContactDock
       sellerName={property.SellerName}
-      sellerMeta={`${sellerRoleLabel} · ${property.SourceName ?? "Heimatplatz"}`}
+      sellerMeta={sellerMeta}
       contacts={contactCards.map((contact) => ({
         name: contact.Name ?? contact.SourceName ?? property.SellerName,
         email: contact.Email ?? null,

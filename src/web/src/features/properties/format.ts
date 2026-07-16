@@ -28,3 +28,12 @@ export function formatDate(date: Date) {
     year: "numeric",
   }).format(date);
 }
+
+/**
+ * Sichtbarer Anzeigetitel: Aus Zwangsversteigerungen synchronisierte Inserate tragen
+ * den Titel "Zwangsversteigerung: Mehrfamilienhaus ..." - das Praefix ist neben dem
+ * ZV-Badge redundant und wird fuer die Anzeige entfernt (der SEO-Titel bleibt unberuehrt).
+ */
+export function getDisplayTitle(title: string) {
+  return title.replace(/^\s*Zwangsversteigerung\s*[:\-–—]\s*/i, "").trim() || title;
+}

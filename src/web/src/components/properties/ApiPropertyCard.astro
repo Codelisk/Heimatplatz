@@ -18,6 +18,7 @@ import {
   type ApiProperty,
 } from "@/features/properties/live-api";
 import { slugifyLocation } from "@/features/locations/region-match";
+import { getDisplayTitle } from "@/features/properties/format";
 import { getResponsiveImage } from "@/lib/images";
 
 interface Props {
@@ -28,6 +29,9 @@ const { property } = Astro.props;
 const href = getApiPropertyPath(property);
 const typeSearchValue = getApiPropertyTypeSearchValue(property.Type, property);
 const sellerSearchValue = getApiSellerSearchValue(property.SellerType);
+// Zwangsversteigerungen kommen mit SellerType "court" - getApiSellerLabel liefert dafuer
+// "Portal", was hier nichtssagend ist. Wie auf der Detailseite: "Gericht".
+const sellerLabel = typeSearchValue === "foreclosure" ? "Gericht" : getApiSellerLabel(property.SellerType);
 const area = getApiAreaValue(property);
 const imageUrl = getApiPropertyImage(property);
 const responsiveImage = getResponsiveImage(imageUrl);
@@ -111,10 +115,10 @@ const citySlug = slugifyLocation(property.City);
         <a href={href} class="hover:underline">{property.City || property.Title}</a>
       </h2>
       <p class="truncate text-sm text-muted-foreground">{getApiAddressLine(property)}</p>
-      <p class="mt-1 truncate text-xs text-muted-foreground">{property.Title}</p>
+      <p class="mt-1 truncate text-xs text-muted-foreground">{getDisplayTitle(property.Title)}</p>
       <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
         <UserIcon class="size-3" aria-hidden="true" />
-        {getApiSellerLabel(property.SellerType)} · {property.SellerName}
+        {sellerLabel} · {property.SellerName}
       </p>
       <p class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
         <CalendarIcon class="size-3" aria-hidden="true" />

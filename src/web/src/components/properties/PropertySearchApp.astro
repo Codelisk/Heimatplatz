@@ -75,6 +75,7 @@ const totalInitialProperties = apiProperties.length;
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
+  import { getDisplayTitle } from "@/features/properties/format";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
 
   type ApiProperty = {
@@ -515,7 +516,7 @@ const totalInitialProperties = apiProperties.length;
     left.append(
       title,
       createText("p", "truncate text-sm text-muted-foreground", formatAddressLine(property.PostalCode, property.Address)),
-      createText("p", "mt-1 truncate text-xs text-muted-foreground", property.Title),
+      createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
       createText("p", "mt-2 text-xs text-muted-foreground", property.SellerName || "Anbieter"),
       createText("p", "mt-1 text-xs text-muted-foreground", "Aktuelles Angebot"),
     );

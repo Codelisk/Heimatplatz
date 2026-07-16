@@ -1,6 +1,7 @@
 <script>
   import { getResponsiveImage } from "@/lib/images";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
+  import { getDisplayTitle } from "@/features/properties/format";
 
   type Draft = {
     id?: string;
@@ -984,7 +985,7 @@
     const addressText = (property.Address ?? "").trim();
     // Adressen aus Importen enthalten oft schon "PLZ Ort" - nicht doppelt anzeigen
     const address = createText("p", "mt-1 text-sm text-muted-foreground", addressText && addressText !== place ? `${place} · ${addressText}` : place);
-    const subtitle = createText("p", "mt-1 text-xs text-muted-foreground", property.Title);
+    const subtitle = createText("p", "mt-1 text-xs text-muted-foreground", getDisplayTitle(property.Title));
     const meta = createText(
       "p",
       "mt-4 text-sm font-semibold",

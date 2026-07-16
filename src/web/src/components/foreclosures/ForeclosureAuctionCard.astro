@@ -11,6 +11,7 @@ import {
   getAuctionPrimaryArea,
   getAuctionTitle,
   getForeclosureAuctionPath,
+  getForeclosureCategoryLabel,
   type ApiForeclosureAuction,
 } from "@/features/foreclosures/api";
 import { getResponsiveImage } from "@/lib/images";
@@ -79,7 +80,7 @@ const responsiveImage = getResponsiveImage(imageUrl);
         <a href={href} class="hover:underline">{auction.City}</a>
       </h2>
       <p class="truncate text-sm text-muted-foreground">{auction.PostalCode} {auction.Address}</p>
-      <p class="mt-1 truncate text-xs text-muted-foreground">{getAuctionTitle(auction)}</p>
+      <p class="mt-1 truncate text-xs text-muted-foreground">{getForeclosureCategoryLabel(auction.Category)}</p>
       <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
         <ScaleIcon class="size-3" aria-hidden="true" />
         {auction.Court || "Gericht offen"}
