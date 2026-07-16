@@ -4,7 +4,7 @@ workflows:
     max_build_duration: 120
     instance_type: mac_mini_m2
     environment:
-      xcode: 26.5
+      xcode: 26.6
       vars:
         DOTNET_ROOT: $CM_BUILD_DIR/dotnet
       groups:
@@ -54,7 +54,7 @@ workflows:
     max_build_duration: 120
     instance_type: mac_mini_m2
     environment:
-      xcode: 26.5
+      xcode: 26.6
       vars:
         DOTNET_ROOT: $CM_BUILD_DIR/dotnet
         # Auf "true" setzen (oder per Build-Trigger ueberschreiben), um die Screenshots
