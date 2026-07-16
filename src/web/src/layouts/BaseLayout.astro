@@ -61,6 +61,26 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
         const KEY = "heimatplatz:theme";
         const root = document.documentElement;
         const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+        /* TEMPORAER - Dark-Theme-Entscheidung (siehe /design/dark-theme):
+           ?dark=a|b|c aktiviert eine Test-Palette nur fuer diesen Browser
+           (und schaltet auf Dunkel), ?dark=aus setzt auf den Standard zurueck.
+           Wird nach der Entscheidung wieder entfernt. */
+        const VARIANT_KEY = "heimatplatz:dark-variant";
+        try {
+          const requested = new URLSearchParams(location.search).get("dark");
+          if (requested === "a" || requested === "b" || requested === "c") {
+            localStorage.setItem(VARIANT_KEY, requested);
+            localStorage.setItem(KEY, "dark");
+          } else if (requested === "aus") {
+            localStorage.removeItem(VARIANT_KEY);
+          }
+          const variant = localStorage.getItem(VARIANT_KEY);
+          if (variant) root.dataset.darkVariant = variant;
+        } catch {
+          /* Vorschau optional */
+        }
+
         const readStored = () => {
           try {
             const value = localStorage.getItem(KEY);

@@ -214,7 +214,7 @@ const primaryFacts = [
         <p class="mt-2 text-sm text-muted-foreground">
           {auction.CaseNumber ? `Aktenzeichen ${auction.CaseNumber}` : "Gerichtliche Immobilienversteigerung"}
         </p>
-        <p class="mt-4 text-3xl font-bold text-primary">{getAuctionPriceLabel(auction)}</p>
+        <p class="mt-4 text-3xl font-bold text-price">{getAuctionPriceLabel(auction)}</p>
         <p class="mt-2 text-sm text-muted-foreground">Mindestgebot oder Schätzwert, soweit veröffentlicht.</p>
 
         {auction.EdictUrl ? (

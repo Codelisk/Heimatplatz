@@ -144,6 +144,23 @@
   }
   .band-head p { margin: 0; font-size: 0.95rem; color: var(--m-muted-fg); }
   .band-head .eyebrow { color: var(--m-eyebrow, var(--page-red)); }
+  .live-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: 0.55rem;
+    background: var(--m-primary);
+    color: var(--m-primary-fg);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .live-btn.quiet {
+    background: var(--m-secondary);
+    color: var(--m-fg);
+    border: 1px solid var(--m-border);
+    font-weight: 600;
+  }
 
   .band-grid {
     display: grid;
@@ -516,6 +533,7 @@
         CTAs, Preise und ZV-Badges. Zum Vergleichen — exakt der heutige
         <code>.dark</code>-Block.
       </p>
+      <a class="live-btn quiet" href="/?dark=aus">Standard wiederherstellen</a>
     </div>
     <div class="band-grid">
       <div class="mock">
@@ -607,6 +625,7 @@
         einen Tick heller. Das Rot bleibt unangetastet — es ist jetzt der einzige
         warme Akteur und wirkt durch den Simultankontrast von selbst satter.
       </p>
+      <a class="live-btn" href="/?dark=a">Variante A live auf heimatplatz.at ansehen →</a>
     </div>
     <div class="band-grid">
       <div class="mock">
@@ -703,6 +722,7 @@
         das dunkle Ringband des Abzeichens), und die Preise wechseln in Papier-Creme
         wie die Schrift im Vintage-Logo. Rot bleibt den Aktionen vorbehalten.
       </p>
+      <a class="live-btn" href="/?dark=b">Variante B live auf heimatplatz.at ansehen →</a>
     </div>
     <div class="band-grid">
       <div class="mock">
@@ -800,6 +820,7 @@
         Schwarz leuchtet statt zu verschlammen. Dazu Papier-Creme als zweiter
         Akzent für ausgewählte Filter.
       </p>
+      <a class="live-btn" href="/?dark=c">Variante C live auf heimatplatz.at ansehen →</a>
     </div>
     <div class="band-grid">
       <div class="mock">
@@ -885,14 +906,17 @@
 </section>
 
 <section class="apply" id="umsetzen">
-  <span class="eyebrow">Nächster Schritt</span>
-  <h2>So probieren wir es aus</h2>
+  <span class="eyebrow">Entscheidung</span>
+  <h2>Alle drei Richtungen sind live testbar</h2>
   <p>
-    Alle Werte sind 1:1-Drop-ins für den <code>.dark</code>-Block in
-    <code>src/web/src/styles/starwind.css</code> — sag einfach, welche Richtung
-    (oder Kombination) ich umsetzen soll, dann läuft sie lokal und kann deployed
-    werden. Die Richtungen sind kombinierbar: A liefert den Grund, C das Rot,
-    B ist das eigenständige Gesamtpaket.
+    Die Varianten sind auf heimatplatz.at umgesetzt: Ein Klick auf
+    „Live ansehen&ldquo; schaltet <em>deinen</em> Browser auf Dunkel und die jeweilige
+    Palette — nur lokal gespeichert, alle anderen Besucher sehen weiterhin den
+    Standard. Danach einfach normal durch die Seite klicken (Startseite,
+    Immobilien, Versteigerungen) und wirken lassen. Zurück zum Normalzustand:
+    <a href="/?dark=aus">Standard wiederherstellen</a>. Die Richtungen sind
+    kombinierbar — A liefert den Grund, C das Rot, B ist das eigenständige
+    Gesamtpaket.
   </p>
   <div class="rec">
     <b>Empfehlung:</b> Zuerst C (chirurgisch, geringstes Risiko, adressiert den

@@ -970,7 +970,7 @@
     titleLink.className = "hover:underline";
     titleLink.textContent = property.City || property.Title;
     title.append(titleLink);
-    const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-primary", formatPriceValue(property.Price));
+    const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-price", formatPriceValue(property.Price));
     head.append(title, price);
     const place = [property.PostalCode, property.City].filter(Boolean).join(" ");
     const addressText = (property.Address ?? "").trim();
