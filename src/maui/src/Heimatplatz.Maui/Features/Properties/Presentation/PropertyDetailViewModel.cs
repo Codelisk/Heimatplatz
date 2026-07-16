@@ -303,10 +303,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             _ => "IMM"
         };
 
-        // Typ-Badge Farbe (analog zur PropertyCard): nur ZV in Signal-Rot, sonst warmes Glas
+        // Typ-Farben (analog zur PropertyCard, wie Web): ZV = Signal-Rot,
+        // Grund = Gruen, Haus = Blau, Rest warmes Glas
         TypeBadgeColor = Property.Type switch
         {
             PropertyType.Foreclosure => Color.FromArgb("#DE2A2F"),
+            PropertyType.Land => Color.FromArgb("#33854A"),
+            PropertyType.House => Color.FromArgb("#2F6E9E"),
             _ => Color.FromArgb("#66171310")
         };
 

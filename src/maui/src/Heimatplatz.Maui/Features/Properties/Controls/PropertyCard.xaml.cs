@@ -170,10 +170,13 @@ public partial class PropertyCard : ContentView
             _ => "IMM"
         };
 
-        // Nur die Zwangsversteigerung traegt das Signal-Rot; alles andere warmes Glas
+        // Typ-Farben (wie Web): ZV = Signal-Rot, Grund = Gruen, Haus = Blau,
+        // Rest warmes Glas - alle mit weisser Schrift, themenunabhaengig
         TypeBadge.BackgroundColor = property.Type switch
         {
             PropertyType.Foreclosure => Color.FromArgb("#DE2A2F"),
+            PropertyType.Land => Color.FromArgb("#33854A"),
+            PropertyType.House => Color.FromArgb("#2F6E9E"),
             _ => Color.FromArgb("#66171310")
         };
 
@@ -261,8 +264,12 @@ public partial class PropertyCard : ContentView
 
     private void UpdateFavoriteGlyph()
     {
+        // Gemerkt = gefuellter roter Button statt Glas (wie Web [aria-pressed=true])
         FavoriteButton.Text = IsFavorite ? "♥" : "♡";
-        FavoriteButton.TextColor = IsFavorite ? Color.FromArgb("#DE2A2F") : Colors.White;
+        FavoriteButton.TextColor = Colors.White;
+        FavoriteButton.BackgroundColor = IsFavorite
+            ? Color.FromArgb("#DE2A2F")
+            : Color.FromArgb("#66171310");
     }
 
     private static string FormatPrice(decimal price)

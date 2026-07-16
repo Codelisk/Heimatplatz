@@ -7,7 +7,9 @@
          Typografie-Rollen:
            SansRegular/SansMedium/SansSemibold/SansBold = Schibsted Grotesk (UI)
            Display = Fraunces SemiBold (Serif: Preise, Titel, grosse Zahlen)
-         Radius-Skala: 12 (Inputs/Buttons) - 16 (CTAs/Kacheln) - 20 (Karten) - 28 (Sheets)
+         Radius-Skala: 6 (Inputs/Buttons) - 8 (CTAs/Kacheln) - 10 (Karten) - 14 (Sheets)
+         (halbiert analog Web-Anschlagtafel: "Zettel sind kantig", Web-Token radius
+         0.375rem; reine Pills wie Chips/GlassPill/SheetHandle bleiben voll gerundet)
          ============================================================================ -->
 
     <Style TargetType="ActivityIndicator">
@@ -35,7 +37,7 @@
         <Setter Property="FontFamily" Value="SansSemibold"/>
         <Setter Property="FontSize" Value="15"/>
         <Setter Property="BorderWidth" Value="0"/>
-        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="CornerRadius" Value="6"/>
         <Setter Property="Padding" Value="16,11"/>
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
@@ -306,11 +308,13 @@
         </Setter>
     </Style>
 
+    <!-- Zettel-Schatten (Anschlagtafel): traegt die Karte statt eines Rahmens -
+         warm-dunkel auf Manila, sattes Schwarz auf der fast-schwarzen Tafel -->
     <Style TargetType="Shadow">
-        <Setter Property="Radius" Value="22" />
-        <Setter Property="Opacity" Value="0.10" />
-        <Setter Property="Brush" Value="#2A1F16" />
-        <Setter Property="Offset" Value="0,6" />
+        <Setter Property="Radius" Value="24" />
+        <Setter Property="Opacity" Value="{AppThemeBinding Light=0.35, Dark=0.8}" />
+        <Setter Property="Brush" Value="{AppThemeBinding Light={StaticResource ZettelShadow}, Dark={StaticResource Black}}" />
+        <Setter Property="Offset" Value="0,10" />
     </Style>
 
     <Style TargetType="Slider">
@@ -481,11 +485,12 @@
         <Setter Property="HorizontalOptions" Value="Center" />
     </Style>
 
-    <!-- Preis/Zahlen im Serif-Schnitt (editorialer Kontrast) -->
+    <!-- Preis/Zahlen im Serif-Schnitt (editorialer Kontrast); Rot wie Web-Token
+         price: Light = Markenrot, Dark = eigenes aufgehelltes Rot -->
     <Style x:Key="PriceLabel" TargetType="Label">
         <Setter Property="FontFamily" Value="Display" />
         <Setter Property="FontSize" Value="24" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}" />
     </Style>
 
     <!-- Karten -->
@@ -493,7 +498,7 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
         <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 10" />
         <Setter Property="Padding" Value="16" />
     </Style>
 
@@ -507,7 +512,7 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
         <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
         <Setter Property="Padding" Value="10,10" />
     </Style>
 
@@ -546,7 +551,7 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}" />
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 5" />
         <Setter Property="Padding" Value="9,4" />
     </Style>
 
@@ -570,7 +575,7 @@
         <Setter Property="FontFamily" Value="SansBold" />
         <Setter Property="FontSize" Value="16" />
         <Setter Property="HeightRequest" Value="54" />
-        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="CornerRadius" Value="8" />
     </Style>
 
     <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
@@ -578,14 +583,14 @@
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="CornerRadius" Value="8" />
     </Style>
 
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
         <Setter Property="TextColor" Value="{StaticResource White}" />
         <Setter Property="FontFamily" Value="SansBold" />
-        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="CornerRadius" Value="8" />
     </Style>
 
     <Style x:Key="LinkButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
@@ -617,7 +622,7 @@
         <Setter Property="Padding" Value="12,6" />
         <Setter Property="Margin" Value="0,0,6,6" />
         <Setter Property="MinimumHeightRequest" Value="36" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="6" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
@@ -629,7 +634,7 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ErrorBannerBackground}, Dark={StaticResource ErrorBannerBackgroundDark}}" />
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 6" />
         <Setter Property="Padding" Value="14,10" />
     </Style>
 
@@ -643,7 +648,7 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}" />
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 6" />
         <Setter Property="Padding" Value="14,10" />
     </Style>
 
@@ -662,7 +667,7 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
         <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 10" />
         <Setter Property="Padding" Value="28,22" />
         <Setter Property="HorizontalOptions" Value="Center" />
         <Setter Property="VerticalOptions" Value="Center" />

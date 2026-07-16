@@ -203,7 +203,7 @@
         <!-- Sortier-Sheet -->
         <shiny:FloatingPanel x:Name="SortPanel"
                              IsOpen="{Binding IsSortSheetOpen, Mode=TwoWay}"
-                             PanelCornerRadius="28"
+                             PanelCornerRadius="14"
                              PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
             <VerticalStackLayout Padding="20,6,20,16" Spacing="0">
                 <Label Text="SORTIERUNG"
@@ -327,7 +327,7 @@
         <!-- Typ-Sheet (Mehrfachauswahl, wirkt sofort) -->
         <shiny:FloatingPanel x:Name="TypePanel"
                              IsOpen="{Binding IsTypeSheetOpen, Mode=TwoWay}"
-                             PanelCornerRadius="28"
+                             PanelCornerRadius="14"
                              PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
             <VerticalStackLayout Padding="20,6,20,16" Spacing="12">
                 <Label Text="IMMOBILIENTYP" Style="{StaticResource SectionHeader}" />
@@ -387,7 +387,7 @@
         <!-- Zeitraum-Sheet -->
         <shiny:FloatingPanel x:Name="AgePanel"
                              IsOpen="{Binding IsAgeSheetOpen, Mode=TwoWay}"
-                             PanelCornerRadius="28"
+                             PanelCornerRadius="14"
                              PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
             <VerticalStackLayout Padding="20,6,20,16" Spacing="0">
                 <Label Text="EINGESTELLT SEIT"
@@ -490,7 +490,7 @@
         <shiny:FloatingPanel x:Name="OrtPanel"
                              IsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
                              IsContentScrollEnabled="False"
-                             PanelCornerRadius="28"
+                             PanelCornerRadius="14"
                              PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
             <Grid RowDefinitions="Auto,Auto,*,Auto"
                   RowSpacing="10"

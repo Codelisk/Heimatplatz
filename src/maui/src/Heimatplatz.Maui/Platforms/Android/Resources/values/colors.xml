@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Heimatplatz Design: monochrom Schwarz/Weiss/Slate (siehe Resources/Styles/Colors.xaml).
+    <!-- Heimatplatz Design "Anschlagtafel" (siehe Resources/Styles/Colors.xaml).
          colorPrimary ist hier NICHT die XAML-Markenfarbe {StaticResource Primary} - .NET MAUI 10
          malt Status-Bar/Flyout-Header auf Android aus DIESER nativen colorPrimary (bekannter,
          ungefixter Regression-Bug dotnet/maui#32987), unabhaengig von styles.xml-Overrides.
-         Deshalb hier auf die gewuenschte weisse System-Bar-Farbe gesetzt statt auf Marken-Schwarz. -->
-    <color name="colorPrimary">#FFFFFF</color>
-    <color name="colorPrimaryDark">#1F1F1F</color>
-    <color name="colorAccent">#334155</color>
-    <!-- Status-/Navigationsleiste: passend zur Shell-NavBar (White / OffBlack) -->
-    <color name="systemBarBackground">#FFFFFF</color>
+         Deshalb hier auf die Manila-System-Bar-Farbe (Paper) gesetzt statt auf Marken-Rot. -->
+    <color name="colorPrimary">#F6ECD8</color>
+    <color name="colorPrimaryDark">#16100D</color>
+    <!-- Native Dialog-/Picker-Akzente folgen dem Markenrot statt kuehlem Slate -->
+    <color name="colorAccent">#C11F27</color>
+    <!-- Status-/Navigationsleiste: passend zur Shell-NavBar (Paper / OffBlack) -->
+    <color name="systemBarBackground">#F6ECD8</color>
 </resources>

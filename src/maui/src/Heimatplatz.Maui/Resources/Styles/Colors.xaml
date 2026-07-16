@@ -6,31 +6,51 @@
     <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
 
     <!-- ============================================================================
-         Heimatplatz Design: "Galerie & Papier" - dark-first Schwarz/Rot/Weiss.
+         Heimatplatz Design: "Anschlagtafel" - dark-first Schwarz/Rot/Weiss.
          Buntton am Logo-Rot (#DE2A2F) verankert, alle Neutralen warm getoent
-         (kein kuehles Slate-Grau), Papierweiss statt Reinweiss, warmes Fast-Schwarz
-         statt #000. Abgestimmt auf die Web-Palette (src/web/src/styles/starwind.css).
+         (kein kuehles Slate-Grau). Light = warmes Manila-Papier mit DEUTLICHEM
+         Gelbton (Kundenwunsch 16.07.: Reinweiss sticht in den Augen), Dark =
+         warmes Fast-Schwarz mit dunklen Karten und Rot/Weiss-Akzenten ("zuviel
+         Weiss" -> keine hellen Zettel im Dark Mode). 1:1 abgestimmt auf die
+         finalen Web-Tokens (src/web/src/styles/starwind.css, Commit 27a360b).
          ============================================================================ -->
 
     <!-- Marke -->
     <Color x:Key="Primary">#C11F27</Color>              <!-- Markenrot (Light-CTA) -->
-    <Color x:Key="PrimaryDark">#D8443E</Color>          <!-- Markenrot aufgehellt (Dark-CTA) -->
-    <Color x:Key="PrimaryDarkText">#FBF3EC</Color>      <!-- Text auf Dark-CTA -->
+    <Color x:Key="PrimaryDark">#CD2025</Color>          <!-- Markenrot aufgehellt (Dark-CTA, Web-Token primary/dark) -->
+    <Color x:Key="PrimaryDarkText">#FCFAF6</Color>      <!-- Text auf Dark-CTA -->
     <Color x:Key="PrimaryPressed">#A5121C</Color>
     <Color x:Key="SignalRed">#DE2A2F</Color>            <!-- Logo-Rot: Badges/Signale auf Fotos, themenunabhaengig -->
-    <Color x:Key="RedTint">#F7E5E1</Color>              <!-- zarte Rot-Flaeche (Light) -->
-    <Color x:Key="RedTintDark">#38201C</Color>          <!-- zarte Rot-Flaeche (Dark) -->
+    <Color x:Key="RedTint">#F7D6CA</Color>              <!-- zarte Rot-Flaeche (Light, Web-Token accent) -->
+    <Color x:Key="RedTintDark">#332923</Color>          <!-- Akzent-Flaeche Dark (neutralisiert: "schwarz statt braun") -->
+
+    <!-- Preis-Auszeichnung: im Dark Mode eigenes, aufgehelltes Rot (Web-Token price),
+         CTA-Rot als Text auf dunkler Karte wirkt sonst ziegelig -->
+    <Color x:Key="PriceDark">#ED4B45</Color>
 
     <!-- Flaechen -->
-    <Color x:Key="Paper">#F6F3EE</Color>                <!-- Seiten-Hintergrund Light -->
-    <Color x:Key="OffBlack">#161210</Color>             <!-- Seiten-Hintergrund Dark (warmes Fast-Schwarz) -->
-    <Color x:Key="CardBackground">#FCFAF7</Color>
-    <Color x:Key="CardBackgroundDark">#1F1A16</Color>
-    <Color x:Key="SurfaceAlt">#EFE9E1</Color>           <!-- Sekundaerflaeche/Tags Light -->
-    <Color x:Key="SurfaceAltDark">#29221D</Color>       <!-- Sekundaerflaeche/Tags Dark -->
-    <Color x:Key="DividerColor">#E7E0D6</Color>
-    <Color x:Key="DividerColorDark">#322B24</Color>
+    <Color x:Key="Paper">#F6ECD8</Color>                <!-- Seiten-Hintergrund Light (Manila-Creme) -->
+    <Color x:Key="OffBlack">#16100D</Color>             <!-- Seiten-Hintergrund Dark (warmes Fast-Schwarz) -->
+    <Color x:Key="CardBackground">#FAF4E9</Color>       <!-- Zettel: weiches Papier knapp ueber dem Grund -->
+    <Color x:Key="CardBackgroundDark">#211A16</Color>   <!-- Zettel Dark: dunkle Flaeche knapp ueber dem Grund -->
+    <Color x:Key="SurfaceAlt">#EDE1CD</Color>           <!-- Sekundaerflaeche/Tags Light -->
+    <Color x:Key="SurfaceAltDark">#2A221D</Color>       <!-- Sekundaerflaeche/Tags Dark -->
+    <Color x:Key="DividerColor">#D8CAB7</Color>
+    <Color x:Key="DividerColorDark">#3E3733</Color>
     <Color x:Key="ScrimColor">#661E1712</Color>
+
+    <!-- Anschlagtafel-Deko (PropertyCard-Zettel): Foto-Papierrand als Tinte (Light)
+         bzw. Weisston (Dark) -->
+    <Color x:Key="ZettelFrame">#2E362B24</Color>
+    <Color x:Key="ZettelFrameDark">#29F3EDE7</Color>
+    <Color x:Key="ZettelShadow">#382315</Color>         <!-- Zettel-Schlagschatten Light (Dark = Schwarz) -->
+
+    <!-- Typ-Farben fuer die Foto-Badges (Kundenwunsch 16.07.): ZV = SignalRed,
+         Grund = Gruen, Haus = Alpen-Blau; liegen auf Fotos, themenunabhaengig
+         (Web-Tokens type-grund/type-haus in starwind.css) -->
+    <Color x:Key="TypeLand">#33854A</Color>
+    <Color x:Key="TypeHouse">#2F6E9E</Color>
+
 
     <!-- Foto-Overlays (immersive Karten/Detail-Hero) -->
     <Color x:Key="GlassPillBackground">#66171310</Color>
@@ -38,16 +58,16 @@
     <Color x:Key="PhotoScrimEnd">#D9171008</Color>      <!-- unterer Gradient-Stop auf Fotos -->
 
     <!-- Kompatibilitaets-Aliase (Bestandsseiten) -->
-    <Color x:Key="Secondary">#EFE9E1</Color>
+    <Color x:Key="Secondary">#EDE1CD</Color>
     <Color x:Key="SecondaryDarkText">#6E645B</Color>
     <Color x:Key="Tertiary">#4B4238</Color>
-    <Color x:Key="HeaderBorder">#E0D9CF</Color>
+    <Color x:Key="HeaderBorder">#D8CAB7</Color>
     <Color x:Key="SlateText">#4B4238</Color>
     <Color x:Key="AddressText">#6E645B</Color>
     <Color x:Key="DetailsText">#9A9088</Color>
-    <Color x:Key="BadgeBackground">#EFE9E1</Color>
+    <Color x:Key="BadgeBackground">#EDE1CD</Color>
     <Color x:Key="BadgeForeground">#6E645B</Color>
-    <Color x:Key="Placeholder">#D8D0C6</Color>
+    <Color x:Key="Placeholder">#D8CAB7</Color>
 
     <!-- Semantische Statusfarben (Fehler-Weinrot Hue ~15, bewusst vom Markenrot abgesetzt) -->
     <Color x:Key="Danger">#9B2A22</Color>
@@ -67,15 +87,17 @@
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
 
-    <!-- Warme Neutralskala (ersetzt kuehles Grau; Keys bleiben fuer Bestandscode) -->
-    <Color x:Key="Gray100">#EAE3DA</Color>
-    <Color x:Key="Gray200">#D8D0C6</Color>
-    <Color x:Key="Gray300">#B5AB9F</Color>
+    <!-- Warme Neutralskala (ersetzt kuehles Grau; Keys bleiben fuer Bestandscode).
+         An die Manila-Flaechen angeglichen ueber die Web-Tokens: 100 = muted,
+         200 = border, 300 = dark muted-foreground, 600 = dark border (gemischt) -->
+    <Color x:Key="Gray100">#EADECA</Color>
+    <Color x:Key="Gray200">#D8CAB7</Color>
+    <Color x:Key="Gray300">#B2A9A1</Color>
     <Color x:Key="Gray400">#9A9088</Color>
     <Color x:Key="Gray500">#7C7268</Color>
-    <Color x:Key="Gray600">#453D34</Color>
-    <Color x:Key="Gray900">#241E19</Color>
-    <Color x:Key="Gray950">#161210</Color>
+    <Color x:Key="Gray600">#3E3733</Color>
+    <Color x:Key="Gray900">#211816</Color>
+    <Color x:Key="Gray950">#16100D</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>

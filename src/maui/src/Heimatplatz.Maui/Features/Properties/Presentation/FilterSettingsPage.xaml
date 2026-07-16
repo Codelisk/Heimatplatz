@@ -306,7 +306,7 @@
             <shiny:FloatingPanel x:Name="OrtPanel"
                                  IsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
                                  IsContentScrollEnabled="False"
-                                 PanelCornerRadius="28"
+                                 PanelCornerRadius="14"
                                  PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
                 <Grid RowDefinitions="Auto,Auto,*,Auto"
                       RowSpacing="10"

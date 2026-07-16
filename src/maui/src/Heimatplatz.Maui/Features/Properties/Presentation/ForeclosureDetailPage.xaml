@@ -52,11 +52,11 @@
                                    Margin="0,0,0,36"
                                    IsVisible="{Binding HasImages}" />
 
-                    <!-- Typ-Badge (Signal-Rot) -->
+                    <!-- Typ-Badge (Signal-Rot), eckig wie die Karten-Badges -->
                     <Border BackgroundColor="{Binding TypeBadgeColor}"
                             Stroke="{StaticResource GlassPillStroke}"
                             StrokeThickness="1"
-                            StrokeShape="RoundRectangle 14"
+                            StrokeShape="RoundRectangle 2"
                             Padding="12,5"
                             Margin="14"
                             VerticalOptions="Start"
@@ -103,7 +103,7 @@
                         StrokeThickness="0"
                         Stroke="Transparent"
                         BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
-                        StrokeShape="RoundRectangle 28,28,0,0">
+                        StrokeShape="RoundRectangle 14,14,0,0">
                     <VerticalStackLayout Spacing="16">
 
                         <!-- Kopf: Mindestgebot/Schaetzwert (Serif, Markenrot), Titel, Adresse, Merken -->
@@ -121,7 +121,7 @@
                                    FontSize="30"
                                    Margin="0,-2,0,0"
                                    IsVisible="{Binding HasPrice}"
-                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}" />
 
                             <Label Text="{Binding Title}"
                                    FontFamily="Display"

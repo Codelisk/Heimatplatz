@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark Mode: helleres Slate fuer Dialog-/Picker-Akzente, Bars in OffBlack (#1F1F1F) -->
-    <color name="colorAccent">#94A3B8</color>
+    <!-- Dark Mode: aufgehelltes Markenrot fuer Dialog-/Picker-Akzente, Bars in OffBlack -->
+    <color name="colorAccent">#CD2025</color>
     <!-- .NET MAUI 10 malt Status-Bar/Flyout-Header auf Android aus colorPrimary (dotnet/maui#32987) -->
-    <color name="colorPrimary">#1F1F1F</color>
-    <color name="systemBarBackground">#1F1F1F</color>
+    <color name="colorPrimary">#16100D</color>
+    <color name="systemBarBackground">#16100D</color>
 </resources>
