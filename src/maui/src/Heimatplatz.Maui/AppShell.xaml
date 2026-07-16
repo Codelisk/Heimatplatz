@@ -65,7 +65,7 @@
               ColumnDefinitions="Auto,*"
               ColumnSpacing="14">
 
-            <!-- Marke (Querformat: Balken + Haus + Tanne) mittig auf weisser Karte. -->
+            <!-- Rundes Abzeichen mittig auf weisser Karte. -->
             <Border Grid.Column="0"
                     BackgroundColor="{StaticResource White}"
                     Stroke="Transparent"

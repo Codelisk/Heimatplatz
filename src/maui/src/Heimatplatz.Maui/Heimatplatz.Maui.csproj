@@ -59,7 +59,7 @@
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<!-- Logo (1024x1024 Quelle) auf sinnvolle Anzeigegroesse skalieren -->
-		<MauiImage Update="Resources\Images\logo.svg" BaseSize="120,66" />
+		<MauiImage Update="Resources\Images\logo.svg" BaseSize="120,120" />
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
