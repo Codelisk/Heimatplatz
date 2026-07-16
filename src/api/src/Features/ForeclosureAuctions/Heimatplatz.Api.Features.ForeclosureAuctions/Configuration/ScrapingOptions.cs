@@ -30,7 +30,9 @@ public class ScrapingOptions
 
     /// <summary>
     /// Bundesland-Code fuer die Suche (3 = Oberoesterreich).
-    /// Lotus Notes Codes: 1=Burgenland, 2=Kaernten, 3=OOe, 4=NOe, 5=Salzburg, 6=Steiermark, 7=Tirol, 8=Vorarlberg, 9=Wien
+    /// Codes laut Suchformular der Ediktsdatei (select name="BL"):
+    /// 0=Wien, 1=Niederoesterreich, 2=Burgenland, 3=Oberoesterreich, 4=Salzburg,
+    /// 5=Steiermark, 6=Kaernten, 7=Tirol, 8=Vorarlberg
     /// </summary>
     public int? BundeslandCode { get; set; } = 3;
 

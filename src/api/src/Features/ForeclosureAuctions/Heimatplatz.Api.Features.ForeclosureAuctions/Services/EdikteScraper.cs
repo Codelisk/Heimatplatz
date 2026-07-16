@@ -191,26 +191,22 @@ public partial class EdikteScraper(
             .Select(image => image.Url)
             .ToList();
 
-        // Aenderungsprotokoll am Ende: je Eintrag "Bekannt gemacht am ..." gefolgt vom Titel.
-        // Nur Edikte MIT Protokoll haben diesen Block - Edikte ohne fuehren das Datum als
-        // beschriftete Zeile "Bekannt gemacht am:" (steht dann bereits in allFields).
-        // Frueher wurde hier "#druckbereich > div:last-of-type" abgefragt: bei Edikten ohne
-        // Protokoll traf das den Block "Alle Edikte zum Fall" und lieferte nie ein Datum.
-        var publications = document
-            .QuerySelectorAll("#druckbereich div.edibody")
-            .LastOrDefault()?
-            .QuerySelectorAll("p");
-        string? publicationDate = null;
-        string? statusFromPublications = null;
-        if (publications is { Length: >= 2 })
-        {
-            publicationDate = publications[0].TextContent.Trim();
-            statusFromPublications = publications[1].TextContent.Trim();
-        }
+        // Aenderungsprotokoll am Ende: alle Eintraege chronologisch aufsteigend in EINEM
+        // div.edibody, das Datum je Eintrag als p.edibekannt ("Bekannt gemacht am ...").
+        // Der erste Eintrag ist die aelteste sichtbare Bekanntmachung - Quelle fuer
+        // "Eingestellt am". Nur Edikte MIT Protokoll haben diesen Block - Edikte ohne
+        // fuehren das Datum als beschriftete Zeile "Bekannt gemacht am:" (steht dann
+        // bereits in allFields). Frueher wurde hier ueber publications[1] auch der Status
+        // abgeleitet - das war aber der Titel des aeltesten Protokolleintrags (fast immer
+        // "Sonstiges Edikt") statt des Edikt-Typs aus dem Seitentitel.
+        var publicationDate = document
+            .QuerySelector("#druckbereich div.edibody p.edibekannt")?
+            .TextContent.Trim();
 
         return new EdiktDetail
         {
             ExternalId = externalId,
+            Title = title,
             Court = allFields.GetValueOrDefault("Dienststelle"),
             CaseNumber = allFields.GetValueOrDefault("Aktenzeichen"),
             Reason = allFields.GetValueOrDefault("wegen"),
@@ -243,7 +239,7 @@ public partial class EdikteScraper(
             FloorPlanUrl = floorPlanUrl,
             ImageUrls = imageUrls,
             ImageCandidates = imageCandidates,
-            StatusText = statusFromPublications ?? title,
+            StatusText = title,
             LastChangeDateText = allFields.GetValueOrDefault("Letzte Änderung am"),
             PublicationDateText = allFields.GetValueOrDefault("Bekannt gemacht am") ?? publicationDate,
             AllFields = allFields
@@ -368,7 +364,9 @@ public partial class EdikteScraper(
 
         var match = ImageWindowDimensionsPattern().Match(onclick);
         return match.Success
-            ? (int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value))
+            && int.TryParse(match.Groups[1].Value, out var width)
+            && int.TryParse(match.Groups[2].Value, out var height)
+            ? (width, height)
             : (null, null);
     }
 

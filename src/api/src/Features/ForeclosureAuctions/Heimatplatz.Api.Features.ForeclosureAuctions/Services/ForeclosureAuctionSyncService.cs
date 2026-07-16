@@ -51,6 +51,16 @@ public partial class ForeclosureAuctionSyncService(
             return new SyncResult(0, 0, 0, 0, 1, [$"Fehler beim Abrufen der Liste: {ex.Message}"]);
         }
 
+        // Eine leere Liste ist mit dem konfigurierten Suchfilter praktisch ausgeschlossen -
+        // wahrscheinlicher hat sich das Seiten-Markup geaendert und der Parser findet die
+        // Tabelle nicht mehr. Ohne diesen Guard wuerde Schritt 4 unten den GESAMTEN
+        // aktiven Bestand als "Removed" deaktivieren.
+        if (listItems.Count == 0)
+        {
+            logger.LogError("Edikte-Ergebnisliste ist leer - Sync abgebrochen (Markup-Aenderung der Ediktsdatei?)");
+            return new SyncResult(0, 0, 0, 0, 1, ["Edikte-Ergebnisliste ist leer - Sync abgebrochen (Markup-Aenderung der Ediktsdatei?)"]);
+        }
+
         // 1b. Ausgeschlossene Kategorien filtern (z.B. keine Wohnungen)
         var excludedCategories = scrapingOptions.Value.ExcludedCategories;
         if (excludedCategories.Count > 0)
@@ -89,8 +99,13 @@ public partial class ForeclosureAuctionSyncService(
                 // "Verschiebung" ohne neuen Termin, ...) haben keinen gueltigen zukuenftigen
                 // Versteigerungstermin - die Liegenschaft ist nicht (mehr) ersteigerbar und darf
                 // nicht als aktives Inserat gefuehrt werden.
+                // Das Datum allein reicht aber nicht: "Entfall des Termins"-Edikte fuehren den
+                // ENTFALLENEN Termin weiterhin unter "Termin:" - liegt der in der Zukunft, saehe
+                // die Auktion faelschlich aktiv aus. Deshalb zusaetzlich den Edikt-Typ pruefen.
                 var auctionDate = ParseAuctionDate(detail.AuctionDateText);
-                var isUpcoming = auctionDate.HasValue && auctionDate.Value > now;
+                var isUpcoming = auctionDate.HasValue
+                    && auctionDate.Value > now
+                    && !IsConcludedEdictType(detail.Title);
 
                 // Kategorie-Ausschluss zusaetzlich gegen den zuverlaessigeren Detailseiten-Text
                 // pruefen - die Listenseiten-Kategorie (GetAuctionListAsync) ist eine grobe
@@ -150,6 +165,13 @@ public partial class ForeclosureAuctionSyncService(
                         existing.PublicationDate = ParsePublicationDate(detail.PublicationDateText)
                             ?? existing.PublicationDate;
 
+                        // Gleiches Backfill-Muster fuer Felder, deren ABLEITUNG sich geaendert hat,
+                        // ohne dass der ContentHash es bemerkt: Status stammt inzwischen aus dem
+                        // Seitentitel statt dem aeltesten Protokolleintrag ("Sonstiges Edikt"),
+                        // State aus dem konfigurierten Bundesland-Filter statt der PLZ-Heuristik.
+                        existing.Status = detail.StatusText ?? existing.Status;
+                        existing.State = ResolveState(detail) ?? existing.State;
+
                         // Reappeared?
                         if (!existing.IsActive)
                         {
@@ -165,14 +187,16 @@ public partial class ForeclosureAuctionSyncService(
                     }
                     else
                     {
-                        // Geaendert - Entity aktualisieren
+                        // Geaendert - Entity aktualisieren. Alten Hash VOR dem Ueberschreiben
+                        // sichern, sonst protokolliert der Changelog Old == New.
                         var changedFields = DetectChangedFields(existing, detail);
+                        var oldContentHash = existing.ContentHash;
                         UpdateEntityFromDetail(existing, detail, item, confirmedAuctionDate);
                         existing.ContentHash = contentHash;
                         existing.LastScrapedAt = now;
                         existing.IsActive = true;
                         existing.RemovedAt = null;
-                        LogChange(existing, "Updated", existing.ContentHash, contentHash, changedFields);
+                        LogChange(existing, "Updated", oldContentHash, contentHash, changedFields);
                         updated++;
                     }
                 }
@@ -184,6 +208,12 @@ public partial class ForeclosureAuctionSyncService(
                     LogChange(auction, "Created", null, contentHash);
                     created++;
                 }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Abbruch sauber durchreichen - sonst wuerde jedes restliche Edikt mit dem
+                // bereits gecancelten Token einzeln als Fehler durchlaufen.
+                throw;
             }
             catch (Exception ex)
             {
@@ -267,7 +297,7 @@ public partial class ForeclosureAuctionSyncService(
             MinimumBid = ParseCurrency(detail.MinimumBidText),
             CaseNumber = detail.CaseNumber,
             Court = detail.Court,
-            EdictUrl = $"{scraper.GetType().Name}/{detail.ExternalId}",
+            EdictUrl = BuildEdictUrl(detail.ExternalId),
             ShortAppraisalUrl = detail.ShortAppraisalUrl,
             LongAppraisalUrl = detail.LongAppraisalUrl,
             SitePlanUrl = detail.SitePlanUrl,
@@ -275,15 +305,12 @@ public partial class ForeclosureAuctionSyncService(
             ImageUrls = detail.ImageUrls,
             ExternalId = detail.ExternalId,
             ContentHash = contentHash,
-            State = GuessStateFromPostalCode(ExtractPostalCode(detail.PostalCodeAndCity)),
+            State = ResolveState(detail),
             PublicationDate = ParsePublicationDate(detail.PublicationDateText),
             IsActive = true,
             FirstSeenAt = now,
             LastScrapedAt = now
         };
-
-        // EdictUrl korrekt setzen
-        auction.EdictUrl = $"https://edikte.justiz.gv.at/edikte/ex/exedi3.nsf/alldoc/{detail.ExternalId}!OpenDocument";
 
         return auction;
     }
@@ -315,9 +342,12 @@ public partial class ForeclosureAuctionSyncService(
         entity.FloorPlanUrl = detail.FloorPlanUrl ?? entity.FloorPlanUrl;
         if (detail.ImageUrls.Count > 0)
             entity.ImageUrls = detail.ImageUrls;
-        entity.State = GuessStateFromPostalCode(ExtractPostalCode(detail.PostalCodeAndCity)) ?? entity.State;
-        entity.EdictUrl = $"https://edikte.justiz.gv.at/edikte/ex/exedi3.nsf/alldoc/{detail.ExternalId}!OpenDocument";
+        entity.State = ResolveState(detail) ?? entity.State;
+        entity.EdictUrl = BuildEdictUrl(detail.ExternalId);
     }
+
+    private string BuildEdictUrl(string externalId) =>
+        $"{scrapingOptions.Value.BaseUrl.TrimEnd('/')}/edikte/ex/exedi3.nsf/alldoc/{externalId}!OpenDocument";
 
     private void LogChange(ForeclosureAuction auction, string changeType, string? oldHash, string? newHash, string? changedFields = null)
     {
@@ -369,11 +399,14 @@ public partial class ForeclosureAuctionSyncService(
         return Convert.ToHexStringLower(bytes);
     }
 
-    private static DateTimeOffset? ParseAuctionDate(string? text)
+    internal static DateTimeOffset? ParseAuctionDate(string? text)
     {
         if (string.IsNullOrEmpty(text)) return null;
 
-        // Pattern: "am 27.2.2026 um 11:00 Uhr" oder "am 20.05.2026 um 10:00 Uhr"
+        // Pattern: "am 27.2.2026 um 11:00 Uhr" oder "am 20.05.2026 um 10:00 Uhr".
+        // Die Ediktsdatei liefert auch EINSTELLIGE Stunden ("am 17.8.2026 um 9:00 Uhr") -
+        // frueher verlangte das Pattern \d{2}:\d{2}, wodurch solche Versteigerungen als
+        // "abgeschlossen" uebersprungen wurden und im Bestand fehlten.
         var match = DatePattern().Match(text);
         if (!match.Success) return null;
 
@@ -382,7 +415,7 @@ public partial class ForeclosureAuctionSyncService(
 
         if (DateTime.TryParseExact(
             $"{dateStr} {timeStr}",
-            ["d.M.yyyy HH:mm", "dd.MM.yyyy HH:mm", "d.MM.yyyy HH:mm", "dd.M.yyyy HH:mm"],
+            "d.M.yyyy H:mm", // d/M/H matchen beim Parsen jeweils ein- UND zweistellig
             CultureInfo.InvariantCulture,
             DateTimeStyles.None,
             out var localDateTime))
@@ -395,6 +428,24 @@ public partial class ForeclosureAuctionSyncService(
 
         return null;
     }
+
+    // Terminale Edikt-Typen laut Seitentitel: Das Verfahren ist beendet oder der Termin
+    // aufgehoben - die Liegenschaft ist nicht (mehr) ersteigerbar, selbst wenn die Seite
+    // noch ein zukuenftiges Terminfeld fuehrt (z.B. der entfallene Termin unter "Termin:").
+    private static readonly string[] ConcludedEdictTitlePrefixes =
+    [
+        "Entfall des Termins",
+        "Zuschlag",
+        "Meistbotsverteilung",
+        "Einstellung",
+        "Aufschiebung",
+        "Bietanbot"
+    ];
+
+    internal static bool IsConcludedEdictType(string? title) =>
+        !string.IsNullOrWhiteSpace(title)
+        && ConcludedEdictTitlePrefixes.Any(prefix =>
+            title.TrimStart().StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 
     private static PropertyCategory ParseCategory(string? text)
     {
@@ -456,27 +507,48 @@ public partial class ForeclosureAuctionSyncService(
         return match.Success ? plzOrt[match.Length..].Trim() : plzOrt.Trim();
     }
 
+    /// <summary>
+    /// Bundesland der Auktion bestimmen. Der Suchfilter [BL]=(code) garantiert das
+    /// Bundesland aller Treffer - das ist zuverlaessiger als jede PLZ-Heuristik
+    /// (z.B. gehoert 5311 Innerschwand am Mondsee zu OOe, nicht zu Salzburg).
+    /// </summary>
+    private AustrianState? ResolveState(EdiktDetail detail) =>
+        ConfiguredBundeslandState()
+        ?? GuessStateFromPostalCode(ExtractPostalCode(detail.PostalCodeAndCity));
+
+    // Codes laut Suchformular der Ediktsdatei (select name="BL")
+    private AustrianState? ConfiguredBundeslandState() => scrapingOptions.Value.BundeslandCode switch
+    {
+        0 => AustrianState.Wien,
+        1 => AustrianState.Niederoesterreich,
+        2 => AustrianState.Burgenland,
+        3 => AustrianState.Oberoesterreich,
+        4 => AustrianState.Salzburg,
+        5 => AustrianState.Steiermark,
+        6 => AustrianState.Kaernten,
+        7 => AustrianState.Tirol,
+        8 => AustrianState.Vorarlberg,
+        _ => null
+    };
+
     private static AustrianState? GuessStateFromPostalCode(string? plz)
     {
-        if (string.IsNullOrEmpty(plz) || plz.Length < 1) return null;
+        if (string.IsNullOrEmpty(plz)) return null;
 
-        // Oesterreichische PLZ-Bereiche
+        // Grobe Zuordnung ueber PLZ-Leitzonen. Nicht bundeslandscharf (Grenzorte wie das
+        // OOe-Mondseeland mit 5xxx bleiben falsch) - nur Fallback ohne Bundesland-Filter.
         return plz[0] switch
         {
             '1' => AustrianState.Wien,
-            '2' => plz.StartsWith("23") || plz.StartsWith("24") || plz.StartsWith("25")
-                    || plz.StartsWith("26") || plz.StartsWith("27") || plz.StartsWith("28")
-                ? AustrianState.Niederoesterreich
-                : AustrianState.Niederoesterreich,
-            '3' => AustrianState.Niederoesterreich,
+            '2' or '3' => AustrianState.Niederoesterreich,
             '4' => AustrianState.Oberoesterreich,
             '5' => AustrianState.Salzburg,
-            '6' => plz.StartsWith("69") ? AustrianState.Vorarlberg : AustrianState.Tirol,
+            // Vorarlberg belegt 6700-6999 (Bludenz, Feldkirch, Dornbirn, Bregenz) - nicht nur 69xx
+            '6' => plz.Length >= 2 && plz[1] >= '7' ? AustrianState.Vorarlberg : AustrianState.Tirol,
             '7' => AustrianState.Burgenland,
             '8' => AustrianState.Steiermark,
-            '9' => plz.StartsWith("94") || plz.StartsWith("95") || plz.StartsWith("96") || plz.StartsWith("97") || plz.StartsWith("98")
-                ? AustrianState.Kaernten
-                : AustrianState.Kaernten,
+            // 99xx ist Osttirol (Lienz), der Rest von 9xxx Kaernten
+            '9' => plz.StartsWith("99") ? AustrianState.Tirol : AustrianState.Kaernten,
             _ => null
         };
     }
@@ -514,7 +586,7 @@ public partial class ForeclosureAuctionSyncService(
     [GeneratedRegex(@"(\d{1,2}\.\d{1,2}\.\d{4})")]
     private static partial Regex PublicationDatePattern();
 
-    [GeneratedRegex(@"am\s+(\d{1,2}\.\d{1,2}\.\d{4})\s+um\s+(\d{2}:\d{2})")]
+    [GeneratedRegex(@"am\s+(\d{1,2}\.\d{1,2}\.\d{4})\s+um\s+(\d{1,2}:\d{2})")]
     private static partial Regex DatePattern();
 
     [GeneratedRegex(@"^(\d{4})\s")]

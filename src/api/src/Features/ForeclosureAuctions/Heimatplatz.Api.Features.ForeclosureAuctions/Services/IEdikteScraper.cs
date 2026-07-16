@@ -24,7 +24,6 @@ public record EdiktListItem
     public required string ExternalId { get; init; }
     public required string DetailUrl { get; init; }
     public required string StatusText { get; init; }
-    public string? DateText { get; init; }
     public string? Address { get; init; }
     public string? PostalCode { get; init; }
     public string? City { get; init; }
@@ -38,6 +37,12 @@ public record EdiktListItem
 public record EdiktDetail
 {
     public required string ExternalId { get; init; }
+
+    // Seitentitel (h1) = Edikt-Typ, z.B. "Versteigerung - Objekt 1",
+    // "Entfall des Termins - Objekt 1", "Zuschlag mit Ueberbot - ...".
+    // Terminale Typen fuehren teils weiterhin ein zukuenftiges Terminfeld,
+    // duerfen aber nicht als aktive Versteigerung gefuehrt werden.
+    public string? Title { get; init; }
 
     // Gericht & Aktenzeichen
     public string? Court { get; init; }

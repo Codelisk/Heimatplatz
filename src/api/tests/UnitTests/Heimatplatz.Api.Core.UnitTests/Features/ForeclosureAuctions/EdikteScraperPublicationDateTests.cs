@@ -52,12 +52,49 @@ public class EdikteScraperPublicationDateTests
         detail.PublicationDateText.Should().Be("12.06.2026");
     }
 
+    // Variante B mit mehreren Protokoll-Eintraegen: alle Eintraege stehen chronologisch
+    // aufsteigend in EINEM div.edibody (live verifiziert, Anker e2/e3/e4). "Eingestellt am"
+    // muss die aelteste sichtbare Bekanntmachung sein, nicht die letzte Aenderung.
+    private const string HtmlWithMultiEntryChangeLog = """
+        <html><body><div id="druckbereich">
+          <div class="page-header text-center"><h1><small>Versteigerung - Objekt 1</small></h1></div>
+          <div class="row"><span class="col-sm-3 text-right">Dienststelle:</span><p class="col-sm-9">BG Vöcklabruck (415)</p></div>
+          <div class="edibody">
+            <a id="e2"></a><p class="edibekannt">Bekannt gemacht am 25.6.2026</p>
+            <p class="edititle">Sonstiges Edikt</p>
+            <p class="editext">"Sonstiges" ge&auml;ndert</p><hr>
+            <a id="e3"></a><p class="edibekannt">Bekannt gemacht am 9.7.2026</p>
+            <p class="edititle">Sonstiges Edikt</p>
+            <p class="editext">"Ort und Zeit der Besichtigung" hinzugef&uuml;gt</p><hr>
+          </div>
+        </div></body></html>
+        """;
+
     [Test]
     public async Task GetAuctionDetailAsync_ReadsPublicationDateFromChangeLog()
     {
         var detail = await ScrapeAsync(HtmlWithChangeLog);
 
         detail.PublicationDateText.Should().Be("Bekannt gemacht am 25.6.2026");
+    }
+
+    [Test]
+    public async Task GetAuctionDetailAsync_ReadsOldestEntryFromMultiEntryChangeLog()
+    {
+        var detail = await ScrapeAsync(HtmlWithMultiEntryChangeLog);
+
+        detail.PublicationDateText.Should().Be("Bekannt gemacht am 25.6.2026");
+    }
+
+    [Test]
+    public async Task GetAuctionDetailAsync_TakesStatusFromPageTitleNotFromChangeLog()
+    {
+        var detail = await ScrapeAsync(HtmlWithMultiEntryChangeLog);
+
+        // Frueher lieferte der aelteste Protokolleintrag den Status ("Sonstiges Edikt") -
+        // der Edikt-Typ steht aber im Seitentitel.
+        detail.Title.Should().Be("Versteigerung - Objekt 1");
+        detail.StatusText.Should().Be("Versteigerung - Objekt 1");
     }
 
     [TestCase("12.06.2026", "2026-06-12")]

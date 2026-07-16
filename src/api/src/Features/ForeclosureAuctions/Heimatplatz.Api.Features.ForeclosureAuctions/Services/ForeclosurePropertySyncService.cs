@@ -321,12 +321,21 @@ public class ForeclosurePropertySyncService(
 
     private static ForeclosurePropertyData BuildForeclosurePropertyData(ForeclosureAuction auction)
     {
-        var status = auction.Status?.ToLowerInvariant() switch
+        // Status traegt den Edikt-Typ aus dem Seitentitel der Ediktsdatei
+        // ("Versteigerung - Objekt 1", "Verschiebung", "Zuschlag mit Ueberbot - ...").
+        // Terminale Typen erreichen den Sync normalerweise nicht (beim Scrapen deaktiviert),
+        // werden aber der Vollstaendigkeit halber mit abgebildet.
+        var statusText = auction.Status?.ToLowerInvariant() ?? "";
+        var status = statusText switch
         {
-            "aktiv" => LegalStatus.Scheduled,
-            "in bearbeitung" => LegalStatus.InProgress,
-            "abgeschlossen" => LegalStatus.Completed,
-            "storniert" or "aufgehoben" => LegalStatus.Cancelled,
+            _ when statusText.StartsWith("versteigerung")
+                || statusText.StartsWith("neuerliche versteigerung")
+                || statusText.StartsWith("verschiebung") => LegalStatus.Scheduled,
+            _ when statusText.StartsWith("zuschlag")
+                || statusText.StartsWith("meistbotsverteilung") => LegalStatus.Completed,
+            _ when statusText.StartsWith("entfall")
+                || statusText.StartsWith("einstellung")
+                || statusText.StartsWith("aufschiebung") => LegalStatus.Cancelled,
             _ => LegalStatus.Pending
         };
 
