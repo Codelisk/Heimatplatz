@@ -27,6 +27,7 @@ FUNKTIONEN IM ÜBERBLICK
 • Unerwünschte Objekte ausblenden
 • Eigene Inserate erstellen und bearbeiten
 • Privat- und Maklerangebote filtern
+• Zuletzt geladene Inhalte auch offline verfügbar
 • Minimalistisches, übersichtliches Design
 
 Heimatplatz – Dein Zuhause beginnt hier.

@@ -27,6 +27,7 @@ FEATURES AT A GLANCE
 • Hide unwanted properties
 • Create and edit your own listings
 • Filter private and agent offers
+• Recently loaded content also available offline
 • Minimalist, clear design
 
 Heimatplatz – your home starts here.

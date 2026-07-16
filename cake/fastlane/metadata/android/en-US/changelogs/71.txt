@@ -1,0 +1,2 @@
+• Light theme polished: refined page backgrounds, banners and search fields
+• Minor bug fixes and improvements
