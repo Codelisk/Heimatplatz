@@ -1,0 +1,3 @@
+• KI-Inserat: Beschreibung ist jetzt Pflichtfeld und wird sofort geprüft
+• Fotos eigener Inserate werden wieder korrekt angezeigt statt Platzhalter
+• Kleinere Fehlerbehebungen und Verbesserungen

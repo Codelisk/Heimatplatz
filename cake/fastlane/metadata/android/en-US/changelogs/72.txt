@@ -1,0 +1,3 @@
+• AI listing: description is now required and checked immediately
+• Photos of your own listings show up correctly again instead of placeholders
+• Minor bug fixes and improvements
