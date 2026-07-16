@@ -225,13 +225,73 @@
 }
 
 /* Anschlagtafel-Details */
+.dark {
+  --fuge: oklch(1 0 0 / 1.8%);
+}
 .dark body {
   /* Angedeutete Bretterfugen, bewusst knapp ueber der Wahrnehmungsschwelle */
   background-image: repeating-linear-gradient(
     90deg,
     transparent 0 52px,
-    oklch(1 0 0 / 1.8%) 52px 54px
+    var(--fuge) 52px 54px
   );
+}
+
+/*
+ * TEMPORAER - Tafel-Ton-Feinschliff (Konzept "Anschlagtafel" ist fix, nur der
+ * Farbton wird abgestimmt): ?brett=a|b|c aktiviert eine Ton-Variante pro
+ * Browser (Logik im Theme-Init in BaseLayout.astro), ?brett=aus = Standard.
+ * Nach der Entscheidung: gewaehlte Werte in den .dark-Block uebernehmen,
+ * diese Bloecke + Init-Logik entfernen.
+ */
+
+/* a "Nussbaum": sichtbar Holz - deutlich heller und satter im Braun */
+.dark[data-brett="a"] {
+  --background: oklch(0.225 0.05 55);
+  --foreground: oklch(0.94 0.03 75);
+  --secondary: oklch(0.275 0.055 55);
+  --secondary-foreground: oklch(0.92 0.028 72);
+  --muted: oklch(0.26 0.05 55);
+  --muted-foreground: oklch(0.78 0.03 62);
+  --accent: oklch(0.3 0.06 55);
+  --border: oklch(0.95 0.04 70 / 16%);
+  --input: oklch(0.95 0.04 70 / 20%);
+  --fuge: oklch(1 0 0 / 3.5%);
+  --sidebar-background: oklch(0.25 0.05 55);
+}
+
+/* b "Schiefer": das klassische schwarze Brett - streng neutral, Papier weisser */
+.dark[data-brett="b"] {
+  --background: oklch(0.17 0.003 55);
+  --foreground: oklch(0.93 0.008 70);
+  --card: oklch(0.955 0.014 78);
+  --popover: oklch(0.965 0.012 78);
+  --secondary: oklch(0.225 0.004 55);
+  --muted: oklch(0.21 0.004 55);
+  --muted-foreground: oklch(0.71 0.006 60);
+  --accent: oklch(0.25 0.006 55);
+  --border: oklch(0.95 0.01 70 / 12%);
+  --input: oklch(0.95 0.01 70 / 16%);
+  --fuge: oklch(1 0 0 / 1.2%);
+  --sidebar-background: oklch(0.195 0.004 55);
+}
+.dark[data-brett="b"] :is(.bg-card, .bg-popover) {
+  --background: oklch(0.955 0.014 78);
+}
+
+/* c "Weinkeller": Tafel klar im dunklen Bordeaux des Logo-Rings */
+.dark[data-brett="c"] {
+  --background: oklch(0.21 0.06 22);
+  --foreground: oklch(0.94 0.02 65);
+  --secondary: oklch(0.26 0.065 22);
+  --secondary-foreground: oklch(0.92 0.02 65);
+  --muted: oklch(0.245 0.055 22);
+  --muted-foreground: oklch(0.78 0.03 40);
+  --accent: oklch(0.29 0.07 22);
+  --border: oklch(0.95 0.03 50 / 15%);
+  --input: oklch(0.95 0.03 50 / 19%);
+  --fuge: oklch(1 0 0 / 3%);
+  --sidebar-background: oklch(0.235 0.06 22);
 }
 
 /* Inserat-Karten: Papier-Zettel mit Schlagschatten statt Border, Reissnagel
