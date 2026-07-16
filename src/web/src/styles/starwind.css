@@ -143,7 +143,9 @@
   /* Preis-Auszeichnung: eigener Token, damit Dark-Varianten Preise unabhaengig
      von Buttons faerben koennen (Text-Rot auf Dunkel wirkt sonst ziegelig) */
   --price: var(--primary);
-  --radius: 0.75rem;
+  /* Radius in beiden Themes identisch (Zettel sind kantig) - Light und Dark
+     unterscheiden sich nur in Farbwerten, nie in der Form */
+  --radius: 0.375rem;
 
   /* sidebar variables */
   --sidebar-background: oklch(0.93 0.03 82);
@@ -157,35 +159,31 @@
 }
 
 /*
- * Dunkel = "Anschlagtafel" (Konzept-Entscheid 16.07.2026): Der Dark Mode
- * invertiert die Flaechenlogik. Grund/Chrome sind eine tiefdunkle Holztafel
- * (warmes Braun-Schwarz, Hue 55), Inhalte liegen als HELLE Papier-Zettel
- * darauf (--card/--popover = Creme, wie am schwarzen Brett). Die Tokens fuer
- * Text/Flaechen INNERHALB von Papier werden ueber die Papier-Kontext-Regel
- * weiter unten umgestellt. Preise: Creme auf der Tafel, Bordeaux auf Papier.
+ * Dunkel = Schwarz/Rot/Weiss (Kundenwunsch 16.07.2026, 2. Runde): Grund ist
+ * warmes Fast-Schwarz, Karten/Zettel sind DUNKLE Flaechen knapp darueber -
+ * kein helles Papier mehr ("zuviel Weiss"). Akzente kommen aus dem Rot
+ * (CTAs, Preise, Reissnagel, Stempel) und Weisstoenen (Text, Raender,
+ * Typ-Badges). Struktur/Dekoration bleibt exakt wie im Light Mode, es
+ * wechseln nur die Token-Werte. Neutralen-Chroma bewusst niedrig
+ * (<= 0.02), damit es schwarz statt braun wirkt.
  */
 .dark {
-  /* Tafel-Ton "Nussbaum" (Kundenentscheid 16.07.): sichtbares Holzbraun
-     statt Fast-Schwarz */
-  --background: oklch(0.225 0.05 55);
-  /* Text/Papier bewusst OHNE Gelbstich (Chroma <= 0.012): warmes Creme kippt
-     neben Dunkelbraun ins Vergilbte (Kundenfeedback 16.07.) - frische Zettel
-     sind weiss, die Waerme kommt allein aus Tafel, Rot und Bordeaux */
+  --background: oklch(0.18 0.012 55);
   --foreground: oklch(0.94 0.008 70);
-  --card: oklch(0.965 0.005 80);
-  --card-foreground: oklch(0.24 0.01 50);
-  --popover: oklch(0.975 0.004 80);
-  --popover-foreground: oklch(0.24 0.01 50);
-  /* Das satte Hell-Rot funktioniert auf Tafel UND Papier (Weiss-auf-Rot AA) */
-  --primary: oklch(0.505 0.201 26.5);
+  --card: oklch(0.225 0.014 55);
+  --card-foreground: oklch(0.94 0.008 70);
+  --popover: oklch(0.24 0.015 55);
+  --popover-foreground: oklch(0.94 0.008 70);
+  /* CTA-Rot auf Fast-Schwarz leicht aufgehellt (analog MAUI PrimaryDark) */
+  --primary: oklch(0.545 0.205 26.5);
   --primary-foreground: oklch(0.985 0.005 80);
-  --primary-accent: oklch(0.43 0.19 26.5);
-  --secondary: oklch(0.275 0.055 55);
+  --primary-accent: oklch(0.47 0.2 26.5);
+  --secondary: oklch(0.26 0.016 55);
   --secondary-foreground: oklch(0.92 0.01 70);
   --secondary-accent: oklch(0.96 0.005 75);
-  --muted: oklch(0.26 0.05 55);
-  --muted-foreground: oklch(0.78 0.015 62);
-  --accent: oklch(0.3 0.06 55);
+  --muted: oklch(0.25 0.015 55);
+  --muted-foreground: oklch(0.74 0.015 62);
+  --accent: oklch(0.29 0.018 55);
   --accent-foreground: oklch(0.94 0.008 70);
   --info: var(--color-sky-300);
   --info-foreground: var(--color-sky-950);
@@ -195,15 +193,14 @@
   --warning-foreground: oklch(0.28 0.07 65);
   --error: oklch(0.57 0.17 15);
   --error-foreground: oklch(0.985 0.005 80);
-  --border: oklch(0.95 0.012 70 / 16%);
-  --input: oklch(0.95 0.012 70 / 20%);
+  --border: oklch(0.95 0.012 70 / 14%);
+  --input: oklch(0.95 0.012 70 / 18%);
   --outline: oklch(0.62 0.18 26.5);
-  --price: oklch(0.92 0.012 70);
-  /* Papier/Brett sind kantiger als die weiche Hell-Welt */
-  --radius: 0.375rem;
+  /* Preis als Rot-Akzent auf dunkler Karte (aufgehelltes Markenrot) */
+  --price: oklch(0.64 0.2 26.5);
 
   /* sidebars variables */
-  --sidebar-background: oklch(0.25 0.05 55);
+  --sidebar-background: oklch(0.2 0.013 55);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
@@ -213,31 +210,27 @@
   --sidebar-outline: var(--outline);
 }
 
-/* Papier-Kontext: Alles was als heller Zettel gerendert wird (bg-card,
-   bg-popover), stellt fuer seinen Teilbaum die Tokens von Creme-auf-Tafel
-   auf Tinte-auf-Papier um. Dadurch funktionieren text-muted-foreground,
-   bg-muted-Chips, border-border usw. in Karten ohne Komponenten-Aenderung. */
-.dark :is(.bg-card, .bg-popover) {
-  color: var(--card-foreground);
-  --background: oklch(0.965 0.005 80);
-  --foreground: oklch(0.24 0.01 50);
-  --muted: oklch(0.905 0.008 78);
-  --muted-foreground: oklch(0.46 0.015 55);
-  --accent: oklch(0.915 0.01 78);
-  --accent-foreground: oklch(0.28 0.015 50);
-  --secondary: oklch(0.92 0.008 78);
-  --secondary-foreground: oklch(0.28 0.012 50);
-  --border: oklch(0.3 0.02 55 / 16%);
-  --input: oklch(0.3 0.02 55 / 24%);
-  --error: oklch(0.45 0.15 15);
-  --price: oklch(0.425 0.155 26);
+/* Anschlagtafel-Details: Struktur ist in BEIDEN Themes 1:1 identisch
+   (Fugen, Zettel-Schatten, Reissnagel, Foto-Papierrand, Stempel) - nur die
+   Farbwerte wechseln ueber Tokens, analog AppThemeBinding in MAUI.
+   Hell = sonnige Pinnwand auf Manila-Grund, Dunkel = fast-schwarze Tafel
+   mit dunklen Zetteln und Rot/Weiss-Akzenten. */
+:root {
+  --fuge: oklch(0.3 0.04 60 / 4%);
+  --zettel-shadow: 0 14px 28px -14px oklch(0.28 0.04 55 / 35%);
+  --zettel-shadow-hover: 0 18px 34px -16px oklch(0.28 0.04 55 / 45%);
+  --zettel-frame: oklch(0.3 0.02 55 / 18%);
+  --nagel-shadow: oklch(0 0 0 / 25%);
 }
-
-/* Anschlagtafel-Details */
 .dark {
-  --fuge: oklch(1 0 0 / 3.5%);
+  --fuge: oklch(1 0 0 / 3%);
+  --zettel-shadow: 0 14px 28px -14px oklch(0 0 0 / 85%);
+  --zettel-shadow-hover: 0 18px 34px -16px oklch(0 0 0 / 90%);
+  /* Foto-Rand auf dunkler Karte als Weisston statt Tinte */
+  --zettel-frame: oklch(0.95 0.01 70 / 16%);
+  --nagel-shadow: oklch(0 0 0 / 45%);
 }
-.dark body {
+body {
   /* Angedeutete Bretterfugen, bewusst knapp ueber der Wahrnehmungsschwelle */
   background-image: repeating-linear-gradient(
     90deg,
@@ -247,16 +240,16 @@
 }
 /* Inserat-Karten: Papier-Zettel mit Schlagschatten statt Border, Reissnagel
    oben mittig, Foto mit Papierrand eingefasst */
-.dark [data-property-card] {
+[data-property-card] {
   position: relative;
   border-color: transparent;
-  box-shadow: 0 14px 28px -14px oklch(0 0 0 / 85%);
+  box-shadow: var(--zettel-shadow);
 }
-.dark [data-property-card]:hover {
+[data-property-card]:hover {
   border-color: transparent;
-  box-shadow: 0 18px 34px -16px oklch(0 0 0 / 90%);
+  box-shadow: var(--zettel-shadow-hover);
 }
-.dark [data-property-card]::after {
+[data-property-card]::after {
   content: "";
   position: absolute;
   top: 5px;
@@ -266,20 +259,20 @@
   height: 13px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #d4555a, #9f1519 65%);
-  box-shadow: 0 2px 3px oklch(0 0 0 / 45%);
+  box-shadow: 0 2px 3px var(--nagel-shadow);
   z-index: 2;
   pointer-events: none;
 }
-.dark [data-property-card] > div:first-child {
+[data-property-card] > div:first-child {
   margin: 12px 12px 0;
   border-radius: 2px;
-  outline: 1px solid oklch(0.3 0.03 55 / 25%);
+  outline: 1px solid var(--zettel-frame);
 }
 
 /* ZV wird zum roten Stempel auf dem Zettel - auf Karten UND Detail-Hero
-   ([data-photo-badges]); Typ-Badges (bg-foreground) werden ueber den
-   Papier-Kontext automatisch zu Tinte-Bloecken, nur die Form wird eckig */
-.dark :is([data-property-card], [data-photo-badges]) span.bg-brand {
+   ([data-photo-badges]); Stempel liegt auf dem Foto und ist wie das Logo-Rot
+   themenunabhaengig. Typ-Badges (bg-foreground) werden nur eckig. */
+:is([data-property-card], [data-photo-badges]) span.bg-brand {
   background-color: oklch(0.965 0.005 80 / 93%);
   color: #9f1519;
   border: 2px solid #9f1519;
@@ -287,7 +280,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.dark :is([data-property-card], [data-photo-badges]) span.bg-foreground {
+:is([data-property-card], [data-photo-badges]) span.bg-foreground {
   border-radius: 2px;
 }
 /* Betriebssystem-Wunsch "mehr Kontrast": Text und Raender anheben, Palette bleibt */
@@ -313,6 +306,17 @@
   html {
     /* Drawer setzt overflow:hidden - reservierte Scrollbar-Rinne verhindert Layout-Sprung */
     scrollbar-gutter: stable;
+    /* color-scheme muss auf dem Root liegen, sonst rendern Browser native
+       Popups (select-Optionslisten, Scrollbars) im Dark Mode weiterhin hell */
+    @apply scheme-light dark:scheme-dark;
+  }
+  /* Native select-Optionslisten folgen den Theme-Tokens statt der UA-Farbe
+     (Chromium/Firefox stylen option direkt, der Rest faellt auf color-scheme
+     zurueck) - gilt fuer alle nativen Dropdowns (Zeitraum, Sortierung, ...) */
+  option,
+  optgroup {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
   }
   body {
     @apply bg-background text-foreground scheme-light dark:scheme-dark;
