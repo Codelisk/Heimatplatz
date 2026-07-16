@@ -1,6 +1,6 @@
 import { formatApiDate, formatApiPriceLong, getApiPropertyTypeLabel, type ApiProperty } from "./live-api";
 
-type DetailItem = {
+export type DetailItem = {
   label: string;
   value: string;
 };
@@ -143,18 +143,38 @@ function formatLegalStatus(value: unknown) {
   return labels[key] ?? key;
 }
 
+/**
+ * Preis-Kachel mit typrichtigem Label: Bei Zwangsversteigerungen wird Price beim Sync
+ * aus MinimumBid ?? EstimatedValue befuellt - einen Kaufpreis gibt es dort nicht.
+ */
+export function getApiPriceFact(property: ApiProperty): DetailItem {
+  if (property.Type !== "Foreclosure") {
+    return { label: "Kaufpreis", value: formatApiPriceLong(property.Price) };
+  }
+  const data = readTypeSpecificData(property);
+  const label = !numberValue(data.MinimumBid) && numberValue(data.EstimatedValue) ? "Schätzwert" : "Mindestgebot";
+  const price = numberValue(property.Price);
+  return { label, value: price ? formatMoney(price) : "Preis offen" };
+}
+
 export function getApiPropertyDetailSections(property: ApiProperty): PropertyDetailSection[] {
   const data = readTypeSpecificData(property);
   const sections = new Map<string, DetailItem[]>();
+  const isForeclosure = property.Type === "Foreclosure";
+  const priceFact = getApiPriceFact(property);
 
   add(sections, "Basisdaten", "Immobilienart", getApiPropertyTypeLabel(property.Type, property));
-  add(sections, "Basisdaten", "Kaufpreis", formatApiPriceLong(property.Price));
+  add(sections, "Basisdaten", priceFact.label, priceFact.value);
   add(sections, "Basisdaten", "PLZ", property.PostalCode);
   add(sections, "Basisdaten", "Ort", property.City);
   add(sections, "Basisdaten", "Adresse", property.Address);
 
-  add(sections, "Flächen", "Wohnfläche", formatArea(data.LivingAreaInSquareMeters) || formatArea(property.LivingAreaM2));
-  add(sections, "Flächen", "Grundstücksfläche", formatArea(data.PlotSizeInSquareMeters) || formatArea(property.PlotAreaM2));
+  // Bei Zwangsversteigerungen tragen die Kernfelder Edikt-Semantik (LivingAreaM2 = bebaute
+  // Flaeche, PlotAreaM2 = Gesamtflaeche): als "Wohnflaeche"/"Grundstuecksflaeche" waeren die
+  // Werte falsch beschriftet und stuenden doppelt neben "Gesamtflaeche"/"Bebaute Flaeche".
+  add(sections, "Flächen", "Wohnfläche", formatArea(data.LivingAreaInSquareMeters) || (isForeclosure ? "" : formatArea(property.LivingAreaM2)));
+  add(sections, "Flächen", "Grundstücksfläche", formatArea(data.PlotSizeInSquareMeters)
+    || (isForeclosure && numberValue(data.TotalArea) ? "" : formatArea(property.PlotAreaM2)));
   add(sections, "Flächen", "Gesamtfläche", formatArea(data.TotalArea));
   add(sections, "Flächen", "Bebaute Fläche", formatArea(data.BuildingArea));
 
@@ -191,9 +211,10 @@ export function getApiPropertyDetailSections(property: ApiProperty): PropertyDet
   add(sections, "Versteigerung", "Bietfrist", formatDateTime(data.BiddingDeadline));
   add(sections, "Versteigerung", "Eigentumsanteil", scalar(data, "OwnershipShare"));
 
+  // Bei Zwangsversteigerungen waere das Mindestgebot / bebaute Flaeche - kein Kaufpreis pro m²
   const livingArea = numberValue(property.LivingAreaM2) ?? numberValue(data.LivingAreaInSquareMeters);
   const price = numberValue(property.Price);
-  if (livingArea && price) {
+  if (!isForeclosure && livingArea && price) {
     add(sections, "Kosten", "Preis / m²", formatMoney(price / livingArea));
   }
   add(sections, "Basisdaten", "Eingestellt am", formatApiDate(property.CreatedAt));

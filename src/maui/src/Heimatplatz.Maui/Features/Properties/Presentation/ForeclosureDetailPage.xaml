@@ -117,7 +117,13 @@
                            LineBreakMode="TailTruncation"
                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
 
-                    <!-- Bei ZV oft kein Kaufpreis (0) - dann ausblenden statt "0 €" -->
+                    <!-- Price ist Mindestgebot bzw. Schaetzwert (nie Kaufpreis) - Caption stellt das klar.
+                         Ohne Wert (0) wird beides ausgeblendet statt "0 €" zu zeigen. -->
+                    <Label Text="{Binding PriceCaption}"
+                           FontSize="12"
+                           Margin="0,2,0,-4"
+                           IsVisible="{Binding HasPrice}"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                     <Label Text="{Binding FormattedPrice}"
                            FontSize="24"
                            FontAttributes="Bold"

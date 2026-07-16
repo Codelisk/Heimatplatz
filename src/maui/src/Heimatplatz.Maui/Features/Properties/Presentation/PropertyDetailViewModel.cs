@@ -373,22 +373,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
         var items = new List<PropertyDetailItem>();
         var price = (decimal)Property.Price;
+        var isForeclosure = Property.Type == PropertyType.Foreclosure;
 
-        // --- Basisdaten (hervorgehoben) ---
-        var typeLabel = Property.Type switch
-        {
-            PropertyType.House => "Haus",
-            PropertyType.Land => "Grundstück",
-            PropertyType.Foreclosure => "Zwangsversteigerung",
-            _ => Property.Type.ToString()
-        };
-        items.Add(new PropertyDetailItem("Immobilienart", typeLabel, PropertyDataCategory.Basisdaten, true));
-        items.Add(new PropertyDetailItem("Kaufpreis", FormattedPrice, PropertyDataCategory.Basisdaten, true));
-        AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten, true);
-        AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten, true);
-        AddIfNotEmpty(items, "Adresse", Property.Address, PropertyDataCategory.Basisdaten, true);
-
-        // TypeSpecificData deserialisieren
+        // TypeSpecificData deserialisieren (vor den Basisdaten: das Preis-Label haengt bei
+        // Zwangsversteigerungen davon ab, ob Price aus MinimumBid oder EstimatedValue stammt)
         HousePropertyData? houseData = null;
         LandPropertyData? landData = null;
         ForeclosurePropertyData? foreclosureData = null;
@@ -416,16 +404,52 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             }
         }
 
-        // --- Flaechen ---
-        if (houseData != null && houseData.LivingAreaInSquareMeters > 0)
-            items.Add(new PropertyDetailItem("Wohnfläche", PropertyDisplay.Area(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
-        else
-            AddIfHasValue(items, "Wohnfläche", Property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+        // --- Basisdaten (hervorgehoben) ---
+        var typeLabel = Property.Type switch
+        {
+            PropertyType.House => "Haus",
+            PropertyType.Land => "Grundstück",
+            PropertyType.Foreclosure => "Zwangsversteigerung",
+            _ => Property.Type.ToString()
+        };
+        items.Add(new PropertyDetailItem("Immobilienart", typeLabel, PropertyDataCategory.Basisdaten, true));
 
-        if (landData != null && landData.PlotSizeInSquareMeters > 0)
-            items.Add(new PropertyDetailItem("Grundstücksfläche", PropertyDisplay.Area(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
+        // Bei Zwangsversteigerungen ist Price = MinimumBid ?? EstimatedValue (Sync) - kein Kaufpreis
+        var priceLabel = !isForeclosure ? "Kaufpreis"
+            : foreclosureData is { MinimumBid: <= 0, EstimatedValue: > 0 } ? "Schätzwert"
+            : "Mindestgebot";
+        items.Add(new PropertyDetailItem(priceLabel, price > 0 ? FormattedPrice : "Preis offen", PropertyDataCategory.Basisdaten, true));
+        AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, "Adresse", Property.Address, PropertyDataCategory.Basisdaten, true);
+
+        // --- Flaechen ---
+        // Bei Zwangsversteigerungen tragen die Kernfelder Edikt-Semantik (LivingAreaM2 = bebaute
+        // Flaeche, PlotAreaM2 = Gesamtflaeche) - unter Haus-Labels waeren die Werte falsch.
+        if (isForeclosure)
+        {
+            if (foreclosureData?.TotalArea is > 0)
+                items.Add(new PropertyDetailItem("Gesamtfläche", PropertyDisplay.Area(foreclosureData.TotalArea.Value), PropertyDataCategory.Flaechen));
+            else
+                AddIfHasValue(items, "Grundstücksfläche", Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+
+            if (foreclosureData?.BuildingArea is > 0)
+                items.Add(new PropertyDetailItem("Bebaute Fläche", PropertyDisplay.Area(foreclosureData.BuildingArea.Value), PropertyDataCategory.Flaechen));
+            else
+                AddIfHasValue(items, "Bebaute Fläche", Property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+        }
         else
-            AddIfHasValue(items, "Grundstücksfläche", Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+        {
+            if (houseData != null && houseData.LivingAreaInSquareMeters > 0)
+                items.Add(new PropertyDetailItem("Wohnfläche", PropertyDisplay.Area(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
+            else
+                AddIfHasValue(items, "Wohnfläche", Property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+
+            if (landData != null && landData.PlotSizeInSquareMeters > 0)
+                items.Add(new PropertyDetailItem("Grundstücksfläche", PropertyDisplay.Area(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
+            else
+                AddIfHasValue(items, "Grundstücksfläche", Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+        }
 
         // --- Gebaeude (Haus) ---
         if (houseData != null)
@@ -494,12 +518,15 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
                 items.Add(new PropertyDetailItem("Termin", foreclosureData.AuctionDate.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung));
             if (foreclosureData.MinimumBid > 0)
                 items.Add(new PropertyDetailItem("Mindestgebot", PropertyDisplay.Price(foreclosureData.MinimumBid), PropertyDataCategory.Versteigerung));
+            if (foreclosureData.EstimatedValue is > 0)
+                items.Add(new PropertyDetailItem("Schätzwert", PropertyDisplay.Price(foreclosureData.EstimatedValue.Value), PropertyDataCategory.Versteigerung));
             if (Enum.IsDefined(foreclosureData.Status))
                 items.Add(new PropertyDetailItem("Status", PropertyDisplay.LegalStatusText(foreclosureData.Status), PropertyDataCategory.Versteigerung));
         }
 
         // --- Kosten ---
-        if (Property.LivingAreaM2.HasValue && Property.LivingAreaM2.Value > 0)
+        // Bei Zwangsversteigerungen waere das Mindestgebot / bebaute Flaeche - kein Kaufpreis pro m²
+        if (!isForeclosure && Property.LivingAreaM2.HasValue && Property.LivingAreaM2.Value > 0)
         {
             var pricePerSqm = price / Property.LivingAreaM2.Value;
             items.Add(new PropertyDetailItem("Preis / m²", PropertyDisplay.PriceExact(pricePerSqm), PropertyDataCategory.Kosten));

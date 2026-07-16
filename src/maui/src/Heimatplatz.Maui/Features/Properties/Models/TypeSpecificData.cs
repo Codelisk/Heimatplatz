@@ -40,7 +40,9 @@ public record Encumbrance(
 );
 
 /// <summary>
-/// Typspezifische Daten fuer Zwangsversteigerungen (deserialisiert aus PropertyDto.TypeSpecificData)
+/// Typspezifische Daten fuer Zwangsversteigerungen (deserialisiert aus PropertyDto.TypeSpecificData).
+/// Teilmenge des API-Contracts; optionale Felder mit Default, damit aelterer Bestand ohne
+/// diese Properties weiterhin deserialisiert.
 /// </summary>
 public record ForeclosurePropertyData(
     string CourtName,
@@ -48,5 +50,8 @@ public record ForeclosurePropertyData(
     decimal MinimumBid,
     List<Encumbrance> Encumbrances,
     LegalStatus Status,
-    string FileNumber
+    string FileNumber,
+    decimal? EstimatedValue = null,
+    decimal? TotalArea = null,
+    decimal? BuildingArea = null
 );

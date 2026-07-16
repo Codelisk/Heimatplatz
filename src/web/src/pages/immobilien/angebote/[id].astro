@@ -24,7 +24,7 @@ import {
   getApiPropertyImages,
   type ApiContact,
 } from "@/features/properties/live-api";
-import { getApiPropertyDetailSections } from "@/features/properties/detail-sections";
+import { getApiPriceFact, getApiPropertyDetailSections } from "@/features/properties/detail-sections";
 import { breadcrumbSchema } from "@/lib/seo";
 
 // SSR: Immobilie pro Request laden - neue Inserate sind sofort erreichbar,
@@ -42,12 +42,25 @@ const pageTitle = property.Title.includes(property.City) ? property.Title : `${p
 const description = getApiPropertyDescription(property);
 const imageUrl = getApiPropertyImage(property);
 const images = getApiPropertyImages(property);
-const facts = [
-  ["Preis", formatApiPriceLong(property.Price)],
-  ["Wohnfläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : "Keine Angabe"],
-  ["Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : "Keine Angabe"],
-  ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
-];
+// Zwangsversteigerungen: Price ist Mindestgebot/Schaetzwert, die Kernfelder tragen
+// Edikt-Semantik (LivingAreaM2 = bebaute Flaeche, PlotAreaM2 = Gesamtflaeche).
+const priceFact = getApiPriceFact(property);
+const isForeclosure = property.Type === "Foreclosure";
+const facts = isForeclosure
+  ? [
+      [priceFact.label, priceFact.value],
+      ["Fläche", property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : "Keine Angabe"],
+      ["Bebaute Fläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : "Keine Angabe"],
+      ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
+    ]
+  : [
+      ["Preis", formatApiPriceLong(property.Price)],
+      ["Wohnfläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : "Keine Angabe"],
+      ["Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : "Keine Angabe"],
+      ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
+    ];
+const priceText = isForeclosure ? `${priceFact.label} ${priceFact.value}` : formatApiPriceLong(property.Price);
+const sellerRoleLabel = isForeclosure ? "Gericht" : getApiSellerLabel(property.SellerType);
 const features = property.Features?.length
   ? property.Features
   : [getApiPropertyTypeLabel(property.Type, property), property.City, getApiAreaLabel(property), property.SourceName ?? "Heimatplatz"];
@@ -62,7 +75,7 @@ const detailSections = getApiPropertyDetailSections(property);
 
 <BaseLayout
   title={pageTitle}
-  description={`${property.Title} in ${property.PostalCode} ${property.City}, Oberösterreich. ${formatApiPriceLong(property.Price)}. ${getApiAreaLabel(property)}.`}
+  description={`${property.Title} in ${property.PostalCode} ${property.City}, Oberösterreich. ${priceText}. ${getApiAreaLabel(property)}.`}
   canonicalPath={canonicalPath}
   image={imageUrl}
   structuredData={[
@@ -184,7 +197,7 @@ const detailSections = getApiPropertyDetailSections(property);
       <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
         <p class="text-sm text-muted-foreground">Anbieter</p>
         <h2 class="mt-1 text-xl font-bold">{property.SellerName}</h2>
-        <p class="mt-2 text-sm text-muted-foreground">{getApiSellerLabel(property.SellerType)} · {property.SourceName ?? "Heimatplatz"}</p>
+        <p class="mt-2 text-sm text-muted-foreground">{sellerRoleLabel} · {property.SourceName ?? "Heimatplatz"}</p>
         <p class="mt-2 text-sm text-muted-foreground">Aktualisiert: {formatApiDate(property.CreatedAt) || "Live-Angebot"}</p>
         <div class="mt-5 space-y-3">
           {contactCards.map((contact) => (
@@ -248,7 +261,7 @@ const detailSections = getApiPropertyDetailSections(property);
     </section>
     <ContactDock
       sellerName={property.SellerName}
-      sellerMeta={`${getApiSellerLabel(property.SellerType)} · ${property.SourceName ?? "Heimatplatz"}`}
+      sellerMeta={`${sellerRoleLabel} · ${property.SourceName ?? "Heimatplatz"}`}
       contacts={contactCards.map((contact) => ({
         name: contact.Name ?? contact.SourceName ?? property.SellerName,
         email: contact.Email ?? null,

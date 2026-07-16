@@ -58,6 +58,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     [ObservableProperty]
     public partial bool HasPrice { get; set; }
 
+    /// <summary>
+    /// Beschriftung des prominenten Preises: Property.Price wird beim Sync aus
+    /// MinimumBid ?? EstimatedValue befuellt - ein Kaufpreis existiert bei ZV nicht.
+    /// </summary>
+    [ObservableProperty]
+    public partial string PriceCaption { get; set; }
+
     /// <summary>True wenn die Zwangsversteigerung nicht geladen werden konnte (Fehler oder geloescht)</summary>
     [ObservableProperty]
     public partial bool HasLoadError { get; set; }
@@ -182,6 +189,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
         Title = "Zwangsversteigerung";
         FormattedPrice = string.Empty;
+        PriceCaption = "Mindestgebot";
         AddressText = string.Empty;
         TypeBadgeText = "ZV";
         TypeBadgeColor = Color.FromArgb("#B22222");
@@ -269,6 +277,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         {
             FormattedPrice = string.Empty;
             HasPrice = false;
+            PriceCaption = "Mindestgebot";
             AddressText = string.Empty;
             TypeBadgeText = "ZV";
             DetailSections = [];
@@ -324,6 +333,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
                 _logger.LogWarning(ex, "[ForeclosureDetail] Failed to deserialize TypeSpecificData");
             }
         }
+
+        // Preis-Beschriftung passend zur Quelle des Werts (Sync: Price = MinimumBid ?? EstimatedValue)
+        var minimumBid = GetJsonDecimal(data, "MinimumBid");
+        var estimatedValue = GetJsonDecimal(data, "EstimatedValue");
+        PriceCaption = minimumBid is > 0 ? "Mindestgebot"
+            : estimatedValue is > 0 ? "Schätzwert"
+            : "Mindestgebot";
 
         // --- VERSTEIGERUNG (wichtigste Daten zuerst) ---
         items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung, true));
@@ -442,6 +458,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         return null;
     }
 
+    private static decimal? GetJsonDecimal(JsonElement? data, string propertyName)
+    {
+        if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var value))
+            return value;
+        return null;
+    }
+
     private static void AddJsonString(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category, bool highlighted = false)
     {
         var value = GetJsonString(data, propertyName);
@@ -555,9 +578,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
         var propertyUrl = new Uri($"https://heimatplatz.at/zwangsversteigerung/{Property.Id}");
 
-        var description = $"Zwangsversteigerung: {Property.Title}\n" +
-                          $"Preis: {FormattedPrice}\n" +
-                          $"Standort: {AddressText}";
+        var description = HasPrice
+            ? $"Zwangsversteigerung: {Property.Title}\n{PriceCaption}: {FormattedPrice}\nStandort: {AddressText}"
+            : $"Zwangsversteigerung: {Property.Title}\nStandort: {AddressText}";
 
         var result = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
         if (result == ShareResult.SharedNatively)
