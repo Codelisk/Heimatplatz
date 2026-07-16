@@ -91,6 +91,26 @@ services:
     expose:
       - "8080"
 
+  # Test-Web: gleiche Astro-SSR-Laufzeit wie "web", haengt aber an der Test-API
+  # (api-test) statt der Prod-API. Das Bundle wird separat mit
+  # PUBLIC_API_BASE_URL=https://${TEST_API_DOMAIN} gebaut (Client-Skripte) und liegt
+  # unter /srv/heimatplatz-web-test; SSR-Fetches gehen zur Laufzeit ans interne
+  # Docker-Netz (http://api-test:8080). Deploy via Cake-Target DeployAstroTest.
+  web-test:
+    image: node:22-alpine
+    restart: unless-stopped
+    depends_on:
+      - api-test
+    command: ["node", "/srv/web/server/entry.mjs"]
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      API_BASE_URL_SERVER: http://api-test:8080
+    volumes:
+      - /srv/heimatplatz-web-test:/srv/web:ro
+    expose:
+      - "8080"
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -113,6 +133,7 @@ services:
       - api
       - api-test
       - web
+      - web-test
     ports:
       - "80:80"
       - "443:443"
@@ -120,6 +141,7 @@ services:
       API_DOMAIN: ${API_DOMAIN}
       TEST_API_DOMAIN: ${TEST_API_DOMAIN}
       WEB_DOMAIN: ${WEB_DOMAIN}
+      WEB_TEST_DOMAIN: ${WEB_TEST_DOMAIN}
       # Erlaubte IP(s) fuer /intern (Web) und /api/foreclosure-auctions/sync (API).
       # Leerzeichen-getrennt, IPs oder CIDR-Ranges, siehe .env.example.
       HOME_IP: ${HOME_IP}

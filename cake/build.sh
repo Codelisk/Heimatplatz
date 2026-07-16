@@ -26,8 +26,9 @@ Available Targets:
     BuildAstro           Build Astro web (src/web -> dist)
     DeployAndroid        Build and deploy to Play Store internal
     DeployIos            Build and deploy to TestFlight (macOS only)
-    DeployAstro          Build and deploy Astro web to Azure Static Web Apps
-    DeployAll            Deploy to all platforms (Android, iOS, Astro web)
+    DeployAstro          Build and deploy Astro web (Prod) to Hetzner
+    DeployAstroTest      Build and deploy Astro web (Test, test.heimatplatz.at) to Hetzner
+    DeployAll            Deploy to all platforms (Android, iOS, Astro web Prod)
     UpdateMetadataIos    Push App Store text metadata (macOS only)
     ComplianceCheck      Check store agreements
 

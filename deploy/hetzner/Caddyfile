@@ -45,3 +45,27 @@
 www.{$WEB_DOMAIN} {
 	redir https://{$WEB_DOMAIN}{uri} permanent
 }
+
+# Test-Web (Node-Container "web-test", haengt an der Test-API/Test-DB). Oeffentlich
+# erreichbar, aber per X-Robots-Tag von der Suchmaschinen-Indexierung ausgenommen -
+# gleiche Inserate wie Prod, darf nicht als Duplicate-Content gelistet werden.
+{$WEB_TEST_DOMAIN} {
+	encode gzip zstd
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Robots-Tag "noindex, nofollow"
+	}
+
+	# Interner Bereich (/intern) - Admin-UI, nur von HOME_IP erreichbar (wie Prod-Web).
+	@internBlocked {
+		path /intern*
+		not remote_ip {$HOME_IP}
+	}
+	respond @internBlocked "Forbidden" 403
+
+	reverse_proxy web-test:8080
+}

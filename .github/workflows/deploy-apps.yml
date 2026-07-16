@@ -15,6 +15,7 @@ on:
           - DeployIos
           - DeployAndroid
           - DeployAstro
+          - DeployAstroTest
 
 env:
   DOTNET_VERSION: '10.0.x'
@@ -148,6 +149,47 @@ jobs:
           HETZNER_USER: ${{ secrets.HETZNER_USER }}
           HETZNER_SSH_KEY_PATH: hetzner_deploy_key
         run: dotnet run -- --target=DeployAstro
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf ../src/web/dist/ hetzner_deploy_key
+
+  deploy-astro-test:
+    if: inputs.target == 'DeployAstroTest'
+    runs-on: ubuntu-latest
+    name: Deploy Astro Web (Test)
+    defaults:
+      run:
+        working-directory: cake
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-quality: ${{ env.DOTNET_QUALITY }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Write SSH Deploy Key
+        run: |
+          echo "${{ secrets.HETZNER_SSH_KEY }}" > hetzner_deploy_key
+          chmod 600 hetzner_deploy_key
+
+      # PUBLIC_API_BASE_URL (test-api) und das Test-Web-Zielverzeichnis kommen aus
+      # cake/appsettings.json (Web:ApiBaseUrlTest, Hetzner:WebRootTest).
+      - name: Run Cake Deploy (Test)
+        env:
+          HETZNER_HOST: ${{ secrets.HETZNER_HOST }}
+          HETZNER_USER: ${{ secrets.HETZNER_USER }}
+          HETZNER_SSH_KEY_PATH: hetzner_deploy_key
+        run: dotnet run -- --target=DeployAstroTest
 
       - name: Cleanup
         if: always()

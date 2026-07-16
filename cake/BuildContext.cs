@@ -28,12 +28,14 @@ public class BuildContext : FrostingContext
     public string AppStoreConnectIssuerId { get; }
     public string AppStoreConnectKeyPath { get; }
 
-    // Web-Deploy settings (Hetzner, statisches Astro-Web via rsync)
+    // Web-Deploy settings (Hetzner, Astro-Web-SSR via rsync)
     public string ApiBaseUrl { get; }
+    public string ApiBaseUrlTest { get; }
     public string HetznerHost { get; }
     public string HetznerUser { get; }
     public string HetznerSshKeyPath { get; }
     public string HetznerWebRoot { get; }
+    public string HetznerWebRootTest { get; }
 
     // Computed paths
     public string BuildDirectory { get; }
@@ -79,11 +81,13 @@ public class BuildContext : FrostingContext
 
         // Web-Deploy settings (Hetzner)
         ApiBaseUrl = GetConfigValue("Web:ApiBaseUrl", "API_BASE_URL");
+        ApiBaseUrlTest = GetConfigValue("Web:ApiBaseUrlTest", "API_BASE_URL_TEST");
         HetznerHost = GetConfigValue("Hetzner:Host", "HETZNER_HOST");
         HetznerUser = GetConfigValue("Hetzner:User", "HETZNER_USER");
         var hetznerKeyPath = GetConfigValue("Hetzner:SshKeyPath", "HETZNER_SSH_KEY_PATH");
         HetznerSshKeyPath = string.IsNullOrEmpty(hetznerKeyPath) ? string.Empty : Path.GetFullPath(Path.Combine(BuildDirectory, hetznerKeyPath));
         HetznerWebRoot = GetConfigValue("Hetzner:WebRoot", "HETZNER_WEB_ROOT");
+        HetznerWebRootTest = GetConfigValue("Hetzner:WebRootTest", "HETZNER_WEB_ROOT_TEST");
     }
 
     private string GetConfigValue(string configKey, string envVarFallback)

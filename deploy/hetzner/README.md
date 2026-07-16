@@ -40,6 +40,33 @@ Der APNs Private Key wird nicht ins Image eingebaut. Er liegt auf dem Server unt
 read-only nach `/run/secrets/apns-auth-key.p8` gemountet. Das Verzeichnis `secrets/`
 ist gitignoriert.
 
+## Test-Web (web-test in docker-compose.yml)
+
+Seit 16.7.2026: `https://test.heimatplatz.at` - gleiche Astro-SSR-Laufzeit wie das
+Prod-Web (`web`), haengt aber an der Test-API (`api-test`) statt der Prod-API. Oeffentlich
+erreichbar, aber per `X-Robots-Tag: noindex, nofollow` (Caddyfile) von der Suchmaschinen-
+Indexierung ausgenommen (gleiche Inserate wie Prod = kein Duplicate-Content).
+
+Zwei Ebenen muessen auf die Test-API zeigen:
+
+- **SSR-Fetches** (Detailseiten, Listen-Rendering): zur Laufzeit ueber
+  `API_BASE_URL_SERVER=http://api-test:8080` (Container-Env, internes Docker-Netz).
+- **Client-Skripte** (Live-Suche, Anlegen/Bearbeiten): die `PUBLIC_API_BASE_URL` wird beim
+  Build ins JS-Bundle eingebettet - das Test-Bundle wird daher **separat** mit
+  `PUBLIC_API_BASE_URL=https://test-api.heimatplatz.at` gebaut und liegt unter
+  `/srv/heimatplatz-web-test` (getrennt vom Prod-Bundle in `/srv/heimatplatz-web`).
+
+Deploy: `deploy-apps.yml` Target **`DeployAstroTest`** (Cake) baut das Bundle gegen die
+Test-API (`Web:ApiBaseUrlTest` in `cake/appsettings.json`) und rsynct es nach
+`Hetzner:WebRootTest` (`/srv/heimatplatz-web-test`), dann `docker compose up -d web-test`
++ Caddy-Reload. Bewusst getrennt von `DeployAstro`/`DeployAll`: erst Test deployen +
+pruefen, dann Prod nachziehen. Benoetigte Server-`.env`-Variable: `WEB_TEST_DOMAIN=test.heimatplatz.at`.
+
+DNS-A-Record `test` liegt in der Hetzner-DNS-Zone (Cloud-API mit `HCLOUD_TOKEN`,
+`POST /v1/zones/1433807/rrsets`). Caddy loest `{$WEB_TEST_DOMAIN}` aus seiner eigenen
+Container-Env auf - beim Hinzufuegen der Variable muss der **Caddy-Container neu erstellt**
+werden (`docker compose up -d caddy`), ein reiner Reload sieht die neue Env nicht.
+
 ## Testdatenbank (docker-compose.testdb.yml)
 
 Separater Postgres-16-Container fuer Entwicklung/Tests auf demselben Server - unabhaengig vom Prod-Stack, eigenes Volume, von aussen erreichbar auf **Port 5433** (UFW-Regel vorhanden; Schutz ueber starkes Passwort, `TESTDB_PASSWORD` in der Server-`.env` und der lokalen `deploy/hetzner/.env`).
