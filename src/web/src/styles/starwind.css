@@ -107,21 +107,25 @@
  * themenunabhaengige Markenrot fuer Signal-Badges (ZV) auf Fotos.
  */
 :root {
-  --background: oklch(0.972 0.007 60);
-  --foreground: oklch(0.21 0.012 30);
-  --card: oklch(0.988 0.004 70);
-  --card-foreground: oklch(0.21 0.012 30);
-  --popover: oklch(0.988 0.004 70);
-  --popover-foreground: oklch(0.21 0.012 30);
+  /* Hell = warmes Papier mit DEUTLICHEM Gelbton (Kundenwunsch 16.07.):
+     Reinweiss sticht in den Augen - der Grund ist Manila-Creme, Karten sind
+     weiches Papier knapp darueber. Der Gelbton, der im Dark Mode vergilbt
+     wirkte, traegt hier die Waerme. */
+  --background: oklch(0.945 0.028 83);
+  --foreground: oklch(0.22 0.014 35);
+  --card: oklch(0.97 0.016 83);
+  --card-foreground: oklch(0.22 0.014 35);
+  --popover: oklch(0.975 0.014 83);
+  --popover-foreground: oklch(0.22 0.014 35);
   --primary: oklch(0.505 0.201 26.5);
   --primary-foreground: oklch(0.985 0.005 80);
   --primary-accent: oklch(0.43 0.19 26.5);
-  --secondary: oklch(0.95 0.008 60);
-  --secondary-foreground: oklch(0.3 0.012 30);
-  --secondary-accent: oklch(0.21 0.012 30);
-  --muted: oklch(0.945 0.008 60);
-  --muted-foreground: oklch(0.44 0.015 30);
-  --accent: oklch(0.94 0.03 26);
+  --secondary: oklch(0.915 0.03 82);
+  --secondary-foreground: oklch(0.3 0.015 40);
+  --secondary-accent: oklch(0.22 0.014 35);
+  --muted: oklch(0.905 0.03 82);
+  --muted-foreground: oklch(0.44 0.02 45);
+  --accent: oklch(0.9 0.04 40);
   --accent-foreground: oklch(0.25 0.05 26);
   --info: var(--color-sky-300);
   --info-foreground: var(--color-sky-950);
@@ -131,8 +135,8 @@
   --warning-foreground: oklch(0.3 0.07 65);
   --error: oklch(0.4 0.15 15);
   --error-foreground: oklch(0.985 0.005 80);
-  --border: oklch(0.885 0.01 55);
-  --input: oklch(0.885 0.01 55);
+  --border: oklch(0.845 0.03 75);
+  --input: oklch(0.845 0.03 75);
   --outline: oklch(0.55 0.15 26.5);
   --brand: oklch(0.505 0.201 26.5);
   --brand-foreground: oklch(0.985 0.005 80);
@@ -142,7 +146,7 @@
   --radius: 0.75rem;
 
   /* sidebar variables */
-  --sidebar-background: oklch(0.962 0.008 60);
+  --sidebar-background: oklch(0.93 0.03 82);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
