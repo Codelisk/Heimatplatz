@@ -37,6 +37,13 @@ public class StartListingAnalysisHandler(
         if (request.ImageUrls.Count == 0 && string.IsNullOrWhiteSpace(request.DictatedText))
             throw new ArgumentException("Mindestens ein Foto oder eine diktierte Beschreibung ist erforderlich.");
 
+        // Der AiConnector-Provider bekommt keine Medien uebertragen - ohne Text wuerde die
+        // Analyse erst im Worker scheitern; hier frueh und mit klarer Meldung ablehnen
+        if (string.Equals(opts.Provider, "AiConnector", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(request.DictatedText)
+            && string.IsNullOrWhiteSpace(request.UserNotes))
+            throw new ArgumentException("Eine Beschreibung (Diktat oder Notizen) ist erforderlich - Fotos allein reichen fuer die KI-Analyse nicht aus.");
+
         if (request.ImageUrls.Count > opts.MaxImages)
             throw new ArgumentException($"Maximal {opts.MaxImages} Fotos erlaubt.");
 

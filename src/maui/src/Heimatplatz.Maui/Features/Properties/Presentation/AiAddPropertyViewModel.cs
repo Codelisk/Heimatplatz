@@ -610,10 +610,11 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
             return;
         }
 
-        var photos = Media.Where(m => m.IsPhoto).ToList();
-        if (photos.Count == 0 && string.IsNullOrWhiteSpace(DictatedText))
+        // Beschreibung ist Pflicht: Die KI-Extraktion arbeitet rein textbasiert
+        // (Fotos werden nur fuers Inserat hochgeladen, nicht an die KI uebertragen)
+        if (string.IsNullOrWhiteSpace(DictatedText))
         {
-            ErrorMessage = "Bitte fügen Sie mindestens ein Foto hinzu oder diktieren Sie eine Beschreibung";
+            ErrorMessage = "Bitte beschreiben Sie Ihre Immobilie – diktieren oder eintippen. Daraus erstellt die KI das Inserat.";
             return;
         }
 

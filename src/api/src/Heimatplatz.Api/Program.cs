@@ -254,7 +254,7 @@ if (!app.Environment.IsDevelopment() && app.Configuration["AiListing:Provider"] 
 {
     app.Logger.LogWarning(
         "AiListing laeuft im Mock-Modus: Die KI-Inseratserstellung liefert nur Platzhalter-Daten. " +
-        "Fuer echte Extraktion AiListing__Provider=AiConnector (plus AiListing__AiConnector__ApiKey) " +
+        "Fuer echte Extraktion AiListing__Provider=AiConnector (plus AiConnector__ApiKey) " +
         "oder AiListing__Provider=Cli setzen.");
 }
 

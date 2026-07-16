@@ -209,6 +209,15 @@ public class GetPropertiesHandler(
 
             if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
+                // Eigene Uploads (gleicher Host wie die API, z.B. via UploadListingMedia
+                // absolut gespeichert) sind lokale statische Dateien - direkt ausliefern.
+                // Der Proxy kennt nur externe Bild-Hosts und wuerde den eigenen Host
+                // mit 400 "Host not allowed" ablehnen.
+                if (Uri.TryCreate(url, UriKind.Absolute, out var parsed)
+                    && Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
+                    && string.Equals(parsed.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase))
+                    return url;
+
                 var proxied = $"{baseUrl}/api/images/proxy?url={Uri.EscapeDataString(url)}";
                 return width.HasValue ? $"{proxied}&w={width.Value}" : proxied;
             }
