@@ -65,8 +65,8 @@
               ColumnDefinitions="Auto,*"
               ColumnSpacing="14">
 
-            <!-- Logo auf weisser Karte. Das Artwork hat grosse weisse Raender eingebaut,
-                 daher wird das Bild groesser gezeichnet und vom Border-Radius beschnitten. -->
+            <!-- Huettenmarke auf weisser Karte; das Etikett bringt seinen eigenen
+                 Tusche-Rahmen mit und wird daher nur leicht eingerueckt. -->
             <Border Grid.Column="0"
                     BackgroundColor="{StaticResource White}"
                     Stroke="Transparent"
@@ -74,12 +74,9 @@
                     StrokeShape="RoundRectangle 14"
                     WidthRequest="56"
                     HeightRequest="56"
-                    Padding="0">
+                    Padding="5">
                 <Image Source="logo.png"
                        Aspect="AspectFit"
-                       WidthRequest="100"
-                       HeightRequest="100"
-                       Margin="-22"
                        HorizontalOptions="Center"
                        VerticalOptions="Center" />
             </Border>
