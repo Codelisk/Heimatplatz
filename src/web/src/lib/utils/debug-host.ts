@@ -1,11 +1,15 @@
 /**
  * Debug-Werkzeuge (Pendant zur MAUI-DebugPage) sind nur aktiv, wenn die Seite
  * vom Entwicklungs-PC aus aufgerufen wird: localhost oder eine private LAN-IP
- * (z.B. Dev-Server per `--host` vom Handy aus). Auf oeffentlichen Hosts bleibt
- * der Debug-Eintrag versteckt und der API-Override wirkungslos.
+ * (z.B. Dev-Server per `--host` vom Handy aus) - PLUS das oeffentliche Test-Web
+ * `test.heimatplatz.at` (noindex, haengt an der Test-API): dort sollen Testnutzer-
+ * Login und API-Umschalter nutzbar sein. Auf Prod (`heimatplatz.at`) bleibt der
+ * Debug-Eintrag versteckt und der API-Override wirkungslos.
  */
+const DEBUG_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "test.heimatplatz.at"]);
+
 export function isDebugHost(hostname: string = window.location.hostname): boolean {
-  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]") {
+  if (DEBUG_HOSTS.has(hostname)) {
     return true;
   }
   return (
