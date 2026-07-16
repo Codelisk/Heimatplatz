@@ -30,6 +30,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     public ObservableCollection<PropertyListItemDto> Properties { get; } = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
     public partial bool IsBusy { get; set; }
 
     [ObservableProperty]
@@ -54,19 +55,25 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLoadError))]
-    [NotifyPropertyChangedFor(nameof(HasNoLoadError))]
+    [NotifyPropertyChangedFor(nameof(ShowLoadError))]
     [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
     public partial string? LoadErrorMessage { get; set; }
 
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
 
-    public bool HasNoLoadError => !HasLoadError;
+    /// <summary>
+    /// Lade-Fehler nur anzeigen solange der Benutzer angemeldet ist - laeuft die
+    /// Session waehrend des Ladens ab (Logout durch Token-Refresh-Fehler), wuerden
+    /// sonst Anmelde-Hinweis und Fehler-Zustand uebereinander liegen.
+    /// </summary>
+    public bool ShowLoadError => HasLoadError && IsLoggedIn;
 
     /// <summary>
-    /// Regulaerer Leer-Zustand: nur wenn angemeldet und kein Lade-Fehler ansteht
-    /// (sonst wuerden Leer- und Fehler-Zustand gleichzeitig angezeigt).
+    /// Regulaerer Leer-Zustand: nur wenn angemeldet, kein Lade-Fehler ansteht und
+    /// gerade nicht geladen wird (sonst wuerden Leer-, Fehler- bzw. Lade-Zustand
+    /// gleichzeitig angezeigt).
     /// </summary>
-    public bool ShowRegularEmptyState => IsLoggedIn && !HasLoadError;
+    public bool ShowRegularEmptyState => IsLoggedIn && !HasLoadError && !IsBusy;
 
     /// <summary>
     /// True wenn kein Benutzer angemeldet ist - die Seiten zeigen dann statt des
@@ -75,6 +82,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
     [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
+    [NotifyPropertyChangedFor(nameof(ShowLoadError))]
     public partial bool IsLoggedOut { get; set; }
 
     /// <summary>
@@ -84,6 +92,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
     [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
+    [NotifyPropertyChangedFor(nameof(ShowLoadError))]
     public partial bool IsSellerBlocked { get; set; }
 
     public bool IsLoggedIn => !IsLoggedOut && !IsSellerBlocked;
@@ -153,6 +162,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             {
                 Properties.Clear();
                 IsEmpty = true;
+                LoadErrorMessage = null;
             }
         });
     }
@@ -168,6 +178,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         {
             Properties.Clear();
             IsEmpty = true;
+            LoadErrorMessage = null;
             return;
         }
 

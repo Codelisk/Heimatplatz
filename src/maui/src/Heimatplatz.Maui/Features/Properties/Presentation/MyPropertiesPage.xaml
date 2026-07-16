@@ -79,7 +79,7 @@
                         <VerticalStackLayout Spacing="8"
                                              VerticalOptions="Start"
                                              HorizontalOptions="Center"
-                                             IsVisible="{Binding HasLoadError}">
+                                             IsVisible="{Binding ShowLoadError}">
                             <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
                             <Label Text="Laden fehlgeschlagen" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="{Binding LoadErrorMessage}" Style="{StaticResource EmptyStateHint}" />
