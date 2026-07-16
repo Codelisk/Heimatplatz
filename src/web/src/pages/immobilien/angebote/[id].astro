@@ -101,7 +101,7 @@ const detailSections = getApiPropertyDetailSections(property);
         <div class="relative">
           <ImageGallery images={images} title={property.Title} />
           {/* right-40 laesst Platz fuer die drei Action-Buttons, sonst ueberlappen die Badges */}
-          <div class="pointer-events-none absolute left-4 right-40 top-4 z-10 flex flex-wrap gap-2">
+          <div class="pointer-events-none absolute left-4 right-40 top-4 z-10 flex flex-wrap gap-2" data-photo-badges>
             <span
               class:list={[
                 "rounded-full px-3 py-1.5 text-xs font-bold",
@@ -155,7 +155,7 @@ const detailSections = getApiPropertyDetailSections(property);
           {facts.map(([label, value]) => (
             <div class="rounded-lg border border-border bg-card p-4">
               <dt class="text-sm text-muted-foreground">{label}</dt>
-              <dd class="mt-1 text-xl font-bold">{value}</dd>
+              <dd class:list={["mt-1 text-xl font-bold", label === priceFact.label && "text-price"]}>{value}</dd>
             </div>
           ))}
         </dl>
