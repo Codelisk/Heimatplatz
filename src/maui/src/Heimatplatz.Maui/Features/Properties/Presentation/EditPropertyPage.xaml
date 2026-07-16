@@ -54,7 +54,7 @@
                     <Label Text="{Binding SelectedOrtText}"
                            FontSize="13"
                            IsVisible="{Binding HasSelectedOrt}"
-                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                     <Entry Text="{Binding OrtSearchText}"
                            Placeholder="Ort oder PLZ suchen..." />
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"

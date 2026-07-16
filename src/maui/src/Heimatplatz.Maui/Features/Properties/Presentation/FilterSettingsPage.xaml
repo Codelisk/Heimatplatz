@@ -43,9 +43,9 @@
                                     AutomationId="FilterSettings_Chip_Haus">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding IsHausSelected}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -56,9 +56,9 @@
                                     AutomationId="FilterSettings_Chip_Grundstueck">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding IsGrundstueckSelected}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -69,9 +69,9 @@
                                     AutomationId="FilterSettings_Chip_Zwangsversteigerung">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding IsZwangsversteigerungSelected}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -91,9 +91,9 @@
                                         AutomationId="FilterSettings_Chip_Privat">
                                     <Button.Triggers>
                                         <DataTrigger TargetType="Button" Binding="{Binding IsPrivateSelected}" Value="True">
-                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
@@ -104,9 +104,9 @@
                                         AutomationId="FilterSettings_Chip_Makler">
                                     <Button.Triggers>
                                         <DataTrigger TargetType="Button" Binding="{Binding IsBrokerSelected}" Value="True">
-                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
@@ -130,9 +130,9 @@
                                 </Button.CommandParameter>
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="0">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -146,9 +146,9 @@
                                 </Button.CommandParameter>
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="1">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -162,9 +162,9 @@
                                 </Button.CommandParameter>
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="2">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -178,9 +178,9 @@
                                 </Button.CommandParameter>
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="3">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -194,9 +194,9 @@
                                 </Button.CommandParameter>
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedAgeFilterIndex}" Value="4">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -215,7 +215,7 @@
                                     IsVisible="{Binding HasSelectedOrte}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:OrtChip">
-                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                             StrokeThickness="0"
                                             StrokeShape="RoundRectangle 14"
                                             Padding="12,4,4,4"
@@ -223,12 +223,12 @@
                                         <HorizontalStackLayout Spacing="2">
                                             <Label Text="{Binding Label}"
                                                    FontSize="12"
-                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
                                                    VerticalOptions="Center" />
                                             <Label Text="✕"
                                                    FontSize="12"
                                                    Padding="8,6"
-                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
                                                    VerticalOptions="Center">
                                                 <Label.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding RemoveOrtChipCommand, Source={RelativeSource AncestorType={x:Type vm:FilterSettingsViewModel}}, x:DataType=vm:FilterSettingsViewModel}"
@@ -306,8 +306,8 @@
             <shiny:FloatingPanel x:Name="OrtPanel"
                                  IsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
                                  IsContentScrollEnabled="False"
-                                 PanelCornerRadius="20"
-                                 PanelBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
+                                 PanelCornerRadius="28"
+                                 PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
                 <Grid RowDefinitions="Auto,Auto,*,Auto"
                       RowSpacing="10"
                       Padding="16,4,16,12">
@@ -367,7 +367,7 @@
                                                         VerticalOptions="Center">
                                                     <Border.Triggers>
                                                         <DataTrigger TargetType="Border" Binding="{Binding HasSelection}" Value="True">
-                                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                                                             <Setter Property="Stroke" Value="Transparent" />
                                                         </DataTrigger>
                                                     </Border.Triggers>
@@ -376,7 +376,7 @@
                                                            FontAttributes="Bold"
                                                            HorizontalOptions="Center"
                                                            VerticalOptions="Center"
-                                                           TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                                           TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                                 </Border>
                                                 <Button BackgroundColor="Transparent"
                                                         BorderColor="Transparent"
@@ -433,7 +433,7 @@
                                                                     VerticalOptions="Center">
                                                                 <Border.Triggers>
                                                                     <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
-                                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                                                                         <Setter Property="Stroke" Value="Transparent" />
                                                                     </DataTrigger>
                                                                 </Border.Triggers>
@@ -443,7 +443,7 @@
                                                                        IsVisible="{Binding IsSelected}"
                                                                        HorizontalOptions="Center"
                                                                        VerticalOptions="Center"
-                                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                                             </Border>
                                                         </Grid>
                                                         <Label Grid.Column="1"
@@ -488,7 +488,7 @@
                                                     VerticalOptions="Center">
                                                 <Border.Triggers>
                                                     <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
-                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                                                         <Setter Property="Stroke" Value="Transparent" />
                                                     </DataTrigger>
                                                 </Border.Triggers>
@@ -498,7 +498,7 @@
                                                        IsVisible="{Binding IsSelected}"
                                                        HorizontalOptions="Center"
                                                        VerticalOptions="Center"
-                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                                             </Border>
                                         </Grid>
                                         <Label Grid.Column="1"
@@ -532,8 +532,8 @@
                             HeightRequest="46"
                             CornerRadius="12"
                             FontAttributes="Bold"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
-                            TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                            TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                 </Grid>
             </shiny:FloatingPanel>
         </shiny:OverlayHost>

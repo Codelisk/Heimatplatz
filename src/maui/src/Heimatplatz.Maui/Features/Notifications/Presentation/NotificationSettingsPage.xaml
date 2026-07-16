@@ -243,7 +243,7 @@
                                 AutomationId="NotificationSettings_OrtListe">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate x:DataType="x:String">
-                                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                                 StrokeThickness="0"
                                                 StrokeShape="RoundRectangle 14"
                                                 Padding="10,5"
@@ -251,11 +251,11 @@
                                             <HorizontalStackLayout Spacing="6">
                                                 <Label Text="{Binding .}"
                                                        FontSize="12"
-                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
                                                        VerticalOptions="Center" />
                                                 <Label Text="✕"
                                                        FontSize="12"
-                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
                                                        VerticalOptions="Center">
                                                     <Label.GestureRecognizers>
                                                         <TapGestureRecognizer Command="{Binding RemoveOrtCommand, Source={RelativeSource AncestorType={x:Type presentation:NotificationSettingsViewModel}}, x:DataType=presentation:NotificationSettingsViewModel}"

@@ -91,6 +91,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     [ObservableProperty]
     public partial List<PropertyDetailSection> DetailSections { get; set; }
 
+    /// <summary>Kernfakten als Kacheln direkt unter dem Kopf (auf einen Blick)</summary>
+    [ObservableProperty]
+    public partial List<StatTileItem> StatTiles { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasStatTiles { get; set; }
+
     [ObservableProperty]
     public partial string? Description { get; set; }
 
@@ -177,6 +184,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         TypeBadgeText = string.Empty;
         TypeBadgeColor = Colors.Gray;
         DetailSections = [];
+        StatTiles = [];
         ImageUrls = [];
         Contacts = [];
         IsAuthenticated = authService.IsAuthenticated;
@@ -277,6 +285,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             OnPropertyChanged(nameof(ImageCounterText));
             TypeBadgeText = string.Empty;
             DetailSections = [];
+            StatTiles = [];
+            HasStatTiles = false;
             Description = null;
             HasDescription = false;
             return;
@@ -293,13 +303,11 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             _ => "IMM"
         };
 
-        // Typ-Badge Farbe (analog zur PropertyCard)
+        // Typ-Badge Farbe (analog zur PropertyCard): nur ZV in Signal-Rot, sonst warmes Glas
         TypeBadgeColor = Property.Type switch
         {
-            PropertyType.House => Color.FromArgb("#2D6A9F"),
-            PropertyType.Land => Color.FromArgb("#5D8A66"),
-            PropertyType.Foreclosure => Color.FromArgb("#B22222"),
-            _ => Colors.Gray
+            PropertyType.Foreclosure => Color.FromArgb("#DE2A2F"),
+            _ => Color.FromArgb("#66171310")
         };
 
         // Preis formatieren: "3.590.000 €"
@@ -541,6 +549,58 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             .OrderBy(g => g.Key)
             .Select(g => new PropertyDetailSection(GetCategoryTitle(g.Key), g.Key, g.ToList()))
             .ToList();
+
+        BuildStatTiles(houseData, landData, foreclosureData);
+    }
+
+    /// <summary>
+    /// Kernfakten fuer die Kachel-Zeile unter dem Kopf. Gleiche Wertequellen wie die
+    /// Datentabelle (TypeSpecificData vor Kernfeldern), aber auf drei Werte verdichtet.
+    /// </summary>
+    private void BuildStatTiles(HousePropertyData? houseData, LandPropertyData? landData, ForeclosurePropertyData? foreclosureData)
+    {
+        var tiles = new List<StatTileItem>();
+        if (Property == null)
+        {
+            StatTiles = tiles;
+            HasStatTiles = false;
+            return;
+        }
+
+        if (Property.Type == PropertyType.Foreclosure)
+        {
+            decimal? totalArea = foreclosureData is { TotalArea: > 0 } fa ? fa.TotalArea : Property.PlotAreaM2;
+            if (totalArea is > 0)
+                tiles.Add(new StatTileItem("FLÄCHE", PropertyDisplay.Area(totalArea.Value)));
+
+            decimal? buildingArea = foreclosureData is { BuildingArea: > 0 } fb ? fb.BuildingArea : Property.LivingAreaM2;
+            if (buildingArea is > 0)
+                tiles.Add(new StatTileItem("BEBAUT", PropertyDisplay.Area(buildingArea.Value)));
+
+            if (foreclosureData?.AuctionDate is { } auctionDate && auctionDate != default)
+                tiles.Add(new StatTileItem("TERMIN", auctionDate.ToString("dd.MM.yy")));
+        }
+        else
+        {
+            decimal? livingArea = houseData is { LivingAreaInSquareMeters: > 0 } hl
+                ? hl.LivingAreaInSquareMeters
+                : Property.LivingAreaM2;
+            if (livingArea is > 0)
+                tiles.Add(new StatTileItem("WOHNFLÄCHE", PropertyDisplay.Area(livingArea.Value)));
+
+            decimal? plotArea = landData is { PlotSizeInSquareMeters: > 0 } lp
+                ? lp.PlotSizeInSquareMeters
+                : Property.PlotAreaM2;
+            if (plotArea is > 0)
+                tiles.Add(new StatTileItem("GRUNDSTÜCK", PropertyDisplay.Area(plotArea.Value)));
+
+            int? rooms = houseData is { TotalRooms: > 0 } hr ? hr.TotalRooms : Property.Rooms;
+            if (rooms is > 0)
+                tiles.Add(new StatTileItem("ZIMMER", rooms.Value.ToString()));
+        }
+
+        StatTiles = tiles;
+        HasStatTiles = tiles.Count > 0;
     }
 
     #region Formatting Helpers

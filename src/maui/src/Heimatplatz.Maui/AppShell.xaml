@@ -4,23 +4,28 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:shiny="clr-namespace:Shiny;assembly=Shiny.Maui.Shell"
+    xmlns:controls="clr-namespace:Heimatplatz.Maui.Controls"
     xmlns:properties="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
     xmlns:auth="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
     xmlns:notifications="clr-namespace:Heimatplatz.Maui.Features.Notifications.Presentation"
     Title="Heimatplatz"
     FlyoutBehavior="Flyout"
     FlyoutWidth="300"
-    FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+    FlyoutBackdrop="{StaticResource ScrimColor}"
+    FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
 
     <Shell.Resources>
         <!-- Einheitliches Erscheinungsbild aller Flyout-Eintraege (FlyoutItems und MenuItems):
-             Icon + Text. BindingContext ist das jeweilige BaseShellItem; MenuShellItems spiegeln
-             Text/IconImageSource des MenuItems auf Title/Icon (siehe SyncMenuItemIcons). -->
+             gerundete Zeile, Icon + Text; Auswahl als warmer Rot-Tint. BindingContext ist das
+             jeweilige BaseShellItem; MenuShellItems spiegeln Text/IconImageSource des MenuItems
+             auf Title/Icon (siehe SyncMenuItemIcons). -->
         <DataTemplate x:Key="FlyoutEntryTemplate" x:DataType="BaseShellItem">
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="14"
-                  Padding="20,0"
-                  HeightRequest="48">
+            <Border Margin="12,2"
+                    Padding="14,0"
+                    Stroke="Transparent"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 14"
+                    HeightRequest="50">
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroupList>
                         <VisualStateGroup x:Name="CommonStates">
@@ -31,37 +36,42 @@
                             </VisualState>
                             <VisualState x:Name="PointerOver">
                                 <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}" />
                                 </VisualState.Setters>
                             </VisualState>
                             <VisualState x:Name="Selected">
                                 <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource RedTintDark}}" />
                                 </VisualState.Setters>
                             </VisualState>
                         </VisualStateGroup>
                     </VisualStateGroupList>
                 </VisualStateManager.VisualStateGroups>
 
-                <Image Grid.Column="0"
-                       Source="{Binding Icon}"
-                       WidthRequest="20"
-                       HeightRequest="20"
-                       VerticalOptions="Center" />
-                <Label Grid.Column="1"
-                       Text="{Binding Title}"
-                       FontSize="14"
-                       VerticalTextAlignment="Center"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-            </Grid>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Image Grid.Column="0"
+                           Source="{Binding Icon}"
+                           WidthRequest="20"
+                           HeightRequest="20"
+                           VerticalOptions="Center" />
+                    <Label Grid.Column="1"
+                           Text="{Binding Title}"
+                           FontFamily="SansMedium"
+                           FontSize="14.5"
+                           VerticalTextAlignment="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                </Grid>
+            </Border>
         </DataTemplate>
     </Shell.Resources>
 
     <!-- ItemTemplate + MenuItemTemplate werden im Code-Behind auf FlyoutEntryTemplate gesetzt -->
 
     <Shell.FlyoutHeader>
-        <Grid Padding="20,40,20,24"
-              BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}"
+        <!-- Galerie-Header: in beiden Themes dunkel (warmes Fast-Schwarz), weisse Signet-Kachel,
+             Wordmark + rot-weiss-rotes Fahnenband als Markenzeichen -->
+        <Grid Padding="20,44,20,22"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource CardBackgroundDark}}"
               ColumnDefinitions="Auto,*"
               ColumnSpacing="14">
 
@@ -70,7 +80,7 @@
                     BackgroundColor="{StaticResource White}"
                     Stroke="Transparent"
                     StrokeThickness="0"
-                    StrokeShape="RoundRectangle 14"
+                    StrokeShape="RoundRectangle 16"
                     WidthRequest="56"
                     HeightRequest="56"
                     Padding="5">
@@ -81,16 +91,17 @@
             </Border>
 
             <VerticalStackLayout Grid.Column="1"
-                                 Spacing="3"
+                                 Spacing="5"
                                  VerticalOptions="Center">
                 <Label Text="HEIMATPLATZ"
+                       FontFamily="SansBold"
                        FontSize="16"
-                       FontAttributes="Bold"
-                       CharacterSpacing="3"
+                       CharacterSpacing="4"
                        TextColor="{StaticResource White}" />
                 <Label Text="Immobilien in Ihrer Region"
                        FontSize="12"
                        TextColor="{StaticResource Gray300}" />
+                <controls:FlagBand Margin="0,3,0,0" />
             </VerticalStackLayout>
         </Grid>
     </Shell.FlyoutHeader>
@@ -102,12 +113,6 @@
         Icon="icon_home.png"
         ContentTemplate="{DataTemplate properties:HomePage}"
         Route="MainPage" />
-    <!-- Gleiche eigenstaendige Seite wie ueber das Filter-Symbol der Startseite.
-         Als MenuItem bleibt die Startseite Shell-Root und ihr Hamburger stabil sichtbar. -->
-    <MenuItem x:Name="FilterSettingsMenuItem"
-              Text="Filtereinstellungen"
-              IconImageSource="icon_filter.png"
-              Clicked="OnFilterSettingsTapped" />
     <ShellContent
         Title="Meine Immobilien"
         Icon="icon_buildings.png"

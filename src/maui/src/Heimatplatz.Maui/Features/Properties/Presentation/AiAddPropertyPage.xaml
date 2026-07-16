@@ -40,14 +40,14 @@
                                     WidthRequest="26" HeightRequest="26"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 13"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                     VerticalOptions="Center">
                                 <Label Text="1"
                                        FontSize="13"
                                        FontAttributes="Bold"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
-                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                             </Border>
                             <Label Grid.Column="1"
                                    Text="Fotos &amp; Videos"
@@ -147,14 +147,14 @@
                                     WidthRequest="26" HeightRequest="26"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 13"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                     VerticalOptions="Center">
                                 <Label Text="2"
                                        FontSize="13"
                                        FontAttributes="Bold"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
-                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                             </Border>
                             <Label Grid.Column="1"
                                    Text="Immobilie beschreiben"
@@ -179,7 +179,7 @@
                                     StrokeShape="RoundRectangle 42"
                                     HorizontalOptions="Center"
                                     VerticalOptions="Center"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}">
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                                 <Border.Triggers>
                                     <DataTrigger TargetType="Border"
                                                  Binding="{Binding IsListening}"
@@ -195,7 +195,7 @@
                                        FontSize="30"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
-                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                             </Border>
                         </Grid>
 
@@ -225,14 +225,14 @@
                                     WidthRequest="26" HeightRequest="26"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 13"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                     VerticalOptions="Center">
                                 <Label Text="3"
                                        FontSize="13"
                                        FontAttributes="Bold"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
-                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
                             </Border>
                             <Label Grid.Column="1"
                                    Text="Eckdaten"
@@ -264,7 +264,7 @@
                             <Label Text="{Binding SelectedOrtText}"
                                    FontSize="13"
                                    IsVisible="{Binding HasSelectedOrt}"
-                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                             <Entry Text="{Binding OrtSearchText}"
                                    Placeholder="Ort oder PLZ suchen..." />
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"

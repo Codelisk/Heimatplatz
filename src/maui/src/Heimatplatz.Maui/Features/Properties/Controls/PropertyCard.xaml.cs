@@ -151,9 +151,12 @@ public partial class PropertyCard : ContentView
             PriceOverlay.IsVisible = false;
         }
 
-        // Ort und Adresse
+        // Ort und Adresse (eine Zeile; Trenner nur wenn beides vorhanden)
         OrtText.Text = property.City;
         AddressText.Text = property.Address;
+        var hasAddress = !string.IsNullOrWhiteSpace(property.Address);
+        AddressText.IsVisible = hasAddress;
+        OrtAddressSeparator.IsVisible = hasAddress && !string.IsNullOrWhiteSpace(property.City);
 
         // Titel
         TitleText.Text = property.Title;
@@ -167,12 +170,11 @@ public partial class PropertyCard : ContentView
             _ => "IMM"
         };
 
+        // Nur die Zwangsversteigerung traegt das Signal-Rot; alles andere warmes Glas
         TypeBadge.BackgroundColor = property.Type switch
         {
-            PropertyType.House => Color.FromArgb("#2D6A9F"),
-            PropertyType.Land => Color.FromArgb("#5D8A66"),
-            PropertyType.Foreclosure => Color.FromArgb("#B22222"),
-            _ => Color.FromArgb("#6E6E6E")
+            PropertyType.Foreclosure => Color.FromArgb("#DE2A2F"),
+            _ => Color.FromArgb("#66171310")
         };
 
         TypeBadge.IsVisible = property.Type is PropertyType.House or PropertyType.Land or PropertyType.Foreclosure;
@@ -181,7 +183,7 @@ public partial class PropertyCard : ContentView
         if (property.PlotAreaM2.HasValue)
         {
             GrundstueckPanel.IsVisible = true;
-            GrundstueckText.Text = PropertyDisplay.Number(property.PlotAreaM2.Value);
+            GrundstueckText.Text = $"{PropertyDisplay.Number(property.PlotAreaM2.Value)} m² Grund";
         }
         else
         {
@@ -192,7 +194,7 @@ public partial class PropertyCard : ContentView
         if (property.LivingAreaM2.HasValue)
         {
             WohnflaechePanel.IsVisible = true;
-            WohnflaecheText.Text = $"{PropertyDisplay.Number(property.LivingAreaM2.Value)} Wfl";
+            WohnflaecheText.Text = $"{PropertyDisplay.Number(property.LivingAreaM2.Value)} m² Wfl";
         }
         else
         {
@@ -260,15 +262,15 @@ public partial class PropertyCard : ContentView
     private void UpdateFavoriteGlyph()
     {
         FavoriteButton.Text = IsFavorite ? "♥" : "♡";
-        FavoriteButton.TextColor = IsFavorite ? Color.FromArgb("#FF6B6B") : Colors.White;
+        FavoriteButton.TextColor = IsFavorite ? Color.FromArgb("#DE2A2F") : Colors.White;
     }
 
     private static string FormatPrice(decimal price)
     {
+        // Voller Preis statt Kompaktform ("alle Infos auf einen Blick");
+        // nur Millionenbetraege werden verdichtet
         if (price >= 1_000_000)
             return string.Format(PropertyDisplay.Culture, "{0:0.##} Mio €", price / 1_000_000);
-        if (price >= 1_000)
-            return string.Format(PropertyDisplay.Culture, "{0:0} T€", price / 1_000);
         return PropertyDisplay.Price(price);
     }
 

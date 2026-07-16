@@ -32,8 +32,11 @@ public static class MauiProgram
             .UseShinyControls()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("SchibstedGrotesk-Regular.ttf", "SansRegular");
+                fonts.AddFont("SchibstedGrotesk-Medium.ttf", "SansMedium");
+                fonts.AddFont("SchibstedGrotesk-SemiBold.ttf", "SansSemibold");
+                fonts.AddFont("SchibstedGrotesk-Bold.ttf", "SansBold");
+                fonts.AddFont("Fraunces-SemiBold.ttf", "Display");
             });
 
         // API-Endpunkt fuer den generierten Shiny.Mediator OpenAPI-Client

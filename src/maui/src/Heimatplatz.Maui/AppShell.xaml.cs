@@ -59,15 +59,6 @@ public partial class AppShell : ShinyShell
     }
 
     /// <summary>
-    /// Oeffnet aus dem Flyout dieselbe Filterseite wie das Toolbar-Symbol der Startseite.
-    /// </summary>
-    private async void OnFilterSettingsTapped(object? sender, EventArgs e)
-    {
-        FlyoutIsPresented = false;
-        await GoToAsync("FilterSettings");
-    }
-
-    /// <summary>
     /// Workaround: Das interne MenuShellItem uebernimmt IconImageSource des MenuItems
     /// nicht zuverlaessig in Icon/FlyoutIcon - daher explizit nachziehen, damit das
     /// MenuItemTemplate ({Binding Icon}) die Icons anzeigen kann.

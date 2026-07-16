@@ -4,89 +4,60 @@
              x:Class="Heimatplatz.Maui.Features.Properties.Controls.PropertyCard">
 
     <!--
-    PropertyCard - Vertikales Card Design
-    Bild oben, Content darunter - optimiert fuer Listen-Layout
+    PropertyCard - Split-Design (Lesbarkeit vor Optik):
+    Foto oben unverdeckt (nur Badges/Aktionen als Glas-Pills), darunter ein
+    strukturierter Info-Block auf fester Kartenflaeche - Preis (Serif, Markenrot),
+    Ort/Adresse, Titel, Fakten-Pills und Meta-Zeile.
     -->
 
     <Border StrokeThickness="1"
-            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
-            StrokeShape="RoundRectangle 12"
+            Stroke="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}"
+            BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+            StrokeShape="RoundRectangle 20"
             Padding="0">
+        <Border.Shadow>
+            <Shadow />
+        </Border.Shadow>
         <Border.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnCardTapped" />
         </Border.GestureRecognizers>
 
-        <Grid RowDefinitions="200,Auto">
+        <Grid RowDefinitions="190,Auto">
 
-            <!-- Bild-Bereich -->
+            <!-- Bild-Bereich: unverdeckt bis auf Badges -->
             <Grid Grid.Row="0">
 
-                <!-- Placeholder -->
-                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12,12,0,0">
-                    <Label Text="🏠"
-                           FontSize="40"
-                           Opacity="0.4"
+                <!-- Placeholder: Marke als Wasserzeichen -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                        StrokeThickness="0">
+                    <Image Source="logo.png"
+                           WidthRequest="88"
+                           Opacity="0.18"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
                 </Border>
 
                 <!-- Hauptbild (erstes Bild) -->
-                <Border StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12,12,0,0">
-                    <Image x:Name="MainImage"
-                           Aspect="AspectFill"
-                           HorizontalOptions="Fill"
-                           VerticalOptions="Fill" />
-                </Border>
+                <Image x:Name="MainImage"
+                       Aspect="AspectFill"
+                       HorizontalOptions="Fill"
+                       VerticalOptions="Fill" />
 
-                <!-- Bild-Counter unten links -->
-                <Border x:Name="ImageCounterBadge"
-                        BackgroundColor="#80000000"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 4"
-                        Padding="8,4"
-                        Margin="12"
-                        VerticalOptions="End"
-                        HorizontalOptions="Start"
-                        IsVisible="False">
-                    <Label x:Name="ImageCounterText"
-                           FontSize="11"
-                           TextColor="White" />
-                </Border>
-
-                <!-- Typ-Badge oben links -->
+                <!-- Typ-Badge oben links (ZV = Signal-Rot, sonst warmes Glas; Farbe im Code-Behind) -->
                 <Border x:Name="TypeBadge"
-                        BackgroundColor="{StaticResource Primary}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="12,6"
+                        BackgroundColor="{StaticResource SignalRed}"
+                        Stroke="{StaticResource GlassPillStroke}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="12,5"
                         Margin="12"
                         VerticalOptions="Start"
                         HorizontalOptions="Start"
                         IsVisible="False">
                     <Label x:Name="TypeBadgeText"
+                           FontFamily="SansBold"
                            FontSize="10"
-                           FontAttributes="Bold"
-                           CharacterSpacing="0.8"
-                           TextColor="White" />
-                </Border>
-
-                <!-- Preis unten rechts -->
-                <Border x:Name="PriceOverlay"
-                        BackgroundColor="#E8000000"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 6"
-                        Padding="14,8"
-                        Margin="12"
-                        VerticalOptions="End"
-                        HorizontalOptions="End"
-                        IsVisible="False">
-                    <Label x:Name="PriceText"
-                           FontSize="18"
-                           FontAttributes="Bold"
+                           CharacterSpacing="1.4"
                            TextColor="White" />
                 </Border>
 
@@ -101,10 +72,10 @@
                             Text="♡"
                             FontSize="18"
                             TextColor="White"
-                            BackgroundColor="#70000000"
-                            WidthRequest="38"
-                            HeightRequest="38"
-                            CornerRadius="19"
+                            BackgroundColor="{StaticResource GlassPillBackground}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            CornerRadius="20"
                             Padding="0"
                             IsVisible="False"
                             Clicked="OnFavoriteClicked" />
@@ -114,10 +85,10 @@
                             Text="⊘"
                             FontSize="18"
                             TextColor="White"
-                            BackgroundColor="#70000000"
-                            WidthRequest="38"
-                            HeightRequest="38"
-                            CornerRadius="19"
+                            BackgroundColor="{StaticResource GlassPillBackground}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            CornerRadius="20"
                             Padding="0"
                             IsVisible="False"
                             Clicked="OnBlockClicked" />
@@ -126,11 +97,11 @@
                     <Button x:Name="FavoriteActionButton"
                             Text="♥"
                             FontSize="18"
-                            TextColor="#FF6B6B"
-                            BackgroundColor="#70000000"
-                            WidthRequest="38"
-                            HeightRequest="38"
-                            CornerRadius="19"
+                            TextColor="{StaticResource SignalRed}"
+                            BackgroundColor="{StaticResource GlassPillBackground}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            CornerRadius="20"
                             Padding="0"
                             IsVisible="False"
                             Clicked="OnFavoriteClicked" />
@@ -140,10 +111,10 @@
                             Text="✕"
                             FontSize="16"
                             TextColor="White"
-                            BackgroundColor="#70000000"
-                            WidthRequest="38"
-                            HeightRequest="38"
-                            CornerRadius="19"
+                            BackgroundColor="{StaticResource GlassPillBackground}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            CornerRadius="20"
                             Padding="0"
                             IsVisible="False"
                             Clicked="OnBlockClicked" />
@@ -153,103 +124,111 @@
                             Text="✕"
                             FontSize="16"
                             TextColor="White"
-                            BackgroundColor="#70000000"
-                            WidthRequest="38"
-                            HeightRequest="38"
-                            CornerRadius="19"
+                            BackgroundColor="{StaticResource GlassPillBackground}"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            CornerRadius="20"
                             Padding="0"
                             IsVisible="False"
                             Clicked="OnOwnerDeleteClicked" />
                 </HorizontalStackLayout>
+
+                <!-- Bild-Counter unten rechts -->
+                <Border x:Name="ImageCounterBadge"
+                        Style="{StaticResource GlassPill}"
+                        Padding="8,3"
+                        Margin="12"
+                        VerticalOptions="End"
+                        HorizontalOptions="End"
+                        IsVisible="False">
+                    <Label x:Name="ImageCounterText"
+                           FontSize="10.5"
+                           FontFamily="SansMedium"
+                           TextColor="White" />
+                </Border>
             </Grid>
 
-            <!-- Content: Zwei-Spalten Layout -->
-            <Grid Grid.Row="1"
-                  Padding="14,12"
-                  ColumnDefinitions="*,Auto">
+            <!-- Info-Block: alle Texte auf fester Flaeche -->
+            <VerticalStackLayout Grid.Row="1"
+                                 Padding="14,10,14,12"
+                                 Spacing="3">
 
-                <!-- Links: Ort, Adresse, Titel, Anbieter, Datum -->
-                <VerticalStackLayout Grid.Column="0"
-                                     Spacing="2"
-                                     VerticalOptions="Center">
+                <!-- Preis im Serif-Schnitt, Markenrot -->
+                <HorizontalStackLayout x:Name="PriceOverlay" IsVisible="False">
+                    <Label x:Name="PriceText"
+                           FontFamily="Display"
+                           FontSize="23"
+                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                </HorizontalStackLayout>
 
+                <!-- Ort · Adresse in einer Zeile -->
+                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="5">
                     <Label x:Name="OrtText"
+                           Grid.Column="0"
+                           FontFamily="SansBold"
                            FontSize="15"
-                           FontAttributes="Bold"
                            LineBreakMode="TailTruncation"
                            MaxLines="1"
                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-
+                    <Label x:Name="OrtAddressSeparator"
+                           Grid.Column="1"
+                           Text="·"
+                           FontSize="14"
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                     <Label x:Name="AddressText"
-                           FontSize="12"
+                           Grid.Column="2"
+                           FontSize="13"
+                           VerticalOptions="Center"
                            LineBreakMode="TailTruncation"
                            MaxLines="1"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </Grid>
 
-                    <Label x:Name="TitleText"
-                           FontSize="11"
-                           LineBreakMode="TailTruncation"
-                           MaxLines="1"
-                           Margin="0,2,0,0"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
+                <Label x:Name="TitleText"
+                       FontSize="12"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
 
-                    <Label x:Name="SellerBadgeText"
-                           FontSize="10"
-                           Margin="0,2,0,0"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-
-                    <Label x:Name="CreatedAtText"
-                           FontSize="10"
-                           Margin="0,2,0,0"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-                </VerticalStackLayout>
-
-                <!-- Rechts: Flaechen und Zimmer -->
-                <VerticalStackLayout Grid.Column="1"
-                                     Spacing="4"
-                                     VerticalOptions="Center"
-                                     HorizontalOptions="End"
-                                     Margin="12,0,0,0">
-
-                    <!-- Grundstuecksflaeche prominent -->
-                    <VerticalStackLayout x:Name="GrundstueckPanel"
-                                         HorizontalOptions="End">
+                <!-- Fakten-Pills -->
+                <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
+                    <Border x:Name="GrundstueckPanel"
+                            Style="{StaticResource PillTag}"
+                            IsVisible="False">
                         <Label x:Name="GrundstueckText"
-                               FontSize="20"
-                               FontAttributes="Bold"
-                               HorizontalOptions="End"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                        <Label Text="m² Grund"
-                               FontSize="10"
-                               HorizontalOptions="End"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                    </VerticalStackLayout>
+                               Style="{StaticResource PillTagText}" />
+                    </Border>
 
-                    <!-- Tags: Wohnflaeche und Zimmer -->
-                    <HorizontalStackLayout Spacing="4"
-                                           HorizontalOptions="End">
-                        <Border x:Name="WohnflaechePanel"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="6,2">
-                            <Label x:Name="WohnflaecheText"
-                                   FontSize="10"
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                        </Border>
+                    <Border x:Name="WohnflaechePanel"
+                            Style="{StaticResource PillTag}"
+                            IsVisible="False">
+                        <Label x:Name="WohnflaecheText"
+                               Style="{StaticResource PillTagText}" />
+                    </Border>
 
-                        <Border x:Name="RoomsPanel"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="6,2">
-                            <Label x:Name="RoomsText"
-                                   FontSize="10"
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                        </Border>
-                    </HorizontalStackLayout>
-                </VerticalStackLayout>
-            </Grid>
+                    <Border x:Name="RoomsPanel"
+                            Style="{StaticResource PillTag}"
+                            IsVisible="False">
+                        <Label x:Name="RoomsText"
+                               Style="{StaticResource PillTagText}" />
+                    </Border>
+                </HorizontalStackLayout>
+
+                <!-- Anbieter und Datum dezent -->
+                <HorizontalStackLayout Spacing="5" Margin="0,5,0,0">
+                    <Label x:Name="SellerBadgeText"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
+                    <Label x:Name="SellerDateSeparator"
+                           Text="·"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
+                    <Label x:Name="CreatedAtText"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
         </Grid>
     </Border>
 </ContentView>

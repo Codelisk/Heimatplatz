@@ -186,6 +186,64 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     public bool IsOrtPanelBrowseVisible => !IsOrtPanelSearchActive;
 
+    // ---- Chip-Zeile: kleine Bottom-Sheets fuer Sortierung/Typ/Zeitraum ----
+
+    [ObservableProperty]
+    public partial bool IsSortSheetOpen { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsTypeSheetOpen { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAgeSheetOpen { get; set; }
+
+    /// <summary>Enum-Name der aktiven Sortierung (fuer das Haekchen im Sortier-Sheet)</summary>
+    public string SelectedSortName => _selectedSort.ToString();
+
+    /// <summary>Beschriftung des Sortier-Chips</summary>
+    public string SortChipLabel => GetSortLabel(_selectedSort);
+
+    /// <summary>Beschriftung des Typ-Chips (kurz, damit die Chip-Zeile nicht ueberlaeuft)</summary>
+    public string TypeChipLabel
+    {
+        get
+        {
+            var types = new List<string>(3);
+            if (IsHausSelected) types.Add("Haus");
+            if (IsGrundstueckSelected) types.Add("Grund");
+            if (IsZwangsversteigerungSelected) types.Add("ZV");
+            return types.Count is 0 or 3 ? "Alle Typen" : string.Join(" · ", types);
+        }
+    }
+
+    public bool IsTypeFilterActive => !(IsHausSelected && IsGrundstueckSelected && IsZwangsversteigerungSelected);
+
+    public string AgeChipLabel => SelectedAgeFilterIndex <= 0 ? "Zeitraum" : AgeFilterOptions[SelectedAgeFilterIndex];
+
+    public bool IsAgeFilterActive => SelectedAgeFilterIndex > 0;
+
+    public string OrtChipLabel => SelectedOrteCount switch
+    {
+        0 => "Alle Orte",
+        1 => SelectedOrte[0],
+        _ => $"{SelectedOrteCount} Orte"
+    };
+
+    public bool IsOrtFilterActive => SelectedOrteCount > 0;
+
+    /// <summary>Chip-Beschriftungen und Aktiv-Zustaende nach jeder Filteraenderung nachziehen</summary>
+    private void RefreshChipLabels()
+    {
+        OnPropertyChanged(nameof(SelectedSortName));
+        OnPropertyChanged(nameof(SortChipLabel));
+        OnPropertyChanged(nameof(TypeChipLabel));
+        OnPropertyChanged(nameof(IsTypeFilterActive));
+        OnPropertyChanged(nameof(AgeChipLabel));
+        OnPropertyChanged(nameof(IsAgeFilterActive));
+        OnPropertyChanged(nameof(OrtChipLabel));
+        OnPropertyChanged(nameof(IsOrtFilterActive));
+    }
+
     public HomeViewModel(
         IAuthService authService,
         INavigator navigator,
@@ -474,6 +532,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             : SelectedOrte.Count == 1 ? SelectedOrte[0] : $"{SelectedOrte.Count} Orte");
 
         FilterSummary = string.Join(" · ", parts);
+        RefreshChipLabels();
     }
 
     partial void OnIsHausSelectedChanged(bool value)
@@ -1312,36 +1371,37 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     [RelayCommand]
     private void ToggleBroker() => IsBrokerSelected = !IsBrokerSelected;
 
-    /// <summary>
-    /// Zeigt die Sortieroptionen als ActionSheet (Toolbar-Button)
-    /// </summary>
     [RelayCommand]
-    private async Task ShowSortOptionsAsync()
+    private void OpenSortSheet() => IsSortSheetOpen = true;
+
+    [RelayCommand]
+    private void OpenTypeSheet() => IsTypeSheetOpen = true;
+
+    [RelayCommand]
+    private void OpenAgeSheet() => IsAgeSheetOpen = true;
+
+    [RelayCommand]
+    private void CloseTypeSheet() => IsTypeSheetOpen = false;
+
+    /// <summary>Sortierung aus dem Sheet waehlen (Einzelauswahl schliesst das Sheet)</summary>
+    [RelayCommand]
+    private void SelectSort(string sortName)
     {
-        var choice = await _dialogs.ActionSheet(
-            $"Sortierung (aktuell: {GetSortLabel(_selectedSort)})",
-            "Abbrechen",
-            null,
-            "Neueste", "Älteste", "Preis ↑", "Preis ↓", "Fläche ↓", "Fläche ↑", "PLZ ↑", "PLZ ↓");
+        IsSortSheetOpen = false;
 
-        var newSort = choice switch
-        {
-            "Neueste" => SortOption.Neueste,
-            "Älteste" => SortOption.Aelteste,
-            "Preis ↑" => SortOption.PreisAuf,
-            "Preis ↓" => SortOption.PreisAb,
-            "Fläche ↓" => SortOption.FlaecheAb,
-            "Fläche ↑" => SortOption.FlaecheAuf,
-            "PLZ ↑" => SortOption.PlzAuf,
-            "PLZ ↓" => SortOption.PlzAb,
-            _ => (SortOption?)null
-        };
-
-        if (newSort == null || newSort == _selectedSort)
+        if (!Enum.TryParse<SortOption>(sortName, out var sort) || sort == _selectedSort)
             return;
 
-        _selectedSort = newSort.Value;
+        _selectedSort = sort;
         OnFiltersChanged();
+    }
+
+    /// <summary>Zeitraum aus dem Sheet waehlen (Einzelauswahl schliesst das Sheet)</summary>
+    [RelayCommand]
+    private void SelectAgeFilter(int index)
+    {
+        IsAgeSheetOpen = false;
+        SelectedAgeFilterIndex = index;
     }
 
     private static string GetSortLabel(SortOption sort) => sort switch

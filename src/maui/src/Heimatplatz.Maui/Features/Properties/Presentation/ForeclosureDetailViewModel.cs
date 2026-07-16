@@ -98,6 +98,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     [ObservableProperty]
     public partial List<PropertyDetailSection> DetailSections { get; set; }
 
+    /// <summary>Kernfakten als Kacheln direkt unter dem Kopf (auf einen Blick)</summary>
+    [ObservableProperty]
+    public partial List<StatTileItem> StatTiles { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasStatTiles { get; set; }
+
     [ObservableProperty]
     public partial string? Description { get; set; }
 
@@ -192,8 +199,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         PriceCaption = "Mindestgebot";
         AddressText = string.Empty;
         TypeBadgeText = "ZV";
-        TypeBadgeColor = Color.FromArgb("#B22222");
+        TypeBadgeColor = Color.FromArgb("#DE2A2F");
         DetailSections = [];
+        StatTiles = [];
         ImageUrls = [];
         CourtName = string.Empty;
         IsAuthenticated = authService.IsAuthenticated;
@@ -281,6 +289,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             AddressText = string.Empty;
             TypeBadgeText = "ZV";
             DetailSections = [];
+            StatTiles = [];
+            HasStatTiles = false;
             Description = null;
             HasDescription = false;
             HasDocuments = false;
@@ -295,7 +305,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
         Title = Property.Title;
         TypeBadgeText = "ZV";
-        TypeBadgeColor = Color.FromArgb("#B22222");
+        TypeBadgeColor = Color.FromArgb("#DE2A2F");
 
         // Preis formatieren; 0 € (kein Kaufpreis, nur Schaetzwert/Mindestgebot) ausblenden
         HasPrice = Property.Price > 0;
@@ -447,6 +457,34 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             .OrderBy(g => Array.IndexOf(categoryOrder, g.Key) is var idx && idx >= 0 ? idx : 999)
             .Select(g => new PropertyDetailSection(GetCategoryTitle(g.Key), g.Key, g.ToList()))
             .ToList();
+
+        BuildStatTiles(data, minimumBid, estimatedValue);
+    }
+
+    /// <summary>
+    /// Kernfakten fuer die Kachel-Zeile unter dem Kopf: Termin, Schaetzwert (sofern er
+    /// nicht ohnehin schon als prominenter Preis dient) und Gesamtflaeche.
+    /// </summary>
+    private void BuildStatTiles(JsonElement? data, decimal? minimumBid, decimal? estimatedValue)
+    {
+        var tiles = new List<StatTileItem>();
+
+        if (data.HasValue && data.Value.TryGetProperty("AuctionDate", out var auctionProp)
+            && auctionProp.ValueKind == JsonValueKind.String
+            && DateTime.TryParse(auctionProp.GetString(), out var auctionDate))
+        {
+            tiles.Add(new StatTileItem("TERMIN", auctionDate.ToString("dd.MM.yy")));
+        }
+
+        if (minimumBid is > 0 && estimatedValue is > 0)
+            tiles.Add(new StatTileItem("SCHÄTZWERT", PropertyDisplay.Price(estimatedValue.Value)));
+
+        var totalArea = GetJsonDecimal(data, "TotalArea") ?? Property?.PlotAreaM2;
+        if (totalArea is > 0)
+            tiles.Add(new StatTileItem("FLÄCHE", PropertyDisplay.Area(totalArea.Value)));
+
+        StatTiles = tiles;
+        HasStatTiles = tiles.Count > 0;
     }
 
     #region JSON Helpers
