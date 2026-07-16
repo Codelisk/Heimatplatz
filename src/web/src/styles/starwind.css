@@ -59,6 +59,8 @@
   --color-price: var(--price);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-type-haus: var(--type-haus);
+  --color-type-grund: var(--type-grund);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-accent: var(--secondary-accent);
@@ -140,6 +142,11 @@
   --outline: oklch(0.55 0.15 26.5);
   --brand: oklch(0.505 0.201 26.5);
   --brand-foreground: oklch(0.985 0.005 80);
+  /* Typ-Farben fuer die Foto-Badges (Kundenwunsch 16.07.): ZV = Markenrot
+     (--brand), Grund = Gruen, Haus = Alpen-Blau. Liegen auf Fotos und sind
+     wie --brand themenunabhaengig (kein .dark-Override). */
+  --type-haus: oklch(0.52 0.1 245);
+  --type-grund: oklch(0.55 0.12 150);
   /* Preis-Auszeichnung: eigener Token, damit Dark-Varianten Preise unabhaengig
      von Buttons faerben koennen (Text-Rot auf Dunkel wirkt sonst ziegelig) */
   --price: var(--primary);
@@ -162,7 +169,7 @@
  * Dunkel = Schwarz/Rot/Weiss (Kundenwunsch 16.07.2026, 2. Runde): Grund ist
  * warmes Fast-Schwarz, Karten/Zettel sind DUNKLE Flaechen knapp darueber -
  * kein helles Papier mehr ("zuviel Weiss"). Akzente kommen aus dem Rot
- * (CTAs, Preise, Reissnagel, Stempel) und Weisstoenen (Text, Raender,
+ * (CTAs, Preise, Typ-Badges) und Weisstoenen (Text, Raender,
  * Typ-Badges). Struktur/Dekoration bleibt exakt wie im Light Mode, es
  * wechseln nur die Token-Werte. Neutralen-Chroma bewusst niedrig
  * (<= 0.02), damit es schwarz statt braun wirkt.
@@ -211,16 +218,16 @@
 }
 
 /* Anschlagtafel-Details: Struktur ist in BEIDEN Themes 1:1 identisch
-   (Fugen, Zettel-Schatten, Reissnagel, Foto-Papierrand, Stempel) - nur die
-   Farbwerte wechseln ueber Tokens, analog AppThemeBinding in MAUI.
-   Hell = sonnige Pinnwand auf Manila-Grund, Dunkel = fast-schwarze Tafel
-   mit dunklen Zetteln und Rot/Weiss-Akzenten. */
+   (Fugen, Zettel-Schatten, Foto-Papierrand) - nur die Farbwerte wechseln
+   ueber Tokens, analog AppThemeBinding in MAUI. Hell = sonnige Pinnwand auf
+   Manila-Grund, Dunkel = fast-schwarze Tafel mit dunklen Zetteln und
+   Rot/Weiss-Akzenten. Der fruehere Reissnagel wurde entfernt
+   (Kundenwunsch 16.07.). */
 :root {
   --fuge: oklch(0.3 0.04 60 / 4%);
   --zettel-shadow: 0 14px 28px -14px oklch(0.28 0.04 55 / 35%);
   --zettel-shadow-hover: 0 18px 34px -16px oklch(0.28 0.04 55 / 45%);
   --zettel-frame: oklch(0.3 0.02 55 / 18%);
-  --nagel-shadow: oklch(0 0 0 / 25%);
 }
 .dark {
   --fuge: oklch(1 0 0 / 3%);
@@ -228,7 +235,6 @@
   --zettel-shadow-hover: 0 18px 34px -16px oklch(0 0 0 / 90%);
   /* Foto-Rand auf dunkler Karte als Weisston statt Tinte */
   --zettel-frame: oklch(0.95 0.01 70 / 16%);
-  --nagel-shadow: oklch(0 0 0 / 45%);
 }
 body {
   /* Angedeutete Bretterfugen, bewusst knapp ueber der Wahrnehmungsschwelle */
@@ -238,8 +244,8 @@ body {
     var(--fuge) 52px 54px
   );
 }
-/* Inserat-Karten: Papier-Zettel mit Schlagschatten statt Border, Reissnagel
-   oben mittig, Foto mit Papierrand eingefasst */
+/* Inserat-Karten: Papier-Zettel mit Schlagschatten statt Border,
+   Foto mit Papierrand eingefasst */
 [data-property-card] {
   position: relative;
   border-color: transparent;
@@ -249,38 +255,17 @@ body {
   border-color: transparent;
   box-shadow: var(--zettel-shadow-hover);
 }
-[data-property-card]::after {
-  content: "";
-  position: absolute;
-  top: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #d4555a, #9f1519 65%);
-  box-shadow: 0 2px 3px var(--nagel-shadow);
-  z-index: 2;
-  pointer-events: none;
-}
 [data-property-card] > div:first-child {
   margin: 12px 12px 0;
   border-radius: 2px;
   outline: 1px solid var(--zettel-frame);
 }
 
-/* ZV wird zum roten Stempel auf dem Zettel - auf Karten UND Detail-Hero
-   ([data-photo-badges]); Stempel liegt auf dem Foto und ist wie das Logo-Rot
-   themenunabhaengig. Typ-Badges (bg-foreground) werden nur eckig. */
-:is([data-property-card], [data-photo-badges]) span.bg-brand {
-  background-color: oklch(0.965 0.005 80 / 93%);
-  color: #9f1519;
-  border: 2px solid #9f1519;
-  border-radius: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-:is([data-property-card], [data-photo-badges]) span.bg-foreground {
+/* Typ-Badges auf Karten und Detail-Hero ([data-photo-badges]) werden eckig
+   (Zettel-Kante); die Farbe kommt aus den Typ-Tokens im Markup:
+   ZV = bg-brand (rot), Grund = bg-type-grund, Haus = bg-type-haus. */
+:is([data-property-card], [data-photo-badges])
+  :is(span.bg-brand, span.bg-foreground, span.bg-type-haus, span.bg-type-grund) {
   border-radius: 2px;
 }
 /* Betriebssystem-Wunsch "mehr Kontrast": Text und Raender anheben, Palette bleibt */

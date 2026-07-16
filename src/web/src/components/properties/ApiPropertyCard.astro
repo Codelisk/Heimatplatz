@@ -64,11 +64,17 @@ const citySlug = slugifyLocation(property.City);
         data-smart-image
       />
     </a>
-    {/* ZV traegt als einzige Kategorie das Markenrot (Signal), normale Typen bleiben neutral schwarz/weiss */}
+    {/* Typ-Farben: ZV = Markenrot, Grund = Gruen, Haus = Blau, Rest neutral */}
     <span
       class:list={[
         "absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold",
-        typeSearchValue === "foreclosure" ? "bg-brand text-brand-foreground" : "bg-foreground text-background",
+        typeSearchValue === "foreclosure"
+          ? "bg-brand text-brand-foreground"
+          : typeSearchValue === "land"
+            ? "bg-type-grund text-white"
+            : typeSearchValue === "house"
+              ? "bg-type-haus text-white"
+              : "bg-foreground text-background",
       ]}
     >
       {getApiPropertyTypeLabel(property.Type, property)}

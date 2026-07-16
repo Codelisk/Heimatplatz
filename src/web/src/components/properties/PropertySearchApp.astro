@@ -479,10 +479,18 @@ const totalInitialProperties = apiProperties.length;
     }, { once: true });
     link.append(image);
 
-    // ZV im Markenrot (Signal), alle anderen Typen neutral schwarz/weiss (wie ApiPropertyCard.astro)
+    // Typ-Farben: ZV = Markenrot, Grund = Gruen, Haus = Blau, Rest neutral (wie ApiPropertyCard.astro)
+    const badgeClasses =
+      type === "foreclosure"
+        ? "bg-brand text-brand-foreground"
+        : type === "land"
+          ? "bg-type-grund text-white"
+          : type === "house"
+            ? "bg-type-haus text-white"
+            : "bg-foreground text-background";
     const badge = createText(
       "span",
-      `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${type === "foreclosure" ? "bg-brand text-brand-foreground" : "bg-foreground text-background"}`,
+      `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${badgeClasses}`,
       type === "foreclosure" ? "ZV" : type === "land" ? "GRUND" : type === "apartment" ? "WOHNUNG" : "HAUS",
     );
     const actions = document.createElement("div");
