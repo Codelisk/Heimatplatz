@@ -24,6 +24,8 @@ public static class MauiProgram
         // Muss vor dem ersten Store-Zugriff laufen (Screenshot-Runs im Simulator)
         Core.Screenshots.ScreenshotMode.TryOverrideSecureStore();
 
+        Core.Handlers.BorderlessInputs.Register();
+
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()

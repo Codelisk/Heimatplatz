@@ -23,7 +23,8 @@
                 </Border>
 
                 <!-- Hinweis auf den KI-Primaerweg (nur Phones) -->
-                <Button Text="✨ Lieber mit KI erstellen? Fotos hochladen und diktieren"
+                <!-- Button-Text bricht nicht um - kurz halten, Details stehen am KI-Flow selbst -->
+                <Button Text="✨ Lieber mit KI erstellen?"
                         Command="{Binding SwitchToAiCommand}"
                         Style="{StaticResource LinkButton}"
                         IsVisible="{Binding ShowAiOption}" />

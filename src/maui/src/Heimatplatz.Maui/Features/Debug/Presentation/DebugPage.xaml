@@ -22,7 +22,7 @@
                            Style="{StaticResource BodyStrong}"
                            AutomationId="Debug_CurrentAuthenticationState" />
 
-                    <Button Text="Ausgeloggt"
+                    <Button Text="Abmelden"
                             Command="{Binding SetLoggedOutCommand}"
                             IsEnabled="{Binding IsNotBusy}"
                             Style="{StaticResource SecondaryButton}"

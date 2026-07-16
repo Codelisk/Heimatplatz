@@ -529,6 +529,7 @@
                                Placeholder="Gemeinde oder PLZ suchen"
                                Text="{Binding OrtPanelSearchText, Mode=TwoWay}"
                                BackgroundColor="Transparent"
+                               StyleClass="borderless"
                                AutomationId="Home_OrtPanel_Search" />
                     </Grid>
                 </Border>

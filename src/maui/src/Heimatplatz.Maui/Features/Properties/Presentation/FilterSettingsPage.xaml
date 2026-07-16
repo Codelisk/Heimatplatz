@@ -289,6 +289,7 @@
                             <Picker ItemsSource="{Binding PageSizeOptions}"
                                     SelectedItem="{Binding SelectedPageSize, Mode=TwoWay}"
                                     HorizontalTextAlignment="Center"
+                                    StyleClass="borderless"
                                     AutomationId="FilterSettings_PageSize" />
                         </Border>
                     </Grid>
@@ -346,6 +347,7 @@
                                    Placeholder="Gemeinde oder PLZ suchen"
                                    Text="{Binding OrtPanelSearchText, Mode=TwoWay}"
                                    BackgroundColor="Transparent"
+                                   StyleClass="borderless"
                                    AutomationId="FilterSettings_OrtPanel_Search" />
                         </Grid>
                     </Border>

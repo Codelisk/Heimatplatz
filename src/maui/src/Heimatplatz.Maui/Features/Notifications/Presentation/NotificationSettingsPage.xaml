@@ -282,6 +282,7 @@
                                     <Entry Grid.Column="1"
                                            Text="{Binding OrtSearchText}"
                                            Placeholder="Ort oder PLZ suchen..."
+                                           StyleClass="borderless"
                                            AutomationId="NotificationSettings_OrtSearch" />
                                 </Grid>
                             </Border>
