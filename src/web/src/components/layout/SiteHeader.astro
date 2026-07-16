@@ -57,8 +57,10 @@ function isActive(href: string) {
 }
 ---
 
-<header class="sticky top-0 z-40 border-b border-border bg-background">
-  <div class="flex h-14 items-center justify-between gap-3 px-3 sm:px-4">
+{/* Blur liegt auf der Zeile statt auf <header>: backdrop-filter macht das Element
+    zum Containing Block, der fixe Drawer darunter muesste sonst am Header kleben */}
+<header class="sticky top-0 z-40 border-b border-border">
+  <div class="flex h-14 items-center justify-between gap-3 bg-background px-3 supports-[backdrop-filter]:bg-background/85 supports-[backdrop-filter]:backdrop-blur-md sm:px-4">
     <div class="flex min-w-0 shrink-0 items-center gap-1">
       <button
         type="button"
@@ -69,8 +71,8 @@ function isActive(href: string) {
       >
         <MenuIcon class="size-5" aria-hidden="true" />
       </button>
-      <a href="/" class="flex min-w-0 items-center gap-2 px-1 text-foreground" aria-label="Heimatplatz Startseite">
-        <BrandMark class="size-8" />
+      <a href="/" class="flex min-w-0 items-center gap-2.5 px-1 text-foreground" aria-label="Heimatplatz Startseite">
+        <BrandMark class="h-8" />
         <span class="block truncate text-xs font-extrabold uppercase tracking-[0.14em] sm:text-sm">{currentTitle}</span>
       </a>
     </div>
@@ -138,8 +140,8 @@ function isActive(href: string) {
     data-site-nav-panel
   >
     <div class="flex h-14 items-center justify-between border-b border-border px-4">
-      <a href="/" class="flex items-center gap-2 font-extrabold uppercase tracking-[0.14em]">
-        <BrandMark class="size-8" />
+      <a href="/" class="flex items-center gap-2.5 font-extrabold uppercase tracking-[0.14em]">
+        <BrandMark class="h-7" />
         Heimatplatz
       </a>
       <button type="button" class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground" aria-label="Navigation schließen" data-site-nav-close>

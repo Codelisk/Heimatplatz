@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import BrandMark from "@/components/layout/BrandMark.astro";
 
 interface Props {
   title: string;
@@ -38,7 +39,8 @@ const { title, description, mode } = Astro.props;
         <path d="M12 19v-4" />
       </svg>
       <div class="relative max-w-md px-12">
-        <p class="text-5xl font-extrabold uppercase tracking-tight">Heimatplatz</p>
+        <BrandMark tile class="h-14" />
+        <p class="mt-6 text-5xl font-extrabold uppercase tracking-tight">Heimatplatz</p>
         <p class="mt-5 text-lg leading-8 text-white/80">
           Immobilien-Favoriten, Inserate und Suchprofile für Oberösterreich an einem Ort.
         </p>

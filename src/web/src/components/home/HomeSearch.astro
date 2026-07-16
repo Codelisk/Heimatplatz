@@ -9,7 +9,10 @@ import { NativeSelect } from "@/components/starwind/native-select";
 <section class="border-b border-border bg-muted/35">
   <div class="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl content-center gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
     <div class="max-w-3xl">
-      <p class="text-sm font-semibold uppercase text-primary">Immobiliensuche für Oberösterreich</p>
+      {/* Pill statt nacktem Rot-Text: accent-Paar erreicht in beiden Themes AAA-Kontrast */}
+      <p class="inline-flex items-center rounded-full bg-accent px-3.5 py-1.5 text-sm font-semibold uppercase tracking-wide text-accent-foreground">
+        Immobiliensuche für Oberösterreich
+      </p>
       <h1 class="mt-4 max-w-2xl text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
         Immobilien finden, vergleichen und in Oberösterreich schneller entscheiden.
       </h1>

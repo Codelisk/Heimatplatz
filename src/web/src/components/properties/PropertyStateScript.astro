@@ -306,9 +306,9 @@
     if (!status) return;
 
     status.textContent = message;
-    status.classList.remove("hidden", "text-muted-foreground", "text-red-700", "text-green-700");
-    if (tone === "error") status.classList.add("text-red-700");
-    if (tone === "success") status.classList.add("text-green-700");
+    status.classList.remove("hidden", "text-muted-foreground", "text-error", "text-success-foreground", "dark:text-success");
+    if (tone === "error") status.classList.add("text-error");
+    if (tone === "success") status.classList.add("text-success-foreground", "dark:text-success");
     if (tone === "info") status.classList.add("text-muted-foreground");
   }
 
@@ -954,7 +954,7 @@
     }, { once: true });
     const type = createText(
       "span",
-      `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${property.Type === "Foreclosure" ? "bg-warning text-warning-foreground" : "bg-primary text-primary-foreground"}`,
+      `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${property.Type === "Foreclosure" ? "bg-brand text-brand-foreground" : "bg-foreground text-background"}`,
       property.Type,
     );
     imageWrap.append(image, type);
@@ -970,7 +970,7 @@
     titleLink.className = "hover:underline";
     titleLink.textContent = property.City || property.Title;
     title.append(titleLink);
-    const price = createText("p", "shrink-0 whitespace-nowrap text-lg font-bold leading-tight text-primary", formatPriceValue(property.Price));
+    const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-primary", formatPriceValue(property.Price));
     head.append(title, price);
     const place = [property.PostalCode, property.City].filter(Boolean).join(" ");
     const addressText = (property.Address ?? "").trim();
@@ -1150,7 +1150,7 @@
     const status = form.querySelector<HTMLElement>("[data-location-status]");
     if (!status) return;
     status.textContent = message;
-    status.classList.toggle("text-red-700", tone === "error");
+    status.classList.toggle("text-error", tone === "error");
     status.classList.toggle("text-muted-foreground", tone === "info");
   }
 

@@ -64,11 +64,11 @@ const citySlug = slugifyLocation(property.City);
         data-smart-image
       />
     </a>
-    {/* ZV = Sonderfall und bekommt Bernstein statt Markengruen - so ist die Kategorie sofort unterscheidbar */}
+    {/* ZV traegt als einzige Kategorie das Markenrot (Signal), normale Typen bleiben neutral schwarz/weiss */}
     <span
       class:list={[
         "absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold",
-        typeSearchValue === "foreclosure" ? "bg-warning text-warning-foreground" : "bg-primary text-primary-foreground",
+        typeSearchValue === "foreclosure" ? "bg-brand text-brand-foreground" : "bg-foreground text-background",
       ]}
     >
       {getApiPropertyTypeLabel(property.Type, property)}

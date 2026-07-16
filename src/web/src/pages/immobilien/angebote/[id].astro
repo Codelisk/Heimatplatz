@@ -92,7 +92,7 @@ const detailSections = getApiPropertyDetailSections(property);
             <span
               class:list={[
                 "rounded-full px-3 py-1.5 text-xs font-bold",
-                property.Type === "Foreclosure" ? "bg-warning text-warning-foreground" : "bg-primary text-primary-foreground",
+                property.Type === "Foreclosure" ? "bg-brand text-brand-foreground" : "bg-foreground text-background",
               ]}
             >{getApiPropertyTypeLabel(property.Type, property)}</span>
             <span class="rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground">{property.City}</span>

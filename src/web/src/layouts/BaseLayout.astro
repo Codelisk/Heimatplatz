@@ -74,7 +74,7 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
           const dark = mode === "dark" || (mode === "system" && media.matches);
           root.classList.toggle("dark", dark);
           const meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute("content", dark ? "#0b0808" : "#fffdfc");
+          if (meta) meta.setAttribute("content", dark ? "#0d0908" : "#f9f5f1");
           window.dispatchEvent(new CustomEvent("heimatplatz:theme-changed", { detail: { mode } }));
         };
         apply();
@@ -121,8 +121,14 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
     <script is:inline type="application/ld+json" set:html={jsonLd}></script>
   </head>
   <body class:list={["flex min-h-screen flex-col bg-background text-foreground antialiased", bodyClass]}>
+    <a
+      href="#hauptinhalt"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
+    >
+      Zum Inhalt springen
+    </a>
     {chrome && <SiteHeader />}
-    <main class="flex-1">
+    <main id="hauptinhalt" class="flex-1">
       <slot />
     </main>
     {chrome && <SiteFooter />}
