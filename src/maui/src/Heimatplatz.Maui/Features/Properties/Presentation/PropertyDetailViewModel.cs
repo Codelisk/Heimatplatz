@@ -168,7 +168,27 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     {
         OnPropertyChanged(nameof(CurrentImageUrl));
         OnPropertyChanged(nameof(HasMultipleImages));
+        OnPropertyChanged(nameof(ShowViewerNavigation));
     }
+
+    /// <summary>True solange der Vollbild-Bildviewer (Lightbox) offen ist</summary>
+    [ObservableProperty]
+    public partial bool IsImageViewerOpen { get; set; }
+
+    /// <summary>Kontakt-Footer ausblenden solange die Lightbox offen ist (liegt auf WinUI sonst ueber dem Backdrop)</summary>
+    public bool ShowContactFooter => HasContactFooter && !IsImageViewerOpen;
+
+    /// <summary>Pfeile im Vollbild-Viewer: nur offen UND mehrere Bilder (kombiniert, da WinUI verschachtelte IsVisible-Bindings nicht malt)</summary>
+    public bool ShowViewerNavigation => IsImageViewerOpen && HasMultipleImages;
+
+    partial void OnIsImageViewerOpenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowContactFooter));
+        OnPropertyChanged(nameof(ShowViewerNavigation));
+    }
+
+    partial void OnHasContactFooterChanged(bool value)
+        => OnPropertyChanged(nameof(ShowContactFooter));
 
     /// <summary>
     /// Text fuer den Favoriten-Button je nach Status
@@ -775,6 +795,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     /// <summary>
     /// Klappt die Kontaktdetails im Footer auf/zu
     /// </summary>
+    [RelayCommand]
+    private void OpenImageViewer()
+    {
+        if (HasImages)
+            IsImageViewerOpen = true;
+    }
+
     [RelayCommand]
     private void ShowPreviousImage()
     {

@@ -184,7 +184,27 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     {
         OnPropertyChanged(nameof(CurrentImageUrl));
         OnPropertyChanged(nameof(HasMultipleImages));
+        OnPropertyChanged(nameof(ShowViewerNavigation));
     }
+
+    /// <summary>True solange der Vollbild-Bildviewer (Lightbox) offen ist</summary>
+    [ObservableProperty]
+    public partial bool IsImageViewerOpen { get; set; }
+
+    /// <summary>Gericht-Footer ausblenden solange die Lightbox offen ist (liegt auf WinUI sonst ueber dem Backdrop)</summary>
+    public bool ShowCourtFooter => HasCourtName && !IsImageViewerOpen;
+
+    /// <summary>Pfeile im Vollbild-Viewer: nur offen UND mehrere Bilder (kombiniert, da WinUI verschachtelte IsVisible-Bindings nicht malt)</summary>
+    public bool ShowViewerNavigation => IsImageViewerOpen && HasMultipleImages;
+
+    partial void OnIsImageViewerOpenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowCourtFooter));
+        OnPropertyChanged(nameof(ShowViewerNavigation));
+    }
+
+    partial void OnHasCourtNameChanged(bool value)
+        => OnPropertyChanged(nameof(ShowCourtFooter));
 
     /// <summary>
     /// Text fuer den Favoriten-Button je nach Status
@@ -593,6 +613,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     /// <summary>
     /// Kopiert einen Text in die Zwischenablage
     /// </summary>
+    [RelayCommand]
+    private void OpenImageViewer()
+    {
+        if (HasImages)
+            IsImageViewerOpen = true;
+    }
+
     [RelayCommand]
     private void ShowPreviousImage()
     {

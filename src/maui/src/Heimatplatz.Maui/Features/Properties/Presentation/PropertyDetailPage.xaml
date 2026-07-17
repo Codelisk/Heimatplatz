@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:shiny="http://shiny.net/maui/controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.PropertyDetailPage"
              x:DataType="vm:PropertyDetailViewModel"
@@ -52,8 +53,19 @@
                                       Loop="False">
                             <CarouselView.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">
-                                    <Image Source="{Binding .}"
-                                           Aspect="AspectFill" />
+                                    <Grid>
+                                        <Image Source="{Binding .}"
+                                               Aspect="AspectFill" />
+                                        <!-- Unsichtbare Tap-Flaeche: oeffnet die Grossansicht
+                                             (Button statt TapGestureRecognizer, wirkt ueberall) -->
+                                        <Button BackgroundColor="Transparent"
+                                                BorderColor="Transparent"
+                                                BorderWidth="0"
+                                                Padding="0"
+                                                MinimumHeightRequest="0"
+                                                Command="{Binding OpenImageViewerCommand, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}, x:DataType=vm:PropertyDetailViewModel}"
+                                                SemanticProperties.Description="Bild in Großansicht öffnen" />
+                                    </Grid>
                                 </DataTemplate>
                             </CarouselView.ItemTemplate>
                         </CarouselView>
@@ -80,6 +92,16 @@
                                  einen schmalen Bildstreifen zeigen; ganzes Foto zentriert -->
                             <Image Source="{Binding CurrentImageUrl}"
                                    Aspect="AspectFit" />
+
+                            <!-- Unsichtbare Tap-Flaeche: oeffnet die Grossansicht (unter den Pfeilen) -->
+                            <Button BackgroundColor="Transparent"
+                                    BorderColor="Transparent"
+                                    BorderWidth="0"
+                                    Padding="0"
+                                    MinimumHeightRequest="0"
+                                    Command="{Binding OpenImageViewerCommand}"
+                                    SemanticProperties.Description="Bild in Großansicht öffnen"
+                                    AutomationId="Detail_OpenImageViewer" />
 
                             <Button Text="‹"
                                     Command="{Binding ShowPreviousImageCommand}"
@@ -358,7 +380,7 @@
         <VerticalStackLayout x:Name="ContactFooter"
                              VerticalOptions="End"
                              Spacing="0"
-                             IsVisible="{Binding HasContactFooter}">
+                             IsVisible="{Binding ShowContactFooter}">
 
             <!-- Kopfzeile: immer sichtbar, Tippen klappt Details auf/zu -->
             <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
@@ -533,6 +555,73 @@
                            HorizontalOptions="Center"
                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                 </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Vollbild-Bildviewer (Lightbox wie im Web): Pinch/Zoom, Doppeltipp,
+             eingebauter Schliessen-Button -->
+        <shiny:ImageViewer Source="{Binding CurrentImageUrl}"
+                           IsOpen="{Binding IsImageViewerOpen, Mode=TwoWay}"
+                           OpenViewerOnTap="False" />
+
+        <!-- Blaettern im Vollbild: liegt ueber dem Viewer, faengt aber nur Eingaben
+             auf den Buttons ab. IsVisible NUR am Grid (WinUI malt Kinder mit
+             eigenem IsVisible-Binding hier nicht); hoher ZIndex, weil der
+             ImageViewer sein Overlay sonst darueber legt -->
+        <Grid IsVisible="{Binding ShowViewerNavigation}"
+              InputTransparent="True"
+              CascadeInputTransparent="False"
+              ZIndex="9999">
+            <Button Text="‹"
+                    Command="{Binding ShowPreviousImageCommand}"
+                    FontSize="22"
+                    Padding="0"
+                    MinimumHeightRequest="0"
+                    MinimumWidthRequest="0"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    CornerRadius="22"
+                    BorderWidth="1"
+                    BackgroundColor="{StaticResource GlassPillBackground}"
+                    BorderColor="{StaticResource GlassPillStroke}"
+                    TextColor="White"
+                    HorizontalOptions="Start"
+                    VerticalOptions="Center"
+                    Margin="14,0,0,0"
+                    AutomationId="Detail_Viewer_Previous" />
+
+            <Button Text="›"
+                    Command="{Binding ShowNextImageCommand}"
+                    FontSize="22"
+                    Padding="0"
+                    MinimumHeightRequest="0"
+                    MinimumWidthRequest="0"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    CornerRadius="22"
+                    BorderWidth="1"
+                    BackgroundColor="{StaticResource GlassPillBackground}"
+                    BorderColor="{StaticResource GlassPillStroke}"
+                    TextColor="White"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center"
+                    Margin="0,0,14,0"
+                    AutomationId="Detail_Viewer_Next" />
+        </Grid>
+
+        <!-- Zaehler im Vollbild (eigenes Grid: eigenes Sichtbarkeits-Kriterium) -->
+        <Grid IsVisible="{Binding IsImageViewerOpen}"
+              InputTransparent="True"
+              ZIndex="9999">
+            <Border Style="{StaticResource GlassPill}"
+                    Padding="10,4"
+                    Margin="0,0,0,24"
+                    VerticalOptions="End"
+                    HorizontalOptions="Center">
+                <Label Text="{Binding ImageCounterText}"
+                       FontSize="12"
+                       FontFamily="SansMedium"
+                       TextColor="White" />
             </Border>
         </Grid>
     </Grid>
