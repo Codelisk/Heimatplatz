@@ -72,8 +72,10 @@
                         </Grid.IsVisible>
 
                         <Grid IsVisible="{Binding HasImages}">
+                            <!-- AspectFit statt Fill: bei Desktop-Breite wuerde der Crop nur
+                                 einen schmalen Bildstreifen zeigen; ganzes Foto zentriert -->
                             <Image Source="{Binding CurrentImageUrl}"
-                                   Aspect="AspectFill" />
+                                   Aspect="AspectFit" />
 
                             <Button Text="‹"
                                     Command="{Binding ShowPreviousImageCommand}"
