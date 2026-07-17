@@ -1,9 +1,44 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import PropertySearchApp from "@/components/properties/PropertySearchApp.astro";
-import { fetchApiProperties } from "@/features/properties/live-api";
+import { fetchApiPropertySearch } from "@/features/properties/live-api";
+import { buildOrtSlugMap, fetchOrtRegions } from "@/features/locations/live-api";
+import {
+  ALL_SELLERS,
+  ALL_TYPES,
+  buildPropertySearchQuery,
+  normalizeTypeValue,
+  type PropertySearchState,
+} from "@/features/properties/search-query";
 
-const apiProperties = await fetchApiProperties({ pageSize: 24 });
+// SSR wendet die URL-Filter bereits an (gleicher Query-Builder wie der Client) -
+// erster Paint und SEO-Snapshot zeigen dieselben Treffer wie nach der Hydration.
+const params = Astro.url.searchParams;
+
+function parseSelection(name: string, allowed: readonly string[]) {
+  const values = params
+    .getAll(name)
+    .flatMap((value) => value.split(","))
+    .map((value) => normalizeTypeValue(value.trim()))
+    .filter((value) => allowed.includes(value));
+  return [...new Set(values)];
+}
+
+const ortRegions = await fetchOrtRegions();
+const ortSlugMap = buildOrtSlugMap(ortRegions);
+
+const searchState: PropertySearchState = {
+  q: params.get("q") ?? "",
+  types: parseSelection("type", ALL_TYPES),
+  sellers: parseSelection("seller", ALL_SELLERS),
+  ortSlugs: (params.get("region") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
+  age: params.get("age") ?? "",
+  sort: params.get("sort") ?? "newest",
+  page: Math.max(0, Number(params.get("page") ?? 0) || 0),
+};
+
+const searchQuery = buildPropertySearchQuery(searchState, ortSlugMap);
+const searchResult = await fetchApiPropertySearch(searchQuery);
 ---
 
 <BaseLayout
@@ -11,5 +46,11 @@ const apiProperties = await fetchApiProperties({ pageSize: 24 });
   description="Immobilien in Oberösterreich finden: Häuser, Wohnungen, Grundstücke und Zwangsversteigerungen mit Filtern und Push-Benachrichtigungen."
   canonicalPath="/"
 >
-  <PropertySearchApp apiProperties={apiProperties} />
+  <PropertySearchApp
+    apiProperties={searchResult.properties}
+    total={searchResult.total}
+    page={searchState.page}
+    ssrQuery={searchQuery}
+    ortSlugMap={ortSlugMap}
+  />
 </BaseLayout>

@@ -5,6 +5,18 @@ import MapPinIcon from "@tabler/icons/outline/map-pin.svg";
 import { upperAustriaRegions } from "@/data/upper-austria-regions";
 import { slugifyLocation } from "@/features/locations/region-match";
 
+interface PickerLocality {
+  name: string;
+  slug: string;
+  baseSlug?: string;
+}
+
+interface PickerRegion {
+  name: string;
+  slug: string;
+  localities: PickerLocality[];
+}
+
 interface Props {
   name?: string;
   id?: string;
@@ -12,6 +24,12 @@ interface Props {
   className?: string;
   /** Wenn true, schliesst der Picker nach Auswahl und erlaubt nur eine Auswahl. */
   singleSelect?: boolean;
+  /**
+   * Optionale Optionsliste (z.B. echte Bezirk/Gemeinde-Hierarchie der API fuer
+   * die Immobilien-Suche). Ohne Prop: statische SEO-Ortsteile wie bisher
+   * (Benachrichtigungs-/Filter-Einstellungen bleiben unveraendert).
+   */
+  regions?: PickerRegion[];
 }
 
 const {
@@ -22,7 +40,7 @@ const {
   singleSelect = false,
 } = Astro.props;
 
-const regions = upperAustriaRegions.map((region) => {
+const regions: PickerRegion[] = Astro.props.regions ?? upperAustriaRegions.map((region) => {
   const seen = new Set<string>();
   const localities = region.districts.flatMap((districtName) => {
     const baseSlug = slugifyLocation(districtName);

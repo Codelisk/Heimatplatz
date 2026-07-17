@@ -3,6 +3,10 @@ import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
 import FilterIcon from "@tabler/icons/outline/filter.svg";
 import { NativeSelect } from "@/components/starwind/native-select";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
+import { fetchOrtRegions } from "@/features/locations/live-api";
+
+// Gleiche API-basierte Ortsliste wie der Desktop-Picker im SiteHeader (cached)
+const ortRegions = await fetchOrtRegions();
 ---
 
 <section class="border-b border-border bg-background lg:hidden" data-mobile-filter>
@@ -24,7 +28,7 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
 
   <form action="/" method="get" class="hidden px-3 pb-3" data-mobile-filter-body>
     <div class="grid grid-cols-2 gap-2">
-      <OrtPicker name="region" placeholder="Ort auswählen" />
+      <OrtPicker name="region" placeholder="Ort auswählen" regions={ortRegions.length > 0 ? ortRegions : undefined} />
       <NativeSelect name="age" data-filter-age>
         <option value="">Zeitraum</option>
         <option value="day">24 Stunden</option>
@@ -35,7 +39,8 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
     </div>
 
     <div class="mt-3 flex flex-wrap gap-2">
-      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="apartment" aria-pressed="true">Wohnung</button>
+      {/* Kein eigener "Wohnung"-Chip: die API kennt nur House/Land/Foreclosure,
+          Desktop-Header bietet ihn ebenfalls nicht - Filterung laeuft komplett serverseitig. */}
       <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="house" aria-pressed="true">Haus</button>
       <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">Grund</button>
       <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="true">ZV</button>

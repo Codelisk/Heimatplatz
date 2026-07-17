@@ -40,4 +40,6 @@ export const TTL = {
   properties: 60_000,
   images: 60 * 60_000,
   legal: 10 * 60_000,
+  // Bezirk/Gemeinde-Hierarchie aendert sich praktisch nie
+  locations: 60 * 60_000,
 } as const;

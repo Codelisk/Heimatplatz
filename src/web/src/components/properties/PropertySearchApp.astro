@@ -2,24 +2,49 @@
 import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
 import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import type { ApiProperty } from "@/features/properties/live-api";
+import type { OrtSlugMap } from "@/features/properties/search-query";
+import { SEARCH_PAGE_SIZE } from "@/features/properties/search-query";
+import { jsonForScriptTag } from "@/lib/utils/json";
 import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
 import MobileFilterPanel from "@/components/properties/MobileFilterPanel.astro";
 
 interface Props {
   apiProperties?: ApiProperty[];
+  /** Gesamtanzahl Treffer (Server-Paging), nicht nur die aktuelle Seite */
+  total?: number;
+  /** 0-basierte Seite, die SSR gerendert hat */
+  page?: number;
+  /** Query-String des SSR-Fetches - Client refetcht nur bei Abweichung */
+  ssrQuery?: string;
+  /** Slug -> MunicipalityIds fuer den Client-Query-Builder */
+  ortSlugMap?: OrtSlugMap;
 }
 
-const { apiProperties = [] } = Astro.props;
-const totalInitialProperties = apiProperties.length;
+const {
+  apiProperties = [],
+  total = apiProperties.length,
+  page = 0,
+  ssrQuery = "",
+  ortSlugMap = {},
+} = Astro.props;
+const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 ---
 
 <MobileFilterPanel />
 
-<div data-search-config hidden></div>
+<div
+  data-search-config
+  data-ssr-query={ssrQuery}
+  data-initial-total={String(total)}
+  data-initial-page={String(page)}
+  hidden
+>
+</div>
+<script is:inline type="application/json" data-ort-slug-map set:html={jsonForScriptTag(ortSlugMap)} />
 
 <section class="border-b border-border bg-background">
   <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2 text-sm sm:px-5">
-    <span class="text-muted-foreground" data-result-count>{totalInitialProperties} Objekte</span>
+    <span class="text-muted-foreground" data-result-count>{total} {total === 1 ? "Objekt" : "Objekte"}</span>
     <label class="flex items-center gap-2">
       <span class="sr-only">Sortierung</span>
       {/* text-base auf Mobile: <select> unter 16px loest auf iOS Auto-Zoom aus */}
@@ -45,11 +70,17 @@ const totalInitialProperties = apiProperties.length;
     {apiProperties.map((property) => <ApiPropertyCard property={property} />)}
   </div>
   <p class="mx-auto mt-4 hidden max-w-7xl text-sm text-muted-foreground" data-live-status></p>
-  <p class="mx-auto hidden max-w-7xl py-16 text-center text-sm text-muted-foreground" data-empty-state>
+  <p
+    class:list={["mx-auto max-w-7xl py-16 text-center text-sm text-muted-foreground", total !== 0 && "hidden"]}
+    data-empty-state
+  >
     Keine Treffer für diese Filter. Bitte Ort, Zeitraum oder Anbieter anpassen.
   </p>
   <nav
-    class="mx-auto mt-5 hidden max-w-7xl items-center justify-center gap-4 border-t border-border pt-4"
+    class:list={[
+      "mx-auto mt-5 max-w-7xl items-center justify-center gap-4 border-t border-border pt-4",
+      pageCount > 1 ? "flex" : "hidden",
+    ]}
     aria-label="Suchergebnisse Seiten"
     data-pagination
   >
@@ -57,15 +88,19 @@ const totalInitialProperties = apiProperties.length;
       type="button"
       class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
       aria-label="Vorherige Seite"
+      disabled={page <= 0}
       data-page-prev
     >
       <ChevronLeftIcon class="size-5" aria-hidden="true" />
     </button>
-    <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info></span>
+    <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info>
+      {pageCount > 1 ? `Seite ${page + 1} von ${pageCount}` : ""}
+    </span>
     <button
       type="button"
       class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
       aria-label="Nächste Seite"
+      disabled={page >= pageCount - 1}
       data-page-next
     >
       <ChevronRightIcon class="size-5" aria-hidden="true" />
@@ -75,8 +110,17 @@ const totalInitialProperties = apiProperties.length;
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
-  import { formatApiPrice, getDisplayTitle } from "@/features/properties/format";
+  import { formatApiDate, formatApiPrice, getDisplayTitle } from "@/features/properties/format";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
+  import {
+    ALL_SELLERS,
+    ALL_TYPES,
+    buildPropertySearchQuery,
+    normalizeTypeValue,
+    SEARCH_PAGE_SIZE,
+    type OrtSlugMap,
+    type PropertySearchState,
+  } from "@/features/properties/search-query";
   // Nur Typ-Importe aus live-api (werden beim Build geloescht) - Wert-Importe wuerden
   // die Server-Abhaengigkeiten (ttl-cache, api-base) ins Client-Bundle ziehen
   import type { ApiProperty, ApiPropertyResponse } from "@/features/properties/live-api";
@@ -86,13 +130,11 @@ const totalInitialProperties = apiProperties.length;
   // Debug-Tab kann den Endpunkt zur Laufzeit umschalten (nur localhost/LAN, wie MAUI-DebugPage)
   const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
   const params = new URLSearchParams(window.location.search);
-  let cards = Array.from(document.querySelectorAll<HTMLElement>("[data-property-card]"));
   const resultCount = document.querySelector<HTMLElement>("[data-result-count]");
   const mobileResultCount = document.querySelector<HTMLElement>("[data-mobile-result-count]");
   const emptyState = document.querySelector<HTMLElement>("[data-empty-state]");
   const liveStatus = document.querySelector<HTMLElement>("[data-live-status]");
   const input = document.querySelector<HTMLInputElement>("[data-filter-input]");
-  const regionControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-region]"));
   const ortPickers = Array.from(document.querySelectorAll<HTMLElement>("[data-ort-picker][data-ort-picker-name='region']"));
   const ageControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-age]"));
   const typeButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-type]"));
@@ -106,13 +148,20 @@ const totalInitialProperties = apiProperties.length;
   const mobileToggle = document.querySelector<HTMLButtonElement>("[data-mobile-filter-toggle]");
   const mobileBody = document.querySelector<HTMLElement>("[data-mobile-filter-body]");
   const config = document.querySelector<HTMLElement>("[data-search-config]");
-  const ALL_TYPES = ["apartment", "house", "land", "foreclosure"];
-  // Ohne gespeicherte Praeferenzen alles anzeigen - ZV ausblenden hiess frueher,
-  // dass Erstbesucher bei reinem ZV-Datenbestand eine leere Startseite sahen.
-  const DEFAULT_TYPES = [...ALL_TYPES];
-  const ALL_SELLERS = ["private", "agent", "court"];
-  const PAGE_SIZE = 20;
-  let currentPage = 0;
+  const TYPE_VALUES: string[] = [...ALL_TYPES];
+  const SELLER_VALUES: string[] = [...ALL_SELLERS];
+
+  // Slug -> MunicipalityIds, vom SSR eingebettet (gleiche Quelle wie der OrtPicker)
+  const ortSlugMap: OrtSlugMap = (() => {
+    try {
+      return JSON.parse(document.querySelector("[data-ort-slug-map]")?.textContent ?? "{}") as OrtSlugMap;
+    } catch {
+      return {};
+    }
+  })();
+
+  let currentPage = Math.max(0, Number(config?.dataset.initialPage ?? 0) || 0);
+  let totalCount = Math.max(0, Number(config?.dataset.initialTotal ?? 0) || 0);
   let verifiedImageMapPromise: Promise<VerifiedImageMap> | null = null;
 
   const preset = {
@@ -137,17 +186,10 @@ const totalInitialProperties = apiProperties.length;
   function normalize(value: string) {
     return transliterateGerman(value)
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[̀-ͯ]/g, "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-  }
-
-  function normalizeText(value: string) {
-    return transliterateGerman(value)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
   }
 
   type StoredFilterPreferences = {
@@ -173,12 +215,11 @@ const totalInitialProperties = apiProperties.length;
   function getSelectedTypes(preferences: StoredFilterPreferences | null) {
     if (!preferences) return "";
     const selected = [
-      preferences.IsHausSelected !== false ? "apartment" : "",
       preferences.IsHausSelected !== false ? "house" : "",
       preferences.IsGrundstueckSelected !== false ? "land" : "",
       preferences.IsZwangsversteigerungSelected !== false ? "foreclosure" : "",
     ].filter(Boolean);
-    return selected.length > 0 && selected.length < ALL_TYPES.length ? selected.join(",") : "";
+    return selected.length > 0 && selected.length < TYPE_VALUES.length ? selected.join(",") : "";
   }
 
   function getSelectedSellers(preferences: StoredFilterPreferences | null) {
@@ -188,7 +229,7 @@ const totalInitialProperties = apiProperties.length;
       preferences.IsBrokerSelected !== false ? "agent" : "",
       "court",
     ].filter(Boolean);
-    return selected.length > 0 && selected.length < ALL_SELLERS.length ? selected.join(",") : "";
+    return selected.length > 0 && selected.length < SELLER_VALUES.length ? selected.join(",") : "";
   }
 
   function getStoredAge(preferences: StoredFilterPreferences | null) {
@@ -219,21 +260,15 @@ const totalInitialProperties = apiProperties.length;
   }
 
   const storedPreferences = readStoredFilterPreferences();
-  const regionOptionValues = new Set(
-    Array.from(regionControls[0]?.options ?? []).map((option) => option.value).filter(Boolean),
-  );
-  const storedLocations = getStoredLocations(storedPreferences);
-  const storedSingleRegion = storedLocations.length === 1 ? normalize(storedLocations[0]) : "";
+  const storedOrtSlugs = getStoredLocations(storedPreferences)
+    .map((location) => normalize(location))
+    .filter(Boolean);
   const storedInitial = {
     type: getSelectedTypes(storedPreferences),
     seller: getSelectedSellers(storedPreferences),
-    region: storedSingleRegion && regionOptionValues.has(storedSingleRegion) ? storedSingleRegion : "",
     age: getStoredAge(storedPreferences),
     sort: getStoredSort(storedPreferences),
   };
-  const storedOrtSlugs = storedLocations
-    .map((location) => normalize(location))
-    .filter(Boolean);
 
   function initialValue(name: string, presetValue: string, storedValue: string) {
     const value = params.get(name);
@@ -245,7 +280,7 @@ const totalInitialProperties = apiProperties.length;
     if (!value) return [];
     return value
       .split(",")
-      .map((item) => item.trim())
+      .map((item) => normalizeTypeValue(item.trim()))
       .filter((item) => allowed.includes(item));
   }
 
@@ -255,7 +290,7 @@ const totalInitialProperties = apiProperties.length;
       .flatMap((value) => splitSelection(value, allowed));
   }
 
-  function initialSelection(name: string, presetValue: string, storedValue: string, allowed: string[], defaults: string[] = allowed) {
+  function initialSelection(name: string, presetValue: string, storedValue: string, allowed: string[]) {
     const queryValues = getQuerySelection(name, allowed);
     if (queryValues.length > 0) return queryValues;
 
@@ -265,21 +300,20 @@ const totalInitialProperties = apiProperties.length;
     const storedValues = splitSelection(storedValue, allowed);
     if (storedValues.length > 0) return storedValues;
 
-    return [...defaults];
+    return [...allowed];
   }
 
   const initial = {
     q: params.get("q") ?? preset.q,
-    types: initialSelection("type", preset.type, storedInitial.type, ALL_TYPES, DEFAULT_TYPES),
-    sellers: initialSelection("seller", preset.seller, storedInitial.seller, ALL_SELLERS),
-    region: initialValue("region", preset.region, storedInitial.region),
+    types: initialSelection("type", preset.type, storedInitial.type, TYPE_VALUES),
+    sellers: initialSelection("seller", preset.seller, storedInitial.seller, SELLER_VALUES),
     age: initialValue("age", preset.age, storedInitial.age),
     sort: params.get("sort") ?? storedInitial.sort,
   };
   const selectedTypes = new Set(initial.types);
   const selectedSellers = new Set(initial.sellers);
 
-  // Multi-Select Orte: aus URL (?region=linz,wels), Preset oder gespeicherten Praeferenzen
+  // Multi-Select Orte: aus URL (?region=linz,steyr), Preset oder gespeicherten Praeferenzen
   function parseSlugList(value: string | null | undefined) {
     if (!value) return [] as string[];
     return value
@@ -297,9 +331,6 @@ const totalInitialProperties = apiProperties.length;
   const selectedOrtSlugs = new Set(initialOrtSlugs);
 
   if (input) input.value = initial.q;
-  regionControls.forEach((control) => {
-    control.value = initial.region;
-  });
   if (ortPickers.length > 0) {
     const api = (window as any).setOrtPickerValues;
     if (typeof api === "function") api("region", Array.from(selectedOrtSlugs));
@@ -322,6 +353,7 @@ const totalInitialProperties = apiProperties.length;
       || searchText.includes("apartment");
   }
 
+  // Nur fuer die Badge-Anzeige auf der Karte - gefiltert wird serverseitig
   function mapType(property: ApiProperty) {
     if (property.Type === "House" && isApiApartmentCandidate(property)) return "apartment";
     const type = property.Type;
@@ -330,19 +362,14 @@ const totalInitialProperties = apiProperties.length;
     return "house";
   }
 
-  function mapSeller(sellerType: ApiProperty["SellerType"]) {
-    if (sellerType === "Private") return "private";
-    if (sellerType === "Broker") return "agent";
-    return "court";
-  }
-
-  function getAgeCutoff(age: string) {
-    const now = Date.now();
-    if (age === "day") return now - 24 * 60 * 60 * 1000;
-    if (age === "week") return now - 7 * 24 * 60 * 60 * 1000;
-    if (age === "month") return now - 30 * 24 * 60 * 60 * 1000;
-    if (age === "year") return now - 365 * 24 * 60 * 60 * 1000;
-    return null;
+  // Anbieter-Label wie getApiSellerLabel/ApiPropertyCard (Anzeige, kein Filter)
+  function mapSellerLabel(property: ApiProperty) {
+    if (property.Type === "Foreclosure") return "Gericht";
+    const sellerType = property.SellerType;
+    if (sellerType === "Private" || sellerType === 1) return "Privat";
+    if (sellerType === "Broker" || sellerType === 2) return "Makler";
+    if (sellerType === "PropertyManager" || sellerType === 3) return "Verwaltung";
+    return "Portal";
   }
 
   function setLiveStatus(message: string, visible = true) {
@@ -362,13 +389,31 @@ const totalInitialProperties = apiProperties.length;
     return `/immobilien/angebote/${encodeURIComponent(id)}/`;
   }
 
-  function formatAddressLine(postalCode: string | null | undefined, address: string | null | undefined) {
-    const trimmedAddress = (address ?? "").trim();
-    const trimmedPostalCode = (postalCode ?? "").trim();
-    if (!trimmedAddress) return trimmedPostalCode;
+  // Wie getApiAddressLine (live-api.ts): PLZ+Ort-Fallback, doppelte PLZ vermeiden
+  function formatAddressLine(property: ApiProperty) {
+    const address = (property.Address ?? "").trim();
+    const postalCode = (property.PostalCode ?? "").trim();
+    if (!address) return [postalCode, property.City].filter(Boolean).join(" ");
     // Adressen aus Importen enthalten oft schon die PLZ ("4742 Pram")
-    if (!trimmedPostalCode || trimmedAddress.startsWith(trimmedPostalCode)) return trimmedAddress;
-    return `${trimmedPostalCode} ${trimmedAddress}`;
+    if (!postalCode || address.startsWith(postalCode)) return address;
+    return `${postalCode} ${address}`;
+  }
+
+  // Inline-SVGs 1:1 aus ApiPropertyCard.astro (Tabler heart/eye-off/user/calendar),
+  // damit JS-gerenderte Karten identisch zu den SSR-Karten aussehen.
+  const ICONS = {
+    heart: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path></svg>',
+    eyeOff: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828"></path><path d="M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-3.6 0 -6.6 -2 -9 -6c1.272 -2.12 2.712 -3.678 4.32 -4.674m2.86 -1.146a9.055 9.055 0 0 1 1.82 -.18c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87"></path><path d="M3 3l18 18"></path></svg>',
+    user: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path></svg>',
+    calendar: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12"></path><path d="M16 3v4"></path><path d="M8 3v4"></path><path d="M4 11h16"></path><path d="M11 15h1"></path><path d="M12 15v3"></path></svg>',
+  };
+
+  function createMetaLine(icon: string, text: string, extraClass = "mt-1") {
+    const line = document.createElement("p");
+    line.className = `${extraClass} flex items-center gap-1 text-xs text-muted-foreground`;
+    line.innerHTML = icon;
+    line.append(document.createTextNode(` ${text}`));
+    return line;
   }
 
   function loadVerifiedImageMap() {
@@ -396,34 +441,13 @@ const totalInitialProperties = apiProperties.length;
   function createApiCard(property: ApiProperty, verifiedImages: VerifiedImageMap) {
     const article = document.createElement("article");
     const type = mapType(property);
-    const sellerValue = mapSeller(property.SellerType);
-    const regionSlug = normalize(property.City);
     const area = property.PlotAreaM2 ?? property.LivingAreaM2 ?? 0;
-    const search = [
-      property.Title,
-      property.Address,
-      property.City,
-      property.PostalCode,
-      property.SellerName,
-      property.Description ?? "",
-      property.Features?.join(" ") ?? "",
-      property.SourceName ?? "",
-    ].join(" ").toLowerCase();
 
     article.className = "property-card group overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg";
     article.dataset.propertyCard = "";
     article.dataset.liveProperty = "true";
     article.dataset.slug = property.Id;
     article.dataset.propertyId = property.Id;
-    article.dataset.type = type;
-    article.dataset.seller = sellerValue;
-    article.dataset.region = regionSlug;
-    article.dataset.location = regionSlug;
-    article.dataset.updated = property.CreatedAt;
-    article.dataset.price = String(property.Price ?? 0);
-    article.dataset.area = String(area);
-    article.dataset.postal = property.PostalCode;
-    article.dataset.search = search;
 
     const media = document.createElement("div");
     media.className = "relative h-50 overflow-hidden bg-muted";
@@ -458,13 +482,13 @@ const totalInitialProperties = apiProperties.length;
     const badge = createText(
       "span",
       `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${badgeClasses}`,
-      type === "foreclosure" ? "ZV" : type === "land" ? "GRUND" : type === "apartment" ? "WOHNUNG" : "HAUS",
+      type === "foreclosure" ? "Zwangsversteigerung" : type === "land" ? "Grund" : type === "apartment" ? "Wohnung" : "Haus",
     );
     const actions = document.createElement("div");
     actions.className = "absolute right-3 top-3 flex gap-1";
     actions.innerHTML = `
-      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Favorit speichern" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">♡</button>
-      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">⊘</button>
+      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Favorit speichern" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">${ICONS.heart}</button>
+      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">${ICONS.eyeOff}</button>
     `;
     media.append(link, badge, actions);
 
@@ -481,43 +505,33 @@ const totalInitialProperties = apiProperties.length;
     title.append(titleLink);
     left.append(
       title,
-      createText("p", "truncate text-sm text-muted-foreground", formatAddressLine(property.PostalCode, property.Address)),
+      createText("p", "truncate text-sm text-muted-foreground", formatAddressLine(property)),
       createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
-      createText("p", "mt-2 text-xs text-muted-foreground", property.SellerName || "Anbieter"),
-      createText("p", "mt-1 text-xs text-muted-foreground", "Aktuelles Angebot"),
+      createMetaLine(ICONS.user, `${mapSellerLabel(property)} · ${property.SellerName}`, "mt-2"),
+      createMetaLine(ICONS.calendar, formatApiDate(property.CreatedAt) || "Live-Angebot"),
     );
 
     const facts = document.createElement("dl");
     facts.className = "text-right";
+    const chips = [
+      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${property.LivingAreaM2} Wfl</span>` : "",
+      property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${property.Rooms} Zi</span>` : "",
+    ].filter(Boolean).join("");
     facts.innerHTML = `
-      <dt class="sr-only">Preis</dt>
-      <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">${formatApiPrice(property.Price)}</dd>
-      <dt class="sr-only">Fläche</dt>
-      <dd class="mt-1.5 text-sm font-semibold text-muted-foreground">${area ? `${area} ${property.PlotAreaM2 ? "m² Grund" : "m² Wfl"}` : "Fläche k.A."}</dd>
-      <dd class="mt-3 text-xs text-muted-foreground">${property.Rooms ? `${property.Rooms} Zi` : ""}</dd>
+      <div>
+        <dt class="sr-only">Preis</dt>
+        <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">${formatApiPrice(property.Price)}</dd>
+      </div>
+      <div class="mt-1.5">
+        <dt class="sr-only">Fläche</dt>
+        <dd class="text-sm font-semibold text-muted-foreground">${area ? `${area} ${property.PlotAreaM2 ? "m² Grund" : "m² Wfl"}` : "Fläche k.A."}</dd>
+      </div>
+      <div class="mt-3 flex justify-end gap-1">${chips}</div>
     `;
 
     body.append(left, facts);
     article.append(media, body);
     return article;
-  }
-
-  function getRegionValue() {
-    return regionControls[0]?.value ?? initial.region;
-  }
-
-  function matchesOrtSelection(card: HTMLElement) {
-    if (selectedOrtSlugs.size === 0) return true;
-    const region = card.dataset.region ?? "";
-    const location = card.dataset.location ?? "";
-    for (const slug of selectedOrtSlugs) {
-      if (!slug) continue;
-      if (slug === region || slug === location) return true;
-      if (location && slug.endsWith(`-${location}`)) return true;
-      if (location && location.endsWith(`-${slug}`)) return true;
-      if (region && slug.startsWith(`${region}-`)) return true;
-    }
-    return false;
   }
 
   function getAgeValue() {
@@ -531,17 +545,13 @@ const totalInitialProperties = apiProperties.length;
   }
 
   function getActiveTypes() {
-    const values = Array.from(selectedTypes).filter((value) => ALL_TYPES.includes(value));
-    return values.length > 0 ? values : [...ALL_TYPES];
+    const values = Array.from(selectedTypes).filter((value) => TYPE_VALUES.includes(value));
+    return values.length > 0 ? values : [...TYPE_VALUES];
   }
 
   function getActiveSellers() {
-    const values = Array.from(selectedSellers).filter((value) => ALL_SELLERS.includes(value));
-    return values.length > 0 ? values : [...ALL_SELLERS];
-  }
-
-  function isFilteringAll(selected: string[], allValues: string[]) {
-    return selected.length === allValues.length;
+    const values = Array.from(selectedSellers).filter((value) => SELLER_VALUES.includes(value));
+    return values.length > 0 ? values : [...SELLER_VALUES];
   }
 
   function setChipPressed(button: HTMLButtonElement, pressed: boolean) {
@@ -573,141 +583,98 @@ const totalInitialProperties = apiProperties.length;
     });
   }
 
-  function buildApiQuery() {
-    const apiParams = new URLSearchParams();
-    apiParams.set("Page", "0");
-    apiParams.set("PageSize", "24");
-    apiParams.set("SortBy", "CreatedAt");
-    apiParams.set("SortDescending", "true");
-
-    const activeTypes = getActiveTypes();
-    if (!isFilteringAll(activeTypes, ALL_TYPES)) {
-      const apiTypes = [...new Set(activeTypes.map((type) => (
-        type === "land" ? "Land" : type === "foreclosure" ? "Foreclosure" : "House"
-      )))];
-      apiParams.set("PropertyTypesJson", JSON.stringify(apiTypes));
-    }
-
-    const apiSellerTypes = getActiveSellers()
-      .filter((seller) => seller !== "court")
-      .map((seller) => seller === "private" ? "Private" : "Broker");
-    if (apiSellerTypes.length > 0 && apiSellerTypes.length < 2) {
-      apiParams.set("SellerTypesJson", JSON.stringify(apiSellerTypes));
-    }
-
-    const createdAfter = getAgeCutoff(getAgeValue());
-    if (createdAfter) apiParams.set("CreatedAfter", new Date(createdAfter).toISOString());
-
-    return apiParams.toString();
+  function getSearchState(): PropertySearchState {
+    return {
+      q: input?.value ?? initial.q,
+      types: getActiveTypes(),
+      sellers: getActiveSellers(),
+      ortSlugs: Array.from(selectedOrtSlugs),
+      age: getAgeValue(),
+      sort: sort?.value ?? initial.sort,
+      page: currentPage,
+    };
   }
 
-  function matches(card: HTMLElement) {
-    const q = normalizeText(input?.value.trim() ?? initial.q);
-    const regionValue = getRegionValue();
-    const activeTypes = getActiveTypes();
-    const activeSellers = getActiveSellers();
-    const createdAfter = getAgeCutoff(getAgeValue());
-    const search = normalizeText(card.dataset.search ?? "");
-    const updated = Date.parse(card.dataset.updated ?? "");
-    return (
-      (!q || search.includes(q)) &&
-      (!regionValue || card.dataset.region === regionValue) &&
-      matchesOrtSelection(card) &&
-      (isFilteringAll(activeTypes, ALL_TYPES) || activeTypes.includes(card.dataset.type ?? "")) &&
-      (isFilteringAll(activeSellers, ALL_SELLERS) || activeSellers.includes(card.dataset.seller ?? "")) &&
-      (!createdAfter || (Number.isFinite(updated) && updated >= createdAfter))
-    );
-  }
-
-  function applyFilters(resetPage = false) {
-    if (resetPage) currentPage = 0;
-
-    cards = Array.from(document.querySelectorAll<HTMLElement>("[data-property-card]"));
-    const visible = cards.filter((card) => {
-      const keep = matches(card);
-      card.hidden = !keep;
-      return keep;
-    });
-
-    visible.sort((a, b) => {
-      const mode = sort?.value ?? "newest";
-      const priceA = Number(a.dataset.price ?? 0);
-      const priceB = Number(b.dataset.price ?? 0);
-      if (mode === "price-asc" || mode === "price-desc") {
-        // "Preis offen" (0) immer ans Ende sortieren
-        if (priceA <= 0 && priceB <= 0) return 0;
-        if (priceA <= 0) return 1;
-        if (priceB <= 0) return -1;
-        return mode === "price-asc" ? priceA - priceB : priceB - priceA;
-      }
-      if (mode === "area-desc") {
-        return Number(b.dataset.area ?? 0) - Number(a.dataset.area ?? 0);
-      }
-      if (mode === "area-asc") {
-        return Number(a.dataset.area ?? 0) - Number(b.dataset.area ?? 0);
-      }
-      if (mode === "postal-asc") {
-        return (a.dataset.postal ?? "").localeCompare(b.dataset.postal ?? "", "de-AT", { numeric: true });
-      }
-      if (mode === "postal-desc") {
-        return (b.dataset.postal ?? "").localeCompare(a.dataset.postal ?? "", "de-AT", { numeric: true });
-      }
-      if (mode === "oldest") {
-        return (a.dataset.updated ?? "").localeCompare(b.dataset.updated ?? "");
-      }
-      return (b.dataset.updated ?? "").localeCompare(a.dataset.updated ?? "");
-    });
-
-    const grid = document.querySelector("[data-property-grid]");
-    visible.forEach((card) => grid?.append(card));
-
-    const pageCount = Math.ceil(visible.length / PAGE_SIZE);
-    if (currentPage >= pageCount) currentPage = Math.max(0, pageCount - 1);
-    const pageStart = currentPage * PAGE_SIZE;
-    const pageEnd = pageStart + PAGE_SIZE;
-    visible.forEach((card, index) => {
-      card.hidden = index < pageStart || index >= pageEnd;
-    });
-
-    const label = `${visible.length} ${visible.length === 1 ? "Objekt" : "Objekte"}`;
+  function updateResultMeta() {
+    const label = `${totalCount} ${totalCount === 1 ? "Objekt" : "Objekte"}`;
     if (resultCount) resultCount.textContent = label;
     if (mobileResultCount) mobileResultCount.textContent = label;
-    if (emptyState) emptyState.classList.toggle("hidden", visible.length !== 0);
+    if (emptyState) emptyState.classList.toggle("hidden", totalCount !== 0);
+
+    const pageCount = Math.max(1, Math.ceil(totalCount / SEARCH_PAGE_SIZE));
     if (pagination) pagination.classList.toggle("hidden", pageCount <= 1);
     if (pagination) pagination.classList.toggle("flex", pageCount > 1);
-    if (paginationInfo) paginationInfo.textContent = pageCount > 0 ? `Seite ${currentPage + 1} von ${pageCount}` : "";
+    if (paginationInfo) paginationInfo.textContent = pageCount > 1 ? `Seite ${currentPage + 1} von ${pageCount}` : "";
     if (prevPage) prevPage.disabled = currentPage <= 0;
     if (nextPage) nextPage.disabled = currentPage >= pageCount - 1;
   }
 
-  async function loadLiveProperties() {
+  // Filteraenderungen in die URL spiegeln: Reload/Teilen liefert per SSR
+  // dieselben Treffer (gleicher Query-Builder auf dem Server).
+  function updateUrl() {
+    const url = new URL(window.location.href);
+    ["q", "type", "seller", "region", "age", "sort", "page"].forEach((key) => url.searchParams.delete(key));
+
+    const q = (input?.value ?? initial.q).trim();
+    if (q) url.searchParams.set("q", q);
+    const types = getActiveTypes();
+    if (types.length < TYPE_VALUES.length) url.searchParams.set("type", types.join(","));
+    const sellers = getActiveSellers();
+    if (sellers.length < SELLER_VALUES.length) url.searchParams.set("seller", sellers.join(","));
+    if (selectedOrtSlugs.size > 0) url.searchParams.set("region", Array.from(selectedOrtSlugs).join(","));
+    const age = getAgeValue();
+    if (age) url.searchParams.set("age", age);
+    const sortValue = sort?.value ?? "newest";
+    if (sortValue !== "newest") url.searchParams.set("sort", sortValue);
+    if (currentPage > 0) url.searchParams.set("page", String(currentPage));
+
+    history.replaceState(null, "", url);
+  }
+
+  let refreshTimer: number | undefined;
+  let abortController: AbortController | null = null;
+
+  function scheduleRefresh(resetPage = false) {
+    if (resetPage) currentPage = 0;
+    window.clearTimeout(refreshTimer);
+    // Kurzes Debounce buendelt schnelle Chip-Toggles zu einem Request
+    refreshTimer = window.setTimeout(() => {
+      void refresh();
+    }, 150);
+  }
+
+  async function refresh() {
     const grid = document.querySelector<HTMLElement>("[data-property-grid]");
     if (!grid) return;
 
-    setLiveStatus("Live-Angebote werden geladen...");
+    abortController?.abort();
+    const controller = new AbortController();
+    abortController = controller;
+    setLiveStatus("Angebote werden geladen...");
+
     try {
-      const response = await fetch(`${API_BASE_URL}/api/properties?${buildApiQuery()}`);
+      const query = buildPropertySearchQuery(getSearchState(), ortSlugMap);
+      const response = await fetch(`${API_BASE_URL}/api/properties?${query}`, { signal: controller.signal });
       if (!response.ok) throw new Error(`API ${response.status}`);
       const payload = await response.json() as ApiPropertyResponse;
-      const existingIds = new Set(Array.from(document.querySelectorAll<HTMLElement>("[data-property-id]")).map((card) => card.dataset.propertyId));
-      const liveProperties = (payload.Properties ?? []).filter((property) => !existingIds.has(property.Id));
       const verifiedImages = await loadVerifiedImageMap();
-      liveProperties.forEach((property) => grid.append(createApiCard(property, verifiedImages)));
-      setLiveStatus(liveProperties.length > 0 ? `${liveProperties.length} aktuelle Angebote ergänzt.` : "Keine zusätzlichen aktuellen Angebote gefunden.", liveProperties.length > 0);
-      applyFilters();
+      if (controller.signal.aborted) return;
+
+      const properties = payload.Properties ?? [];
+      totalCount = payload.Total ?? properties.length;
+      grid.replaceChildren(...properties.map((property) => createApiCard(property, verifiedImages)));
+      // PropertyStateScript setzt Favoriten-/Blockiert-Zustaende auf den neuen Karten
+      document.dispatchEvent(new CustomEvent("property-cards-rendered"));
+      updateResultMeta();
+      updateUrl();
+      setLiveStatus("", false);
     } catch {
-      setLiveStatus("Aktuelle Angebote konnten nicht geladen werden. Die vorhandenen Objektseiten bleiben verfügbar.");
+      if (controller.signal.aborted) return;
+      setLiveStatus("Angebote konnten nicht geladen werden. Bitte später erneut versuchen.");
     }
   }
 
-  input?.addEventListener("input", () => applyFilters(true));
-  regionControls.forEach((control) => {
-    control.addEventListener("change", () => {
-      setSelectValue(regionControls, control.value);
-      applyFilters(true);
-    });
-  });
-
+  input?.addEventListener("input", () => scheduleRefresh(true));
   // OrtPicker (Multi-Select): aktualisiert das gemeinsame Set und synct alle Instanzen
   document.addEventListener("ort-picker-change", (event) => {
     const detail = (event as CustomEvent<{ name: string; values: string[] }>).detail;
@@ -718,12 +685,12 @@ const totalInitialProperties = apiProperties.length;
     // triggert syncState, aber kein erneutes emitChange, daher keine Endlosschleife.
     const api = (window as any).setOrtPickerValues;
     if (typeof api === "function") api("region", Array.from(selectedOrtSlugs));
-    applyFilters(true);
+    scheduleRefresh(true);
   });
   ageControls.forEach((control) => {
     control.addEventListener("change", () => {
       setSelectValue(ageControls, control.value);
-      applyFilters(true);
+      scheduleRefresh(true);
     });
   });
   typeButtons.forEach((button) => {
@@ -736,7 +703,7 @@ const totalInitialProperties = apiProperties.length;
         selectedTypes.add(value);
       }
       updateFilterChips();
-      applyFilters(true);
+      scheduleRefresh(true);
     });
   });
   sellerButtons.forEach((button) => {
@@ -749,18 +716,18 @@ const totalInitialProperties = apiProperties.length;
         selectedSellers.add(value);
       }
       updateFilterChips();
-      applyFilters(true);
+      scheduleRefresh(true);
     });
   });
-  sort?.addEventListener("change", () => applyFilters(true));
+  sort?.addEventListener("change", () => scheduleRefresh(true));
   prevPage?.addEventListener("click", () => {
     if (currentPage <= 0) return;
     currentPage -= 1;
-    applyFilters();
+    scheduleRefresh();
   });
   nextPage?.addEventListener("click", () => {
     currentPage += 1;
-    applyFilters();
+    scheduleRefresh();
   });
   mobileToggle?.addEventListener("click", () => {
     const expanded = mobileToggle.getAttribute("aria-expanded") === "true";
@@ -773,19 +740,22 @@ const totalInitialProperties = apiProperties.length;
       selectedOrtSlugs.clear();
       const api = (window as any).setOrtPickerValues;
       if (typeof api === "function") api("region", []);
-      setSelectValue(regionControls, "");
       setSelectValue(ageControls, "");
       selectedTypes.clear();
-      ALL_TYPES.forEach((type) => selectedTypes.add(type));
+      TYPE_VALUES.forEach((type) => selectedTypes.add(type));
       selectedSellers.clear();
-      ALL_SELLERS.forEach((seller) => selectedSellers.add(seller));
+      SELLER_VALUES.forEach((seller) => selectedSellers.add(seller));
       if (sort) sort.value = "newest";
       updateFilterChips();
-      applyFilters(true);
+      scheduleRefresh(true);
     });
   });
 
   updateFilterChips();
-  applyFilters();
-  void loadLiveProperties();
+  updateResultMeta();
+  // Refetch nur, wenn der effektive Initial-Zustand (URL + gespeicherte Praeferenzen)
+  // vom SSR-Zustand (nur URL) abweicht - sonst reicht das server-gerenderte Grid.
+  if (buildPropertySearchQuery(getSearchState(), ortSlugMap) !== (config?.dataset.ssrQuery ?? "")) {
+    scheduleRefresh();
+  }
 </script>

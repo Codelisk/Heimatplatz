@@ -32,3 +32,13 @@ export function formatApiPriceLong(value: number | string | null | undefined) {
 export function getDisplayTitle(title: string) {
   return title.replace(/^\s*Zwangsversteigerung\s*[:\-–—]\s*/i, "").trim() || title;
 }
+
+export function formatApiDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "";
+  return new Intl.DateTimeFormat("de-AT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}

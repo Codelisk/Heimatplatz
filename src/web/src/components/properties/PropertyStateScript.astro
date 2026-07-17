@@ -2176,6 +2176,10 @@
     bindGlobalActions();
   }
 
+  // Die Startseiten-Suche rendert das Karten-Grid bei jedem Filterwechsel neu
+  // (PropertySearchApp) - Favoriten-/Blockiert-Zustaende danach neu anwenden.
+  document.addEventListener("property-cards-rendered", () => refreshActionButtons());
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", bootPropertyState, { once: true });
   } else {

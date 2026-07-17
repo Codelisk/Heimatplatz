@@ -183,19 +183,9 @@ export function getApiSellerLabel(sellerType: string | number | null) {
   return "Portal";
 }
 
-// Kanonische Preis-Formatierung lebt in format.ts (client-sicher, keine
+// Kanonische Formatierung lebt in format.ts (client-sicher, keine
 // Server-Abhaengigkeiten); hier nur re-exportiert fuer bestehende SSR-Importe.
-export { formatApiPrice, formatApiPriceLong } from "./format";
-
-export function formatApiDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return "";
-  return new Intl.DateTimeFormat("de-AT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
-}
+export { formatApiDate, formatApiPrice, formatApiPriceLong } from "./format";
 
 export function getApiAddressLine(property: ApiProperty) {
   const address = (property.Address ?? "").trim();
@@ -290,6 +280,34 @@ async function fetchApiPropertiesUncached(options: SearchOptions = {}) {
 export function fetchApiProperties(options: SearchOptions = {}) {
   return cached(`properties:${JSON.stringify(options)}`, TTL.properties, () =>
     fetchApiPropertiesUncached(options));
+}
+
+export type ApiPropertySearchResult = {
+  properties: ApiProperty[];
+  total: number;
+  hasMore: boolean;
+};
+
+/**
+ * Suche fuer die Startseite: nimmt den fertigen Query-String aus
+ * buildPropertySearchQuery (search-query.ts) und liefert zusaetzlich
+ * Total/HasMore fuer serverseitiges Paging.
+ */
+async function fetchApiPropertySearchUncached(query: string): Promise<ApiPropertySearchResult> {
+  try {
+    const response = await fetch(new URL(`/api/properties?${query}`, getServerApiBaseUrl()));
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const payload = await response.json() as ApiPropertyResponse;
+    const properties = await Promise.all((payload.Properties ?? []).map(withVerifiedPrimaryImage));
+    return { properties, total: payload.Total ?? properties.length, hasMore: payload.HasMore ?? false };
+  } catch (error) {
+    console.warn("[Heimatplatz] API property search failed", error);
+    return { properties: [], total: 0, hasMore: false };
+  }
+}
+
+export function fetchApiPropertySearch(query: string) {
+  return cached(`property-search:${query}`, TTL.properties, () => fetchApiPropertySearchUncached(query));
 }
 
 async function fetchApiPropertyByIdUncached(id: string) {

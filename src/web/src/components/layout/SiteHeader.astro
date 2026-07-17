@@ -16,9 +16,14 @@ import { NativeSelect } from "@/components/starwind/native-select";
 import BrandMark from "@/components/layout/BrandMark.astro";
 import ThemeToggle from "@/components/layout/ThemeToggle.astro";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
+import { fetchOrtRegions } from "@/features/locations/live-api";
 
 const pathname = Astro.url.pathname;
 const showFilters = pathname === "/";
+// Such-Picker arbeitet auf der echten Bezirk/Gemeinde-Hierarchie der API
+// (Slugs -> MunicipalityIds, serverseitige Filterung). Cached, faellt bei
+// API-Ausfall auf die statischen SEO-Ortsteile zurueck.
+const ortRegions = showFilters ? await fetchOrtRegions() : [];
 const titleByPath = [
   { test: (path: string) => path === "/", title: "HEIMATPLATZ" },
   { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: "Immobilie" },
@@ -81,7 +86,7 @@ function isActive(href: string) {
       showFilters && (
         <form action="/" method="get" class="hidden min-w-0 flex-1 items-center justify-center gap-2 xl:flex">
           <div class="w-44">
-            <OrtPicker name="region" placeholder="Ort auswählen" />
+            <OrtPicker name="region" placeholder="Ort auswählen" regions={ortRegions.length > 0 ? ortRegions : undefined} />
           </div>
           <NativeSelect name="age" class="w-32" data-filter-age>
             <option value="">Zeitraum</option>
