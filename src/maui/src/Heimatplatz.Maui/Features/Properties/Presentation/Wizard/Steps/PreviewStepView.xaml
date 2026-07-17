@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:wizard="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.Wizard.PreviewStepView"
+             x:DataType="wizard:PropertyWizardViewModel">
+
+    <ContentView.Resources>
+        <Style x:Key="ChecklistLabel" TargetType="Label">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentView.Resources>
+
+    <VerticalStackLayout Spacing="16">
+
+        <VerticalStackLayout Spacing="6">
+            <Label Text="Fast geschafft!"
+                   Style="{StaticResource PageTitle}" />
+            <Label Text="Prüfen Sie die Vorschau und veröffentlichen Sie Ihr Inserat."
+                   Style="{StaticResource PageSubtitle}" />
+        </VerticalStackLayout>
+
+        <!-- Vorschau-Karte -->
+        <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="10">
+
+                <!-- Foto-Leiste (WinUI: horizontale ScrollViews brauchen fixe Hoehe) -->
+                <ScrollView Orientation="Horizontal"
+                            HeightRequest="96"
+                            IsVisible="{Binding HasMedia}">
+                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Media}"
+                                           Spacing="8">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:WizardMediaItem">
+                                <Border StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        WidthRequest="90"
+                                        HeightRequest="90"
+                                        IsVisible="{Binding IsPhoto}">
+                                    <Image Source="{Binding DisplaySource}"
+                                           Aspect="AspectFill" />
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+
+                <Label Text="{Binding PreviewTitleText}"
+                       Style="{StaticResource SectionHeader}" />
+
+                <Label Text="{Binding PreviewPriceText}"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+
+                <Label Text="{Binding PreviewLocationText}"
+                       Style="{StaticResource Caption}" />
+
+                <Label Text="{Binding PreviewTypeText}"
+                       Style="{StaticResource Caption}" />
+
+                <Label Text="{Binding PreviewDetailsText}"
+                       Style="{StaticResource Caption}"
+                       IsVisible="{Binding HasPreviewDetails}" />
+
+                <Label Text="{Binding Beschreibung}"
+                       FontSize="13"
+                       LineBreakMode="WordWrap"
+                       MaxLines="6"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Checkliste -->
+        <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Bereit zur Veröffentlichung?"
+                       Style="{StaticResource SectionHeader}" />
+
+                <Grid ColumnDefinitions="24,*" ColumnSpacing="8">
+                    <Label Grid.Column="0" HorizontalOptions="Center" Style="{StaticResource ChecklistLabel}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistPhotosOk}" Value="True">
+                                <Setter Property="Text" Value="✓" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistPhotosOk}" Value="False">
+                                <Setter Property="Text" Value="✗" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Label Grid.Column="1" Text="Mindestens 1 Foto" Style="{StaticResource ChecklistLabel}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="24,*" ColumnSpacing="8">
+                    <Label Grid.Column="0" HorizontalOptions="Center" Style="{StaticResource ChecklistLabel}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistTitleOk}" Value="True">
+                                <Setter Property="Text" Value="✓" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistTitleOk}" Value="False">
+                                <Setter Property="Text" Value="✗" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Label Grid.Column="1" Text="Titel (mind. 10 Zeichen)" Style="{StaticResource ChecklistLabel}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="24,*" ColumnSpacing="8">
+                    <Label Grid.Column="0" HorizontalOptions="Center" Style="{StaticResource ChecklistLabel}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistDescriptionOk}" Value="True">
+                                <Setter Property="Text" Value="✓" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistDescriptionOk}" Value="False">
+                                <Setter Property="Text" Value="✗" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Label Grid.Column="1" Text="Beschreibung (mind. 50 Zeichen)" Style="{StaticResource ChecklistLabel}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="24,*" ColumnSpacing="8">
+                    <Label Grid.Column="0" HorizontalOptions="Center" Style="{StaticResource ChecklistLabel}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistPriceOk}" Value="True">
+                                <Setter Property="Text" Value="✓" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistPriceOk}" Value="False">
+                                <Setter Property="Text" Value="✗" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Label Grid.Column="1" Text="Preis" Style="{StaticResource ChecklistLabel}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="24,*" ColumnSpacing="8">
+                    <Label Grid.Column="0" HorizontalOptions="Center" Style="{StaticResource ChecklistLabel}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistLocationOk}" Value="True">
+                                <Setter Property="Text" Value="✓" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding ChecklistLocationOk}" Value="False">
+                                <Setter Property="Text" Value="✗" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Label Grid.Column="1" Text="Adresse &amp; Ort" Style="{StaticResource ChecklistLabel}" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <Button Text="Veröffentlichen"
+                Command="{Binding PublishCommand}"
+                Style="{StaticResource PrimaryButton}"
+                IsEnabled="{Binding CanPublish}"
+                Margin="0,4,0,24" />
+    </VerticalStackLayout>
+</ContentView>

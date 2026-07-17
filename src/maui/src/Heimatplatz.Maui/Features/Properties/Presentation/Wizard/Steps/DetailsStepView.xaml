@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:wizard="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.Wizard.DetailsStepView"
+             x:DataType="wizard:PropertyWizardViewModel">
+
+    <VerticalStackLayout Spacing="16">
+
+        <VerticalStackLayout Spacing="6">
+            <Label Text="Eckdaten prüfen"
+                   Style="{StaticResource PageTitle}" />
+            <Label Text="Prüfen Sie die Angaben und passen Sie sie bei Bedarf an."
+                   Style="{StaticResource PageSubtitle}" />
+        </VerticalStackLayout>
+
+        <!-- KI-Analyse laeuft noch -->
+        <Border Style="{StaticResource SuccessBanner}"
+                IsVisible="{Binding IsAnalysisRunning}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <ActivityIndicator Grid.Column="0"
+                                   IsRunning="{Binding IsAnalysisRunning}"
+                                   WidthRequest="20"
+                                   HeightRequest="20"
+                                   VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="Die KI analysiert Ihre Immobilie – die Vorschläge erscheinen gleich in den noch leeren Feldern."
+                       Style="{StaticResource SuccessBannerText}"
+                       VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!-- KI-Analyse fehlgeschlagen -->
+        <Border Style="{StaticResource ErrorBanner}"
+                IsVisible="{Binding HasAiFailed}">
+            <Label Text="{Binding AiFailedMessage}"
+                   Style="{StaticResource ErrorBannerText}" />
+        </Border>
+
+        <!-- KI-Zusammenfassung -->
+        <Border Style="{StaticResource SuccessBanner}"
+                IsVisible="{Binding HasAiSummary}">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="✨ Das hat die KI erkannt"
+                       FontAttributes="Bold"
+                       Style="{StaticResource SuccessBannerText}" />
+                <Label Text="{Binding AiSummary}"
+                       Style="{StaticResource SuccessBannerText}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="12">
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Immobilientyp"
+                           Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding PropertyTypes}"
+                            ItemDisplayBinding="{Binding DisplayName, x:DataType=models:PropertyTypeItem}"
+                            SelectedItem="{Binding SelectedPropertyTypeItem}" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Titel"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding Titel}"
+                           Placeholder="z.B. Gepflegtes Einfamilienhaus mit Garten" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Beschreibung"
+                           Style="{StaticResource FieldLabel}" />
+                    <Editor Text="{Binding Beschreibung}"
+                            HeightRequest="160"
+                            Placeholder="Beschreiben Sie Ihre Immobilie (mind. 50 Zeichen)" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="16" IsVisible="{Binding IsHouseType}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Zimmer"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Zimmer}"
+                               Keyboard="Numeric" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Wohnfläche (m²)"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Wohnflaeche}"
+                               Keyboard="Numeric" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Baujahr"
+                               Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Baujahr}"
+                               Keyboard="Numeric" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Grundstücksfläche (m²)"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding Grundstuecksflaeche}"
+                           Keyboard="Numeric" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Ausstattung (durch Komma getrennt)"
+                           Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding FeaturesText}"
+                           Placeholder="z.B. Garage, Garten, Keller" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+    </VerticalStackLayout>
+</ContentView>

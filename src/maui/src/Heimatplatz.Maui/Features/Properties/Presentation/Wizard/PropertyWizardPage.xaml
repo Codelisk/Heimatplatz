@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:steps="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
+             xmlns:wizard="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.Wizard.PropertyWizardPage"
+             x:DataType="wizard:PropertyWizardViewModel"
+             Shell.FlyoutBehavior="Disabled"
+             Title="Inserat erstellen">
+
+    <!-- Shell-/iOS-Zurueck-Pfeil auf den Abbruch-Prompt umleiten
+         (Hardware-Back laeuft ueber OnBackButtonPressed im Code-Behind) -->
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior Command="{Binding CancelCommand}" />
+    </Shell.BackButtonBehavior>
+
+    <ContentPage.Resources>
+        <Style x:Key="StepSegment" TargetType="BoxView">
+            <Setter Property="HeightRequest" Value="4" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+        </Style>
+        <Style x:Key="StepSegmentActive" TargetType="BoxView" BasedOn="{StaticResource StepSegment}">
+            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Fortschritts-Header -->
+        <VerticalStackLayout Grid.Row="0"
+                             Spacing="8"
+                             Padding="16,12,16,8"
+                             MaximumWidthRequest="640"
+                             HorizontalOptions="Fill">
+            <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
+                <BoxView Grid.Column="0" Style="{StaticResource StepSegmentActive}" />
+                <BoxView Grid.Column="1" Style="{StaticResource StepSegment}">
+                    <BoxView.Triggers>
+                        <DataTrigger TargetType="BoxView" Binding="{Binding Step2Reached}" Value="True">
+                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        </DataTrigger>
+                    </BoxView.Triggers>
+                </BoxView>
+                <BoxView Grid.Column="2" Style="{StaticResource StepSegment}">
+                    <BoxView.Triggers>
+                        <DataTrigger TargetType="BoxView" Binding="{Binding Step3Reached}" Value="True">
+                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        </DataTrigger>
+                    </BoxView.Triggers>
+                </BoxView>
+                <BoxView Grid.Column="3" Style="{StaticResource StepSegment}">
+                    <BoxView.Triggers>
+                        <DataTrigger TargetType="BoxView" Binding="{Binding Step4Reached}" Value="True">
+                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        </DataTrigger>
+                    </BoxView.Triggers>
+                </BoxView>
+                <BoxView Grid.Column="4" Style="{StaticResource StepSegment}">
+                    <BoxView.Triggers>
+                        <DataTrigger TargetType="BoxView" Binding="{Binding Step5Reached}" Value="True">
+                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        </DataTrigger>
+                    </BoxView.Triggers>
+                </BoxView>
+            </Grid>
+            <Label Text="{Binding StepProgressText}"
+                   Style="{StaticResource Caption}" />
+        </VerticalStackLayout>
+
+        <!-- Banner (fix ueber dem Inhalt, kein Scrollen noetig) -->
+        <VerticalStackLayout Grid.Row="1"
+                             Spacing="8"
+                             Padding="16,0,16,4"
+                             MaximumWidthRequest="640"
+                             HorizontalOptions="Fill">
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding HasError}">
+                <Label Text="{Binding ErrorMessage}"
+                       Style="{StaticResource ErrorBannerText}" />
+            </Border>
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding DraftSaveFailed}">
+                <Label Text="Entwurf konnte nicht gespeichert werden – wird beim nächsten Schritt erneut versucht."
+                       Style="{StaticResource ErrorBannerText}" />
+            </Border>
+        </VerticalStackLayout>
+
+        <!-- Schritt-Inhalte -->
+        <ScrollView Grid.Row="2">
+            <Grid Padding="16,8,16,16"
+                  MaximumWidthRequest="640"
+                  HorizontalOptions="Fill">
+                <steps:MediaStepView IsVisible="{Binding IsMediaStep}" />
+                <steps:DescribeStepView IsVisible="{Binding IsDescribeStep}" />
+                <steps:LocationStepView IsVisible="{Binding IsLocationStep}" />
+                <steps:DetailsStepView IsVisible="{Binding IsDetailsStep}" />
+                <steps:PreviewStepView IsVisible="{Binding IsPreviewStep}" />
+            </Grid>
+        </ScrollView>
+
+        <!-- Footer: Zurueck / Weiter -->
+        <Grid Grid.Row="3"
+              ColumnDefinitions="*,*"
+              ColumnSpacing="12"
+              Padding="16,8,16,16"
+              MaximumWidthRequest="640"
+              HorizontalOptions="Fill">
+            <Button Grid.Column="0"
+                    Text="Zurück"
+                    Command="{Binding BackCommand}"
+                    Style="{StaticResource SecondaryButton}" />
+            <Button Grid.Column="1"
+                    Text="Weiter"
+                    Command="{Binding NextCommand}"
+                    Style="{StaticResource PrimaryButton}"
+                    IsVisible="{Binding ShowNextButton}" />
+        </Grid>
+
+        <!-- Busy-Overlay (Entwurf laden / Analyse-Start / Veroeffentlichen) -->
+        <Grid Grid.RowSpan="4"
+              Style="{StaticResource BusyOverlay}"
+              IsVisible="{Binding IsBusy}">
+            <Border Style="{StaticResource BusyCard}">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" HorizontalOptions="Center" />
+                    <Label Text="{Binding BusyMessage}"
+                           FontSize="13"
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

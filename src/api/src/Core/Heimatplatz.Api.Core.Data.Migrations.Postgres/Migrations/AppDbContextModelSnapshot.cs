@@ -1126,6 +1126,52 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.ToTable("SellerSources", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.PropertyDrafts.Data.Entities.PropertyDraft", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AnalysisId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FirstImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StepIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int?>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PropertyDrafts", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.RefreshToken", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")

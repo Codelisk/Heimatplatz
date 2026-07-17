@@ -33,6 +33,8 @@
     <Project Path="src/api/src/Features/Notifications/Heimatplatz.Api.Features.Notifications.Contracts/Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
     <Project Path="src/api/src/Features/Properties/Heimatplatz.Api.Features.Properties/Heimatplatz.Api.Features.Properties.csproj" />
     <Project Path="src/api/src/Features/Properties/Heimatplatz.Api.Features.Properties.Contracts/Heimatplatz.Api.Features.Properties.Contracts.csproj" />
+    <Project Path="src/api/src/Features/PropertyDrafts/Heimatplatz.Api.Features.PropertyDrafts/Heimatplatz.Api.Features.PropertyDrafts.csproj" />
+    <Project Path="src/api/src/Features/PropertyDrafts/Heimatplatz.Api.Features.PropertyDrafts.Contracts/Heimatplatz.Api.Features.PropertyDrafts.Contracts.csproj" />
     <Project Path="src/api/src/Features/PropertyImport/Heimatplatz.Api.Features.PropertyImport/Heimatplatz.Api.Features.PropertyImport.csproj" />
     <Project Path="src/api/src/Features/PropertyImport/Heimatplatz.Api.Features.PropertyImport.Contracts/Heimatplatz.Api.Features.PropertyImport.Contracts.csproj" />
   </Folder>

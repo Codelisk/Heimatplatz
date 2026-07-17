@@ -14,8 +14,90 @@
                      Command="{Binding NavigateToAddPropertyCommand}" />
     </ContentPage.ToolbarItems>
 
-    <Grid>
-        <RefreshView IsRefreshing="{Binding IsRefreshing}"
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Entwuerfe des Inserat-Wizards: bewusst NICHT als CollectionView.Header -
+             WinUI vermisst den Header nach IsVisible-Toggle nicht neu (Bounds bleiben leer) -->
+        <VerticalStackLayout Grid.Row="0"
+                             Padding="12,8,12,0"
+                             Spacing="8"
+                             IsVisible="{Binding HasDrafts}">
+            <Label Text="Entwürfe"
+                   Style="{StaticResource SectionHeader}" />
+            <ScrollView MaximumHeightRequest="300">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Drafts}"
+                                     Spacing="8">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:DraftListItem">
+                            <Border Style="{StaticResource Card}">
+                                <Grid ColumnDefinitions="64,*,Auto"
+                                      ColumnSpacing="12">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ResumeDraftCommand, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+
+                                    <!-- Thumbnail bzw. Platzhalter -->
+                                    <Border Grid.Column="0"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 8"
+                                            WidthRequest="64"
+                                            HeightRequest="64"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                            VerticalOptions="Center">
+                                        <Grid>
+                                            <Label Text="📝"
+                                                   FontSize="24"
+                                                   HorizontalOptions="Center"
+                                                   VerticalOptions="Center" />
+                                            <Image Source="{Binding Thumbnail}"
+                                                   Aspect="AspectFill"
+                                                   IsVisible="{Binding HasImage}" />
+                                        </Grid>
+                                    </Border>
+
+                                    <VerticalStackLayout Grid.Column="1"
+                                                         Spacing="4"
+                                                         VerticalOptions="Center">
+                                        <Label Text="{Binding DisplayTitle}"
+                                               FontAttributes="Bold"
+                                               FontSize="14"
+                                               LineBreakMode="TailTruncation"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                        <Label Text="{Binding StepText}"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="2"
+                                                         Spacing="6"
+                                                         VerticalOptions="Center">
+                                        <Button Text="Fortsetzen"
+                                                FontSize="12"
+                                                Padding="10,6"
+                                                Style="{StaticResource PrimaryButton}"
+                                                Command="{Binding ResumeDraftCommand, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}"
+                                                CommandParameter="{Binding .}" />
+                                        <Button Text="Löschen"
+                                                FontSize="12"
+                                                Padding="10,6"
+                                                Style="{StaticResource SecondaryButton}"
+                                                Command="{Binding DeleteDraftCommand, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}"
+                                                CommandParameter="{Binding .}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
+            <Label Text="Veröffentlicht"
+                   Style="{StaticResource SectionHeader}"
+                   Margin="0,8,0,0"
+                   IsVisible="{Binding IsNotEmpty}" />
+        </VerticalStackLayout>
+
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshCommand}">
             <CollectionView ItemsSource="{Binding Properties}"
                             RemainingItemsThreshold="4"
@@ -112,7 +194,8 @@
         </RefreshView>
 
         <!-- Busy-Overlay -->
-        <Grid Style="{StaticResource BusyOverlay}"
+        <Grid Grid.RowSpan="2"
+              Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsBusy}">
             <Border Style="{StaticResource BusyCard}">
                 <VerticalStackLayout Spacing="10" HorizontalOptions="Center">

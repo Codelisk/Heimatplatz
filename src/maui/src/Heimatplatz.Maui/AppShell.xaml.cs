@@ -1,4 +1,3 @@
-using Heimatplatz.Maui.Features.Properties;
 using Shiny;
 
 namespace Heimatplatz.Maui;
@@ -51,13 +50,12 @@ public partial class AppShell : ShinyShell
             });
         }
 
-        // Aktion statt Ziel: pusht die Erfassungsseite (mit Zurueck-Pfeil zum Abbrechen);
-        // KI-Flow auf Phones, manuelle Erfassung auf allen anderen Geraeten
+        // Aktion statt Ziel: pusht den Inserat-Wizard (mit Zurueck-Pfeil zum Abbrechen)
         flyoutEntries.Add(new FlyoutMenuEntry
         {
             Title = "Immobilie hinzufügen",
             Icon = "icon_add.png",
-            Route = PropertyCreationRoutes.Default,
+            Route = "PropertyWizard",
             IsRoot = false
         });
 

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:wizard="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
+             x:Class="Heimatplatz.Maui.Features.Properties.Presentation.Wizard.MediaStepView"
+             x:DataType="wizard:PropertyWizardViewModel">
+
+    <VerticalStackLayout Spacing="16">
+
+        <VerticalStackLayout Spacing="6">
+            <Label Text="Fotos &amp; Videos"
+                   Style="{StaticResource PageTitle}" />
+            <Label Text="Außen- und Innenaufnahmen machen Ihr Inserat attraktiv – und helfen der KI, Ihre Immobilie treffend zu beschreiben."
+                   Style="{StaticResource PageSubtitle}" />
+        </VerticalStackLayout>
+
+        <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="12">
+                <Label Text="{Binding MediaCountText}"
+                       Style="{StaticResource Caption}"
+                       IsVisible="{Binding HasMedia}" />
+
+                <FlexLayout BindableLayout.ItemsSource="{Binding Media}"
+                            Wrap="Wrap"
+                            JustifyContent="Start"
+                            IsVisible="{Binding HasMedia}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:WizardMediaItem">
+                            <Grid Margin="0,0,8,8">
+                                <!-- Foto-Kachel -->
+                                <Border StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        WidthRequest="90"
+                                        HeightRequest="90"
+                                        IsVisible="{Binding IsPhoto}">
+                                    <Image Source="{Binding DisplaySource}"
+                                           Aspect="AspectFill" />
+                                </Border>
+                                <!-- Video-Kachel -->
+                                <Border StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        WidthRequest="90"
+                                        HeightRequest="90"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray600}}"
+                                        IsVisible="{Binding IsVideo}">
+                                    <VerticalStackLayout Spacing="2"
+                                                         HorizontalOptions="Center"
+                                                         VerticalOptions="Center">
+                                        <Label Text="▶"
+                                               FontSize="22"
+                                               HorizontalOptions="Center"
+                                               TextColor="{StaticResource White}" />
+                                        <Label Text="{Binding DisplaySize}"
+                                               FontSize="10"
+                                               HorizontalOptions="Center"
+                                               TextColor="{StaticResource Gray300}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Button Text="✕"
+                                        FontSize="12"
+                                        TextColor="White"
+                                        BackgroundColor="#B0000000"
+                                        WidthRequest="26"
+                                        HeightRequest="26"
+                                        CornerRadius="13"
+                                        Padding="0"
+                                        VerticalOptions="Start"
+                                        HorizontalOptions="End"
+                                        Margin="4"
+                                        Command="{Binding RemoveMediaCommand, Source={RelativeSource AncestorType={x:Type wizard:PropertyWizardViewModel}}, x:DataType=wizard:PropertyWizardViewModel}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
+                      ColumnSpacing="10" RowSpacing="10">
+                    <Button Grid.Row="0" Grid.Column="0"
+                            Text="📷 Foto aufnehmen"
+                            Command="{Binding TakePhotoCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                    <Button Grid.Row="0" Grid.Column="1"
+                            Text="🖼 Aus Galerie"
+                            Command="{Binding PickPhotosCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                    <Button Grid.Row="1" Grid.Column="0"
+                            Text="🎬 Video aufnehmen"
+                            Command="{Binding RecordVideoCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                    <Button Grid.Row="1" Grid.Column="1"
+                            Text="🎞 Video wählen"
+                            Command="{Binding PickVideoCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                </Grid>
+
+                <Label Text="Mindestens 1 Foto ist für die Veröffentlichung nötig – Sie können aber jederzeit als Entwurf speichern und Fotos später ergänzen. Videos nutzt nur die KI-Analyse."
+                       Style="{StaticResource Caption}" />
+            </VerticalStackLayout>
+        </Border>
+    </VerticalStackLayout>
+</ContentView>

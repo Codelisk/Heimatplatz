@@ -1,13 +1,13 @@
 using System.ComponentModel;
 
-namespace Heimatplatz.Maui.Features.Properties.Presentation;
+namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 
-public partial class AiAddPropertyPage : ContentPage
+public partial class DescribeStepView : ContentView
 {
     private CancellationTokenSource? _pulseCts;
-    private AiAddPropertyViewModel? _viewModel;
+    private PropertyWizardViewModel? _viewModel;
 
-    public AiAddPropertyPage()
+    public DescribeStepView()
     {
         InitializeComponent();
     }
@@ -19,7 +19,7 @@ public partial class AiAddPropertyPage : ContentPage
         if (_viewModel != null)
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
-        _viewModel = BindingContext as AiAddPropertyViewModel;
+        _viewModel = BindingContext as PropertyWizardViewModel;
 
         if (_viewModel != null)
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
@@ -27,16 +27,7 @@ public partial class AiAddPropertyPage : ContentPage
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // Fehler-Banner sitzt oben, die Aktions-Buttons unten - bei einem
-        // Validierungsfehler die gerade sichtbare Phase nach oben scrollen
-        if (e.PropertyName == nameof(AiAddPropertyViewModel.HasError) && _viewModel?.HasError == true)
-        {
-            var scroll = _viewModel.IsReviewPhase ? ReviewScroll : InputScroll;
-            MainThread.BeginInvokeOnMainThread(() => _ = scroll.ScrollToAsync(0, 0, animated: true));
-            return;
-        }
-
-        if (e.PropertyName != nameof(AiAddPropertyViewModel.IsListening))
+        if (e.PropertyName != nameof(PropertyWizardViewModel.IsListening))
             return;
 
         if (_viewModel?.IsListening == true)
