@@ -65,7 +65,7 @@ public class GetPropertyChangesHandler(
         // SQLite (lokale Entwicklung) kann DateTimeOffset-Vergleiche nicht in SQL uebersetzen -
         // dort in-memory filtern (Journal ist durch Retention klein); Postgres filtert in SQL
         var journal = dbContext.Set<PropertyChange>();
-        var relevant = IsSqlite(dbContext)
+        var relevant = dbContext.Database.IsSqlite()
             ? (await journal.ToListAsync(cancellationToken)).Where(c => c.CreatedAt > since).ToList()
             : await journal.Where(c => c.CreatedAt > since).ToListAsync(cancellationToken);
 
@@ -181,8 +181,4 @@ public class GetPropertyChangesHandler(
     }
 
     private static DateTimeOffset Max(DateTimeOffset a, DateTimeOffset b) => a > b ? a : b;
-
-    /// <summary>True wenn die Datenbank SQLite ist (lokale Entwicklung/Tests)</summary>
-    public static bool IsSqlite(AppDbContext dbContext)
-        => dbContext.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true;
 }

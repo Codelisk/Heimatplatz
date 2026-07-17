@@ -37,10 +37,12 @@ public class GetForeclosureAuctionsHandler(
         if (!string.IsNullOrWhiteSpace(request.PostalCode))
             query = query.Where(fa => fa.PostalCode.StartsWith(request.PostalCode));
 
-        if (request.AuctionDateFrom.HasValue)
+        // SQLite kann DateTimeOffset-Vergleiche nicht in SQL uebersetzen -> dort nach dem Laden filtern
+        var isSqlite = dbContext.Database.IsSqlite();
+        if (request.AuctionDateFrom.HasValue && !isSqlite)
             query = query.Where(fa => fa.AuctionDate >= request.AuctionDateFrom.Value);
 
-        if (request.AuctionDateTo.HasValue)
+        if (request.AuctionDateTo.HasValue && !isSqlite)
             query = query.Where(fa => fa.AuctionDate <= request.AuctionDateTo.Value);
 
         if (request.MaxEstimatedValue.HasValue)
@@ -55,14 +57,21 @@ public class GetForeclosureAuctionsHandler(
         if (request.IsActive.HasValue)
             query = query.Where(fa => fa.IsActive == request.IsActive.Value);
 
-        // Total Count fuer Pagination
-        var totalCount = await query.CountAsync(cancellationToken);
-
         // Build base URL for image proxy
         var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
 
         // Laden und Sortieren (SQLite unterstuetzt DateTimeOffset nicht in ORDER BY)
         var entities = await query.ToListAsync(cancellationToken);
+        if (isSqlite)
+        {
+            if (request.AuctionDateFrom.HasValue)
+                entities = entities.Where(fa => fa.AuctionDate >= request.AuctionDateFrom.Value).ToList();
+            if (request.AuctionDateTo.HasValue)
+                entities = entities.Where(fa => fa.AuctionDate <= request.AuctionDateTo.Value).ToList();
+        }
+
+        // Query enthaelt keine Pagination -> Gesamtzahl entspricht den geladenen Eintraegen
+        var totalCount = entities.Count;
         var auctions = entities
             .OrderBy(fa => fa.AuctionDate)
             .Skip((request.Page - 1) * request.PageSize)

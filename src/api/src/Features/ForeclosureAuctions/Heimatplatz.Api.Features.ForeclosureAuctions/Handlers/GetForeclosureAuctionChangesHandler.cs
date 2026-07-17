@@ -21,16 +21,21 @@ public class GetForeclosureAuctionChangesHandler(AppDbContext dbContext)
     {
         var query = dbContext.Set<ForeclosureAuctionChange>().AsQueryable();
 
-        if (request.Since.HasValue)
+        // SQLite kann DateTimeOffset-Vergleiche nicht in SQL uebersetzen -> dort nach dem Laden filtern
+        var isSqlite = dbContext.Database.IsSqlite();
+        if (request.Since.HasValue && !isSqlite)
             query = query.Where(c => c.CreatedAt >= request.Since.Value);
 
         if (!string.IsNullOrWhiteSpace(request.ChangeType))
             query = query.Where(c => c.ChangeType == request.ChangeType);
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
         // SQLite DateTimeOffset ORDER BY workaround
         var entities = await query.ToListAsync(cancellationToken);
+        if (request.Since.HasValue && isSqlite)
+            entities = entities.Where(c => c.CreatedAt >= request.Since.Value).ToList();
+
+        // Query enthaelt keine Pagination -> Gesamtzahl entspricht den geladenen Eintraegen
+        var totalCount = entities.Count;
         var changes = entities
             .OrderByDescending(c => c.CreatedAt)
             .Skip((request.Page - 1) * request.PageSize)

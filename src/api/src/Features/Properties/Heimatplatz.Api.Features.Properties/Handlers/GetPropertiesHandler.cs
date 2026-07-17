@@ -69,11 +69,15 @@ public class GetPropertiesHandler(
         if (municipalityIds.Count > 0)
             query = query.Where(p => municipalityIds.Contains(p.MunicipalityId));
 
-        // Filter: CreatedAfter (Age filter) - convert to UTC DateTimeOffset for proper comparison
-        if (request.CreatedAfter.HasValue)
+        // Filter: CreatedAfter (Age filter) - convert to UTC DateTimeOffset for proper comparison.
+        // SQLite kann DateTimeOffset-Vergleiche nicht in SQL uebersetzen -> dort nach dem Laden filtern
+        DateTimeOffset? createdAfterUtc = request.CreatedAfter.HasValue
+            ? new DateTimeOffset(request.CreatedAfter.Value.ToUniversalTime(), TimeSpan.Zero)
+            : null;
+        var isSqlite = dbContext.Database.IsSqlite();
+        if (createdAfterUtc is { } createdAfterSql && !isSqlite)
         {
-            var createdAfterUtc = new DateTimeOffset(request.CreatedAfter.Value.ToUniversalTime(), TimeSpan.Zero);
-            query = query.Where(p => p.CreatedAt >= createdAfterUtc);
+            query = query.Where(p => p.CreatedAt >= createdAfterSql);
         }
 
         // Filter: Price range
@@ -104,18 +108,21 @@ public class GetPropertiesHandler(
                 !excludedSourceIds.Contains(p.SellerSourceId.Value));
         }
 
-        // Total count for paging (before applying pagination)
-        var total = await query.CountAsync(cancellationToken);
-
-        // Calculate pagination
-        var skip = request.Page * request.PageSize;
-        var hasMore = (request.Page + 1) * request.PageSize < total;
-
         // Build base URL for image proxy
         var baseUrl = ResolveApiBaseUrl(httpContextAccessor, configuration);
 
         // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
         var entities = await query.ToListAsync(cancellationToken);
+        if (createdAfterUtc is { } createdAfterInMemory && isSqlite)
+        {
+            entities = entities.Where(p => p.CreatedAt >= createdAfterInMemory).ToList();
+        }
+
+        // Die Query enthaelt keine Pagination - die Gesamtzahl entspricht den geladenen
+        // (und ggf. in-memory gefilterten) Eintraegen; spart den frueheren COUNT-Roundtrip
+        var total = entities.Count;
+        var skip = request.Page * request.PageSize;
+        var hasMore = (request.Page + 1) * request.PageSize < total;
         IEnumerable<Property> sorted = request.SortBy?.ToLowerInvariant() switch
         {
             "createdat" => request.SortDescending

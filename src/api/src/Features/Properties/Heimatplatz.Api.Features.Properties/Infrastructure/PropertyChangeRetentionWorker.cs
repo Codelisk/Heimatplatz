@@ -68,7 +68,7 @@ public class PropertyChangeRetentionWorker(
         // Bewusst ueber den ChangeTracker statt ExecuteDelete (ueberschaubare Mengen);
         // SQLite kann DateTimeOffset-Vergleiche nicht uebersetzen -> in-memory filtern
         var journal = dbContext.Set<PropertyChange>();
-        var expired = GetPropertyChangesHandler.IsSqlite(dbContext)
+        var expired = dbContext.Database.IsSqlite()
             ? (await journal.ToListAsync(ct)).Where(c => c.CreatedAt < cutoff).ToList()
             : await journal.Where(c => c.CreatedAt < cutoff).ToListAsync(ct);
 
