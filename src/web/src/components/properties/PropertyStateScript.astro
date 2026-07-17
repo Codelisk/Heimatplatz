@@ -868,8 +868,10 @@
         setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
         setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
         setCheckboxValues(form, "locations", preferences.Locations);
-        const filterMode = form.querySelector<HTMLSelectElement>("[name='filterMode']");
-        if (filterMode && typeof preferences.FilterMode === "string") filterMode.value = preferences.FilterMode;
+        if (typeof preferences.FilterMode === "string") {
+          const filterMode = form.querySelector<HTMLInputElement>(`input[name='filterMode'][value='${preferences.FilterMode}']`);
+          if (filterMode) filterMode.checked = true;
+        }
       } else {
         setCheckbox(form, "house", preferences.IsHausSelected as boolean);
         setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
@@ -891,7 +893,7 @@
 
   function updateNotificationPreferenceVisibility(form: HTMLFormElement) {
     const enabled = form.querySelector<HTMLInputElement>("[name='isEnabled']")?.checked ?? true;
-    const mode = form.querySelector<HTMLSelectElement>("[name='filterMode']")?.value ?? "SameAsSearch";
+    const mode = form.querySelector<HTMLInputElement>("[name='filterMode']:checked")?.value ?? "SameAsSearch";
     const showFilters = enabled;
     const showCustom = enabled && mode === "Custom";
 
@@ -900,6 +902,9 @@
     });
     form.querySelectorAll<HTMLElement>("[data-notification-custom]").forEach((element) => {
       element.hidden = !showCustom;
+    });
+    form.querySelectorAll<HTMLElement>("[data-notification-samesearch]").forEach((element) => {
+      element.hidden = mode !== "SameAsSearch";
     });
   }
 
