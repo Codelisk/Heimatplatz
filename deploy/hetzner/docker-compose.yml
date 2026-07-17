@@ -31,6 +31,14 @@ services:
       # interne Docker-Netz auf (http://api:8080), dessen Host fuer echte Browser nicht aufloesbar
       # waere. Siehe GetPropertiesHandler.ResolveApiBaseUrl.
       Api__PublicBaseUrl: https://${API_DOMAIN}
+      # E-Mail-Versand (Verifikation, Passwort-Reset) ueber die Hetzner-Webhosting-Mailbox
+      # info@heimatplatz.at. Ohne EMAIL_SMTP_HOST in der .env bleibt der Versand deaktiviert
+      # (Mails werden nur geloggt, siehe LoggingEmailSender + Startup-Warnung).
+      Email__SmtpHost: ${EMAIL_SMTP_HOST}
+      Email__SmtpUsername: ${EMAIL_SMTP_USERNAME}
+      Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
+      # Links in den Mails zeigen auf das Web-Frontend dieser Umgebung
+      Email__FrontendBaseUrl: https://${WEB_DOMAIN}
     volumes:
       # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
       # Container-Rebuilds ueberleben.
@@ -60,6 +68,11 @@ services:
       AiListing__Provider: AiConnector
       AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
       Api__PublicBaseUrl: https://${TEST_API_DOMAIN}
+      # Gleiche Mailbox wie Prod, aber Mail-Links zeigen auf das Test-Web
+      Email__SmtpHost: ${EMAIL_SMTP_HOST}
+      Email__SmtpUsername: ${EMAIL_SMTP_USERNAME}
+      Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
+      Email__FrontendBaseUrl: https://${WEB_TEST_DOMAIN}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}
