@@ -170,11 +170,14 @@ export function getApiPropertyTypeSearchValue(type: string, property?: ApiProper
 
 export function getApiSellerSearchValue(sellerType: string | number | null) {
   if (sellerType === "Private" || sellerType === 1) return "private";
-  if (sellerType === "Broker" || sellerType === 2 || sellerType === 3) return "agent";
+  // Gewerbliche Anbieter: Makler (2) und Hausverwaltung (3)
+  if (sellerType === "Broker" || sellerType === 2) return "agent";
+  if (sellerType === "PropertyManager" || sellerType === 3) return "agent";
   return "court";
 }
 
 export function getApiSellerLabel(sellerType: string | number | null) {
+  if (sellerType === "PropertyManager" || sellerType === 3) return "Verwaltung";
   if (getApiSellerSearchValue(sellerType) === "private") return "Privat";
   if (getApiSellerSearchValue(sellerType) === "agent") return "Makler";
   return "Portal";

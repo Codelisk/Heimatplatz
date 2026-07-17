@@ -162,6 +162,10 @@
       values.forEach((role) => {
         if (typeof role === "string") roles.add(role.toLowerCase());
       });
+      // Konkreter Anbietertyp (Private/Broker/PropertyManager) als eigener Claim
+      if (typeof parsed.seller_type === "string") {
+        roles.add(`seller_type:${parsed.seller_type.toLowerCase()}`);
+      }
     } catch {
       // Role badges are a progressive enhancement; authentication itself does not depend on this.
     }
@@ -177,12 +181,14 @@
   }
 
   function getRoleBadgeText(roles: Set<string>) {
-    const isBuyer = roles.has("buyer");
-    const isSeller = roles.has("seller");
-    if (isBuyer && isSeller) return "Käufer & Verkäufer";
-    if (isSeller) return "Verkäufer";
-    if (isBuyer) return "Käufer";
-    return "Konto";
+    // Kaeufer ist jedes Konto implizit; Verkaeufer werden mit Anbietertyp ausgewiesen
+    if (roles.has("admin")) return "Administrator";
+    if (roles.has("seller")) {
+      if (roles.has("seller_type:broker")) return "Verkäufer · Makler";
+      if (roles.has("seller_type:propertymanager")) return "Verkäufer · Hausverwaltung";
+      return "Verkäufer · Privat";
+    }
+    return "Käufer";
   }
 
   function saveSession(session: Session) {
@@ -317,7 +323,8 @@
     const session = readSession();
     const loggedIn = !!session;
     const roles = readSessionRoles(session);
-    const isBuyer = roles.has("buyer");
+    // Kaeufer ist jedes angemeldete Konto implizit
+    const isBuyer = loggedIn;
     const isSeller = roles.has("seller");
 
     document.querySelectorAll<HTMLElement>("[data-auth-email]").forEach((element) => {
@@ -349,28 +356,34 @@
     });
   }
 
+  // Firmenname ist bei allen gewerblichen Anbietern Pflicht (Makler und Hausverwaltung)
+  function sellerTypeNeedsCompany(sellerType: string) {
+    return sellerType === "Broker" || sellerType === "PropertyManager";
+  }
+
   function bindRegisterRoleFields() {
-    document.querySelectorAll<HTMLFormElement>("[data-auth-form='register']").forEach((form) => {
-      const sellerRole = form.querySelector<HTMLInputElement>("[name='role'][value='seller']");
+    // Gleiches Toggle-Verhalten fuer Registrierung und Profil-Bearbeitung
+    document.querySelectorAll<HTMLFormElement>("[data-auth-form='register'], [data-profile-form]").forEach((form) => {
+      const wantsToSell = form.querySelector<HTMLInputElement>("[name='wantsToSell']");
       const sellerFields = form.querySelector<HTMLElement>("[data-seller-fields]");
       const sellerTypes = Array.from(form.querySelectorAll<HTMLInputElement>("[name='sellerType']"));
-      const brokerType = form.querySelector<HTMLInputElement>("[name='sellerType'][value='Broker']");
       const companyWrapper = form.querySelector<HTMLElement>("[data-company-field]");
       const companyName = form.querySelector<HTMLInputElement>("[name='companyName']");
 
       const update = () => {
-        const sellerSelected = Boolean(sellerRole?.checked);
+        const sellerSelected = Boolean(wantsToSell?.checked);
         if (sellerFields) sellerFields.hidden = !sellerSelected;
         sellerTypes.forEach((input) => {
           input.disabled = !sellerSelected;
         });
 
-        const brokerSelected = sellerSelected && Boolean(brokerType?.checked);
-        if (companyWrapper) companyWrapper.hidden = !brokerSelected;
+        const selectedType = sellerTypes.find((input) => input.checked)?.value ?? "";
+        const needsCompany = sellerSelected && sellerTypeNeedsCompany(selectedType);
+        if (companyWrapper) companyWrapper.hidden = !needsCompany;
         if (companyName) {
-          companyName.disabled = !brokerSelected;
-          companyName.required = brokerSelected;
-          if (!brokerSelected) companyName.value = "";
+          companyName.disabled = !needsCompany;
+          companyName.required = needsCompany;
+          if (!needsCompany) companyName.value = "";
         }
       };
 
@@ -382,15 +395,13 @@
   function validateRegisterForm(formData: FormData) {
     const password = String(formData.get("password") ?? "");
     const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
-    const roles = formData.getAll("role").map(String);
-    const wantsSeller = roles.includes("seller");
+    const wantsSeller = formData.has("wantsToSell");
     const sellerType = String(formData.get("sellerType") ?? "");
     const companyName = String(formData.get("companyName") ?? "").trim();
 
     if (password !== passwordConfirm) return "Die Passwörter stimmen nicht überein.";
-    if (roles.length === 0) return "Bitte mindestens eine Rolle auswählen.";
     if (wantsSeller && !sellerType) return "Bitte einen Anbietertyp auswählen.";
-    if (wantsSeller && sellerType === "Broker" && !companyName) return "Bitte den Firmennamen angeben.";
+    if (wantsSeller && sellerTypeNeedsCompany(sellerType) && !companyName) return "Bitte den Firmennamen angeben.";
     return "";
   }
 
@@ -401,8 +412,7 @@
         const mode = form.getAttribute("data-auth-form");
         const formData = new FormData(form);
         const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
-        const roles = formData.getAll("role").map((role) => role === "seller" ? "Seller" : "Buyer");
-        const wantsSeller = roles.includes("Seller");
+        const wantsSeller = formData.has("wantsToSell");
         const sellerType = wantsSeller ? String(formData.get("sellerType") ?? "Private") : "";
         const companyName = String(formData.get("companyName") ?? "").trim();
 
@@ -420,17 +430,16 @@
         try {
           const payload = mode === "register"
             ? {
-                Vorname: String(formData.get("firstName") ?? ""),
-                Nachname: String(formData.get("lastName") ?? ""),
+                FirstName: String(formData.get("firstName") ?? ""),
+                LastName: String(formData.get("lastName") ?? ""),
                 Email: String(formData.get("email") ?? ""),
-                Passwort: String(formData.get("password") ?? ""),
-                Roles: roles,
+                Password: String(formData.get("password") ?? ""),
                 SellerType: wantsSeller ? sellerType : null,
-                CompanyName: wantsSeller && sellerType === "Broker" ? companyName : null,
+                CompanyName: wantsSeller && sellerTypeNeedsCompany(sellerType) ? companyName : null,
               }
             : {
                 Email: String(formData.get("email") ?? ""),
-                Passwort: String(formData.get("password") ?? ""),
+                Password: String(formData.get("password") ?? ""),
               };
 
           const session = await apiRequest<Session>(
@@ -440,7 +449,11 @@
 
           saveSession(session);
           setFormStatus(form, "Erfolgreich angemeldet.", "success");
-          const redirect = form.getAttribute("data-success-redirect") || "/profil/";
+          // Verkaeufer landen bei ihren Inseraten, alle anderen in der Suche
+          const sellerRedirect = form.getAttribute("data-success-redirect-seller");
+          const redirect = (mode === "register" && wantsSeller && sellerRedirect)
+            ? sellerRedirect
+            : form.getAttribute("data-success-redirect") || "/profil/";
           window.location.href = redirect;
         } catch (error) {
           setFormStatus(
@@ -450,6 +463,116 @@
           );
         } finally {
           submit?.removeAttribute("disabled");
+        }
+      });
+    });
+  }
+
+  type Profile = {
+    UserId: string;
+    FirstName: string;
+    LastName: string;
+    Email: string;
+    FullName: string;
+    SellerType: string | null;
+    CompanyName: string | null;
+    IsAdmin: boolean;
+  };
+
+  // Profil-Formular: laedt die aktuellen Daten und speichert Aenderungen
+  // (Verkaeufer werden/Anbietertyp wechseln/Anbieten deaktivieren) via PUT /api/auth/profile
+  function bindProfileForms() {
+    document.querySelectorAll<HTMLFormElement>("[data-profile-form]").forEach((form) => {
+      const load = async () => {
+        if (!readSession()) return;
+        try {
+          const profile = await apiRequest<Profile>("/api/auth/profile");
+          setField(form, "firstName", profile.FirstName);
+          setField(form, "lastName", profile.LastName);
+          const wantsToSell = form.querySelector<HTMLInputElement>("[name='wantsToSell']");
+          if (wantsToSell) wantsToSell.checked = Boolean(profile.SellerType);
+          if (profile.SellerType) {
+            const typeInput = form.querySelector<HTMLInputElement>(`[name='sellerType'][value='${profile.SellerType}']`);
+            if (typeInput) typeInput.checked = true;
+          }
+          setField(form, "companyName", profile.CompanyName ?? "");
+          form.dispatchEvent(new Event("change"));
+        } catch {
+          // Formular bleibt leer; Speichern validiert serverseitig
+        }
+      };
+      void load();
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const session = readSession();
+        if (!session) return;
+
+        const formData = new FormData(form);
+        const wantsSeller = formData.has("wantsToSell");
+        const sellerType = wantsSeller ? String(formData.get("sellerType") ?? "Private") : null;
+        const companyName = String(formData.get("companyName") ?? "").trim();
+
+        if (wantsSeller && sellerType && sellerTypeNeedsCompany(sellerType) && !companyName) {
+          setFormStatus(form, "Bitte den Firmennamen angeben.", "error");
+          return;
+        }
+
+        setFormStatus(form, "Profil wird gespeichert...");
+        try {
+          const result = await apiRequest<{ FullName: string; AccessToken: string }>("/api/auth/profile", {
+            method: "PUT",
+            body: {
+              FirstName: String(formData.get("firstName") ?? ""),
+              LastName: String(formData.get("lastName") ?? ""),
+              SellerType: sellerType,
+              CompanyName: wantsSeller && sellerType && sellerTypeNeedsCompany(sellerType) ? companyName : null,
+            },
+          });
+
+          // Neuer Access Token traegt die aktualisierten Claims (Seller/SellerType)
+          saveSession({ ...session, AccessToken: result.AccessToken, FullName: result.FullName });
+          setFormStatus(form, "Profil gespeichert.", "success");
+        } catch (error) {
+          setFormStatus(form, error instanceof Error ? error.message : "Speichern fehlgeschlagen.", "error");
+        }
+      });
+    });
+
+    document.querySelectorAll<HTMLFormElement>("[data-change-password-form]").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const session = readSession();
+        if (!session) return;
+
+        const formData = new FormData(form);
+        const newPassword = String(formData.get("newPassword") ?? "");
+        const confirm = String(formData.get("newPasswordConfirm") ?? "");
+
+        if (newPassword !== confirm) {
+          setFormStatus(form, "Die Passwörter stimmen nicht überein.", "error");
+          return;
+        }
+
+        setFormStatus(form, "Passwort wird geändert...");
+        try {
+          const result = await apiRequest<{ AccessToken: string; RefreshToken: string; ExpiresAt: string }>(
+            "/api/auth/change-password",
+            {
+              method: "POST",
+              body: {
+                CurrentPassword: String(formData.get("currentPassword") ?? ""),
+                NewPassword: newPassword,
+              },
+            },
+          );
+
+          // Alle anderen Sitzungen sind widerrufen; diese Session bekommt das neue Token-Paar
+          saveSession({ ...session, AccessToken: result.AccessToken, RefreshToken: result.RefreshToken, ExpiresAt: result.ExpiresAt });
+          form.reset();
+          setFormStatus(form, "Passwort geändert. Andere Geräte wurden abgemeldet.", "success");
+        } catch (error) {
+          setFormStatus(form, error instanceof Error ? error.message : "Passwort-Änderung fehlgeschlagen.", "error");
         }
       });
     });
@@ -1274,8 +1397,7 @@
         MunicipalityId: municipalityId,
         Price: toNumber(draft.price),
         Type: mapPropertyType(draft.propertyType),
-        SellerType: draft.sellerType || "Private",
-        SellerName: draft.sellerName || session.FullName || "Privatanbieter",
+        // SellerType/SellerName leitet der Server aus dem Benutzerprofil ab
         Description: draft.description || null,
         LivingAreaSquareMeters: hasStructureFields(draft) ? toNumber(draft.livingArea) : null,
         PlotAreaSquareMeters: toNumber(draft.plotArea),
@@ -1308,8 +1430,7 @@
         MunicipalityId: municipalityId,
         Price: toNumber(draft.price),
         Type: mapPropertyType(draft.propertyType),
-        SellerType: mapSellerType(draft.sellerType),
-        SellerName: draft.sellerName || session.FullName || "Privatanbieter",
+        // SellerType/SellerName leitet der Server aus dem Benutzerprofil ab
         Description: draft.description || null,
         LivingAreaSquareMeters: hasStructureFields(draft) ? toNumber(draft.livingArea) : null,
         PlotAreaSquareMeters: toNumber(draft.plotArea),
@@ -1385,8 +1506,6 @@
 
   function fillPropertyForm(form: HTMLFormElement, draft: Draft) {
     setField(form, "propertyType", draft.propertyType);
-    setField(form, "sellerName", draft.sellerName);
-    setField(form, "sellerType", draft.sellerType);
     setField(form, "title", draft.title);
     setField(form, "description", draft.description);
     setField(form, "address", draft.address);
@@ -1899,6 +2018,7 @@
     bindPropertyTypeFields();
     void hydratePropertyEditForm();
     bindAuthForms();
+    bindProfileForms();
     bindPreferenceForms();
     bindPropertyForm();
     bindGlobalActions();

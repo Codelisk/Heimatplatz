@@ -28,7 +28,9 @@ import { Button } from "@/components/starwind/button";
 
         <div class="mt-4 grid gap-2">
           <Button type="button" variant="outline" class="w-full" data-debug-logout>Ausgeloggt</Button>
-          <Button type="button" variant="default" class="w-full" data-debug-login="seller">Als Verkäufer anmelden</Button>
+          <Button type="button" variant="default" class="w-full" data-debug-login="seller">Als Verkäufer (privat) anmelden</Button>
+          <Button type="button" variant="default" class="w-full" data-debug-login="broker">Als Makler anmelden</Button>
+          <Button type="button" variant="default" class="w-full" data-debug-login="propertyManager">Als Hausverwaltung anmelden</Button>
           <Button type="button" variant="default" class="w-full" data-debug-login="buyer">Als Käufer anmelden</Button>
         </div>
 
@@ -87,7 +89,9 @@ import { Button } from "@/components/starwind/button";
   const TEST_PASSWORD = "Test123!";
   const TEST_USERS = {
     buyer: { email: "test.buyer@heimatplatz.dev", label: "Käufer" },
-    seller: { email: "test.seller@heimatplatz.dev", label: "Verkäufer" },
+    seller: { email: "test.seller@heimatplatz.dev", label: "Verkäufer (privat)" },
+    broker: { email: "test.broker@heimatplatz.dev", label: "Makler" },
+    propertyManager: { email: "test.verwaltung@heimatplatz.dev", label: "Hausverwaltung" },
   } as const;
 
   const DEFAULT_API_URL = import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
@@ -178,6 +182,9 @@ import { Button } from "@/components/starwind/button";
         (Array.isArray(claim) ? claim : [claim]).forEach((role) => {
           if (typeof role === "string") roles.add(role.toLowerCase());
         });
+        if (typeof parsed.seller_type === "string") {
+          roles.add(`seller_type:${parsed.seller_type.toLowerCase()}`);
+        }
       } catch {
         // Ohne Rollen bleibt der Status generisch
       }
@@ -191,10 +198,17 @@ import { Button } from "@/components/starwind/button";
         authState.textContent = "Aktuell: Ausgeloggt";
         return;
       }
+      // Kaeufer ist jedes Konto implizit; Verkaeufer werden mit Anbietertyp ausgewiesen
       const roles = readRoles(session);
-      const roleText = roles.has("buyer") && roles.has("seller")
-        ? "Käufer & Verkäufer"
-        : roles.has("seller") ? "Verkäufer" : roles.has("buyer") ? "Käufer" : "Eingeloggt";
+      const roleText = roles.has("admin")
+        ? "Administrator"
+        : roles.has("seller")
+          ? roles.has("seller_type:broker")
+            ? "Verkäufer (Makler)"
+            : roles.has("seller_type:propertymanager")
+              ? "Verkäufer (Hausverwaltung)"
+              : "Verkäufer (privat)"
+          : "Käufer";
       authState.textContent = `Aktuell: ${roleText} — ${session.Email}`;
     }
 
@@ -227,7 +241,7 @@ import { Button } from "@/components/starwind/button";
           const response = await fetch(new URL("/api/auth/login", getActiveUrl()), {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ Email: user.email, Passwort: TEST_PASSWORD }),
+            body: JSON.stringify({ Email: user.email, Password: TEST_PASSWORD }),
           });
           if (!response.ok) throw new Error(`API ${response.status}`);
           const session = (await response.json()) as Session;

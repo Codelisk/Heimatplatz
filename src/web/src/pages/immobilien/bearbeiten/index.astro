@@ -33,19 +33,7 @@ import { Textarea } from "@/components/starwind/textarea";
           <option value="foreclosure">Zwangsversteigerung</option>
         </NativeSelect>
       </div>
-      <div class="grid gap-4 md:grid-cols-2">
-        <div class="space-y-2">
-          <Label for="sellerName">Anbietername *</Label>
-          <Input id="sellerName" name="sellerName" placeholder="z.B. Max Mustermann" required />
-        </div>
-        <div class="space-y-2">
-          <Label for="sellerType">Anbietertyp *</Label>
-          <NativeSelect id="sellerType" name="sellerType" required>
-            <option value="Private">Privat</option>
-            <option value="Broker">Makler</option>
-          </NativeSelect>
-        </div>
-      </div>
+      {/* Anbietername/-typ werden serverseitig aus dem Benutzerprofil abgeleitet */}
       <div class="space-y-2">
         <Label for="title">Titel *</Label>
         <Input id="title" name="title" placeholder="z.B. Schöne 3-Zimmer Wohnung in Linz" minlength="10" required />
