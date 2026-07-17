@@ -477,6 +477,7 @@
     SellerType: string | null;
     CompanyName: string | null;
     IsAdmin: boolean;
+    EmailVerified: boolean;
   };
 
   // Profil-Formular: laedt die aktuellen Daten und speichert Aenderungen
@@ -575,6 +576,177 @@
           setFormStatus(form, error instanceof Error ? error.message : "Passwort-Änderung fehlgeschlagen.", "error");
         }
       });
+    });
+  }
+
+  // "Passwort vergessen" (E-Mail-Formular) und "Passwort zuruecksetzen" (Token aus ?token=)
+  function bindPasswordResetForms() {
+    document.querySelectorAll<HTMLFormElement>("[data-forgot-password-form]").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
+        const email = String(new FormData(form).get("email") ?? "");
+
+        submit?.setAttribute("disabled", "true");
+        setFormStatus(form, "Anfrage wird gesendet...");
+        try {
+          // Die Antwort ist bewusst immer generisch (kein Rueckschluss auf existierende Konten)
+          const result = await apiRequest<{ Message: string }>("/api/auth/forgot-password", {
+            method: "POST",
+            body: { Email: email },
+            skipAuth: true,
+          });
+          setFormStatus(form, result.Message, "success");
+        } catch (error) {
+          setFormStatus(form, error instanceof Error ? error.message : "Die Anfrage ist fehlgeschlagen.", "error");
+        } finally {
+          submit?.removeAttribute("disabled");
+        }
+      });
+    });
+
+    document.querySelectorAll<HTMLFormElement>("[data-reset-password-form]").forEach((form) => {
+      const token = new URLSearchParams(window.location.search).get("token") ?? "";
+      const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
+
+      if (!token) {
+        setFormStatus(form, "Der Link ist unvollständig. Bitte fordern Sie über „Passwort vergessen“ einen neuen an.", "error");
+        submit?.setAttribute("disabled", "true");
+        return;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const newPassword = String(formData.get("newPassword") ?? "");
+        const confirm = String(formData.get("newPasswordConfirm") ?? "");
+
+        if (newPassword !== confirm) {
+          setFormStatus(form, "Die Passwörter stimmen nicht überein.", "error");
+          return;
+        }
+
+        submit?.setAttribute("disabled", "true");
+        setFormStatus(form, "Passwort wird gesetzt...");
+        try {
+          const result = await apiRequest<{ Message: string }>("/api/auth/reset-password", {
+            method: "POST",
+            body: { Token: token, NewPassword: newPassword },
+            skipAuth: true,
+          });
+          form.reset();
+          // Submit bleibt deaktiviert - der Token ist eingeloest, ein zweiter Versuch scheitert ohnehin
+          setFormStatus(form, result.Message, "success");
+        } catch (error) {
+          setFormStatus(form, error instanceof Error ? error.message : "Das Zurücksetzen ist fehlgeschlagen.", "error");
+          submit?.removeAttribute("disabled");
+        }
+      });
+    });
+  }
+
+  // /email-bestaetigen: ruft die API mit dem ?token= aus dem Mail-Link automatisch auf
+  function bindVerifyEmailPage() {
+    const container = document.querySelector<HTMLElement>("[data-verify-email]");
+    if (!container) return;
+
+    const pending = container.querySelector<HTMLElement>("[data-verify-pending]");
+    const success = container.querySelector<HTMLElement>("[data-verify-success]");
+    const successMessage = container.querySelector<HTMLElement>("[data-verify-success-message]");
+    const errorBlock = container.querySelector<HTMLElement>("[data-verify-error]");
+    const errorMessage = container.querySelector<HTMLElement>("[data-verify-error-message]");
+    const token = new URLSearchParams(window.location.search).get("token") ?? "";
+
+    const showError = (message: string) => {
+      pending?.setAttribute("hidden", "true");
+      if (errorMessage) errorMessage.textContent = message;
+      errorBlock?.removeAttribute("hidden");
+    };
+
+    if (!token) {
+      showError("Der Bestätigungslink ist unvollständig (Token fehlt).");
+      return;
+    }
+
+    void (async () => {
+      try {
+        const result = await apiRequest<{ Email: string; AlreadyVerified: boolean }>("/api/auth/verify-email", {
+          method: "POST",
+          body: { Token: token },
+          skipAuth: true,
+        });
+        pending?.setAttribute("hidden", "true");
+        if (successMessage) {
+          successMessage.textContent = result.AlreadyVerified
+            ? `${result.Email} war bereits bestätigt.`
+            : `${result.Email} wurde erfolgreich bestätigt. Vielen Dank!`;
+        }
+        success?.removeAttribute("hidden");
+      } catch (error) {
+        showError(error instanceof Error ? error.message : "Die Bestätigung ist fehlgeschlagen.");
+      }
+    })();
+  }
+
+  // Profil: Verifikationsstatus anzeigen + Bestaetigungs-Mail erneut senden
+  function bindEmailVerification() {
+    const card = document.querySelector<HTMLElement>("[data-email-verification]");
+    if (!card || !readSession()) return;
+
+    const statusEl = card.querySelector<HTMLElement>("[data-email-verification-status]");
+    const resendButton = card.querySelector<HTMLButtonElement>("[data-resend-verification]");
+    const resendStatus = card.querySelector<HTMLElement>("[data-resend-verification-status]");
+
+    const setResendStatus = (message: string, tone: "info" | "error" | "success") => {
+      if (!resendStatus) return;
+      resendStatus.textContent = message;
+      resendStatus.classList.remove("hidden", "text-muted-foreground", "text-error", "text-success-foreground", "dark:text-success");
+      if (tone === "error") resendStatus.classList.add("text-error");
+      if (tone === "success") resendStatus.classList.add("text-success-foreground", "dark:text-success");
+      if (tone === "info") resendStatus.classList.add("text-muted-foreground");
+    };
+
+    const renderVerified = (email: string, verified: boolean) => {
+      if (statusEl) {
+        statusEl.textContent = verified
+          ? `${email} ist bestätigt.`
+          : `${email} ist noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner).`;
+      }
+      if (verified) {
+        resendButton?.setAttribute("hidden", "true");
+      } else {
+        resendButton?.removeAttribute("hidden");
+      }
+    };
+
+    void (async () => {
+      try {
+        const profile = await apiRequest<Profile>("/api/auth/profile");
+        renderVerified(profile.Email, profile.EmailVerified);
+      } catch {
+        if (statusEl) statusEl.textContent = "Der Status konnte nicht geladen werden.";
+      }
+    })();
+
+    resendButton?.addEventListener("click", async () => {
+      resendButton.setAttribute("disabled", "true");
+      setResendStatus("Bestätigungs-E-Mail wird gesendet...", "info");
+      try {
+        const result = await apiRequest<{ AlreadyVerified: boolean }>("/api/auth/resend-verification", {
+          method: "POST",
+          body: {},
+        });
+        if (result.AlreadyVerified) {
+          setResendStatus("Ihre E-Mail-Adresse ist bereits bestätigt.", "success");
+          renderVerified(readSession()?.Email ?? "", true);
+        } else {
+          setResendStatus("Bestätigungs-E-Mail wurde gesendet. Bitte prüfen Sie Ihr Postfach.", "success");
+        }
+      } catch (error) {
+        setResendStatus(error instanceof Error ? error.message : "Der Versand ist fehlgeschlagen.", "error");
+      } finally {
+        resendButton.removeAttribute("disabled");
+      }
     });
   }
 
@@ -2018,6 +2190,9 @@
     bindPropertyTypeFields();
     void hydratePropertyEditForm();
     bindAuthForms();
+    bindPasswordResetForms();
+    bindVerifyEmailPage();
+    bindEmailVerification();
     bindProfileForms();
     bindPreferenceForms();
     bindPropertyForm();
