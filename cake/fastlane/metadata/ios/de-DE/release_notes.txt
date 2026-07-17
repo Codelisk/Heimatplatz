@@ -1,5 +1,4 @@
-• Überarbeitete Oberfläche für Suche, Filter und Inserate
-• Push-Benachrichtigungen für gespeicherte Filter und Wunschorte
-• Zwangsversteigerungen mit Termin, Schätzwert und Gerichtsdaten
-• Favoriten geräteübergreifend synchronisiert
+• Neuer Inserats-Assistent: Fotos zuerst, dann Eckdaten – die Beschreibung wird auf Wunsch automatisch erstellt
+• Offline verbessert: bereits geladene Inserate bleiben ohne Internet verfügbar
+• Klare Hinweise bei fehlender Verbindung – Inhalte laden automatisch neu, sobald die Verbindung zurückkehrt
 • Verbesserte Stabilität und Fehlerbehebungen
