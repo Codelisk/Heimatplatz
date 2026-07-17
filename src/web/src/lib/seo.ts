@@ -45,7 +45,8 @@ export function websiteSchema(): StructuredData {
     inLanguage: SITE.language,
     potentialAction: {
       "@type": "SearchAction",
-      target: `${SITE.url}/immobilien/?q={search_term_string}`,
+      // Die Suche laeuft auf der Startseite - /immobilien/ hat keine Index-Route
+      target: `${SITE.url}/?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };

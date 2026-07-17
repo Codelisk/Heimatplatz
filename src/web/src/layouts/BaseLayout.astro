@@ -5,6 +5,7 @@ import { SITE } from "@/config/site";
 import SiteFooter from "@/components/layout/SiteFooter.astro";
 import SiteHeader from "@/components/layout/SiteHeader.astro";
 import PropertyStateScript from "@/components/properties/PropertyStateScript.astro";
+import { jsonForScriptTag } from "@/lib/utils/json";
 import {
   realEstateAgentSchema,
   getAssetUrl,
@@ -42,7 +43,7 @@ const pageTitle = getPageTitle(title);
 const canonicalUrl = getCanonicalUrl(canonicalPath);
 const imageUrl = getAssetUrl(image);
 const data = Array.isArray(structuredData) ? structuredData : [structuredData];
-const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstateAgentSchema(), ...data]);
+const jsonLd = jsonForScriptTag([organizationSchema(), websiteSchema(), realEstateAgentSchema(), ...data]);
 ---
 
 <!doctype html>
