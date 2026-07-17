@@ -23,9 +23,9 @@ const { title, description, mode, canonicalPath = mode === "register" ? "/regist
         <slot />
       </div>
     </section>
-    {/* Markenpanel: bewusst themenunabhaengig im kraeftigen Rot-Schwarz gehalten,
-        damit es neben dem hellen wie dem dunklen Formularbereich funktioniert */}
-    <aside class="relative hidden overflow-hidden bg-[linear-gradient(160deg,#bb0916,#1a0508)] text-white lg:grid lg:place-items-center">
+    {/* Markenpanel: Light hellt zur Sonne hin auf (tiefes Rot -> Koralle, der Text
+        liegt auf der satten Rot-Seite), Dark im kraeftigen Rot-Schwarz */}
+    <aside class="relative hidden overflow-hidden bg-[linear-gradient(160deg,#c9161c,#ee6a50)] text-white lg:grid lg:place-items-center dark:bg-[linear-gradient(160deg,#bb0916,#1a0508)]">
       <svg
         viewBox="0 0 24 24"
         fill="none"

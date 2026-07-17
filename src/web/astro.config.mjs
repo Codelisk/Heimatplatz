@@ -40,5 +40,10 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      // Dev-Vorschau ueber Cloudflare Quick Tunnels (cloudflared tunnel --url ...):
+      // Vite blockiert fremde Hostnamen sonst mit 403. Betrifft nur den Devserver.
+      allowedHosts: ['.trycloudflare.com'],
+    },
   },
 });

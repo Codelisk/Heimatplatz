@@ -192,30 +192,28 @@
     renderAuthState();
   }
 
-  async function handleDeleteAccount(button: HTMLButtonElement) {
-    const session = readSession();
-    if (!session) {
-      window.location.href = "/anmelden/";
-      return;
-    }
-
-    const confirmed = window.confirm(
-      "Möchten Sie Ihr Konto wirklich endgültig löschen? Ihr Profil, Ihre Inserate, Favoriten, " +
-      "Blockierungen und Benachrichtigungs-Einstellungen werden unwiderruflich entfernt. " +
-      "Diese Aktion kann nicht rückgängig gemacht werden.",
-    );
-    if (!confirmed) return;
-
+  function setDeleteAccountStatus(message: string, tone: "info" | "error") {
     const statusEl = document.querySelector<HTMLElement>("[data-delete-account-status]");
-    const setStatus = (message: string, tone: "info" | "error") => {
-      if (!statusEl) return;
-      statusEl.textContent = message;
-      statusEl.classList.remove("hidden", "text-muted-foreground", "text-error");
-      statusEl.classList.add(tone === "error" ? "text-error" : "text-muted-foreground");
-    };
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.remove("hidden", "text-muted-foreground", "text-error");
+    statusEl.classList.add(tone === "error" ? "text-error" : "text-muted-foreground");
+  }
 
+  // Zweistufige Inline-Bestaetigung auf der Profilseite; liefert false,
+  // wenn die Seite kein Bestaetigungs-Markup hat (dann window.confirm-Fallback)
+  function toggleDeleteAccountConfirm(open: boolean) {
+    const confirmBlock = document.querySelector<HTMLElement>("[data-delete-account-confirm]");
+    if (!confirmBlock) return false;
+    confirmBlock.hidden = !open;
+    const trigger = document.querySelector<HTMLButtonElement>("[data-delete-account]");
+    if (trigger) trigger.hidden = open;
+    return true;
+  }
+
+  async function performDeleteAccount(button: HTMLButtonElement) {
     button.setAttribute("disabled", "true");
-    setStatus("Konto wird gelöscht...", "info");
+    setDeleteAccountStatus("Konto wird gelöscht...", "info");
 
     try {
       // Die gesamte Loeschlogik liegt im Backend. Der Benutzer wird per Bearer-Token erkannt.
@@ -229,15 +227,34 @@
       window.localStorage.removeItem(STORAGE_KEYS.notificationPreferences);
       window.localStorage.removeItem(STORAGE_KEYS.filterPreferences);
 
-      window.alert("Ihr Konto und alle zugehörigen Daten wurden dauerhaft gelöscht.");
+      setDeleteAccountStatus("Ihr Konto wurde dauerhaft gelöscht. Sie werden weitergeleitet...", "info");
       window.location.href = "/";
     } catch (error) {
       button.removeAttribute("disabled");
-      setStatus(
+      setDeleteAccountStatus(
         error instanceof Error ? `Löschung fehlgeschlagen: ${error.message}` : "Löschung fehlgeschlagen.",
         "error",
       );
     }
+  }
+
+  async function handleDeleteAccount(button: HTMLButtonElement) {
+    const session = readSession();
+    if (!session) {
+      window.location.href = "/anmelden/";
+      return;
+    }
+
+    if (toggleDeleteAccountConfirm(true)) return;
+
+    const confirmed = window.confirm(
+      "Möchten Sie Ihr Konto wirklich endgültig löschen? Ihr Profil, Ihre Inserate, Favoriten, " +
+      "Blockierungen und Benachrichtigungs-Einstellungen werden unwiderruflich entfernt. " +
+      "Diese Aktion kann nicht rückgängig gemacht werden.",
+    );
+    if (!confirmed) return;
+
+    await performDeleteAccount(button);
   }
 
   async function apiRequest<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
@@ -701,10 +718,14 @@
     };
 
     const renderVerified = (email: string, verified: boolean) => {
-      if (statusEl) {
-        statusEl.textContent = verified
-          ? `${email} ist bestätigt.`
-          : `${email} ist noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner).`;
+      // Banner nur zeigen, solange die Adresse unbestaetigt ist -
+      // bestaetigte Konten bekommen stattdessen das gruene Badge in der Identitaets-Karte
+      card.hidden = verified;
+      document.querySelectorAll<HTMLElement>("[data-email-verified-badge]").forEach((badge) => {
+        badge.hidden = !verified;
+      });
+      if (statusEl && !verified) {
+        statusEl.textContent = `${email} ist noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner).`;
       }
       if (verified) {
         resendButton?.setAttribute("hidden", "true");
@@ -741,6 +762,32 @@
       } finally {
         resendButton.removeAttribute("disabled");
       }
+    });
+  }
+
+  // Profil-Dashboard: Zaehler-Kacheln fuer Favoriten/Blockiert/eigene Inserate
+  function bindProfileStats() {
+    const counters = document.querySelectorAll<HTMLElement>("[data-profile-stat]");
+    if (counters.length === 0 || !readSession()) return;
+
+    const endpoints: Record<string, string> = {
+      favorites: "/api/favorites",
+      blocked: "/api/blocked",
+      mine: "/api/properties/user",
+    };
+
+    counters.forEach((counter) => {
+      const endpoint = endpoints[counter.getAttribute("data-profile-stat") ?? ""];
+      // Verkaeufer-Kacheln sind fuer Kaeufer versteckt - Anfrage sparen
+      if (!endpoint || counter.closest("[hidden]")) return;
+      void (async () => {
+        try {
+          const response = await apiRequest<{ Properties: unknown[] }>(endpoint);
+          counter.textContent = String(response.Properties?.length ?? 0);
+        } catch {
+          // Zaehler sind Komfort - bei Fehlern bleibt der Platzhalter stehen
+        }
+      })();
     });
   }
 
@@ -2138,6 +2185,18 @@
         return;
       }
 
+      const deleteAccountConfirmed = target?.closest("[data-delete-account-confirmed]");
+      if (deleteAccountConfirmed instanceof HTMLButtonElement) {
+        void performDeleteAccount(deleteAccountConfirmed);
+        return;
+      }
+
+      const deleteAccountCancel = target?.closest("[data-delete-account-cancel]");
+      if (deleteAccountCancel instanceof HTMLButtonElement) {
+        toggleDeleteAccountConfirm(false);
+        return;
+      }
+
       if (!target?.closest("[data-card-menu]")) {
         closeCardMenus();
       }
@@ -2170,6 +2229,7 @@
     bindPasswordResetForms();
     bindVerifyEmailPage();
     bindEmailVerification();
+    bindProfileStats();
     bindProfileForms();
     bindPreferenceForms();
     bindPropertyForm();
