@@ -53,7 +53,7 @@
                             <VerticalStackLayout Spacing="8"
                                                  VerticalOptions="Start"
                                                  HorizontalOptions="Center"
-                                                 IsVisible="{Binding HasNoLoadError}">
+                                                 IsVisible="{Binding ShowRegularEmptyState}">
                                 <Label Text="🔍" Style="{StaticResource EmptyStateIcon}" />
                                 <Label Text="Keine Treffer" Style="{StaticResource EmptyStateTitle}" />
                                 <Label Text="Passen Sie Ihre Filter an, um mehr Immobilien zu sehen."

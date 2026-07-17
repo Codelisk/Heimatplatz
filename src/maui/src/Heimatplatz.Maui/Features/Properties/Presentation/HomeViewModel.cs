@@ -78,6 +78,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     public bool CanGoToNextPage => _currentPage + 1 < PageCount;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
     public partial bool IsBusy { get; set; }
 
     [ObservableProperty]
@@ -97,11 +98,18 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLoadError))]
     [NotifyPropertyChangedFor(nameof(HasNoLoadError))]
+    [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
     public partial string? LoadErrorMessage { get; set; }
 
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
 
     public bool HasNoLoadError => !HasLoadError;
+
+    /// <summary>
+    /// "Keine Treffer" nur zeigen, wenn weder ein Fehler ansteht noch geladen wird -
+    /// sonst liegen Empty-State und Busy-Overlay beim Start uebereinander.
+    /// </summary>
+    public bool ShowRegularEmptyState => HasNoLoadError && !IsBusy;
 
     [ObservableProperty]
     public partial bool IsAuthenticated { get; set; }
