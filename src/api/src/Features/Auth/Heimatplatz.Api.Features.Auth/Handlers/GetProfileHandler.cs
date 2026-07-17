@@ -35,7 +35,8 @@ public class GetProfileHandler(
             user.FullName,
             user.SellerType,
             user.CompanyName,
-            user.IsAdmin
+            user.IsAdmin,
+            user.EmailVerifiedAt is not null
         );
     }
 

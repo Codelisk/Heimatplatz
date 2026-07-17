@@ -132,6 +132,12 @@ public class UserSeeder(
             }
         };
 
+        // Seed-User gelten als bestaetigt - es haengt kein echtes Postfach dahinter
+        foreach (var user in users)
+        {
+            user.EmailVerifiedAt = now;
+        }
+
         dbContext.Set<User>().AddRange(users);
         await dbContext.SaveChangesAsync(cancellationToken);
     }

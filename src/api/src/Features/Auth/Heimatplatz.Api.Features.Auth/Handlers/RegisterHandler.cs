@@ -6,6 +6,7 @@ using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
 
@@ -21,7 +22,9 @@ namespace Heimatplatz.Api.Features.Auth.Handlers;
 public class RegisterHandler(
     AppDbContext dbContext,
     IPasswordHasher passwordHasher,
-    ITokenService tokenService
+    ITokenService tokenService,
+    IAuthEmailService authEmailService,
+    ILogger<RegisterHandler> logger
 ) : IRequestHandler<RegisterRequest, RegisterResponse>
 {
     [MediatorHttpPost("/api/auth/register", OperationId = "Register")]
@@ -91,6 +94,17 @@ public class RegisterHandler(
                 throw new ConflictException("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.");
 
             throw;
+        }
+
+        // Verifikations-Mail best effort - ein Mail-Fehler darf die Registrierung nicht
+        // fehlschlagen lassen (der Benutzer kann den Versand im Profil erneut anstossen)
+        try
+        {
+            await authEmailService.SendVerificationEmailAsync(user, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Verifikations-Mail an {Email} konnte nicht versendet werden.", user.Email);
         }
 
         return new RegisterResponse(

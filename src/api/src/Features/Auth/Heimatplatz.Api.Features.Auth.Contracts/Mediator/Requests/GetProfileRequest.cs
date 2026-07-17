@@ -20,5 +20,6 @@ public record GetProfileResponse(
     string FullName,
     SellerType? SellerType = null,
     string? CompanyName = null,
-    bool IsAdmin = false
+    bool IsAdmin = false,
+    bool EmailVerified = false
 );

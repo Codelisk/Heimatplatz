@@ -34,4 +34,11 @@ public class User : BaseEntity
 
     /// <summary>Administrator (System-Faehigkeiten wie Batch-Import)</summary>
     public bool IsAdmin { get; set; }
+
+    /// <summary>
+    /// Zeitpunkt der E-Mail-Bestaetigung (null = noch nicht bestaetigt).
+    /// Bestaetigt wird per Link aus der Verifikations-Mail oder implizit durch einen
+    /// erfolgreichen Passwort-Reset (beides beweist Postfach-Besitz).
+    /// </summary>
+    public DateTimeOffset? EmailVerifiedAt { get; set; }
 }

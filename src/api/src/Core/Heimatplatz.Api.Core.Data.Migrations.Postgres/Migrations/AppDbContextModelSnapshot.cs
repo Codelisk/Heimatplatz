@@ -127,7 +127,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("CompanyName")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -137,7 +138,20 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("Nachname")
+                    b.Property<DateTimeOffset?>("EmailVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsAdmin")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -153,17 +167,51 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Vorname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserActionToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Purpose")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Purpose");
+
+                    b.ToTable("UserActionTokens", (string)null);
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", b =>
@@ -234,32 +282,6 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .IsUnique();
 
                     b.ToTable("UserFilterPreferences");
-                });
-
-            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserRole", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("RoleType")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "RoleType")
-                        .IsUnique();
-
-                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuction", b =>
@@ -923,6 +945,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid?>("SellerSourceId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("SellerType")
                         .HasColumnType("integer");
 
@@ -970,6 +995,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
 
                     b.HasIndex("Price");
 
+                    b.HasIndex("SellerSourceId");
+
                     b.HasIndex("Type");
 
                     b.HasIndex("UserId");
@@ -979,6 +1006,35 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasFilter("\"SourceName\" IS NOT NULL AND \"SourceId\" IS NOT NULL");
 
                     b.ToTable("Properties", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.PropertyChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ChangeType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("PropertyId");
+
+                    b.ToTable("PropertyChanges", (string)null);
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.PropertyContactInfo", b =>
@@ -1081,22 +1137,22 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", b =>
+            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserActionToken", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
-                        .WithOne()
-                        .HasForeignKey("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", "UserId")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserRole", b =>
+            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
-                        .WithMany("Roles")
-                        .HasForeignKey("UserId")
+                        .WithOne()
+                        .HasForeignKey("Heimatplatz.Api.Features.Auth.Data.Entities.UserFilterPreferences", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1204,6 +1260,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Heimatplatz.Api.Features.Properties.Data.Entities.SellerSource", "SellerSource")
+                        .WithMany()
+                        .HasForeignKey("SellerSourceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1211,6 +1272,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .IsRequired();
 
                     b.Navigation("Municipality");
+
+                    b.Navigation("SellerSource");
 
                     b.Navigation("User");
                 });
@@ -1224,11 +1287,6 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .IsRequired();
 
                     b.Navigation("Property");
-                });
-
-            modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.User", b =>
-                {
-                    b.Navigation("Roles");
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuction", b =>

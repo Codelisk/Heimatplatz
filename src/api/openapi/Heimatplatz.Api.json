@@ -55,6 +55,36 @@
         }
       }
     },
+    "/api/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ForgotPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgotPasswordResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/profile": {
       "get": {
         "tags": [
@@ -186,6 +216,96 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/resend-verification": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ResendVerificationEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResendVerificationEmailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ResetPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-email": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "VerifyEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyEmailResponse"
                 }
               }
             }
@@ -852,6 +972,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetPropertyByIdResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/properties/changes": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPropertyChanges",
+        "parameters": [
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertyChangesResponse"
                 }
               }
             }
@@ -2260,6 +2410,28 @@
           }
         }
       },
+      "ForgotPasswordRequest": {
+        "required": [
+          "Email"
+        ],
+        "type": "object",
+        "properties": {
+          "Email": {
+            "type": "string"
+          }
+        }
+      },
+      "ForgotPasswordResponse": {
+        "required": [
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Message": {
+            "type": "string"
+          }
+        }
+      },
       "GetForeclosureAuctionByIdResponse": {
         "type": "object",
         "properties": {
@@ -2519,6 +2691,10 @@
           "IsAdmin": {
             "type": "boolean",
             "default": false
+          },
+          "EmailVerified": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -2582,6 +2758,29 @@
                 "$ref": "#/components/schemas/PropertyDto"
               }
             ]
+          }
+        }
+      },
+      "GetPropertyChangesResponse": {
+        "required": [
+          "Watermark",
+          "FullResyncRequired",
+          "Changes"
+        ],
+        "type": "object",
+        "properties": {
+          "Watermark": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "FullResyncRequired": {
+            "type": "boolean"
+          },
+          "Changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyChangeDto"
+            }
           }
         }
       },
@@ -3437,6 +3636,37 @@
           "Sonstiges"
         ]
       },
+      "PropertyChangeDto": {
+        "required": [
+          "PropertyId",
+          "ChangeType",
+          "ChangedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "PropertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChangeType": {
+            "type": "string"
+          },
+          "ChangedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Property": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PropertyListItemDto"
+              }
+            ]
+          }
+        }
+      },
       "PropertyDto": {
         "required": [
           "Id",
@@ -3862,6 +4092,44 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ResendVerificationEmailRequest": {
+        "type": "object"
+      },
+      "ResendVerificationEmailResponse": {
+        "type": "object",
+        "properties": {
+          "AlreadyVerified": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "required": [
+          "Token",
+          "NewPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "Token": {
+            "type": "string"
+          },
+          "NewPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetPasswordResponse": {
+        "required": [
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Message": {
+            "type": "string"
           }
         }
       },
@@ -4504,6 +4772,32 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "VerifyEmailRequest": {
+        "required": [
+          "Token"
+        ],
+        "type": "object",
+        "properties": {
+          "Token": {
+            "type": "string"
+          }
+        }
+      },
+      "VerifyEmailResponse": {
+        "required": [
+          "Email"
+        ],
+        "type": "object",
+        "properties": {
+          "Email": {
+            "type": "string"
+          },
+          "AlreadyVerified": {
+            "type": "boolean",
+            "default": false
           }
         }
       }

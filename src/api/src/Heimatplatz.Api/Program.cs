@@ -97,8 +97,14 @@ builder.Services.AddRateLimiter(options =>
         // Besitz eines gueltigen Refresh-Tokens geschuetzt, und mehrere Nutzer hinter derselben
         // Carrier-/CGNAT-IP (z.B. oesterreichische Mobilfunker) machen pro App-Start je einen
         // Session-Restore-Refresh - im 10/min-Login-Bucket wuerden sie sich gegenseitig aussperren.
+        // forgot-password/resend-verification loesen Mail-Versand aus (Spam-Schutz),
+        // verify-email/reset-password nehmen Einmal-Tokens entgegen (Brute-Force-Schutz)
         if (path.StartsWithSegments("/api/auth/login")
-            || path.StartsWithSegments("/api/auth/register"))
+            || path.StartsWithSegments("/api/auth/register")
+            || path.StartsWithSegments("/api/auth/forgot-password")
+            || path.StartsWithSegments("/api/auth/reset-password")
+            || path.StartsWithSegments("/api/auth/verify-email")
+            || path.StartsWithSegments("/api/auth/resend-verification"))
         {
             return RateLimitPartition.GetFixedWindowLimiter($"auth:{clientIp}", _ => new FixedWindowRateLimiterOptions
             {
@@ -231,6 +237,15 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
+
+// Transparenz-Hinweis: ohne SMTP-Konfiguration gehen keine echten Mails raus
+// (Verifikation/Passwort-Reset landen nur im Log, siehe LoggingEmailSender)
+if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(app.Configuration["Email:SmtpHost"]))
+{
+    app.Logger.LogWarning(
+        "E-Mail-Versand nicht konfiguriert: Verifikations- und Passwort-Reset-Mails werden nur " +
+        "geloggt. Umgebungsvariablen Email__SmtpHost, Email__SmtpUsername und Email__SmtpPassword setzen.");
+}
 
 // Transparenz-Hinweis: der Mock-Provider liefert nur Platzhalter statt echter KI-Extraktion
 if (!app.Environment.IsDevelopment() && app.Configuration["AiListing:Provider"] == "Mock")

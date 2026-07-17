@@ -64,6 +64,10 @@ public class DeleteAccountHandler(
                 .Where(t => t.UserId == userId)
                 .ExecuteDeleteAsync(cancellationToken);
 
+            await dbContext.Set<UserActionToken>()
+                .Where(t => t.UserId == userId)
+                .ExecuteDeleteAsync(cancellationToken);
+
             await dbContext.Set<UserFilterPreferences>()
                 .Where(p => p.UserId == userId)
                 .ExecuteDeleteAsync(cancellationToken);

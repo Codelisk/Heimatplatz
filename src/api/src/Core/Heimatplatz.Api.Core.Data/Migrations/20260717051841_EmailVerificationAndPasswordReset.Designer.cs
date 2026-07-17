@@ -3,6 +3,7 @@ using System;
 using Heimatplatz.Api.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Heimatplatz.Api.Core.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260717051841_EmailVerificationAndPasswordReset")]
+    partial class EmailVerificationAndPasswordReset
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
@@ -1001,35 +1004,6 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasFilter("\"SourceName\" IS NOT NULL AND \"SourceId\" IS NOT NULL");
 
                     b.ToTable("Properties", (string)null);
-                });
-
-            modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.PropertyChange", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ChangeType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("PropertyId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("PropertyId");
-
-                    b.ToTable("PropertyChanges", (string)null);
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.PropertyContactInfo", b =>

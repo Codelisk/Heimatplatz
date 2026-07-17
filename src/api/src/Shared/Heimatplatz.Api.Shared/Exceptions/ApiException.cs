@@ -22,3 +22,9 @@ public sealed class ConflictException(string message) : ApiException(409, "Confl
 /// Ungueltige Eingabe / verletzte Geschaeftsregel (HTTP 400).
 /// </summary>
 public sealed class ValidationException(string message) : ApiException(400, "Validation Failed", message);
+
+/// <summary>
+/// Ein benoetigter externer Dienst ist gerade nicht erreichbar (HTTP 503),
+/// z. B. der SMTP-Server beim Mail-Versand.
+/// </summary>
+public sealed class ServiceUnavailableException(string message) : ApiException(503, "Service Unavailable", message);
