@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Cake.Common.Diagnostics;
 using Cake.Frosting;
@@ -121,11 +123,43 @@ public sealed class VersionBumpTask : FrostingTask<BuildContext>
         context.Information($"New display version: {newDisplayVersion}");
         context.Information($"New build version: {newBuildVersion}");
 
-        UpdateAllElements(propertyGroups, ns, "ApplicationDisplayVersion", newDisplayVersion);
-        UpdateAllElements(propertyGroups, ns, "ApplicationVersion", newBuildVersion.ToString());
-
-        doc.Save(context.CsprojPath);
+        // Gezieltes Text-Replace statt XDocument.Save: das Save formatiert die komplette
+        // Datei um (~200-Zeilen-Diff pro Release-Commit); so aendern sich nur die
+        // Versions-Zeilen, Encoding/BOM und Zeilenenden bleiben unangetastet.
+        UpdateVersionElementsInPlace(context.CsprojPath, newDisplayVersion, newBuildVersion.ToString());
         context.Information("Version bump completed successfully!");
+    }
+
+    private static void UpdateVersionElementsInPlace(string csprojPath, string displayVersion, string buildVersion)
+    {
+        var bytes = File.ReadAllBytes(csprojPath);
+        var hasBom = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+        var content = Encoding.UTF8.GetString(bytes, hasBom ? 3 : 0, bytes.Length - (hasBom ? 3 : 0));
+
+        content = ReplaceElementValue(content, "ApplicationDisplayVersion", displayVersion);
+        content = ReplaceElementValue(content, "ApplicationVersion", buildVersion);
+
+        var payload = Encoding.UTF8.GetBytes(content);
+        File.WriteAllBytes(csprojPath, hasBom ? [.. Encoding.UTF8.GetPreamble(), .. payload] : payload);
+    }
+
+    private static string ReplaceElementValue(string content, string elementName, string newValue)
+    {
+        var replaced = 0;
+        content = Regex.Replace(
+            content,
+            $"(<{elementName}>)[^<]*(</{elementName}>)",
+            match =>
+            {
+                replaced++;
+                return $"{match.Groups[1].Value}{newValue}{match.Groups[2].Value}";
+            });
+
+        if (replaced == 0)
+        {
+            throw new InvalidOperationException($"Element {elementName} not found in csproj (text replace)");
+        }
+        return content;
     }
 
     private static string GetFirstElementValue(List<XElement> propertyGroups, XNamespace ns, string elementName)
@@ -139,15 +173,4 @@ public sealed class VersionBumpTask : FrostingTask<BuildContext>
         throw new InvalidOperationException($"Element {elementName} not found in csproj");
     }
 
-    private static void UpdateAllElements(List<XElement> propertyGroups, XNamespace ns, string elementName, string newValue)
-    {
-        foreach (var pg in propertyGroups)
-        {
-            var element = pg.Element(ns + elementName);
-            if (element != null)
-            {
-                element.Value = newValue;
-            }
-        }
-    }
 }
