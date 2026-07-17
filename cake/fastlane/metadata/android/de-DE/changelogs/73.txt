@@ -1,0 +1,7 @@
+• Inserat erstellen jetzt als Assistent in 5 Schritten – Entwürfe werden automatisch gespeichert
+• KI-Hilfe für die Beschreibung: Stichwörter eintippen oder einsprechen, der Text entsteht im Hintergrund
+• Fotos auf den Detailseiten im Vollbild ansehen
+• Profilseite übersichtlich neu gestaltet
+• Passwort zurücksetzen jetzt direkt in der App
+• Ohne Internet zeigt die App klar den Offline-Zustand
+• Kleinere Fehlerbehebungen und Verbesserungen

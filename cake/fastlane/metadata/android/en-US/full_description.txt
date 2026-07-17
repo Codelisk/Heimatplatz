@@ -7,13 +7,13 @@ FORECLOSURE AUCTIONS
 Heimatplatz shows you current auctions from the official Austrian edict database. With appraised value, minimum bid, auction date and court information, you have all the details at a glance.
 
 PRIVATE OR AGENT
-Decide for yourself: filter specifically for private listings or agent offers. Heimatplatz transparently shows you who is behind every listing.
+Decide for yourself: filter specifically for private listings or offers from agents and property managers. Heimatplatz transparently shows you who is behind every listing.
 
 FAVORITES & NOTIFICATIONS
 Save interesting properties as favorites. Enable push notifications for your preferred locations and get informed immediately when new properties go online.
 
-LIST YOUR OWN PROPERTY – WITH AI
-Want to sell? Just take photos and speak your description – the AI turns them into a title, description and key facts. Review the suggestion, adjust it and publish. Manage your ads conveniently in your personal area.
+LIST YOUR OWN PROPERTY – STEP BY STEP
+Want to sell? The wizard guides you to a finished listing in five steps: photos, key facts, location and price, description, preview. Your draft is saved automatically – pause any time and continue later. For the description, AI can help if you like: type a few keywords or simply dictate them – you review the finished text, adjust it and publish. Manage your ads conveniently in your personal area.
 
 PRIVACY
 Heimatplatz is built on data minimization. You can browse anonymously without creating an account. Your data belongs to you.
@@ -21,11 +21,11 @@ Heimatplatz is built on data minimization. You can browse anonymously without cr
 FEATURES AT A GLANCE
 • Property search with extensive filters
 • Foreclosure auctions with court data
-• Create listings with AI from photos and voice input
+• AI help for your listing description – from keywords or dictation
 • Push notifications for new properties
 • Save and manage favorites
 • Hide unwanted properties
-• Create and edit your own listings
+• Create and edit your own listings step by step
 • Filter private and agent offers
 • Recently loaded content also available offline
 • Minimalist, clear design

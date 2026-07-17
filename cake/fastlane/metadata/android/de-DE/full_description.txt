@@ -7,13 +7,13 @@ ZWANGSVERSTEIGERUNGEN
 Heimatplatz zeigt dir aktuelle Versteigerungen aus der österreichischen Ediktsdatei. Mit Schätzwert, Mindestgebot, Versteigerungstermin und Gerichtsinformationen hast du alle Details auf einen Blick.
 
 PRIVAT ODER MAKLER
-Entscheide selbst: Filtere gezielt nach privaten Inseraten oder Maklerangeboten. Heimatplatz zeigt dir transparent, wer hinter jedem Inserat steht.
+Entscheide selbst: Filtere gezielt nach privaten Inseraten oder Angeboten von Maklern und Verwaltungen. Heimatplatz zeigt dir transparent, wer hinter jedem Inserat steht.
 
 FAVORITEN & BENACHRICHTIGUNGEN
 Speichere interessante Objekte als Favoriten. Aktiviere Push-Benachrichtigungen für deine Wunschorte und werde sofort informiert, wenn neue Immobilien online gehen.
 
-SELBST INSERIEREN – MIT KI
-Du möchtest verkaufen? Nimm einfach Fotos auf und sprich deine Beschreibung ein – die KI erstellt daraus Titel, Beschreibung und Eckdaten. Du prüfst den Vorschlag, passt ihn an und veröffentlichst. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
+SELBST INSERIEREN – SCHRITT FÜR SCHRITT
+Du möchtest verkaufen? Der Assistent führt dich in fünf Schritten zum fertigen Inserat: Fotos, Eckdaten, Lage und Preis, Beschreibung, Vorschau. Dein Entwurf wird automatisch gespeichert – du kannst jederzeit unterbrechen und später weitermachen. Bei der Beschreibung hilft dir auf Wunsch die KI: Tippe ein paar Stichwörter oder sprich sie einfach ein – du prüfst den fertigen Text, passt ihn an und veröffentlichst. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
 
 DATENSCHUTZ
 Heimatplatz setzt auf Datensparsamkeit. Du kannst anonym stöbern, ohne ein Konto zu erstellen. Deine Daten gehören dir.
@@ -21,11 +21,11 @@ Heimatplatz setzt auf Datensparsamkeit. Du kannst anonym stöbern, ohne ein Kont
 FUNKTIONEN IM ÜBERBLICK
 • Immobiliensuche mit umfangreichen Filtern
 • Zwangsversteigerungen mit Gerichtsdaten
-• Inserate per KI aus Fotos und Sprachaufnahme erstellen
+• KI-Hilfe für die Inseratsbeschreibung – aus Stichwörtern oder Diktat
 • Push-Benachrichtigungen für neue Objekte
 • Favoriten speichern und verwalten
 • Unerwünschte Objekte ausblenden
-• Eigene Inserate erstellen und bearbeiten
+• Eigene Inserate Schritt für Schritt erstellen und bearbeiten
 • Privat- und Maklerangebote filtern
 • Zuletzt geladene Inhalte auch offline verfügbar
 • Minimalistisches, übersichtliches Design

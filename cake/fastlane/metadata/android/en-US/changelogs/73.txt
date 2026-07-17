@@ -1,0 +1,7 @@
+• Create listings with a new 5-step wizard – drafts are saved automatically
+• AI help for your description: type or dictate keywords, the text is generated in the background
+• View photos full screen on the detail pages
+• Redesigned, clearer profile page
+• Reset your password right in the app
+• The app now clearly shows when you are offline
+• Minor bug fixes and improvements
