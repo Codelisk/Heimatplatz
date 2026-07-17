@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:shiny="clr-namespace:Shiny;assembly=Shiny.Maui.Shell"
+    xmlns:local="clr-namespace:Heimatplatz.Maui"
     xmlns:controls="clr-namespace:Heimatplatz.Maui.Controls"
     xmlns:properties="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
     xmlns:auth="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
@@ -14,58 +15,73 @@
     FlyoutBackdrop="{StaticResource ScrimColor}"
     FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
 
-    <Shell.Resources>
-        <!-- Einheitliches Erscheinungsbild aller Flyout-Eintraege (FlyoutItems und MenuItems):
-             gerundete Zeile, Icon + Text; Auswahl als warmer Rot-Tint. BindingContext ist das
-             jeweilige BaseShellItem; MenuShellItems spiegeln Text/IconImageSource des MenuItems
-             auf Title/Icon (siehe SyncMenuItemIcons). -->
-        <DataTemplate x:Key="FlyoutEntryTemplate" x:DataType="BaseShellItem">
-            <Border Margin="12,2"
-                    Padding="14,0"
-                    Stroke="Transparent"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 14"
-                    HeightRequest="50">
-                <VisualStateManager.VisualStateGroups>
-                    <VisualStateGroupList>
-                        <VisualStateGroup x:Name="CommonStates">
-                            <VisualState x:Name="Normal">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="Transparent" />
-                                </VisualState.Setters>
-                            </VisualState>
-                            <VisualState x:Name="PointerOver">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}" />
-                                </VisualState.Setters>
-                            </VisualState>
-                            <VisualState x:Name="Selected">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource RedTintDark}}" />
-                                </VisualState.Setters>
-                            </VisualState>
-                        </VisualStateGroup>
-                    </VisualStateGroupList>
-                </VisualStateManager.VisualStateGroups>
+    <!-- Selbstgebaute Flyout-Liste statt Shell-ItemTemplate/MenuItemTemplate:
+         Der Android-Flyout-Adapter (RecyclerView) hat Zeilen nach mehreren Rebinds
+         falsch verdrahtet - Tap auf einen Eintrag loeste die Aktion eines anderen aus
+         (z.B. "Benachrichtigungen" -> KI-Inserat). Hier haengt jeder Tap-Handler direkt
+         am gebundenen Eintrag; die Eintraege baut der Code-Behind aus den Shell-Items. -->
+    <Shell.FlyoutContent>
+        <ScrollView>
+            <VerticalStackLayout x:Name="FlyoutMenuList" Padding="0,8">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="local:FlyoutMenuEntry">
+                        <!-- Gerundete Zeile, Icon + Text; Auswahl als warmer Rot-Tint auf dem
+                             inneren Grid (DataTrigger), Hover auf dem Border (VSM) - getrennte
+                             Ebenen, damit sich Zustaende nicht gegenseitig ueberschreiben. -->
+                        <Border Margin="12,2"
+                                Stroke="Transparent"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                HeightRequest="50"
+                                AutomationId="{Binding AutomationId}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroupList>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateGroupList>
+                            </VisualStateManager.VisualStateGroups>
 
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
-                    <Image Grid.Column="0"
-                           Source="{Binding Icon}"
-                           WidthRequest="20"
-                           HeightRequest="20"
-                           VerticalOptions="Center" />
-                    <Label Grid.Column="1"
-                           Text="{Binding Title}"
-                           FontFamily="SansMedium"
-                           FontSize="14.5"
-                           VerticalTextAlignment="Center"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                </Grid>
-            </Border>
-        </DataTemplate>
-    </Shell.Resources>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnFlyoutEntryTapped" />
+                            </Border.GestureRecognizers>
 
-    <!-- ItemTemplate + MenuItemTemplate werden im Code-Behind auf FlyoutEntryTemplate gesetzt -->
+                            <Grid ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="14"
+                                  Padding="14,0">
+                                <Grid.Triggers>
+                                    <DataTrigger TargetType="Grid" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource RedTintDark}}" />
+                                    </DataTrigger>
+                                </Grid.Triggers>
+
+                                <Image Grid.Column="0"
+                                       Source="{Binding Icon}"
+                                       WidthRequest="20"
+                                       HeightRequest="20"
+                                       VerticalOptions="Center" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding Title}"
+                                       FontFamily="SansMedium"
+                                       FontSize="14.5"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Shell.FlyoutContent>
 
     <Shell.FlyoutHeader>
         <!-- Galerie-Header: in beiden Themes dunkel (warmes Fast-Schwarz), weisse Signet-Kachel,
@@ -144,10 +160,6 @@
         ContentTemplate="{DataTemplate auth:LoginPage}"
         Route="Login"
         FlyoutItemIsVisible="False" />
-
-    <!-- Aktion statt Ziel: pusht die Erfassungsseite (mit Zurueck-Pfeil zum Abbrechen).
-         Route wird im Code-Behind gesetzt: KI-Flow auf Phones, manuell sonst -->
-    <MenuItem x:Name="AddPropertyMenuItem" Text="Immobilie hinzufügen" IconImageSource="icon_add.png" />
 
     <Shell.FlyoutFooter>
         <VerticalStackLayout Padding="20,12,20,20" Spacing="10">

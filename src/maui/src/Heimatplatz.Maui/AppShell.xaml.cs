@@ -1,4 +1,3 @@
-using System.Reflection;
 using Heimatplatz.Maui.Features.Properties;
 using Shiny;
 
@@ -6,23 +5,11 @@ namespace Heimatplatz.Maui;
 
 public partial class AppShell : ShinyShell
 {
+    readonly List<FlyoutMenuEntry> flyoutEntries = [];
+
     public AppShell()
     {
         InitializeComponent();
-
-        // Gemeinsames Template fuer FlyoutItems und MenuItems (einheitliche Optik).
-        // Zuweisung hier statt im XAML-Attribut, weil StaticResource auf dem Root-Element
-        // vor dem Parsen von Shell.Resources nicht aufloesbar waere.
-        var flyoutEntryTemplate = (DataTemplate)Resources["FlyoutEntryTemplate"];
-        ItemTemplate = flyoutEntryTemplate;
-        MenuItemTemplate = flyoutEntryTemplate;
-
-        // Standardweg fuer die Inseratserstellung: KI-Flow auf Android/iOS-Phones,
-        // manuelle Erfassung auf allen anderen Geraeten
-        Navigate.SetRoute(AddPropertyMenuItem, PropertyCreationRoutes.Default);
-
-        // MenuItems schliessen das Flyout - anders als FlyoutItems - nicht automatisch
-        AddPropertyMenuItem.Clicked += (_, _) => FlyoutIsPresented = false;
 
 #if DEBUG
         // Debug-Werkzeuge (z.B. API-Umschalter) nur in Entwicklungs-Builds im Flyout
@@ -35,9 +22,74 @@ public partial class AppShell : ShinyShell
         });
 #endif
 
-        SyncMenuItemIcons();
+        BuildFlyoutEntries();
 
         VersionLabel.Text = $"Heimatplatz · Version {AppInfo.Current.VersionString}";
+    }
+
+    /// <summary>
+    /// Baut die selbstgebaute Flyout-Liste (Shell.FlyoutContent) aus den sichtbaren
+    /// Shell-Roots plus der "Immobilie hinzufuegen"-Aktion auf. Kein ItemTemplate/
+    /// MenuItemTemplate mehr: Der Android-Flyout-Adapter hat recycelte Zeilen falsch
+    /// verdrahtet, sodass ein Tap die Navigation eines anderen Eintrags ausloesen konnte.
+    /// </summary>
+    void BuildFlyoutEntries()
+    {
+        foreach (var item in Items)
+        {
+            if (item.CurrentItem?.CurrentItem is not ShellContent content)
+                continue;
+
+            if (!item.FlyoutItemIsVisible || !content.FlyoutItemIsVisible)
+                continue;
+
+            flyoutEntries.Add(new FlyoutMenuEntry
+            {
+                Title = content.Title,
+                Icon = content.Icon,
+                Route = content.Route
+            });
+        }
+
+        // Aktion statt Ziel: pusht die Erfassungsseite (mit Zurueck-Pfeil zum Abbrechen);
+        // KI-Flow auf Phones, manuelle Erfassung auf allen anderen Geraeten
+        flyoutEntries.Add(new FlyoutMenuEntry
+        {
+            Title = "Immobilie hinzufügen",
+            Icon = "icon_add.png",
+            Route = PropertyCreationRoutes.Default,
+            IsRoot = false
+        });
+
+        BindableLayout.SetItemsSource(FlyoutMenuList, flyoutEntries);
+    }
+
+    /// <summary>
+    /// Tap auf einen Flyout-Eintrag: Roots absolut ansteuern (Wechsel des Shell-Roots),
+    /// Aktionen relativ pushen (Zurueck-Pfeil zum Abbrechen)
+    /// </summary>
+    async void OnFlyoutEntryTapped(object? sender, TappedEventArgs e)
+    {
+        if ((sender as BindableObject)?.BindingContext is not FlyoutMenuEntry entry)
+            return;
+
+        FlyoutIsPresented = false;
+        await GoToAsync(entry.IsRoot ? $"//{entry.Route}" : entry.Route);
+    }
+
+    /// <summary>
+    /// Markiert den aktiven Root-Eintrag in der Flyout-Liste (erstes Segment der Route,
+    /// damit die Markierung auch auf gepushten Detailseiten erhalten bleibt)
+    /// </summary>
+    protected override void OnNavigated(ShellNavigatedEventArgs args)
+    {
+        base.OnNavigated(args);
+
+        var segments = CurrentState?.Location?.OriginalString.Trim('/').Split('/');
+        var currentRoot = segments is { Length: > 0 } ? segments[0] : null;
+
+        foreach (var entry in flyoutEntries)
+            entry.IsSelected = entry.IsRoot && entry.Route == currentRoot;
     }
 
     /// <summary>
@@ -56,26 +108,5 @@ public partial class AppShell : ShinyShell
     {
         FlyoutIsPresented = false;
         await GoToAsync("PrivacyPolicy");
-    }
-
-    /// <summary>
-    /// Workaround: Das interne MenuShellItem uebernimmt IconImageSource des MenuItems
-    /// nicht zuverlaessig in Icon/FlyoutIcon - daher explizit nachziehen, damit das
-    /// MenuItemTemplate ({Binding Icon}) die Icons anzeigen kann.
-    /// </summary>
-    private void SyncMenuItemIcons()
-    {
-        foreach (var item in Items)
-        {
-            if (item.Icon is not null || item.GetType().Name != "MenuShellItem")
-                continue;
-
-            var menuItem = item.GetType()
-                .GetProperty("MenuItem", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?
-                .GetValue(item) as MenuItem;
-
-            if (menuItem?.IconImageSource is not null)
-                item.Icon = menuItem.IconImageSource;
-        }
     }
 }
