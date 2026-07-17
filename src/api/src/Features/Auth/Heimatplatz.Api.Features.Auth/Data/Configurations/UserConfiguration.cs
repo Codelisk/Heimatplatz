@@ -1,4 +1,5 @@
 using Heimatplatz.Api.Features.Auth.Data.Entities;
+using Heimatplatz.Api.Features.Auth.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,21 +16,27 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.Vorname)
+        builder.Property(u => u.FirstName)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(UserInputValidator.MaxNameLength);
 
-        builder.Property(u => u.Nachname)
+        builder.Property(u => u.LastName)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(UserInputValidator.MaxNameLength);
 
         builder.Property(u => u.Email)
             .IsRequired()
-            .HasMaxLength(256);
+            .HasMaxLength(UserInputValidator.MaxEmailLength);
 
         builder.Property(u => u.PasswordHash)
             .IsRequired()
             .HasMaxLength(256);
+
+        builder.Property(u => u.CompanyName)
+            .HasMaxLength(UserInputValidator.MaxCompanyNameLength);
+
+        builder.Property(u => u.IsAdmin)
+            .HasDefaultValue(false);
 
         // Eindeutiger Index auf Email
         builder.HasIndex(u => u.Email)

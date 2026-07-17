@@ -1,34 +1,37 @@
 using Heimatplatz.Api.Core.Data.Entities;
-using Heimatplatz.Api.Features.Properties.Contracts;
 
 namespace Heimatplatz.Api.Features.Auth.Data.Entities;
 
 /// <summary>
-/// Benutzer-Entity
+/// Benutzer-Entity.
+/// Jeder Benutzer ist implizit Kaeufer; Verkaeufer ist, wer einen SellerType gesetzt hat.
 /// </summary>
 public class User : BaseEntity
 {
     /// <summary>Vorname des Benutzers</summary>
-    public required string Vorname { get; set; }
+    public required string FirstName { get; set; }
 
     /// <summary>Nachname des Benutzers</summary>
-    public required string Nachname { get; set; }
+    public required string LastName { get; set; }
 
-    /// <summary>E-Mail-Adresse (eindeutig)</summary>
+    /// <summary>E-Mail-Adresse (eindeutig, normalisiert: getrimmt + lowercase)</summary>
     public required string Email { get; set; }
 
     /// <summary>Gehashtes Passwort</summary>
     public required string PasswordHash { get; set; }
 
     /// <summary>Vollstaendiger Name</summary>
-    public string FullName => $"{Vorname} {Nachname}";
+    public string FullName => $"{FirstName} {LastName}";
 
-    /// <summary>Rollen des Benutzers (Kaeufer, Verkaeufer)</summary>
-    public ICollection<UserRole> Roles { get; set; } = new List<UserRole>();
-
-    /// <summary>Verkaeufertyp (nur bei Seller-Rolle)</summary>
+    /// <summary>
+    /// Anbietertyp - null = kein Verkaeufer.
+    /// Private/Broker/PropertyManager = darf inserieren (Seller-Claim im JWT).
+    /// </summary>
     public SellerType? SellerType { get; set; }
 
-    /// <summary>Firmenname (nur bei Broker)</summary>
+    /// <summary>Firmenname (Pflicht bei Broker und PropertyManager)</summary>
     public string? CompanyName { get; set; }
+
+    /// <summary>Administrator (System-Faehigkeiten wie Batch-Import)</summary>
+    public bool IsAdmin { get; set; }
 }

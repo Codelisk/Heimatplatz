@@ -1,18 +1,17 @@
-using Heimatplatz.Api.Features.Auth.Contracts.Enums;
-using Heimatplatz.Api.Features.Properties.Contracts;
 using Shiny.Mediator;
 
 namespace Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 
 /// <summary>
-/// Request zur Benutzerregistrierung
+/// Request zur Benutzerregistrierung.
+/// Jeder Benutzer ist implizit Kaeufer; wer verkaufen will, gibt einen SellerType an
+/// (Broker und PropertyManager zusaetzlich einen Firmennamen).
 /// </summary>
 public record RegisterRequest(
-    string Vorname,
-    string Nachname,
+    string FirstName,
+    string LastName,
     string Email,
-    string Passwort,
-    List<UserRoleType>? Roles = null,
+    string Password,
     SellerType? SellerType = null,
     string? CompanyName = null
 ) : IRequest<RegisterResponse>;

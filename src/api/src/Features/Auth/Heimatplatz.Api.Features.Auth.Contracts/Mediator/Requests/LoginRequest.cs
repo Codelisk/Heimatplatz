@@ -7,7 +7,7 @@ namespace Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 /// </summary>
 public record LoginRequest(
     string Email,
-    string Passwort
+    string Password
 ) : IRequest<LoginResponse>;
 
 /// <summary>

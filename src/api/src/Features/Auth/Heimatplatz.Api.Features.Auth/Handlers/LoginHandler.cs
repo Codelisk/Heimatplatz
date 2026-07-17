@@ -21,10 +21,11 @@ public class LoginHandler(
     [MediatorHttpPost("/api/auth/login", OperationId = "Login")]
     public async Task<LoginResponse> Handle(LoginRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
-        // Benutzer per Email suchen inkl. Rollen
+        // Benutzer per normalisierter E-Mail suchen (Registrierung speichert lowercase)
+        var email = request.Email?.Trim().ToLowerInvariant() ?? string.Empty;
+
         var user = await dbContext.Set<User>()
-            .Include(u => u.Roles)
-            .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
         if (user == null)
         {
@@ -32,16 +33,13 @@ public class LoginHandler(
         }
 
         // Passwort verifizieren
-        if (!passwordHasher.Verify(request.Passwort, user.PasswordHash))
+        if (!passwordHasher.Verify(request.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Ungueltige E-Mail-Adresse oder Passwort.");
         }
 
-        // Rollen des Benutzers ermitteln
-        var roles = user.Roles.Select(r => r.RoleType);
-
-        // Tokens generieren mit Rollen
-        var accessToken = tokenService.GenerateAccessToken(user, roles);
+        // Tokens generieren (Claims kommen direkt aus dem User: Seller/Admin/SellerType)
+        var accessToken = tokenService.GenerateAccessToken(user);
         var refreshTokenString = tokenService.GenerateRefreshToken();
         var refreshValidityHours = tokenService.GetRefreshTokenValidityHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(refreshValidityHours);

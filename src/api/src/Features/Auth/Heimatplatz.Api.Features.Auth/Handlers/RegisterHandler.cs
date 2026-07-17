@@ -1,11 +1,9 @@
 using Heimatplatz.Api;
 using Heimatplatz.Api.Exceptions;
 using Heimatplatz.Api.Core.Data;
-using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Services;
-using Heimatplatz.Api.Features.Properties.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
@@ -14,7 +12,9 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Auth.Handlers;
 
 /// <summary>
-/// Handler fuer RegisterRequest - registriert neuen Benutzer und loggt automatisch ein
+/// Handler fuer RegisterRequest - registriert neuen Benutzer und loggt automatisch ein.
+/// Jeder Benutzer ist implizit Kaeufer; wer einen SellerType angibt, ist Verkaeufer.
+/// Die komplette Validierung passiert hier serverseitig (Backend-First).
 /// </summary>
 [AllowAnonymous]
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
@@ -27,70 +27,41 @@ public class RegisterHandler(
     [MediatorHttpPost("/api/auth/register", OperationId = "Register")]
     public async Task<RegisterResponse> Handle(RegisterRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
-        // Pruefen ob Email bereits existiert
-        var existingUser = await dbContext.Set<User>()
-            .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+        // Serverseitige Validierung + Normalisierung
+        var firstName = UserInputValidator.ValidateName(request.FirstName, "Vorname");
+        var lastName = UserInputValidator.ValidateName(request.LastName, "Nachname");
+        var email = UserInputValidator.NormalizeAndValidateEmail(request.Email);
+        var password = UserInputValidator.ValidatePassword(request.Password);
+        var (sellerType, companyName) = UserInputValidator.ValidateSellerInfo(request.SellerType, request.CompanyName);
 
-        if (existingUser != null)
+        // Frueher Duplikat-Check fuer eine saubere Fehlermeldung (der Unique-Index
+        // faengt das Race zweier paralleler Registrierungen weiter unten ab)
+        var emailExists = await dbContext.Set<User>()
+            .AnyAsync(u => u.Email == email, cancellationToken);
+
+        if (emailExists)
         {
             throw new ConflictException("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.");
         }
 
-        // Validierung: Wenn Seller-Rolle, muss SellerType angegeben werden
-        var isSeller = request.Roles?.Contains(UserRoleType.Seller) == true;
-        if (isSeller && request.SellerType == null)
-        {
-            throw new ValidationException("Als Verkaeufer muss ein Verkaeufertyp angegeben werden.");
-        }
-
-        // Validierung: Wenn Broker, muss Firmenname angegeben werden
-        if (request.SellerType == SellerType.Broker && string.IsNullOrWhiteSpace(request.CompanyName))
-        {
-            throw new ValidationException("Als Makler/Agentur muss ein Firmenname angegeben werden.");
-        }
-
-        // Neuen Benutzer erstellen
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Vorname = request.Vorname,
-            Nachname = request.Nachname,
-            Email = request.Email,
-            PasswordHash = passwordHasher.Hash(request.Passwort),
-            SellerType = isSeller ? request.SellerType : null,
-            CompanyName = request.SellerType == SellerType.Broker ? request.CompanyName : null,
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            PasswordHash = passwordHasher.Hash(password),
+            SellerType = sellerType,
+            CompanyName = companyName,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        dbContext.Set<User>().Add(user);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        // Rollen zuweisen falls angegeben
-        var assignedRoles = new List<UserRoleType>();
-        if (request.Roles is { Count: > 0 })
-        {
-            foreach (var roleType in request.Roles.Distinct())
-            {
-                var userRole = new UserRole
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = user.Id,
-                    RoleType = roleType,
-                    CreatedAt = DateTimeOffset.UtcNow
-                };
-                dbContext.Set<UserRole>().Add(userRole);
-                assignedRoles.Add(roleType);
-            }
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        // Automatischer Login nach Registrierung: Tokens generieren (mit zugewiesenen Rollen)
-        var accessToken = tokenService.GenerateAccessToken(user, roles: assignedRoles.Count > 0 ? assignedRoles : null);
+        // Automatischer Login nach Registrierung
+        var accessToken = tokenService.GenerateAccessToken(user);
         var refreshTokenString = tokenService.GenerateRefreshToken();
         var refreshValidityHours = tokenService.GetRefreshTokenValidityHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(refreshValidityHours);
 
-        // Refresh Token in DB speichern
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
@@ -100,8 +71,27 @@ public class RegisterHandler(
             CreatedAt = DateTimeOffset.UtcNow
         };
 
+        dbContext.Set<User>().Add(user);
         dbContext.Set<RefreshToken>().Add(refreshToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            // Ein einziges SaveChanges: User + Refresh-Token atomar
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Race: gleiche E-Mail wurde parallel registriert -> Unique-Index hat gegriffen.
+            // Provider-neutral verifizieren statt SQLite-/SqlServer-Fehlercodes zu parsen.
+            dbContext.ChangeTracker.Clear();
+            var raceLost = await dbContext.Set<User>()
+                .AnyAsync(u => u.Email == email, cancellationToken);
+
+            if (raceLost)
+                throw new ConflictException("Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.");
+
+            throw;
+        }
 
         return new RegisterResponse(
             accessToken,

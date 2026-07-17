@@ -1,19 +1,18 @@
 namespace Heimatplatz.Api.Authorization;
 
 /// <summary>
-/// Zentrale Definition aller Authorization Policies
+/// Zentrale Definition aller Authorization Policies.
+///
+/// Rollenmodell: Jeder authentifizierte Benutzer ist implizit Kaeufer (kann suchen,
+/// favorisieren, Filter speichern) - dafuer reicht RequiresAuthorization ohne Policy.
+/// Nur "darf inserieren" (Seller) und "System-/Import-Faehigkeiten" (Admin) sind
+/// eigene Policies.
 /// </summary>
 public static class AuthorizationPolicies
 {
-    /// <summary>Policy: Nur Käufer</summary>
-    public const string RequireBuyer = nameof(RequireBuyer);
-
-    /// <summary>Policy: Nur Verkäufer</summary>
+    /// <summary>Policy: Nur Verkaeufer (User mit gesetztem SellerType)</summary>
     public const string RequireSeller = nameof(RequireSeller);
 
-    /// <summary>Policy: Käufer ODER Verkäufer (mindestens eine Rolle)</summary>
-    public const string RequireAnyRole = nameof(RequireAnyRole);
-
-    /// <summary>Policy: Käufer UND Verkäufer (beide Rollen)</summary>
-    public const string RequireBuyerAndSeller = nameof(RequireBuyerAndSeller);
+    /// <summary>Policy: Nur Administratoren (z.B. Batch-Import, Sync-Trigger)</summary>
+    public const string RequireAdmin = nameof(RequireAdmin);
 }

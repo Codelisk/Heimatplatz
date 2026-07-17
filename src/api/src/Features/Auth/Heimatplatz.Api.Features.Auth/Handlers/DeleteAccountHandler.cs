@@ -30,7 +30,9 @@ public class DeleteAccountHandler(
     ILogger<DeleteAccountHandler> logger
 ) : IRequestHandler<DeleteAccountRequest, DeleteAccountResponse>
 {
-    [MediatorHttpDelete("/api/auth/account", OperationId = "DeleteAccount", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    // Bewusst KEINE Rollen-Policy: Jeder authentifizierte Benutzer muss sein Konto
+    // loeschen koennen (DSGVO Art. 17 / Apple Guideline 5.1.1(v)).
+    [MediatorHttpDelete("/api/auth/account", OperationId = "DeleteAccount", RequiresAuthorization = true)]
     public async Task<DeleteAccountResponse> Handle(DeleteAccountRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var userId = GetAuthenticatedUserId();
@@ -60,10 +62,6 @@ public class DeleteAccountHandler(
             // 2. Auth-eigene Daten des Benutzers
             await dbContext.Set<RefreshToken>()
                 .Where(t => t.UserId == userId)
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await dbContext.Set<UserRole>()
-                .Where(r => r.UserId == userId)
                 .ExecuteDeleteAsync(cancellationToken);
 
             await dbContext.Set<UserFilterPreferences>()

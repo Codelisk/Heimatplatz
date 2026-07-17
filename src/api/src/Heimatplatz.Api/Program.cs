@@ -203,39 +203,22 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Authorization mit Policies fuer Benutzerrollen
+// Authorization: Jeder authentifizierte Benutzer ist implizit Kaeufer.
+// Eigene Policies gibt es nur fuer "darf inserieren" (Seller) und Admin-Faehigkeiten.
 builder.Services.AddAuthorization(options =>
 {
-    // Policy: Nur Kaeufer
-    options.AddPolicy(AuthorizationPolicies.RequireBuyer, policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim("user_role", "Buyer");
-    });
-
-    // Policy: Nur Verkaeufer
+    // Policy: Nur Verkaeufer (User mit gesetztem SellerType)
     options.AddPolicy(AuthorizationPolicies.RequireSeller, policy =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireClaim("user_role", "Seller");
     });
 
-    // Policy: Kaeufer ODER Verkaeufer (mindestens eine Rolle)
-    options.AddPolicy(AuthorizationPolicies.RequireAnyRole, policy =>
+    // Policy: Nur Administratoren (Batch-Import, Sync-Trigger)
+    options.AddPolicy(AuthorizationPolicies.RequireAdmin, policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireAssertion(context =>
-            context.User.HasClaim(c =>
-                c.Type == "user_role" &&
-                (c.Value == "Buyer" || c.Value == "Seller")));
-    });
-
-    // Policy: Kaeufer UND Verkaeufer (beide Rollen)
-    options.AddPolicy(AuthorizationPolicies.RequireBuyerAndSeller, policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim("user_role", "Buyer");
-        policy.RequireClaim("user_role", "Seller");
+        policy.RequireClaim("user_role", "Admin");
     });
 });
 

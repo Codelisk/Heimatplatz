@@ -44,8 +44,8 @@ public class ForeclosurePropertySyncService(
             var systemUser = new User
             {
                 Id = systemUserId,
-                Vorname = "System",
-                Nachname = "Heimatplatz",
+                FirstName = "System",
+                LastName = "Heimatplatz",
                 Email = "system@heimatplatz.at",
                 PasswordHash = passwordHasher.Hash(Guid.NewGuid().ToString()),
                 CreatedAt = DateTimeOffset.UtcNow

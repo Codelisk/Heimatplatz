@@ -1,4 +1,3 @@
-using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 
 namespace Heimatplatz.Api.Features.Auth.Services;
@@ -9,11 +8,12 @@ namespace Heimatplatz.Api.Features.Auth.Services;
 public interface ITokenService
 {
     /// <summary>
-    /// Generiert einen Access Token fuer den Benutzer mit seinen Rollen
+    /// Generiert einen Access Token fuer den Benutzer.
+    /// Claims werden direkt aus dem User abgeleitet:
+    /// user_role=Seller wenn SellerType gesetzt, user_role=Admin wenn IsAdmin,
+    /// seller_type mit dem konkreten Anbietertyp.
     /// </summary>
-    /// <param name="user">Der Benutzer</param>
-    /// <param name="roles">Die Rollen des Benutzers (Buyer, Seller)</param>
-    string GenerateAccessToken(User user, IEnumerable<UserRoleType>? roles = null);
+    string GenerateAccessToken(User user);
 
     /// <summary>
     /// Generiert einen kryptografisch sicheren Refresh Token

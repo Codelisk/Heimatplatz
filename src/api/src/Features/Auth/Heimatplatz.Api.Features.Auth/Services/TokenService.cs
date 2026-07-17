@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -11,12 +10,15 @@ using Shiny;
 namespace Heimatplatz.Api.Features.Auth.Services;
 
 /// <summary>
-/// Claim-Type fuer Benutzerrollen
+/// Claim-Types fuer Benutzerinformationen
 /// </summary>
 public static class HeimatplatzClaimTypes
 {
-    /// <summary>Claim-Type fuer Benutzerrollen (Buyer, Seller)</summary>
+    /// <summary>Claim-Type fuer Benutzerrollen (Seller, Admin). Kaeufer ist implizit = authentifiziert.</summary>
     public const string UserRole = "user_role";
+
+    /// <summary>Claim-Type fuer den Anbietertyp (Private, Broker, PropertyManager)</summary>
+    public const string SellerType = "seller_type";
 }
 
 /// <summary>
@@ -38,7 +40,7 @@ public class TokenService : ITokenService
         _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
     }
 
-    public string GenerateAccessToken(User user, IEnumerable<UserRoleType>? roles = null)
+    public string GenerateAccessToken(User user)
     {
         var issuer = _configuration["Authentication:Jwt:Issuer"];
         var audience = _configuration["Authentication:Jwt:Audience"];
@@ -48,20 +50,23 @@ public class TokenService : ITokenService
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
-            new(JwtRegisteredClaimNames.GivenName, user.Vorname),
-            new(JwtRegisteredClaimNames.FamilyName, user.Nachname),
+            new(JwtRegisteredClaimNames.GivenName, user.FirstName),
+            new(JwtRegisteredClaimNames.FamilyName, user.LastName),
             new(JwtRegisteredClaimNames.Name, user.FullName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
 
-        // Benutzerrollen als Claims hinzufuegen
-        if (roles != null)
+        // Verkaeufer: user_role=Seller + konkreter Anbietertyp
+        if (user.SellerType != null)
         {
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(HeimatplatzClaimTypes.UserRole, role.ToString()));
-            }
+            claims.Add(new Claim(HeimatplatzClaimTypes.UserRole, "Seller"));
+            claims.Add(new Claim(HeimatplatzClaimTypes.SellerType, user.SellerType.Value.ToString()));
+        }
+
+        if (user.IsAdmin)
+        {
+            claims.Add(new Claim(HeimatplatzClaimTypes.UserRole, "Admin"));
         }
 
         var credentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
