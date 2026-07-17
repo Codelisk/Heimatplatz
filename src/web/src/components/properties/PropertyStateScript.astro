@@ -798,7 +798,13 @@
   }
 
   function getStringArray(formData: FormData, name: string) {
-    return formData.getAll(name).map((value) => String(value)).filter(Boolean);
+    // Der OrtPicker sammelt seine Auswahl kommagetrennt in EINEM Hidden-Input -
+    // ohne Split wuerde "wels,linz" als ein Wert gespeichert und das
+    // Backend-Matching (Stadt == Eintrag) griffe bei Mehrfachauswahl nie.
+    return formData.getAll(name)
+      .flatMap((value) => String(value).split(","))
+      .map((value) => value.trim())
+      .filter(Boolean);
   }
 
   function buildNotificationPreferences(formData: FormData) {
@@ -854,6 +860,22 @@
     return [0, 1, 2, 3, 4, 5, 6].includes(numeric) ? String(numeric) : "0";
   }
 
+  // Der OrtPicker haelt seine Auswahl in unbenannten Checkboxen + einem Hidden-Input;
+  // die Wiederherstellung muss daher ueber seine programmatische API laufen, sonst
+  // geht die gespeicherte Ortsauswahl beim naechsten Speichern still verloren.
+  // Retry, weil die Skript-Ausfuehrungsreihenfolge (Picker vs. dieses Bundle) nicht garantiert ist.
+  function applyOrtPickerSelection(name: string, values: unknown, attempt = 0) {
+    if (!document.querySelector(`[data-ort-picker][data-ort-picker-name="${name}"]`)) return;
+    const setter = (window as { setOrtPickerValues?: (n: string, v: string[]) => void }).setOrtPickerValues;
+    if (typeof setter === "function") {
+      setter(name, Array.isArray(values) ? values.map(String) : []);
+      return;
+    }
+    if (attempt < 20) {
+      window.setTimeout(() => applyOrtPickerSelection(name, values, attempt + 1), 100);
+    }
+  }
+
   function applySavedPreferences() {
     document.querySelectorAll<HTMLFormElement>("[data-preferences-form]").forEach((form) => {
       const mode = form.getAttribute("data-preferences-form");
@@ -870,6 +892,7 @@
         setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
         setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
         setCheckboxValues(form, "locations", preferences.Locations);
+        applyOrtPickerSelection("locations", preferences.Locations);
         if (typeof preferences.FilterMode === "string") {
           const filterMode = form.querySelector<HTMLInputElement>(`input[name='filterMode'][value='${preferences.FilterMode}']`);
           if (filterMode) filterMode.checked = true;
@@ -886,9 +909,12 @@
         if (age && preferences.SelectedAgeFilter !== undefined) age.value = normalizeAgeFilterValue(preferences.SelectedAgeFilter);
         if (sort && preferences.SelectedSort !== undefined) sort.value = normalizeSortValue(preferences.SelectedSort);
         setCheckboxValues(form, "locations", preferences.SelectedOrtes);
-        if (location && Array.isArray(preferences.SelectedOrtes) && preferences.SelectedOrtes[0]) {
+        // Nur echte <select>-Fallbacks direkt setzen - der OrtPicker-Hidden-Input
+        // wird ueber applyOrtPickerSelection befuellt (sonst ginge Mehrfachauswahl verloren)
+        if (location instanceof HTMLSelectElement && Array.isArray(preferences.SelectedOrtes) && preferences.SelectedOrtes[0]) {
           location.value = String(preferences.SelectedOrtes[0]);
         }
+        applyOrtPickerSelection("locations", preferences.SelectedOrtes);
       }
     });
   }
