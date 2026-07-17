@@ -78,6 +78,10 @@ public class UpdatePropertyHandler(
             throw new ArgumentException("Address is required and must be at most 500 characters", nameof(request.Address));
         }
 
+        PropertyFieldValidation.ValidateCoreFields(
+            request.LivingAreaSquareMeters, request.PlotAreaSquareMeters, request.Rooms, request.YearBuilt);
+        var features = PropertyFieldValidation.NormalizeFeatures(request.Features);
+
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
         // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
         var municipalityExists = await dbContext.Set<Municipality>()
@@ -104,7 +108,7 @@ public class UpdatePropertyHandler(
         property.PlotAreaSquareMeters = request.PlotAreaSquareMeters;
         property.Rooms = request.Rooms;
         property.YearBuilt = request.YearBuilt;
-        property.Features = request.Features ?? new List<string>();
+        property.Features = features;
         property.ImageUrls = request.ImageUrls ?? new List<string>();
         property.UpdatedAt = DateTimeOffset.UtcNow;
 

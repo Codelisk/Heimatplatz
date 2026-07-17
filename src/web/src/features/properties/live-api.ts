@@ -325,3 +325,38 @@ async function fetchApiPropertyByIdUncached(id: string) {
 export function fetchApiPropertyById(id: string) {
   return cached(`property:${id}`, TTL.properties, () => fetchApiPropertyByIdUncached(id));
 }
+
+export type ApiPropertyTypeOption = {
+  Value: string;
+  Label: string;
+};
+
+type ApiPropertyTypesResponse = {
+  Types?: ApiPropertyTypeOption[];
+};
+
+/**
+ * Notfall-Fallback, falls die API beim SSR nicht erreichbar ist - die Quelle
+ * der Wahrheit ist GET /api/properties/types (PropertyType-Enum im Backend).
+ */
+const FALLBACK_PROPERTY_TYPES: ApiPropertyTypeOption[] = [
+  { Value: "House", Label: "Haus" },
+  { Value: "Land", Label: "Grundstück" },
+  { Value: "Foreclosure", Label: "Zwangsversteigerung" },
+];
+
+async function fetchApiPropertyTypesUncached(): Promise<ApiPropertyTypeOption[]> {
+  try {
+    const response = await fetch(new URL("/api/properties/types", getServerApiBaseUrl()));
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const payload = await response.json() as ApiPropertyTypesResponse;
+    return payload.Types?.length ? payload.Types : FALLBACK_PROPERTY_TYPES;
+  } catch (error) {
+    console.warn("[Heimatplatz] API property types could not be loaded", error);
+    return FALLBACK_PROPERTY_TYPES;
+  }
+}
+
+export function fetchApiPropertyTypes() {
+  return cached("property-types", TTL.locations, () => fetchApiPropertyTypesUncached());
+}

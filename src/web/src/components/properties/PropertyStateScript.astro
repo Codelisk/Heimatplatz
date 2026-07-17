@@ -23,6 +23,7 @@
     plotArea?: string;
     rooms?: string;
     yearBuilt?: string;
+    features?: string;
     imageUrls?: string[];
     [key: string]: string | string[] | undefined;
   };
@@ -1366,6 +1367,14 @@
     return draft.propertyType !== "land";
   }
 
+  // Merkmale werden im Formular als kommagetrennter String gefuehrt
+  // (hidden input "features"), die API erwartet eine Liste
+  function parseDraftFeatures(value: string | string[] | undefined) {
+    const scalar = scalarValue(value);
+    if (!scalar) return [];
+    return [...new Set(String(scalar).split(",").map((feature: string) => feature.trim()).filter(Boolean))];
+  }
+
   function toIsoDateTime(value: string | string[] | undefined) {
     const scalar = scalarValue(value);
     if (!scalar) return null;
@@ -1440,6 +1449,19 @@
     if (!requiredText(draft.address)) return "Bitte geben Sie eine Straße ein.";
     if (!requiredText(draft.city) || !requiredText(draft.postalCode)) return "Bitte wählen Sie einen Ort aus.";
     if (!/^\d{4}$/.test(requiredText(draft.postalCode))) return "Bitte geben Sie eine gültige vierstellige PLZ ein.";
+
+    // Plausibilitaet der Zahlenfelder (Spiegel der Server-Validierung in
+    // PropertyFieldValidation.cs - massgeblich bleibt der Server)
+    const yearBuilt = toNumber(draft.yearBuilt);
+    if (draft.yearBuilt && (!yearBuilt || yearBuilt < 1000 || yearBuilt > new Date().getFullYear())) {
+      return "Das Baujahr darf nicht in der Zukunft liegen.";
+    }
+    const livingArea = toNumber(draft.livingArea);
+    if (draft.livingArea && (!livingArea || livingArea > 10_000)) return "Bitte geben Sie eine realistische Wohnfläche an.";
+    const plotArea = toNumber(draft.plotArea);
+    if (draft.plotArea && (!plotArea || plotArea > 1_000_000)) return "Bitte geben Sie eine realistische Grundstücksfläche an.";
+    const rooms = toNumber(draft.rooms);
+    if (draft.rooms && (!rooms || rooms > 200)) return "Bitte geben Sie eine realistische Zimmeranzahl an.";
 
     if (draft.propertyType !== "foreclosure") return "";
     if (!draft.foreclosureCourtName) return "Bitte das zuständige Gericht angeben.";
@@ -1604,7 +1626,7 @@
         PlotAreaSquareMeters: toNumber(draft.plotArea),
         Rooms: hasStructureFields(draft) ? toNumber(draft.rooms) : null,
         YearBuilt: hasStructureFields(draft) ? toNumber(draft.yearBuilt) : null,
-        Features: [],
+        Features: parseDraftFeatures(draft.features),
         ImageUrls: imageUrls,
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
       },
@@ -1637,7 +1659,7 @@
         PlotAreaSquareMeters: toNumber(draft.plotArea),
         Rooms: hasStructureFields(draft) ? toNumber(draft.rooms) : null,
         YearBuilt: hasStructureFields(draft) ? toNumber(draft.yearBuilt) : null,
-        Features: [],
+        Features: parseDraftFeatures(draft.features),
         ImageUrls: imageUrls,
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
       },
@@ -1706,7 +1728,9 @@
   }
 
   function fillPropertyForm(form: HTMLFormElement, draft: Draft) {
-    setField(form, "propertyType", draft.propertyType);
+    // Alte lokale Entwuerfe kennen noch "apartment" - die API (und das
+    // Formular-Select) nur house/land/foreclosure, analog search-query.ts
+    setField(form, "propertyType", draft.propertyType === "apartment" ? "house" : draft.propertyType);
     setField(form, "title", draft.title);
     setField(form, "description", draft.description);
     setField(form, "address", draft.address);
@@ -1717,6 +1741,7 @@
     setField(form, "plotArea", draft.plotArea);
     setField(form, "rooms", draft.rooms);
     setField(form, "yearBuilt", draft.yearBuilt);
+    setField(form, "features", draft.features);
     setField(form, "municipalityId", draft.municipalityId);
     [
       "foreclosureCourtName",
@@ -1760,6 +1785,7 @@
       plotArea: property.PlotAreaM2 ? String(property.PlotAreaM2) : "",
       rooms: property.Rooms ? String(property.Rooms) : "",
       yearBuilt: property.YearBuilt ? String(property.YearBuilt) : "",
+      features: (property.Features ?? []).join(", "),
       municipalityId: property.MunicipalityId ?? "",
       imageUrls: property.ImageUrls ?? [],
       foreclosureCourtName: readTypedString(typeSpecificData, "CourtName"),

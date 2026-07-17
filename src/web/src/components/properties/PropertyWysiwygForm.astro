@@ -1,17 +1,23 @@
 ---
 import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import HeartIcon from "@tabler/icons/outline/heart.svg";
 import PencilIcon from "@tabler/icons/outline/pencil.svg";
 import PhotoPlusIcon from "@tabler/icons/outline/photo-plus.svg";
+import ShareIcon from "@tabler/icons/outline/share.svg";
 import { Button } from "@/components/starwind/button";
-import { Label } from "@/components/starwind/label";
-import { NativeSelect } from "@/components/starwind/native-select";
+import { fetchApiPropertyTypes } from "@/features/properties/live-api";
 
 /**
  * WYSIWYG-Inseratsformular: 1:1 wie die Immobilien-Detailansicht aufgebaut
- * (Hero-Foto, Badges, Titel, Fakten-Kacheln, Beschreibung, Sticky-Sidebar) -
- * nur dass alle Anzeige-Elemente direkt editierbare Felder sind. Feldnamen und
- * data-Attribute muessen mit PropertyStateScript.astro uebereinstimmen
- * (data-local-property-form, data-property-images, data-location-select, ...).
+ * (Hero-Foto mit Badges und Aktions-Buttons, Titel, Fakten-Kacheln, Details,
+ * Beschreibung, Anbieter-Sidebar) - nur dass die Anzeige-Elemente direkt
+ * editierbare Felder sind. Feldnamen und data-Attribute muessen mit
+ * PropertyStateScript.astro uebereinstimmen (data-local-property-form,
+ * data-property-images, data-structure-property-field, ...).
+ *
+ * Ort/PLZ werden frei eingegeben; die Gemeinde loest PropertyStateScript beim
+ * Speichern ueber findMunicipalityId (Ort+PLZ -> /api/locations) automatisch auf.
  *
  * editMode: /immobilien/bearbeiten/ - markiert das Formular als
  * data-edit-property-form (Prefill + Update statt Neuanlage durch das Script).
@@ -23,12 +29,16 @@ interface Props {
 const { editMode = false } = Astro.props;
 const submitLabel = editMode ? "Änderungen speichern" : "Inserat speichern";
 const cancelHref = editMode ? "/meine-immobilien/" : "/";
-const asideKicker = editMode ? "Bestehendes Inserat" : "Neues Inserat";
-const asideTitle = editMode ? "Bearbeiten" : "Veröffentlichen";
-const photoLabel = editMode ? "Fotos" : "Fotos *";
 const photoHelp = editMode
-  ? "Bestehende Bilder bleiben erhalten. Neue Bilder werden vor dem Speichern hochgeladen."
-  : "Mindestens ein Foto ist für ein veröffentlichtes Inserat erforderlich. Maximal 20 Bilder.";
+  ? "Bestehende Bilder bleiben erhalten, neue werden beim Speichern hochgeladen."
+  : "Mindestens ein Foto ist für ein veröffentlichtes Inserat erforderlich.";
+
+// Typenliste kommt aus dem Backend (PropertyType-Enum) - nicht hardcoden!
+const propertyTypes = await fetchApiPropertyTypes();
+
+// UX-Obergrenze fuer das Baujahr; massgeblich validiert der Server
+// (PropertyFieldValidation.cs: Baujahr darf nicht in der Zukunft liegen)
+const currentYear = new Date().getFullYear();
 ---
 
 <form
@@ -41,14 +51,15 @@ const photoHelp = editMode
 >
   <input type="hidden" name="municipalityId" />
   <input type="hidden" name="imageUrls" data-property-image-urls />
+  {/* city/postalCode sind sichtbare Inline-Felder in der Adresszeile */}
 
   <div>
     <p class="wys-rise flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
       <PencilIcon class="size-4 shrink-0" aria-hidden="true" />
-      Sie bearbeiten die Live-Vorschau: Tippen Sie direkt in Titel, Preis oder Beschreibung – genau so sehen Käufer Ihr Inserat.
+      Live-Vorschau: Tippen Sie direkt in Titel, Preis oder Beschreibung – genau so sehen Käufer Ihr Inserat.
     </p>
 
-    {/* Hero-Fotozone wie die Galerie der Detailseite */}
+    {/* Hero-Fotozone wie die Galerie der Detailseite, inkl. Badge- und Button-Overlays */}
     <div class="wys-rise relative mt-5 h-[320px] w-full overflow-hidden rounded-xl bg-muted sm:h-[460px]" style="--rise: 0.06s">
       <img data-preview-hero alt="Erstes Foto Ihres Inserats" class="hidden h-full w-full object-cover" />
       <label
@@ -72,7 +83,8 @@ const photoHelp = editMode
         <PhotoPlusIcon class="size-4" aria-hidden="true" />
         Fotos hinzufügen
       </label>
-      <div class="pointer-events-none absolute left-4 right-4 top-4 z-10 flex flex-wrap items-center gap-2" data-photo-badges>
+      {/* right-40 wie auf der Detailseite: Platz fuer die drei Aktions-Buttons */}
+      <div class="pointer-events-none absolute left-4 right-40 top-4 z-10 flex flex-wrap items-center gap-2" data-photo-badges>
         <span
           class="pointer-events-auto relative inline-flex items-center rounded-[2px] bg-type-haus text-white transition-colors duration-300"
           data-preview-type-badge
@@ -84,14 +96,19 @@ const photoHelp = editMode
             aria-label="Immobilientyp"
             class="cursor-pointer appearance-none border-0 bg-transparent py-1.5 pl-3 pr-8 text-xs font-bold text-inherit outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
-            <option value="house">Haus</option>
-            <option value="apartment">Wohnung</option>
-            <option value="land">Grundstück</option>
-            <option value="foreclosure">Zwangsversteigerung</option>
+            {propertyTypes.map((type, index) => (
+              <option value={type.Value.toLowerCase()} selected={index === 0}>{type.Label}</option>
+            ))}
           </select>
           <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 opacity-80" aria-hidden="true" />
         </span>
         <span class="rounded-[2px] bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground" data-preview-city>Ort</span>
+      </div>
+      {/* Merken/Blockieren/Teilen wie auf der Detailseite - im Editor nur Kulisse */}
+      <div class="pointer-events-none absolute right-4 top-4 z-10 flex gap-2" aria-hidden="true">
+        <span class="grid size-10 place-items-center rounded-full bg-black/60 text-white"><HeartIcon class="size-5" /></span>
+        <span class="grid size-10 place-items-center rounded-full bg-black/60 text-white"><EyeOffIcon class="size-5" /></span>
+        <span class="grid size-10 place-items-center rounded-full bg-black/60 text-white"><ShareIcon class="size-5" /></span>
       </div>
     </div>
     <input
@@ -104,6 +121,10 @@ const photoHelp = editMode
       data-property-images
     />
     <div class="mt-3 hidden grid grid-cols-3 gap-2 sm:grid-cols-5" data-property-image-grid></div>
+    <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+      <p data-property-image-count>Fotos 0 / 20</p>
+      <p data-property-image-help>{photoHelp}</p>
+    </div>
 
     {/* Adresszeile + Titel wie auf der Detailseite, nur editierbar */}
     <div class="wys-rise mt-6" style="--rise: 0.12s">
@@ -142,16 +163,17 @@ const photoHelp = editMode
       />
     </div>
 
-    {/* Fakten-Kacheln wie auf der Detailseite */}
+    {/* Fakten-Kacheln 1:1 wie auf der Detailseite */}
     <div class="wys-rise mt-6 grid gap-3 sm:grid-cols-4" style="--rise: 0.18s">
       <div class="wys-tile rounded-lg border border-border bg-card p-4">
-        <label for="price" class="text-sm text-muted-foreground">Preis (€) *</label>
+        <label for="price" class="text-sm text-muted-foreground">Preis</label>
         <input
           id="price"
           name="price"
           type="number"
           inputmode="numeric"
           min="1"
+          max="100000000"
           step="1"
           placeholder="350000"
           class="wys-bare mt-1 w-full text-xl font-bold text-price"
@@ -168,6 +190,7 @@ const photoHelp = editMode
             type="number"
             inputmode="numeric"
             min="1"
+            max="10000"
             step="1"
             placeholder="90"
             class="wys-bare w-full text-xl font-bold"
@@ -184,6 +207,7 @@ const photoHelp = editMode
             type="number"
             inputmode="numeric"
             min="1"
+            max="1000000"
             step="1"
             placeholder="500"
             class="wys-bare w-full text-xl font-bold"
@@ -199,6 +223,7 @@ const photoHelp = editMode
           type="number"
           inputmode="numeric"
           min="1"
+          max="200"
           step="1"
           placeholder="3"
           class="wys-bare mt-1 w-full text-xl font-bold"
@@ -206,12 +231,12 @@ const photoHelp = editMode
       </div>
     </div>
 
-    {/* Detail-Sektion wie auf der Detailseite */}
+    {/* Detail-Sektion wie auf der Detailseite ("Gebaeude" wie in detail-sections.ts) */}
     <section class="wys-rise mt-8" style="--rise: 0.24s" data-structure-property-field>
       <h2 class="text-sm font-bold uppercase text-muted-foreground">Details</h2>
       <div class="mt-4 grid gap-4 md:grid-cols-2">
-        <section class="wys-tile rounded-lg border border-border bg-card p-4" aria-label="Objektdaten">
-          <h3 class="text-xs font-bold uppercase text-muted-foreground">Objektdaten</h3>
+        <section class="wys-tile rounded-lg border border-border bg-card p-4" aria-label="Gebäude">
+          <h3 class="text-xs font-bold uppercase text-muted-foreground">Gebäude</h3>
           <div class="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 text-sm">
             <label for="yearBuilt" class="text-muted-foreground">Baujahr</label>
             <input
@@ -220,6 +245,7 @@ const photoHelp = editMode
               type="number"
               inputmode="numeric"
               min="1000"
+              max={currentYear}
               step="1"
               placeholder="1998"
               class="wys-bare w-24 text-right font-medium"
@@ -231,8 +257,19 @@ const photoHelp = editMode
 
     <section class="wys-rise mt-8" style="--rise: 0.3s" aria-labelledby="preview-features-heading">
       <h2 id="preview-features-heading" class="text-sm font-bold uppercase text-muted-foreground">Ausstattung &amp; Merkmale</h2>
-      <p class="mt-1 text-xs text-muted-foreground">Entsteht automatisch aus Typ, Ort und Fläche – genau so erscheint es im Inserat.</p>
+      <input type="hidden" name="features" data-feature-store />
       <ul class="mt-4 grid gap-2 sm:grid-cols-2" data-preview-features></ul>
+      <div class="mt-3 flex flex-wrap items-center gap-3">
+        <input
+          data-feature-input
+          class="wys wys-sm w-72 max-w-full"
+          placeholder="Merkmal hinzufügen, z.B. Garage…"
+          aria-label="Merkmal hinzufügen"
+        />
+        <p class="text-xs text-muted-foreground">
+          Enter fügt hinzu. Ohne eigene Merkmale zeigt das Inserat automatisch Typ, Ort und Fläche.
+        </p>
+      </div>
     </section>
 
     <section class="wys-rise mt-8" style="--rise: 0.36s" aria-labelledby="description-heading">
@@ -333,42 +370,26 @@ const photoHelp = editMode
     </fieldset>
   </div>
 
-  {/* Sticky-Sidebar wie die Anbieter-Karte der Detailseite */}
+  {/* Anbieter-Sidebar 1:1 wie auf der Detailseite - die Daten kommen aus dem
+      Benutzerprofil (so erscheinen sie auch im veroeffentlichten Inserat).
+      Statt der Kontakt-CTAs stehen hier die Speichern/Abbrechen-Aktionen. */}
   <aside class="wys-rise self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20" style="--rise: 0.12s">
-    <p class="text-sm text-muted-foreground">{asideKicker}</p>
-    <h2 class="mt-1 text-xl font-bold">{asideTitle}</h2>
-    <p class="mt-2 text-sm leading-6 text-muted-foreground">
-      Links sehen Sie Ihr Inserat genau so, wie es Käufern angezeigt wird.
-    </p>
-
-    <div class="mt-5 space-y-2" data-aside-select>
-      <Label for="municipalityLookup">Gemeinde auswählen *</Label>
-      <NativeSelect id="municipalityLookup" name="municipalityLookup" data-location-select>
-        <option value="">Orte werden geladen...</option>
-      </NativeSelect>
-      <p class="text-xs text-muted-foreground" data-location-status>Gemeinden in Oberösterreich werden geladen.</p>
-    </div>
-
-    <div class="mt-5 rounded-md bg-muted p-3">
-      <div class="flex items-center justify-between gap-2">
-        <p class="text-sm font-semibold">{photoLabel}</p>
-        <p class="text-xs text-muted-foreground" data-property-image-count>Fotos 0 / 20</p>
+    <p class="text-sm text-muted-foreground">Anbieter</p>
+    <h2 class="mt-1 text-xl font-bold" data-preview-seller-name>Ihr Name</h2>
+    <p class="mt-2 text-sm text-muted-foreground" data-preview-seller-meta>Privat</p>
+    <p class="mt-2 text-sm text-muted-foreground">Aktualisiert: heute</p>
+    <div class="mt-5 space-y-3">
+      <div class="rounded-md bg-muted p-3 text-sm">
+        <p class="font-semibold" data-preview-seller-name>Ihr Name</p>
+        <p class="mt-1 truncate text-muted-foreground" data-preview-seller-email>ihre@email.at</p>
       </div>
-      <label
-        for="propertyImages"
-        class="mt-2 inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-background text-sm font-semibold transition-colors hover:border-foreground"
-      >
-        <PhotoPlusIcon class="size-4" aria-hidden="true" />
-        Fotos auswählen
-      </label>
-      <p class="mt-2 text-xs text-muted-foreground" data-property-image-help>{photoHelp}</p>
     </div>
-
-    <p class="mt-4 hidden text-sm" data-form-status></p>
+    <p class="mt-3 text-xs text-muted-foreground" data-preview-seller-hint>Anbieterdaten kommen aus Ihrem Profil.</p>
     <div class="mt-5 grid gap-2">
       <Button type="submit" class="w-full">{submitLabel}</Button>
       <Button href={cancelHref} variant="outline" class="w-full">Abbrechen</Button>
     </div>
+    <p class="mt-3 hidden text-sm" data-form-status></p>
   </aside>
 </form>
 
@@ -474,11 +495,6 @@ const photoHelp = editMode
     field-sizing: content;
   }
 
-  /* Gemeinde-Select in der Sidebar volle Breite (Starwind-Wrapper ist w-fit) */
-  [data-aside-select] :global([data-slot="native-select-wrapper"]) {
-    width: 100%;
-  }
-
   /* Sanftes Aufsteigen der Bloecke beim Seitenaufbau */
   @media (prefers-reduced-motion: no-preference) {
     .wys-rise {
@@ -506,16 +522,32 @@ const photoHelp = editMode
 </style>
 
 <script>
-  // Live-Vorschau: Typ-Badge, Ort-Badge, formatierter Preis, Merkmal-Chips und
-  // Hero-Bild spiegeln die Feldwerte sofort wider. Das Speichern/Bild-Handling
-  // uebernimmt weiterhin PropertyStateScript (BaseLayout).
-  const TYPE_META: Record<string, { label: string; classes: string[] }> = {
-    house: { label: "Haus", classes: ["bg-type-haus", "text-white"] },
-    apartment: { label: "Wohnung", classes: ["bg-foreground", "text-background"] },
-    land: { label: "Grundstück", classes: ["bg-type-grund", "text-white"] },
-    foreclosure: { label: "Zwangsversteigerung", classes: ["bg-brand", "text-brand-foreground"] },
+  import { readDebugApiUrl } from "@/lib/utils/debug-host";
+
+  // Live-Vorschau: Typ-Badge, Ort-Badge, formatierter Preis, Merkmal-Chips,
+  // Hero-Bild und Anbieter-Karte spiegeln Feldwerte bzw. Profildaten sofort
+  // wider. Speichern/Bild-Handling uebernimmt PropertyStateScript (BaseLayout).
+  //
+  // Typ-Labels kommen aus den serverseitig gerenderten <option>-Texten
+  // (GET /api/properties/types) - hier liegen nur noch die Badge-Farben,
+  // denn Farb-Tokens sind Praesentation und damit Frontend-Sache.
+  const TYPE_BADGE_CLASSES: Record<string, string[]> = {
+    house: ["bg-type-haus", "text-white"],
+    land: ["bg-type-grund", "text-white"],
+    foreclosure: ["bg-brand", "text-brand-foreground"],
   };
-  const ALL_TYPE_CLASSES = Object.values(TYPE_META).flatMap((meta) => meta.classes);
+  const DEFAULT_BADGE_CLASSES = ["bg-foreground", "text-background"];
+  const ALL_BADGE_CLASSES = [...new Set([...Object.values(TYPE_BADGE_CLASSES).flat(), ...DEFAULT_BADGE_CLASSES])];
+
+  // Gleiche Zuordnung wie getApiSellerLabel (live-api.ts) fuer Profil-SellerType
+  const SELLER_TYPE_LABELS: Record<string, string> = {
+    Private: "Privat",
+    Broker: "Makler",
+    Builder: "Bauträger",
+    PropertyManager: "Verwaltung",
+  };
+
+  const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
   const priceFormat = new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -532,6 +564,8 @@ const photoHelp = editMode
     const cityBadge = form.querySelector<HTMLElement>("[data-preview-city]");
     const pricePreview = form.querySelector<HTMLElement>("[data-preview-price]");
     const featureList = form.querySelector<HTMLElement>("[data-preview-features]");
+    const featureStore = form.querySelector<HTMLInputElement>("[data-feature-store]");
+    const featureInput = form.querySelector<HTMLInputElement>("[data-feature-input]");
     const heroImage = form.querySelector<HTMLImageElement>("[data-preview-hero]");
     const heroEmpty = form.querySelector<HTMLElement>("[data-preview-hero-empty]");
     const heroAdd = form.querySelector<HTMLElement>("[data-preview-hero-add]");
@@ -545,12 +579,30 @@ const photoHelp = editMode
     let lastPrice = "";
     let lastFeatures = "";
 
+    // Merkmale: hidden input "features" (kommagetrennt) ist die Quelle der
+    // Wahrheit - so landen sie via FormData im Draft und in der API
+    const parseFeatures = (value: string) =>
+      [...new Set(value.split(",").map((feature) => feature.trim()).filter(Boolean))];
+
+    const writeFeatures = (features: string[]) => {
+      if (!featureStore) return;
+      featureStore.value = features.join(", ");
+      update();
+    };
+
+    const addFeatures = (raw: string) => {
+      if (!featureStore) return;
+      const additions = parseFeatures(raw);
+      if (additions.length === 0) return;
+      writeFeatures(parseFeatures(`${featureStore.value},${additions.join(",")}`));
+    };
+
     const update = () => {
       const type = typeSelect?.value || "house";
-      const meta = TYPE_META[type] ?? TYPE_META.house;
+      const typeLabel = (typeSelect instanceof HTMLSelectElement ? typeSelect.selectedOptions[0]?.textContent : null)?.trim() ?? "";
       if (typeBadge) {
-        typeBadge.classList.remove(...ALL_TYPE_CLASSES);
-        typeBadge.classList.add(...meta.classes);
+        typeBadge.classList.remove(...ALL_BADGE_CLASSES);
+        typeBadge.classList.add(...(TYPE_BADGE_CLASSES[type] ?? DEFAULT_BADGE_CLASSES));
       }
 
       const city = field("city")?.value.trim() ?? "";
@@ -578,15 +630,34 @@ const photoHelp = editMode
             ? `${plotValue} m² Grundstück`
             : "";
 
-      const chips = [meta.label, city, area].filter(Boolean);
-      const chipKey = chips.join("|");
+      // Eigene Merkmale (editierbar); ohne eigene zeigt das Inserat den
+      // automatischen Fallback aus Typ/Ort/Flaeche - wie die echte Detailseite
+      const userFeatures = featureStore ? parseFeatures(featureStore.value) : [];
+      const isAutoChips = userFeatures.length === 0;
+      const chips = isAutoChips ? [typeLabel, city, area].filter(Boolean) : userFeatures;
+      const chipKey = `${isAutoChips ? "auto" : "user"}:${chips.join("|")}`;
       if (featureList && chipKey !== lastFeatures) {
         lastFeatures = chipKey;
         featureList.textContent = "";
         for (const chip of chips) {
           const item = document.createElement("li");
-          item.className = "rounded-md bg-muted px-4 py-3 text-sm";
-          item.textContent = chip;
+          item.className = "flex items-center justify-between gap-2 rounded-md bg-muted px-4 py-3 text-sm";
+          const label = document.createElement("span");
+          label.textContent = chip;
+          item.append(label);
+          if (isAutoChips) {
+            item.classList.add("opacity-80");
+          } else {
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "shrink-0 text-base leading-none text-muted-foreground transition-colors hover:text-foreground";
+            remove.setAttribute("aria-label", `Merkmal ${chip} entfernen`);
+            remove.textContent = "×";
+            remove.addEventListener("click", () => {
+              writeFeatures(parseFeatures(featureStore?.value ?? "").filter((feature) => feature !== chip));
+            });
+            item.append(remove);
+          }
           featureList.append(item);
         }
       }
@@ -613,15 +684,69 @@ const photoHelp = editMode
       }
     };
 
+    featureInput?.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== ",") return;
+      // Enter wuerde sonst das Formular absenden
+      event.preventDefault();
+      addFeatures(featureInput.value);
+      featureInput.value = "";
+    });
+    featureInput?.addEventListener("blur", () => {
+      addFeatures(featureInput.value);
+      featureInput.value = "";
+    });
+
     form.addEventListener("input", update);
     form.addEventListener("change", update);
-    // Gemeinde-Auswahl und Entwurf-/Inserat-Prefill schreiben Felder programmatisch
-    // (ohne Events) - ein leichter Watcher haelt die Vorschau trotzdem aktuell.
+    // Entwurf-/Inserat-Prefill schreibt Felder programmatisch (ohne Events) -
+    // ein leichter Watcher haelt die Vorschau trotzdem aktuell.
     window.setInterval(update, 800);
     if (imageGrid) new MutationObserver(updateHero).observe(imageGrid, { childList: true });
 
     update();
     updateHero();
+    void initSellerPreview(form);
+  }
+
+  // Anbieter-Karte: zeigt die Profildaten, die auch im veroeffentlichten
+  // Inserat als Anbieter erscheinen (Session sofort, Profil-API fuer
+  // Firmenname/Anbietertyp nachgezogen; ohne Login bleiben Platzhalter).
+  async function initSellerPreview(form: HTMLFormElement) {
+    const nameTargets = form.querySelectorAll<HTMLElement>("[data-preview-seller-name]");
+    const emailTarget = form.querySelector<HTMLElement>("[data-preview-seller-email]");
+    const metaTarget = form.querySelector<HTMLElement>("[data-preview-seller-meta]");
+    const hintTarget = form.querySelector<HTMLElement>("[data-preview-seller-hint]");
+
+    let session: { AccessToken?: string; FullName?: string; Email?: string } | null = null;
+    try {
+      session = JSON.parse(window.localStorage.getItem("heimatplatz:session") ?? "null");
+    } catch {
+      session = null;
+    }
+
+    if (!session?.AccessToken) {
+      if (hintTarget) hintTarget.textContent = "Melden Sie sich an – Name und Kontakt kommen aus Ihrem Profil.";
+      return;
+    }
+
+    const apply = (name: string | null | undefined, email: string | null | undefined, sellerType: string | null | undefined) => {
+      if (name) nameTargets.forEach((target) => { target.textContent = name; });
+      if (email && emailTarget) emailTarget.textContent = email;
+      if (metaTarget) metaTarget.textContent = SELLER_TYPE_LABELS[sellerType ?? ""] ?? "Privat";
+    };
+
+    apply(session.FullName, session.Email, null);
+
+    try {
+      const response = await fetch(new URL("/api/auth/profile", API_BASE_URL), {
+        headers: { Authorization: `Bearer ${session.AccessToken}` },
+      });
+      if (!response.ok) return;
+      const profile = await response.json() as { FullName?: string; Email?: string; CompanyName?: string | null; SellerType?: string | null };
+      apply(profile.CompanyName || profile.FullName, profile.Email, profile.SellerType);
+    } catch {
+      // Session-Daten reichen als Vorschau
+    }
   }
 
   const wysiwygForm = document.querySelector<HTMLFormElement>("[data-wysiwyg-property]");
