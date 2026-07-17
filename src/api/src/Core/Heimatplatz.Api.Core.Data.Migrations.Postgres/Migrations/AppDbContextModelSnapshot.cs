@@ -22,62 +22,6 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Heimatplatz.Api.Features.AiListing.Data.Entities.ListingAnalysis", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DictatedText")
-                        .HasMaxLength(8000)
-                        .HasColumnType("character varying(8000)");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<string>("ImageUrls")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ResultJson")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset?>("StartedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("UserNotes")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<string>("VideoUrls")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ListingAnalyses", (string)null);
-                });
-
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1132,15 +1076,32 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("AnalysisId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DescriptionCompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DescriptionError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("DescriptionKeywords")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset?>("DescriptionRequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DescriptionStatus")
+                        .HasColumnType("integer");
 
                     b.Property<string>("FirstImageUrl")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("GeneratedDescription")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("PayloadJson")
                         .IsRequired()
@@ -1170,6 +1131,192 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PropertyDrafts", (string)null);
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.CronTickerEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Expression")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Function")
+                        .HasColumnType("text");
+
+                    b.Property<string>("InitIdentifier")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsSystemPaused")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<byte[]>("Request")
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("Retries")
+                        .HasColumnType("integer");
+
+                    b.PrimitiveCollection<int[]>("RetryIntervals")
+                        .HasColumnType("integer[]");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Expression")
+                        .HasDatabaseName("IX_CronTickers_Expression");
+
+                    b.HasIndex("Function", "Expression")
+                        .HasDatabaseName("IX_Function_Expression");
+
+                    b.ToTable("CronTickers", "ticker");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.CronTickerOccurrenceEntity<TickerQ.Utilities.Entities.CronTickerEntity>", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CronTickerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("ElapsedTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ExceptionMessage")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExecutionTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LockHolder")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LockedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SkippedReason")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CronTickerId")
+                        .HasDatabaseName("IX_CronTickerOccurrence_CronTickerId");
+
+                    b.HasIndex("ExecutionTime")
+                        .HasDatabaseName("IX_CronTickerOccurrence_ExecutionTime");
+
+                    b.HasIndex("CronTickerId", "ExecutionTime")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CronTickerId_ExecutionTime");
+
+                    b.HasIndex("Status", "ExecutionTime")
+                        .HasDatabaseName("IX_CronTickerOccurrence_Status_ExecutionTime");
+
+                    b.ToTable("CronTickerOccurrences", "ticker");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.TimeTickerEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<long>("ElapsedTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ExceptionMessage")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExecutionTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Function")
+                        .HasColumnType("text");
+
+                    b.Property<string>("InitIdentifier")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LockHolder")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LockedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Request")
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("Retries")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer");
+
+                    b.PrimitiveCollection<int[]>("RetryIntervals")
+                        .HasColumnType("integer[]");
+
+                    b.Property<int?>("RunCondition")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SkippedReason")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecutionTime")
+                        .HasDatabaseName("IX_TimeTicker_ExecutionTime");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("Status", "ExecutionTime")
+                        .HasDatabaseName("IX_TimeTicker_Status_ExecutionTime");
+
+                    b.ToTable("TimeTickers", "ticker");
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.RefreshToken", b =>
@@ -1335,6 +1482,27 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.Navigation("Property");
                 });
 
+            modelBuilder.Entity("TickerQ.Utilities.Entities.CronTickerOccurrenceEntity<TickerQ.Utilities.Entities.CronTickerEntity>", b =>
+                {
+                    b.HasOne("TickerQ.Utilities.Entities.CronTickerEntity", "CronTicker")
+                        .WithMany()
+                        .HasForeignKey("CronTickerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CronTicker");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.TimeTickerEntity", b =>
+                {
+                    b.HasOne("TickerQ.Utilities.Entities.TimeTickerEntity", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuction", b =>
                 {
                     b.Navigation("Changes");
@@ -1353,6 +1521,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.Property", b =>
                 {
                     b.Navigation("Contacts");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.TimeTickerEntity", b =>
+                {
+                    b.Navigation("Children");
                 });
 #pragma warning restore 612, 618
         }

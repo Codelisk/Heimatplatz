@@ -9,14 +9,13 @@ using MauiPermissions = Microsoft.Maui.ApplicationModel.Permissions;
 namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 
 /// <summary>
-/// Schritt 1: Fotos &amp; Videos. Picker-Logik aus dem frueheren AiAddPropertyViewModel;
-/// der Upload laeuft eager im Hintergrund (einzeln pro Datei, nur Items ohne RemoteUrl).
+/// Schritt 1: Fotos. Der Upload laeuft eager im Hintergrund (einzeln pro Datei,
+/// nur Items ohne RemoteUrl). Videos bietet der Wizard nicht mehr an - Items aus
+/// alten Entwuerfen werden nur noch angezeigt und beim Loeschen mit aufgeraeumt.
 /// </summary>
 public partial class PropertyWizardViewModel
 {
     private const int MaxPhotos = 20;
-    private const int MaxVideos = 3;
-    private const int MaxVideoSizeMb = 60;
 
     private Task? _uploadTask;
 
@@ -70,7 +69,7 @@ public partial class PropertyWizardViewModel
             if (file == null)
                 return;
 
-            await AddMediaFileAsync(file, isVideo: false);
+            await AddMediaFileAsync(file);
         }
         catch (Exception ex)
         {
@@ -102,74 +101,12 @@ public partial class PropertyWizardViewModel
                     break;
                 }
 
-                await AddMediaFileAsync(file, isVideo: false);
+                await AddMediaFileAsync(file);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyWizard] Fehler bei Foto-Auswahl");
-            ErrorMessage = $"Fehler bei der Auswahl: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    private async Task RecordVideoAsync()
-    {
-        try
-        {
-            if (!EnsureVideoCapacity())
-                return;
-
-            var cameraStatus = await MauiPermissions.RequestAsync<MauiPermissions.Camera>();
-            var micStatus = await MauiPermissions.RequestAsync<MauiPermissions.Microphone>();
-            if (cameraStatus != PermissionStatus.Granted || micStatus != PermissionStatus.Granted)
-            {
-                ErrorMessage = "Kamera-/Mikrofon-Berechtigung wurde nicht erteilt.";
-                return;
-            }
-
-            var file = await MediaPicker.Default.CaptureVideoAsync();
-            if (file == null)
-                return;
-
-            await AddMediaFileAsync(file, isVideo: true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[PropertyWizard] Fehler bei Video-Aufnahme");
-            ErrorMessage = $"Fehler bei der Video-Aufnahme: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    private async Task PickVideoAsync()
-    {
-        try
-        {
-            if (!EnsureVideoCapacity())
-                return;
-
-            var files = await MediaPicker.Default.PickVideosAsync(new MediaPickerOptions
-            {
-                Title = "Videos auswählen"
-            });
-            if (files == null)
-                return;
-
-            foreach (var file in files)
-            {
-                if (Media.Count(m => m.IsVideo) >= MaxVideos)
-                {
-                    ErrorMessage = $"Maximal {MaxVideos} Videos erlaubt";
-                    break;
-                }
-
-                await AddMediaFileAsync(file, isVideo: true);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[PropertyWizard] Fehler bei Video-Auswahl");
             ErrorMessage = $"Fehler bei der Auswahl: {ex.Message}";
         }
     }
@@ -195,41 +132,25 @@ public partial class PropertyWizardViewModel
         return true;
     }
 
-    private bool EnsureVideoCapacity()
-    {
-        if (Media.Count(m => m.IsVideo) >= MaxVideos)
-        {
-            ErrorMessage = $"Maximal {MaxVideos} Videos erlaubt";
-            return false;
-        }
-        return true;
-    }
-
-    private async Task AddMediaFileAsync(FileResult file, bool isVideo)
+    private async Task AddMediaFileAsync(FileResult file)
     {
         using var stream = await file.OpenReadAsync();
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         var bytes = memoryStream.ToArray();
 
-        if (isVideo && bytes.Length > MaxVideoSizeMb * 1024L * 1024L)
-        {
-            ErrorMessage = $"Video '{file.FileName}' ist zu groß (max. {MaxVideoSizeMb} MB).";
-            return;
-        }
-
         var contentType = string.IsNullOrEmpty(file.ContentType)
-            ? GuessContentType(file.FileName, isVideo)
+            ? GuessContentType(file.FileName)
             : file.ContentType;
 
-        Media.Add(WizardMediaItem.FromPicked(file.FileName, contentType, bytes, isVideo));
+        Media.Add(WizardMediaItem.FromPicked(file.FileName, contentType, bytes, isVideo: false));
         MediaCount = Media.Count;
         OnPropertyChanged(nameof(MediaCountText));
         ErrorMessage = null;
         MarkDraftDirty();
     }
 
-    private static string GuessContentType(string fileName, bool isVideo)
+    private static string GuessContentType(string fileName)
     {
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
         return ext switch
@@ -237,11 +158,7 @@ public partial class PropertyWizardViewModel
             ".png" => "image/png",
             ".webp" => "image/webp",
             ".heic" => "image/heic",
-            ".mov" => "video/quicktime",
-            ".webm" => "video/webm",
-            ".m4v" => "video/x-m4v",
-            ".mp4" => "video/mp4",
-            _ => isVideo ? "video/mp4" : "image/jpeg"
+            _ => "image/jpeg"
         };
     }
 
@@ -258,7 +175,7 @@ public partial class PropertyWizardViewModel
 
     /// <summary>
     /// Wartet auf den laufenden Upload (und stoesst ausstehende Dateien erneut an) -
-    /// wird vor Analyse-Start und Veroeffentlichung aufgerufen.
+    /// wird vor dem Beschreibungs-Job und der Veroeffentlichung aufgerufen.
     /// </summary>
     private async Task EnsureMediaUploadedAsync()
     {
@@ -307,7 +224,7 @@ public partial class PropertyWizardViewModel
             catch (Exception ex)
             {
                 // Einzelner Fehlversuch blockiert nichts - EnsureMediaUploadedAsync
-                // versucht es vor Analyse/Publish erneut
+                // versucht es vor Beschreibungs-Job/Publish erneut
                 _logger.LogWarning(ex, "[PropertyWizard] Upload fehlgeschlagen: {FileName}", item.FileName);
             }
         }

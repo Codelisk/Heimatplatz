@@ -46,7 +46,8 @@ const navItems = [
   { label: "Meine Immobilien", href: "/meine-immobilien/", icon: HomeIcon },
   { label: "Meine Favoriten", href: "/favoriten/", icon: HeartIcon },
   { label: "Blockierte Immobilien", href: "/blockiert/", icon: ShieldOffIcon },
-  { label: "Immobilie hinzufügen", href: "/inserieren/", icon: PlusIcon, separator: true },
+  // Inserieren erfordert ein Konto - Gaeste sehen den Eintrag nicht (PropertyStateScript blendet ein)
+  { label: "Immobilie hinzufügen", href: "/inserieren/", icon: PlusIcon, separator: true, authOnly: true },
 ];
 
 // Wie Uno NavigationView.FooterMenuItems
@@ -171,7 +172,14 @@ function isActive(href: string) {
           const active = isActive(item.href);
           return (
             <>
-              {item.separator && <div class="my-2 border-t border-border" aria-hidden="true" />}
+              {item.separator && (
+                <div
+                  class="my-2 border-t border-border"
+                  aria-hidden="true"
+                  data-auth-only={item.authOnly ? "" : undefined}
+                  hidden={item.authOnly ? true : undefined}
+                />
+              )}
               <a
                 href={item.href}
                 class:list={[
@@ -179,6 +187,8 @@ function isActive(href: string) {
                   active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 ]}
                 aria-current={active ? "page" : undefined}
+                data-auth-only={item.authOnly ? "" : undefined}
+                hidden={item.authOnly ? true : undefined}
               >
                 <Icon class="size-4" aria-hidden="true" />
                 <span>{item.label}</span>

@@ -955,6 +955,26 @@
         }
       }
     },
+    "/api/properties/types": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPropertyTypes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertyTypesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/properties/user": {
       "get": {
         "tags": [
@@ -1503,67 +1523,6 @@
         }
       }
     },
-    "/api/ai-listings/{AnalysisId}": {
-      "get": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "GetListingAnalysis",
-        "parameters": [
-          {
-            "name": "AnalysisId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetListingAnalysisResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/ai-listings": {
-      "post": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "StartListingAnalysis",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartListingAnalysisRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StartListingAnalysisResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/ai-listings/media": {
       "post": {
         "tags": [
@@ -1647,6 +1606,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetPropertyDraftResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/property-drafts/generate-description": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GenerateDraftDescription",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateDraftDescriptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateDraftDescriptionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/property-drafts/{Id}/description": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetDraftDescription",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDraftDescriptionResponse"
                 }
               }
             }
@@ -2156,75 +2176,21 @@
           }
         }
       },
-      "ExtractedListingData": {
-        "required": [
-          "Title",
-          "Description",
-          "Type"
-        ],
-        "type": "object",
-        "properties": {
-          "Title": {
-            "type": "string"
-          },
-          "Description": {
-            "type": "string"
-          },
-          "Type": {
-            "$ref": "#/components/schemas/PropertyType"
-          },
-          "Rooms": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "LivingAreaSquareMeters": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "PlotAreaSquareMeters": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "YearBuilt": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "Features": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "type": "string"
-            }
-          },
-          "Summary": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
+      "DraftDescriptionMode": {
+        "enum": [
+          "None",
+          "Manual",
+          "Generate"
+        ]
+      },
+      "DraftDescriptionStatus": {
+        "enum": [
+          "None",
+          "Queued",
+          "InProgress",
+          "Finished",
+          "Failed"
+        ]
       },
       "FederalProvinceDto": {
         "required": [
@@ -2577,6 +2543,54 @@
           }
         }
       },
+      "GenerateDraftDescriptionRequest": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Keywords": {
+            "type": "string"
+          }
+        }
+      },
+      "GenerateDraftDescriptionResponse": {
+        "required": [
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "Status": {
+            "$ref": "#/components/schemas/DraftDescriptionStatus"
+          }
+        }
+      },
+      "GetDraftDescriptionResponse": {
+        "required": [
+          "Status",
+          "GeneratedText",
+          "ErrorMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "Status": {
+            "$ref": "#/components/schemas/DraftDescriptionStatus"
+          },
+          "GeneratedText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ErrorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "GetForeclosureAuctionByIdResponse": {
         "type": "object",
         "properties": {
@@ -2667,53 +2681,6 @@
                 "$ref": "#/components/schemas/ImprintDto"
               }
             ]
-          }
-        }
-      },
-      "GetListingAnalysisResponse": {
-        "required": [
-          "AnalysisId",
-          "Status",
-          "Result",
-          "ErrorMessage",
-          "CreatedAt",
-          "CompletedAt"
-        ],
-        "type": "object",
-        "properties": {
-          "AnalysisId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "Status": {
-            "$ref": "#/components/schemas/ListingAnalysisStatus"
-          },
-          "Result": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ExtractedListingData"
-              }
-            ]
-          },
-          "ErrorMessage": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "CreatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "CompletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
           }
         }
       },
@@ -2933,7 +2900,11 @@
         "required": [
           "Id",
           "Data",
-          "UpdatedAt"
+          "UpdatedAt",
+          "DescriptionStatus",
+          "SubmittedDescriptionKeywords",
+          "GeneratedDescription",
+          "DescriptionError"
         ],
         "type": "object",
         "properties": {
@@ -2947,6 +2918,27 @@
           "UpdatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "DescriptionStatus": {
+            "$ref": "#/components/schemas/DraftDescriptionStatus"
+          },
+          "SubmittedDescriptionKeywords": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "GeneratedDescription": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DescriptionError": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2960,6 +2952,20 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PropertyDraftListItemDto"
+            }
+          }
+        }
+      },
+      "GetPropertyTypesResponse": {
+        "required": [
+          "Types"
+        ],
+        "type": "object",
+        "properties": {
+          "Types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyTypeOptionDto"
             }
           }
         }
@@ -3669,14 +3675,6 @@
           }
         }
       },
-      "ListingAnalysisStatus": {
-        "enum": [
-          "Queued",
-          "InProgress",
-          "Finished",
-          "Failed"
-        ]
-      },
       "LoginRequest": {
         "required": [
           "Email",
@@ -3884,53 +3882,6 @@
               "type": "string"
             }
           },
-          "DictatedText": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "AiSkipped": {
-            "type": "boolean"
-          },
-          "AnalysisId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "AnalysisApplied": {
-            "type": "boolean"
-          },
-          "Address": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "MunicipalityId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "MunicipalityDisplay": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "Price": {
-            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "null",
-              "number",
-              "string"
-            ],
-            "format": "double"
-          },
           "Type": {
             "oneOf": [
               {
@@ -3942,12 +3893,6 @@
             ]
           },
           "Title": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "Description": {
             "type": [
               "null",
               "string"
@@ -3998,7 +3943,44 @@
               "type": "string"
             }
           },
-          "AiSummary": {
+          "Address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "MunicipalityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "MunicipalityDisplay": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "DescriptionMode": {
+            "$ref": "#/components/schemas/DraftDescriptionMode"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DescriptionKeywords": {
             "type": [
               "null",
               "string"
@@ -4320,6 +4302,21 @@
           "Land",
           "Foreclosure"
         ]
+      },
+      "PropertyTypeOptionDto": {
+        "required": [
+          "Value",
+          "Label"
+        ],
+        "type": "object",
+        "properties": {
+          "Value": {
+            "type": "string"
+          },
+          "Label": {
+            "type": "string"
+          }
+        }
       },
       "PublishPropertyDraftRequest": {
         "type": "object",
@@ -4780,57 +4777,6 @@
           },
           "Message": {
             "type": "string"
-          }
-        }
-      },
-      "StartListingAnalysisRequest": {
-        "required": [
-          "ImageUrls"
-        ],
-        "type": "object",
-        "properties": {
-          "ImageUrls": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "VideoUrls": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "type": "string"
-            }
-          },
-          "DictatedText": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "UserNotes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "StartListingAnalysisResponse": {
-        "required": [
-          "AnalysisId",
-          "Status"
-        ],
-        "type": "object",
-        "properties": {
-          "AnalysisId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "Status": {
-            "$ref": "#/components/schemas/ListingAnalysisStatus"
           }
         }
       },

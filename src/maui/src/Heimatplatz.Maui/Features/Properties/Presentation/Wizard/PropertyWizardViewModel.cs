@@ -10,15 +10,16 @@ using Shiny.Mediator;
 namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 
 /// <summary>
-/// Einheitlicher Wizard fuer die Inseratserstellung (ersetzt AddProperty + AiAddProperty):
-///   Schritt 1: Fotos &amp; Videos (Upload startet im Hintergrund)
-///   Schritt 2: Beschreiben (Diktat/Text, ueberspringbar) - startet die KI-Analyse
-///   Schritt 3: Lage &amp; Preis (Felder, die die KI nie liefert - laeuft parallel zur Analyse)
-///   Schritt 4: Eckdaten pruefen (KI-Vorschlaege nur in leere Felder)
+/// Wizard fuer die Inseratserstellung - bewusst manueller Fluss, KI nur fuer die Beschreibung:
+///   Schritt 1: Fotos (Upload startet im Hintergrund)
+///   Schritt 2: Eckdaten (Typ, Titel, Zimmer, Flaechen, Baujahr, Ausstattung)
+///   Schritt 3: Lage &amp; Preis
+///   Schritt 4: Beschreibung (selbst schreiben ODER aus Stichwoertern/Diktat erstellen lassen -
+///              die Generierung laeuft als Server-Hintergrund-Job, weiterarbeiten ist moeglich)
 ///   Schritt 5: Vorschau &amp; Veroeffentlichen
 /// Jeder Schrittwechsel speichert den Zustand als Server-Entwurf; Abbruch bietet
 /// Speichern/Verwerfen an, Fortsetzen laeuft ueber den DraftId-Navigationsparameter.
-/// Aufgeteilt in partial-Dateien pro Schritt (.Media/.Describe/.LocationPrice/.Details/.Preview/.Draft).
+/// Aufgeteilt in partial-Dateien pro Schritt (.Media/.Details/.LocationPrice/.Description/.Preview/.Draft).
 /// </summary>
 [ShellMap<PropertyWizardPage>("PropertyWizard")]
 public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleAware
@@ -30,7 +31,6 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     private readonly INavigator _navigator;
     private readonly IDictationService _dictation;
     private readonly ILogger<PropertyWizardViewModel> _logger;
-    private readonly ListingAnalysisRunner _runner;
 
     private bool _initialized;
 
@@ -44,9 +44,9 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsMediaStep))]
-    [NotifyPropertyChangedFor(nameof(IsDescribeStep))]
-    [NotifyPropertyChangedFor(nameof(IsLocationStep))]
     [NotifyPropertyChangedFor(nameof(IsDetailsStep))]
+    [NotifyPropertyChangedFor(nameof(IsLocationStep))]
+    [NotifyPropertyChangedFor(nameof(IsDescriptionStep))]
     [NotifyPropertyChangedFor(nameof(IsPreviewStep))]
     [NotifyPropertyChangedFor(nameof(StepProgressText))]
     [NotifyPropertyChangedFor(nameof(ShowNextButton))]
@@ -57,9 +57,9 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     public partial int CurrentStep { get; set; }
 
     public bool IsMediaStep => CurrentStep == 0;
-    public bool IsDescribeStep => CurrentStep == 1;
+    public bool IsDetailsStep => CurrentStep == 1;
     public bool IsLocationStep => CurrentStep == 2;
-    public bool IsDetailsStep => CurrentStep == 3;
+    public bool IsDescriptionStep => CurrentStep == 3;
     public bool IsPreviewStep => CurrentStep == 4;
 
     public string StepProgressText => $"Schritt {CurrentStep + 1} von {StepCount}";
@@ -106,12 +106,10 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         _logger = logger;
 
         Ort = new MunicipalitySearchModel(locationService, logger);
-        _runner = new ListingAnalysisRunner(mediator, logger);
-        _runner.StateChanged += OnRunnerStateChanged;
 
-        InitializeDescribeStep();
         InitializeDetailsStep();
         InitializeLocationPriceStep();
+        InitializeDescriptionStep();
     }
 
     #region IPageLifecycleAware
@@ -148,8 +146,8 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
         UnsubscribeDictation();
 
-        // Runner bewusst NICHT abbrechen: OnDisappearing feuert auch, wenn der
-        // System-MediaPicker die Seite verdeckt - die Analyse soll weiterlaufen.
+        // Beschreibungs-Polling bewusst NICHT stoppen: OnDisappearing feuert auch, wenn der
+        // System-MediaPicker die Seite verdeckt - der Job laeuft serverseitig ohnehin weiter.
     }
 
     #endregion
@@ -170,7 +168,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
                 break;
 
             case 1:
-                if (!await AdvanceFromDescribeAsync(skipAi: false))
+                if (!ValidateDetails())
                     return;
                 break;
 
@@ -180,7 +178,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
                 break;
 
             case 3:
-                if (!ValidateDetails())
+                if (!await ValidateDescriptionStepAsync())
                     return;
                 break;
         }
@@ -235,13 +233,13 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         switch (choice)
         {
             case "Als Entwurf speichern":
-                _runner.Cancel();
+                StopDescriptionPolling();
                 await SaveDraftAsync();
                 await _navigator.GoBack();
                 break;
 
             case "Verwerfen":
-                _runner.Cancel();
+                StopDescriptionPolling();
                 await DeleteDraftAsync();
                 await _navigator.GoBack();
                 break;
@@ -262,7 +260,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     private bool HasAnyInput() =>
         _serverDraftId != null
         || Media.Count > 0
-        || !string.IsNullOrWhiteSpace(DictatedText)
+        || !string.IsNullOrWhiteSpace(DescriptionKeywords)
         || !string.IsNullOrWhiteSpace(Adresse)
         || !string.IsNullOrWhiteSpace(Preis)
         || Ort.SelectedGemeindeId != null

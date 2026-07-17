@@ -1,6 +1,4 @@
-using Heimatplatz.Api.Cleanup;
 using Heimatplatz.Api.Core.AiConnectorClient.Configuration;
-using Heimatplatz.Api.Features.AiListing.Infrastructure;
 using Heimatplatz.Api.Features.AiListing.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,33 +11,26 @@ namespace Heimatplatz.Api.Features.AiListing.Configuration;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registriert alle Services des AiListing Features:
-    /// Media-Service, Extraktions-Provider (Cli/Mock je nach Konfiguration),
-    /// Job-Queue und Hintergrund-Worker.
+    /// Registriert die Services des AiListing Features: Medien-Upload und die
+    /// Beschreibungs-Generierung (Provider Mock/AiConnector je nach Konfiguration).
     /// </summary>
     public static IServiceCollection AddAiListingFeature(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<AiListingOptions>(configuration.GetSection(AiListingOptions.SectionName));
         services.AddGeneratedServices();
 
-        // Extraktions-Provider je nach Konfiguration
-        // (Mock = Dev, Cli = Server mit Agent-CLI, AiConnector = externer KI-Backend-Service)
+        // Beschreibungs-Provider je nach Konfiguration
+        // (Mock = Dev-Template ohne KI, AiConnector = externer KI-Backend-Service)
         var options = configuration.GetSection(AiListingOptions.SectionName).Get<AiListingOptions>() ?? new AiListingOptions();
         if (string.Equals(options.Provider, "AiConnector", StringComparison.OrdinalIgnoreCase))
         {
             services.AddAiConnectorClient(configuration);
-            services.AddScoped<IListingExtractionService, AiConnectorListingExtractionService>();
+            services.AddScoped<IListingDescriptionService, AiConnectorListingDescriptionService>();
         }
-        else if (string.Equals(options.Provider, "Cli", StringComparison.OrdinalIgnoreCase))
-            services.AddScoped<IListingExtractionService, CliListingExtractionService>();
         else
-            services.AddScoped<IListingExtractionService, MockListingExtractionService>();
-
-        services.AddSingleton<ListingAnalysisQueue>();
-        services.AddHostedService<ListingAnalysisWorker>();
-
-        // Explizit (nicht via [Service]/TryAdd), damit IEnumerable<IUserDataEraser> alle Beitraege erhaelt.
-        services.AddScoped<IUserDataEraser, AiListingUserDataEraser>();
+        {
+            services.AddScoped<IListingDescriptionService, MockListingDescriptionService>();
+        }
 
         return services;
     }

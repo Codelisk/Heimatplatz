@@ -167,19 +167,23 @@ const currentYear = new Date().getFullYear();
     <div class="wys-rise mt-6 grid gap-3 sm:grid-cols-4" style="--rise: 0.18s">
       <div class="wys-tile rounded-lg border border-border bg-card p-4">
         <label for="price" class="text-sm text-muted-foreground">Preis</label>
-        <input
-          id="price"
-          name="price"
-          type="number"
-          inputmode="numeric"
-          min="1"
-          max="100000000"
-          step="1"
-          placeholder="350000"
-          class="wys-bare mt-1 w-full text-xl font-bold text-price"
-          required
-        />
-        <p class="mt-1 hidden text-xs font-semibold text-price" data-preview-price aria-live="polite"></p>
+        {/* Euro-Zeichen vorangestellt wie im de-AT-Format der Detailseite ("€ 350.000");
+            bewusst KEIN text-price im Editor - Rot an Eingabefeldern liest sich als Fehler */}
+        <div class="mt-1 flex items-baseline gap-1">
+          <span class="text-xl font-bold" aria-hidden="true">€</span>
+          <input
+            id="price"
+            name="price"
+            type="number"
+            inputmode="numeric"
+            min="1"
+            max="100000000"
+            step="1"
+            placeholder="350000"
+            class="wys-bare w-full text-xl font-bold"
+            required
+          />
+        </div>
       </div>
       <div class="wys-tile rounded-lg border border-border bg-card p-4" data-structure-property-field>
         <label for="livingArea" class="text-sm text-muted-foreground">Wohnfläche</label>
@@ -413,19 +417,26 @@ const currentYear = new Date().getFullYear();
     color: var(--muted-foreground);
     opacity: 0.75;
   }
+  /* Aktiv-Zustaende bewusst NEUTRAL (Foreground statt Markenrot/--outline):
+     rote Raender/Labels an Eingabefeldern lesen sich als Validierungsfehler
+     (Kundenfeedback 17.7.). Gilt auch fuer die Text-Selektion in den Feldern. */
   .wys:hover {
     border-style: solid;
-    border-color: color-mix(in oklab, var(--outline) 45%, var(--input));
+    border-color: color-mix(in oklab, var(--foreground) 35%, var(--input));
   }
   .wys:focus-visible {
     outline: none;
     border-style: solid;
-    border-color: var(--outline);
+    border-color: var(--foreground);
     background-color: var(--popover);
     box-shadow:
-      0 0 0 3px color-mix(in oklab, var(--outline) 22%, transparent),
+      0 0 0 3px color-mix(in oklab, var(--foreground) 18%, transparent),
       var(--zettel-shadow);
     transform: translateY(-1px);
+  }
+  .wys::selection,
+  .wys-bare::selection {
+    background-color: color-mix(in oklab, var(--foreground) 20%, transparent);
   }
   .wys-sm {
     padding: 0.3rem 0.5rem;
@@ -461,8 +472,10 @@ const currentYear = new Date().getFullYear();
   }
   .wys-bare:focus-visible {
     outline: none;
-    border-bottom: 2px solid var(--outline);
+    border-bottom: 2px solid var(--foreground);
     padding-bottom: 1px;
+    /* @tailwindcss/forms wuerde sonst seinen blauen Fokus-Ring zeichnen */
+    box-shadow: none;
   }
   .wys-tile {
     transition:
@@ -471,12 +484,12 @@ const currentYear = new Date().getFullYear();
       border-color 0.2s ease;
   }
   .wys-tile:focus-within {
-    border-color: var(--outline);
+    border-color: var(--foreground);
     transform: translateY(-2px);
     box-shadow: var(--zettel-shadow);
   }
   .wys-tile:focus-within label {
-    color: var(--primary);
+    color: var(--foreground);
   }
 
   /* Zahlenfelder ohne Spinner - sie sollen wie Anzeige-Text wirken */
@@ -524,7 +537,7 @@ const currentYear = new Date().getFullYear();
 <script>
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
 
-  // Live-Vorschau: Typ-Badge, Ort-Badge, formatierter Preis, Merkmal-Chips,
+  // Live-Vorschau: Typ-Badge, Ort-Badge, Merkmal-Chips,
   // Hero-Bild und Anbieter-Karte spiegeln Feldwerte bzw. Profildaten sofort
   // wider. Speichern/Bild-Handling uebernimmt PropertyStateScript (BaseLayout).
   //
@@ -548,7 +561,6 @@ const currentYear = new Date().getFullYear();
   };
 
   const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
-  const priceFormat = new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function initWysiwygPreview(form: HTMLFormElement) {
@@ -562,7 +574,6 @@ const currentYear = new Date().getFullYear();
     const typeSelect = field("propertyType");
     const typeBadge = form.querySelector<HTMLElement>("[data-preview-type-badge]");
     const cityBadge = form.querySelector<HTMLElement>("[data-preview-city]");
-    const pricePreview = form.querySelector<HTMLElement>("[data-preview-price]");
     const featureList = form.querySelector<HTMLElement>("[data-preview-features]");
     const featureStore = form.querySelector<HTMLInputElement>("[data-feature-store]");
     const featureInput = form.querySelector<HTMLInputElement>("[data-feature-input]");
@@ -571,12 +582,6 @@ const currentYear = new Date().getFullYear();
     const heroAdd = form.querySelector<HTMLElement>("[data-preview-hero-add]");
     const imageGrid = form.querySelector<HTMLElement>("[data-property-image-grid]");
 
-    const pulse = (el: HTMLElement | null) => {
-      if (!el || reduceMotion) return;
-      el.animate([{ transform: "scale(1.04)" }, { transform: "scale(1)" }], { duration: 220, easing: "ease-out" });
-    };
-
-    let lastPrice = "";
     let lastFeatures = "";
 
     // Merkmale: hidden input "features" (kommagetrennt) ist die Quelle der
@@ -609,15 +614,6 @@ const currentYear = new Date().getFullYear();
       if (cityBadge) {
         const text = city || "Ort";
         if (cityBadge.textContent !== text) cityBadge.textContent = text;
-      }
-
-      const priceValue = Number(field("price")?.value ?? "");
-      const priceText = Number.isFinite(priceValue) && priceValue > 0 ? priceFormat.format(priceValue) : "";
-      if (pricePreview && priceText !== lastPrice) {
-        lastPrice = priceText;
-        pricePreview.textContent = priceText;
-        pricePreview.classList.toggle("hidden", !priceText);
-        if (priceText) pulse(pricePreview);
       }
 
       const living = field("livingArea");

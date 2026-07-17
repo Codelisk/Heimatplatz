@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using SkiaSharp;
+using TickerQ.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -248,13 +249,13 @@ if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(app.Configurat
         "geloggt. Umgebungsvariablen Email__SmtpHost, Email__SmtpUsername und Email__SmtpPassword setzen.");
 }
 
-// Transparenz-Hinweis: der Mock-Provider liefert nur Platzhalter statt echter KI-Extraktion
+// Transparenz-Hinweis: der Mock-Provider liefert nur Platzhalter statt echter KI-Texte
 if (!app.Environment.IsDevelopment() && app.Configuration["AiListing:Provider"] == "Mock")
 {
     app.Logger.LogWarning(
-        "AiListing laeuft im Mock-Modus: Die KI-Inseratserstellung liefert nur Platzhalter-Daten. " +
-        "Fuer echte Extraktion AiListing__Provider=AiConnector (plus AiConnector__ApiKey) " +
-        "oder AiListing__Provider=Cli setzen.");
+        "AiListing laeuft im Mock-Modus: Die KI-Beschreibungs-Generierung liefert nur eine " +
+        "Template-Beschreibung. Fuer echte Texte AiListing__Provider=AiConnector " +
+        "(plus AiConnector__ApiKey) setzen.");
 }
 
 // Datenbank initialisieren (Migration + Seeding basierend auf DatabaseOptions)
@@ -431,6 +432,14 @@ if (app.Environment.IsDevelopment())
 {
     _ = app.MapOpenApi();
     _ = app.MapScalarApiReference();
+}
+
+// TickerQ-Scheduler (Hintergrund-Jobs) erst NACH InitializeDatabaseAsync starten, damit die
+// Job-Tabellen existieren. Gleicher Guard wie in AddApiServices: ohne Connection-String
+// (Build-Zeit-OpenAPI-Generierung, Integrationstests mit InMemory) ist TickerQ nicht registriert.
+if (!string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
+{
+    app.UseTickerQ();
 }
 
 app.Run();

@@ -1,39 +1,24 @@
 namespace Heimatplatz.Api.Features.AiListing.Configuration;
 
 /// <summary>
-/// Konfiguration fuer die KI-gestuetzte Inseratserstellung.
+/// Konfiguration fuer die KI-Unterstuetzung bei der Inseratserstellung
+/// (Medien-Upload-Limits + Beschreibungs-Generierung).
 /// </summary>
 public class AiListingOptions
 {
     public const string SectionName = "AiListing";
 
     /// <summary>
-    /// Welcher Extraktions-Provider verwendet wird:
-    /// "Mock" (Dev, heuristische Extraktion ohne KI),
-    /// "Cli" (Server: ruft eine installierte Agent-CLI wie claude oder codex auf) oder
+    /// Welcher KI-Provider verwendet wird:
+    /// "Mock" (Dev, Template-Beschreibung ohne KI) oder
     /// "AiConnector" (externer AiConnector-Backend-Service, Workspace-basiert).
     /// </summary>
     public string Provider { get; set; } = "Mock";
 
-    /// <summary>Executable der Agent-CLI, z.B. "claude" oder "codex"</summary>
-    public string CliCommand { get; set; } = "claude";
-
-    /// <summary>
-    /// Argumente fuer die CLI. Der Prompt wird ueber stdin uebergeben.
-    /// Beispiel claude: "-p --output-format text"
-    /// </summary>
-    public string CliArguments { get; set; } = "-p --output-format text";
-
-    /// <summary>Arbeitsverzeichnis fuer den CLI-Prozess (leer = aktuelles Verzeichnis)</summary>
-    public string? WorkingDirectory { get; set; }
-
-    /// <summary>Timeout fuer eine einzelne Analyse</summary>
-    public int TimeoutSeconds { get; set; } = 300;
-
-    /// <summary>Maximale Anzahl Fotos pro Analyse</summary>
+    /// <summary>Maximale Anzahl Fotos pro Inserat/Upload</summary>
     public int MaxImages { get; set; } = 20;
 
-    /// <summary>Maximale Anzahl Videos pro Analyse</summary>
+    /// <summary>Maximale Anzahl Videos pro Upload (nur noch Altbestand, der Wizard laedt keine Videos mehr hoch)</summary>
     public int MaxVideos { get; set; } = 3;
 
     /// <summary>Maximale Groesse eines Videos in MB</summary>
@@ -41,6 +26,9 @@ public class AiListingOptions
 
     /// <summary>Einstellungen fuer den "AiConnector"-Provider</summary>
     public AiConnectorOptions AiConnector { get; set; } = new();
+
+    /// <summary>Einstellungen fuer die Beschreibungs-Generierung</summary>
+    public ListingDescriptionOptions Description { get; set; } = new();
 }
 
 /// <summary>
@@ -55,4 +43,19 @@ public class AiConnectorOptions
 
     /// <summary>Optionales Claude-Modell (leer = Default des AiConnectors)</summary>
     public string? Model { get; set; }
+}
+
+/// <summary>
+/// Fix im Backend definierter Rahmen fuer generierte Inserats-Beschreibungen.
+/// </summary>
+public class ListingDescriptionOptions
+{
+    /// <summary>Untergrenze des Wortbereichs der generierten Beschreibung</summary>
+    public int MinWords { get; set; } = 100;
+
+    /// <summary>Obergrenze des Wortbereichs der generierten Beschreibung</summary>
+    public int MaxWords { get; set; } = 160;
+
+    /// <summary>Kuenstliche Dauer des Mock-Providers in Sekunden (macht den asynchronen Flow sichtbar)</summary>
+    public int MockDelaySeconds { get; set; } = 8;
 }

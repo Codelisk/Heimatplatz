@@ -23,6 +23,22 @@
                    Style="{StaticResource PageSubtitle}" />
         </VerticalStackLayout>
 
+        <!-- Beschreibung wird noch erstellt -->
+        <Border Style="{StaticResource SuccessBanner}"
+                IsVisible="{Binding IsGenerationRunning}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <ActivityIndicator Grid.Column="0"
+                                   IsRunning="{Binding IsGenerationRunning}"
+                                   WidthRequest="20"
+                                   HeightRequest="20"
+                                   VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="Ihre Beschreibung wird noch erstellt – sie erscheint hier automatisch, sobald sie fertig ist."
+                       Style="{StaticResource SuccessBannerText}"
+                       VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
         <!-- Vorschau-Karte -->
         <Border Style="{StaticResource Card}">
             <VerticalStackLayout Spacing="10">

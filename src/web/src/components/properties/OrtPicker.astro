@@ -44,7 +44,7 @@ const regions: PickerRegion[] = Astro.props.regions ?? upperAustriaRegions.map((
   const seen = new Set<string>();
   const localities = region.districts.flatMap((districtName) => {
     const baseSlug = slugifyLocation(districtName);
-    if (!baseSlug || baseSlug === region.slug) return [];
+    if (!baseSlug) return [];
     // Prefix mit Bezirk-Slug damit gleichnamige Gemeinden in verschiedenen Bezirken
     // (z.B. "Innenstadt" in Linz und Wels) eindeutig bleiben
     const slug = `${region.slug}-${baseSlug}`;
@@ -139,18 +139,6 @@ const panelId = `${buttonId}-panel`;
             data-ort-picker-region-panel={region.slug}
             hidden
           >
-            {/* Bezirk-Hauptort als eigene Option (z.B. "Linz" selbst) */}
-            <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-primary">
-              <input
-                type={singleSelect ? "radio" : "checkbox"}
-                name={singleSelect ? `${name}-radio` : undefined}
-                class="size-4 cursor-pointer accent-primary"
-                data-ort-picker-locality={region.slug}
-                data-ort-picker-locality-region={region.slug}
-                value={region.slug}
-              />
-              <span class="truncate">{region.name} (alle)</span>
-            </label>
             {region.localities.map((locality) => (
               <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-primary">
                 <input
@@ -199,14 +187,8 @@ const panelId = `${buttonId}-panel`;
     label.classList.remove("text-muted-foreground");
     if (values.length === 1) {
       const checkbox = picker.querySelector<HTMLInputElement>(`[data-ort-picker-locality][value="${cssEscape(values[0])}"]`);
-      const region = checkbox?.getAttribute("data-ort-picker-locality-region");
       const span = checkbox?.parentElement?.querySelector<HTMLElement>("span");
       label.textContent = span?.textContent?.trim() ?? values[0];
-      // Falls Wert ein Region-Slug ist, zeige nur Region-Namen
-      if (region === values[0]) {
-        const regionToggle = picker.querySelector<HTMLButtonElement>(`[data-ort-picker-region-toggle="${cssEscape(values[0])}"] span`);
-        label.textContent = regionToggle?.textContent?.trim() ?? label.textContent;
-      }
       return;
     }
     label.textContent = `${values.length} Orte ausgewählt`;
@@ -270,6 +252,13 @@ const panelId = `${buttonId}-panel`;
   function setPickerValues(picker: HTMLElement, values: string[]) {
     const single = picker.getAttribute("data-ort-picker-single") === "true";
     const wanted = new Set(values);
+    // Gespeicherte Region-Slugs (fruehere "(alle)"-Option) auf alle Gemeinden des Bezirks expandieren
+    values.forEach((value) => {
+      if (!picker.querySelector(`[data-ort-picker-region="${cssEscape(value)}"]`)) return;
+      picker.querySelectorAll<HTMLInputElement>(`[data-ort-picker-locality-region="${cssEscape(value)}"]`).forEach((input) => {
+        wanted.add(input.value);
+      });
+    });
     picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((input) => {
       input.checked = wanted.has(input.value);
     });

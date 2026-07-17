@@ -2,6 +2,8 @@ using System.Reflection;
 using Heimatplatz.Api.Core.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using TickerQ.EntityFrameworkCore.Configurations;
+using TickerQ.Utilities.Entities;
 
 namespace Heimatplatz.Api.Core.Data;
 
@@ -34,6 +36,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 }
             }
         }
+
+        // TickerQ-Betriebstabellen (Hintergrund-Jobs, z.B. KI-Beschreibungs-Generierung der
+        // Inserat-Entwuerfe). Liegen nicht in einer Heimatplatz-Assembly, daher explizit statt
+        // ueber den Assembly-Scan. Schema "ticker" wirkt nur auf Postgres - SQLite kennt keine
+        // Schemas und legt die Tabellen ohne Praefix an.
+        modelBuilder.ApplyConfiguration(new TimeTickerConfigurations<TimeTickerEntity>());
+        modelBuilder.ApplyConfiguration(new CronTickerConfigurations<CronTickerEntity>());
+        modelBuilder.ApplyConfiguration(new CronTickerOccurrenceConfigurations<CronTickerEntity>());
 
         ApplySqliteWorkaroundConverters(modelBuilder);
     }

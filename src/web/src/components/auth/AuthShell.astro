@@ -40,13 +40,46 @@ const { title, description, mode, canonicalPath = mode === "register" ? "/regist
         <path d="M6.5 11.5V19h11v-7.5" />
         <path d="M12 19v-4" />
       </svg>
-      <div class="relative max-w-md px-12">
-        <BrandMark tile class="h-14" />
-        <p class="mt-6 text-5xl font-extrabold uppercase tracking-tight">Heimatplatz</p>
-        <p class="mt-5 text-lg leading-8 text-white/80">
+      <div class="relative max-w-md px-10">
+        {/* Wappen-Lockup: zweizeilige Wortmarke an der Wortfuge Heimat|platz,
+            daneben das Abzeichen als leicht gedrehtes Siegel ("Stempel") */}
+        <div class="flex items-center gap-7">
+          <p class="text-5xl font-extrabold uppercase leading-[0.95] tracking-tight"><span class="block">Heimat</span><span class="block">platz</span></p>
+          <BrandMark tile class="brand-seal h-28 drop-shadow-[0_10px_24px_rgba(0,0,0,0.3)]" />
+        </div>
+        <p class="mt-7 text-lg leading-8 text-white/80">
           Immobilien-Favoriten, Inserate und Suchprofile für Oberösterreich an einem Ort.
         </p>
       </div>
     </aside>
   </div>
 </BaseLayout>
+
+<style is:global>
+  /* Siegel wird beim Laden wie ein Stempel aufgedrueckt: kommt gross und
+     staerker gedreht an, setzt sich auf 6 Grad ab. is:global, weil die
+     Klasse auf dem img der BrandMark-Kindkomponente liegt (Astro-Scoping
+     erreicht Kindkomponenten nicht). */
+  .brand-seal {
+    rotate: 6deg;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .brand-seal {
+      animation: seal-stamp 0.45s cubic-bezier(0.2, 0.85, 0.3, 1) 0.15s both;
+    }
+
+    @keyframes seal-stamp {
+      from {
+        opacity: 0;
+        scale: 1.35;
+        rotate: 15deg;
+      }
+      to {
+        opacity: 1;
+        scale: 1;
+        rotate: 6deg;
+      }
+    }
+  }
+</style>

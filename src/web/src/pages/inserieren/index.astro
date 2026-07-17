@@ -1,6 +1,7 @@
 ---
 import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import AuthGate from "@/components/app/AuthGate.astro";
 import PropertyWysiwygForm from "@/components/properties/PropertyWysiwygForm.astro";
 ---
 
@@ -17,6 +18,11 @@ import PropertyWysiwygForm from "@/components/properties/PropertyWysiwygForm.ast
         Zurück
       </a>
     </header>
-    <PropertyWysiwygForm />
+    <AuthGate
+      title="Anmelden zum Inserieren"
+      description="Melden Sie sich an, um Ihre Immobilie in Oberösterreich zu inserieren – kostenlos als Privatperson, Makler oder Hausverwaltung."
+    >
+      <PropertyWysiwygForm />
+    </AuthGate>
   </article>
 </BaseLayout>

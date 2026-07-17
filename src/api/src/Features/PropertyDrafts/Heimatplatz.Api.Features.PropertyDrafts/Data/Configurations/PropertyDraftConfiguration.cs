@@ -28,6 +28,15 @@ public class PropertyDraftConfiguration : IEntityTypeConfiguration<PropertyDraft
             .IsRequired()
             .HasColumnType("TEXT");
 
+        builder.Property(d => d.DescriptionKeywords)
+            .HasMaxLength(2000);
+
+        builder.Property(d => d.GeneratedDescription)
+            .HasColumnType("TEXT");
+
+        builder.Property(d => d.DescriptionError)
+            .HasMaxLength(2000);
+
         builder.HasIndex(d => d.UserId);
     }
 }

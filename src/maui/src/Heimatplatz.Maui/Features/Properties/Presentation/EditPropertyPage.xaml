@@ -48,16 +48,37 @@
                            Placeholder="z.B. Musterstraße 42" />
                 </VerticalStackLayout>
 
-                <!-- Ort-Auswahl mit Suche -->
+                <!-- Ort-Auswahl mit Suche: genau EIN Ort waehlbar, Auswahl ersetzt das Suchfeld -->
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Ort"
                            Style="{StaticResource FieldLabel}" />
-                    <Label Text="{Binding SelectedOrtText}"
-                           FontSize="13"
-                           IsVisible="{Binding HasSelectedOrt}"
-                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+
+                    <HorizontalStackLayout IsVisible="{Binding HasSelectedOrt}">
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="12,4,4,4">
+                            <HorizontalStackLayout Spacing="2">
+                                <Label Text="{Binding SelectedOrtText}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
+                                       VerticalOptions="Center" />
+                                <Label Text="✕"
+                                       FontSize="12"
+                                       Padding="8,6"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
+                                       VerticalOptions="Center">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ClearOrtSelectionCommand}" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </HorizontalStackLayout>
+
                     <Entry Text="{Binding OrtSearchText}"
-                           Placeholder="Ort oder PLZ suchen..." />
+                           Placeholder="Ort oder PLZ suchen..."
+                           IsVisible="{Binding HasNoSelectedOrt}" />
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"
                                          IsVisible="{Binding HasOrtSuggestions}"
                                          Spacing="0">

@@ -9,9 +9,9 @@
     <VerticalStackLayout Spacing="16">
 
         <VerticalStackLayout Spacing="6">
-            <Label Text="Fotos &amp; Videos"
+            <Label Text="Fotos"
                    Style="{StaticResource PageTitle}" />
-            <Label Text="Außen- und Innenaufnahmen machen Ihr Inserat attraktiv – und helfen der KI, Ihre Immobilie treffend zu beschreiben."
+            <Label Text="Außen- und Innenaufnahmen machen Ihr Inserat attraktiv. Interessenten sehen die Fotos zuerst."
                    Style="{StaticResource PageSubtitle}" />
         </VerticalStackLayout>
 
@@ -75,27 +75,19 @@
                     </BindableLayout.ItemTemplate>
                 </FlexLayout>
 
-                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
-                      ColumnSpacing="10" RowSpacing="10">
-                    <Button Grid.Row="0" Grid.Column="0"
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="10">
+                    <Button Grid.Column="0"
                             Text="📷 Foto aufnehmen"
                             Command="{Binding TakePhotoCommand}"
                             Style="{StaticResource SecondaryButton}" />
-                    <Button Grid.Row="0" Grid.Column="1"
+                    <Button Grid.Column="1"
                             Text="🖼 Aus Galerie"
                             Command="{Binding PickPhotosCommand}"
                             Style="{StaticResource SecondaryButton}" />
-                    <Button Grid.Row="1" Grid.Column="0"
-                            Text="🎬 Video aufnehmen"
-                            Command="{Binding RecordVideoCommand}"
-                            Style="{StaticResource SecondaryButton}" />
-                    <Button Grid.Row="1" Grid.Column="1"
-                            Text="🎞 Video wählen"
-                            Command="{Binding PickVideoCommand}"
-                            Style="{StaticResource SecondaryButton}" />
                 </Grid>
 
-                <Label Text="Mindestens 1 Foto ist für die Veröffentlichung nötig – Sie können aber jederzeit als Entwurf speichern und Fotos später ergänzen. Videos nutzt nur die KI-Analyse."
+                <Label Text="Mindestens 1 Foto ist für die Veröffentlichung nötig – Sie können aber jederzeit als Entwurf speichern und Fotos später ergänzen."
                        Style="{StaticResource Caption}" />
             </VerticalStackLayout>
         </Border>

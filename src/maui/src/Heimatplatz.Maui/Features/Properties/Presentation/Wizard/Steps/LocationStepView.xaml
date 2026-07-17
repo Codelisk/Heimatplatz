@@ -11,16 +11,9 @@
         <VerticalStackLayout Spacing="6">
             <Label Text="Lage &amp; Preis"
                    Style="{StaticResource PageTitle}" />
-            <Label Text="Preis und Adresse legen Sie selbst fest – hier entscheidet keine KI."
+            <Label Text="Wo steht Ihre Immobilie, und was soll sie kosten?"
                    Style="{StaticResource PageSubtitle}" />
         </VerticalStackLayout>
-
-        <!-- Analyse laeuft im Hintergrund weiter -->
-        <Border Style="{StaticResource SuccessBanner}"
-                IsVisible="{Binding IsAnalysisRunning}">
-            <Label Text="✨ Die KI analysiert Ihre Beschreibung im Hintergrund – füllen Sie inzwischen Lage und Preis aus."
-                   Style="{StaticResource SuccessBannerText}" />
-        </Border>
 
         <Border Style="{StaticResource Card}">
             <VerticalStackLayout Spacing="12">
@@ -43,12 +36,34 @@
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Ort"
                            Style="{StaticResource FieldLabel}" />
-                    <Label Text="{Binding Ort.SelectedOrtText}"
-                           FontSize="13"
-                           IsVisible="{Binding Ort.HasSelectedOrt}"
-                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+
+                    <!-- Genau EIN Ort waehlbar: Auswahl ersetzt das Suchfeld, ✕ hebt sie zum Aendern auf -->
+                    <HorizontalStackLayout IsVisible="{Binding Ort.HasSelectedOrt}">
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="12,4,4,4">
+                            <HorizontalStackLayout Spacing="2">
+                                <Label Text="{Binding Ort.SelectedOrtText}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
+                                       VerticalOptions="Center" />
+                                <Label Text="✕"
+                                       FontSize="12"
+                                       Padding="8,6"
+                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
+                                       VerticalOptions="Center">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Ort.ClearSelectionCommand}" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </HorizontalStackLayout>
+
                     <Entry Text="{Binding Ort.OrtSearchText}"
-                           Placeholder="Ort oder PLZ suchen..." />
+                           Placeholder="Ort oder PLZ suchen..."
+                           IsVisible="{Binding Ort.HasNoSelectedOrt}" />
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ort.OrtSuggestions}"
                                          IsVisible="{Binding Ort.HasOrtSuggestions}"
                                          Spacing="0">

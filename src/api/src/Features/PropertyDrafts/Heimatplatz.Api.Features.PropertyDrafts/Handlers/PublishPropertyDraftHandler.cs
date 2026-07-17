@@ -44,6 +44,12 @@ public class PublishPropertyDraftHandler(
             throw new UnauthorizedAccessException("Sie haben keine Berechtigung fuer diesen Entwurf.");
 
         var data = DraftPayloadSerializer.Deserialize(draft.PayloadJson);
+
+        // Generierte Beschreibung uebernehmen, falls der Nutzer sie nie in den Payload
+        // uebernommen hat (z.B. veroeffentlicht, waehrend/kurz nachdem der Job fertig wurde)
+        if (string.IsNullOrWhiteSpace(data.Description) && !string.IsNullOrWhiteSpace(draft.GeneratedDescription))
+            data.Description = draft.GeneratedDescription;
+
         var createRequest = MapToCreateRequest(data);
 
         var createResult = await mediator.Request(createRequest, cancellationToken);

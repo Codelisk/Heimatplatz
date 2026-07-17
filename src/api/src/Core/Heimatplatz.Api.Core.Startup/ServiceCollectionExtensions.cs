@@ -19,6 +19,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TickerQ.DependencyInjection;
+using TickerQ.EntityFrameworkCore.Customizer;
+using TickerQ.EntityFrameworkCore.DependencyInjection;
 
 // Feature endpoint namespaces
 using Heimatplatz.Api.Features.Auth;
@@ -48,6 +51,24 @@ public static class ServiceCollectionExtensions
 
         services.AddShinyMediator();
 
+        // Hintergrund-Jobs (TickerQ, EF-Store im AppDbContext) nur mit echter Datenbank:
+        // bei der Build-Zeit-OpenAPI-Generierung und in Integrationstests laeuft der
+        // AppDbContext InMemory - dort wuerde der EF-Store scheitern. Features bekommen
+        // in dem Fall den No-Op-Scheduler (siehe AddPropertyDraftsFeature).
+        var backgroundJobsEnabled = !string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection"));
+        if (backgroundJobsEnabled)
+        {
+            services.AddTickerQ(options =>
+            {
+                // Entity-Konfigurationen registriert AppDbContext.OnModelCreating selbst
+                // (IgnoreModelCustomizer), damit Migrations/EnsureCreated beider Provider
+                // die Tabellen deterministisch enthalten.
+                options.AddOperationalStore(ef =>
+                    ef.UseApplicationDbContext<AppDbContext>(ConfigurationType.IgnoreModelCustomizer));
+                options.SetExceptionHandler<TickerQJobExceptionHandler>();
+            });
+        }
+
         // Features
         services.AddAuthFeature();
         services.AddLegalFeature();
@@ -57,7 +78,7 @@ public static class ServiceCollectionExtensions
         services.AddNotificationsFeature(configuration);
         services.AddPropertyImportFeature();
         services.AddAiListingFeature(configuration);
-        services.AddPropertyDraftsFeature();
+        services.AddPropertyDraftsFeature(backgroundJobsEnabled);
 
         return services;
     }

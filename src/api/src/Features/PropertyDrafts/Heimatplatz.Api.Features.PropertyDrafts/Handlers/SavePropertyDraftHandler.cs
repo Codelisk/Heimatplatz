@@ -66,7 +66,6 @@ public class SavePropertyDraftHandler(
         draft.Type = request.Data.Type;
         draft.StepIndex = Math.Clamp(request.Data.StepIndex, 0, MaxStepIndex);
         draft.FirstImageUrl = request.Data.ImageUrls?.FirstOrDefault();
-        draft.AnalysisId = request.Data.AnalysisId;
         draft.SchemaVersion = request.Data.SchemaVersion;
         draft.PayloadJson = payloadJson;
 

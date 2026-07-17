@@ -11,6 +11,8 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 /// Entwurfs-Verwaltung: Auto-Save bei jedem Schrittwechsel (Upsert via SavePropertyDraft),
 /// Wiederherstellen ueber den DraftId-Navigationsparameter, Loeschen beim Verwerfen.
 /// Speicherfehler blockieren die Navigation nie - Banner + Retry beim naechsten Wechsel.
+/// Der Zustand der Beschreibungs-Generierung liegt NICHT im Payload, sondern in eigenen
+/// Entwurfs-Spalten am Server (siehe RestoreDescriptionState in .Description).
 /// </summary>
 public partial class PropertyWizardViewModel
 {
@@ -104,15 +106,16 @@ public partial class PropertyWizardViewModel
 
             _serverDraftId = response.Id;
             ApplyPayload(response.Data);
+
+            // Beschreibungs-Zustand kommt aus eigenen Spalten (nicht aus dem Payload);
+            // ein offener Job wird weitergepollt
+            RestoreDescriptionState(response);
+
             CurrentStep = Math.Clamp(response.Data.StepIndex, 0, StepCount - 1);
 
             // Unveraenderten Zustand nicht sofort wieder speichern
             _lastSavedPayloadJson = JsonSerializer.Serialize(BuildPayload());
             _draftDirty = false;
-
-            // Offene Analyse weiter pollen - eine laengst fertige liefert sofort Finished
-            if (response.Data.AnalysisId is { } analysisId && !AnalysisApplied && !AiSkipped)
-                _runner.ResumePolling(analysisId);
         }
         catch (Exception ex)
         {
@@ -129,27 +132,24 @@ public partial class PropertyWizardViewModel
     /// <summary>Kompletter Wizard-Zustand -> Entwurfs-Payload.</summary>
     private PropertyDraftData BuildPayload() => new()
     {
-        SchemaVersion = 1,
+        SchemaVersion = 2,
         StepIndex = CurrentStep,
         ImageUrls = UploadedImageUrls,
         VideoUrls = UploadedVideoUrls,
-        DictatedText = NullIfEmpty(DictatedText),
-        AiSkipped = AiSkipped,
-        AnalysisId = _runner.AnalysisId,
-        AnalysisApplied = AnalysisApplied,
-        Address = NullIfEmpty(Adresse),
-        MunicipalityId = Ort.SelectedGemeindeId,
-        MunicipalityDisplay = NullIfEmpty(Ort.SelectedOrtText),
-        Price = decimal.TryParse(Preis, out var preis) && preis > 0 ? (double)preis : null,
         Type = SelectedPropertyTypeItem?.Value,
         Title = NullIfEmpty(Titel),
-        Description = NullIfEmpty(Beschreibung),
         Rooms = ParseIntOrNull(Zimmer),
         LivingAreaSquareMeters = ParseIntOrNull(Wohnflaeche),
         PlotAreaSquareMeters = ParseIntOrNull(Grundstuecksflaeche),
         YearBuilt = ParseIntOrNull(Baujahr),
         Features = SplitFeatures(FeaturesText),
-        AiSummary = NullIfEmpty(AiSummary)
+        Address = NullIfEmpty(Adresse),
+        MunicipalityId = Ort.SelectedGemeindeId,
+        MunicipalityDisplay = NullIfEmpty(Ort.SelectedOrtText),
+        Price = decimal.TryParse(Preis, out var preis) && preis > 0 ? (double)preis : null,
+        DescriptionMode = DescriptionMode,
+        Description = NullIfEmpty(Beschreibung),
+        DescriptionKeywords = NullIfEmpty(DescriptionKeywords)
     };
 
     /// <summary>Entwurfs-Payload -> Wizard-Zustand (Resume).</summary>
@@ -163,9 +163,14 @@ public partial class PropertyWizardViewModel
         MediaCount = Media.Count;
         OnPropertyChanged(nameof(MediaCountText));
 
-        DictatedText = data.DictatedText ?? string.Empty;
-        AiSkipped = data.AiSkipped;
-        AnalysisApplied = data.AnalysisApplied;
+        SelectedPropertyTypeItem = PropertyTypes.FirstOrDefault(t => t.Value == data.Type) ?? PropertyTypes[0];
+
+        Titel = data.Title ?? string.Empty;
+        Zimmer = data.Rooms?.ToString() ?? string.Empty;
+        Wohnflaeche = data.LivingAreaSquareMeters?.ToString() ?? string.Empty;
+        Grundstuecksflaeche = data.PlotAreaSquareMeters?.ToString() ?? string.Empty;
+        Baujahr = data.YearBuilt?.ToString() ?? string.Empty;
+        FeaturesText = data.Features != null ? string.Join(", ", data.Features) : string.Empty;
 
         Adresse = data.Address ?? string.Empty;
         Preis = data.Price is { } price
@@ -174,18 +179,9 @@ public partial class PropertyWizardViewModel
         if (data.MunicipalityId is { } municipalityId)
             Ort.Restore(municipalityId, data.MunicipalityDisplay ?? string.Empty);
 
-        _suppressTypeTracking = true;
-        SelectedPropertyTypeItem = PropertyTypes.FirstOrDefault(t => t.Value == data.Type) ?? PropertyTypes[0];
-        _suppressTypeTracking = false;
-
-        Titel = data.Title ?? string.Empty;
+        DescriptionMode = data.DescriptionMode ?? DraftDescriptionMode.None;
         Beschreibung = data.Description ?? string.Empty;
-        Zimmer = data.Rooms?.ToString() ?? string.Empty;
-        Wohnflaeche = data.LivingAreaSquareMeters?.ToString() ?? string.Empty;
-        Grundstuecksflaeche = data.PlotAreaSquareMeters?.ToString() ?? string.Empty;
-        Baujahr = data.YearBuilt?.ToString() ?? string.Empty;
-        FeaturesText = data.Features != null ? string.Join(", ", data.Features) : string.Empty;
-        AiSummary = data.AiSummary ?? string.Empty;
+        DescriptionKeywords = data.DescriptionKeywords ?? string.Empty;
     }
 
     private static string? NullIfEmpty(string? value)

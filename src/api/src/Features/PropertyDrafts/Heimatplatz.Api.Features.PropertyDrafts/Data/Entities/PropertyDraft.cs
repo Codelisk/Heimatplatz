@@ -1,5 +1,6 @@
 using Heimatplatz.Api.Core.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
+using Heimatplatz.Api.Features.PropertyDrafts.Contracts.Models;
 
 namespace Heimatplatz.Api.Features.PropertyDrafts.Data.Entities;
 
@@ -10,6 +11,9 @@ namespace Heimatplatz.Api.Features.PropertyDrafts.Data.Entities;
 /// Typisierte Summary-Spalten dienen nur der Listen-Anzeige; der vollstaendige
 /// Wizard-Zustand liegt als JSON in <see cref="PayloadJson"/> (Feldaenderungen am
 /// Payload brauchen daher keine Migration).
+/// Die Description*-Spalten gehoeren dem Beschreibungs-Hintergrund-Job und liegen
+/// bewusst NICHT im Payload: Client-Auto-Saves (kompletter Payload-Upsert) koennen
+/// den Job-Fortschritt so nie ueberschreiben.
 /// </summary>
 public class PropertyDraft : BaseEntity
 {
@@ -29,9 +33,22 @@ public class PropertyDraft : BaseEntity
     /// <summary>Thumbnail fuer die Entwurfs-Karte (erstes hochgeladenes Foto)</summary>
     public string? FirstImageUrl { get; set; }
 
-    /// <summary>Laufende/abgeschlossene KI-Analyse (fuer Re-Polling beim Fortsetzen)</summary>
-    public Guid? AnalysisId { get; set; }
-
     /// <summary>Serialisiertes PropertyDraftData (kompletter Wizard-Zustand)</summary>
     public string PayloadJson { get; set; } = "{}";
+
+    /// <summary>Zustand der asynchronen KI-Beschreibungs-Generierung</summary>
+    public DraftDescriptionStatus DescriptionStatus { get; set; } = DraftDescriptionStatus.None;
+
+    /// <summary>Die fuer den laufenden/letzten Job eingereichten Stichwoerter</summary>
+    public string? DescriptionKeywords { get; set; }
+
+    /// <summary>Vom Job erstellte Beschreibung (nur bei Status Finished)</summary>
+    public string? GeneratedDescription { get; set; }
+
+    /// <summary>Fehlermeldung des Jobs (nur bei Status Failed)</summary>
+    public string? DescriptionError { get; set; }
+
+    public DateTimeOffset? DescriptionRequestedAt { get; set; }
+
+    public DateTimeOffset? DescriptionCompletedAt { get; set; }
 }

@@ -55,7 +55,7 @@ public partial class PropertyWizardViewModel
 
     public bool ChecklistPhotosOk => Media.Any(m => m.IsPhoto);
     public bool ChecklistTitleOk => !string.IsNullOrWhiteSpace(Titel) && Titel.Trim().Length >= 10;
-    public bool ChecklistDescriptionOk => !string.IsNullOrWhiteSpace(Beschreibung) && Beschreibung.Trim().Length >= 50;
+    public bool ChecklistDescriptionOk => ValidateDescriptionText();
     public bool ChecklistPriceOk => decimal.TryParse(Preis, out var p) && p > 0;
     public bool ChecklistLocationOk => !string.IsNullOrWhiteSpace(Adresse) && Ort.SelectedGemeindeId.HasValue;
 
@@ -95,6 +95,14 @@ public partial class PropertyWizardViewModel
 
         if (!ValidateDetails() || !ValidateLocationPrice())
             return;
+
+        if (!ValidateDescriptionText())
+        {
+            ErrorMessage = IsGenerationRunning
+                ? "Ihre Beschreibung wird noch erstellt – bitte einen Moment warten oder selbst schreiben."
+                : "Die Beschreibung muss mindestens 50 Zeichen lang sein.";
+            return;
+        }
 
         if (!ChecklistPhotosOk)
         {
@@ -152,7 +160,7 @@ public partial class PropertyWizardViewModel
         if (publishSucceeded)
         {
             _logger.LogInformation("[PropertyWizard] Inserat veroeffentlicht, Navigation zu MyProperties");
-            _runner.Cancel();
+            StopDescriptionPolling();
 
             // Erst die gepushte Wizard-Seite vom Stack der Ursprungs-Section nehmen,
             // dann zur MyProperties-Root wechseln - sonst bliebe der Wizard beim

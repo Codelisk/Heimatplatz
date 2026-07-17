@@ -92,9 +92,9 @@
                   MaximumWidthRequest="640"
                   HorizontalOptions="Fill">
                 <steps:MediaStepView IsVisible="{Binding IsMediaStep}" />
-                <steps:DescribeStepView IsVisible="{Binding IsDescribeStep}" />
-                <steps:LocationStepView IsVisible="{Binding IsLocationStep}" />
                 <steps:DetailsStepView IsVisible="{Binding IsDetailsStep}" />
+                <steps:LocationStepView IsVisible="{Binding IsLocationStep}" />
+                <steps:DescriptionStepView IsVisible="{Binding IsDescriptionStep}" />
                 <steps:PreviewStepView IsVisible="{Binding IsPreviewStep}" />
             </Grid>
         </ScrollView>

@@ -17,73 +17,17 @@ namespace Heimatplatz.Api.Core.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
-            modelBuilder.Entity("Heimatplatz.Api.Features.AiListing.Data.Entities.ListingAnalysis", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DictatedText")
-                        .HasMaxLength(8000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ImageUrls")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ResultJson")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset?>("StartedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserNotes")
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("VideoUrls")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ListingAnalyses", (string)null);
-                });
-
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("ExpiresAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("INTEGER");
@@ -91,16 +35,16 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<Guid?>("ReplacedByTokenId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("RevokedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("RevokedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -125,16 +69,16 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("EmailVerifiedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("EmailVerifiedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -159,8 +103,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<int?>("SellerType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -176,11 +120,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("ExpiresAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Purpose")
                         .HasColumnType("INTEGER");
@@ -190,11 +134,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("UsedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UsedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -215,8 +159,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ExcludedSellerSourceIdsJson")
                         .IsRequired()
@@ -265,8 +209,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<int>("SelectedSort")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -290,15 +234,15 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("AuctionDate")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("AuctionDate")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("BiddingDeadline")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("BiddingDeadline")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<decimal?>("BuildingArea")
+                    b.Property<double?>("BuildingArea")
                         .HasPrecision(12, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("REAL");
 
                     b.Property<string>("BuildingCondition")
                         .HasMaxLength(500)
@@ -328,31 +272,31 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("EdictUrl")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal?>("EstimatedValue")
+                    b.Property<double?>("EstimatedValue")
                         .HasPrecision(12, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("REAL");
 
                     b.Property<string>("ExternalId")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("FirstSeenAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("FirstSeenAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("FloorPlanUrl")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal?>("GardenArea")
+                    b.Property<double?>("GardenArea")
                         .HasPrecision(12, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("REAL");
 
                     b.Property<string>("ImageUrls")
                         .IsRequired()
@@ -363,16 +307,16 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
-                    b.Property<DateTimeOffset?>("LastScrapedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("LastScrapedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("LongAppraisalUrl")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal?>("MinimumBid")
+                    b.Property<double?>("MinimumBid")
                         .HasPrecision(12, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)
@@ -390,9 +334,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal?>("PlotArea")
+                    b.Property<double?>("PlotArea")
                         .HasPrecision(12, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("REAL");
 
                     b.Property<string>("PlotNumber")
                         .HasMaxLength(50)
@@ -403,15 +347,15 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("PublicationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("PublicationDate")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("RegistrationNumber")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("RemovedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("RemovedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("SheetNumber")
                         .HasMaxLength(50)
@@ -432,15 +376,15 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal?>("TotalArea")
+                    b.Property<double?>("TotalArea")
                         .HasPrecision(12, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("REAL");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("ViewingDate")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("ViewingDate")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("YearBuilt")
                         .HasColumnType("INTEGER");
@@ -490,8 +434,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("ForeclosureAuctionId")
                         .HasColumnType("TEXT");
@@ -504,8 +448,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -524,11 +468,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("EffectiveDate")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("EffectiveDate")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -546,8 +490,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Version")
                         .IsRequired()
@@ -574,8 +518,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("FederalProvinceId")
                         .HasColumnType("TEXT");
@@ -590,8 +534,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -608,8 +552,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Key")
                         .IsRequired()
@@ -621,8 +565,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -643,8 +587,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("DistrictId")
                         .HasColumnType("TEXT");
@@ -668,8 +612,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -688,8 +632,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("FilterMode")
                         .ValueGeneratedOnAdd()
@@ -731,8 +675,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValue("[]");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -759,8 +703,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("DataJson")
                         .HasColumnType("TEXT");
@@ -781,8 +725,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValue("Production");
 
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("ExpiresAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Locale")
                         .HasMaxLength(35)
@@ -793,8 +737,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("SubscribedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SubscribedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("TagsJson")
                         .IsRequired()
@@ -808,8 +752,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValue("[]");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -832,14 +776,14 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -864,14 +808,14 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -901,8 +845,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
                         .HasMaxLength(4000)
@@ -928,9 +872,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<int?>("PlotAreaSquareMeters")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Price")
+                    b.Property<double>("Price")
                         .HasPrecision(12, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("REAL");
 
                     b.Property<int?>("Rooms")
                         .HasColumnType("INTEGER");
@@ -950,8 +894,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("SourceLastUpdated")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("SourceLastUpdated")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("SourceName")
                         .HasMaxLength(100)
@@ -973,8 +917,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -1014,14 +958,14 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -1038,8 +982,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("INTEGER");
@@ -1077,8 +1021,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -1097,8 +1041,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDefault")
                         .ValueGeneratedOnAdd()
@@ -1110,8 +1054,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -1127,14 +1071,31 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("AnalysisId")
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("DescriptionCompletedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DescriptionError")
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<string>("DescriptionKeywords")
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
+
+                    b.Property<long?>("DescriptionRequestedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DescriptionStatus")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("FirstImageUrl")
                         .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GeneratedDescription")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PayloadJson")
@@ -1154,8 +1115,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<int?>("Type")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -1165,6 +1126,192 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PropertyDrafts", (string)null);
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.CronTickerEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Expression")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Function")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InitIdentifier")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsSystemPaused")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<byte[]>("Request")
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("Retries")
+                        .HasColumnType("INTEGER");
+
+                    b.PrimitiveCollection<string>("RetryIntervals")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Expression")
+                        .HasDatabaseName("IX_CronTickers_Expression");
+
+                    b.HasIndex("Function", "Expression")
+                        .HasDatabaseName("IX_Function_Expression");
+
+                    b.ToTable("CronTickers", "ticker");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.CronTickerOccurrenceEntity<TickerQ.Utilities.Entities.CronTickerEntity>", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CronTickerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ElapsedTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ExceptionMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExecutionTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LockHolder")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LockedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SkippedReason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CronTickerId")
+                        .HasDatabaseName("IX_CronTickerOccurrence_CronTickerId");
+
+                    b.HasIndex("ExecutionTime")
+                        .HasDatabaseName("IX_CronTickerOccurrence_ExecutionTime");
+
+                    b.HasIndex("CronTickerId", "ExecutionTime")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_CronTickerId_ExecutionTime");
+
+                    b.HasIndex("Status", "ExecutionTime")
+                        .HasDatabaseName("IX_CronTickerOccurrence_Status_ExecutionTime");
+
+                    b.ToTable("CronTickerOccurrences", "ticker");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.TimeTickerEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ElapsedTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ExceptionMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ExecutionTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Function")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InitIdentifier")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LockHolder")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LockedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Request")
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("Retries")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("INTEGER");
+
+                    b.PrimitiveCollection<string>("RetryIntervals")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("RunCondition")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SkippedReason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecutionTime")
+                        .HasDatabaseName("IX_TimeTicker_ExecutionTime");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("Status", "ExecutionTime")
+                        .HasDatabaseName("IX_TimeTicker_Status_ExecutionTime");
+
+                    b.ToTable("TimeTickers", "ticker");
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Auth.Data.Entities.RefreshToken", b =>
@@ -1330,6 +1477,27 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Navigation("Property");
                 });
 
+            modelBuilder.Entity("TickerQ.Utilities.Entities.CronTickerOccurrenceEntity<TickerQ.Utilities.Entities.CronTickerEntity>", b =>
+                {
+                    b.HasOne("TickerQ.Utilities.Entities.CronTickerEntity", "CronTicker")
+                        .WithMany()
+                        .HasForeignKey("CronTickerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CronTicker");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.TimeTickerEntity", b =>
+                {
+                    b.HasOne("TickerQ.Utilities.Entities.TimeTickerEntity", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuction", b =>
                 {
                     b.Navigation("Changes");
@@ -1348,6 +1516,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.Property", b =>
                 {
                     b.Navigation("Contacts");
+                });
+
+            modelBuilder.Entity("TickerQ.Utilities.Entities.TimeTickerEntity", b =>
+                {
+                    b.Navigation("Children");
                 });
 #pragma warning restore 612, 618
         }

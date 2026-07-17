@@ -39,6 +39,13 @@ public class GetPropertyDraftHandler(
 
         var data = DraftPayloadSerializer.Deserialize(draft.PayloadJson);
 
-        return new GetPropertyDraftResponse(draft.Id, data, draft.UpdatedAt ?? draft.CreatedAt);
+        return new GetPropertyDraftResponse(
+            draft.Id,
+            data,
+            draft.UpdatedAt ?? draft.CreatedAt,
+            draft.DescriptionStatus,
+            draft.DescriptionKeywords,
+            draft.GeneratedDescription,
+            draft.DescriptionError);
     }
 }

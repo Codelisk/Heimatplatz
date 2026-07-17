@@ -1,6 +1,7 @@
 ---
 import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import AuthGate from "@/components/app/AuthGate.astro";
 import PropertyWysiwygForm from "@/components/properties/PropertyWysiwygForm.astro";
 ---
 
@@ -18,6 +19,11 @@ import PropertyWysiwygForm from "@/components/properties/PropertyWysiwygForm.ast
         Zurück
       </a>
     </header>
-    <PropertyWysiwygForm editMode />
+    <AuthGate
+      title="Anmelden zum Bearbeiten"
+      description="Melden Sie sich an, um Ihre Immobilie zu bearbeiten."
+    >
+      <PropertyWysiwygForm editMode />
+    </AuthGate>
   </article>
 </BaseLayout>

@@ -8,6 +8,8 @@
     <PackageReference Include="Shiny.Mediator" />
     <PackageReference Include="Shiny.Mediator.AspNet" />
     <PackageReference Include="Shiny.Extensions.DependencyInjection" />
+    <PackageReference Include="TickerQ" />
+    <PackageReference Include="TickerQ.EntityFrameworkCore" />
   </ItemGroup>
 
   <ItemGroup>

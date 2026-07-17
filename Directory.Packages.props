@@ -102,6 +102,10 @@
     <!-- CLI Tools -->
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
 
+    <!-- Background-Jobs (TickerQ, EF-Core-Store im AppDbContext) -->
+    <PackageVersion Include="TickerQ" Version="10.4.0" />
+    <PackageVersion Include="TickerQ.EntityFrameworkCore" Version="10.4.0" />
+
     <!-- Entity Framework -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(MicrosoftVersion)" />

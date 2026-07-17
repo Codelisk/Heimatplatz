@@ -2,12 +2,12 @@ using System.ComponentModel;
 
 namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 
-public partial class DescribeStepView : ContentView
+public partial class DescriptionStepView : ContentView
 {
     private CancellationTokenSource? _pulseCts;
     private PropertyWizardViewModel? _viewModel;
 
-    public DescribeStepView()
+    public DescriptionStepView()
     {
         InitializeComponent();
     }

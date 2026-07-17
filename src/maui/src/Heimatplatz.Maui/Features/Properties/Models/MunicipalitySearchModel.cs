@@ -32,9 +32,13 @@ public partial class MunicipalitySearchModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedOrt))]
+    [NotifyPropertyChangedFor(nameof(HasNoSelectedOrt))]
     public partial string SelectedOrtText { get; set; }
 
     public bool HasSelectedOrt => !string.IsNullOrEmpty(SelectedOrtText);
+
+    /// <summary>Suchfeld nur zeigen solange kein Ort gewaehlt ist - es ist genau EIN Ort waehlbar.</summary>
+    public bool HasNoSelectedOrt => !HasSelectedOrt;
 
     public MunicipalitySearchModel(ILocationService locationService, ILogger logger)
     {
@@ -85,6 +89,19 @@ public partial class MunicipalitySearchModel : ObservableObject
     {
         SelectedGemeindeId = gemeinde.Id;
         SelectedOrtText = $"{gemeinde.Name} ({gemeinde.PostalCode})";
+
+        _suppressSearch = true;
+        OrtSearchText = string.Empty;
+        _suppressSearch = false;
+        OrtSuggestions = [];
+    }
+
+    /// <summary>Hebt die Auswahl auf, damit ein anderer Ort gesucht werden kann.</summary>
+    [RelayCommand]
+    private void ClearSelection()
+    {
+        SelectedGemeindeId = null;
+        SelectedOrtText = string.Empty;
 
         _suppressSearch = true;
         OrtSearchText = string.Empty;

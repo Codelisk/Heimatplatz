@@ -1,27 +1,23 @@
 # Heimatplatz.Api.Features.AiListing.Contracts
 
-Request/Response-DTOs fuer das AiListing-Feature: KI-gestuetzte Erstellung von
-Immobilien-Inseraten aus Fotos, Videos und diktiertem Text.
+Request/Response-DTOs fuer das AiListing-Feature: Medien-Upload fuer den
+Inserat-Wizard und die KI-Generierung der Inserats-Beschreibung.
 
 ## Zweck
 
-Der primaere Weg zur Inseratserstellung in der Mobile-App: Der Nutzer laedt Medien
-hoch und diktiert eine Beschreibung; die KI extrahiert daraus die Inseratsfelder.
-Preis, Adresse, Gemeinde und Verkaeuferdaten bleiben bewusst manuelle Eingaben.
+Der Wizard in der Mobile-App erfasst alle Inseratsdaten manuell; nur die Beschreibung
+kann optional aus Stichwoertern/Diktat + Fotos generiert werden. Die Generierung laeuft
+als Hintergrund-Job im PropertyDrafts-Feature und ruft dieses Feature in-process auf.
 
 ## Contracts
 
 | Contract | Endpoint | Beschreibung |
 |----------|----------|--------------|
-| `UploadListingMediaRequest` | `POST /api/ai-listings/media` | Fotos/Videos als Base64 hochladen, liefert URLs |
-| `StartListingAnalysisRequest` | `POST /api/ai-listings` | Startet asynchrone KI-Analyse, liefert `AnalysisId` |
-| `GetListingAnalysisRequest` | `GET /api/ai-listings/{AnalysisId}` | Status-Polling (`Queued` → `InProgress` → `Finished`/`Failed`) |
+| `UploadListingMediaRequest` | `POST /api/ai-listings/media` | Fotos (und Alt-Videos) als Base64 hochladen, liefert URLs |
+| `GenerateListingDescriptionRequest` | — (in-process, kein HTTP) | Generiert eine Beschreibung aus Eckdaten, Stichwoertern und Foto-URLs; Wortbereich fix im Backend (`AiListing:Description`) |
 
 ## Modelle
 
-- `ExtractedListingData` — von der KI befuellte Felder: Titel, Beschreibung, Typ,
-  Zimmer, Wohnflaeche, Grundstuecksflaeche, Baujahr, Ausstattung (Features), Summary.
-- `ListingAnalysisStatus` — Job-Lebenszyklus (`Queued`, `InProgress`, `Finished`, `Failed`).
 - `Base64MediaData` — Base64-Upload-Daten (Foto oder Video).
 
 ## Abhaengigkeiten
