@@ -36,14 +36,21 @@ public interface IAuthService
     string? UserFullName { get; }
 
     /// <summary>
-    /// Gibt an, ob der Benutzer die Rolle Verkäufer hat
+    /// Gibt an, ob der Benutzer Verkäufer ist (SellerType im Profil gesetzt).
+    /// Käufer ist jeder angemeldete Benutzer implizit.
     /// </summary>
     bool IsSeller { get; }
 
     /// <summary>
-    /// Gibt an, ob der Benutzer die Rolle Käufer hat
+    /// Der Anbietertyp aus dem JWT-Claim seller_type ("Private", "Broker", "PropertyManager"),
+    /// null wenn kein Verkäufer
     /// </summary>
-    bool IsBuyer { get; }
+    string? SellerType { get; }
+
+    /// <summary>
+    /// Gibt an, ob der Benutzer Administrator ist
+    /// </summary>
+    bool IsAdmin { get; }
 
     /// <summary>
     /// Speichert die Login-Daten nach erfolgreicher Authentifizierung
@@ -73,20 +80,14 @@ public interface IAuthService
     event EventHandler<bool>? AuthenticationStateChanged;
 
     /// <summary>
+    /// Aktualisiert nur den Access Token (z.B. nach Profil-Update, das neue Claims liefert).
+    /// Refresh Token und Ablaufdatum bleiben unveraendert.
+    /// </summary>
+    void UpdateAccessToken(string accessToken);
+
+    /// <summary>
     /// Versucht eine gespeicherte Session wiederherzustellen (beim App-Start aufrufen)
     /// </summary>
     /// <returns>True wenn eine gueltige Session wiederhergestellt wurde</returns>
     Task<bool> TryRestoreSessionAsync();
-}
-
-/// <summary>
-/// Typen von Benutzerrollen im System
-/// </summary>
-public enum UserRoleType
-{
-    /// <summary>Käufer - kann Immobilien suchen und Anfragen stellen</summary>
-    Buyer = 1,
-
-    /// <summary>Verkäufer - kann Immobilien anbieten und verwalten</summary>
-    Seller = 2
 }

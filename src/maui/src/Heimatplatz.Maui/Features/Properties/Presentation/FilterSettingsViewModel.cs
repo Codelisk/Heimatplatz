@@ -438,7 +438,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         parts.Add(types.Count == 3 ? "Alle Typen" : string.Join(", ", types));
 
         if (IsSellerFilterVisible && IsPrivateSelected != IsBrokerSelected)
-            parts.Add(IsPrivateSelected ? "Privat" : "Makler");
+            parts.Add(IsPrivateSelected ? "Privat" : "Makler & Verwaltung");
         if (_selectedAgeFilter != AgeFilter.Alle)
             parts.Add(AgeFilterOptions[(int)_selectedAgeFilter]);
         parts.Add(SelectedOrteCount == 0

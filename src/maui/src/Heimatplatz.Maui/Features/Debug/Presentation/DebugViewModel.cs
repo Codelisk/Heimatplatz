@@ -20,6 +20,8 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     private const string TestPassword = "Test123!";
     private const string BuyerEmail = "test.buyer@heimatplatz.dev";
     private const string SellerEmail = "test.seller@heimatplatz.dev";
+    private const string BrokerEmail = "test.broker@heimatplatz.dev";
+    private const string PropertyManagerEmail = "test.verwaltung@heimatplatz.dev";
 
     private readonly IApiEndpointService _apiEndpoints;
     private readonly IAuthService _authService;
@@ -113,7 +115,13 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     private Task LoginAsBuyerAsync() => LoginAsAsync(BuyerEmail, "Käufer");
 
     [RelayCommand]
-    private Task LoginAsSellerAsync() => LoginAsAsync(SellerEmail, "Verkäufer");
+    private Task LoginAsSellerAsync() => LoginAsAsync(SellerEmail, "Verkäufer (privat)");
+
+    [RelayCommand]
+    private Task LoginAsBrokerAsync() => LoginAsAsync(BrokerEmail, "Makler");
+
+    [RelayCommand]
+    private Task LoginAsPropertyManagerAsync() => LoginAsAsync(PropertyManagerEmail, "Hausverwaltung");
 
     partial void OnIsDevelopmentSelectedChanged(bool value)
     {
@@ -154,7 +162,7 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
                 Body = new LoginRequest
                 {
                     Email = email,
-                    Passwort = TestPassword
+                    Password = TestPassword
                 }
             });
 
@@ -191,13 +199,21 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
 
     private void UpdateAuthenticationState()
     {
-        CurrentAuthenticationState = (_authService.IsAuthenticated, _authService.IsSeller, _authService.IsBuyer) switch
+        var sellerLabel = _authService.SellerType switch
+        {
+            "Broker" => "Verkäufer (Makler)",
+            "PropertyManager" => "Verkäufer (Hausverwaltung)",
+            "Private" => "Verkäufer (privat)",
+            _ => "Verkäufer"
+        };
+
+        CurrentAuthenticationState = (_authService.IsAuthenticated, _authService.IsSeller, _authService.IsAdmin) switch
         {
             (false, _, _) => "Ausgeloggt",
-            (true, true, true) => $"Käufer & Verkäufer — {_authService.UserEmail}",
-            (true, true, false) => $"Verkäufer — {_authService.UserEmail}",
-            (true, false, true) => $"Käufer — {_authService.UserEmail}",
-            _ => $"Eingeloggt — {_authService.UserEmail}"
+            (true, _, true) => $"Admin — {_authService.UserEmail}",
+            (true, true, false) => $"{sellerLabel} — {_authService.UserEmail}",
+            // Kaeufer ist jedes Konto implizit
+            (true, false, false) => $"Käufer — {_authService.UserEmail}"
         };
     }
 }

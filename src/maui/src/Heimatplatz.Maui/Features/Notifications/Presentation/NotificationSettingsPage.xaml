@@ -216,7 +216,7 @@
                                         IsChecked="{Binding IsBrokerSelected, Mode=TwoWay}"
                                         VerticalOptions="Center"
                                         AutomationId="NotificationSettings_Chip_Broker" />
-                                    <Label Text="Makler" VerticalOptions="Center" />
+                                    <Label Text="Makler &amp; Verwaltung" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </VerticalStackLayout>

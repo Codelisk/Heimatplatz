@@ -14,7 +14,8 @@ public class AuthService(AuthSession session) : IAuthService
     private DateTimeOffset? _expiresAt;
     private bool _expiresAtLoaded;
     private bool _isSeller;
-    private bool _isBuyer;
+    private bool _isAdmin;
+    private string? _sellerType;
     private bool _rolesLoaded;
 
     /// <inheritdoc />
@@ -54,12 +55,22 @@ public class AuthService(AuthSession session) : IAuthService
     }
 
     /// <inheritdoc />
-    public bool IsBuyer
+    public string? SellerType
     {
         get
         {
             EnsureRolesLoaded();
-            return _isBuyer;
+            return _sellerType;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool IsAdmin
+    {
+        get
+        {
+            EnsureRolesLoaded();
+            return _isAdmin;
         }
     }
 
@@ -115,13 +126,21 @@ public class AuthService(AuthSession session) : IAuthService
     }
 
     /// <inheritdoc />
+    public void UpdateAccessToken(string accessToken)
+    {
+        session.AccessToken = accessToken;
+        ExtractRolesFromToken(accessToken);
+    }
+
+    /// <inheritdoc />
     public void ClearAuthentication()
     {
         session.Clear();
         _expiresAt = null;
         _expiresAtLoaded = true;
         _isSeller = false;
-        _isBuyer = false;
+        _isAdmin = false;
+        _sellerType = null;
         _rolesLoaded = true;
 
         AuthenticationStateChanged?.Invoke(this, false);
@@ -178,7 +197,8 @@ public class AuthService(AuthSession session) : IAuthService
     private void ExtractRolesFromToken(string token)
     {
         _isSeller = false;
-        _isBuyer = false;
+        _isAdmin = false;
+        _sellerType = null;
         _rolesLoaded = true;
 
         try
@@ -214,6 +234,13 @@ public class AuthService(AuthSession session) : IAuthService
                         SetRoleFlags(item.GetString());
                 }
             }
+
+            // seller_type Claim: konkreter Anbietertyp (Private/Broker/PropertyManager)
+            if (root.TryGetProperty("seller_type", out var sellerTypeElement) &&
+                sellerTypeElement.ValueKind == JsonValueKind.String)
+            {
+                _sellerType = sellerTypeElement.GetString();
+            }
         }
         catch
         {
@@ -225,7 +252,7 @@ public class AuthService(AuthSession session) : IAuthService
     {
         if (string.Equals(role, "Seller", StringComparison.OrdinalIgnoreCase))
             _isSeller = true;
-        else if (string.Equals(role, "Buyer", StringComparison.OrdinalIgnoreCase))
-            _isBuyer = true;
+        else if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+            _isAdmin = true;
     }
 }

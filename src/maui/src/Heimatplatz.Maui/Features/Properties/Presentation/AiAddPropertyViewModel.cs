@@ -822,8 +822,7 @@ public partial class AiAddPropertyViewModel : ObservableObject, IPageLifecycleAw
                     MunicipalityId = SelectedGemeindeId.Value,
                     Price = (double)preisValue,
                     Type = ReviewTypItem?.Value ?? PropertyType.House,
-                    SellerType = SellerType.Private,
-                    SellerName = _authService.UserFullName ?? "Unbekannt",
+                    // SellerType/SellerName leitet der Server aus dem Benutzerprofil ab
                     Description = ReviewBeschreibung.Trim(),
                     LivingAreaSquareMeters = wohnflaeche,
                     PlotAreaSquareMeters = grundstueck,

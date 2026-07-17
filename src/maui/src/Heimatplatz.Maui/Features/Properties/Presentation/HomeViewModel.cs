@@ -522,7 +522,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         parts.Add(types.Count == 3 ? "Alle Typen" : string.Join(", ", types));
 
         if (IsSellerFilterVisible && IsPrivateSelected != IsBrokerSelected)
-            parts.Add(IsPrivateSelected ? "Privat" : "Makler");
+            parts.Add(IsPrivateSelected ? "Privat" : "Makler & Verwaltung");
 
         if (_selectedAgeFilter != AgeFilter.Alle)
             parts.Add(AgeFilterOptions[(int)_selectedAgeFilter]);
@@ -1109,11 +1109,16 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             request.PropertyTypesJson = JsonSerializer.Serialize(selectedPropertyTypes);
         }
 
-        // SellerTypes-Filter (Multi-Select als JSON-Array)
+        // SellerTypes-Filter (Multi-Select als JSON-Array).
+        // "Makler" umfasst alle gewerblichen Anbieter, d.h. auch Hausverwaltungen.
         var selectedSellerTypes = new List<string>();
         if (IsPrivateSelected) selectedSellerTypes.Add("Private");
-        if (IsBrokerSelected) selectedSellerTypes.Add("Broker");
-        if (selectedSellerTypes.Count > 0 && selectedSellerTypes.Count < 2)
+        if (IsBrokerSelected)
+        {
+            selectedSellerTypes.Add("Broker");
+            selectedSellerTypes.Add("PropertyManager");
+        }
+        if (IsPrivateSelected != IsBrokerSelected)
         {
             request.SellerTypesJson = JsonSerializer.Serialize(selectedSellerTypes);
         }

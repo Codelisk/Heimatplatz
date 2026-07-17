@@ -95,7 +95,7 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
                 Body = new LoginRequest
                 {
                     Email = Email,
-                    Passwort = Passwort
+                    Password = Passwort
                 }
             });
 

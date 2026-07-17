@@ -443,7 +443,6 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
 
         try
         {
-            var sellerName = _authService.UserFullName ?? "Unbekannt";
             var municipalityId = SelectedGemeindeId!.Value;
 
             // Bestehende URLs beibehalten, nur neue Bilder hochladen
@@ -495,8 +494,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
                     MunicipalityId = municipalityId,
                     Price = (double)preisValue,
                     Type = SelectedTyp,
-                    SellerType = SellerType.Private,
-                    SellerName = sellerName,
+                    // SellerType/SellerName leitet der Server aus dem Benutzerprofil ab
                     Description = Beschreibung.Trim(),
                     LivingAreaSquareMeters = wohnflaecheValue,
                     PlotAreaSquareMeters = grundstuecksValue,

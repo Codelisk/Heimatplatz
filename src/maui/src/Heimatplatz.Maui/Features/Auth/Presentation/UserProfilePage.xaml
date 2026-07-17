@@ -71,29 +71,123 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Rolle: Käufer -->
-                <Border Style="{StaticResource Card}"
-                        IsVisible="{Binding IsBuyer}">
+                <!-- Käufer: gilt fuer jedes Konto -->
+                <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Rolle"
+                        <Label Text="Suchen &amp; Favorisieren"
                                Style="{StaticResource Caption}" />
                         <Label Text="Käufer"
                                Style="{StaticResource BodyStrong}" />
-                        <Label Text="Suche nach Immobilien und Anfragen stellen"
+                        <Label Text="Immobilien suchen, favorisieren und Suchprofile speichern - in jedem Konto enthalten"
                                Style="{StaticResource Caption}" />
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Rolle: Verkäufer -->
+                <!-- Verkäufer mit Anbietertyp (nur wenn SellerType gesetzt) -->
                 <Border Style="{StaticResource Card}"
                         IsVisible="{Binding IsSeller}">
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Rolle"
+                        <Label Text="Inserieren"
                                Style="{StaticResource Caption}" />
-                        <Label Text="Verkäufer"
+                        <Label Text="{Binding SellerTypeLabel}"
                                Style="{StaticResource BodyStrong}" />
                         <Label Text="Immobilien anbieten und verwalten"
                                Style="{StaticResource Caption}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Profil & Verkaeufer-Einstellungen (nachtraeglich aenderbar) -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Profil &amp; Verkäufer-Einstellungen"
+                               Style="{StaticResource BodyStrong}" />
+                        <Label Text="Sie können jederzeit Verkäufer werden, den Anbietertyp wechseln oder das Anbieten deaktivieren. Bestehende Inserate behalten ihre bisherigen Angaben."
+                               Style="{StaticResource Caption}" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label Text="Vorname" Style="{StaticResource FieldLabel}" />
+                                <Entry Text="{Binding EditFirstName}" Placeholder="Max" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Nachname" Style="{StaticResource FieldLabel}" />
+                                <Entry Text="{Binding EditLastName}" Placeholder="Mustermann" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Label Grid.Column="0"
+                                   Text="Ich möchte Immobilien anbieten"
+                                   Style="{StaticResource BodyStrong}"
+                                   VerticalOptions="Center" />
+                            <Switch Grid.Column="1"
+                                    IsToggled="{Binding EditWantsToSell, Mode=TwoWay}"
+                                    VerticalOptions="Center" />
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="8" IsVisible="{Binding EditWantsToSell}">
+                            <RadioButton Content="Privatperson"
+                                         IsChecked="{Binding EditIsPrivate, Mode=TwoWay}"
+                                         GroupName="ProfileSellerType" />
+                            <RadioButton Content="Makler / Agentur"
+                                         IsChecked="{Binding EditIsBroker, Mode=TwoWay}"
+                                         GroupName="ProfileSellerType" />
+                            <RadioButton Content="Hausverwaltung"
+                                         IsChecked="{Binding EditIsPropertyManager, Mode=TwoWay}"
+                                         GroupName="ProfileSellerType" />
+
+                            <VerticalStackLayout Spacing="6" IsVisible="{Binding EditNeedsCompanyName}">
+                                <Label Text="Firmenname" Style="{StaticResource FieldLabel}" />
+                                <Entry Text="{Binding EditCompanyName}" Placeholder="z.B. RE/MAX Premium" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+
+                        <Label Text="{Binding ProfileStatusMessage}"
+                               IsVisible="{Binding HasProfileStatus}"
+                               Style="{StaticResource Caption}" />
+
+                        <Button Text="Profil speichern"
+                                Command="{Binding SaveProfileCommand}"
+                                IsEnabled="{Binding IsNotDeletingAccount}"
+                                Style="{StaticResource PrimaryButton}" />
+                        <ActivityIndicator IsRunning="{Binding IsSavingProfile}"
+                                           IsVisible="{Binding IsSavingProfile}"
+                                           HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Passwort aendern (widerruft alle anderen Sitzungen) -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Passwort ändern"
+                               Style="{StaticResource BodyStrong}" />
+                        <Label Text="Nach der Änderung werden alle anderen angemeldeten Geräte abgemeldet."
+                               Style="{StaticResource Caption}" />
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Aktuelles Passwort" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding CurrentPassword}" IsPassword="True" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Neues Passwort" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding NewPassword}" IsPassword="True" Placeholder="Mindestens 8 Zeichen" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Neues Passwort bestätigen" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding NewPasswordConfirm}" IsPassword="True" />
+                        </VerticalStackLayout>
+
+                        <Label Text="{Binding PasswordStatusMessage}"
+                               IsVisible="{Binding HasPasswordStatus}"
+                               Style="{StaticResource Caption}" />
+
+                        <Button Text="Passwort ändern"
+                                Command="{Binding ChangePasswordCommand}"
+                                IsEnabled="{Binding IsNotDeletingAccount}"
+                                Style="{StaticResource SecondaryButton}" />
+                        <ActivityIndicator IsRunning="{Binding IsChangingPassword}"
+                                           IsVisible="{Binding IsChangingPassword}"
+                                           HorizontalOptions="Center" />
                     </VerticalStackLayout>
                 </Border>
 

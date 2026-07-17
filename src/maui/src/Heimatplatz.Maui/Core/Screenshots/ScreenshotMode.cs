@@ -111,7 +111,7 @@ public static class ScreenshotMode
             Body = new LoginRequest
             {
                 Email = email,
-                Passwort = password
+                Password = password
             }
         });
 

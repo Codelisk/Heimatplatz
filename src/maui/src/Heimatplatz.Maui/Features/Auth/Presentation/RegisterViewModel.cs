@@ -6,15 +6,14 @@ using Heimatplatz.Maui.Events;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
-// Aliase: UserRoleType existiert auch in Heimatplatz.Maui.Features.Auth (IAuthService.cs)
-// und wuerde durch den umschliessenden Namespace faelschlich bevorzugt werden.
 using ApiSellerType = Heimatplatz.Maui.ApiClient.Generated.SellerType;
-using ApiUserRoleType = Heimatplatz.Maui.ApiClient.Generated.UserRoleType;
 
 namespace Heimatplatz.Maui.Features.Auth.Presentation;
 
 /// <summary>
-/// ViewModel fuer die Registrierungsseite (portiert aus der Uno-App)
+/// ViewModel fuer die Registrierungsseite.
+/// Neues Modell: Jeder Account ist implizit Kaeufer. Optional kann der Benutzer
+/// angeben, dass er auch verkaufen moechte (Privat/Makler/Verwaltung + Firmenname).
 /// </summary>
 [ShellMap<RegisterPage>("Register")]
 public partial class RegisterViewModel : ObservableObject
@@ -48,11 +47,9 @@ public partial class RegisterViewModel : ObservableObject
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
+    /// <summary>True wenn der Benutzer auch Immobilien anbieten moechte</summary>
     [ObservableProperty]
-    public partial bool IsBuyer { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsSeller { get; set; }
+    public partial bool WantsToSell { get; set; }
 
     [ObservableProperty]
     public partial bool IsPrivateSeller { get; set; }
@@ -61,7 +58,14 @@ public partial class RegisterViewModel : ObservableObject
     public partial bool IsBrokerSeller { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NeedsCompanyName))]
+    public partial bool IsPropertyManagerSeller { get; set; }
+
+    [ObservableProperty]
     public partial string CompanyName { get; set; }
+
+    /// <summary>True wenn ein Firmenname noetig ist (Makler oder Verwaltung)</summary>
+    public bool NeedsCompanyName => IsBrokerSeller || IsPropertyManagerSeller;
 
     public RegisterViewModel(
         IMediator mediator,
@@ -90,31 +94,49 @@ public partial class RegisterViewModel : ObservableObject
         !string.IsNullOrWhiteSpace(Passwort) &&
         Passwort == PasswortBestaetigung &&
         Passwort.Length >= 8 &&
-        (IsBuyer || IsSeller) && // Mindestens eine Rolle muss ausgewaehlt sein
-        (!IsSeller || IsPrivateSeller || IsBrokerSeller) && // Wenn Seller, muss Typ gewaehlt sein
-        (!IsBrokerSeller || !string.IsNullOrWhiteSpace(CompanyName)); // Wenn Broker, muss Firmenname angegeben sein
+        (!WantsToSell || IsPrivateSeller || IsBrokerSeller || IsPropertyManagerSeller) &&
+        (!WantsToSell || !NeedsCompanyName || !string.IsNullOrWhiteSpace(CompanyName));
 
     /// <summary>True wenn eine Fehlermeldung angezeigt werden soll</summary>
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     partial void OnErrorMessageChanged(string? value) => OnPropertyChanged(nameof(HasError));
-    partial void OnIsSellerChanged(bool value)
+    partial void OnWantsToSellChanged(bool value)
     {
-        // Beim Deaktivieren von Seller: SellerType-Felder zuruecksetzen
+        // Beim Deaktivieren: Verkaeufer-Felder zuruecksetzen
         if (!value)
         {
             IsPrivateSeller = true;
             IsBrokerSeller = false;
+            IsPropertyManagerSeller = false;
             CompanyName = string.Empty;
         }
     }
     partial void OnIsPrivateSellerChanged(bool value)
     {
-        if (value) IsBrokerSeller = false;
+        if (value)
+        {
+            IsBrokerSeller = false;
+            IsPropertyManagerSeller = false;
+        }
+        OnPropertyChanged(nameof(NeedsCompanyName));
     }
     partial void OnIsBrokerSellerChanged(bool value)
     {
-        if (value) IsPrivateSeller = false;
+        if (value)
+        {
+            IsPrivateSeller = false;
+            IsPropertyManagerSeller = false;
+        }
+        OnPropertyChanged(nameof(NeedsCompanyName));
+    }
+    partial void OnIsPropertyManagerSellerChanged(bool value)
+    {
+        if (value)
+        {
+            IsPrivateSeller = false;
+            IsBrokerSeller = false;
+        }
     }
 
     [RelayCommand]
@@ -134,20 +156,15 @@ public partial class RegisterViewModel : ObservableObject
         {
             _logger.LogInformation("Registrierung fuer {Email}", Email);
 
-            // Rollen basierend auf Auswahl erstellen
-            var selectedRoles = new List<ApiUserRoleType>();
-            if (IsBuyer)
-                selectedRoles.Add(ApiUserRoleType.Buyer);
-            if (IsSeller)
-                selectedRoles.Add(ApiUserRoleType.Seller);
-
-            // SellerType bestimmen
+            // SellerType nur setzen wenn der Benutzer verkaufen moechte
             ApiSellerType? sellerType = null;
-            if (IsSeller)
+            if (WantsToSell)
             {
-                sellerType = IsPrivateSeller
-                    ? ApiSellerType.Private
-                    : ApiSellerType.Broker;
+                sellerType = IsBrokerSeller
+                    ? ApiSellerType.Broker
+                    : IsPropertyManagerSeller
+                        ? ApiSellerType.PropertyManager
+                        : ApiSellerType.Private;
             }
 
             // Der RegisterHttpRequest wird automatisch aus der OpenAPI-Spec generiert
@@ -155,13 +172,12 @@ public partial class RegisterViewModel : ObservableObject
             {
                 Body = new RegisterRequest
                 {
-                    Vorname = Vorname,
-                    Nachname = Nachname,
+                    FirstName = Vorname,
+                    LastName = Nachname,
                     Email = Email,
-                    Passwort = Passwort,
-                    Roles = selectedRoles,
+                    Password = Passwort,
                     SellerType = sellerType,
-                    CompanyName = IsBrokerSeller ? CompanyName : null
+                    CompanyName = WantsToSell && NeedsCompanyName ? CompanyName : null
                 }
             });
 
@@ -229,11 +245,9 @@ public partial class RegisterViewModel : ObservableObject
             return "Das Passwort muss mindestens 8 Zeichen lang sein.";
         if (Passwort != PasswortBestaetigung)
             return "Die Passwörter stimmen nicht überein.";
-        if (!IsBuyer && !IsSeller)
-            return "Bitte wählen Sie mindestens eine Rolle (Käufer oder Verkäufer).";
-        if (IsSeller && !IsPrivateSeller && !IsBrokerSeller)
-            return "Bitte wählen Sie einen Verkäufertyp (Privatperson oder Makler).";
-        if (IsBrokerSeller && string.IsNullOrWhiteSpace(CompanyName))
+        if (WantsToSell && !IsPrivateSeller && !IsBrokerSeller && !IsPropertyManagerSeller)
+            return "Bitte wählen Sie einen Anbietertyp (Privat, Makler oder Verwaltung).";
+        if (WantsToSell && NeedsCompanyName && string.IsNullOrWhiteSpace(CompanyName))
             return "Bitte geben Sie Ihren Firmennamen ein.";
         return string.Empty;
     }

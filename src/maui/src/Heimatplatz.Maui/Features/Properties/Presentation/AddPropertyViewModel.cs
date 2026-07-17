@@ -363,7 +363,6 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
 
         try
         {
-            var sellerName = _authService.UserFullName ?? "Unbekannt";
             var municipalityId = SelectedGemeindeId!.Value;
 
             // Zuerst Bilder hochladen um URLs zu erhalten
@@ -407,8 +406,7 @@ public partial class AddPropertyViewModel : ObservableObject, IPageLifecycleAwar
                     MunicipalityId = municipalityId,
                     Price = (double)preisValue,
                     Type = SelectedTyp,
-                    SellerType = SellerType.Private,
-                    SellerName = sellerName,
+                    // SellerType/SellerName leitet der Server aus dem Benutzerprofil ab
                     Description = Beschreibung.Trim(),
                     LivingAreaSquareMeters = wohnflaecheValue,
                     PlotAreaSquareMeters = grundstuecksValue,

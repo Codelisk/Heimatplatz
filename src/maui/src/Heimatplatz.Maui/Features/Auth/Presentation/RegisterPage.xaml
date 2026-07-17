@@ -98,44 +98,25 @@
                                ReturnCommand="{Binding RegisterCommand}" />
                     </VerticalStackLayout>
 
-                    <!-- Rollenauswahl -->
+                    <!-- Verkäufer-Sektion: Suchen kann jeder Account, nur Anbieten ist optional -->
                     <VerticalStackLayout Spacing="10" Margin="0,6,0,0">
-                        <Label Text="Ich möchte..."
-                               Style="{StaticResource FieldLabel}" />
-                        <Label Text="Wählen Sie mindestens eine Option"
-                               Style="{StaticResource Caption}"
-                               Margin="0,-4,0,4" />
 
-                        <!-- Käufer Checkbox -->
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                            <CheckBox Grid.Column="0"
-                                      IsChecked="{Binding IsBuyer, Mode=TwoWay}"
-                                      VerticalOptions="Start" />
-                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                                <Label Text="Immobilien suchen"
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="Ich möchte auch Immobilien anbieten"
                                        Style="{StaticResource BodyStrong}" />
-                                <Label Text="Als Käufer Angebote entdecken"
+                                <Label Text="Suchen und Favorisieren kann jedes Konto"
                                        Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
+                            <Switch Grid.Column="1"
+                                    IsToggled="{Binding WantsToSell, Mode=TwoWay}"
+                                    VerticalOptions="Center" />
                         </Grid>
 
-                        <!-- Verkäufer Checkbox -->
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                            <CheckBox Grid.Column="0"
-                                      IsChecked="{Binding IsSeller, Mode=TwoWay}"
-                                      VerticalOptions="Start" />
-                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                                <Label Text="Immobilien anbieten"
-                                       Style="{StaticResource BodyStrong}" />
-                                <Label Text="Als Verkäufer Objekte inserieren"
-                                       Style="{StaticResource Caption}" />
-                            </VerticalStackLayout>
-                        </Grid>
-
-                        <!-- Verkäufertyp-Auswahl (nur wenn Seller) -->
+                        <!-- Anbietertyp-Auswahl (nur wenn Verkäufer) -->
                         <VerticalStackLayout Spacing="10"
-                                             Margin="28,6,0,0"
-                                             IsVisible="{Binding IsSeller}">
+                                             Margin="0,6,0,0"
+                                             IsVisible="{Binding WantsToSell}">
                             <Label Text="Ich biete an als:"
                                    Style="{StaticResource FieldLabel}" />
 
@@ -165,10 +146,23 @@
                                 </RadioButton.Content>
                             </RadioButton>
 
-                            <!-- Firmenname (nur bei Broker) -->
+                            <!-- Hausverwaltung -->
+                            <RadioButton IsChecked="{Binding IsPropertyManagerSeller, Mode=TwoWay}"
+                                         GroupName="SellerType">
+                                <RadioButton.Content>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="Hausverwaltung"
+                                               Style="{StaticResource BodyStrong}" />
+                                        <Label Text="Objekte im Auftrag von Eigentümern verwalten"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+                                </RadioButton.Content>
+                            </RadioButton>
+
+                            <!-- Firmenname (bei Makler und Verwaltung) -->
                             <VerticalStackLayout Spacing="6"
                                                  Margin="0,6,0,0"
-                                                 IsVisible="{Binding IsBrokerSeller}">
+                                                 IsVisible="{Binding NeedsCompanyName}">
                                 <Label Text="Firmenname"
                                        Style="{StaticResource FieldLabel}" />
                                 <Entry Text="{Binding CompanyName}"
