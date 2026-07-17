@@ -151,6 +151,9 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
     [RelayCommand]
     private Task GoToRegisterAsync() => _navigator.NavigateTo("Register");
 
+    [RelayCommand]
+    private Task GoToForgotPasswordAsync() => _navigator.NavigateTo("ForgotPassword");
+
     private string GetValidationError()
     {
         if (string.IsNullOrWhiteSpace(Email))

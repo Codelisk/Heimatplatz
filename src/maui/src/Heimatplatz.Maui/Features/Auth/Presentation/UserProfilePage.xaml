@@ -60,7 +60,7 @@
                                  MaximumWidthRequest="600"
                                  HorizontalOptions="Fill">
 
-                <!-- E-Mail Karte -->
+                <!-- E-Mail Karte inkl. Bestaetigungsstatus + Neuversand -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="E-Mail"
@@ -68,6 +68,25 @@
                         <Label Text="{Binding UserEmail}"
                                Style="{StaticResource BodyStrong}"
                                LineBreakMode="WordWrap" />
+                        <Label Text="✓ E-Mail-Adresse bestätigt"
+                               Style="{StaticResource Caption}"
+                               IsVisible="{Binding IsEmailVerified}" />
+                        <VerticalStackLayout Spacing="10"
+                                             Margin="0,6,0,0"
+                                             IsVisible="{Binding IsEmailNotVerified}">
+                            <Label Text="Noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner)."
+                                   Style="{StaticResource Caption}" />
+                            <Button Text="Bestätigungs-E-Mail erneut senden"
+                                    Command="{Binding ResendVerificationEmailCommand}"
+                                    IsEnabled="{Binding IsNotDeletingAccount}"
+                                    Style="{StaticResource SecondaryButton}" />
+                            <ActivityIndicator IsRunning="{Binding IsResendingVerification}"
+                                               IsVisible="{Binding IsResendingVerification}"
+                                               HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                        <Label Text="{Binding VerificationStatusMessage}"
+                               IsVisible="{Binding HasVerificationStatus}"
+                               Style="{StaticResource Caption}" />
                     </VerticalStackLayout>
                 </Border>
 

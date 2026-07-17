@@ -84,6 +84,24 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     [ObservableProperty]
     public partial bool IsSavingProfile { get; set; }
 
+    // ===== E-Mail-Bestaetigung =====
+
+    /// <summary>Startet mit true, damit die "nicht bestaetigt"-UI nicht kurz aufblitzt, bis das Profil geladen ist.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmailNotVerified))]
+    public partial bool IsEmailVerified { get; set; }
+
+    public bool IsEmailNotVerified => !IsEmailVerified;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasVerificationStatus))]
+    public partial string? VerificationStatusMessage { get; set; }
+
+    public bool HasVerificationStatus => !string.IsNullOrEmpty(VerificationStatusMessage);
+
+    [ObservableProperty]
+    public partial bool IsResendingVerification { get; set; }
+
     // ===== Passwort aendern =====
 
     [ObservableProperty]
@@ -164,6 +182,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         EditLastName = string.Empty;
         EditIsPrivate = true;
         EditCompanyName = string.Empty;
+        IsEmailVerified = true;
         CurrentPassword = string.Empty;
         NewPassword = string.Empty;
         NewPasswordConfirm = string.Empty;
@@ -207,6 +226,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             EditIsBroker = profile.SellerType == ApiClient.Generated.SellerType.Broker;
             EditIsPropertyManager = profile.SellerType == ApiClient.Generated.SellerType.PropertyManager;
             EditCompanyName = profile.CompanyName ?? string.Empty;
+            IsEmailVerified = profile.EmailVerified;
         }
         catch (Exception ex)
         {
@@ -278,6 +298,43 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         finally
         {
             IsSavingProfile = false;
+        }
+    }
+
+    /// <summary>
+    /// Fordert den Neuversand der Verifikations-Mail an (nur sichtbar solange die
+    /// E-Mail-Adresse nicht bestaetigt ist). Bestaetigt wird ueber den Link in der Mail.
+    /// </summary>
+    [RelayCommand]
+    private async Task ResendVerificationEmailAsync()
+    {
+        VerificationStatusMessage = null;
+        IsResendingVerification = true;
+        try
+        {
+            var (_, result) = await _mediator.Request(new ResendVerificationEmailHttpRequest
+            {
+                Body = new ResendVerificationEmailRequest()
+            });
+
+            if (result?.AlreadyVerified == true)
+            {
+                IsEmailVerified = true;
+                VerificationStatusMessage = "Ihre E-Mail-Adresse ist bereits bestätigt.";
+            }
+            else
+            {
+                VerificationStatusMessage = "Bestätigungs-E-Mail wurde gesendet. Bitte prüfen Sie Ihr Postfach.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[UserProfile] Verifikations-Mail-Versand fehlgeschlagen");
+            VerificationStatusMessage = "Der Versand ist fehlgeschlagen. Bitte versuchen Sie es später erneut.";
+        }
+        finally
+        {
+            IsResendingVerification = false;
         }
     }
 
