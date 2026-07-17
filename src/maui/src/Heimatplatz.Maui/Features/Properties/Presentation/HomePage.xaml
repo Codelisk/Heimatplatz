@@ -124,10 +124,13 @@
 
             <!-- Filter-Chip-Zeile: alle Kernfilter einen Tap entfernt; blendet sich
                  beim Runterscrollen aus und beim Hochwischen wieder ein -->
+            <!-- Feste Hoehe (= Header-Spacer der Liste): WinUI ignoriert VerticalOptions=Start
+                 bei horizontalen ScrollViews im Grid-Overlay und streckt sie sonst seitenhoch -->
             <ScrollView x:Name="FilterChipBar"
                         Orientation="Horizontal"
                         HorizontalScrollBarVisibility="Never"
                         VerticalOptions="Start"
+                        HeightRequest="56"
                         BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
                 <HorizontalStackLayout Spacing="8" Padding="12,8,12,10">
 

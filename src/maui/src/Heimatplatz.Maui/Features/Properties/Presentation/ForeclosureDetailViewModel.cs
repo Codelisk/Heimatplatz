@@ -154,6 +154,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImageCounterText))]
+    [NotifyPropertyChangedFor(nameof(CurrentImageUrl))]
     public partial int CurrentImagePosition { get; set; }
 
     [ObservableProperty]
@@ -168,6 +169,22 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     public string ImageCounterText => ImageUrls.Count > 0
         ? $"{CurrentImagePosition + 1} / {ImageUrls.Count}"
         : string.Empty;
+
+    /// <summary>
+    /// Aktuelles Bild fuer den Windows-Bildviewer (Einzelbild statt CarouselView)
+    /// </summary>
+    public string? CurrentImageUrl => CurrentImagePosition >= 0 && CurrentImagePosition < ImageUrls.Count
+        ? ImageUrls[CurrentImagePosition]
+        : null;
+
+    /// <summary>True bei mehr als einem Bild (blendet die Pfeile im Windows-Bildviewer ein)</summary>
+    public bool HasMultipleImages => ImageUrls.Count > 1;
+
+    partial void OnImageUrlsChanged(List<string> value)
+    {
+        OnPropertyChanged(nameof(CurrentImageUrl));
+        OnPropertyChanged(nameof(HasMultipleImages));
+    }
 
     /// <summary>
     /// Text fuer den Favoriten-Button je nach Status
@@ -576,6 +593,22 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     /// <summary>
     /// Kopiert einen Text in die Zwischenablage
     /// </summary>
+    [RelayCommand]
+    private void ShowPreviousImage()
+    {
+        if (ImageUrls.Count == 0)
+            return;
+        CurrentImagePosition = CurrentImagePosition <= 0 ? ImageUrls.Count - 1 : CurrentImagePosition - 1;
+    }
+
+    [RelayCommand]
+    private void ShowNextImage()
+    {
+        if (ImageUrls.Count == 0)
+            return;
+        CurrentImagePosition = CurrentImagePosition >= ImageUrls.Count - 1 ? 0 : CurrentImagePosition + 1;
+    }
+
     [RelayCommand]
     private async Task CopyToClipboardAsync(string? text)
     {

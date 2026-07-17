@@ -31,26 +31,89 @@
                                VerticalOptions="Center" />
                     </Border>
 
-                    <CarouselView ItemsSource="{Binding ImageUrls}"
-                                  IndicatorView="ImageIndicator"
-                                  IsVisible="{Binding HasImages}"
-                                  Position="{Binding CurrentImagePosition}"
-                                  Loop="False">
-                        <CarouselView.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Image Source="{Binding .}"
-                                       Aspect="AspectFill" />
-                            </DataTemplate>
-                        </CarouselView.ItemTemplate>
-                    </CarouselView>
+                    <!-- Mobile: Swipe-Carousel. Unter WinUI ausgeblendet, weil der
+                         CarouselView-Container Bilder dort verzerrt auf Item-Groesse
+                         skaliert (Aspect wird komplett ignoriert) -->
+                    <Grid>
+                        <Grid.IsVisible>
+                            <OnPlatform x:TypeArguments="x:Boolean" Default="True">
+                                <On Platform="WinUI" Value="False" />
+                            </OnPlatform>
+                        </Grid.IsVisible>
 
-                    <IndicatorView x:Name="ImageIndicator"
-                                   IndicatorColor="#80FFFFFF"
-                                   SelectedIndicatorColor="White"
-                                   VerticalOptions="End"
-                                   HorizontalOptions="Center"
-                                   Margin="0,0,0,36"
-                                   IsVisible="{Binding HasImages}" />
+                        <CarouselView ItemsSource="{Binding ImageUrls}"
+                                      IndicatorView="ImageIndicator"
+                                      IsVisible="{Binding HasImages}"
+                                      Position="{Binding CurrentImagePosition}"
+                                      Loop="False">
+                            <CarouselView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Image Source="{Binding .}"
+                                           Aspect="AspectFill" />
+                                </DataTemplate>
+                            </CarouselView.ItemTemplate>
+                        </CarouselView>
+
+                        <IndicatorView x:Name="ImageIndicator"
+                                       IndicatorColor="#80FFFFFF"
+                                       SelectedIndicatorColor="White"
+                                       VerticalOptions="End"
+                                       HorizontalOptions="Center"
+                                       Margin="0,0,0,36"
+                                       IsVisible="{Binding HasImages}" />
+                    </Grid>
+
+                    <!-- Windows: Einzelbild + Pfeil-Navigation (Desktop hat kein Swipe) -->
+                    <Grid>
+                        <Grid.IsVisible>
+                            <OnPlatform x:TypeArguments="x:Boolean" Default="False">
+                                <On Platform="WinUI" Value="True" />
+                            </OnPlatform>
+                        </Grid.IsVisible>
+
+                        <Grid IsVisible="{Binding HasImages}">
+                            <Image Source="{Binding CurrentImageUrl}"
+                                   Aspect="AspectFill" />
+
+                            <Button Text="‹"
+                                    Command="{Binding ShowPreviousImageCommand}"
+                                    IsVisible="{Binding HasMultipleImages}"
+                                    FontSize="22"
+                                    Padding="0"
+                                    MinimumHeightRequest="0"
+                                    MinimumWidthRequest="0"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    CornerRadius="22"
+                                    BorderWidth="1"
+                                    BackgroundColor="{StaticResource GlassPillBackground}"
+                                    BorderColor="{StaticResource GlassPillStroke}"
+                                    TextColor="White"
+                                    HorizontalOptions="Start"
+                                    VerticalOptions="Center"
+                                    Margin="14,0,0,0"
+                                    AutomationId="Foreclosure_PreviousImage" />
+
+                            <Button Text="›"
+                                    Command="{Binding ShowNextImageCommand}"
+                                    IsVisible="{Binding HasMultipleImages}"
+                                    FontSize="22"
+                                    Padding="0"
+                                    MinimumHeightRequest="0"
+                                    MinimumWidthRequest="0"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    CornerRadius="22"
+                                    BorderWidth="1"
+                                    BackgroundColor="{StaticResource GlassPillBackground}"
+                                    BorderColor="{StaticResource GlassPillStroke}"
+                                    TextColor="White"
+                                    HorizontalOptions="End"
+                                    VerticalOptions="Center"
+                                    Margin="0,0,14,0"
+                                    AutomationId="Foreclosure_NextImage" />
+                        </Grid>
+                    </Grid>
 
                     <!-- Typ-Badge (Signal-Rot), eckig wie die Karten-Badges -->
                     <Border BackgroundColor="{Binding TypeBadgeColor}"
