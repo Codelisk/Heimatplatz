@@ -9,16 +9,23 @@
     <ScrollView>
         <VerticalStackLayout Spacing="0">
 
-            <!-- Hero Header mit Avatar -->
-            <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}"
-                    StrokeThickness="0"
-                    Padding="24,48,24,32">
-                <VerticalStackLayout HorizontalOptions="Center" Spacing="16">
+            <!-- Hero: Markenverlauf wie Web-Profil - Light wird zur Sonne hin heller
+                 (tiefes Rot -> sonniges Koralle), Dark im Rot-Schwarz-Verlauf -->
+            <Border StrokeThickness="0"
+                    Padding="24,40,24,28">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0.6,1">
+                        <GradientStop Color="{AppThemeBinding Light=#C9161C, Dark=#BB0916}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light=#EE6A50, Dark=#1A0508}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="14">
 
-                    <!-- Avatar Circle -->
+                    <!-- Avatar: heller Kreis mit roten Initialen und rotem Rand (wie Web) -->
                     <Border WidthRequest="96"
                             HeightRequest="96"
-                            StrokeThickness="0"
+                            Stroke="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                            StrokeThickness="3"
                             StrokeShape="RoundRectangle 48"
                             BackgroundColor="{StaticResource White}"
                             HorizontalOptions="Center">
@@ -30,98 +37,190 @@
                                VerticalOptions="Center" />
                     </Border>
 
-                    <!-- Name -->
-                    <Label Text="{Binding UserFullName}"
-                           FontSize="24"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource White}"
-                           HorizontalOptions="Center"
-                           HorizontalTextAlignment="Center"
-                           LineBreakMode="WordWrap" />
-
-                    <!-- Rollen-Badge -->
-                    <Border BackgroundColor="{StaticResource White}"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 16"
-                            Padding="16,8"
-                            HorizontalOptions="Center">
-                        <Label Text="{Binding RoleBadgeText}"
-                               FontSize="13"
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding UserFullName}"
+                               FontSize="24"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Gray900}"
-                               HorizontalOptions="Center" />
-                    </Border>
+                               TextColor="{StaticResource White}"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap" />
+                        <Label Text="{Binding UserEmail}"
+                               FontSize="13"
+                               TextColor="#B3FFFFFF"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="TailTruncation" />
+                    </VerticalStackLayout>
+
+                    <!-- Rollen- und Verifikations-Badges -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                        <Border BackgroundColor="{StaticResource White}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14,6">
+                            <Label Text="{Binding RoleBadgeText}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Gray900}" />
+                        </Border>
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14,6"
+                                IsVisible="{Binding ShowVerifiedBadge}">
+                            <Label Text="✓ E-Mail bestätigt"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource SuccessBannerForeground}, Dark={StaticResource SuccessBannerForegroundDark}}" />
+                        </Border>
+                    </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Info-Karten -->
-            <VerticalStackLayout Padding="16,24"
-                                 Spacing="16"
+            <VerticalStackLayout Padding="16,20,16,0"
+                                 Spacing="14"
                                  MaximumWidthRequest="600"
                                  HorizontalOptions="Fill">
 
-                <!-- E-Mail Karte inkl. Bestaetigungsstatus + Neuversand -->
-                <Border Style="{StaticResource Card}">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="E-Mail"
-                               Style="{StaticResource Caption}" />
-                        <Label Text="{Binding UserEmail}"
-                               Style="{StaticResource BodyStrong}"
-                               LineBreakMode="WordWrap" />
-                        <Label Text="✓ E-Mail-Adresse bestätigt"
-                               Style="{StaticResource Caption}"
-                               IsVisible="{Binding IsEmailVerified}" />
-                        <VerticalStackLayout Spacing="10"
-                                             Margin="0,6,0,0"
-                                             IsVisible="{Binding IsEmailNotVerified}">
-                            <Label Text="Noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner)."
-                                   Style="{StaticResource Caption}" />
-                            <Button Text="Bestätigungs-E-Mail erneut senden"
-                                    Command="{Binding ResendVerificationEmailCommand}"
-                                    IsEnabled="{Binding IsNotDeletingAccount}"
-                                    Style="{StaticResource SecondaryButton}" />
-                            <ActivityIndicator IsRunning="{Binding IsResendingVerification}"
-                                               IsVisible="{Binding IsResendingVerification}"
-                                               HorizontalOptions="Center" />
-                        </VerticalStackLayout>
+                <!-- Hinweis-Banner: nur solange die E-Mail-Adresse unbestaetigt ist -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource WarningBannerBackground}, Dark={StaticResource WarningBannerBackgroundDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource WarningBannerForeground}, Dark={StaticResource WarningBannerForegroundDark}}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10"
+                        Padding="16"
+                        IsVisible="{Binding IsEmailNotVerified}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="E-Mail-Adresse bestätigen"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource WarningBannerForeground}, Dark={StaticResource WarningBannerForegroundDark}}" />
+                        <Label Text="Ihre E-Mail-Adresse ist noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner)."
+                               FontSize="13"
+                               LineBreakMode="WordWrap"
+                               TextColor="{AppThemeBinding Light={StaticResource WarningBannerForeground}, Dark={StaticResource WarningBannerForegroundDark}}" />
+                        <Button Text="Bestätigungs-E-Mail erneut senden"
+                                Command="{Binding ResendVerificationEmailCommand}"
+                                IsEnabled="{Binding IsNotDeletingAccount}"
+                                Style="{StaticResource SecondaryButton}" />
+                        <ActivityIndicator IsRunning="{Binding IsResendingVerification}"
+                                           IsVisible="{Binding IsResendingVerification}"
+                                           HorizontalOptions="Center" />
                         <Label Text="{Binding VerificationStatusMessage}"
                                IsVisible="{Binding HasVerificationStatus}"
                                Style="{StaticResource Caption}" />
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Käufer: gilt fuer jedes Konto -->
-                <Border Style="{StaticResource Card}">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="Suchen &amp; Favorisieren"
-                               Style="{StaticResource Caption}" />
-                        <Label Text="Käufer"
-                               Style="{StaticResource BodyStrong}" />
-                        <Label Text="Immobilien suchen, favorisieren und Suchprofile speichern - in jedem Konto enthalten"
-                               Style="{StaticResource Caption}" />
-                    </VerticalStackLayout>
-                </Border>
+                <!-- Konto-Ueberblick: Zaehler-Kacheln mit Direkteinstieg.
+                     Verkaeufer sehen 3 Kacheln, Kaeufer 2 (eigene Grids, damit
+                     keine leere Spalte bleibt). -->
+                <Grid ColumnDefinitions="*,*,*"
+                      ColumnSpacing="10"
+                      IsVisible="{Binding IsSeller}">
+                    <Border Grid.Column="0" Style="{StaticResource Card}" Padding="12,9">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToFavoritesCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding FavoritesCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
+                            <Label Text="Favoriten" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,9">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToBlockedCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding BlockedCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
+                            <Label Text="Blockiert" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12,9">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToMyPropertiesCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding MyPropertiesCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
+                            <Label Text="Inserate" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="10"
+                      IsVisible="{Binding IsBuyerOnly}">
+                    <Border Grid.Column="0" Style="{StaticResource Card}" Padding="12,9">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToFavoritesCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding FavoritesCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
+                            <Label Text="Favoriten" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,9">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToBlockedCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding BlockedCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
+                            <Label Text="Blockiert" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
 
-                <!-- Verkäufer mit Anbietertyp (nur wenn SellerType gesetzt) -->
-                <Border Style="{StaticResource Card}"
-                        IsVisible="{Binding IsSeller}">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="Inserieren"
-                               Style="{StaticResource Caption}" />
-                        <Label Text="{Binding SellerTypeLabel}"
-                               Style="{StaticResource BodyStrong}" />
-                        <Label Text="Immobilien anbieten und verwalten"
-                               Style="{StaticResource Caption}" />
+                <!-- Schnellzugriff: Ziele ohne eigene Kachel (wie Web-Profil) -->
+                <Border Style="{StaticResource Card}" Padding="6">
+                    <VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto"
+                              Padding="12,12"
+                              IsVisible="{Binding IsSeller}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToAddPropertyCommand}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                <Label Text="Immobilie inserieren" Style="{StaticResource BodyStrong}" />
+                                <Label Text="Neues Inserat erstellen" Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1" Text="›" FontSize="20" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource Divider}" IsVisible="{Binding IsSeller}" />
+                        <Grid ColumnDefinitions="*,Auto" Padding="12,12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToNotificationSettingsCommand}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                <Label Text="Benachrichtigungen" Style="{StaticResource BodyStrong}" />
+                                <Label Text="Hinweise zu neuen Objekten" Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1" Text="›" FontSize="20" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource Divider}" />
+                        <Grid ColumnDefinitions="*,Auto" Padding="12,12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToFilterSettingsCommand}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                <Label Text="Filtereinstellungen" Style="{StaticResource BodyStrong}" />
+                                <Label Text="Gespeicherte Suche anpassen" Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1" Text="›" FontSize="20" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Profil & Verkaeufer-Einstellungen (nachtraeglich aenderbar) -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="12">
-                        <Label Text="Profil &amp; Verkäufer-Einstellungen"
-                               Style="{StaticResource BodyStrong}" />
-                        <Label Text="Sie können jederzeit Verkäufer werden, den Anbietertyp wechseln oder das Anbieten deaktivieren. Bestehende Inserate behalten ihre bisherigen Angaben."
-                               Style="{StaticResource Caption}" />
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Profil"
+                                   Style="{StaticResource CardTitle}" />
+                            <Label Text="Name und Verkäufer-Einstellungen"
+                                   Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                             <VerticalStackLayout Grid.Column="0" Spacing="6">
@@ -135,16 +234,19 @@
                         </Grid>
 
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                            <Label Grid.Column="0"
-                                   Text="Ich möchte Immobilien anbieten"
-                                   Style="{StaticResource BodyStrong}"
-                                   VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                <Label Text="Ich möchte Immobilien anbieten"
+                                       Style="{StaticResource BodyStrong}" />
+                                <Label Text="Jederzeit aktivierbar oder deaktivierbar - bestehende Inserate behalten ihre Angaben."
+                                       Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
                             <Switch Grid.Column="1"
                                     IsToggled="{Binding EditWantsToSell, Mode=TwoWay}"
                                     VerticalOptions="Center" />
                         </Grid>
 
                         <VerticalStackLayout Spacing="8" IsVisible="{Binding EditWantsToSell}">
+                            <Label Text="Anbietertyp" Style="{StaticResource FieldLabel}" />
                             <RadioButton Content="Privatperson"
                                          IsChecked="{Binding EditIsPrivate, Mode=TwoWay}"
                                          GroupName="ProfileSellerType" />
@@ -175,18 +277,26 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Passwort aendern (widerruft alle anderen Sitzungen) -->
+                <!-- Sicherheit: Passwort aendern (widerruft alle anderen Sitzungen) -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="12">
-                        <Label Text="Passwort ändern"
-                               Style="{StaticResource BodyStrong}" />
-                        <Label Text="Nach der Änderung werden alle anderen angemeldeten Geräte abgemeldet."
-                               Style="{StaticResource Caption}" />
-
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Aktuelles Passwort" Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding CurrentPassword}" IsPassword="True" />
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Sicherheit"
+                                   Style="{StaticResource CardTitle}" />
+                            <Label Text="Passwort ändern - andere Geräte werden dabei abgemeldet"
+                                   Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Aktuelles Passwort" Style="{StaticResource FieldLabel}" VerticalOptions="Center" />
+                            <Button Grid.Column="1"
+                                    Text="Passwort vergessen?"
+                                    Command="{Binding GoToForgotPasswordCommand}"
+                                    Style="{StaticResource LinkButton}"
+                                    FontSize="12" />
+                        </Grid>
+                        <Entry Text="{Binding CurrentPassword}" IsPassword="True" />
+
                         <VerticalStackLayout Spacing="6">
                             <Label Text="Neues Passwort" Style="{StaticResource FieldLabel}" />
                             <Entry Text="{Binding NewPassword}" IsPassword="True" Placeholder="Mindestens 8 Zeichen" />
@@ -218,11 +328,12 @@
                         FontAttributes="Bold"
                         FontSize="15"
                         HeightRequest="52"
-                        Margin="0,8,0,0" />
+                        Margin="0,4,0,0" />
 
                 <!-- Gefahrenzone: Konto löschen -->
                 <Border Style="{StaticResource Card}"
-                        Margin="0,8,0,40">
+                        Stroke="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}"
+                        Margin="0,4,0,40">
                     <VerticalStackLayout Spacing="12">
                         <Label Text="Konto löschen"
                                Style="{StaticResource CardTitle}"

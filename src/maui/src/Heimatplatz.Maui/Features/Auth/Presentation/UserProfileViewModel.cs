@@ -35,7 +35,26 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     public partial string RoleBadgeText { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsBuyerOnly))]
     public partial bool IsSeller { get; set; }
+
+    /// <summary>True fuer reine Kaeufer-Konten (steuert die 2er- statt 3er-Kachelzeile).</summary>
+    public bool IsBuyerOnly => !IsSeller;
+
+    // ===== Konto-Ueberblick (Zaehler-Kacheln) =====
+
+    [ObservableProperty]
+    public partial string FavoritesCountText { get; set; }
+
+    [ObservableProperty]
+    public partial string BlockedCountText { get; set; }
+
+    [ObservableProperty]
+    public partial string MyPropertiesCountText { get; set; }
+
+    /// <summary>Gruenes "E-Mail bestaetigt"-Badge im Hero - erst nach erfolgreichem Profil-Load sichtbar.</summary>
+    [ObservableProperty]
+    public partial bool ShowVerifiedBadge { get; set; }
 
     /// <summary>Beschreibung des Anbietertyps (Privatperson/Makler/Hausverwaltung)</summary>
     [ObservableProperty]
@@ -186,6 +205,9 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         CurrentPassword = string.Empty;
         NewPassword = string.Empty;
         NewPasswordConfirm = string.Empty;
+        FavoritesCountText = "–";
+        BlockedCountText = "–";
+        MyPropertiesCountText = "–";
 
         LoadUserData();
     }
@@ -205,7 +227,64 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
         LoadUserData();
         _ = LoadProfileForEditingAsync();
+        _ = LoadStatsAsync();
     }
+
+    /// <summary>
+    /// Laedt die Zaehler fuer die Ueberblicks-Kacheln (Favoriten/Blockiert/eigene
+    /// Inserate). PageSize 1, weil nur der Total-Wert gebraucht wird; Fehler lassen
+    /// den Platzhalter stehen - die Kacheln sind Komfort, keine Pflichtdaten.
+    /// </summary>
+    private async Task LoadStatsAsync()
+    {
+        try
+        {
+            var favoritesTask = _mediator.Request(new GetUserFavoritesHttpRequest { Page = 1, PageSize = 1 });
+            var blockedTask = _mediator.Request(new GetUserBlockedHttpRequest { Page = 1, PageSize = 1 });
+
+            var (_, favorites) = await favoritesTask;
+            if (favorites != null)
+                FavoritesCountText = favorites.Total.ToString();
+
+            var (_, blocked) = await blockedTask;
+            if (blocked != null)
+                BlockedCountText = blocked.Total.ToString();
+
+            if (IsSeller)
+            {
+                var (_, mine) = await _mediator.Request(new GetUserPropertiesHttpRequest { Page = 1, PageSize = 1 });
+                if (mine != null)
+                    MyPropertiesCountText = mine.Total.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[UserProfile] Konto-Zaehler konnten nicht geladen werden");
+        }
+    }
+
+    // ===== Schnellzugriff-Navigation =====
+
+    [RelayCommand]
+    private Task GoToFavoritesAsync() => _navigator.NavigateTo("Favorites", relativeNavigation: false);
+
+    [RelayCommand]
+    private Task GoToBlockedAsync() => _navigator.NavigateTo("Blocked", relativeNavigation: false);
+
+    [RelayCommand]
+    private Task GoToMyPropertiesAsync() => _navigator.NavigateTo("MyProperties", relativeNavigation: false);
+
+    [RelayCommand]
+    private Task GoToAddPropertyAsync() => _navigator.NavigateTo("PropertyWizard");
+
+    [RelayCommand]
+    private Task GoToNotificationSettingsAsync() => _navigator.NavigateTo("NotificationSettings", relativeNavigation: false);
+
+    [RelayCommand]
+    private Task GoToFilterSettingsAsync() => _navigator.NavigateTo("FilterSettings", relativeNavigation: false);
+
+    [RelayCommand]
+    private Task GoToForgotPasswordAsync() => _navigator.NavigateTo("ForgotPassword");
 
     /// <summary>
     /// Laedt das Profil vom Server und fuellt die Bearbeitungsfelder
@@ -227,6 +306,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             EditIsPropertyManager = profile.SellerType == ApiClient.Generated.SellerType.PropertyManager;
             EditCompanyName = profile.CompanyName ?? string.Empty;
             IsEmailVerified = profile.EmailVerified;
+            ShowVerifiedBadge = profile.EmailVerified;
         }
         catch (Exception ex)
         {
@@ -288,6 +368,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             // Neuer Access Token traegt die aktualisierten Claims sofort
             _authService.UpdateAccessToken(result.AccessToken);
             LoadUserData();
+            // Kachelzeile passt sich der neuen Rolle an (z.B. Inserate-Zaehler fuer neue Verkaeufer)
+            _ = LoadStatsAsync();
             ProfileStatusMessage = "Profil gespeichert.";
         }
         catch (Exception ex)
@@ -320,6 +402,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             if (result?.AlreadyVerified == true)
             {
                 IsEmailVerified = true;
+                ShowVerifiedBadge = true;
                 VerificationStatusMessage = "Ihre E-Mail-Adresse ist bereits bestätigt.";
             }
             else

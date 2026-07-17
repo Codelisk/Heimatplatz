@@ -82,6 +82,11 @@
     <Color x:Key="SuccessBannerBackgroundDark">#22331F</Color>
     <Color x:Key="SuccessBannerForeground">#396B33</Color>
     <Color x:Key="SuccessBannerForegroundDark">#ABCFA0</Color>
+    <!-- Hinweis-Banner (z.B. unbestaetigte E-Mail), analog Web-Token warning -->
+    <Color x:Key="WarningBannerBackground">#F7E9C8</Color>
+    <Color x:Key="WarningBannerBackgroundDark">#332B1B</Color>
+    <Color x:Key="WarningBannerForeground">#6B5320</Color>
+    <Color x:Key="WarningBannerForegroundDark">#E5C687</Color>
     <Color x:Key="FavoriteRed">#DE2A2F</Color>
 
     <Color x:Key="White">White</Color>
