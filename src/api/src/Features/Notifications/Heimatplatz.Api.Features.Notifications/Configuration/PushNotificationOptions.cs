@@ -16,6 +16,11 @@ public class PushNotificationOptions
     /// Apple Push Notification service configuration for iOS
     /// </summary>
     public ApnsOptions Apns { get; set; } = new();
+
+    /// <summary>
+    /// Web Push (VAPID) configuration for browsers
+    /// </summary>
+    public WebPushVapidOptions WebPush { get; set; } = new();
 }
 
 /// <summary>
@@ -79,4 +84,33 @@ public class ApnsOptions
                            && !string.IsNullOrEmpty(KeyId)
                            && (!string.IsNullOrWhiteSpace(PrivateKeyContent)
                                || !string.IsNullOrWhiteSpace(PrivateKeyPath));
+}
+
+/// <summary>
+/// Web Push (VAPID) configuration for browser push notifications
+/// </summary>
+public class WebPushVapidOptions
+{
+    /// <summary>
+    /// VAPID public key in base64url (web-push format). Also served to browsers
+    /// via GET /api/notifications/web-push-public-key.
+    /// </summary>
+    public string? PublicKey { get; set; }
+
+    /// <summary>
+    /// VAPID private key in base64url (web-push format).
+    /// Set via environment variable: PushNotifications__WebPush__PrivateKey
+    /// </summary>
+    public string? PrivateKey { get; set; }
+
+    /// <summary>
+    /// Contact for push services (mailto: or https: URL)
+    /// </summary>
+    public string Subject { get; set; } = "mailto:info@heimatplatz.at";
+
+    /// <summary>
+    /// Whether Web Push is enabled
+    /// </summary>
+    public bool Enabled => !string.IsNullOrWhiteSpace(PublicKey)
+                           && !string.IsNullOrWhiteSpace(PrivateKey);
 }

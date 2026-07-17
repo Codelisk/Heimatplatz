@@ -46,7 +46,9 @@ public class RegisterDeviceHandler(
             DeviceId = request.DeviceId,
             UserIdentifier = userId.ToString(),
             Platform = platform,
-            Environment = environment
+            Environment = environment,
+            // Web-Push-Subscriptions transportieren hier ihre p256dh/auth-Schluessel
+            Data = request.Data
         }, cancellationToken);
 
         return new RegisterDeviceResponse(true);

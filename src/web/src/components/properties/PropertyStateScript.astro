@@ -77,6 +77,7 @@
     drafts: "heimatplatz:property-drafts",
     notificationPreferences: "heimatplatz:notification-preferences",
     filterPreferences: "heimatplatz:filter-preferences",
+    webPushDeviceId: "heimatplatz:web-push-device-id",
   };
 
   // Debug-Tab kann den Endpunkt zur Laufzeit umschalten (nur localhost/LAN, wie MAUI-DebugPage)
@@ -914,6 +915,222 @@
       form.addEventListener("change", () => updateNotificationPreferenceVisibility(form));
       updateNotificationPreferenceVisibility(form);
     });
+  }
+
+  // ---- Web Push (Browser-Benachrichtigungen) ----
+  // Der Service Worker (public/push-sw.js) zeigt eingehende Pushes an und oeffnet
+  // beim Klick die Immobilien-Detailseite. Die Subscription wird ueber
+  // /api/notifications/register-device an das angemeldete Konto gebunden.
+  const WEB_PUSH_SW_PATH = "/push-sw.js";
+
+  function isWebPushSupported() {
+    return window.isSecureContext
+      && "serviceWorker" in navigator
+      && "PushManager" in window
+      && "Notification" in window;
+  }
+
+  function getWebPushDeviceId() {
+    let deviceId = window.localStorage.getItem(STORAGE_KEYS.webPushDeviceId);
+    if (!deviceId) {
+      deviceId = typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      try {
+        window.localStorage.setItem(STORAGE_KEYS.webPushDeviceId, deviceId);
+      } catch {
+        // Ohne localStorage entsteht pro Registrierung eine neue DeviceId -
+        // der Server konsolidiert dann ueber den Subscription-Endpoint (DeviceToken).
+      }
+    }
+    return deviceId;
+  }
+
+  function urlBase64ToUint8Array(base64: string) {
+    const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+    const normalized = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = window.atob(normalized);
+    return Uint8Array.from(raw, (char) => char.charCodeAt(0));
+  }
+
+  function bufferToBase64Url(buffer: ArrayBuffer | null) {
+    if (!buffer) return "";
+    let binary = "";
+    new Uint8Array(buffer).forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    return window.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  async function getWebPushSubscription() {
+    const registration = await navigator.serviceWorker.getRegistration(WEB_PUSH_SW_PATH);
+    return (await registration?.pushManager.getSubscription()) ?? null;
+  }
+
+  async function registerWebPushSubscription(subscription: PushSubscription) {
+    const keys = subscription.toJSON().keys ?? {};
+    await apiRequest("/api/notifications/register-device", {
+      method: "POST",
+      body: {
+        DeviceToken: subscription.endpoint,
+        Platform: "Web",
+        DeviceId: getWebPushDeviceId(),
+        Data: { p256dh: keys.p256dh ?? "", auth: keys.auth ?? "" },
+      },
+    });
+  }
+
+  function setWebPushUi(statusText: string, action: "enable" | "disable" | "login" | null, buttonLabel?: string) {
+    const section = document.querySelector<HTMLElement>("[data-web-push]");
+    if (!section) return;
+    section.hidden = false;
+
+    const status = section.querySelector<HTMLElement>("[data-web-push-status]");
+    if (status) status.textContent = statusText;
+
+    const button = section.querySelector<HTMLButtonElement>("[data-web-push-toggle]");
+    if (!button) return;
+    if (!action) {
+      button.hidden = true;
+      return;
+    }
+    button.hidden = false;
+    button.setAttribute("data-web-push-action", action);
+    button.textContent = buttonLabel ?? "";
+  }
+
+  async function renderWebPushSection() {
+    const section = document.querySelector<HTMLElement>("[data-web-push]");
+    if (!section) return;
+
+    if (!isWebPushSupported()) {
+      setWebPushUi(
+        "Dieser Browser unterstützt keine Push-Benachrichtigungen. Unter iOS die Seite zuerst zum Home-Bildschirm hinzufügen.",
+        null,
+      );
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      setWebPushUi(
+        "Benachrichtigungen sind für diese Website blockiert. Bitte in den Browser-Einstellungen wieder erlauben.",
+        null,
+      );
+      return;
+    }
+
+    const subscription = await getWebPushSubscription().catch(() => null);
+    if (subscription) {
+      setWebPushUi("Aktiv - neue passende Immobilien erscheinen als Browser-Benachrichtigung.", "disable", "Deaktivieren");
+    } else if (!readSession()) {
+      setWebPushUi("Zum Aktivieren bitte zuerst anmelden.", "login", "Anmelden");
+    } else {
+      setWebPushUi("Neue passende Immobilien direkt als Browser-Benachrichtigung erhalten.", "enable", "Aktivieren");
+    }
+  }
+
+  async function enableWebPush(button: HTMLButtonElement) {
+    if (!readSession()) {
+      window.location.href = "/anmelden/";
+      return;
+    }
+
+    button.disabled = true;
+    try {
+      setWebPushUi("Push wird eingerichtet...", null);
+      const registration = await navigator.serviceWorker.register(WEB_PUSH_SW_PATH);
+
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        void renderWebPushSection();
+        return;
+      }
+
+      const keyResponse = await apiRequest<{ Enabled?: boolean; PublicKey?: string | null }>(
+        "/api/notifications/web-push-public-key",
+        { skipAuth: true },
+      );
+      if (!keyResponse.PublicKey) {
+        setWebPushUi("Web-Push ist am Server derzeit nicht konfiguriert.", null);
+        return;
+      }
+
+      // Bei rotiertem VAPID-Schluessel ist die alte Subscription wertlos - neu abonnieren
+      let subscription = await registration.pushManager.getSubscription();
+      if (subscription && bufferToBase64Url(subscription.options.applicationServerKey) !== keyResponse.PublicKey) {
+        await subscription.unsubscribe();
+        subscription = null;
+      }
+
+      subscription ??= await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyResponse.PublicKey),
+      });
+
+      await registerWebPushSubscription(subscription);
+    } catch (error) {
+      console.warn("[Heimatplatz] Web-Push-Aktivierung fehlgeschlagen", error);
+      setWebPushUi(
+        error instanceof Error ? `Aktivierung fehlgeschlagen: ${error.message}` : "Aktivierung fehlgeschlagen.",
+        "enable",
+        "Erneut versuchen",
+      );
+      return;
+    } finally {
+      button.disabled = false;
+    }
+    void renderWebPushSection();
+  }
+
+  async function disableWebPush(button: HTMLButtonElement) {
+    button.disabled = true;
+    try {
+      const subscription = await getWebPushSubscription();
+      if (subscription) {
+        // Server-Abmeldung ist Best-Effort: ein verwaister Endpoint wird beim
+        // naechsten Sendeversuch automatisch geprunt (410 Gone).
+        try {
+          await apiRequest("/api/notifications/unregister-device", {
+            method: "POST",
+            body: { DeviceToken: subscription.endpoint, Platform: "Web" },
+          });
+        } catch (error) {
+          console.warn("[Heimatplatz] Web-Push-Server-Abmeldung fehlgeschlagen", error);
+        }
+        await subscription.unsubscribe();
+      }
+    } finally {
+      button.disabled = false;
+    }
+    void renderWebPushSection();
+  }
+
+  // Bestehende Subscription beim Seitenbesuch erneut ans aktuelle Konto binden
+  // (z.B. nach Logout/Login mit anderem Benutzer im selben Browser).
+  async function syncWebPushRegistration() {
+    if (!isWebPushSupported() || Notification.permission !== "granted" || !readSession()) return;
+    try {
+      const subscription = await getWebPushSubscription();
+      if (subscription) await registerWebPushSubscription(subscription);
+    } catch (error) {
+      console.warn("[Heimatplatz] Web-Push-Sync fehlgeschlagen", error);
+    }
+  }
+
+  function initWebPush() {
+    const section = document.querySelector<HTMLElement>("[data-web-push]");
+    if (!section) return;
+
+    const button = section.querySelector<HTMLButtonElement>("[data-web-push-toggle]");
+    button?.addEventListener("click", () => {
+      const action = button.getAttribute("data-web-push-action");
+      if (action === "enable") void enableWebPush(button);
+      else if (action === "disable") void disableWebPush(button);
+      else if (action === "login") window.location.href = "/anmelden/";
+    });
+
+    void renderWebPushSection();
+    void syncWebPushRegistration();
   }
 
   function bindPreferenceForms() {
@@ -2263,6 +2480,7 @@
     bindProfileStats();
     bindProfileForms();
     bindPreferenceForms();
+    initWebPush();
     bindPropertyForm();
     bindGlobalActions();
   }

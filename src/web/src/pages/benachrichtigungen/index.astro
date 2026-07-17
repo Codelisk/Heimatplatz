@@ -15,7 +15,23 @@ import OrtPicker from "@/components/properties/OrtPicker.astro";
       Suchbenachrichtigungen für neue Objekte in Linz, Wels, Steyr und weiteren Regionen
       speichern und mit dem Benutzerkonto synchronisieren.
     </p>
-    <form class="mt-8 space-y-4" data-preferences-form="notifications">
+    <div class="mt-8 rounded-lg border border-border bg-card p-4" data-web-push hidden>
+      <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+        <span>
+          <strong>Push in diesem Browser</strong><br />
+          <span class="text-muted-foreground" data-web-push-status>Status wird geprüft...</span>
+        </span>
+        <button
+          type="button"
+          class="inline-flex h-9 shrink-0 items-center rounded-md border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+          data-web-push-toggle
+          hidden
+        >
+          Aktivieren
+        </button>
+      </div>
+    </div>
+    <form class="mt-4 space-y-4" data-preferences-form="notifications">
       <label class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 text-sm">
         <span><strong>Benachrichtigungen</strong><br /><span class="text-muted-foreground">Push- oder E-Mail-Hinweise für neue passende Immobilien</span></span>
         <input type="checkbox" name="isEnabled" checked />

@@ -42,6 +42,12 @@ services:
       # Shared-Key fuer den manuellen Edikte-Sync-Trigger (X-Sync-Key-Header,
       # siehe TriggerForeclosureAuctionSyncHandler). Ohne Key ist der Endpoint gesperrt.
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      # Web Push (VAPID) fuer Browser-Benachrichtigungen. Schluesselpaar einmalig erzeugen
+      # (base64url, web-push-Format) und in der .env ablegen; ohne Keys bleibt der
+      # WebPush-Transport deaktiviert.
+      PushNotifications__WebPush__PublicKey: ${WEBPUSH_VAPID_PUBLIC_KEY:-}
+      PushNotifications__WebPush__PrivateKey: ${WEBPUSH_VAPID_PRIVATE_KEY:-}
+      PushNotifications__WebPush__Subject: ${WEBPUSH_VAPID_SUBJECT:-mailto:info@heimatplatz.at}
     volumes:
       # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
       # Container-Rebuilds ueberleben.
@@ -81,6 +87,10 @@ services:
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}
       PushNotifications__Apns__PrivateKeyPath: /run/secrets/apns-auth-key.p8
+      # Web Push (VAPID): gleiches Schluesselpaar wie Prod, siehe Kommentar beim api-Service
+      PushNotifications__WebPush__PublicKey: ${WEBPUSH_VAPID_PUBLIC_KEY:-}
+      PushNotifications__WebPush__PrivateKey: ${WEBPUSH_VAPID_PRIVATE_KEY:-}
+      PushNotifications__WebPush__Subject: ${WEBPUSH_VAPID_SUBJECT:-mailto:info@heimatplatz.at}
     volumes:
       - ./secrets/apns-auth-key.p8:/run/secrets/apns-auth-key.p8:ro
       - api_test_uploads:/app/wwwroot/uploads

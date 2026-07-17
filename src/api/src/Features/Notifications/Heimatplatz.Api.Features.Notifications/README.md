@@ -7,7 +7,8 @@ Push-Benachrichtigungen Backend für standortbasierte Immobilien-Alerts.
 Dieses Feature implementiert das Backend für Push-Benachrichtigungen mit:
 - Event-driven Architecture (PropertyCreatedEvent → Push Notification)
 - Standortbasierte Filterung (User erhält nur Notifications für ausgewählte Orte)
-- Device-Token Management für iOS/Android/Windows
+- Device-Token Management für iOS/Android/Web (Browser)
+- Transporte: FCM (Android), APNs (iOS), Web Push/VAPID (Browser) via Shiny.Extensions.Push
 - JWT-geschützte API-Endpoints
 
 ## Architektur
@@ -114,6 +115,9 @@ public class PropertyCreatedEventHandler(
 - `GetNotificationPreferencesHandler` - GET Preferences
 - `UpdateNotificationPreferencesHandler` - PUT Preferences
 - `RegisterDeviceHandler` - POST Device Registration
+- `UnregisterDeviceHandler` - POST Device-Abmeldung (z.B. Browser-Push deaktiviert)
+- `GetWebPushPublicKeyHandler` - GET VAPID-Public-Key für Browser-Subscriptions
+- `SendTestPushHandler` - POST Test-Broadcast (Admin)
 
 ## API Endpoints
 
@@ -196,6 +200,43 @@ Authorization: Bearer <JWT-Token>
 - Prüft ob Token bereits existiert (Update statt Insert)
 - Speichert Platform-Info für spätere Push-Delivery
 - Ein User kann mehrere Devices haben
+- Für `platform: "Web"` ist `deviceToken` die Subscription-Endpoint-URL und
+  `data` enthält die Browser-Schlüssel `p256dh` und `auth`:
+
+```json
+{
+  "deviceToken": "https://fcm.googleapis.com/fcm/send/...",
+  "platform": "Web",
+  "deviceId": "6f0f9c2e-...",
+  "data": { "p256dh": "BJx...", "auth": "k9d..." }
+}
+```
+
+### POST `/api/notifications/unregister-device`
+
+Entfernt eine Device-Registrierung (z.B. wenn der Benutzer Browser-Push deaktiviert).
+Kein Auth nötig - der Besitz des vollständigen Tokens/Endpoints ist der Nachweis.
+
+**Request:**
+```json
+{
+  "deviceToken": "https://fcm.googleapis.com/fcm/send/...",
+  "platform": "Web"
+}
+```
+
+### GET `/api/notifications/web-push-public-key`
+
+Liefert den öffentlichen VAPID-Schlüssel, den Browser für `pushManager.subscribe()`
+benötigen. Anonym aufrufbar.
+
+**Response:** `200 OK`
+```json
+{
+  "enabled": true,
+  "publicKey": "BKSWdxpVl1ora32WSQJtZ..."
+}
+```
 
 ## Events
 
@@ -318,6 +359,42 @@ app.MapShinyMediatorEndpoints();
 Heimatplatz.Api.Features.Notifications.MediatorEndpoints
     .MapGeneratedMediatorEndpoints(app);
 ```
+
+### Push-Transporte (`PushNotifications` Section)
+
+Konfiguriert in `appsettings.json` bzw. per Environment-Variablen
+(`PushProvidersConfiguration.AddPushProviders`). Jeder Transport aktiviert sich nur,
+wenn seine Pflichtwerte gesetzt sind:
+
+```json
+{
+  "PushNotifications": {
+    "Firebase": { "ServiceAccountPath": "firebase-service-account.json" },
+    "Apns": { "TeamId": "...", "KeyId": "...", "PrivateKeyPath": "apns-auth-key.p8" },
+    "WebPush": {
+      "PublicKey": "<VAPID public key, base64url>",
+      "PrivateKey": "<VAPID private key, base64url>",
+      "Subject": "mailto:info@heimatplatz.at"
+    }
+  }
+}
+```
+
+**VAPID-Schlüsselpaar erzeugen** (einmalig, P-256 im web-push-Format):
+
+```bash
+openssl ecparam -name prime256v1 -genkey -noout -out vapid.pem
+# PublicKey  = base64url(65-Byte uncompressed point)
+# PrivateKey = base64url(32-Byte Skalar)
+```
+
+Deployment (Hetzner): `WEBPUSH_VAPID_PUBLIC_KEY` / `WEBPUSH_VAPID_PRIVATE_KEY` /
+`WEBPUSH_VAPID_SUBJECT` in `deploy/hetzner/.env` setzen (siehe `docker-compose.yml`).
+Ein Dev-Schlüsselpaar liegt in `appsettings.Development.json`.
+
+Web-Frontend-Gegenstück: `src/web/public/push-sw.js` (Service Worker) und die Karte
+"Push in diesem Browser" auf `/benachrichtigungen` (Logik in
+`src/web/src/components/properties/PropertyStateScript.astro`).
 
 ## Testing
 

@@ -1363,6 +1363,26 @@
         }
       }
     },
+    "/api/notifications/web-push-public-key": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetWebPushPublicKey",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWebPushPublicKeyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notifications/register-device": {
       "post": {
         "tags": [
@@ -1416,6 +1436,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SendTestPushResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/unregister-device": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UnregisterDevice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnregisterDeviceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnregisterDeviceResponse"
                 }
               }
             }
@@ -3159,6 +3209,24 @@
           }
         }
       },
+      "GetWebPushPublicKeyResponse": {
+        "required": [
+          "Enabled",
+          "PublicKey"
+        ],
+        "type": "object",
+        "properties": {
+          "Enabled": {
+            "type": "boolean"
+          },
+          "PublicKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ImportContactDto": {
         "required": [
           "Type"
@@ -4338,6 +4406,15 @@
               "null",
               "string"
             ]
+          },
+          "Data": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       },
@@ -4808,6 +4885,32 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "UnregisterDeviceRequest": {
+        "required": [
+          "DeviceToken",
+          "Platform"
+        ],
+        "type": "object",
+        "properties": {
+          "DeviceToken": {
+            "type": "string"
+          },
+          "Platform": {
+            "type": "string"
+          }
+        }
+      },
+      "UnregisterDeviceResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
           }
         }
       },

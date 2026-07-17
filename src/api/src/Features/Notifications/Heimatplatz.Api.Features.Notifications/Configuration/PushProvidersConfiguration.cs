@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shiny.Extensions.Push;
 using Shiny.Extensions.Push.Apns;
 using Shiny.Extensions.Push.Fcm;
+using Shiny.Extensions.Push.WebPush;
 
 namespace Heimatplatz.Api.Features.Notifications.Configuration;
 
@@ -59,6 +60,16 @@ public static class PushProvidersConfiguration
                     {
                         apns.PrivateKeyPath = apnsPrivateKeyPath;
                     }
+                });
+            }
+
+            if (options.WebPush.Enabled)
+            {
+                push.AddWebPush(web =>
+                {
+                    web.PublicKey = options.WebPush.PublicKey!;
+                    web.PrivateKey = options.WebPush.PrivateKey!;
+                    web.Subject = options.WebPush.Subject;
                 });
             }
         });
