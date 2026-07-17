@@ -30,11 +30,10 @@
 		X-Frame-Options DENY
 		Referrer-Policy strict-origin-when-cross-origin
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
-		# CSP zunaechst im Report-Only-Modus: blockiert nichts, Verstoesse erscheinen
-		# in der Browser-Konsole. Nach Pruefung der Live-Seite (Konsole checken) den
-		# Header auf "Content-Security-Policy" umbenennen (enforcing).
+		# CSP enforcing (17.7.2026, vorher Report-Only): Live-Seiten geprueft, alle
+		# Ressourcen kommen von self bzw. der API-Domain, Formulare posten auf self.
 		# 'unsafe-inline' ist fuer Astros Inline-Scripts/-Styles (Theme-Init, Islands) noetig.
-		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI fuer den Edikte-Sync, nur von HOME_IP erreichbar.
@@ -63,10 +62,10 @@ www.{$WEB_DOMAIN} {
 		Referrer-Policy strict-origin-when-cross-origin
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Robots-Tag "noindex, nofollow"
-		# Report-Only wie Prod-Web; zusaetzlich TEST_API_DOMAIN, weil das Test-Web
+		# Enforcing wie Prod-Web; zusaetzlich TEST_API_DOMAIN, weil das Test-Web
 		# gegen die Test-API laeuft. (Der Debug-API-Umschalter auf localhost/LAN
-		# wuerde nur Konsolen-Reports ausloesen, nichts blockieren.)
-		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# waere auf HTTPS-Seiten ohnehin schon als Mixed Content geblockt.)
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI, nur von HOME_IP erreichbar (wie Prod-Web).
