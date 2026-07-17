@@ -7,9 +7,11 @@ using Heimatplatz.Maui.Features.Properties.Models;
 using PropertyCondition = Heimatplatz.Maui.Features.Properties.Models.PropertyCondition;
 using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Features.Properties.Sync;
+using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
+using Shiny.Mediator.Infrastructure;
 
 namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
@@ -25,6 +27,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     private readonly IMediator _mediator;
     private readonly IAuthService _authService;
     private readonly IPropertyStatusService _propertyStatusService;
+    private readonly IInternetService _internet;
     private readonly ILogger<PropertyDetailViewModel> _logger;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -78,10 +81,24 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     /// <summary>True wenn die Immobilie nicht geladen werden konnte (Fehler oder geloescht)</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowContent))]
     public partial bool HasLoadError { get; set; }
 
     [ObservableProperty]
     public partial string? LoadErrorText { get; set; }
+
+    [ObservableProperty]
+    public partial string LoadErrorIcon { get; set; }
+
+    [ObservableProperty]
+    public partial string LoadErrorTitle { get; set; }
+
+    /// <summary>True wenn ein erneuter Ladeversuch sinnvoll ist (nicht bei geloeschten Inseraten)</summary>
+    [ObservableProperty]
+    public partial bool CanRetryLoad { get; set; }
+
+    /// <summary>Inhalt ausblenden solange der Fehlerzustand angezeigt wird</summary>
+    public bool ShowContent => !HasLoadError;
 
     [ObservableProperty]
     public partial string TypeBadgeText { get; set; }
@@ -206,6 +223,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         IMediator mediator,
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
+        IInternetService internet,
         ILogger<PropertyDetailViewModel> logger)
     {
         _clipboardService = clipboardService;
@@ -213,9 +231,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         _mediator = mediator;
         _authService = authService;
         _propertyStatusService = propertyStatusService;
+        _internet = internet;
         _logger = logger;
 
         Title = "Immobilie";
+        LoadErrorIcon = string.Empty;
+        LoadErrorTitle = string.Empty;
         FormattedPrice = string.Empty;
         AddressText = string.Empty;
         ContactPersonText = string.Empty;
@@ -263,9 +284,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     {
         _syncSubscription?.Dispose();
         _syncSubscription = null;
+        _onlineWaitCts?.Cancel();
+        _onlineWaitCts = null;
     }
 
     #endregion
+
+    private CancellationTokenSource? _onlineWaitCts;
 
     private async Task LoadPropertyAsync(Guid propertyId)
     {
@@ -273,6 +298,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         BusyMessage = "Lade Immobilie...";
         HasLoadError = false;
         LoadErrorText = null;
+        _onlineWaitCts?.Cancel();
 
         try
         {
@@ -285,12 +311,21 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
                 Property = response.Property;
                 _logger.LogInformation("[PropertyDetail] Property loaded: {Title}", Property.Title);
             }
+            else if (_internet.IsAvailable)
+            {
+                // Der Server kennt die Immobilie nicht mehr - wirklich geloescht/abgelaufen
+                Property = null;
+                _logger.LogWarning("[PropertyDetail] Property {PropertyId} not found", propertyId);
+                SetLoadError(
+                    "🏠",
+                    "Nicht mehr verfügbar",
+                    "Dieses Inserat wurde vom Anbieter entfernt oder ist nicht mehr aktiv.",
+                    canRetry: false);
+            }
             else
             {
                 Property = null;
-                _logger.LogWarning("[PropertyDetail] Property {PropertyId} not found", propertyId);
-                HasLoadError = true;
-                LoadErrorText = "Diese Immobilie ist nicht mehr verfügbar.";
+                SetOfflineError(propertyId);
             }
 
             // Favoriten-Status laden
@@ -304,13 +339,27 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             UpdateDisplayProperties();
             IsFavorite = isFavorite;
         }
+        catch (Exception ex) when (ex is OfflineDataUnavailableException || !_internet.IsAvailable)
+        {
+            // Kein Internet und (noch) keine lokal gespeicherte Antwort - die Immobilie
+            // existiert weiterhin, sie kann nur gerade nicht geladen werden
+            _logger.LogInformation("[PropertyDetail] Offline ohne lokale Daten fuer {PropertyId}", propertyId);
+            Property = null;
+            UpdateDisplayProperties();
+            SetOfflineError(propertyId);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyDetail] Error loading property {PropertyId}", propertyId);
             Property = null;
             UpdateDisplayProperties();
-            HasLoadError = true;
-            LoadErrorText = "Die Immobilie konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
+            SetLoadError(
+                "📡",
+                "Laden fehlgeschlagen",
+                ex is HttpRequestException
+                    ? "Der Server ist gerade nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut."
+                    : "Bitte versuchen Sie es später erneut.",
+                canRetry: true);
         }
         finally
         {
@@ -318,6 +367,54 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             BusyMessage = null;
         }
     }
+
+    private void SetOfflineError(Guid propertyId)
+    {
+        SetLoadError(
+            "📡",
+            "Keine Internetverbindung",
+            "Diese Immobilie ist noch nicht lokal gespeichert. Sobald Sie wieder online sind, wird sie automatisch geladen.",
+            canRetry: true);
+        StartAutoReloadWhenOnline(propertyId);
+    }
+
+    private void SetLoadError(string icon, string title, string text, bool canRetry)
+    {
+        LoadErrorIcon = icon;
+        LoadErrorTitle = title;
+        LoadErrorText = text;
+        CanRetryLoad = canRetry;
+        HasLoadError = true;
+    }
+
+    /// <summary>
+    /// Laedt automatisch neu, sobald die Internetverbindung zurueckkehrt,
+    /// solange der Offline-Zustand auf dieser Seite sichtbar ist.
+    /// </summary>
+    private void StartAutoReloadWhenOnline(Guid propertyId)
+    {
+        _onlineWaitCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _onlineWaitCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _internet.WaitForAvailable(cts.Token).ConfigureAwait(false);
+                if (!cts.IsCancellationRequested)
+                    MainThread.BeginInvokeOnMainThread(() => _ = LoadPropertyAsync(propertyId));
+            }
+            catch (OperationCanceledException)
+            {
+                // Seite verlassen oder neuer Ladeversuch gestartet
+            }
+        });
+    }
+
+    [RelayCommand]
+    private Task RetryLoadAsync()
+        => Guid.TryParse(PropertyId, out var id) ? LoadPropertyAsync(id) : Task.CompletedTask;
 
     private void UpdateDisplayProperties()
     {

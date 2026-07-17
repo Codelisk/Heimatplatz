@@ -99,6 +99,12 @@ public static class MauiProgram
                 typeof(LocalFirstRequestMiddleware<,>),
                 ServiceLifetime.Singleton);
             cfg.AddMauiPersistentCache();
+            // Zwischen Cache und Offline-Middleware: verhindert, dass die Offline-Middleware
+            // (kein Internet + keine gespeicherte Antwort => null) ein null-Ergebnis liefert,
+            // das die Cache-Middleware dauerhaft persistieren wuerde
+            cfg.AddOpenRequestMiddleware(
+                typeof(NullResponseGuardMiddleware<,>),
+                ServiceLifetime.Singleton);
             cfg.UseMaui();
             cfg.PreventEventExceptions();
             cfg.AddOpenRequestMiddleware(

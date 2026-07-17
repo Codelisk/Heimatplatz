@@ -48,6 +48,15 @@ internal sealed class LocalFirstRequestMiddleware<TRequest, TResult>(
         var key = contractKeyProvider.GetContractKey(context.Message);
         var entry = await cache.Get<TResult>(key, cancellationToken).ConfigureAwait(false);
 
+        // Selbstheilung: Aeltere App-Versionen haben Offline-null-Antworten dauerhaft
+        // persistiert - solche Eintraege entfernen und wie einen Cache-Miss behandeln
+        if (entry is not null && entry.Value is null)
+        {
+            logger.LogWarning("Entferne persistierten null-Cache-Eintrag fuer {RequestType}", typeof(TRequest).Name);
+            await cache.Remove(key, false, cancellationToken).ConfigureAwait(false);
+            entry = null;
+        }
+
         // Pull-to-Refresh fordert online bewusst frische Daten an. Wenn der Server
         // trotz allgemeiner Internetverbindung nicht erreichbar ist, bleibt der
         // vorhandene lokale Stand sichtbar.

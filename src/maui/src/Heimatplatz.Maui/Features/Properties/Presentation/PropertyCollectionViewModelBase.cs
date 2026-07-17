@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Sync;
+using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -295,9 +296,14 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// Benutzerfreundlicher Hinweistext fuer Lade-/Aktionsfehler (keine rohen
     /// HTTP-/Exception-Texte) - auch von HomeViewModel genutzt.
     /// </summary>
-    public static string GetErrorHint(Exception ex) => ex is HttpRequestException
-        ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
-        : "Bitte versuchen Sie es später erneut.";
+    public static string GetErrorHint(Exception ex) => ex switch
+    {
+        OfflineDataUnavailableException =>
+            "Keine Internetverbindung. Diese Inhalte wurden noch nicht lokal gespeichert - sobald Sie wieder online sind, klappt es.",
+        HttpRequestException =>
+            "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+        _ => "Bitte versuchen Sie es später erneut."
+    };
 
     /// <summary>
     /// Laedt die Liste neu (erste Seite)

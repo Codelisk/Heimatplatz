@@ -14,17 +14,35 @@
          loest auf Android keinen Relayout des ScrollViews aus (stale Bounds). -->
     <Grid>
 
-        <ScrollView>
+        <!-- Fehler-/Offline-Zustand: ersetzt den Inhalt vollflaechig
+             (Offline mit Retry bzw. "nicht mehr verfuegbar" bei geloeschten Inseraten) -->
+        <Grid IsVisible="{Binding HasLoadError}"
+              Padding="32,0">
+            <VerticalStackLayout Spacing="8"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 MaximumWidthRequest="420">
+                <Label Text="{Binding LoadErrorIcon}"
+                       Style="{StaticResource EmptyStateIcon}" />
+                <Label Text="{Binding LoadErrorTitle}"
+                       Style="{StaticResource EmptyStateTitle}"
+                       AutomationId="Detail_LoadErrorTitle" />
+                <Label Text="{Binding LoadErrorText}"
+                       Style="{StaticResource EmptyStateHint}"
+                       AutomationId="Detail_LoadErrorMessage" />
+                <Button Text="Erneut versuchen"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding RetryLoadCommand}"
+                        IsVisible="{Binding CanRetryLoad}"
+                        Margin="0,10,0,0"
+                        HorizontalOptions="Center"
+                        AutomationId="Detail_RetryLoad" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <ScrollView IsVisible="{Binding ShowContent}">
             <!-- Bottom-Padding reserviert Platz fuer die eingeklappte Kontakt-Leiste -->
             <VerticalStackLayout Spacing="0" Padding="0,0,0,96">
-
-                <!-- Fehler-/Nicht-mehr-verfuegbar-Hinweis -->
-                <Border IsVisible="{Binding HasLoadError}"
-                        Style="{StaticResource ErrorBanner}"
-                        Margin="16,16,16,8">
-                    <Label Text="{Binding LoadErrorText}"
-                           Style="{StaticResource ErrorBannerText}" />
-                </Border>
 
                 <!-- Hero: Bilder-Carousel, Content-Sheet gleitet darueber -->
                 <Grid HeightRequest="300">
