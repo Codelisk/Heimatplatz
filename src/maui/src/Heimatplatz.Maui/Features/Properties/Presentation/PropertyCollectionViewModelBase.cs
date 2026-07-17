@@ -255,6 +255,51 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     protected abstract Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId);
 
     /// <summary>
+    /// Gemeinsame Fetch-Logik der Sammlungen: Request ausfuehren (optional am Cache
+    /// vorbei) und die Response auf das Seiten-Tupel abbilden - die abgeleiteten
+    /// ViewModels liefern nur noch Request und Mapping.
+    /// </summary>
+    protected async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageViaAsync<TResponse>(
+        IRequest<TResponse> request,
+        Func<TResponse, (IReadOnlyList<PropertyListItemDto>? Items, bool HasMore, int Total)> map,
+        bool forceRemoteRefresh,
+        CancellationToken ct)
+    {
+        Action<IMediatorContext>? configure = forceRemoteRefresh
+            ? static context => context.ForceCacheRefresh()
+            : null;
+        var (_, response) = await Mediator.Request(request, ct, configure);
+
+        if (response is null)
+            return (Enumerable.Empty<PropertyListItemDto>(), false, 0);
+
+        var (items, hasMore, total) = map(response);
+        return items is null
+            ? (Enumerable.Empty<PropertyListItemDto>(), false, 0)
+            : (items, hasMore, total);
+    }
+
+    /// <summary>
+    /// Gemeinsame Entfernen-Logik der Sammlungen (Favorit entfernen, Blockierung
+    /// aufheben, Inserat loeschen) - Request plus Response-Mapping.
+    /// </summary>
+    protected async Task<(bool Success, string? Message)> RemoveViaAsync<TResponse>(
+        IRequest<TResponse> request,
+        Func<TResponse, (bool Success, string? Message)> map)
+    {
+        var (_, response) = await Mediator.Request(request);
+        return response is null ? (false, null) : map(response);
+    }
+
+    /// <summary>
+    /// Benutzerfreundlicher Hinweistext fuer Lade-/Aktionsfehler (keine rohen
+    /// HTTP-/Exception-Texte) - auch von HomeViewModel genutzt.
+    /// </summary>
+    public static string GetErrorHint(Exception ex) => ex is HttpRequestException
+        ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+        : "Bitte versuchen Sie es später erneut.";
+
+    /// <summary>
     /// Laedt die Liste neu (erste Seite)
     /// </summary>
     protected async Task ReloadAsync()
@@ -366,11 +411,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             // Inline-Fehlerzustand mit Retry; Folgeseiten-Fehler (Infinite Scroll) bleiben still.
             if (page == 0)
             {
-                // Keine rohen HTTP-/Exception-Texte - benutzerfreundliche Meldung
-                var hint = ex is HttpRequestException
-                    ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
-                    : "Bitte versuchen Sie es später erneut.";
-                LoadErrorMessage = GetLoadErrorMessage(hint);
+                LoadErrorMessage = GetLoadErrorMessage(GetErrorHint(ex));
             }
             return [];
         }
@@ -401,10 +442,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         catch (Exception ex)
         {
             Logger.LogError(ex, "[{Type}] Error removing property {PropertyId}", GetType().Name, property.Id);
-            var hint = ex is HttpRequestException
-                ? "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
-                : "Bitte versuchen Sie es später erneut.";
-            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(hint));
+            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(GetErrorHint(ex)));
         }
         finally
         {

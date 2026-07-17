@@ -1289,9 +1289,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             if (page == 0)
             {
                 _totalCount = 0;
-                LoadErrorMessage = ex is HttpRequestException
-                    ? "Die Immobilien konnten nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung."
-                    : "Die Immobilien konnten nicht geladen werden. Bitte versuchen Sie es später erneut.";
+                LoadErrorMessage = $"Die Immobilien konnten nicht geladen werden. {PropertyCollectionViewModelBase.GetErrorHint(ex)}";
             }
             return [];
         }

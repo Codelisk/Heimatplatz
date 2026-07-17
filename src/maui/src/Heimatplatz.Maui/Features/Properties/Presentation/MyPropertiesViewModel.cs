@@ -40,36 +40,17 @@ public partial class MyPropertiesViewModel(
     protected override string GetLoadErrorMessage(string errorDetails)
         => $"Die Immobilien konnten nicht geladen werden. {errorDetails}";
 
-    protected override async Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
+    protected override Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, bool forceRemoteRefresh, CancellationToken ct)
-    {
-        Action<IMediatorContext>? configure = forceRemoteRefresh
-            ? static context => context.ForceCacheRefresh()
-            : null;
-        var (_, response) = await Mediator.Request(
-            new GetUserPropertiesHttpRequest
-            {
-                Page = page,
-                PageSize = pageSize
-            },
-            ct,
-            configure
-        );
+        => FetchPageViaAsync(
+            new GetUserPropertiesHttpRequest { Page = page, PageSize = pageSize },
+            static r => (r.Properties, r.HasMore, r.Total),
+            forceRemoteRefresh, ct);
 
-        if (response?.Properties == null)
-            return (Enumerable.Empty<PropertyListItemDto>(), false, 0);
-
-        return (response.Properties, response.HasMore, response.Total);
-    }
-
-    protected override async Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId)
-    {
-        var result = await Mediator.Request(
-            new DeletePropertyHttpRequest { Id = propertyId }
-        );
-
-        return (result.Result?.Success == true, result.Result?.Message);
-    }
+    protected override Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId)
+        => RemoveViaAsync(
+            new DeletePropertyHttpRequest { Id = propertyId },
+            static r => (r.Success == true, r.Message));
 
     /// <summary>
     /// Navigiert zur Inseratserstellung (KI-Flow auf Phones, manuell sonst)

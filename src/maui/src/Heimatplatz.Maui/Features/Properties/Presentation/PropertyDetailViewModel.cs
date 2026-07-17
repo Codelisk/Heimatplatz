@@ -462,10 +462,14 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         };
         items.Add(new PropertyDetailItem("Immobilienart", typeLabel, PropertyDataCategory.Basisdaten, true));
 
-        // Bei Zwangsversteigerungen ist Price = MinimumBid ?? EstimatedValue (Sync) - kein Kaufpreis
-        var priceLabel = !isForeclosure ? "Kaufpreis"
-            : foreclosureData is { MinimumBid: <= 0, EstimatedValue: > 0 } ? "Schätzwert"
-            : "Mindestgebot";
+        // Preis-Label kommt serverseitig berechnet (Backend-First: "Kaufpreis" bzw. bei
+        // Zwangsversteigerungen "Schätzwert"/"Mindestgebot"). Fallback nur fuer Detail-
+        // Antworten aus dem Offline-Cache von vor diesem Feld (Record-Default "Kaufpreis").
+        var priceLabel = string.IsNullOrWhiteSpace(Property.PriceLabel) ? "Kaufpreis" : Property.PriceLabel;
+        if (isForeclosure && priceLabel == "Kaufpreis")
+        {
+            priceLabel = foreclosureData is { MinimumBid: <= 0, EstimatedValue: > 0 } ? "Schätzwert" : "Mindestgebot";
+        }
         items.Add(new PropertyDetailItem(priceLabel, price > 0 ? FormattedPrice : "Preis offen", PropertyDataCategory.Basisdaten, true));
         AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten, true);
         AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten, true);
@@ -573,12 +577,16 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         }
 
         // --- Kosten ---
-        // Bei Zwangsversteigerungen waere das Mindestgebot / bebaute Flaeche - kein Kaufpreis pro m²
-        if (!isForeclosure && Property.LivingAreaM2.HasValue && Property.LivingAreaM2.Value > 0)
-        {
-            var pricePerSqm = price / Property.LivingAreaM2.Value;
-            items.Add(new PropertyDetailItem("Preis / m²", PropertyDisplay.PriceExact(pricePerSqm), PropertyDataCategory.Kosten));
-        }
+        // Preis/m² kommt serverseitig berechnet (null bei Zwangsversteigerungen - dort waere
+        // es Mindestgebot / bebaute Flaeche). Fallback nur fuer Offline-Cache-Antworten
+        // von vor diesem Feld.
+        decimal? pricePerSqm = Property.PricePerSquareMeter is > 0
+            ? (decimal)Property.PricePerSquareMeter.Value
+            : !isForeclosure && price > 0 && Property.LivingAreaM2 is > 0
+                ? price / Property.LivingAreaM2.Value
+                : null;
+        if (pricePerSqm is > 0)
+            items.Add(new PropertyDetailItem("Preis / m²", PropertyDisplay.PriceExact(pricePerSqm.Value), PropertyDataCategory.Kosten));
 
         // --- Basisdaten: Eingestellt am ---
         items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
