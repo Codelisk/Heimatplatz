@@ -2,6 +2,7 @@ using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Core.Data.Seeding.Configuration;
+using Heimatplatz.Api.Core.Email.Configuration;
 using Heimatplatz.Api.Features.Auth.Configuration;
 using Heimatplatz.Api.Features.Legal.Configuration;
 using Heimatplatz.Api.Features.Locations.Configuration;
@@ -37,6 +38,9 @@ public static class ServiceCollectionExtensions
         // Data (must be before features to register DbContext first)
         services.AddAppData(configuration);
         services.AddDataSeeding();
+
+        // E-Mail-Versand (SMTP wenn konfiguriert, sonst Logging-Fallback)
+        services.AddEmailFeature(configuration);
 
         // HttpContext für Handler, die den authentifizierten User benötigen
         services.AddHttpContextAccessor();

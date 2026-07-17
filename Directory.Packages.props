@@ -64,6 +64,9 @@
     <!-- HTML Scraping -->
     <PackageVersion Include="AngleSharp" Version="1.5.1" />
 
+    <!-- E-Mail-Versand (SMTP via Hetzner-Webhosting-Mailbox) -->
+    <PackageVersion Include="MailKit" Version="4.17.0" />
+
     <!-- PDF image extraction (foreclosure appraisal fallback) -->
     <PackageVersion Include="PdfPig" Version="0.1.15" />
 

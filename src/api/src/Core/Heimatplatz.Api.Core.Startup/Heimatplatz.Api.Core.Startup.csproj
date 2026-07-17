@@ -16,6 +16,7 @@
     <!-- Core -->
     <ProjectReference Include="..\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
     <ProjectReference Include="..\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
+    <ProjectReference Include="..\Heimatplatz.Api.Core.Email\Heimatplatz.Api.Core.Email.csproj" />
     <!-- Contracts & Handlers -->
     <!-- Features -->
     <ProjectReference Include="..\..\Features\Auth\Heimatplatz.Api.Features.Auth\Heimatplatz.Api.Features.Auth.csproj" />

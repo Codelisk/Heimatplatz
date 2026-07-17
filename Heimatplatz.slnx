@@ -5,13 +5,17 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/api/" />
   <Folder Name="/src/api/src/">
     <Project Path="src/api/src/Heimatplatz.Api/Heimatplatz.Api.csproj" />
   </Folder>
   <Folder Name="/src/api/src/Core/">
     <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Data/Heimatplatz.Api.Core.Data.csproj" />
+    <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Email/Heimatplatz.Api.Core.Email.csproj" />
     <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Startup/Heimatplatz.Api.Core.Startup.csproj" />
   </Folder>
+  <Folder Name="/src/maui/" />
   <Folder Name="/src/maui/src/">
     <Project Path="src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj" />
     <Project Path="src/maui/src/Heimatplatz.Maui.ApiClient/Heimatplatz.Maui.ApiClient.csproj" />
