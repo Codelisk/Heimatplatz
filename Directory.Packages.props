@@ -5,10 +5,10 @@
     <MicrosoftExtensionsVersion>10.7.0</MicrosoftExtensionsVersion>
     <AspireVersion>13.4.6</AspireVersion>
     <OpenTelemetryVersion>1.16.0</OpenTelemetryVersion>
-	  <ShinyMediatorVersion>6.6.2</ShinyMediatorVersion>
-	  <ShinyExtensionsVersion>5.1.2</ShinyExtensionsVersion>
-    <ShinyDocumentDbVersion>11.1.0</ShinyDocumentDbVersion>
-    <ShinyPushVersion>5.1.1</ShinyPushVersion>
+	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
+	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
+    <ShinyDocumentDbVersion>11.1.1</ShinyDocumentDbVersion>
+    <ShinyPushVersion>5.2.3</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
 
@@ -33,14 +33,14 @@
     <!-- MAUI App -->
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.80" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="Shiny.Maui.Shell" Version="6.3.1" />
+    <PackageVersion Include="Shiny.Maui.Shell" Version="6.3.2" />
     <PackageVersion Include="Shiny.Maui.Controls" Version="1.0.1-beta-0146" />
     <PackageVersion Include="Shiny.Extensions.MauiHosting" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Extensions.Serialization" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Mediator.Maui" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Hosting.Maui" Version="$(ShinyPushVersion)" />
-    <PackageVersion Include="Shiny.Push.FirebaseMessaging" Version="5.0.1" />
-    <PackageVersion Include="Shiny.Speech" Version="2.1.0" />
+    <PackageVersion Include="Shiny.Push.FirebaseMessaging" Version="5.0.2" />
+    <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0014" />
     <PackageVersion Include="CommunityToolkit.Maui" Version="14.2.0" />
     <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.11.26317.2" />
 
