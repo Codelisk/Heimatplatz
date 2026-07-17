@@ -1,31 +1,50 @@
 import type { APIRoute } from "astro";
 import { SITE } from "@/config/site";
+import { fetchForeclosureAuctions } from "@/features/foreclosures/api";
+import { fetchApiProperties } from "@/features/properties/live-api";
+import { auctionLine, mdLink, propertyLine, textResponse } from "@/lib/llms";
 
-const routes = [
-  "/",
-  "/zwangsversteigerungen/",
-  "/datenschutz/",
-  "/impressum/",
-];
+/**
+ * Kompakte, LLM-freundliche Uebersicht nach llms.txt-Spezifikation (llmstxt.org).
+ * Dynamisch: verlinkt die aktuellen Inserate und Zwangsversteigerungen direkt,
+ * damit AI-Suchen (ChatGPT, Claude, Perplexity, ...) konkrete Angebote mit
+ * URL zitieren koennen statt nur die Startseite.
+ */
+const LISTING_PREVIEW_LIMIT = 20;
+const AUCTION_PREVIEW_LIMIT = 10;
 
-const body = `# ${SITE.name}
+export const GET: APIRoute = async () => {
+  const [properties, auctions] = await Promise.all([
+    fetchApiProperties({ pageSize: LISTING_PREVIEW_LIMIT }),
+    fetchForeclosureAuctions(),
+  ]);
 
-> Immobilien-App für Oberösterreich: Häuser, Wohnungen, Grundstücke und gerichtliche Zwangsversteigerungen mit Filtern, Favoriten und Push-Benachrichtigungen.
+  const body = `# ${SITE.name}
 
-## Öffentliche Seiten
+> Immobilienportal für Oberösterreich (Österreich): Häuser, Wohnungen und Grundstücke von privaten Anbietern, Maklern, Bauträgern und Verwaltungen sowie gerichtliche Zwangsversteigerungen — mit Filtern nach Bezirk und Typ, Favoriten und Push-Benachrichtigungen.
 
-${routes.map((route) => `- ${new URL(route, SITE.url).toString()}`).join("\n")}
+Heimatplatz ist eine deutschsprachige Web-App (de-AT). Zwangsversteigerungen basieren auf öffentlichen gerichtlichen Edikten und enthalten Termin, Gericht, Schätzwert und Mindestgebot. Alle Detailseiten liefern strukturierte Daten (schema.org: Offer, Residence, Event, BreadcrumbList).
 
-## Inhaltlicher Fokus
+## Einstieg
 
-- Immobilien suchen und filtern (Bezirk, Typ, Anbieter, Zeitraum, Sortierung).
-- Zwangsversteigerungen mit Termin, Gericht, Schätzwert und Mindestgebot.
-- Rechtliche Anbieterinformationen: Datenschutz und Impressum.
+- ${mdLink("Startseite und Immobiliensuche", "/")}: Suche mit Filtern nach Bezirk, Immobilientyp, Anbieter, Zeitraum und Sortierung.
+- ${mdLink("Immobilie inserieren", "/inserieren/")}: Inserat mit Fotos, Adresse, Preis und Kontaktdaten erstellen.
+- ${mdLink("Impressum", "/impressum/")}: Betreiber- und Kontaktangaben.
+- ${mdLink("Datenschutz", "/datenschutz/")}: Datenschutzerklärung.
+
+## Aktuelle Inserate
+
+${properties.map(propertyLine).join("\n") || "- Derzeit keine Inserate verfügbar."}
+
+## Aktuelle Zwangsversteigerungen
+
+${auctions.slice(0, AUCTION_PREVIEW_LIMIT).map(auctionLine).join("\n") || "- Derzeit keine Zwangsversteigerungen verfügbar."}
+
+## Maschinenlesbare Ressourcen
+
+- ${mdLink("sitemap.xml", "/sitemap.xml")}: alle indexierbaren URLs inklusive sämtlicher Detailseiten.
+- ${mdLink("llms-full.txt", "/llms-full.txt")}: vollständige Daten aller aktuellen Inserate und Zwangsversteigerungen als Markdown.
 `;
 
-export const GET: APIRoute = () =>
-  new Response(body, {
-    headers: {
-      "content-type": "text/plain; charset=utf-8",
-    },
-  });
+  return textResponse(body);
+};

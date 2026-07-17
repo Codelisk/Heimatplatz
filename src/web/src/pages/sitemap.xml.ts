@@ -16,7 +16,7 @@ import {
  * App-Seiten (Anmelden, Favoriten, Profil, Debug usw.) sind noindex und
  * gehoeren nicht in die Sitemap.
  */
-const staticRoutes = ["/", "/datenschutz/", "/impressum/"];
+const staticRoutes = ["/", "/inserieren/", "/datenschutz/", "/impressum/"];
 
 function urlEntry(loc: string, lastmod?: string) {
   const lastmodTag = lastmod ? `<lastmod>${lastmod}</lastmod>` : "";

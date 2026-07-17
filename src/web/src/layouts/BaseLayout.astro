@@ -101,7 +101,7 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
 
     <title>{pageTitle}</title>
     <link rel="canonical" href={canonicalUrl} />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
 
@@ -112,11 +112,13 @@ const jsonLd = JSON.stringify([organizationSchema(), websiteSchema(), realEstate
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:alt" content={pageTitle} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={pageTitle} />
 
     <script is:inline type="application/ld+json" set:html={jsonLd}></script>
   </head>

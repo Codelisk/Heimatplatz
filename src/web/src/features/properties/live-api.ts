@@ -267,6 +267,8 @@ export function getApiPropertyJsonLd(property: ApiProperty, url: string, image =
             unitCode: "MTK",
           }
         : undefined,
+      numberOfRooms: property.Rooms ? Number(property.Rooms) : undefined,
+      yearBuilt: property.YearBuilt ? Number(property.YearBuilt) : undefined,
     },
     seller: {
       "@type": "Organization",
