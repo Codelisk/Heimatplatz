@@ -1,0 +1,629 @@
+---
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import PencilIcon from "@tabler/icons/outline/pencil.svg";
+import PhotoPlusIcon from "@tabler/icons/outline/photo-plus.svg";
+import { Button } from "@/components/starwind/button";
+import { Label } from "@/components/starwind/label";
+import { NativeSelect } from "@/components/starwind/native-select";
+
+/**
+ * WYSIWYG-Inseratsformular: 1:1 wie die Immobilien-Detailansicht aufgebaut
+ * (Hero-Foto, Badges, Titel, Fakten-Kacheln, Beschreibung, Sticky-Sidebar) -
+ * nur dass alle Anzeige-Elemente direkt editierbare Felder sind. Feldnamen und
+ * data-Attribute muessen mit PropertyStateScript.astro uebereinstimmen
+ * (data-local-property-form, data-property-images, data-location-select, ...).
+ *
+ * editMode: /immobilien/bearbeiten/ - markiert das Formular als
+ * data-edit-property-form (Prefill + Update statt Neuanlage durch das Script).
+ */
+interface Props {
+  editMode?: boolean;
+}
+
+const { editMode = false } = Astro.props;
+const submitLabel = editMode ? "Änderungen speichern" : "Inserat speichern";
+const cancelHref = editMode ? "/meine-immobilien/" : "/";
+const asideKicker = editMode ? "Bestehendes Inserat" : "Neues Inserat";
+const asideTitle = editMode ? "Bearbeiten" : "Veröffentlichen";
+const photoLabel = editMode ? "Fotos" : "Fotos *";
+const photoHelp = editMode
+  ? "Bestehende Bilder bleiben erhalten. Neue Bilder werden vor dem Speichern hochgeladen."
+  : "Mindestens ein Foto ist für ein veröffentlichtes Inserat erforderlich. Maximal 20 Bilder.";
+---
+
+<form
+  class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8"
+  action="/meine-immobilien/"
+  method="get"
+  data-local-property-form
+  data-wysiwyg-property
+  data-edit-property-form={editMode ? "" : undefined}
+>
+  <input type="hidden" name="municipalityId" />
+  <input type="hidden" name="imageUrls" data-property-image-urls />
+
+  <div>
+    <p class="wys-rise flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+      <PencilIcon class="size-4 shrink-0" aria-hidden="true" />
+      Sie bearbeiten die Live-Vorschau: Tippen Sie direkt in Titel, Preis oder Beschreibung – genau so sehen Käufer Ihr Inserat.
+    </p>
+
+    {/* Hero-Fotozone wie die Galerie der Detailseite */}
+    <div class="wys-rise relative mt-5 h-[320px] w-full overflow-hidden rounded-xl bg-muted sm:h-[460px]" style="--rise: 0.06s">
+      <img data-preview-hero alt="Erstes Foto Ihres Inserats" class="hidden h-full w-full object-cover" />
+      <label
+        for="propertyImages"
+        data-preview-hero-empty
+        class="group absolute inset-0 grid cursor-pointer place-items-center"
+      >
+        <span class="pointer-events-none mx-6 grid place-items-center gap-3 rounded-xl border-2 border-dashed border-border px-10 py-12 text-center transition-colors duration-300 group-hover:border-outline">
+          <span class="grid size-14 place-items-center rounded-full bg-background text-muted-foreground transition-transform duration-300 group-hover:scale-110 group-hover:text-foreground">
+            <PhotoPlusIcon class="size-7" aria-hidden="true" />
+          </span>
+          <span class="text-base font-bold">Fotos hinzufügen</span>
+          <span class="text-xs text-muted-foreground">JPG, PNG oder WebP – bis zu 20 Bilder, das erste wird zum Titelbild</span>
+        </span>
+      </label>
+      <label
+        for="propertyImages"
+        data-preview-hero-add
+        class="absolute bottom-3 right-3 z-10 hidden cursor-pointer items-center gap-2 rounded-full bg-black/70 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-transform duration-300 hover:scale-105"
+      >
+        <PhotoPlusIcon class="size-4" aria-hidden="true" />
+        Fotos hinzufügen
+      </label>
+      <div class="pointer-events-none absolute left-4 right-4 top-4 z-10 flex flex-wrap items-center gap-2" data-photo-badges>
+        <span
+          class="pointer-events-auto relative inline-flex items-center rounded-[2px] bg-type-haus text-white transition-colors duration-300"
+          data-preview-type-badge
+        >
+          <select
+            id="propertyType"
+            name="propertyType"
+            required
+            aria-label="Immobilientyp"
+            class="cursor-pointer appearance-none border-0 bg-transparent py-1.5 pl-3 pr-8 text-xs font-bold text-inherit outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            <option value="house">Haus</option>
+            <option value="apartment">Wohnung</option>
+            <option value="land">Grundstück</option>
+            <option value="foreclosure">Zwangsversteigerung</option>
+          </select>
+          <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 opacity-80" aria-hidden="true" />
+        </span>
+        <span class="rounded-[2px] bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground" data-preview-city>Ort</span>
+      </div>
+    </div>
+    <input
+      id="propertyImages"
+      name="propertyImages"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      multiple
+      class="sr-only"
+      data-property-images
+    />
+    <div class="mt-3 hidden grid grid-cols-3 gap-2 sm:grid-cols-5" data-property-image-grid></div>
+
+    {/* Adresszeile + Titel wie auf der Detailseite, nur editierbar */}
+    <div class="wys-rise mt-6" style="--rise: 0.12s">
+      <div class="flex flex-wrap items-center gap-2 text-sm font-semibold text-muted-foreground">
+        <input
+          id="postalCode"
+          name="postalCode"
+          class="wys w-20 text-center"
+          inputmode="numeric"
+          minlength="4"
+          maxlength="4"
+          pattern="[0-9]{4}"
+          placeholder="PLZ"
+          aria-label="Postleitzahl"
+          required
+        />
+        <input id="city" name="city" class="wys w-44" placeholder="Ort" aria-label="Ort" required />
+        <span aria-hidden="true">·</span>
+        <input
+          id="address"
+          name="address"
+          class="wys min-w-56 flex-1"
+          placeholder="Straße und Hausnummer"
+          aria-label="Adresse"
+          required
+        />
+      </div>
+      <input
+        id="title"
+        name="title"
+        class="wys mt-3 w-full max-w-3xl text-3xl font-bold leading-tight sm:text-4xl"
+        placeholder="Ihr Titel – z.B. Sonniges Einfamilienhaus mit Garten"
+        aria-label="Titel des Inserats"
+        minlength="10"
+        required
+      />
+    </div>
+
+    {/* Fakten-Kacheln wie auf der Detailseite */}
+    <div class="wys-rise mt-6 grid gap-3 sm:grid-cols-4" style="--rise: 0.18s">
+      <div class="wys-tile rounded-lg border border-border bg-card p-4">
+        <label for="price" class="text-sm text-muted-foreground">Preis (€) *</label>
+        <input
+          id="price"
+          name="price"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          step="1"
+          placeholder="350000"
+          class="wys-bare mt-1 w-full text-xl font-bold text-price"
+          required
+        />
+        <p class="mt-1 hidden text-xs font-semibold text-price" data-preview-price aria-live="polite"></p>
+      </div>
+      <div class="wys-tile rounded-lg border border-border bg-card p-4" data-structure-property-field>
+        <label for="livingArea" class="text-sm text-muted-foreground">Wohnfläche</label>
+        <div class="mt-1 flex items-baseline gap-1">
+          <input
+            id="livingArea"
+            name="livingArea"
+            type="number"
+            inputmode="numeric"
+            min="1"
+            step="1"
+            placeholder="90"
+            class="wys-bare w-full text-xl font-bold"
+          />
+          <span class="text-sm text-muted-foreground">m²</span>
+        </div>
+      </div>
+      <div class="wys-tile rounded-lg border border-border bg-card p-4">
+        <label for="plotArea" class="text-sm text-muted-foreground">Grund</label>
+        <div class="mt-1 flex items-baseline gap-1">
+          <input
+            id="plotArea"
+            name="plotArea"
+            type="number"
+            inputmode="numeric"
+            min="1"
+            step="1"
+            placeholder="500"
+            class="wys-bare w-full text-xl font-bold"
+          />
+          <span class="text-sm text-muted-foreground">m²</span>
+        </div>
+      </div>
+      <div class="wys-tile rounded-lg border border-border bg-card p-4" data-structure-property-field>
+        <label for="rooms" class="text-sm text-muted-foreground">Zimmer</label>
+        <input
+          id="rooms"
+          name="rooms"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          step="1"
+          placeholder="3"
+          class="wys-bare mt-1 w-full text-xl font-bold"
+        />
+      </div>
+    </div>
+
+    {/* Detail-Sektion wie auf der Detailseite */}
+    <section class="wys-rise mt-8" style="--rise: 0.24s" data-structure-property-field>
+      <h2 class="text-sm font-bold uppercase text-muted-foreground">Details</h2>
+      <div class="mt-4 grid gap-4 md:grid-cols-2">
+        <section class="wys-tile rounded-lg border border-border bg-card p-4" aria-label="Objektdaten">
+          <h3 class="text-xs font-bold uppercase text-muted-foreground">Objektdaten</h3>
+          <div class="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 text-sm">
+            <label for="yearBuilt" class="text-muted-foreground">Baujahr</label>
+            <input
+              id="yearBuilt"
+              name="yearBuilt"
+              type="number"
+              inputmode="numeric"
+              min="1000"
+              step="1"
+              placeholder="1998"
+              class="wys-bare w-24 text-right font-medium"
+            />
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="wys-rise mt-8" style="--rise: 0.3s" aria-labelledby="preview-features-heading">
+      <h2 id="preview-features-heading" class="text-sm font-bold uppercase text-muted-foreground">Ausstattung &amp; Merkmale</h2>
+      <p class="mt-1 text-xs text-muted-foreground">Entsteht automatisch aus Typ, Ort und Fläche – genau so erscheint es im Inserat.</p>
+      <ul class="mt-4 grid gap-2 sm:grid-cols-2" data-preview-features></ul>
+    </section>
+
+    <section class="wys-rise mt-8" style="--rise: 0.36s" aria-labelledby="description-heading">
+      <h2 id="description-heading" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
+      <textarea
+        id="description"
+        name="description"
+        rows="5"
+        minlength="50"
+        required
+        class="wys wys-grow mt-4 min-h-36 w-full max-w-3xl text-base leading-7"
+        placeholder="Beschreiben Sie Lage, Zustand und Besonderheiten Ihrer Immobilie (mind. 50 Zeichen)…"
+        aria-label="Beschreibung"></textarea>
+    </section>
+
+    <fieldset class="mt-8 rounded-lg border border-border bg-card p-4" data-foreclosure-fields hidden>
+      <legend class="px-1 text-sm font-bold uppercase text-muted-foreground">Versteigerungsdaten</legend>
+      <div class="mt-2 grid gap-4 md:grid-cols-2">
+        <div class="space-y-1">
+          <label for="foreclosureCourtName" class="wys-label">Gericht *</label>
+          <input id="foreclosureCourtName" name="foreclosureCourtName" placeholder="Bezirksgericht" class="wys wys-sm w-full" data-foreclosure-required disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureFileNumber" class="wys-label">Aktenzeichen *</label>
+          <input id="foreclosureFileNumber" name="foreclosureFileNumber" placeholder="Geschäftszahl" class="wys wys-sm w-full" data-foreclosure-required disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureAuctionDate" class="wys-label">Versteigerungstermin *</label>
+          <input id="foreclosureAuctionDate" name="foreclosureAuctionDate" type="datetime-local" class="wys wys-sm w-full" data-foreclosure-required disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureMinimumBid" class="wys-label">Mindestgebot (EUR) *</label>
+          <input id="foreclosureMinimumBid" name="foreclosureMinimumBid" type="number" inputmode="numeric" min="1" step="1" placeholder="250000" class="wys wys-sm w-full" data-foreclosure-required disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureEstimatedValue" class="wys-label">Schätzwert (EUR)</label>
+          <input id="foreclosureEstimatedValue" name="foreclosureEstimatedValue" type="number" inputmode="numeric" min="1" step="1" placeholder="500000" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureStatus" class="wys-label">Status</label>
+          <select id="foreclosureStatus" name="foreclosureStatus" class="wys wys-sm w-full" disabled>
+            <option value="Scheduled">Terminiert</option>
+            <option value="Pending">Anhängig</option>
+            <option value="InProgress">Laufend</option>
+            <option value="Completed">Abgeschlossen</option>
+            <option value="Cancelled">Aufgehoben</option>
+          </select>
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureViewingDate" class="wys-label">Besichtigung</label>
+          <input id="foreclosureViewingDate" name="foreclosureViewingDate" type="datetime-local" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureBiddingDeadline" class="wys-label">Gebotsfrist</label>
+          <input id="foreclosureBiddingDeadline" name="foreclosureBiddingDeadline" type="datetime-local" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureOwnershipShare" class="wys-label">Eigentumsanteil</label>
+          <input id="foreclosureOwnershipShare" name="foreclosureOwnershipShare" placeholder="z.B. 1/1" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureEdictUrl" class="wys-label">Edikt-Link</label>
+          <input id="foreclosureEdictUrl" name="foreclosureEdictUrl" type="url" placeholder="https://..." class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureRegistrationNumber" class="wys-label">Einlagezahl</label>
+          <input id="foreclosureRegistrationNumber" name="foreclosureRegistrationNumber" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureCadastralMunicipality" class="wys-label">Katastralgemeinde</label>
+          <input id="foreclosureCadastralMunicipality" name="foreclosureCadastralMunicipality" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosurePlotNumber" class="wys-label">Grundstücksnummer</label>
+          <input id="foreclosurePlotNumber" name="foreclosurePlotNumber" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureTotalArea" class="wys-label">Gesamtfläche (m²)</label>
+          <input id="foreclosureTotalArea" name="foreclosureTotalArea" type="number" inputmode="numeric" min="1" step="1" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureBuildingArea" class="wys-label">Bebaute Fläche (m²)</label>
+          <input id="foreclosureBuildingArea" name="foreclosureBuildingArea" type="number" inputmode="numeric" min="1" step="1" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureZoningDesignation" class="wys-label">Flächenwidmung</label>
+          <input id="foreclosureZoningDesignation" name="foreclosureZoningDesignation" class="wys wys-sm w-full" disabled />
+        </div>
+        <div class="space-y-1">
+          <label for="foreclosureBuildingCondition" class="wys-label">Gebäudezustand</label>
+          <input id="foreclosureBuildingCondition" name="foreclosureBuildingCondition" class="wys wys-sm w-full" disabled />
+        </div>
+      </div>
+      <div class="mt-4 space-y-1">
+        <label for="foreclosureNotes" class="wys-label">Hinweise</label>
+        <textarea id="foreclosureNotes" name="foreclosureNotes" rows="3" class="wys wys-sm min-h-24 w-full" disabled></textarea>
+      </div>
+    </fieldset>
+  </div>
+
+  {/* Sticky-Sidebar wie die Anbieter-Karte der Detailseite */}
+  <aside class="wys-rise self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20" style="--rise: 0.12s">
+    <p class="text-sm text-muted-foreground">{asideKicker}</p>
+    <h2 class="mt-1 text-xl font-bold">{asideTitle}</h2>
+    <p class="mt-2 text-sm leading-6 text-muted-foreground">
+      Links sehen Sie Ihr Inserat genau so, wie es Käufern angezeigt wird.
+    </p>
+
+    <div class="mt-5 space-y-2" data-aside-select>
+      <Label for="municipalityLookup">Gemeinde auswählen *</Label>
+      <NativeSelect id="municipalityLookup" name="municipalityLookup" data-location-select>
+        <option value="">Orte werden geladen...</option>
+      </NativeSelect>
+      <p class="text-xs text-muted-foreground" data-location-status>Gemeinden in Oberösterreich werden geladen.</p>
+    </div>
+
+    <div class="mt-5 rounded-md bg-muted p-3">
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-sm font-semibold">{photoLabel}</p>
+        <p class="text-xs text-muted-foreground" data-property-image-count>Fotos 0 / 20</p>
+      </div>
+      <label
+        for="propertyImages"
+        class="mt-2 inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-background text-sm font-semibold transition-colors hover:border-foreground"
+      >
+        <PhotoPlusIcon class="size-4" aria-hidden="true" />
+        Fotos auswählen
+      </label>
+      <p class="mt-2 text-xs text-muted-foreground" data-property-image-help>{photoHelp}</p>
+    </div>
+
+    <p class="mt-4 hidden text-sm" data-form-status></p>
+    <div class="mt-5 grid gap-2">
+      <Button type="submit" class="w-full">{submitLabel}</Button>
+      <Button href={cancelHref} variant="outline" class="w-full">Abbrechen</Button>
+    </div>
+  </aside>
+</form>
+
+<style>
+  /* Editierbare Anzeige-Felder: opakes Papier (keine durchscheinenden
+     Bretterfugen!), gestrichelte Kante als "hier ausfuellen"-Affordance,
+     die bei Hover/Fokus fest wird und das Feld leicht anhebt. */
+  .wys {
+    background-color: var(--card);
+    border: 1px dashed var(--input);
+    border-radius: 0.375rem;
+    padding: 0.35rem 0.6rem;
+    color: var(--foreground);
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.25s ease,
+      transform 0.2s ease;
+  }
+  .wys::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.75;
+  }
+  .wys:hover {
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--outline) 45%, var(--input));
+  }
+  .wys:focus-visible {
+    outline: none;
+    border-style: solid;
+    border-color: var(--outline);
+    background-color: var(--popover);
+    box-shadow:
+      0 0 0 3px color-mix(in oklab, var(--outline) 22%, transparent),
+      var(--zettel-shadow);
+    transform: translateY(-1px);
+  }
+  .wys-sm {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .wys-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Felder in Kacheln: nur eine gestrichelte Grundlinie, die Kachel selbst
+     reagiert auf Fokus (Anheben + Zettel-Schatten). */
+  .wys-bare {
+    background-color: transparent;
+    border: 0;
+    border-bottom: 1px dashed var(--input);
+    border-radius: 0;
+    padding: 0 0 2px;
+    color: inherit;
+    transition: border-color 0.2s ease;
+  }
+  .wys-bare::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.6;
+  }
+  .wys-bare:hover {
+    border-bottom-style: solid;
+  }
+  .wys-bare:focus-visible {
+    outline: none;
+    border-bottom: 2px solid var(--outline);
+    padding-bottom: 1px;
+  }
+  .wys-tile {
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.2s ease;
+  }
+  .wys-tile:focus-within {
+    border-color: var(--outline);
+    transform: translateY(-2px);
+    box-shadow: var(--zettel-shadow);
+  }
+  .wys-tile:focus-within label {
+    color: var(--primary);
+  }
+
+  /* Zahlenfelder ohne Spinner - sie sollen wie Anzeige-Text wirken */
+  .wys-bare::-webkit-outer-spin-button,
+  .wys-bare::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .wys-bare[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  /* Beschreibung waechst mit dem Inhalt (Browser ohne field-sizing behalten min-height) */
+  .wys-grow {
+    field-sizing: content;
+  }
+
+  /* Gemeinde-Select in der Sidebar volle Breite (Starwind-Wrapper ist w-fit) */
+  [data-aside-select] :global([data-slot="native-select-wrapper"]) {
+    width: 100%;
+  }
+
+  /* Sanftes Aufsteigen der Bloecke beim Seitenaufbau */
+  @media (prefers-reduced-motion: no-preference) {
+    .wys-rise {
+      animation: wys-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: var(--rise, 0s);
+    }
+    @keyframes wys-rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wys,
+    .wys-bare,
+    .wys-tile {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Live-Vorschau: Typ-Badge, Ort-Badge, formatierter Preis, Merkmal-Chips und
+  // Hero-Bild spiegeln die Feldwerte sofort wider. Das Speichern/Bild-Handling
+  // uebernimmt weiterhin PropertyStateScript (BaseLayout).
+  const TYPE_META: Record<string, { label: string; classes: string[] }> = {
+    house: { label: "Haus", classes: ["bg-type-haus", "text-white"] },
+    apartment: { label: "Wohnung", classes: ["bg-foreground", "text-background"] },
+    land: { label: "Grundstück", classes: ["bg-type-grund", "text-white"] },
+    foreclosure: { label: "Zwangsversteigerung", classes: ["bg-brand", "text-brand-foreground"] },
+  };
+  const ALL_TYPE_CLASSES = Object.values(TYPE_META).flatMap((meta) => meta.classes);
+  const priceFormat = new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function initWysiwygPreview(form: HTMLFormElement) {
+    const field = (name: string) => {
+      const el = form.elements.namedItem(name);
+      return el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement
+        ? el
+        : null;
+    };
+
+    const typeSelect = field("propertyType");
+    const typeBadge = form.querySelector<HTMLElement>("[data-preview-type-badge]");
+    const cityBadge = form.querySelector<HTMLElement>("[data-preview-city]");
+    const pricePreview = form.querySelector<HTMLElement>("[data-preview-price]");
+    const featureList = form.querySelector<HTMLElement>("[data-preview-features]");
+    const heroImage = form.querySelector<HTMLImageElement>("[data-preview-hero]");
+    const heroEmpty = form.querySelector<HTMLElement>("[data-preview-hero-empty]");
+    const heroAdd = form.querySelector<HTMLElement>("[data-preview-hero-add]");
+    const imageGrid = form.querySelector<HTMLElement>("[data-property-image-grid]");
+
+    const pulse = (el: HTMLElement | null) => {
+      if (!el || reduceMotion) return;
+      el.animate([{ transform: "scale(1.04)" }, { transform: "scale(1)" }], { duration: 220, easing: "ease-out" });
+    };
+
+    let lastPrice = "";
+    let lastFeatures = "";
+
+    const update = () => {
+      const type = typeSelect?.value || "house";
+      const meta = TYPE_META[type] ?? TYPE_META.house;
+      if (typeBadge) {
+        typeBadge.classList.remove(...ALL_TYPE_CLASSES);
+        typeBadge.classList.add(...meta.classes);
+      }
+
+      const city = field("city")?.value.trim() ?? "";
+      if (cityBadge) {
+        const text = city || "Ort";
+        if (cityBadge.textContent !== text) cityBadge.textContent = text;
+      }
+
+      const priceValue = Number(field("price")?.value ?? "");
+      const priceText = Number.isFinite(priceValue) && priceValue > 0 ? priceFormat.format(priceValue) : "";
+      if (pricePreview && priceText !== lastPrice) {
+        lastPrice = priceText;
+        pricePreview.textContent = priceText;
+        pricePreview.classList.toggle("hidden", !priceText);
+        if (priceText) pulse(pricePreview);
+      }
+
+      const living = field("livingArea");
+      const livingValue = living && !living.disabled ? Number(living.value) : 0;
+      const plotValue = Number(field("plotArea")?.value ?? "");
+      const area =
+        livingValue > 0
+          ? `${livingValue} m² Wohnfläche`
+          : plotValue > 0
+            ? `${plotValue} m² Grundstück`
+            : "";
+
+      const chips = [meta.label, city, area].filter(Boolean);
+      const chipKey = chips.join("|");
+      if (featureList && chipKey !== lastFeatures) {
+        lastFeatures = chipKey;
+        featureList.textContent = "";
+        for (const chip of chips) {
+          const item = document.createElement("li");
+          item.className = "rounded-md bg-muted px-4 py-3 text-sm";
+          item.textContent = chip;
+          featureList.append(item);
+        }
+      }
+    };
+
+    const updateHero = () => {
+      if (!heroImage || !heroEmpty || !heroAdd) return;
+      const firstImage = imageGrid?.querySelector("img");
+      if (firstImage) {
+        if (heroImage.src !== firstImage.src) {
+          heroImage.src = firstImage.src;
+          if (!reduceMotion) heroImage.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 350, easing: "ease-out" });
+        }
+        heroImage.classList.remove("hidden");
+        heroEmpty.classList.add("hidden");
+        heroAdd.classList.remove("hidden");
+        heroAdd.classList.add("inline-flex");
+      } else {
+        heroImage.classList.add("hidden");
+        heroImage.removeAttribute("src");
+        heroEmpty.classList.remove("hidden");
+        heroAdd.classList.add("hidden");
+        heroAdd.classList.remove("inline-flex");
+      }
+    };
+
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+    // Gemeinde-Auswahl und Entwurf-/Inserat-Prefill schreiben Felder programmatisch
+    // (ohne Events) - ein leichter Watcher haelt die Vorschau trotzdem aktuell.
+    window.setInterval(update, 800);
+    if (imageGrid) new MutationObserver(updateHero).observe(imageGrid, { childList: true });
+
+    update();
+    updateHero();
+  }
+
+  const wysiwygForm = document.querySelector<HTMLFormElement>("[data-wysiwyg-property]");
+  if (wysiwygForm) initWysiwygPreview(wysiwygForm);
+</script>

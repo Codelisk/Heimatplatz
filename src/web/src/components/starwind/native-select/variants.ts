@@ -10,7 +10,9 @@ export const nativeSelectWrapper = tv({
 export const nativeSelect = tv({
   base: [
     "starwind-native-select",
-    "border-input dark:bg-input/30 text-foreground ring-offset-background w-full rounded-md border bg-transparent shadow-xs",
+    // Opak statt transparent: die Bretterfugen des Tafel-Hintergrunds duerfen
+    // nicht durch Eingabefelder scheinen (Light wie Dark, 1:1-Struktur)
+    "border-input text-foreground ring-offset-background w-full rounded-md border bg-muted shadow-xs",
     "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground appearance-none bg-none select-none",
     "focus-visible:border-outline focus-visible:ring-outline/50 transition-[color,box-shadow] outline-none focus-visible:ring-3",
     "disabled:pointer-events-none disabled:cursor-not-allowed",
