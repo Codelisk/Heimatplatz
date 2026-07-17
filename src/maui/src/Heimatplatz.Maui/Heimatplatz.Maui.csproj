@@ -33,6 +33,9 @@
 		     Output-Pfade brechen (MSB3030). -->
     <RuntimeIdentifiers Condition="'$(ScreenshotRuntimeIdentifier)' != '' AND $(TargetFramework.Contains('-android'))">$(ScreenshotRuntimeIdentifier)</RuntimeIdentifiers>
     <WindowsPackageType>None</WindowsPackageType>
+    <!-- Unpackaged nutzt fuer Taskbar/Alt-Tab das im EXE eingebettete Icon; eigenes Multi-Size-ICO
+         (16-256px) statt des von MAUI generierten Einzel-64px-Eintrags -->
+    <ApplicationIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">Platforms\Windows\appicon.ico</ApplicationIcon>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
     <!-- iOS Push Entitlements: Debug tokens use APNs sandbox, Release/TestFlight production -->
     <CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' AND '$(Configuration)' == 'Debug'">Platforms\iOS\Entitlements.Debug.plist</CodesignEntitlements>
@@ -46,8 +49,14 @@
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
   </PropertyGroup>
   <ItemGroup>
-    <!-- App Icon -->
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#FFFEFEFE" />
+    <!-- App Icon: pro Plattform - es gilt nur das ERSTE passende Item, konditionale muessen vor dem Default stehen -->
+    <!-- Android Adaptive Icon: Background full-bleed Markenrot, Badge bleibt in der 66dp-Safe-Zone (66/108, Badge fuellt 97.5% der ViewBox -> 0.62) -->
+    <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#9F1519" ForegroundScale="0.62" />
+    <!-- Windows: transparenter Background (Taskbar/Start erwarten Icons ohne Farbplatte), vereinfachtes Badge ohne Textring -->
+    <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" Include="Resources\AppIcon\appiconwin.svg" ForegroundFile="Resources\AppIcon\appiconfgwin.svg" />
+    <!-- iOS + MacCatalyst: opak (App-Store-Connect-Pflicht), Badge ~75% nach Apple Icon Grid.
+         Explizite Condition statt Fallback: Resizetizer prueft Duplikat-Namen ueber ALLE aktiven Items -->
+    <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#9F1519" ForegroundScale="0.75" />
     <!-- Splash Screen -->
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#F6ECD8" BaseSize="256,256" />
     <!-- Images -->

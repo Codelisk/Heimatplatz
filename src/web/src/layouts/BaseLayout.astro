@@ -103,8 +103,11 @@ const jsonLd = jsonForScriptTag([organizationSchema(), websiteSchema(), realEsta
     <title>{pageTitle}</title>
     <link rel="canonical" href={canonicalUrl} />
     <link rel="sitemap" href="/sitemap.xml" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <!-- ICO vor SVG: Chromium nimmt bei gleicher Eignung das letzte passende Icon;
+         numerisches sizes auf dem ICO verhindert, dass Chromium es dem SVG vorzieht -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content={SITE.locale} />
