@@ -88,6 +88,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IStorageService, ShinyDocumentStorageService>();
         builder.Services.AddSingleton<IContractKeyProvider, UserScopedContractKeyProvider>();
         builder.Services.AddSingleton<LocalFirstRefreshCoordinator>();
+        builder.Services.AddSingleton<CacheStalenessRegistry>();
 
         // Reihenfolge im Request-Pipeline:
         // lokal sofort -> persistenter Cache -> Offline-Fallback -> Netzwerk-Schranke

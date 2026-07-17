@@ -1,6 +1,7 @@
 using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Features.Properties.Sync;
 using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -17,6 +18,7 @@ public class AppStartupService(
     IAuthService authService,
     IMediator mediator,
     INavigator navigator,
+    PropertySyncService propertySync,
     ILogger<AppStartupService> logger
 ) : IEventHandler<LogoutRequestedEvent>
 {
@@ -25,6 +27,9 @@ public class AppStartupService(
     /// </summary>
     public async Task StartAsync()
     {
+        // Immobilien-Delta-Sync: haelt die lokalen Caches aktuell, solange die App laeuft
+        propertySync.Start();
+
         var sessionRestored = await authService.TryRestoreSessionAsync();
 
         if (sessionRestored)
@@ -52,6 +57,11 @@ public class AppStartupService(
         }
 #endif
     }
+
+    /// <summary>
+    /// App kehrt aus dem Hintergrund zurueck: sofort einen Delta-Sync anstossen.
+    /// </summary>
+    public void OnAppResumed() => propertySync.TriggerSyncNow();
 
     /// <summary>
     /// Logout: Auth-State bereinigen und zur Login-Seite navigieren.

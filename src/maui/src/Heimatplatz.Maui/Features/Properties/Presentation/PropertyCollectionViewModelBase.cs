@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Features.Properties.Sync;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -26,6 +27,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
     private int _currentPage;
     private bool _hasMore;
+    private readonly IDisposable _syncSubscription;
 
     public ObservableCollection<PropertyListItemDto> Properties { get; } = [];
 
@@ -145,6 +147,53 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         IsLoggedOut = !AuthService.IsAuthenticated;
 
         AuthService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        // Delta-Sync: sichtbare Liste in-place patchen statt komplett neu zu laden
+        _syncSubscription = Mediator.Subscribe<PropertyDataSyncedEvent>((evt, _, _) =>
+        {
+            MainThread.BeginInvokeOnMainThread(() => ApplySyncedChanges(evt));
+            return Task.CompletedTask;
+        });
+    }
+
+    /// <summary>
+    /// Wendet die Aenderungen eines Immobilien-Delta-Syncs auf die geladene Liste an:
+    /// geloeschte Eintraege entfernen, geaenderte durch den frischen Stand ersetzen.
+    /// Neue Immobilien betreffen diese Sammlungen nicht direkt (Favoriten/Blockierte/
+    /// eigene Inserate aendern sich nur durch Benutzeraktionen; OnAppearing laedt nach).
+    /// </summary>
+    private void ApplySyncedChanges(PropertyDataSyncedEvent evt)
+    {
+        if (Properties.Count == 0)
+            return;
+
+        if (evt.FullResync)
+        {
+            if (!IsLoggedOut && !IsSellerBlocked)
+                _ = ReloadAsync();
+            return;
+        }
+
+        foreach (var deletedId in evt.DeletedIds)
+        {
+            var existing = Properties.FirstOrDefault(p => p.Id == deletedId);
+            if (existing is not null)
+                Properties.Remove(existing);
+        }
+
+        foreach (var fresh in evt.ChangedProperties)
+        {
+            for (var i = 0; i < Properties.Count; i++)
+            {
+                if (Properties[i].Id == fresh.Id)
+                {
+                    Properties[i] = fresh;
+                    break;
+                }
+            }
+        }
+
+        IsEmpty = Properties.Count == 0;
     }
 
     private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
@@ -390,6 +439,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
     public virtual void Dispose()
     {
+        _syncSubscription.Dispose();
         AuthService.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         GC.SuppressFinalize(this);
     }

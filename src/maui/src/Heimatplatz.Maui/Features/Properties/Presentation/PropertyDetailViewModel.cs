@@ -6,6 +6,7 @@ using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using PropertyCondition = Heimatplatz.Maui.Features.Properties.Models.PropertyCondition;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Features.Properties.Sync;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -192,11 +193,28 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     #region IPageLifecycleAware
 
+    private IDisposable? _syncSubscription;
+
     public void OnAppearing()
     {
         if (Guid.TryParse(PropertyId, out var id))
         {
             _ = LoadPropertyAsync(id);
+
+            // Delta-Sync: betrifft eine Aenderung/Loeschung die angezeigte Immobilie,
+            // neu laden - der Sync hat den Detail-Cache bereits aktualisiert bzw. entfernt
+            // (bei geloeschten Immobilien erscheint der "nicht mehr verfuegbar"-Zustand)
+            _syncSubscription ??= _mediator.Subscribe<PropertyDataSyncedEvent>((evt, _, _) =>
+            {
+                var affected = evt.FullResync ||
+                               evt.DeletedIds.Contains(id) ||
+                               evt.ChangedProperties.Any(p => p.Id == id);
+                if (affected)
+                {
+                    MainThread.BeginInvokeOnMainThread(() => _ = LoadPropertyAsync(id));
+                }
+                return Task.CompletedTask;
+            });
         }
         else
         {
@@ -206,6 +224,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     public void OnDisappearing()
     {
+        _syncSubscription?.Dispose();
+        _syncSubscription = null;
     }
 
     #endregion

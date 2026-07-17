@@ -26,6 +26,7 @@ Heimatplatz.Maui/
 ├── AppShell.xaml(.cs)          # ShinyShell (Flyout-Navigation)
 ├── Events/                     # Mediator-Events (Login/Logout)
 ├── Http/                       # IHttpHeaderContributor + AggregatingHttpRequestDecorator
+├── Offline/                    # LocalFirst-Middleware, SQLite-Store, Offline-Konfiguration, Staleness
 ├── Services/                   # AppStartupService
 ├── Presentation/               # Shell-Ebene: Impressum, Datenschutz
 ├── Features/
@@ -35,6 +36,29 @@ Heimatplatz.Maui/
 │   └── AppUpdate/              # Google Play In-App-Update (Android)
 └── Core/DeepLink/              # heimatplatz://property|foreclosure/{guid}
 ```
+
+## Offline & Caching (Local-First + Delta-Sync)
+
+Alle lesenden API-Requests aus `Offline/OfflineDataConfiguration.cs` werden persistent in SQLite
+gecacht (`Shiny.DocumentDb`, `heimatplatz-offline.db` im AppDataDirectory) und offline ausgeliefert.
+Pipeline: `LocalFirstRequestMiddleware` (Cache sofort, Refresh im Hintergrund) → persistenter Cache
+→ Offline-Fallback → `OfflineNetworkGuardMiddleware` → HTTP.
+
+**Delta-Sync fuer Immobilien** (`Features/Properties/Sync/`): `PropertySyncService` pollt
+`GET /api/properties/changes?Since=<Watermark>` (App-Start, Resume, alle 60 s) und patcht die
+lokalen Caches gezielt, statt Listen neu zu laden:
+
+- **Updated**: Eintrag wird in allen gecachten Listen-Antworten in-place ersetzt; ein gecachtes
+  Detail wird einzeln per `ForceCacheRefresh` nachgeladen.
+- **Deleted**: aus Listen entfernt (inkl. `Total`), Detail-Cache verworfen.
+- **Created**: Listen-Caches werden ueber die `CacheStalenessRegistry` als veraltet markiert
+  (Filter-/Sortier-Einordnung ist Backend-Sache); der naechste Zugriff erneuert sie im Hintergrund.
+- Danach wird `PropertyDataSyncedEvent` publiziert - Home/Favoriten/Blockierte/Meine-Immobilien/
+  Detail-ViewModels patchen ihre sichtbaren Listen in-place.
+- Watermark liegt pro API-Endpunkt in Preferences; `FullResyncRequired` (erster Lauf oder Stand
+  aelter als die 30-Tage-Journal-Retention) verwirft alle Immobilien-Caches.
+
+Die `RefreshAfterSeconds` der Immobilien-Requests (900 s) sind dadurch nur noch Sicherheitsnetz.
 
 ## Wiederverwendet aus der Uno-App
 

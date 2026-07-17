@@ -20,6 +20,7 @@ internal sealed class LocalFirstRequestMiddleware<TRequest, TResult>(
     IMediator mediator,
     TimeProvider timeProvider,
     LocalFirstRefreshCoordinator refreshCoordinator,
+    CacheStalenessRegistry stalenessRegistry,
     ILogger<LocalFirstRequestMiddleware<TRequest, TResult>> logger
 ) : IRequestMiddleware<TRequest, TResult>
     where TRequest : IRequest<TResult>
@@ -74,7 +75,10 @@ internal sealed class LocalFirstRequestMiddleware<TRequest, TResult>(
 
         var refreshAfterSeconds = section.GetValue("RefreshAfterSeconds", 60);
         var refreshDue = refreshAfterSeconds <= 0 ||
-                         timeProvider.GetUtcNow() - entry.CreatedAt >= TimeSpan.FromSeconds(refreshAfterSeconds);
+                         timeProvider.GetUtcNow() - entry.CreatedAt >= TimeSpan.FromSeconds(refreshAfterSeconds) ||
+                         // Vom Delta-Sync als veraltet markiert (z.B. neue Immobilien, die
+                         // client-seitig nicht in gefilterte Listen eingefuegt werden koennen)
+                         stalenessRegistry.IsStale(typeof(TRequest).FullName!, entry.CreatedAt);
 
         if (refreshDue && internet.IsAvailable && refreshCoordinator.TryStart(key))
         {

@@ -7,6 +7,7 @@ using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Features.Properties.Sync;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -42,6 +43,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
     private List<LocationGemeindeDto> _municipalities = [];
     private bool _isSyncing;
+    private IDisposable? _syncSubscription;
     private CancellationTokenSource? _saveDebounceCts;
     private Task? _filterPreferencesLoadTask;
     private bool _filterPreferencesLoaded;
@@ -285,6 +287,14 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
+
+        // Delta-Sync: sichtbare Liste in-place patchen; nur bei neuen Immobilien
+        // wird die aktuelle Seite einmal frisch geladen (Filter-Einordnung im Backend)
+        _syncSubscription = _mediator.Subscribe<PropertyDataSyncedEvent>((evt, _, _) =>
+        {
+            MainThread.BeginInvokeOnMainThread(() => ApplySyncedChanges(evt));
+            return Task.CompletedTask;
+        });
 
         UpdateAuthState();
 
@@ -1017,6 +1027,75 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     }
 
     /// <summary>
+    /// Wendet die Aenderungen eines Immobilien-Delta-Syncs auf die sichtbare Liste an.
+    /// Geloeschte werden entfernt, geaenderte in-place ersetzt. Nur wenn neue Immobilien
+    /// dazugekommen sind, wird die aktuelle Seite einmal frisch geladen - ob eine neue
+    /// Immobilie zu den aktiven Filtern passt, entscheidet das Backend.
+    /// </summary>
+    private void ApplySyncedChanges(PropertyDataSyncedEvent evt)
+    {
+#if DEBUG
+        if (_debugMockProperties != null)
+            return;
+#endif
+        if (evt.FullResync)
+        {
+            _ = ReloadPropertiesAsync();
+            return;
+        }
+
+        var removed = 0;
+        foreach (var deletedId in evt.DeletedIds)
+        {
+            var existing = Properties.FirstOrDefault(p => p.Id == deletedId);
+            if (existing is not null && Properties.Remove(existing))
+                removed++;
+        }
+
+        if (removed > 0)
+        {
+            _totalCount = Math.Max(0, _totalCount - removed);
+            UpdateResultCount();
+        }
+
+        foreach (var fresh in evt.ChangedProperties)
+        {
+            for (var i = 0; i < Properties.Count; i++)
+            {
+                if (Properties[i].Id == fresh.Id)
+                {
+                    Properties[i] = fresh;
+                    break;
+                }
+            }
+        }
+
+        if (evt.CreatedIds.Count > 0)
+            _ = SilentRefreshCurrentPageAsync();
+    }
+
+    /// <summary>
+    /// Laedt die aktuelle Seite still neu (ohne Busy-Overlay), z.B. wenn der Delta-Sync
+    /// neue Immobilien gemeldet hat. Laufende Ladevorgaenge haben Vorrang.
+    /// </summary>
+    private async Task SilentRefreshCurrentPageAsync()
+    {
+        if (IsBusy || IsRefreshing)
+            return;
+
+        try
+        {
+            var items = await LoadPageAsync(_currentPage, CancellationToken.None, forceRemoteRefresh: true);
+            ReplaceProperties(items);
+            UpdateResultCount();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "[HomePage] Stille Aktualisierung nach Sync fehlgeschlagen");
+        }
+    }
+
+    /// <summary>
     /// Pull-to-Refresh
     /// </summary>
     [RelayCommand]
@@ -1487,6 +1566,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         _saveDebounceCts?.Cancel();
         _ortCountCts?.Cancel();
+        _syncSubscription?.Dispose();
+        _syncSubscription = null;
         _authService.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         _filterStateService.FilterStateChanged -= OnFilterStateChanged;
     }

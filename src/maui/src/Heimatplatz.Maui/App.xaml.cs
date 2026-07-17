@@ -24,6 +24,10 @@ public partial class App : Application
         // Session-Restore + Push-Init (fire-and-forget, blockiert den Start nicht)
         _ = _startup.StartAsync();
 
+        // Nach laengerer Hintergrund-Zeit koennen Immobilien veraltet sein -
+        // beim Zurueckkehren sofort einen Delta-Sync anstossen
+        window.Resumed += (_, _) => _startup.OnAppResumed();
+
         return window;
     }
 }

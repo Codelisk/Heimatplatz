@@ -11,13 +11,16 @@ internal static class OfflineDataConfiguration
 {
     private const string GeneratedNamespace = "Heimatplatz.Maui.ApiClient.Generated";
 
+    // Immobilien-Requests werden vom PropertySyncService per Delta-Sync aktuell gehalten
+    // (nur Geaendertes wird nachgeladen) - die Refresh-Fenster hier sind nur noch das
+    // Sicherheitsnetz, falls der Sync laengere Zeit nicht laufen konnte.
     private static readonly (string Request, int RefreshAfterSeconds)[] Requests =
     [
-        ("GetPropertiesHttpRequest", 30),
-        ("GetPropertyByIdHttpRequest", 60),
-        ("GetUserPropertiesHttpRequest", 30),
-        ("GetUserFavoritesHttpRequest", 30),
-        ("GetUserBlockedHttpRequest", 30),
+        ("GetPropertiesHttpRequest", 900),
+        ("GetPropertyByIdHttpRequest", 900),
+        ("GetUserPropertiesHttpRequest", 900),
+        ("GetUserFavoritesHttpRequest", 900),
+        ("GetUserBlockedHttpRequest", 900),
         ("GetUserFilterPreferencesHttpRequest", 60),
         ("GetNotificationPreferencesHttpRequest", 60),
         ("GetLocationsHttpRequest", 86_400),
