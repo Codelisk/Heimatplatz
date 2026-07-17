@@ -1,6 +1,5 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
-using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -23,11 +22,11 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
         if (await dbContext.Set<Favorite>().AnyAsync(cancellationToken))
             return;
 
-        // Benutzer mit Buyer-Rolle abrufen
-        var buyers = await dbContext.Set<UserRole>()
-            .Where(ur => ur.RoleType == UserRoleType.Buyer)
-            .Select(ur => ur.UserId)
-            .Distinct()
+        // Jeder Benutzer ist implizit Kaeufer - Demo-Favoriten fuer alle
+        // Nicht-Admin-/Nicht-System-Konten anlegen
+        var buyers = await dbContext.Set<User>()
+            .Where(u => !u.IsAdmin && u.Email != "system@heimatplatz.at")
+            .Select(u => u.Id)
             .ToListAsync(cancellationToken);
 
         if (buyers.Count == 0)

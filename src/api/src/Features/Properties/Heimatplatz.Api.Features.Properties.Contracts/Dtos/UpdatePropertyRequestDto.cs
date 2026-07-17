@@ -11,8 +11,6 @@ public class UpdatePropertyRequestDto
     public required string PostalCode { get; set; }
     public required decimal Price { get; set; }
     public required PropertyType Type { get; set; }
-    public required SellerType SellerType { get; set; }
-    public required string SellerName { get; set; }
     public string? Description { get; set; }
     public int? LivingAreaSquareMeters { get; set; }
     public int? PlotAreaSquareMeters { get; set; }

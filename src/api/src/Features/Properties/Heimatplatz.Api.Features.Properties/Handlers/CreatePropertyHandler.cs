@@ -12,6 +12,7 @@ using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
+using Heimatplatz.Api.Features.Properties.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
@@ -27,6 +28,7 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 public class CreatePropertyHandler(
     AppDbContext dbContext,
     IHttpContextAccessor httpContextAccessor,
+    ISellerInfoResolver sellerInfoResolver,
     IMediator mediator
 ) : IRequestHandler<CreatePropertyRequest, CreatePropertyResponse>
 {
@@ -61,6 +63,10 @@ public class CreatePropertyHandler(
             throw new ArgumentException("Description must be between 50 and 2000 characters", nameof(request.Description));
         }
 
+        // Anbieter-Daten serverseitig aus dem Profil des Verkaeufers ableiten
+        // (Backend-First: der Client kann sich nicht als Makler/Privat ausgeben)
+        var sellerInfo = await sellerInfoResolver.ResolveForUserAsync(userId, cancellationToken);
+
         // Create property
         var property = new Property
         {
@@ -70,8 +76,9 @@ public class CreatePropertyHandler(
             MunicipalityId = request.MunicipalityId,
             Price = request.Price,
             Type = request.Type,
-            SellerType = request.SellerType,
-            SellerName = request.SellerName.Trim(),
+            SellerType = sellerInfo.SellerType,
+            SellerName = sellerInfo.SellerName,
+            SellerSourceId = sellerInfo.SellerSourceId,
             Description = request.Description?.Trim(),
             LivingAreaSquareMeters = request.LivingAreaSquareMeters,
             PlotAreaSquareMeters = request.PlotAreaSquareMeters,
@@ -120,25 +127,17 @@ public class CreatePropertyHandler(
             }
         }
 
-        // Kontaktdaten des Erstellers automatisch verknuepfen
+        // Kontaktdaten des Erstellers automatisch verknuepfen (E-Mail aus dem Benutzerprofil)
         var user = await dbContext.Set<User>()
             .FirstAsync(u => u.Id == userId, cancellationToken);
-
-        var contactType = user.SellerType switch
-        {
-            SellerType.Broker => ContactType.Agent,
-            _ => ContactType.Seller
-        };
 
         var contact = new PropertyContactInfo
         {
             Id = Guid.NewGuid(),
             PropertyId = property.Id,
-            Type = contactType,
+            Type = sellerInfo.ContactType,
             Source = ContactSource.Manual,
-            Name = user.SellerType == SellerType.Broker && !string.IsNullOrEmpty(user.CompanyName)
-                ? user.CompanyName
-                : user.FullName,
+            Name = sellerInfo.SellerName,
             Email = user.Email,
             DisplayOrder = 0,
             CreatedAt = property.CreatedAt

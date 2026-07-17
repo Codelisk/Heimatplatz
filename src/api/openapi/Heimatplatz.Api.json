@@ -5,17 +5,17 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/users/roles": {
+    "/api/auth/change-password": {
       "post": {
         "tags": [
           "Heimatplatz.Api"
         ],
-        "operationId": "AssignUserRole",
+        "operationId": "ChangePassword",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AssignUserRoleRequest"
+                "$ref": "#/components/schemas/ChangePasswordRequest"
               }
             }
           },
@@ -27,42 +27,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AssignUserRoleResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "RemoveUserRole",
-        "parameters": [
-          {
-            "name": "UserId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "RoleType",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/UserRoleType"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RemoveUserRoleResponse"
+                  "$ref": "#/components/schemas/ChangePasswordResponse"
                 }
               }
             }
@@ -90,30 +55,47 @@
         }
       }
     },
-    "/api/users/{UserId}/roles": {
+    "/api/auth/profile": {
       "get": {
         "tags": [
           "Heimatplatz.Api"
         ],
-        "operationId": "GetUserRoles",
-        "parameters": [
-          {
-            "name": "UserId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
+        "operationId": "GetProfile",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetUserRolesResponse"
+                  "$ref": "#/components/schemas/GetProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UpdateProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateProfileResponse"
                 }
               }
             }
@@ -1533,42 +1515,6 @@
           }
         }
       },
-      "AssignUserRoleRequest": {
-        "required": [
-          "UserId",
-          "RoleType"
-        ],
-        "type": "object",
-        "properties": {
-          "UserId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "RoleType": {
-            "$ref": "#/components/schemas/UserRoleType"
-          }
-        }
-      },
-      "AssignUserRoleResponse": {
-        "required": [
-          "UserId",
-          "RoleType",
-          "WasAlreadyAssigned"
-        ],
-        "type": "object",
-        "properties": {
-          "UserId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "RoleType": {
-            "$ref": "#/components/schemas/UserRoleType"
-          },
-          "WasAlreadyAssigned": {
-            "type": "boolean"
-          }
-        }
-      },
       "AustrianState": {
         "enum": [
           "Burgenland",
@@ -1618,6 +1564,41 @@
           },
           "Base64Data": {
             "type": "string"
+          }
+        }
+      },
+      "ChangePasswordRequest": {
+        "required": [
+          "CurrentPassword",
+          "NewPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "CurrentPassword": {
+            "type": "string"
+          },
+          "NewPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "ChangePasswordResponse": {
+        "required": [
+          "AccessToken",
+          "RefreshToken",
+          "ExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "AccessToken": {
+            "type": "string"
+          },
+          "RefreshToken": {
+            "type": "string"
+          },
+          "ExpiresAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -1704,9 +1685,7 @@
           "Address",
           "MunicipalityId",
           "Price",
-          "Type",
-          "SellerType",
-          "SellerName"
+          "Type"
         ],
         "type": "object",
         "properties": {
@@ -1730,12 +1709,6 @@
           },
           "Type": {
             "$ref": "#/components/schemas/PropertyType"
-          },
-          "SellerType": {
-            "$ref": "#/components/schemas/SellerType"
-          },
-          "SellerName": {
-            "type": "string"
           },
           "Description": {
             "type": [
@@ -2501,6 +2474,54 @@
           }
         }
       },
+      "GetProfileResponse": {
+        "required": [
+          "UserId",
+          "FirstName",
+          "LastName",
+          "Email",
+          "FullName"
+        ],
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FirstName": {
+            "type": "string"
+          },
+          "LastName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "SellerType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SellerType"
+              }
+            ]
+          },
+          "CompanyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "IsAdmin": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
       "GetPropertiesResponse": {
         "required": [
           "Properties",
@@ -2805,33 +2826,6 @@
             "format": "int32"
           },
           "HasMore": {
-            "type": "boolean"
-          }
-        }
-      },
-      "GetUserRolesResponse": {
-        "required": [
-          "UserId",
-          "Roles",
-          "IsBuyer",
-          "IsSeller"
-        ],
-        "type": "object",
-        "properties": {
-          "UserId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "Roles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRoleType"
-            }
-          },
-          "IsBuyer": {
-            "type": "boolean"
-          },
-          "IsSeller": {
             "type": "boolean"
           }
         }
@@ -3307,14 +3301,14 @@
       "LoginRequest": {
         "required": [
           "Email",
-          "Passwort"
+          "Password"
         ],
         "type": "object",
         "properties": {
           "Email": {
             "type": "string"
           },
-          "Passwort": {
+          "Password": {
             "type": "string"
           }
         }
@@ -3765,33 +3759,24 @@
       },
       "RegisterRequest": {
         "required": [
-          "Vorname",
-          "Nachname",
+          "FirstName",
+          "LastName",
           "Email",
-          "Passwort"
+          "Password"
         ],
         "type": "object",
         "properties": {
-          "Vorname": {
+          "FirstName": {
             "type": "string"
           },
-          "Nachname": {
+          "LastName": {
             "type": "string"
           },
           "Email": {
             "type": "string"
           },
-          "Passwort": {
+          "Password": {
             "type": "string"
-          },
-          "Roles": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/UserRoleType"
-            }
           },
           "SellerType": {
             "oneOf": [
@@ -3877,26 +3862,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "RemoveUserRoleResponse": {
-        "required": [
-          "UserId",
-          "RoleType",
-          "WasRemoved"
-        ],
-        "type": "object",
-        "properties": {
-          "UserId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "RoleType": {
-            "$ref": "#/components/schemas/UserRoleType"
-          },
-          "WasRemoved": {
-            "type": "boolean"
           }
         }
       },
@@ -4080,6 +4045,7 @@
         "enum": [
           "Private",
           "Broker",
+          "PropertyManager",
           null
         ]
       },
@@ -4279,6 +4245,85 @@
           }
         }
       },
+      "UpdateProfileRequest": {
+        "required": [
+          "FirstName",
+          "LastName"
+        ],
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": "string"
+          },
+          "LastName": {
+            "type": "string"
+          },
+          "SellerType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SellerType"
+              }
+            ]
+          },
+          "CompanyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "UpdateProfileResponse": {
+        "required": [
+          "UserId",
+          "FirstName",
+          "LastName",
+          "Email",
+          "FullName",
+          "AccessToken"
+        ],
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FirstName": {
+            "type": "string"
+          },
+          "LastName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "AccessToken": {
+            "type": "string"
+          },
+          "SellerType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SellerType"
+              }
+            ]
+          },
+          "CompanyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UpdatePropertyRequest": {
         "type": "object",
         "properties": {
@@ -4306,12 +4351,6 @@
           },
           "Type": {
             "$ref": "#/components/schemas/PropertyType"
-          },
-          "SellerType": {
-            "$ref": "#/components/schemas/SellerType"
-          },
-          "SellerName": {
-            "type": "string"
           },
           "Description": {
             "type": [
@@ -4467,12 +4506,6 @@
             }
           }
         }
-      },
-      "UserRoleType": {
-        "enum": [
-          "Buyer",
-          "Seller"
-        ]
       }
     }
   },

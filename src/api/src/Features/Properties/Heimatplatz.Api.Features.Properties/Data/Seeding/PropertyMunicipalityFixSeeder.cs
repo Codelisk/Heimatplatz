@@ -1,6 +1,5 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
-using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
@@ -84,9 +83,9 @@ public class PropertyMunicipalityFixSeeder(AppDbContext dbContext, ILogger<Prope
         // Roitham-Objekt nachlegen (aeltere Datenbanken wurden vor diesem Seed-Eintrag befuellt)
         if (seedProperties.All(p => p.Title != TraunfallTitle))
         {
-            var sellerId = await dbContext.Set<UserRole>()
-                .Where(ur => ur.RoleType == UserRoleType.Seller)
-                .Select(ur => ur.UserId)
+            var sellerId = await dbContext.Set<User>()
+                .Where(u => u.SellerType != null)
+                .Select(u => u.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
             var property = sellerId == Guid.Empty

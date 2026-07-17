@@ -42,11 +42,20 @@ public class Property : BaseEntity
     /// <summary>Type of property</summary>
     public PropertyType Type { get; set; }
 
-    /// <summary>Type of seller</summary>
+    /// <summary>
+    /// Anbietertyp des Inserats. Wird bei benutzererstellten Inseraten serverseitig
+    /// aus dem Profil des Eigentuemers abgeleitet, nie vom Client uebernommen.
+    /// </summary>
     public SellerType SellerType { get; set; }
 
-    /// <summary>Name of the seller</summary>
+    /// <summary>Anzeigename des Anbieters (Firmenname bei Broker/Verwaltung, sonst voller Name)</summary>
     public required string SellerName { get; set; }
+
+    /// <summary>FK zur SellerSource (Makler-/Verwaltungs-Firma) - Basis fuer den Anbieter-Ausschlussfilter</summary>
+    public Guid? SellerSourceId { get; set; }
+
+    /// <summary>Navigation zur SellerSource</summary>
+    public SellerSource? SellerSource { get; set; }
 
     /// <summary>Description text</summary>
     public string? Description { get; set; }

@@ -69,6 +69,15 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // FK zur SellerSource (optional): Anbieter-Ausschlussfilter laeuft ueber diese
+        // Beziehung statt ueber fragiles String-Matching auf SellerName
+        builder.HasOne(p => p.SellerSource)
+            .WithMany()
+            .HasForeignKey(p => p.SellerSourceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(p => p.SellerSourceId);
+
         // Indizes fuer haeufige Abfragen
         builder.HasIndex(p => p.Type);
         builder.HasIndex(p => p.MunicipalityId);

@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Services;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.PropertyImport.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Notifications.Contracts.Events;
@@ -25,10 +26,13 @@ namespace Heimatplatz.Api.Features.PropertyImport.Handlers;
 public class ImportPropertiesHandler(
     AppDbContext dbContext,
     IHttpContextAccessor httpContextAccessor,
+    ISellerInfoResolver sellerInfoResolver,
     IMediator mediator
 ) : IRequestHandler<ImportPropertiesRequest, ImportPropertiesResponse>
 {
-    [MediatorHttpPost("/properties", OperationId = "ImportProperties", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
+    // Batch-Import ist eine System-Faehigkeit (Scraper/Portale), keine normale
+    // Verkaeufer-Funktion - deshalb RequireAdmin statt RequireSeller.
+    [MediatorHttpPost("/properties", OperationId = "ImportProperties", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAdmin])]
     public async Task<ImportPropertiesResponse> Handle(ImportPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // UserId aus JWT Token extrahieren
@@ -130,8 +134,11 @@ public class ImportPropertiesHandler(
             // Resolve MunicipalityId for update
             var updateMunicipalityId = await ResolveMunicipalityIdAsync(importDto.City, importDto.PostalCode, cancellationToken);
 
+            var updateSellerSourceId = await sellerInfoResolver.ResolveSellerSourceAsync(
+                importDto.SellerType, importDto.SellerName, cancellationToken);
+
             // Update existierende Property
-            UpdateProperty(existingProperty, importDto, updateMunicipalityId);
+            UpdateProperty(existingProperty, importDto, updateMunicipalityId, updateSellerSourceId);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return new ImportResultItem(
@@ -144,8 +151,13 @@ public class ImportPropertiesHandler(
         // Resolve MunicipalityId from City/PostalCode
         var municipalityId = await ResolveMunicipalityIdAsync(importDto.City, importDto.PostalCode, cancellationToken);
 
+        // SellerSource-FK aufloesen/anlegen (nur Broker/Verwaltung), damit der
+        // Anbieter-Ausschlussfilter auch importierte Inserate sauber erfasst
+        var sellerSourceId = await sellerInfoResolver.ResolveSellerSourceAsync(
+            importDto.SellerType, importDto.SellerName, cancellationToken);
+
         // Neue Property erstellen
-        var newProperty = CreateProperty(importDto, userId, municipalityId);
+        var newProperty = CreateProperty(importDto, userId, municipalityId, sellerSourceId);
         dbContext.Set<Property>().Add(newProperty);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -245,7 +257,7 @@ public class ImportPropertiesHandler(
         }
     }
 
-    private static Property CreateProperty(ImportPropertyDto dto, Guid userId, Guid municipalityId)
+    private static Property CreateProperty(ImportPropertyDto dto, Guid userId, Guid municipalityId, Guid? sellerSourceId)
     {
         var property = new Property
         {
@@ -257,6 +269,7 @@ public class ImportPropertiesHandler(
             Type = dto.Type,
             SellerType = dto.SellerType,
             SellerName = dto.SellerName.Trim(),
+            SellerSourceId = sellerSourceId,
             Description = dto.Description?.Trim(),
             LivingAreaSquareMeters = dto.LivingAreaSquareMeters,
             PlotAreaSquareMeters = dto.PlotAreaSquareMeters,
@@ -284,7 +297,7 @@ public class ImportPropertiesHandler(
         return property;
     }
 
-    private void UpdateProperty(Property property, ImportPropertyDto dto, Guid municipalityId)
+    private void UpdateProperty(Property property, ImportPropertyDto dto, Guid municipalityId, Guid? sellerSourceId)
     {
         property.Title = dto.Title.Trim();
         property.Address = dto.Address.Trim();
@@ -293,6 +306,7 @@ public class ImportPropertiesHandler(
         property.Type = dto.Type;
         property.SellerType = dto.SellerType;
         property.SellerName = dto.SellerName.Trim();
+        property.SellerSourceId = sellerSourceId;
         property.Description = dto.Description?.Trim();
         property.LivingAreaSquareMeters = dto.LivingAreaSquareMeters;
         property.PlotAreaSquareMeters = dto.PlotAreaSquareMeters;

@@ -22,7 +22,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [MediatorHttpGroup("/api/properties")]
 public class UpdatePropertyHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    Services.ISellerInfoResolver sellerInfoResolver
 ) : IRequestHandler<UpdatePropertyRequest, UpdatePropertyResponse>
 {
     [MediatorHttpPut("/", OperationId = "UpdateProperty", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
@@ -71,14 +72,18 @@ public class UpdatePropertyHandler(
             throw new ArgumentException("Description must be between 50 and 2000 characters", nameof(request.Description));
         }
 
+        // Anbieter-Daten serverseitig aus dem aktuellen Profil des Eigentuemers ableiten
+        var sellerInfo = await sellerInfoResolver.ResolveForUserAsync(userId, cancellationToken);
+
         // Update property fields
         property.Title = request.Title.Trim();
         property.Address = request.Address.Trim();
         property.MunicipalityId = request.MunicipalityId;
         property.Price = request.Price;
         property.Type = request.Type;
-        property.SellerType = request.SellerType;
-        property.SellerName = request.SellerName.Trim();
+        property.SellerType = sellerInfo.SellerType;
+        property.SellerName = sellerInfo.SellerName;
+        property.SellerSourceId = sellerInfo.SellerSourceId;
         property.Description = request.Description?.Trim();
         property.LivingAreaSquareMeters = request.LivingAreaSquareMeters;
         property.PlotAreaSquareMeters = request.PlotAreaSquareMeters;

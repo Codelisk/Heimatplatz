@@ -4,7 +4,9 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 
 /// <summary>
-/// Request to create a new property
+/// Request to create a new property.
+/// SellerType/SellerName werden bewusst NICHT vom Client entgegengenommen -
+/// der Server leitet sie aus dem Profil des authentifizierten Verkaeufers ab.
 /// </summary>
 public record CreatePropertyRequest(
     string Title,
@@ -12,8 +14,6 @@ public record CreatePropertyRequest(
     Guid MunicipalityId,
     decimal Price,
     PropertyType Type,
-    SellerType SellerType,
-    string SellerName,
     string? Description = null,
     int? LivingAreaSquareMeters = null,
     int? PlotAreaSquareMeters = null,

@@ -243,6 +243,9 @@ public class PushNotificationService(
         {
             SellerType.Private => isPrivate,
             SellerType.Broker => isBroker,
+            // Hausverwaltungen sind gewerbliche Anbieter - die Praeferenzen kennen nur
+            // privat/gewerblich, deshalb greift hier das Makler-Flag
+            SellerType.PropertyManager => isBroker,
             _ => true
         };
     }

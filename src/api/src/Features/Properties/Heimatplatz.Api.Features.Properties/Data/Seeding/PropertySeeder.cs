@@ -1,6 +1,5 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
-using Heimatplatz.Api.Features.Auth.Contracts.Enums;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
@@ -25,11 +24,10 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
         if (await dbContext.Set<Property>().AnyAsync(cancellationToken))
             return;
 
-        // Benutzer mit Seller-Rolle abrufen
-        var sellers = await dbContext.Set<UserRole>()
-            .Where(ur => ur.RoleType == UserRoleType.Seller)
-            .Select(ur => ur.UserId)
-            .Distinct()
+        // Verkaeufer abrufen (User mit gesetztem SellerType)
+        var sellers = await dbContext.Set<User>()
+            .Where(u => u.SellerType != null)
+            .Select(u => u.Id)
             .ToListAsync(cancellationToken);
 
         if (sellers.Count == 0)
@@ -190,6 +188,10 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
         // Kontaktdaten fuer alle Properties generieren
         SetContactData(properties);
 
+        // SellerSource-FK fuer gewerbliche Anbieter (Makler/Verwaltung) aufloesen/anlegen,
+        // damit der Anbieter-Ausschlussfilter auch die Demo-Inserate erfasst
+        await ResolveSellerSourcesAsync(properties, cancellationToken);
+
         dbContext.Set<Property>().AddRange(properties);
 
         // Explizit alle Contacts zum DbContext hinzufuegen (EF Core Cascade-Fix)
@@ -197,6 +199,45 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
         dbContext.Set<PropertyContactInfo>().AddRange(allContacts);
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Loest fuer alle gewerblichen Demo-Inserate (Broker/Verwaltung) die SellerSource
+    /// per Name auf bzw. legt fehlende Eintraege an und setzt die FK.
+    /// </summary>
+    private async Task ResolveSellerSourcesAsync(List<Property> properties, CancellationToken cancellationToken)
+    {
+        var commercial = properties
+            .Where(p => p.SellerType is SellerType.Broker or SellerType.PropertyManager)
+            .ToList();
+
+        if (commercial.Count == 0)
+            return;
+
+        var names = commercial.Select(p => p.SellerName).Distinct().ToList();
+
+        var sources = await dbContext.Set<SellerSource>()
+            .Where(ss => names.Contains(ss.Name))
+            .ToDictionaryAsync(ss => ss.Name, ss => ss.Id, cancellationToken);
+
+        var now = DateTimeOffset.UtcNow;
+        foreach (var name in names.Where(n => !sources.ContainsKey(n)))
+        {
+            var source = new SellerSource
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                IsDefault = true,
+                CreatedAt = now
+            };
+            dbContext.Set<SellerSource>().Add(source);
+            sources[name] = source.Id;
+        }
+
+        foreach (var property in commercial)
+        {
+            property.SellerSourceId = sources[property.SellerName];
+        }
     }
 
     /// <summary>

@@ -21,7 +21,7 @@ public class RemoveBlockedHandler(
     IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<RemoveBlockedRequest, RemoveBlockedResponse>
 {
-    [MediatorHttpDelete("/{PropertyId}", OperationId = "RemoveBlocked", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAnyRole])]
+    [MediatorHttpDelete("/{PropertyId}", OperationId = "RemoveBlocked", RequiresAuthorization = true)]
     public async Task<RemoveBlockedResponse> Handle(RemoveBlockedRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT Token

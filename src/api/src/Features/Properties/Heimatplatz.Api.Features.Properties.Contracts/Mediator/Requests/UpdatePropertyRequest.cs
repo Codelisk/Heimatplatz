@@ -4,7 +4,9 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 
 /// <summary>
-/// Request to update an existing property
+/// Request to update an existing property.
+/// SellerType/SellerName werden bewusst NICHT vom Client entgegengenommen -
+/// der Server leitet sie aus dem Profil des Eigentuemers ab.
 /// Note: Using class with properties (not record) for Shiny Mediator OpenAPI generator compatibility
 /// </summary>
 public class UpdatePropertyRequest : IRequest<UpdatePropertyResponse>
@@ -15,8 +17,6 @@ public class UpdatePropertyRequest : IRequest<UpdatePropertyResponse>
     public Guid MunicipalityId { get; set; }
     public decimal Price { get; set; }
     public PropertyType Type { get; set; }
-    public SellerType SellerType { get; set; }
-    public string SellerName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int? LivingAreaSquareMeters { get; set; }
     public int? PlotAreaSquareMeters { get; set; }

@@ -94,17 +94,14 @@ public class GetPropertiesHandler(
         if (request.RoomsMin.HasValue)
             query = query.Where(p => p.Rooms >= request.RoomsMin.Value);
 
-        // Filter: Exclude specific seller sources by name lookup
+        // Filter: Bestimmte Anbieter (Makler/Verwaltungen) ausblenden - ueber die
+        // SellerSource-FK-Beziehung statt fragilem String-Matching auf SellerName
         var excludedSourceIds = request.GetExcludedSellerSourceIds();
         if (excludedSourceIds.Count > 0)
         {
-            var excludedNames = await dbContext.Set<SellerSource>()
-                .Where(ss => excludedSourceIds.Contains(ss.Id))
-                .Select(ss => ss.Name)
-                .ToListAsync(cancellationToken);
-
-            if (excludedNames.Count > 0)
-                query = query.Where(p => !excludedNames.Contains(p.SellerName));
+            query = query.Where(p =>
+                p.SellerSourceId == null ||
+                !excludedSourceIds.Contains(p.SellerSourceId.Value));
         }
 
         // Total count for paging (before applying pagination)
