@@ -15,3 +15,6 @@ Contracts und DTOs fuer das Properties (Immobilien) Feature.
 ### Requests
 - `GetPropertiesRequest` - Immobilien-Liste mit Filtern abrufen
 - `GetPropertyByIdRequest` - Einzelne Immobilie abrufen
+- `GetPropertyChangesRequest` - Delta-Sync fuer Client-Caches: Aenderungen seit `Since`
+  (dedupliziert pro Immobilie, `PropertyListItemDto`-Payload bei Created/Updated,
+  `Watermark` als naechstes `Since`, `FullResyncRequired` bei fehlendem/zu altem Stand)

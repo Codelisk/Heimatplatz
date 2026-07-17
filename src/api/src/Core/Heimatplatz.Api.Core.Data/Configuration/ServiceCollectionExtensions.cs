@@ -23,8 +23,12 @@ public static class ServiceCollectionExtensions
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
         var provider = configuration[$"{DatabaseOptions.SectionName}:Provider"];
 
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
+            // Features koennen SaveChanges-Interceptors beisteuern (als IInterceptor registrieren),
+            // z.B. das PropertyChange-Journal fuer den Client-Delta-Sync
+            options.AddInterceptors(serviceProvider.GetServices<IInterceptor>());
+
             // Für Build-Zeit Tools (OpenAPI Generator): InMemory Provider verwenden
             if (string.IsNullOrWhiteSpace(connectionString))
             {

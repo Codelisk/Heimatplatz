@@ -1,7 +1,10 @@
 using Heimatplatz.Api.Cleanup;
 using Heimatplatz.Api.Core.Data.Seeding.Configuration;
+using Heimatplatz.Api.Features.Properties.Data;
 using Heimatplatz.Api.Features.Properties.Data.Seeding;
+using Heimatplatz.Api.Features.Properties.Infrastructure;
 using Heimatplatz.Api.Features.Properties.Services;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Api.Features.Properties.Configuration;
@@ -17,6 +20,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPropertiesFeature(this IServiceCollection services)
     {
         services.AddGeneratedServices();
+
+        // PropertyChange-Journal: erfasst alle Immobilien-Aenderungen zentral beim SaveChanges
+        // (Basis fuer den Client-Delta-Sync via GET /api/properties/changes)
+        services.AddSingleton<IInterceptor, PropertyChangeInterceptor>();
+        services.AddHostedService<PropertyChangeRetentionWorker>();
 
         // Account-Loeschung: loescht Inserate, Favoriten und Blockierungen des Benutzers.
         // Explizit (nicht via [Service]/TryAdd), damit IEnumerable<IUserDataEraser> alle Beitraege erhaelt.

@@ -990,8 +990,7 @@
             "name": "Since",
             "in": "query",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           }
         ],

@@ -46,6 +46,17 @@ public class PropertiesUserDataEraser(AppDbContext dbContext) : IUserDataEraser
             await dbContext.Set<Property>()
                 .Where(p => p.UserId == userId)
                 .ExecuteDeleteAsync(cancellationToken);
+
+            // ExecuteDelete laeuft am ChangeTracker (und damit am PropertyChangeInterceptor)
+            // vorbei - Tombstones fuer den Client-Delta-Sync deshalb manuell journalieren
+            var now = DateTimeOffset.UtcNow;
+            dbContext.Set<PropertyChange>().AddRange(propertyIds.Select(id => new PropertyChange
+            {
+                PropertyId = id,
+                ChangeType = PropertyChangeTypes.Deleted,
+                CreatedAt = now
+            }));
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }
