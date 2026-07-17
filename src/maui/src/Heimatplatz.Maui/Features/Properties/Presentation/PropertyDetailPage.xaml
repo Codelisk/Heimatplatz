@@ -6,6 +6,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.PropertyDetailPage"
              x:DataType="vm:PropertyDetailViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="{Binding Title}">
 
     <!-- Single-Cell-Grid: Der Kontakt-Footer liegt als Bottom-Sheet UEBER dem Inhalt.
@@ -559,18 +560,22 @@
         </Grid>
 
         <!-- Vollbild-Bildviewer (Lightbox wie im Web): Pinch/Zoom, Doppeltipp,
-             eingebauter Schliessen-Button -->
+             eingebauter Schliessen-Button. IsVisible zwingend: geschlossen rendert
+             der Viewer sein Source-Bild sonst inline ueber der Seite -->
         <shiny:ImageViewer Source="{Binding CurrentImageUrl}"
                            IsOpen="{Binding IsImageViewerOpen, Mode=TwoWay}"
+                           IsVisible="{Binding IsImageViewerOpen}"
                            OpenViewerOnTap="False" />
 
-        <!-- Blaettern im Vollbild: liegt ueber dem Viewer, faengt aber nur Eingaben
-             auf den Buttons ab. IsVisible NUR am Grid (WinUI malt Kinder mit
-             eigenem IsVisible-Binding hier nicht); hoher ZIndex, weil der
-             ImageViewer sein Overlay sonst darueber legt -->
+        <!-- Blaettern im Vollbild: kleine content-grosse Container statt vollflaechiger
+             Overlays, damit echte Klicks den Schliessen-Button und die Gesten des
+             Viewers erreichen. IsVisible NUR am Grid (WinUI malt Kinder mit eigenem
+             IsVisible-Binding hier nicht); hoher ZIndex, weil der ImageViewer sein
+             Overlay sonst darueber legt -->
         <Grid IsVisible="{Binding ShowViewerNavigation}"
-              InputTransparent="True"
-              CascadeInputTransparent="False"
+              HorizontalOptions="Start"
+              VerticalOptions="Center"
+              Margin="14,0,0,0"
               ZIndex="9999">
             <Button Text="‹"
                     Command="{Binding ShowPreviousImageCommand}"
@@ -585,11 +590,14 @@
                     BackgroundColor="{StaticResource GlassPillBackground}"
                     BorderColor="{StaticResource GlassPillStroke}"
                     TextColor="White"
-                    HorizontalOptions="Start"
-                    VerticalOptions="Center"
-                    Margin="14,0,0,0"
                     AutomationId="Detail_Viewer_Previous" />
+        </Grid>
 
+        <Grid IsVisible="{Binding ShowViewerNavigation}"
+              HorizontalOptions="End"
+              VerticalOptions="Center"
+              Margin="0,0,14,0"
+              ZIndex="9999">
             <Button Text="›"
                     Command="{Binding ShowNextImageCommand}"
                     FontSize="22"
@@ -603,21 +611,18 @@
                     BackgroundColor="{StaticResource GlassPillBackground}"
                     BorderColor="{StaticResource GlassPillStroke}"
                     TextColor="White"
-                    HorizontalOptions="End"
-                    VerticalOptions="Center"
-                    Margin="0,0,14,0"
                     AutomationId="Detail_Viewer_Next" />
         </Grid>
 
         <!-- Zaehler im Vollbild (eigenes Grid: eigenes Sichtbarkeits-Kriterium) -->
         <Grid IsVisible="{Binding IsImageViewerOpen}"
+              HorizontalOptions="Center"
+              VerticalOptions="End"
+              Margin="0,0,0,24"
               InputTransparent="True"
               ZIndex="9999">
             <Border Style="{StaticResource GlassPill}"
-                    Padding="10,4"
-                    Margin="0,0,0,24"
-                    VerticalOptions="End"
-                    HorizontalOptions="Center">
+                    Padding="10,4">
                 <Label Text="{Binding ImageCounterText}"
                        FontSize="12"
                        FontFamily="SansMedium"

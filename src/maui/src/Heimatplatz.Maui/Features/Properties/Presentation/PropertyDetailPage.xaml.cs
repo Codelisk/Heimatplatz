@@ -24,6 +24,21 @@ public partial class PropertyDetailPage : ContentPage
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
     }
 
+    /// <summary>
+    /// Zurueck schliesst zuerst die offene Lightbox statt die Seite zu verlassen
+    /// (Android-Hardware-Back und Shell-Zurueck-Button).
+    /// </summary>
+    protected override bool OnBackButtonPressed()
+    {
+        if (_viewModel?.IsImageViewerOpen == true)
+        {
+            _viewModel.IsImageViewerOpen = false;
+            return true;
+        }
+
+        return base.OnBackButtonPressed();
+    }
+
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(PropertyDetailViewModel.IsContactExpanded))
