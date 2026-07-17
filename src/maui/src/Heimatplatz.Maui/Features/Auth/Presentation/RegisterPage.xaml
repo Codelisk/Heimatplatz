@@ -4,6 +4,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
              x:Class="Heimatplatz.Maui.Features.Auth.Presentation.RegisterPage"
              x:DataType="vm:RegisterViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="Registrieren">
 
     <Grid>

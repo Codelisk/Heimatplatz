@@ -512,6 +512,32 @@
                     AutomationId="Foreclosure_Viewer_Next" />
         </Grid>
 
+        <!-- Deutliches Schliessen-X: liegt exakt ueber dem kaum sichtbaren
+             eingebauten X des Viewers (Position 16/50 von rechts oben) -->
+        <Grid Grid.Row="0"
+              Grid.RowSpan="2"
+              IsVisible="{Binding IsImageViewerOpen}"
+              HorizontalOptions="End"
+              VerticalOptions="Start"
+              Margin="0,50,16,0"
+              ZIndex="9999">
+            <Button Text="✕"
+                    Command="{Binding CloseImageViewerCommand}"
+                    FontSize="18"
+                    Padding="0"
+                    MinimumHeightRequest="0"
+                    MinimumWidthRequest="0"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    CornerRadius="22"
+                    BorderWidth="1"
+                    BackgroundColor="{StaticResource GlassPillBackground}"
+                    BorderColor="{StaticResource GlassPillStroke}"
+                    TextColor="White"
+                    SemanticProperties.Description="Großansicht schließen"
+                    AutomationId="Foreclosure_Viewer_Close" />
+        </Grid>
+
         <!-- Zaehler im Vollbild (eigenes Grid: eigenes Sichtbarkeits-Kriterium) -->
         <Grid Grid.Row="0"
               Grid.RowSpan="2"

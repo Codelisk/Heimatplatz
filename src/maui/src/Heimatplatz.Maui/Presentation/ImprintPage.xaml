@@ -5,6 +5,7 @@
              xmlns:presentation="clr-namespace:Heimatplatz.Maui.Presentation"
              x:Class="Heimatplatz.Maui.Presentation.ImprintPage"
              x:DataType="presentation:ImprintViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="Impressum">
     <Grid>
         <ActivityIndicator IsRunning="{Binding IsLoading}"

@@ -803,6 +803,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     }
 
     [RelayCommand]
+    private void CloseImageViewer()
+        => IsImageViewerOpen = false;
+
+    [RelayCommand]
     private void ShowPreviousImage()
     {
         if (ImageUrls.Count == 0)

@@ -621,6 +621,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     }
 
     [RelayCommand]
+    private void CloseImageViewer()
+        => IsImageViewerOpen = false;
+
+    [RelayCommand]
     private void ShowPreviousImage()
     {
         if (ImageUrls.Count == 0)

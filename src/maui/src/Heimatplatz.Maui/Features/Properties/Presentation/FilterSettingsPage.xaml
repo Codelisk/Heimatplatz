@@ -6,6 +6,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.FilterSettingsPage"
              x:DataType="vm:FilterSettingsViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="Filtereinstellungen">
 
     <Grid>

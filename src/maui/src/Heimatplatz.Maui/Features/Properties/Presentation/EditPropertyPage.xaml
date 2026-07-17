@@ -6,6 +6,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.EditPropertyPage"
              x:DataType="vm:EditPropertyViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="Immobilie bearbeiten">
 
     <Grid>

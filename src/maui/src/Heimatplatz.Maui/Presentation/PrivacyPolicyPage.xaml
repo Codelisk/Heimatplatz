@@ -5,6 +5,7 @@
              xmlns:presentation="clr-namespace:Heimatplatz.Maui.Presentation"
              x:Class="Heimatplatz.Maui.Presentation.PrivacyPolicyPage"
              x:DataType="presentation:PrivacyPolicyViewModel"
+             Shell.FlyoutBehavior="Disabled"
              Title="Datenschutz">
     <Grid>
         <ActivityIndicator IsRunning="{Binding IsLoading}"
