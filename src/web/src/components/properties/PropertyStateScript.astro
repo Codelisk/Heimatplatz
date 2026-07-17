@@ -346,6 +346,9 @@
     document.querySelectorAll<HTMLElement>("[data-auth-initials]").forEach((element) => {
       element.textContent = loggedIn ? getInitials(session?.FullName) : "?";
     });
+    document.querySelectorAll<HTMLElement>("[data-auth-tooltip]").forEach((element) => {
+      element.title = loggedIn ? [session?.FullName, session?.Email].filter(Boolean).join("\n") : "";
+    });
     document.querySelectorAll<HTMLElement>("[data-auth-role-badge]").forEach((element) => {
       element.textContent = loggedIn ? getRoleBadgeText(roles) : "";
     });
@@ -1496,6 +1499,11 @@
     return card;
   }
 
+  // Tabler-Icons als Inline-SVG - das Client-Script kann keine .svg-Imports
+  // als Komponenten nutzen (Vite liefert dort nur Asset-URLs)
+  const HEART_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg>`;
+  const EYE_OFF_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true"><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828" /><path d="M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-3.6 0 -6.6 -2 -9 -6c1.272 -2.12 2.712 -3.678 4.32 -4.674m2.86 -1.146a9.055 9.055 0 0 1 1.82 -.18c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87" /><path d="M3 3l18 18" /></svg>`;
+
   function createApiPropertyCard(property: ApiProperty, mode = "") {
     const card = document.createElement("article");
     card.className = "overflow-hidden rounded-lg border border-border bg-card shadow-sm";
@@ -1503,9 +1511,13 @@
     card.dataset.slug = property.Id;
     card.dataset.propertyId = property.Id;
 
-    const imageWrap = document.createElement("a");
-    imageWrap.href = `/immobilien/angebote/${encodeURIComponent(property.Id)}/`;
-    imageWrap.className = "relative block h-44 bg-muted";
+    // Foto in relativem div statt direkt im Link, damit der Entfernen-Button
+    // (Favoriten/Blockiert) nicht in einem <a> landet (invalide + wuerde navigieren)
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "relative h-44 bg-muted";
+    const imageLink = document.createElement("a");
+    imageLink.href = `/immobilien/angebote/${encodeURIComponent(property.Id)}/`;
+    imageLink.className = "block h-full";
     const image = document.createElement("img");
     image.className = "h-full w-full object-cover";
     image.alt = property.Title;
@@ -1531,7 +1543,22 @@
       `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${typeBadgeClasses}`,
       property.Type,
     );
-    imageWrap.append(image, type);
+    imageLink.append(image);
+    imageWrap.append(imageLink, type);
+
+    // Favoriten-/Blockiert-Liste: die einzige sinnvolle Aktion ist das
+    // Entfernen aus der Liste - ein Icon-Button am Foto wie auf der Suchseite
+    if (mode === "favorites" || mode === "blocked") {
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-black/55 text-white";
+      remove.setAttribute("aria-label", mode === "favorites" ? "Favorit entfernen" : "Blockierung aufheben");
+      remove.setAttribute("data-list-remove", mode === "favorites" ? "favorite" : "block");
+      remove.setAttribute("data-property-slug", property.Id);
+      remove.setAttribute("data-property-id", property.Id);
+      remove.innerHTML = mode === "favorites" ? HEART_ICON_SVG : EYE_OFF_ICON_SVG;
+      imageWrap.append(remove);
+    }
 
     const body = document.createElement("div");
     body.className = "p-4";
@@ -1560,21 +1587,20 @@
         property.Rooms ? `${property.Rooms} Zi` : null,
       ].filter(Boolean).join(" · ") || property.SellerName,
     );
-    const actions = document.createElement("div");
-    actions.className = "mt-4 flex flex-wrap gap-2";
+    // Nur eigene Inserate haben Text-Aktionen; Favoriten/Blockiert entfernen
+    // per Foto-Icon, Details erreicht man ueber Foto und Titel
     if (mode === "mine") {
+      const actions = document.createElement("div");
+      actions.className = "mt-4 flex flex-wrap gap-2";
       actions.innerHTML = `
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/angebote/${property.Id}/">Details</a>
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">Bearbeiten</a>
         <button type="button" class="inline-flex h-9 items-center rounded-md bg-error px-3 text-sm font-medium text-error-foreground" data-remote-delete="${property.Id}">Löschen</button>
       `;
+      body.append(head, address, subtitle, meta, actions);
     } else {
-      actions.innerHTML = `
-        <button type="button" class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" aria-label="Favorit speichern" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">Merken</button>
-        <button type="button" class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">Blockieren</button>
-      `;
+      body.append(head, address, subtitle, meta);
     }
-    body.append(head, address, subtitle, meta, actions);
     card.append(imageWrap, body);
     return card;
   }
@@ -2381,6 +2407,32 @@
         if (menu instanceof HTMLElement) {
           menu.classList.toggle("hidden", !willOpen);
           menuButton.setAttribute("aria-expanded", String(willOpen));
+        }
+        return;
+      }
+
+      // Entfernen-Icon auf Favoriten-/Blockiert-Seite: bewusst KEIN Toggle -
+      // der Eintrag wird immer entfernt (auch wenn localStorage nicht mit dem
+      // Server synchron ist), die Karte verschwindet sofort aus der Liste
+      const listRemove = target?.closest("[data-list-remove]");
+      if (listRemove instanceof HTMLButtonElement) {
+        const action = listRemove.getAttribute("data-list-remove");
+        const slug = listRemove.getAttribute("data-property-slug");
+        const propertyId = listRemove.getAttribute("data-property-id");
+        if (!slug || (action !== "favorite" && action !== "block")) return;
+
+        removeValue(action === "favorite" ? STORAGE_KEYS.favorites : STORAGE_KEYS.blocked, slug);
+        refreshActionButtons();
+        syncUserLists();
+        void syncRemotePropertyAction(action, propertyId, false);
+
+        const container = listRemove.closest<HTMLElement>("[data-remote-properties]");
+        listRemove.closest("[data-property-card]")?.remove();
+        if (container) {
+          const hasCards = container.querySelectorAll("[data-property-card]").length > 0;
+          container.classList.toggle("hidden", !hasCards);
+          const empty = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+          empty?.classList.toggle("hidden", hasCards);
         }
         return;
       }

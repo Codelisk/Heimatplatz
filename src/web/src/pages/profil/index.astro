@@ -99,9 +99,11 @@ const quickLinks = [
         </div>
         <div class="px-5 pb-5 sm:px-6 sm:pb-6">
           <div class="-mt-10 flex items-end gap-4 sm:-mt-12">
-            {/* Heller Kreis mit roten Initialen und rotem Rand (ring-primary folgt dem
-                Theme); relative, damit der Kreis ueber dem Markenband gezeichnet wird */}
-            <div class="relative grid size-20 shrink-0 place-items-center rounded-full bg-primary-foreground text-2xl font-bold text-primary ring-4 ring-primary sm:size-24 sm:text-3xl" data-auth-initials aria-hidden="true">?</div>
+            {/* Marken-roter Kreis mit weissen Initialen (wie Header-Avatar); der Ring
+                in Kartenfarbe loest den Kreis als Cut-out vom Markenband - kein
+                greller Weiss-Kreis mehr im Dark Mode. relative, damit der Kreis
+                ueber dem Markenband gezeichnet wird */}
+            <div class="relative grid size-20 shrink-0 place-items-center rounded-full bg-primary text-2xl font-bold text-primary-foreground ring-4 ring-card sm:size-24 sm:text-3xl" data-auth-initials aria-hidden="true">?</div>
             <div class="min-w-0 flex-1 pt-1">
               <p class="truncate text-xl font-bold sm:text-2xl" data-auth-name>Nicht angemeldet</p>
               <p class="truncate text-sm text-muted-foreground" data-auth-email></p>

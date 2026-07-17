@@ -123,16 +123,26 @@ function isActive(href: string) {
     <div class="flex shrink-0 items-center gap-1.5">
       <ThemeToggle />
       <div class="hidden items-center gap-2 sm:flex">
-        <Button href="/profil/" variant="outline" size="sm" class="max-w-36 truncate" data-auth-only hidden>
-          <span data-auth-email></span>
-        </Button>
         <Button href="/anmelden/" variant="ghost" size="sm" data-guest-only>
           Anmelden
         </Button>
-        <Button href="/registrieren/" variant="default" size="sm" class="hidden sm:inline-flex" data-guest-only>
+        <Button href="/registrieren/" variant="default" size="sm" data-guest-only>
           Registrieren
         </Button>
       </div>
+      {/* Initialen-Avatar im Marken-Rot wie die CTA-Buttons (--primary folgt dem
+          Theme, kein greller Weiss-Kreis im Dark Mode); Hover dunkelt ab,
+          Name + E-Mail kommen als Tooltip */}
+      <a
+        href="/profil/"
+        class="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground transition-colors outline-none hover:bg-primary-accent focus-visible:ring-3 focus-visible:ring-primary/50"
+        aria-label="Mein Profil"
+        data-auth-only
+        data-auth-tooltip
+        hidden
+      >
+        <span data-auth-initials aria-hidden="true">?</span>
+      </a>
     </div>
   </div>
 
@@ -213,9 +223,12 @@ function isActive(href: string) {
     </div>
 
     <div class="border-t border-border p-3" data-auth-only hidden>
-      <div class="mb-2 rounded-md bg-muted px-3 py-2 text-sm">
-        <p class="truncate font-medium" data-auth-name>Nicht angemeldet</p>
-        <p class="truncate text-xs text-muted-foreground" data-auth-email></p>
+      <div class="mb-2 flex items-center gap-3 rounded-md bg-muted px-3 py-2.5">
+        <span class="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground" data-auth-initials aria-hidden="true">?</span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold" data-auth-name>Nicht angemeldet</p>
+          <p class="truncate text-xs text-muted-foreground" data-auth-email></p>
+        </div>
       </div>
       <a href="/profil/" class="flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground">
         <UserIcon class="size-4" aria-hidden="true" />
