@@ -72,6 +72,25 @@ Die `RefreshAfterSeconds` der Immobilien-Requests (900 s) sind dadurch nur noch 
 - API-Aufrufe ausschließlich via `IMediator.Request(new XxxHttpRequest())`.
 - `NoWarn SHINY002`: Bug im Shiny.Maui.Shell 6.3.1 Generator (Warnung feuert fälschlich bei deaktivierten AI-Extensions).
 
+## App-Icons
+
+Pro Plattform ein eigenes `MauiIcon`-Item in der csproj (Resizetizer verarbeitet nur das erste
+aktive Item; Duplikat-Namen ueber alle aktiven Items sind verboten, daher ueberall Conditions):
+
+| Plattform | Background | Foreground | ForegroundScale | Grund |
+|-----------|------------|------------|-----------------|-------|
+| Android | `appicon.svg` (full-bleed Markenrot) | `appiconfg.svg` (volles Badge) | `0.62` | Badge bleibt in der 66/108dp-Safe-Zone des Adaptive Icons |
+| Windows | `appiconwin.svg` (transparent) | `appiconfgwin.svg` (Badge ohne Textring) | `1.0` | Taskbar/Start erwarten Icons ohne Farbplatte; Textring ist bei 16-48px unlesbar |
+| iOS/MacCatalyst | `appicon.svg` | `appiconfg.svg` | `0.75` | Opak (App-Store-Pflicht), Badge-Groesse nach Apple Icon Grid |
+
+Zusaetzlich `Platforms/Windows/appicon.ico` (Multi-Size 16-256px) als `<ApplicationIcon>`:
+Unpackaged-Apps (WindowsPackageType=None) nehmen das Taskbar-Icon aus dem EXE; das von MAUI
+generierte ICO haette nur einen einzigen 64px-Eintrag. Generator-Skript und Quell-SVGs:
+Badge = `src/web/public/favicon.svg`, vereinfachte Variante = `src/web/public/icon.svg`.
+
+Nach Icon-Aenderungen: `obj/**/resizetizer` loeschen und App deinstallieren -
+inkrementelle Builds cachen Icons (auch `ForegroundScale`-Aenderungen greifen sonst nicht).
+
 ## Build
 
 ```
