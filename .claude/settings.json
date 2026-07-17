@@ -17,9 +17,7 @@
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledPlugins": {
-    "uno-dev@daniel-claude-marketplace": true
-  },
+  "enabledPlugins": {},
   "extraKnownMarketplaces": {
     "daniel-claude-marketplace": {
       "source": {
