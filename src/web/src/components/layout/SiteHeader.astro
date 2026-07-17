@@ -43,10 +43,10 @@ const currentTitle = titleByPath.find((item) => item.test(pathname))?.title ?? "
 // Wie Uno MainPage NavigationView.MenuItems
 const navItems = [
   { label: "Home", href: "/", icon: HomeIcon },
-  { label: "Meine Immobilien", href: "/meine-immobilien/", icon: HomeIcon, sellerOnly: true },
+  { label: "Meine Immobilien", href: "/meine-immobilien/", icon: HomeIcon },
   { label: "Meine Favoriten", href: "/favoriten/", icon: HeartIcon },
   { label: "Blockierte Immobilien", href: "/blockiert/", icon: ShieldOffIcon },
-  { label: "Immobilie hinzufügen", href: "/inserieren/", icon: PlusIcon, sellerOnly: true, separator: true },
+  { label: "Immobilie hinzufügen", href: "/inserieren/", icon: PlusIcon, separator: true },
 ];
 
 // Wie Uno NavigationView.FooterMenuItems
@@ -169,8 +169,6 @@ function isActive(href: string) {
                   active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 ]}
                 aria-current={active ? "page" : undefined}
-                data-auth-role-seller={item.sellerOnly ? "" : undefined}
-                hidden={item.sellerOnly ? true : undefined}
               >
                 <Icon class="size-4" aria-hidden="true" />
                 <span>{item.label}</span>
