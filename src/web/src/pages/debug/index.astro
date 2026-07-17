@@ -13,7 +13,7 @@ import { Button } from "@/components/starwind/button";
     <h1 class="text-3xl font-bold">Debug</h1>
     <p class="mt-3 text-sm leading-6 text-muted-foreground">
       Entwicklungs-Werkzeuge wie in der MAUI-App: Testbenutzer anmelden und zwischen
-      lokaler Entwicklungs-API, Test-API und Produktions-API umschalten.
+      lokaler Entwicklungs-API und Test-API umschalten.
     </p>
 
     <p class="mt-8 hidden rounded-lg border border-border bg-muted p-4 text-sm text-muted-foreground" data-debug-blocked>
@@ -54,10 +54,6 @@ import { Button } from "@/components/starwind/button";
             <input type="radio" name="debug-api" value="test" class="size-4 accent-foreground" data-debug-api-option="test" />
             <span>Test — <span class="text-muted-foreground">https://test-api.heimatplatz.at</span></span>
           </label>
-          <label class="flex cursor-pointer items-center gap-3 rounded-md border border-border px-4 py-3 text-sm hover:bg-accent">
-            <input type="radio" name="debug-api" value="production" class="size-4 accent-foreground" data-debug-api-option="production" />
-            <span>Produktion — <span class="text-muted-foreground">https://api.heimatplatz.at</span></span>
-          </label>
         </div>
 
         <p class="mt-3 text-xs text-muted-foreground">Aktiv: <span data-debug-api-active></span></p>
@@ -75,9 +71,10 @@ import { Button } from "@/components/starwind/button";
 <script>
   import { DEBUG_API_URL_KEY, isDebugHost } from "@/lib/utils/debug-host";
 
+  // Ohne RefreshToken - wird im Web nie verwendet und gehoert nicht in den
+  // localStorage (siehe Session-Typ in PropertyStateScript.astro)
   type Session = {
     AccessToken: string;
-    RefreshToken: string;
     UserId: string;
     Email: string;
     FullName: string;
@@ -98,10 +95,12 @@ import { Button } from "@/components/starwind/button";
 
   // Entwicklung zeigt auf denselben Host wie der Dev-Server: am PC localhost,
   // vom Handy aus die LAN-IP des PCs (API muss dort auf 5292 erreichbar sein).
+  // Bewusst KEIN Produktions-Eintrag: Die Debug-Seite ist auch am oeffentlichen
+  // Test-Web nutzbar - ein Ein-Klick-Login mit bekannten Testdaten gegen die
+  // Prod-API waere eine unnoetige Angriffsflaeche.
   const ENDPOINTS = {
     development: `http://${window.location.hostname}:5292`,
     test: "https://test-api.heimatplatz.at",
-    production: "https://api.heimatplatz.at",
   } as const;
 
   type EndpointKind = keyof typeof ENDPOINTS;
@@ -244,7 +243,8 @@ import { Button } from "@/components/starwind/button";
             body: JSON.stringify({ Email: user.email, Password: TEST_PASSWORD }),
           });
           if (!response.ok) throw new Error(`API ${response.status}`);
-          const session = (await response.json()) as Session;
+          const session = (await response.json()) as Session & { RefreshToken?: string };
+          delete session.RefreshToken;
           window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
           renderAuthState();
           setStatus(`Als ${user.label} angemeldet.`, "success");

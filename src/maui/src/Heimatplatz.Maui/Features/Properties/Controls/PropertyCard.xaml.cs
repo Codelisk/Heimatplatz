@@ -1,6 +1,8 @@
 using ICommand = System.Windows.Input.ICommand;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Properties.Models;
+using Heimatplatz.Maui.Features.Properties.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Maui.Features.Properties.Controls;
 
@@ -13,10 +15,51 @@ public partial class PropertyCard : ContentView
     public PropertyCard()
     {
         InitializeComponent();
+
+        // Favoriten-Status kommt zentral aus dem PropertyStatusService (das Herz
+        // aktualisiert sich damit sofort nach jedem Toggle). Abo nur solange die
+        // Card im Visual Tree haengt - Cards werden in CollectionViews recycelt,
+        // ein Ctor-Abo auf den Singleton wuerde leaken.
+        Loaded += OnCardLoaded;
+        Unloaded += OnCardUnloaded;
     }
 
     // Zuletzt gesetzte Bild-URL, um beim Card-Recycling unnoetige Reloads zu vermeiden
     private string? _currentImageUrl;
+
+    private IPropertyStatusService? _statusService;
+
+    private void OnCardLoaded(object? sender, EventArgs e)
+    {
+        _statusService ??= IPlatformApplication.Current?.Services.GetService<IPropertyStatusService>();
+        if (_statusService != null)
+        {
+            // Erst ab-, dann anmelden: Loaded kann ohne dazwischenliegendes Unloaded
+            // mehrfach feuern (Tab-Wechsel), doppelte Abos wuerden sich sonst stapeln
+            _statusService.StatusChanged -= OnStatusChanged;
+            _statusService.StatusChanged += OnStatusChanged;
+        }
+
+        SyncFavoriteState();
+    }
+
+    private void OnCardUnloaded(object? sender, EventArgs e)
+    {
+        if (_statusService != null)
+            _statusService.StatusChanged -= OnStatusChanged;
+    }
+
+    private void OnStatusChanged(object? sender, EventArgs e)
+    {
+        // StatusChanged kann aus Mediator-/Hintergrund-Threads feuern
+        MainThread.BeginInvokeOnMainThread(SyncFavoriteState);
+    }
+
+    private void SyncFavoriteState()
+    {
+        if (_statusService != null && Property != null)
+            IsFavorite = _statusService.IsFavorite(Property.Id);
+    }
 
     /// <summary>
     /// Die anzuzeigende Immobilie
@@ -250,6 +293,9 @@ public partial class PropertyCard : ContentView
         }
 
         UpdateActionButtonVisibility();
+        // Recycelte Card kann an eine andere Immobilie gebunden worden sein -
+        // Favoriten-Status fuer die neue Id nachziehen
+        SyncFavoriteState();
         UpdateFavoriteGlyph();
     }
 

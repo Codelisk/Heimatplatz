@@ -39,6 +39,9 @@ services:
       Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
       # Links in den Mails zeigen auf das Web-Frontend dieser Umgebung
       Email__FrontendBaseUrl: https://${WEB_DOMAIN}
+      # Shared-Key fuer den manuellen Edikte-Sync-Trigger (X-Sync-Key-Header,
+      # siehe TriggerForeclosureAuctionSyncHandler). Ohne Key ist der Endpoint gesperrt.
+      ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
     volumes:
       # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
       # Container-Rebuilds ueberleben.
@@ -73,6 +76,7 @@ services:
       Email__SmtpUsername: ${EMAIL_SMTP_USERNAME}
       Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
       Email__FrontendBaseUrl: https://${WEB_TEST_DOMAIN}
+      ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}
@@ -99,6 +103,8 @@ services:
       PORT: 8080
       # SSR-Fetches gehen direkt ans interne Docker-Netz statt ueber die oeffentliche Domain
       API_BASE_URL_SERVER: http://api:8080
+      # Shared-Key fuer den Edikte-Sync-Trigger (/intern/sync.ts -> X-Sync-Key)
+      SYNC_TRIGGER_KEY: ${SYNC_TRIGGER_KEY:-}
     volumes:
       - /srv/heimatplatz-web:/srv/web:ro
     expose:
@@ -119,6 +125,7 @@ services:
       HOST: 0.0.0.0
       PORT: 8080
       API_BASE_URL_SERVER: http://api-test:8080
+      SYNC_TRIGGER_KEY: ${SYNC_TRIGGER_KEY:-}
     volumes:
       - /srv/heimatplatz-web-test:/srv/web:ro
     expose:

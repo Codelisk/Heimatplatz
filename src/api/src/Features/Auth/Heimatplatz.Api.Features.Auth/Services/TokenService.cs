@@ -88,6 +88,15 @@ public class TokenService : ITokenService
         return Convert.ToBase64String(randomBytes);
     }
 
+    public string HashRefreshToken(string refreshToken)
+    {
+        // SHA-256 ohne Salt reicht hier: der Token ist bereits ein 64-Byte-Zufallswert
+        // (kein Woerterbuch-/Brute-Force-Risiko). Gespeichert wird nur der Hash -
+        // ein DB-Leak erlaubt damit keine Session-Uebernahme.
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
+        return Convert.ToHexString(hash);
+    }
+
     public int GetRefreshTokenValidityHours()
     {
         return _configuration.GetValue<int>("Authentication:Jwt:RefreshValidityHours", 720);

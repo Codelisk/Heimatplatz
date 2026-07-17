@@ -20,6 +20,13 @@ export default defineConfig({
   // vorgerenderte Seiten auflisten).
   output: 'server',
   adapter: node({ mode: 'standalone' }),
+  // /immobilien/ und /zwangsversteigerungen/ existieren nicht als Index-Seiten
+  // (nur Detailseiten darunter), wurden aber historisch verlinkt (SearchAction,
+  // Registrierungs-Redirect) - alte externe Links sollen nicht ins 404 laufen.
+  redirects: {
+    '/immobilien/': '/',
+    '/zwangsversteigerungen/': '/',
+  },
   // Der SSR-Server laeuft hinter Caddy. Astro vertraut Forwarded-Host/-Proto nur
   // fuer explizit erlaubte Domains; andernfalls wird der interne HTTP-Origin
   // verwendet und gleich-originige Formular-POSTs werden faelschlich als

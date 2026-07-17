@@ -1,0 +1,60 @@
+# CI: Build + Tests fuer API und Web bei jedem Push/PR auf master.
+# Bewusst OHNE MAUI: Android/iOS-Builds brauchen SDKs/Workloads und laufen
+# weiterhin ueber deploy-apps.yml bzw. Codemagic.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  api:
+    name: API Build + Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build API
+        working-directory: src/api
+        run: dotnet build -c Release --nologo
+
+      - name: Run tests
+        working-directory: src/api
+        run: dotnet test -c Release --no-build --nologo --logger "console;verbosity=normal"
+
+  web:
+    name: Web Check + Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/web
+        run: npm ci
+
+      - name: astro check
+        working-directory: src/web
+        run: npm run check
+
+      - name: Build
+        working-directory: src/web
+        run: npm run build

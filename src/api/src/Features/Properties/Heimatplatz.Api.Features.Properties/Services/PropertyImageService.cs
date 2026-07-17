@@ -2,6 +2,7 @@ using Heimatplatz.Api;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Shiny;
 
@@ -13,6 +14,8 @@ namespace Heimatplatz.Api.Features.Properties.Services;
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class PropertyImageService(
     IWebHostEnvironment environment,
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration,
     ILogger<PropertyImageService> logger
 ) : IPropertyImageService
 {
@@ -109,12 +112,33 @@ public class PropertyImageService(
         if (string.IsNullOrWhiteSpace(imageUrl))
             return Task.CompletedTask;
 
-        // Nur lokale Uploads loeschen (keine externen URLs)
-        if (!imageUrl.StartsWith($"/{UploadFolder}/"))
+        // Eigene Uploads werden teils als absolute URL gespeichert (Upload-Handler geben
+        // baseUrl + Pfad zurueck). Absolute URLs nur akzeptieren, wenn der Host der eigene
+        // ist - sonst koennte ein Inserat mit gefaelschter externer URL (z.B.
+        // https://evil.example/uploads/properties/<fremde-datei>.jpg) beim Loeschen
+        // fremde lokale Dateien mitreissen.
+        var relativePath = imageUrl;
+        if (Uri.TryCreate(imageUrl, UriKind.Absolute, out var absolute))
+        {
+            if (!IsOwnHost(absolute))
+                return Task.CompletedTask;
+
+            relativePath = absolute.AbsolutePath;
+        }
+
+        relativePath = relativePath.TrimStart('/');
+
+        // Nur lokale Upload-Verzeichnisse (KI-erstellte Inserate referenzieren
+        // auch uploads/listings-Dateien, nicht nur uploads/properties)
+        if (!relativePath.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
             return Task.CompletedTask;
 
-        var relativePath = imageUrl.TrimStart('/');
-        var filePath = Path.Combine(environment.WebRootPath, relativePath);
+        var filePath = Path.GetFullPath(Path.Combine(environment.WebRootPath, relativePath));
+
+        // Path-Traversal verhindern
+        var uploadsRoot = Path.GetFullPath(Path.Combine(environment.WebRootPath, "uploads"));
+        if (!filePath.StartsWith(uploadsRoot, StringComparison.OrdinalIgnoreCase))
+            return Task.CompletedTask;
 
         if (File.Exists(filePath))
         {
@@ -123,6 +147,23 @@ public class PropertyImageService(
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Prueft ob eine absolute URL auf die eigene API zeigt: konfigurierte oeffentliche
+    /// Basis-URL (Api:PublicBaseUrl) oder der Host der aktuellen Anfrage.
+    /// </summary>
+    private bool IsOwnHost(Uri url)
+    {
+        var configured = configuration["Api:PublicBaseUrl"];
+        if (!string.IsNullOrWhiteSpace(configured)
+            && Uri.TryCreate(configured, UriKind.Absolute, out var publicBase)
+            && string.Equals(url.Host, publicBase.Host, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var requestHost = httpContextAccessor.HttpContext?.Request.Host.Host;
+        return !string.IsNullOrEmpty(requestHost)
+            && string.Equals(url.Host, requestHost, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void ValidateFile(IFormFile file)

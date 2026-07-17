@@ -13,6 +13,9 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Handlers;
 public class GetForeclosureAuctionChangesHandler(AppDbContext dbContext)
     : IRequestHandler<GetForeclosureAuctionChangesRequest, GetForeclosureAuctionChangesResponse>
 {
+    // Obergrenze pro Seite: schuetzt vor PageSize=1000000-Anfragen
+    private const int MaxPageSize = 200;
+
     [MediatorHttpGet("/changes", OperationId = "GetForeclosureAuctionChanges")]
     public async Task<GetForeclosureAuctionChangesResponse> Handle(
         GetForeclosureAuctionChangesRequest request,
@@ -21,25 +24,27 @@ public class GetForeclosureAuctionChangesHandler(AppDbContext dbContext)
     {
         var query = dbContext.Set<ForeclosureAuctionChange>().AsQueryable();
 
-        // SQLite kann DateTimeOffset-Vergleiche nicht in SQL uebersetzen -> dort nach dem Laden filtern
-        var isSqlite = dbContext.Database.IsSqlite();
-        if (request.Since.HasValue && !isSqlite)
+        // DateTimeOffset-Vergleiche laufen auch auf SQLite in SQL - die Konverter im
+        // AppDbContext speichern dort als long (UTC-Ticks), kein In-Memory-Umweg noetig
+        if (request.Since.HasValue)
             query = query.Where(c => c.CreatedAt >= request.Since.Value);
 
         if (!string.IsNullOrWhiteSpace(request.ChangeType))
             query = query.Where(c => c.ChangeType == request.ChangeType);
 
-        // SQLite DateTimeOffset ORDER BY workaround
-        var entities = await query.ToListAsync(cancellationToken);
-        if (request.Since.HasValue && isSqlite)
-            entities = entities.Where(c => c.CreatedAt >= request.Since.Value).ToList();
+        var page = Math.Max(request.Page, 1);
+        var pageSize = Math.Clamp(request.PageSize, 1, MaxPageSize);
 
-        // Query enthaelt keine Pagination -> Gesamtzahl entspricht den geladenen Eintraegen
-        var totalCount = entities.Count;
-        var changes = entities
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        // Sortierung + Paging in der Datenbank (SQLite-DateTimeOffset-ORDER-BY laeuft
+        // ueber die Konverter im AppDbContext)
+        var changes = await query
+            .AsNoTracking()
             .OrderByDescending(c => c.CreatedAt)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .ThenBy(c => c.Id) // stabiler Tiebreaker fuer deterministisches Paging
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new ForeclosureAuctionChangeDto
             {
                 Id = c.Id,
@@ -48,7 +53,7 @@ public class GetForeclosureAuctionChangesHandler(AppDbContext dbContext)
                 ChangedFields = c.ChangedFields,
                 CreatedAt = c.CreatedAt
             })
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         return new GetForeclosureAuctionChangesResponse
         {

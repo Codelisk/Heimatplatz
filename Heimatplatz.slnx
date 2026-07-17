@@ -1,26 +1,49 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
-    <File Path=".gitmodules" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Folder Name="/src/" />
-  <Folder Name="/src/api/" />
   <Folder Name="/src/api/src/">
     <Project Path="src/api/src/Heimatplatz.Api/Heimatplatz.Api.csproj" />
   </Folder>
   <Folder Name="/src/api/src/Core/">
+    <Project Path="src/api/src/Core/Heimatplatz.Api.Core.AiConnectorClient/Heimatplatz.Api.Core.AiConnectorClient.csproj" />
     <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Data/Heimatplatz.Api.Core.Data.csproj" />
+    <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Data.Migrations.Postgres/Heimatplatz.Api.Core.Data.Migrations.Postgres.csproj" />
+    <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Data.Seeding/Heimatplatz.Api.Core.Data.Seeding.csproj" />
     <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Email/Heimatplatz.Api.Core.Email.csproj" />
     <Project Path="src/api/src/Core/Heimatplatz.Api.Core.Startup/Heimatplatz.Api.Core.Startup.csproj" />
   </Folder>
-  <Folder Name="/src/maui/" />
+  <Folder Name="/src/api/src/Shared/">
+    <Project Path="src/api/src/Shared/Heimatplatz.Api.Shared/Heimatplatz.Api.Shared.csproj" />
+  </Folder>
+  <Folder Name="/src/api/src/Features/">
+    <Project Path="src/api/src/Features/AiListing/Heimatplatz.Api.Features.AiListing/Heimatplatz.Api.Features.AiListing.csproj" />
+    <Project Path="src/api/src/Features/AiListing/Heimatplatz.Api.Features.AiListing.Contracts/Heimatplatz.Api.Features.AiListing.Contracts.csproj" />
+    <Project Path="src/api/src/Features/Auth/Heimatplatz.Api.Features.Auth/Heimatplatz.Api.Features.Auth.csproj" />
+    <Project Path="src/api/src/Features/Auth/Heimatplatz.Api.Features.Auth.Contracts/Heimatplatz.Api.Features.Auth.Contracts.csproj" />
+    <Project Path="src/api/src/Features/ForeclosureAuctions/Heimatplatz.Api.Features.ForeclosureAuctions/Heimatplatz.Api.Features.ForeclosureAuctions.csproj" />
+    <Project Path="src/api/src/Features/ForeclosureAuctions/Heimatplatz.Api.Features.ForeclosureAuctions.Contracts/Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.csproj" />
+    <Project Path="src/api/src/Features/Legal/Heimatplatz.Api.Features.Legal/Heimatplatz.Api.Features.Legal.csproj" />
+    <Project Path="src/api/src/Features/Legal/Heimatplatz.Api.Features.Legal.Contracts/Heimatplatz.Api.Features.Legal.Contracts.csproj" />
+    <Project Path="src/api/src/Features/Locations/Heimatplatz.Api.Features.Locations/Heimatplatz.Api.Features.Locations.csproj" />
+    <Project Path="src/api/src/Features/Locations/Heimatplatz.Api.Features.Locations.Contracts/Heimatplatz.Api.Features.Locations.Contracts.csproj" />
+    <Project Path="src/api/src/Features/Notifications/Heimatplatz.Api.Features.Notifications/Heimatplatz.Api.Features.Notifications.csproj" />
+    <Project Path="src/api/src/Features/Notifications/Heimatplatz.Api.Features.Notifications.Contracts/Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
+    <Project Path="src/api/src/Features/Properties/Heimatplatz.Api.Features.Properties/Heimatplatz.Api.Features.Properties.csproj" />
+    <Project Path="src/api/src/Features/Properties/Heimatplatz.Api.Features.Properties.Contracts/Heimatplatz.Api.Features.Properties.Contracts.csproj" />
+    <Project Path="src/api/src/Features/PropertyImport/Heimatplatz.Api.Features.PropertyImport/Heimatplatz.Api.Features.PropertyImport.csproj" />
+    <Project Path="src/api/src/Features/PropertyImport/Heimatplatz.Api.Features.PropertyImport.Contracts/Heimatplatz.Api.Features.PropertyImport.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/api/tests/">
+    <Project Path="src/api/tests/IntegrationTests/Heimatplatz.Api.Core.IntegrationTests/Heimatplatz.Api.Core.IntegrationTests.csproj" />
+    <Project Path="src/api/tests/IntegrationTests/Heimatplatz.Api.IntegrationTests/Heimatplatz.Api.IntegrationTests.csproj" />
+    <Project Path="src/api/tests/UnitTests/Heimatplatz.Api.Core.UnitTests/Heimatplatz.Api.Core.UnitTests.csproj" />
+    <Project Path="src/api/tests/UnitTests/Heimatplatz.Api.UnitTests/Heimatplatz.Api.UnitTests.csproj" />
+  </Folder>
   <Folder Name="/src/maui/src/">
     <Project Path="src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj" />
     <Project Path="src/maui/src/Heimatplatz.Maui.ApiClient/Heimatplatz.Maui.ApiClient.csproj" />
-  </Folder>
-  <Folder Name="/src/api/src/Shared/">
-    <Project Path="src/api/src/Shared/Heimatplatz.Api.Shared/Heimatplatz.Api.Shared.csproj" />
   </Folder>
 </Solution>

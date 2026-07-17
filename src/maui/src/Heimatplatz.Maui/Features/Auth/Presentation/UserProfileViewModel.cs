@@ -436,17 +436,19 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     }
 
     /// <summary>
-    /// Meldet den Benutzer ab: Auth-Daten loeschen, LogoutRequestedEvent publizieren
-    /// und absolut zur Login-Seite navigieren.
+    /// Meldet den Benutzer ab. Publiziert nur das LogoutRequestedEvent - Cache-Flush,
+    /// ClearAuthentication und Navigation macht zentral der AppStartupService-Handler.
+    /// ClearAuthentication darf hier NICHT vorab laufen: Der Handler leitet den
+    /// Cache-Scope aus authService.UserId ab - waere die schon null, wuerde der
+    /// anonyme statt der benutzerbezogene Offline-Cache geloescht (Favoriten,
+    /// eigene Inserate und Filter blieben auf geteilten Geraeten liegen).
     /// </summary>
     [RelayCommand]
     private async Task LogoutAsync()
     {
         _logger.LogInformation("[UserProfile] Logout angefordert");
 
-        _authService.ClearAuthentication();
         await _mediator.Publish(new LogoutRequestedEvent());
-        await _navigator.NavigateTo("Login", relativeNavigation: false);
     }
 
     /// <summary>

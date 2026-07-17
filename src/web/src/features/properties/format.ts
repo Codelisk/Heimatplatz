@@ -1,32 +1,27 @@
-export const PROPERTY_TYPE_LABELS = {
-  apartment: "Wohnung",
-  house: "Haus",
-  land: "Grund",
-  foreclosure: "Zwangsversteigerung",
-} as const;
+/**
+ * Reine Formatierungs-Helfer ohne Server-Abhaengigkeiten - dieses Modul darf
+ * (anders als live-api.ts) auch von Client-Skripten importiert werden.
+ */
 
-export function formatPrice(value: number) {
-  if (value >= 1000000) {
-    return `${Math.round(value / 100000) / 10} Mio. EUR`;
-  }
-
-  return `${Math.round(value / 1000)} Tsd. EUR`;
-}
-
-export function formatPriceLong(value: number) {
+export function formatApiPrice(value: number | string | null | undefined) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return "Preis offen";
+  // Branchenuebliche Schreibweise ("€ 365.000") statt "365 Tsd. EUR"
   return new Intl.NumberFormat("de-AT", {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(number);
 }
 
-export function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("de-AT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
+export function formatApiPriceLong(value: number | string | null | undefined) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return "Preis auf Anfrage";
+  return new Intl.NumberFormat("de-AT", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(number);
 }
 
 /**

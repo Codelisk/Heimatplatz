@@ -28,3 +28,8 @@ public sealed class ValidationException(string message) : ApiException(400, "Val
 /// z. B. der SMTP-Server beim Mail-Versand.
 /// </summary>
 public sealed class ServiceUnavailableException(string message) : ApiException(503, "Service Unavailable", message);
+
+/// <summary>
+/// Angeforderte Ressource existiert nicht oder gehoert einem anderen Benutzer (HTTP 404).
+/// </summary>
+public sealed class NotFoundException(string message) : ApiException(404, "Not Found", message);

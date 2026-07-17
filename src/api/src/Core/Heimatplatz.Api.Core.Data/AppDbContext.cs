@@ -1,6 +1,7 @@
 using System.Reflection;
 using Heimatplatz.Api.Core.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Heimatplatz.Api.Core.Data;
 
@@ -31,6 +32,42 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 {
                     modelBuilder.Entity(entityType);
                 }
+            }
+        }
+
+        ApplySqliteWorkaroundConverters(modelBuilder);
+    }
+
+    /// <summary>
+    /// SQLite (nur lokale Entwicklung) kann DateTimeOffset und decimal nicht in
+    /// ORDER BY / Aggregaten uebersetzen ("SQLite cannot order by expressions of type ...").
+    /// Standard-EF-Workaround: als long (UTC-Ticks) bzw. double speichern - damit laufen
+    /// Sortierung und Paging der Listen-Endpoints auf allen Providern in der Datenbank.
+    /// Postgres/InMemory sind nicht betroffen (kein Konverter, keine Migration).
+    /// ACHTUNG: aeltere lokale app.db-Dateien speichern die Werte noch als TEXT -
+    /// einmalig loeschen, wird beim Start neu erstellt und geseedet.
+    /// </summary>
+    void ApplySqliteWorkaroundConverters(ModelBuilder modelBuilder)
+    {
+        if (!Database.IsSqlite())
+            return;
+
+        var dateTimeOffsetToTicks = new ValueConverter<DateTimeOffset, long>(
+            v => v.UtcTicks,
+            v => new DateTimeOffset(v, TimeSpan.Zero));
+        var decimalToDouble = new ValueConverter<decimal, double>(
+            v => (double)v,
+            v => (decimal)v);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                var type = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+                if (type == typeof(DateTimeOffset))
+                    property.SetValueConverter(dateTimeOffsetToTicks);
+                else if (type == typeof(decimal))
+                    property.SetValueConverter(decimalToDouble);
             }
         }
     }

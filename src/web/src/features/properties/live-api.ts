@@ -32,10 +32,10 @@ export type ApiProperty = {
   InquiryType?: string | number | null;
   SourceName?: string | null;
   Contacts?: ApiContact[];
-  TypeSpecificData?: string | null;
+  TypeSpecificData?: string | Record<string, unknown> | null;
 };
 
-type ApiPropertyResponse = {
+export type ApiPropertyResponse = {
   Properties?: ApiProperty[];
   Total?: number;
   HasMore?: boolean;
@@ -183,26 +183,9 @@ export function getApiSellerLabel(sellerType: string | number | null) {
   return "Portal";
 }
 
-export function formatApiPrice(value: number | string | null | undefined) {
-  const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "Preis offen";
-  // Branchenuebliche Schreibweise ("€ 365.000") statt "365 Tsd. EUR"
-  return new Intl.NumberFormat("de-AT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(number);
-}
-
-export function formatApiPriceLong(value: number | string | null | undefined) {
-  const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "Preis auf Anfrage";
-  return new Intl.NumberFormat("de-AT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(number);
-}
+// Kanonische Preis-Formatierung lebt in format.ts (client-sicher, keine
+// Server-Abhaengigkeiten); hier nur re-exportiert fuer bestehende SSR-Importe.
+export { formatApiPrice, formatApiPriceLong } from "./format";
 
 export function formatApiDate(value: string) {
   const date = new Date(value);

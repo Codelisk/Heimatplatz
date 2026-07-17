@@ -13,9 +13,15 @@ Deploy: `deploy-apps.yml` (Target `DeployAstro`) baut das Bundle in CI, rsynct `
 `/intern` auf `WEB_DOMAIN` (Admin-UI: manueller Edikte-Sync-Trigger) und
 `POST /api/foreclosure-auctions/sync` auf `API_DOMAIN` sind in Caddy per `remote_ip`-Matcher
 auf `HOME_IP` beschraenkt (Server-`.env`, Leerzeichen-getrennt IPs/CIDR-Ranges - siehe
-`.env.example`). Alles andere bekommt `403`. Kein App-Login noetig, die IP-Sperre ist die
-Zugriffsschranke. Bei geaenderter Heim-IP: `HOME_IP` in der Server-`.env` aktualisieren und
-`docker compose restart caddy`.
+`.env.example`). Alles andere bekommt `403`. Bei geaenderter Heim-IP: `HOME_IP` in der
+Server-`.env` aktualisieren und `docker compose restart caddy`.
+
+Zusaetzlich verlangt der Sync-Endpoint den Shared-Key-Header `X-Sync-Key`
+(`SYNC_TRIGGER_KEY` in der Server-`.env`, siehe `.env.example`) - noetig, weil die
+Test-API keine IP-Sperre hat. Der Web-Container schickt den Key automatisch mit
+(`/intern/sync.ts`); ohne konfigurierten Key ist der Endpoint gesperrt (fail-closed).
+**Beim naechsten Deploy `SYNC_TRIGGER_KEY` in der Server-`.env` ergaenzen**, sonst
+verweigert der manuelle Sync-Trigger den Dienst.
 
 **Status:** LIVE seit 8.7.2026. Server `heimatplatz` (CX23, Nuernberg, `128.140.33.238`), Projekt "Vorleistung" in der Hetzner Console. Stack laeuft unter `/srv/heimatplatz/deploy/hetzner`, API erreichbar via `https://api.heimatplatz.at/health`. `.github/workflows/deploy-hetzner.yml` ist weiterhin inaktiv (Deploy bisher manuell auf dem Server). SSH: `root@128.140.33.238` (Key-only; hinterlegt sind der `vorleistung-key` und Daniels `id_ed25519`).
 

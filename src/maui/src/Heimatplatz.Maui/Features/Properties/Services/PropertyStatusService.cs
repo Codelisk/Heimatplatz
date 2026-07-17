@@ -210,7 +210,11 @@ public class PropertyStatusService : IPropertyStatusService
             _logger.LogInformation("[PropertyStatus] Loaded {FavoriteCount} favorites, {BlockedCount} blocked",
                 _favoriteIds.Count, _blockedIds.Count);
 
-            // StatusChanged wird hier bewusst NICHT gefeuert um rekursive Binding-Kaskaden zu vermeiden.
+            // Abonnenten (PropertyCard-Herzen) informieren: Der Erst-Load laeuft
+            // fire-and-forget NACH dem Rendern der Listen - ohne Event blieben die
+            // Herzen bis zum naechsten Card-Recycling leer. Rekursionsschutz:
+            // _isRefreshing-Guard oben; die Handler lesen nur (IsFavorite).
+            StatusChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
@@ -227,7 +231,8 @@ public class PropertyStatusService : IPropertyStatusService
         _favoriteIds.Clear();
         _blockedIds.Clear();
         _isLoaded = false;
-        // StatusChanged wird hier bewusst NICHT gefeuert um rekursive Binding-Kaskaden zu vermeiden.
+        // Herzen auf den Karten zuruecksetzen (z.B. nach Logout)
+        StatusChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task EnsureLoadedAsync()

@@ -6,6 +6,7 @@ import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import PhotoIcon from "@tabler/icons/outline/photo.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
 import { getOriginalProxyImage, getResponsiveImage, withProxyImageWidth } from "@/lib/images";
+import { jsonForScriptTag } from "@/lib/utils/json";
 
 interface Props {
   images: string[];
@@ -205,7 +206,7 @@ const remainingCount = items.length - 3;
         )}
       </div>
 
-      <script is:inline type="application/json" data-gallery-items set:html={JSON.stringify(items)} />
+      <script is:inline type="application/json" data-gallery-items set:html={jsonForScriptTag(items)} />
     </div>
   )
 }

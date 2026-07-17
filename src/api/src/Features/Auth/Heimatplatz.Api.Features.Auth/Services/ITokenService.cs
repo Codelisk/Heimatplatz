@@ -21,6 +21,12 @@ public interface ITokenService
     string GenerateRefreshToken();
 
     /// <summary>
+    /// Hasht einen Refresh Token fuer die DB-Ablage (SHA-256, hex).
+    /// In der Datenbank liegt nur der Hash - der Klartext geht ausschliesslich an den Client.
+    /// </summary>
+    string HashRefreshToken(string refreshToken);
+
+    /// <summary>
     /// Gibt die konfigurierte Refresh Token Gueltigkeit in Stunden zurueck
     /// </summary>
     int GetRefreshTokenValidityHours();

@@ -1,4 +1,5 @@
 using Heimatplatz.Api;
+using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Features.Notifications.Contracts.Mediator.Requests;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -19,7 +20,9 @@ public class SendTestPushHandler(
 {
     private const string ShinyAndroidClickAction = "SHINY_PUSH_NOTIFICATION_CLICK";
 
-    [MediatorHttpPost("/test-push", OperationId = "SendTestPush")]
+    // Broadcast an ALLE registrierten Geraete - ohne Admin-Schranke waere das ein
+    // oeffentlicher Spam-/Phishing-Kanal (Titel/Text kommen 1:1 aus dem Request).
+    [MediatorHttpPost("/test-push", OperationId = "SendTestPush", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireAdmin])]
     public async Task<SendTestPushResponse> Handle(
         SendTestPushRequest request,
         IMediatorContext context,

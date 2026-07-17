@@ -10,7 +10,10 @@ public class RefreshToken : BaseEntity
     /// <summary>ID des zugehoerigen Benutzers</summary>
     public required Guid UserId { get; set; }
 
-    /// <summary>Der Refresh Token String</summary>
+    /// <summary>
+    /// SHA-256-Hash des Refresh Tokens (hex). Der Klartext geht ausschliesslich an den
+    /// Client - ein DB-Leak erlaubt damit keine Session-Uebernahme (ITokenService.HashRefreshToken).
+    /// </summary>
     public required string Token { get; set; }
 
     /// <summary>Ablaufzeitpunkt des Tokens</summary>

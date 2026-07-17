@@ -4,6 +4,7 @@ using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
@@ -18,7 +19,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [MediatorHttpGroup("/api/properties")]
 public class DeletePropertyHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IPropertyImageService imageService
 ) : IRequestHandler<DeletePropertyRequest, DeletePropertyResponse>
 {
     [MediatorHttpDelete("/{Id}", OperationId = "DeleteProperty", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
@@ -50,6 +52,14 @@ public class DeletePropertyHandler(
         // Delete property (hard delete)
         dbContext.Set<Property>().Remove(property);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Hochgeladene Bilddateien mitentfernen - sonst bleiben sie unter
+        // wwwroot/uploads fuer immer oeffentlich abrufbar liegen (DSGVO).
+        // Externe/gescrapte URLs ignoriert DeleteImageAsync selbst.
+        foreach (var imageUrl in property.ImageUrls)
+        {
+            await imageService.DeleteImageAsync(imageUrl, cancellationToken);
+        }
 
         return new DeletePropertyResponse(
             Success: true,

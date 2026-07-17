@@ -61,18 +61,22 @@ Referenz: [shinylib.net/extensions/di](https://shinylib.net/extensions/di/)
 Heimatplatz/
 ├── src/
 │   ├── api/                        # Backend (ASP.NET)
-│   │   └── src/
-│   │       ├── *.Api/                             # Host
-│   │       ├── *.Api.Contracts/                   # Globale DTOs
-│   │       ├── *.Api.Handlers/                    # Globale Handler
-│   │       ├── Shared/
-│   │       │   └── *.Api.Shared/                  # ApiService DI-Konstanten
-│   │       ├── Core/
-│   │       │   ├── *.Api.Core.Data/               # DbContext, BaseEntity
-│   │       │   └── *.Api.Core.Startup/            # DI Setup
-│   │       └── Features/{Name}/
-│   │           ├── *.Api.Features.{Name}/         # Services, Data, Handlers
-│   │           └── *.Api.Features.{Name}.Contracts/
+│   │   ├── src/
+│   │   │   ├── *.Api/                             # Host
+│   │   │   ├── Shared/
+│   │   │   │   └── *.Api.Shared/                  # ApiService DI-Konstanten, ApiException, Policies
+│   │   │   ├── Core/
+│   │   │   │   ├── *.Api.Core.Data/               # DbContext, BaseEntity, Provider-Switch
+│   │   │   │   ├── *.Api.Core.Data.Migrations.Postgres/  # EF-Migrations (Postgres)
+│   │   │   │   ├── *.Api.Core.Data.Seeding/       # ISeeder-Infrastruktur, SeederRunner
+│   │   │   │   ├── *.Api.Core.AiConnectorClient/  # Generierter AiConnector-Client
+│   │   │   │   └── *.Api.Core.Startup/            # DI Setup, DB-Init
+│   │   │   └── Features/{Name}/
+│   │   │       ├── *.Api.Features.{Name}/         # Services, Data, Handlers
+│   │   │       └── *.Api.Features.{Name}.Contracts/
+│   │   └── tests/
+│   │       ├── UnitTests/                         # *.Api.UnitTests, *.Api.Core.UnitTests
+│   │       └── IntegrationTests/                  # *.Api.IntegrationTests, *.Api.Core.IntegrationTests
 │   │
 │   ├── web/                        # Web Frontend (Astro)
 │   │   ├── src/
@@ -170,7 +174,14 @@ Entities erben von `BaseEntity` und werden via `IEntityTypeConfiguration<T>` kon
 
 ### Datenbank-Konfiguration
 
-Die Datenbank verwendet SQLite. Der Connection-String wird in `appsettings.json` konfiguriert:
+Der Provider wird per `Database:Provider` gewaehlt (Switch in
+`Core.Data/Configuration/ServiceCollectionExtensions.cs`):
+
+- **Postgres** — Produktion und Test (Hetzner, `deploy/hetzner/docker-compose.yml`,
+  `Database__Provider: Postgres`). EF-Migrations liegen in der eigenen Assembly
+  `Heimatplatz.Api.Core.Data.Migrations.Postgres`.
+- **SQLite** — nur lokale Entwicklung; wird ohne gesetzten Provider automatisch am
+  Connection-String erkannt (`appsettings.Development.json`):
 
 ```json
 {
@@ -179,6 +190,9 @@ Die Datenbank verwendet SQLite. Der Connection-String wird in `appsettings.json`
   }
 }
 ```
+
+Weitere Optionen: `Database:AutoMigrate` (Migrations beim Start) und
+`Database:EnableSeeding` (Demo-Daten; Referenzdaten-Seeder laufen immer).
 
 **Auto-Discovery:** Entities die von `BaseEntity` erben und `IEntityTypeConfiguration<T>` Implementierungen werden automatisch aus allen `Heimatplatz.*` Assemblies geladen - keine manuelle Registrierung noetig.
 

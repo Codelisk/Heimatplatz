@@ -65,11 +65,12 @@ public class RegisterHandler(
         var refreshValidityHours = tokenService.GetRefreshTokenValidityHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(refreshValidityHours);
 
+        // Nur der Hash liegt in der DB - Klartext geht ausschliesslich an den Client
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
-            Token = refreshTokenString,
+            Token = tokenService.HashRefreshToken(refreshTokenString),
             ExpiresAt = expiresAt,
             CreatedAt = DateTimeOffset.UtcNow
         };

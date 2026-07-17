@@ -75,34 +75,11 @@ const totalInitialProperties = apiProperties.length;
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
-  import { getDisplayTitle } from "@/features/properties/format";
+  import { formatApiPrice, getDisplayTitle } from "@/features/properties/format";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
-
-  type ApiProperty = {
-    Id: string;
-    Title: string;
-    Address: string;
-    City: string;
-    PostalCode: string;
-    Price: number | string;
-    LivingAreaM2?: number | string | null;
-    PlotAreaM2?: number | string | null;
-    Rooms?: number | string | null;
-    Type: string;
-    SellerType: string | null;
-    SellerName: string;
-    ImageUrls: string[];
-    CreatedAt: string;
-    Description?: string | null;
-    Features?: string[];
-    SourceName?: string | null;
-  };
-
-  type ApiPropertyResponse = {
-    Properties: ApiProperty[];
-    Total: number;
-    HasMore: boolean;
-  };
+  // Nur Typ-Importe aus live-api (werden beim Build geloescht) - Wert-Importe wuerden
+  // die Server-Abhaengigkeiten (ttl-cache, api-base) ins Client-Bundle ziehen
+  import type { ApiProperty, ApiPropertyResponse } from "@/features/properties/live-api";
 
   type VerifiedImageMap = Record<string, string>;
 
@@ -353,21 +330,10 @@ const totalInitialProperties = apiProperties.length;
     return "house";
   }
 
-  function mapSeller(sellerType: string | null) {
+  function mapSeller(sellerType: ApiProperty["SellerType"]) {
     if (sellerType === "Private") return "private";
     if (sellerType === "Broker") return "agent";
     return "court";
-  }
-
-  function formatPrice(value: number | string) {
-    const number = Number(value);
-    if (!Number.isFinite(number) || number <= 0) return "Preis offen";
-    // Branchenuebliche Schreibweise ("€ 365.000") statt "365 Tsd. EUR"
-    return new Intl.NumberFormat("de-AT", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(number);
   }
 
   function getAgeCutoff(age: string) {
@@ -525,7 +491,7 @@ const totalInitialProperties = apiProperties.length;
     facts.className = "text-right";
     facts.innerHTML = `
       <dt class="sr-only">Preis</dt>
-      <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">${formatPrice(property.Price)}</dd>
+      <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">${formatApiPrice(property.Price)}</dd>
       <dt class="sr-only">Fläche</dt>
       <dd class="mt-1.5 text-sm font-semibold text-muted-foreground">${area ? `${area} ${property.PlotAreaM2 ? "m² Grund" : "m² Wfl"}` : "Fläche k.A."}</dd>
       <dd class="mt-3 text-xs text-muted-foreground">${property.Rooms ? `${property.Rooms} Zi` : ""}</dd>

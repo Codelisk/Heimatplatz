@@ -90,10 +90,14 @@ Der `ForeclosureAuctionSeeder` erstellt automatisch 12 realistische Testeinträg
 
 - **Manuell (Standard)**: Der Sync läuft bewusst nur auf Anfrage, kein automatischer Zeitplan.
   Auslösen über den internen Bereich `/intern` auf `heimatplatz.at` (nur von `HOME_IP`
-  erreichbar, siehe `deploy/hetzner/Caddyfile`) oder direkt `POST /api/foreclosure-auctions/sync`
-  (ebenfalls nur von `HOME_IP` erreichbar - kein App-Login nötig, die IP-Sperre ist die
-  Zugriffsschranke). Läuft fire-and-forget im Hintergrund, Status via
-  `GET /api/foreclosure-auctions/sync/status` (öffentlich, nur Zähler, keine sensiblen Daten).
+  erreichbar, siehe `deploy/hetzner/Caddyfile`) oder direkt `POST /api/foreclosure-auctions/sync`.
+  Der Endpoint verlangt den Shared-Key-Header `X-Sync-Key` (Konfiguration
+  `ForeclosureAuctions:Scraping:SyncTriggerKey`, per Env `SYNC_TRIGGER_KEY` - siehe
+  `deploy/hetzner/.env.example`); ohne konfigurierten Key ist er außerhalb von Development
+  gesperrt (fail-closed). Auf der Prod-API kommt zusätzlich die Caddy-IP-Sperre auf `HOME_IP`
+  davor. Parallele Läufe werden abgewiesen (In-Process-Guard). Läuft fire-and-forget im
+  Hintergrund, Status via `GET /api/foreclosure-auctions/sync/status` (öffentlich, nur Zähler,
+  keine sensiblen Daten).
 - **Optional automatisch**: `ForeclosureAuctionSyncWorker` (BackgroundService) kann den Sync
   periodisch auslösen - Konfiguration `ForeclosureAuctions:Scraping:SyncIntervalHours`
   (Default `0` = deaktiviert). Bei einem Wert > 0 läuft der erste Sync kurz nach App-Start,

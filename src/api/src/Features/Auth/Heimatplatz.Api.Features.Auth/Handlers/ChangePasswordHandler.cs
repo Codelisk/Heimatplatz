@@ -67,7 +67,7 @@ public class ChangePasswordHandler(
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            Token = refreshTokenString,
+            Token = tokenService.HashRefreshToken(refreshTokenString),
             ExpiresAt = expiresAt,
             CreatedAt = now
         });

@@ -12,18 +12,23 @@ namespace Heimatplatz.Api.Features.Properties.Services;
 /// Inserate, damit keine verwaisten Verweise zurueckbleiben (FK-sicher, ohne sich auf
 /// DB-Cascade zu verlassen). Registrierung erfolgt in <c>AddPropertiesFeature</c>.
 /// </summary>
-public class PropertiesUserDataEraser(AppDbContext dbContext) : IUserDataEraser
+public class PropertiesUserDataEraser(
+    AppDbContext dbContext,
+    IPropertyImageService imageService
+) : IUserDataEraser
 {
     /// <summary>Nach den Notifications, da hier ggf. groessere Datenmengen betroffen sind.</summary>
     public int Order => 20;
 
     public async Task EraseUserDataAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        // IDs der eigenen Inserate des Benutzers ermitteln
-        var propertyIds = await dbContext.Set<Property>()
+        // IDs + Bild-URLs der eigenen Inserate des Benutzers ermitteln
+        var ownProperties = await dbContext.Set<Property>()
             .Where(p => p.UserId == userId)
-            .Select(p => p.Id)
+            .Select(p => new { p.Id, p.ImageUrls })
             .ToListAsync(cancellationToken);
+
+        var propertyIds = ownProperties.Select(p => p.Id).ToList();
 
         // Favoriten: eigene des Benutzers + fremde, die auf seine Inserate verweisen
         await dbContext.Set<Favorite>()
@@ -57,6 +62,14 @@ public class PropertiesUserDataEraser(AppDbContext dbContext) : IUserDataEraser
                 CreatedAt = now
             }));
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Hochgeladene Bilddateien mitentfernen (DSGVO - sonst bleiben sie
+            // unter wwwroot/uploads oeffentlich abrufbar). Externe/gescrapte
+            // URLs ignoriert DeleteImageAsync selbst.
+            foreach (var imageUrl in ownProperties.SelectMany(p => p.ImageUrls))
+            {
+                await imageService.DeleteImageAsync(imageUrl, cancellationToken);
+            }
         }
     }
 }

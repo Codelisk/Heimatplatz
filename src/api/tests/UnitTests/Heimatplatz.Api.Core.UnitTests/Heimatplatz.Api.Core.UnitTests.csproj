@@ -12,7 +12,11 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="SkiaSharp" />
+    <!-- Native libSkiaSharp fuer Testlaeufe auf Linux (CI/Dev-Boxen) - ohne sie
+         schlagen die ForeclosureImageService-Tests mit DllNotFoundException fehl -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
   </ItemGroup>
 
   <ItemGroup>

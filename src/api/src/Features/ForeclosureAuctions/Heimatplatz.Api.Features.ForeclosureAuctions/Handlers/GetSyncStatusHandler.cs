@@ -22,19 +22,16 @@ public class GetSyncStatusHandler(AppDbContext dbContext)
         var auctions = dbContext.Set<ForeclosureAuction>();
         var changes = dbContext.Set<ForeclosureAuctionChange>();
 
-        var allAuctions = await auctions.ToListAsync(cancellationToken);
-
-        var lastSyncAt = allAuctions
+        // Nur Aggregate abfragen statt die ganze Tabelle zu laden
+        var lastSyncAt = await auctions
             .Where(a => a.LastScrapedAt.HasValue)
-            .Select(a => a.LastScrapedAt!.Value)
-            .DefaultIfEmpty()
-            .Max();
+            .MaxAsync(a => a.LastScrapedAt, cancellationToken);
 
         return new GetSyncStatusResponse
         {
-            LastSyncAt = lastSyncAt == default ? null : lastSyncAt,
-            TotalActiveAuctions = allAuctions.Count(a => a.IsActive),
-            TotalRemovedAuctions = allAuctions.Count(a => !a.IsActive),
+            LastSyncAt = lastSyncAt,
+            TotalActiveAuctions = await auctions.CountAsync(a => a.IsActive, cancellationToken),
+            TotalRemovedAuctions = await auctions.CountAsync(a => !a.IsActive, cancellationToken),
             TotalChanges = await changes.CountAsync(cancellationToken)
         };
     }

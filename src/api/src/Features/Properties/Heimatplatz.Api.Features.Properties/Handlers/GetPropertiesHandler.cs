@@ -23,21 +23,20 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 public class GetPropertiesHandler(
     AppDbContext dbContext,
     IHttpContextAccessor httpContextAccessor,
-    IConfiguration configuration,
-    ILogger<GetPropertiesHandler> logger
+    IConfiguration configuration
 ) : IRequestHandler<GetPropertiesRequest, GetPropertiesResponse>
 {
+    // Obergrenze pro Seite: schuetzt vor PageSize=1000000-Anfragen. Groesster
+    // legitimer Abnehmer ist das Astro-Web mit 96 Eintraegen pro Ladung.
+    private const int MaxPageSize = 200;
+
     [MediatorHttpGet("/", OperationId = "GetProperties")]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
-        // DEBUG: Log incoming filter parameters
-        logger.LogWarning("[GetProperties] Request: Page={Page}, CreatedAfter={CreatedAfter}, HasValue={HasValue}",
-            request.Page, request.CreatedAfter, request.CreatedAfter.HasValue);
-
         // Include Municipality for City/PostalCode values
         var query = dbContext.Set<Property>()
             .Include(p => p.Municipality)
-            .AsQueryable();
+            .AsNoTracking();
 
         // Exclude blocked properties for authenticated users
         var httpContext = httpContextAccessor.HttpContext;
@@ -70,14 +69,12 @@ public class GetPropertiesHandler(
             query = query.Where(p => municipalityIds.Contains(p.MunicipalityId));
 
         // Filter: CreatedAfter (Age filter) - convert to UTC DateTimeOffset for proper comparison.
-        // SQLite kann DateTimeOffset-Vergleiche nicht in SQL uebersetzen -> dort nach dem Laden filtern
-        DateTimeOffset? createdAfterUtc = request.CreatedAfter.HasValue
-            ? new DateTimeOffset(request.CreatedAfter.Value.ToUniversalTime(), TimeSpan.Zero)
-            : null;
-        var isSqlite = dbContext.Database.IsSqlite();
-        if (createdAfterUtc is { } createdAfterSql && !isSqlite)
+        // Laeuft auch auf SQLite in SQL - die Konverter im AppDbContext speichern
+        // DateTimeOffset dort als long (UTC-Ticks), kein In-Memory-Umweg noetig.
+        if (request.CreatedAfter.HasValue)
         {
-            query = query.Where(p => p.CreatedAt >= createdAfterSql);
+            var createdAfterUtc = new DateTimeOffset(request.CreatedAfter.Value.ToUniversalTime(), TimeSpan.Zero);
+            query = query.Where(p => p.CreatedAt >= createdAfterUtc);
         }
 
         // Filter: Price range
@@ -98,6 +95,18 @@ public class GetPropertiesHandler(
         if (request.RoomsMin.HasValue)
             query = query.Where(p => p.Rooms >= request.RoomsMin.Value);
 
+        // Filter: Volltextsuche - serverseitig, damit Clients nicht ueber den geladenen
+        // Seiten-Ausschnitt suchen muessen (ToLower().Contains uebersetzt auf allen Providern)
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            var search = request.SearchText.Trim().ToLower();
+            query = query.Where(p =>
+                p.Title.ToLower().Contains(search) ||
+                (p.Description ?? "").ToLower().Contains(search) ||
+                p.Address.ToLower().Contains(search) ||
+                p.Municipality.Name.ToLower().Contains(search));
+        }
+
         // Filter: Bestimmte Anbieter (Makler/Verwaltungen) ausblenden - ueber die
         // SellerSource-FK-Beziehung statt fragilem String-Matching auf SellerName
         var excludedSourceIds = request.GetExcludedSellerSourceIds();
@@ -108,40 +117,42 @@ public class GetPropertiesHandler(
                 !excludedSourceIds.Contains(p.SellerSourceId.Value));
         }
 
+        var page = Math.Max(request.Page, 0);
+        var pageSize = Math.Clamp(request.PageSize, 1, MaxPageSize);
+
+        // Total count for paging (before applying pagination)
+        var total = await query.CountAsync(cancellationToken);
+        var hasMore = (page + 1) * pageSize < total;
+
         // Build base URL for image proxy
         var baseUrl = ResolveApiBaseUrl(httpContextAccessor, configuration);
 
-        // Load, sort in memory (SQLite does not support DateTimeOffset in ORDER BY), then page
-        var entities = await query.ToListAsync(cancellationToken);
-        if (createdAfterUtc is { } createdAfterInMemory && isSqlite)
-        {
-            entities = entities.Where(p => p.CreatedAt >= createdAfterInMemory).ToList();
-        }
-
-        // Die Query enthaelt keine Pagination - die Gesamtzahl entspricht den geladenen
-        // (und ggf. in-memory gefilterten) Eintraegen; spart den frueheren COUNT-Roundtrip
-        var total = entities.Count;
-        var skip = request.Page * request.PageSize;
-        var hasMore = (request.Page + 1) * request.PageSize < total;
-        IEnumerable<Property> sorted = request.SortBy?.ToLowerInvariant() switch
+        // Sortierung + Paging in der Datenbank: nur die angeforderte Seite wird geladen.
+        // (SQLite-DateTimeOffset/decimal-ORDER-BY laeuft ueber die Konverter im AppDbContext.)
+        var sorted = request.SortBy?.ToLowerInvariant() switch
         {
             "createdat" => request.SortDescending
-                ? entities.OrderByDescending(p => p.CreatedAt)
-                : entities.OrderBy(p => p.CreatedAt),
+                ? query.OrderByDescending(p => p.CreatedAt)
+                : query.OrderBy(p => p.CreatedAt),
             "price" => request.SortDescending
-                ? entities.OrderByDescending(p => p.Price)
-                : entities.OrderBy(p => p.Price),
+                ? query.OrderByDescending(p => p.Price)
+                : query.OrderBy(p => p.Price),
             "plotarea" => request.SortDescending
-                ? entities.OrderByDescending(p => p.PlotAreaSquareMeters ?? 0)
-                : entities.OrderBy(p => p.PlotAreaSquareMeters ?? 0),
+                ? query.OrderByDescending(p => p.PlotAreaSquareMeters ?? 0)
+                : query.OrderBy(p => p.PlotAreaSquareMeters ?? 0),
             "postalcode" => request.SortDescending
-                ? entities.OrderByDescending(p => p.Municipality.PostalCode)
-                : entities.OrderBy(p => p.Municipality.PostalCode),
-            _ => entities.OrderByDescending(p => p.CreatedAt) // default: newest first
+                ? query.OrderByDescending(p => p.Municipality.PostalCode)
+                : query.OrderBy(p => p.Municipality.PostalCode),
+            _ => query.OrderByDescending(p => p.CreatedAt) // default: newest first
         };
-        var properties = sorted
-            .Skip(skip)
-            .Take(request.PageSize)
+
+        var entities = await sorted
+            .ThenBy(p => p.Id) // stabiler Tiebreaker: deterministisches Paging bei gleichen Sortierwerten
+            .Skip(page * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var properties = entities
             .Select(p => new PropertyListItemDto(
                 p.Id,
                 p.Title,
@@ -166,8 +177,8 @@ public class GetPropertiesHandler(
         return new GetPropertiesResponse(
             properties,
             total,
-            request.PageSize,
-            request.Page,
+            pageSize,
+            page,
             hasMore
         );
     }

@@ -6,6 +6,7 @@ using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
+using Heimatplatz.Api.Features.Locations.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +73,20 @@ public class UpdatePropertyHandler(
             throw new ArgumentException("Description must be between 50 and 2000 characters", nameof(request.Description));
         }
 
+        if (string.IsNullOrWhiteSpace(request.Address) || request.Address.Length > 500)
+        {
+            throw new ArgumentException("Address is required and must be at most 500 characters", nameof(request.Address));
+        }
+
+        // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
+        // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
+        var municipalityExists = await dbContext.Set<Municipality>()
+            .AnyAsync(m => m.Id == request.MunicipalityId, cancellationToken);
+        if (!municipalityExists)
+        {
+            throw new ArgumentException("Unknown MunicipalityId", nameof(request.MunicipalityId));
+        }
+
         // Anbieter-Daten serverseitig aus dem aktuellen Profil des Eigentuemers ableiten
         var sellerInfo = await sellerInfoResolver.ResolveForUserAsync(userId, cancellationToken);
 
@@ -98,35 +113,46 @@ public class UpdatePropertyHandler(
         {
             var typeSpecificDataJson = JsonSerializer.Serialize(request.TypeSpecificData);
 
-            // Deserialize and validate based on PropertyType
-            switch (request.Type)
+            // Deserialize and validate based on PropertyType. JsonException abfangen:
+            // fehlende/falsch getypte Pflichtfelder sind ein Validierungsfehler des
+            // Clients (400), kein Serverfehler (500).
+            try
             {
-                case PropertyType.Land:
-                    var landData = JsonSerializer.Deserialize<LandPropertyData>(typeSpecificDataJson);
-                    if (landData != null)
-                    {
-                        ValidateLandData(landData);
-                        property.SetTypedData(landData);
-                    }
-                    break;
+                switch (request.Type)
+                {
+                    case PropertyType.Land:
+                        var landData = JsonSerializer.Deserialize<LandPropertyData>(typeSpecificDataJson);
+                        if (landData != null)
+                        {
+                            ValidateLandData(landData);
+                            property.SetTypedData(landData);
+                        }
+                        break;
 
-                case PropertyType.House:
-                    var houseData = JsonSerializer.Deserialize<HousePropertyData>(typeSpecificDataJson);
-                    if (houseData != null)
-                    {
-                        ValidateHouseData(houseData);
-                        property.SetTypedData(houseData);
-                    }
-                    break;
+                    case PropertyType.House:
+                        var houseData = JsonSerializer.Deserialize<HousePropertyData>(typeSpecificDataJson);
+                        if (houseData != null)
+                        {
+                            ValidateHouseData(houseData);
+                            property.SetTypedData(houseData);
+                        }
+                        break;
 
-                case PropertyType.Foreclosure:
-                    var foreclosureData = JsonSerializer.Deserialize<ForeclosurePropertyData>(typeSpecificDataJson);
-                    if (foreclosureData != null)
-                    {
-                        ValidateForeclosureData(foreclosureData);
-                        property.SetTypedData(foreclosureData);
-                    }
-                    break;
+                    case PropertyType.Foreclosure:
+                        var foreclosureData = JsonSerializer.Deserialize<ForeclosurePropertyData>(typeSpecificDataJson);
+                        if (foreclosureData != null)
+                        {
+                            ValidateForeclosureData(foreclosureData);
+                            property.SetTypedData(foreclosureData);
+                        }
+                        break;
+                }
+            }
+            catch (JsonException)
+            {
+                throw new ArgumentException(
+                    $"TypeSpecificData ist fuer den Typ {request.Type} unvollstaendig oder ungueltig",
+                    nameof(request.TypeSpecificData));
             }
         }
 

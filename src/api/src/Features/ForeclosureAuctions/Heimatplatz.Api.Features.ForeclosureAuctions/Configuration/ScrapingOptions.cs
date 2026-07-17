@@ -29,6 +29,14 @@ public class ScrapingOptions
     public int SyncIntervalHours { get; set; } = 0;
 
     /// <summary>
+    /// Shared-Key fuer den manuellen Sync-Trigger (POST /api/foreclosure-auctions/sync,
+    /// Header X-Sync-Key). Leer/nicht gesetzt = Endpoint ist ausserhalb von Development
+    /// gesperrt (fail-closed). Wert kommt per Env ForeclosureAuctions__Scraping__SyncTriggerKey
+    /// (siehe deploy/hetzner/.env.example, SYNC_TRIGGER_KEY).
+    /// </summary>
+    public string? SyncTriggerKey { get; set; }
+
+    /// <summary>
     /// Bundesland-Code fuer die Suche (3 = Oberoesterreich).
     /// Codes laut Suchformular der Ediktsdatei (select name="BL"):
     /// 0=Wien, 1=Niederoesterreich, 2=Burgenland, 3=Oberoesterreich, 4=Salzburg,

@@ -1,3 +1,4 @@
+using Heimatplatz.Api.Cleanup;
 using Heimatplatz.Api.Core.AiConnectorClient.Configuration;
 using Heimatplatz.Api.Features.AiListing.Infrastructure;
 using Heimatplatz.Api.Features.AiListing.Services;
@@ -36,6 +37,9 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ListingAnalysisQueue>();
         services.AddHostedService<ListingAnalysisWorker>();
+
+        // Explizit (nicht via [Service]/TryAdd), damit IEnumerable<IUserDataEraser> alle Beitraege erhaelt.
+        services.AddScoped<IUserDataEraser, AiListingUserDataEraser>();
 
         return services;
     }

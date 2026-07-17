@@ -38,14 +38,20 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Uno Platform
-*.generated.cs
-.uno/
 
 # MSBuild
 MSBuild_Logs/
 
-# SQLite database files (legacy, now using Azure SQL)
+# Laufzeit-Artefakte
+*.pid
+
+# Claude-Code-Session-Artefakte
+.claude/worktrees/
+
+# Playwright-Screenshots aus usertests/
+usertests/*.png
+
+# SQLite database files (nur lokale Entwicklung, Prod/Test nutzen Hetzner-Postgres)
 *.db
 *.db-shm
 *.db-wal

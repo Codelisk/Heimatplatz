@@ -1,7 +1,10 @@
 <script>
   import { getResponsiveImage } from "@/lib/images";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
-  import { getDisplayTitle } from "@/features/properties/format";
+  import { formatApiPrice, getDisplayTitle } from "@/features/properties/format";
+  // Nur Typ-Import aus live-api (wird beim Build geloescht) - Wert-Importe wuerden
+  // die Server-Abhaengigkeiten (ttl-cache, api-base) ins Client-Bundle ziehen
+  import type { ApiProperty } from "@/features/properties/live-api";
 
   type Draft = {
     id?: string;
@@ -24,9 +27,11 @@
     [key: string]: string | string[] | undefined;
   };
 
+  // Bewusst OHNE RefreshToken: Das langlebige Token wird im Web nie verwendet
+  // (kein Refresh-Flow, abgelaufene Sessions werden einfach verworfen) und waere
+  // im localStorage nur ein Diebstahlsziel fuer jede XSS-Luecke.
   type Session = {
     AccessToken: string;
-    RefreshToken: string;
     UserId: string;
     Email: string;
     FullName: string;
@@ -38,27 +43,6 @@
     skipAuth?: boolean;
   };
 
-  type ApiProperty = {
-    Id: string;
-    Title: string;
-    Address: string;
-    MunicipalityId?: string;
-    City: string;
-    PostalCode: string;
-    Price: number | string;
-    LivingAreaM2?: number | string | null;
-    PlotAreaM2?: number | string | null;
-    Rooms?: number | string | null;
-    Type: string;
-    SellerType: string | null;
-    SellerName: string;
-    ImageUrls: string[];
-    CreatedAt: string;
-    SourceName?: string | null;
-    Description?: string | null;
-    YearBuilt?: number | string | null;
-    TypeSpecificData?: string | Record<string, unknown> | null;
-  };
 
   type Municipality = {
     Id: string;
@@ -137,12 +121,19 @@
   }
 
   function readSession() {
-    const session = readJson<Session>(STORAGE_KEYS.session);
+    const session = readJson<Session & { RefreshToken?: string }>(STORAGE_KEYS.session);
     if (!session?.AccessToken) return null;
 
     if (session.ExpiresAt && new Date(session.ExpiresAt).getTime() <= Date.now()) {
       window.localStorage.removeItem(STORAGE_KEYS.session);
       return null;
+    }
+
+    // Migration: Aeltere Sessions enthalten noch das RefreshToken - beim ersten
+    // Lesen entfernen (siehe Kommentar am Session-Typ).
+    if (session.RefreshToken !== undefined) {
+      delete session.RefreshToken;
+      writeJson(STORAGE_KEYS.session, session);
     }
 
     return session;
@@ -442,11 +433,13 @@
                 Password: String(formData.get("password") ?? ""),
               };
 
-          const session = await apiRequest<Session>(
+          const session = await apiRequest<Session & { RefreshToken?: string }>(
             mode === "register" ? "/api/auth/register" : "/api/auth/login",
             { method: "POST", body: payload, skipAuth: true },
           );
 
+          // RefreshToken aus der API-Antwort verwerfen (siehe Session-Typ)
+          delete session.RefreshToken;
           saveSession(session);
           setFormStatus(form, "Erfolgreich angemeldet.", "success");
           // Verkaeufer landen bei ihren Inseraten, alle anderen in der Suche
@@ -568,8 +561,9 @@
             },
           );
 
-          // Alle anderen Sitzungen sind widerrufen; diese Session bekommt das neue Token-Paar
-          saveSession({ ...session, AccessToken: result.AccessToken, RefreshToken: result.RefreshToken, ExpiresAt: result.ExpiresAt });
+          // Alle anderen Sitzungen sind widerrufen; diese Session bekommt den neuen
+          // Access Token (RefreshToken wird bewusst nicht gespeichert, siehe Session-Typ)
+          saveSession({ ...session, AccessToken: result.AccessToken, ExpiresAt: result.ExpiresAt });
           form.reset();
           setFormStatus(form, "Passwort geändert. Andere Geräte wurden abgemeldet.", "success");
         } catch (error) {
@@ -996,26 +990,6 @@
     });
   }
 
-  function formatEuro(value: string | undefined) {
-    const number = Number(value);
-    if (!Number.isFinite(number) || number <= 0) return "Preis offen";
-    return new Intl.NumberFormat("de-AT", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(number);
-  }
-
-  function formatPriceValue(value: number | string | undefined) {
-    const number = Number(value);
-    if (!Number.isFinite(number) || number <= 0) return "Preis offen";
-    // Branchenuebliche Schreibweise ("€ 365.000") statt "365 Tsd. EUR"
-    return new Intl.NumberFormat("de-AT", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(number);
-  }
 
   function createText<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text: string) {
     const element = document.createElement(tag);
@@ -1204,7 +1178,7 @@
     const meta = createText(
       "p",
       "mt-4 text-sm font-semibold",
-      `${draft.propertyType || "Immobilie"} · ${formatEuro(draft.price)}`
+      `${draft.propertyType || "Immobilie"} · ${formatApiPrice(draft.price)}`
     );
 
     const actions = document.createElement("div");
@@ -1274,7 +1248,7 @@
     titleLink.className = "hover:underline";
     titleLink.textContent = property.City || property.Title;
     title.append(titleLink);
-    const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-price", formatPriceValue(property.Price));
+    const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-price", formatApiPrice(property.Price));
     head.append(title, price);
     const place = [property.PostalCode, property.City].filter(Boolean).join(" ");
     const addressText = (property.Address ?? "").trim();
@@ -1377,8 +1351,11 @@
 
     return {
       CourtName: scalarValue(draft.foreclosureCourtName),
-      AuctionDate: toIsoDateTime(draft.foreclosureAuctionDate) || new Date().toISOString(),
-      MinimumBid: toNumber(draft.foreclosureMinimumBid) ?? 0,
+      // Keine erfundenen Fallbacks (frueher: heutiges Datum / 0): Pflichtfelder prueft
+      // validatePropertyDraft vorab, und die API validiert erneut - fehlende Werte
+      // muessen als Fehler enden, nicht als falsche Fachdaten im Bestand.
+      AuctionDate: toIsoDateTime(draft.foreclosureAuctionDate) || null,
+      MinimumBid: toNumber(draft.foreclosureMinimumBid),
       EstimatedValue: toNumber(draft.foreclosureEstimatedValue),
       Encumbrances: [],
       Status: scalarValue(draft.foreclosureStatus) || "Scheduled",
@@ -1420,7 +1397,7 @@
     return "";
   }
 
-  function mapSellerType(value: string | undefined) {
+  function mapSellerType(value: ApiProperty["SellerType"] | undefined) {
     return value === "Broker" ? "Broker" : "Private";
   }
 

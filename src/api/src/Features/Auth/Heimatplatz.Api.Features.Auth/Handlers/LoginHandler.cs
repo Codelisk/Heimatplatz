@@ -44,12 +44,12 @@ public class LoginHandler(
         var refreshValidityHours = tokenService.GetRefreshTokenValidityHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(refreshValidityHours);
 
-        // Refresh Token in DB speichern
+        // Refresh Token in DB speichern (nur als Hash - Klartext geht nur an den Client)
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
-            Token = refreshTokenString,
+            Token = tokenService.HashRefreshToken(refreshTokenString),
             ExpiresAt = expiresAt,
             CreatedAt = DateTimeOffset.UtcNow
         };

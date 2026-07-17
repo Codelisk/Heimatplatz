@@ -26,7 +26,13 @@ public record PropertyDto(
     DateTimeOffset CreatedAt,
     InquiryType InquiryType,
     List<ContactInfoDto> Contacts,
-    string? TypeSpecificData
+    string? TypeSpecificData,
+    // Serverseitig abgeleitete Anzeige-Fakten (Backend-First: Clients rendern nur)
+    // "Kaufpreis" | "Mindestgebot" | "Schätzwert" - haengt bei Zwangsversteigerungen
+    // davon ab, ob ein Mindestgebot vorliegt (Price = MinimumBid ?? EstimatedValue)
+    string PriceLabel = "Kaufpreis",
+    // Preis pro m² Wohnflaeche; null bei Zwangsversteigerungen oder fehlender Flaeche
+    decimal? PricePerSquareMeter = null
 );
 
 /// <summary>

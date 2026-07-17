@@ -37,6 +37,7 @@ builder.Services.AddHttpClient("ImageProxy")
     });
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddExceptionHandler<UnauthorizedExceptionHandler>();
+builder.Services.AddExceptionHandler<LegacyExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddApiServices(builder.Configuration);
 

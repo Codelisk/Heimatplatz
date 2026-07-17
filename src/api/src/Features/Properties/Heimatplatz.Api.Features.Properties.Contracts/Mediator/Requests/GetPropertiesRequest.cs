@@ -37,6 +37,9 @@ public record GetPropertiesRequest(
     // Filter: Excluded seller sources
     string? ExcludedSellerSourceIdsJson = null,
 
+    // Filter: Volltextsuche (Titel, Beschreibung, Adresse, Gemeindename; case-insensitive)
+    string? SearchText = null,
+
     // Sorting: Field name (CreatedAt, Price, PlotArea, PostalCode)
     string? SortBy = null,
 

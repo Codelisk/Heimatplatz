@@ -6,6 +6,19 @@ using Shiny.Mediator;
 namespace Heimatplatz.Maui.Features.Auth.Infrastructure;
 
 /// <summary>
+/// Nicht-generischer Halter fuer die Refresh-Sperre. Ein statisches Feld in einer
+/// generischen Klasse existiert PRO konstruiertem Typ - TokenRefreshMiddleware&lt;A,B&gt;
+/// und TokenRefreshMiddleware&lt;C,D&gt; haetten je eine eigene Semaphore. Laufen nach
+/// App-Resume mehrere Requests verschiedener Typen parallel in ein 401, wuerden
+/// mehrere Refreshes gleichzeitig starten und bei Refresh-Token-Rotation die
+/// Session zerstoeren (zweiter Refresh nutzt das bereits verbrauchte Token).
+/// </summary>
+internal static class TokenRefreshLock
+{
+    public static readonly SemaphoreSlim Semaphore = new(1, 1);
+}
+
+/// <summary>
 /// Globale Middleware die bei 401 Unauthorized automatisch einen Token-Refresh versucht.
 /// Wrapt jeden Mediator-Request und wiederholt ihn nach erfolgreichem Refresh.
 /// </summary>
@@ -16,7 +29,6 @@ public class TokenRefreshMiddleware<TRequest, TResult>(
 ) : IRequestMiddleware<TRequest, TResult>
     where TRequest : IRequest<TResult>
 {
-    private static readonly SemaphoreSlim RefreshSemaphore = new(1, 1);
 
     public async Task<TResult> Process(
         IMediatorContext context,
@@ -68,7 +80,7 @@ public class TokenRefreshMiddleware<TRequest, TResult>(
         string? tokenThatFailed,
         CancellationToken cancellationToken)
     {
-        var acquired = await RefreshSemaphore.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken)
+        var acquired = await TokenRefreshLock.Semaphore.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken)
             .ConfigureAwait(false);
 
         if (!acquired)
@@ -122,7 +134,7 @@ public class TokenRefreshMiddleware<TRequest, TResult>(
         }
         finally
         {
-            RefreshSemaphore.Release();
+            TokenRefreshLock.Semaphore.Release();
         }
     }
 }

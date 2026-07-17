@@ -205,9 +205,10 @@ public class ImportPropertiesHandler(
         if (municipality != null)
             return municipality.Id;
 
-        // Fallback: Return first municipality (should not happen in production)
-        municipality = await dbContext.Set<Municipality>().FirstOrDefaultAsync(cancellationToken);
-        return municipality?.Id ?? throw new InvalidOperationException($"No municipality found for City={city}, PostalCode={postalCode}");
+        // Kein Match: Item scheitern lassen (der Import-Loop faengt das und markiert es
+        // als Failed) statt stillschweigend die erstbeste Gemeinde zuzuordnen -
+        // Inserate mit falschem Ort im Bestand sind schlimmer als ein Failed-Item.
+        throw new ArgumentException($"Keine Gemeinde gefunden fuer City='{city}', PostalCode='{postalCode}'");
     }
 
     private static void ValidateImportDto(ImportPropertyDto dto)
