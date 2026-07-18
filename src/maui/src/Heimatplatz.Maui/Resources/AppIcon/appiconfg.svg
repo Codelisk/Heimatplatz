@@ -13,8 +13,8 @@
   <g clip-path="url(#clip-flat-clean)">
     <!-- Himmel -->
     <circle cx="240" cy="240" r="163" fill="#d5ebe6"/>
-    <circle cx="145" cy="145" r="29" fill="#fbe7b2" opacity=".65"/>
-    <circle cx="145" cy="145" r="19" fill="#f5c95e"/>
+    <circle cx="148" cy="148" r="29" fill="#fbe7b2" opacity=".65"/>
+    <circle cx="148" cy="148" r="19" fill="#f5c95e"/>
     <path fill="#ffffff" d="M278 151c2-10 10-16 20-16 7 0 13 3 17 9 3-2 7-3 11-3 8 0 15 5 17 13h-65Z"/>
 
     <!-- Zwei klare Bergsilhouetten -->
@@ -29,8 +29,8 @@
 
     <!-- Reduzierte Tannen -->
     <g>
-      <path fill="#4d8a4b" d="m106 248 17 31h-9l15 27H83l15-27h-9Z"/>
-      <rect x="102" y="302" width="8" height="14" rx="3" fill="#8a5f3f"/>
+      <path fill="#4d8a4b" d="m102 252 16 29h-8l14 25H80l14-25h-8Z"/>
+      <rect x="98" y="302" width="8" height="14" rx="3" fill="#8a5f3f"/>
       <path fill="#5e9b5a" d="m272 252 16 29h-8l14 25h-44l14-25h-8Z"/>
       <rect x="268" y="302" width="8" height="14" rx="3" fill="#8a5f3f"/>
     </g>
@@ -45,14 +45,13 @@
       <rect x="164" y="214" width="24" height="24" rx="8" fill="#ffffff"/>
       <rect x="169" y="219" width="14" height="14" rx="4" fill="#f5c95e"/>
 
-      <rect x="138" y="268" width="27" height="24" rx="5" fill="#ffffff"/>
-      <rect x="143" y="273" width="17" height="14" rx="3" fill="#f5c95e"/>
-      <rect x="187" y="268" width="27" height="24" rx="5" fill="#ffffff"/>
-      <rect x="192" y="273" width="17" height="14" rx="3" fill="#f5c95e"/>
+      <rect x="132" y="268" width="27" height="24" rx="5" fill="#ffffff"/>
+      <rect x="137" y="273" width="17" height="14" rx="3" fill="#f5c95e"/>
+      <rect x="193" y="268" width="27" height="24" rx="5" fill="#ffffff"/>
+      <rect x="198" y="273" width="17" height="14" rx="3" fill="#f5c95e"/>
 
       <path fill="#fff1d2" d="M165 322v-31q0-12 11-12t11 12v31Z"/>
       <circle cx="181" cy="301" r="2" fill="#9f1519"/>
-      <rect x="160" y="318" width="32" height="6" rx="3" fill="#c75247"/>
     </g>
 
     <!-- Ein ruhiger Vordergrund statt vieler Kleinteile -->
