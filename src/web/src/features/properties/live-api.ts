@@ -323,7 +323,7 @@ async function fetchApiPropertyByIdUncached(id: string) {
 }
 
 export function fetchApiPropertyById(id: string) {
-  return cached(`property:${id}`, TTL.properties, () => fetchApiPropertyByIdUncached(id));
+  return cached(`property:${id}`, TTL.propertyDetail, () => fetchApiPropertyByIdUncached(id));
 }
 
 export type ApiPropertyTypeOption = {

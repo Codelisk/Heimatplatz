@@ -1504,6 +1504,29 @@
   const HEART_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg>`;
   const EYE_OFF_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5" aria-hidden="true"><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828" /><path d="M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-3.6 0 -6.6 -2 -9 -6c1.272 -2.12 2.712 -3.678 4.32 -4.674m2.86 -1.146a9.055 9.055 0 0 1 1.82 -.18c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87" /><path d="M3 3l18 18" /></svg>`;
 
+  // Gast-Hinweis als gestyltes <dialog> statt window.alert: blockiert den Browser
+  // nicht und bietet den direkten Weg zur Anmeldung/Registrierung an.
+  function showLoginPrompt() {
+    document.querySelector<HTMLDialogElement>("[data-login-prompt]")?.remove();
+
+    const dialog = document.createElement("dialog");
+    dialog.setAttribute("data-login-prompt", "");
+    dialog.className = "m-auto w-[min(92vw,26rem)] rounded-lg border border-border bg-card p-6 text-foreground shadow-lg backdrop:bg-black/55";
+    dialog.innerHTML = `
+      <h2 class="text-lg font-semibold">Anmeldung erforderlich</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Melden Sie sich an oder registrieren Sie sich, um Immobilien zu merken oder zu blockieren.</p>
+      <div class="mt-5 flex flex-wrap items-center gap-2">
+        <a class="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-brand-foreground" href="/anmelden/">Anmelden</a>
+        <a class="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium" href="/registrieren/">Registrieren</a>
+        <button type="button" class="ml-auto inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-muted-foreground" data-login-prompt-close>Schließen</button>
+      </div>
+    `;
+    dialog.querySelector("[data-login-prompt-close]")?.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("close", () => dialog.remove());
+    document.body.append(dialog);
+    dialog.showModal();
+  }
+
   function createApiPropertyCard(property: ApiProperty, mode = "") {
     const card = document.createElement("article");
     card.className = "overflow-hidden rounded-lg border border-border bg-card shadow-sm";
@@ -2462,7 +2485,7 @@
         if (!slug) return;
 
         if (!readSession()) {
-          window.alert("Bitte melde dich an oder registriere dich, um Immobilien zu merken oder zu blockieren.");
+          showLoginPrompt();
           return;
         }
 

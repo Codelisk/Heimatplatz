@@ -626,7 +626,8 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     if (age) url.searchParams.set("age", age);
     const sortValue = sort?.value ?? "newest";
     if (sortValue !== "newest") url.searchParams.set("sort", sortValue);
-    if (currentPage > 0) url.searchParams.set("page", String(currentPage));
+    // 1-basiert in die URL spiegeln, passend zur Anzeige "Seite 2 von 2"
+    if (currentPage > 0) url.searchParams.set("page", String(currentPage + 1));
 
     history.replaceState(null, "", url);
   }

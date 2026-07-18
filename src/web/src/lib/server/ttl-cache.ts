@@ -38,6 +38,9 @@ export function cached<T>(key: string, ttlMs: number, factory: () => Promise<T>)
 /** Standard-TTLs: Listen/Detail kurz (Aktualitaet), Bild-Checks/Rechtstexte laenger */
 export const TTL = {
   properties: 60_000,
+  // Detailseiten deutlich kuerzer: Wer sein Inserat gerade bearbeitet/geloescht hat,
+  // soll nicht bis zu einer Minute lang den alten Stand (bzw. ein geloeschtes Inserat) sehen.
+  propertyDetail: 10_000,
   images: 60 * 60_000,
   legal: 10 * 60_000,
   // Bezirk/Gemeinde-Hierarchie aendert sich praktisch nie

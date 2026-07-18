@@ -34,7 +34,8 @@ const searchState: PropertySearchState = {
   ortSlugs: (params.get("region") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
   age: params.get("age") ?? "",
   sort: params.get("sort") ?? "newest",
-  page: Math.max(0, Number(params.get("page") ?? 0) || 0),
+  // URL-Parameter ist 1-basiert ("Seite 2" = ?page=2), intern/API-seitig 0-basiert
+  page: Math.max(0, (Number(params.get("page") ?? 1) || 1) - 1),
 };
 
 const searchQuery = buildPropertySearchQuery(searchState, ortSlugMap);

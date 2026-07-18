@@ -217,27 +217,51 @@ public class GetPropertiesHandler(
             // Lokale Uploads als absolute API-URL ausliefern. Das Astro-Frontend
             // laeuft auf einer separaten Origin; ein nacktes /uploads/... wuerde
             // sonst irrtuemlich gegen heimatplatz.at statt api.heimatplatz.at laden.
+            // Mit Zielbreite (Listen-Thumbnails) ueber den skalierenden Endpoint statt
+            // als statische Datei - die Display-Varianten sind bis zu 2560px breit.
             if (url.StartsWith("/"))
-                return $"{baseUrl}{url}";
+                return BuildLocalImageUrl(baseUrl, url, width);
 
             // Externe Quellen ueber den abgesicherten Bild-Proxy ausliefern.
 
-            if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            if (Uri.TryCreate(url, UriKind.Absolute, out var parsed)
+                && (parsed.Scheme == Uri.UriSchemeHttp || parsed.Scheme == Uri.UriSchemeHttps))
             {
                 // Eigene Uploads (gleicher Host wie die API, z.B. via UploadListingMedia
-                // absolut gespeichert) sind lokale statische Dateien - direkt ausliefern.
-                // Der Proxy kennt nur externe Bild-Hosts und wuerde den eigenen Host
-                // mit 400 "Host not allowed" ablehnen.
-                if (Uri.TryCreate(url, UriKind.Absolute, out var parsed)
-                    && Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
-                    && string.Equals(parsed.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase))
-                    return url;
+                // absolut gespeichert) sind lokale statische Dateien - direkt bzw. mit
+                // Zielbreite ueber den skalierenden Endpoint ausliefern. Der Proxy kennt
+                // nur externe Bild-Hosts und wuerde den eigenen Host mit 400 ablehnen.
+                // Loopback-Hosts ebenfalls rebasen: Bild-URLs werden absolut mit dem
+                // Upload-Request-Host gespeichert - gegen eine lokale Dev-API entstandene
+                // "http://localhost:xxxx/uploads/..."-Altlasten waeren im Browser IMMER
+                // kaputt (Mixed Content + CSP), lokal liegt die Datei aber meist vor.
+                var isOwnHost = Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
+                    && (string.Equals(parsed.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase) || parsed.IsLoopback);
+                if (isOwnHost)
+                {
+                    return parsed.AbsolutePath.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
+                        ? BuildLocalImageUrl(baseUrl, parsed.AbsolutePath, width)
+                        : url;
+                }
 
-                var proxied = $"{baseUrl}/api/images/proxy?url={Uri.EscapeDataString(url)}";
-                return width.HasValue ? $"{proxied}&w={width.Value}" : proxied;
+                if (parsed.Scheme == Uri.UriSchemeHttps)
+                {
+                    var proxied = $"{baseUrl}/api/images/proxy?url={Uri.EscapeDataString(url)}";
+                    return width.HasValue ? $"{proxied}&w={width.Value}" : proxied;
+                }
             }
 
             return url;
         }).ToList();
     }
+
+    /// <summary>
+    /// URL eines lokalen Uploads: ohne Zielbreite direkt als statische Datei (Detailseiten,
+    /// volle Display-Variante), mit Zielbreite ueber den skalierenden /api/images/local-Endpoint
+    /// (Listen-Thumbnails, serverseitig gecacht).
+    /// </summary>
+    private static string BuildLocalImageUrl(string baseUrl, string path, int? width)
+        => width.HasValue
+            ? $"{baseUrl}/api/images/local?path={Uri.EscapeDataString(path)}&w={width.Value}"
+            : $"{baseUrl}{path}";
 }

@@ -83,6 +83,38 @@ public partial class ForeclosureAuctionSyncService(
             .Where(a => a.ExternalId != null)
             .ToDictionaryAsync(a => a.ExternalId!, ct);
 
+        // 2b. Case-Dedup im Bestand: Die Ediktsdatei publiziert zur selben Sache mitunter
+        // MEHRERE Dokumente mit eigener Dokument-ID (Original-Edikt + geaendertes Edikt).
+        // Da der Sync auf ExternalId (= Dokument) keyt, wurde dieselbe Liegenschaft dann
+        // doppelt als aktive Auktion (und damit doppelt als Inserat) gefuehrt. Gleiches
+        // Verfahren + gleiches Grundbuchsobjekt = gleiche Sache: nur die aktuellste
+        // Publikation bleibt aktiv, aeltere Dokumente werden deaktiviert.
+        var duplicatesDeactivated = 0;
+        var activeByCaseKey = new Dictionary<string, ForeclosureAuction>();
+        foreach (var caseGroup in existingAuctions.Values
+                     .Where(a => a.IsActive)
+                     .Select(a => (Auction: a, Key: BuildCaseKey(a.Court, a.CaseNumber, a.CadastralMunicipality, a.RegistrationNumber, a.PlotNumber)))
+                     .Where(x => x.Key != null)
+                     .GroupBy(x => x.Key!))
+        {
+            var winner = caseGroup
+                .Select(x => x.Auction)
+                .OrderByDescending(a => a.PublicationDate ?? DateTimeOffset.MinValue)
+                .ThenByDescending(a => a.FirstSeenAt ?? DateTimeOffset.MinValue)
+                .ThenByDescending(a => a.ExternalId, StringComparer.Ordinal)
+                .First();
+            activeByCaseKey[caseGroup.Key!] = winner;
+
+            foreach (var loser in caseGroup.Select(x => x.Auction).Where(a => !ReferenceEquals(a, winner)))
+            {
+                loser.IsActive = false;
+                loser.RemovedAt = now;
+                loser.LastScrapedAt = now;
+                LogChange(loser, "DuplicateCase", loser.ContentHash, null);
+                duplicatesDeactivated++;
+            }
+        }
+
         var skippedConcluded = 0;
         var skippedExcluded = 0;
 
@@ -123,6 +155,16 @@ public partial class ForeclosureAuctionSyncService(
                         concluded.LastScrapedAt = now;
                         LogChange(concluded, "Concluded", concluded.ContentHash, null);
                         removed++;
+
+                        // Sache aus dem Aktiv-Index nehmen, damit ein spaeteres Edikt zur
+                        // selben Sache wieder regulaer als neue Auktion angelegt werden kann.
+                        var concludedKey = BuildCaseKey(concluded.Court, concluded.CaseNumber, concluded.CadastralMunicipality, concluded.RegistrationNumber, concluded.PlotNumber);
+                        if (concludedKey != null
+                            && activeByCaseKey.TryGetValue(concludedKey, out var mapped)
+                            && ReferenceEquals(mapped, concluded))
+                        {
+                            activeByCaseKey.Remove(concludedKey);
+                        }
                     }
                     else if (!isUpcoming)
                     {
@@ -140,6 +182,59 @@ public partial class ForeclosureAuctionSyncService(
                 // continue-Ausstieg oben nicht selbst herleiten.
                 var confirmedAuctionDate = auctionDate!.Value;
 
+                // Case-Dedup: gehoert dieses Edikt-Dokument zu einer Sache, die bereits
+                // ueber ein ANDERES aktives Dokument gefuehrt wird? Dann kein zweiter
+                // Datensatz: neuere Publikation uebernimmt die bestehende Auktion
+                // (Supersede), aeltere/gleichzeitige Zweitpublikationen werden ignoriert.
+                var caseKey = BuildCaseKey(detail.Court, detail.CaseNumber, detail.CadastralMunicipality, detail.RegistrationNumber, detail.PlotNumber);
+                if (caseKey != null
+                    && activeByCaseKey.TryGetValue(caseKey, out var caseWinner)
+                    && !(existingAuctions.TryGetValue(item.ExternalId, out var caseSelf) && ReferenceEquals(caseSelf, caseWinner)))
+                {
+                    var newPublication = ParsePublicationDate(detail.PublicationDateText);
+                    var supersedes = !existingAuctions.ContainsKey(item.ExternalId)
+                        && newPublication.HasValue
+                        && (!caseWinner.PublicationDate.HasValue || newPublication.Value > caseWinner.PublicationDate.Value);
+
+                    if (supersedes)
+                    {
+                        var supersedeImageUrls = await imageService.PrepareImageUrlsAsync(detail, ct);
+                        detail = detail with { ImageUrls = supersedeImageUrls };
+                        var newHash = ComputeContentHash(detail.AllFields, detail.ImageUrls);
+                        var oldHash = caseWinner.ContentHash;
+                        var oldExternalId = caseWinner.ExternalId;
+                        UpdateEntityFromDetail(caseWinner, detail, item, confirmedAuctionDate);
+                        caseWinner.ExternalId = detail.ExternalId;
+                        caseWinner.ContentHash = newHash;
+                        caseWinner.LastScrapedAt = now;
+                        caseWinner.IsActive = true;
+                        caseWinner.RemovedAt = null;
+                        LogChange(caseWinner, "Superseded", oldHash, newHash);
+                        if (oldExternalId != null)
+                            existingAuctions.Remove(oldExternalId);
+                        existingAuctions[detail.ExternalId] = caseWinner;
+                        updated++;
+                    }
+                    else
+                    {
+                        if (caseSelf != null)
+                        {
+                            caseSelf.LastScrapedAt = now;
+                            if (caseSelf.IsActive)
+                            {
+                                caseSelf.IsActive = false;
+                                caseSelf.RemovedAt = now;
+                                LogChange(caseSelf, "DuplicateCase", caseSelf.ContentHash, null);
+                                duplicatesDeactivated++;
+                            }
+                        }
+
+                        unchanged++;
+                    }
+
+                    continue;
+                }
+
                 // Nur fuer aktive, nicht ausgeschlossene Edikte Bilder bewerten.
                 // Die PDF-Extraktion ist ein gecachter Fallback und laeuft nur,
                 // wenn die direkten Justiz-Anhaenge technisch unbrauchbar sind.
@@ -149,6 +244,11 @@ public partial class ForeclosureAuctionSyncService(
 
                 if (existingAuctions.TryGetValue(item.ExternalId, out var existing))
                 {
+                    // Aktiv-Index nachziehen: Court/CaseNumber koennen im Detail erstmals
+                    // auftauchen, dann war die Sache bisher nicht indiziert.
+                    if (caseKey != null)
+                        activeByCaseKey[caseKey] = existing;
+
                     // Existiert bereits - pruefen ob sich etwas geaendert hat
                     if (existing.ContentHash == contentHash)
                     {
@@ -206,6 +306,8 @@ public partial class ForeclosureAuctionSyncService(
                     var auction = CreateEntityFromDetail(detail, item, contentHash, confirmedAuctionDate, now);
                     dbContext.Set<ForeclosureAuction>().Add(auction);
                     LogChange(auction, "Created", null, contentHash);
+                    if (caseKey != null)
+                        activeByCaseKey[caseKey] = auction;
                     created++;
                 }
             }
@@ -267,10 +369,27 @@ public partial class ForeclosureAuctionSyncService(
         }
 
         logger.LogInformation(
-            "Sync abgeschlossen: {Created} neu, {Updated} aktualisiert, {Removed} entfernt, {Unchanged} unveraendert, {Errors} Fehler",
-            created, updated, removed, unchanged, errors);
+            "Sync abgeschlossen: {Created} neu, {Updated} aktualisiert, {Removed} entfernt, {Duplicates} Case-Duplikate deaktiviert, {Unchanged} unveraendert, {Errors} Fehler",
+            created, updated, removed, duplicatesDeactivated, unchanged, errors);
 
-        return new SyncResult(created, updated, removed, unchanged, errors, errorMessages);
+        return new SyncResult(created, updated, removed + duplicatesDeactivated, unchanged, errors, errorMessages);
+    }
+
+    /// <summary>
+    /// Fachlicher Schluessel einer Versteigerungssache: Gericht + Aktenzeichen + Grundbuchsobjekt
+    /// (KG/EZ/GST). Mehrere Edikt-Dokumente derselben Sache (Original + geaendertes Edikt) teilen
+    /// ihn; verschiedene Liegenschaften EINES Verfahrens unterscheiden sich im Grundbuchsteil.
+    /// Ohne Gericht oder Aktenzeichen gibt es keinen verlaesslichen Schluessel (null = kein Dedup).
+    /// </summary>
+    internal static string? BuildCaseKey(string? court, string? caseNumber, string? cadastralMunicipality, string? registrationNumber, string? plotNumber)
+    {
+        if (string.IsNullOrWhiteSpace(court) || string.IsNullOrWhiteSpace(caseNumber))
+            return null;
+
+        static string Norm(string? value) =>
+            string.Join(' ', (value ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
+
+        return string.Join('|', Norm(court), Norm(caseNumber), Norm(cadastralMunicipality), Norm(registrationNumber), Norm(plotNumber));
     }
 
     private ForeclosureAuction CreateEntityFromDetail(EdiktDetail detail, EdiktListItem listItem, string contentHash, DateTimeOffset auctionDate, DateTimeOffset now)
