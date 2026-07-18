@@ -2,29 +2,42 @@ namespace Heimatplatz.Maui.Features.Properties.Models;
 
 /// <summary>
 /// Repraesentiert ein Bild fuer die Anzeige in der UI.
-/// Neue Bilder haben byte[]-Daten fuer den Upload; bestehende Bilder haben eine Url.
+/// Neue Bilder referenzieren das unveraenderte Original als Cache-Datei (voller
+/// Qualitaet fuer den Upload) und tragen eine kleine EXIF-korrigierte Vorschau
+/// fuer die Anzeige; bestehende Bilder haben eine Url.
 /// </summary>
 public record ImageItem(
     string FileName,
     string ContentType,
-    byte[] Data,
+    string? LocalPath = null,
+    byte[]? PreviewData = null,
     string? Url = null
 )
 {
     /// <summary>
-    /// True wenn das Bild bereits am Server liegt (hat URL, keine Daten).
+    /// True wenn das Bild bereits am Server liegt (hat URL, keine lokale Datei).
     /// </summary>
     public bool IsExisting => Url != null;
 
     /// <summary>
-    /// Bindbare Bildquelle: Stream fuer neue lokale Bilder, URL fuer bestehende Server-Bilder.
+    /// Bindbare Bildquelle: kleine Vorschau fuer neue lokale Bilder, URL fuer
+    /// bestehende Server-Bilder. Das Original wird nie direkt gerendert
+    /// (100+-MP-Fotos sprengen Androids Canvas-Limit).
     /// </summary>
-    public ImageSource DisplaySource => IsExisting
+    public ImageSource? DisplaySource => IsExisting
         ? ImageSource.FromUri(new Uri(Url!))
-        : ImageSource.FromStream(() => new MemoryStream(Data));
+        : PreviewData != null
+            ? ImageSource.FromStream(() => new MemoryStream(PreviewData))
+            : null;
 
     /// <summary>
-    /// Liefert die Bilddaten als Base64-String fuer den JSON-Upload.
+    /// Liest das unveraenderte Original fuer den Upload von der Platte.
     /// </summary>
-    public string ToBase64() => Convert.ToBase64String(Data);
+    public async Task<string> ToBase64Async(CancellationToken ct = default)
+    {
+        var bytes = await File.ReadAllBytesAsync(
+            LocalPath ?? throw new InvalidOperationException("Bestehende Server-Bilder haben keine lokalen Daten."),
+            ct);
+        return Convert.ToBase64String(bytes);
+    }
 }

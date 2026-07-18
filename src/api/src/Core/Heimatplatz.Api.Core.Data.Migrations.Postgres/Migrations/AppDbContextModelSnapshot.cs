@@ -1107,6 +1107,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("PublishedPropertyId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("SchemaVersion")
                         .HasColumnType("integer");
 

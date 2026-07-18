@@ -1,6 +1,7 @@
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.AiListing.Contracts.Mediator.Requests;
+using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Heimatplatz.Api.Features.PropertyDrafts.Contracts.Models;
 using Heimatplatz.Api.Features.PropertyDrafts.Data.Entities;
 using Heimatplatz.Api.Features.PropertyDrafts.Infrastructure;
@@ -79,6 +80,22 @@ public class DraftDescriptionProcessor(
             draft.DescriptionCompletedAt = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            // Die Generierung dauert Minuten - waehrenddessen kann der Entwurf veroeffentlicht
+            // worden sein (PublishedPropertyId). ERST das Ergebnis committen, DANN frisch
+            // nachsehen: So sieht bei gleichzeitigem Publish immer mindestens eine Seite
+            // den Schreibstand der anderen (der Publish-Handler prueft nach seinem Commit
+            // spiegelbildlich auf Status Finished).
+            var publishedPropertyId = await dbContext.Set<PropertyDraft>()
+                .Where(d => d.Id == draftId)
+                .Select(d => d.PublishedPropertyId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (publishedPropertyId is { } targetPropertyId)
+            {
+                await DeliverToPublishedPropertyAsync(draft, targetPropertyId, result.Result.Description, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
             logger.LogInformation("[PropertyDrafts] Beschreibungs-Job fuer Entwurf {DraftId} abgeschlossen", draftId);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -91,6 +108,27 @@ public class DraftDescriptionProcessor(
             // umgeht den nach der Exception potenziell verschmutzten ChangeTracker.
             logger.LogError(ex, "[PropertyDrafts] Beschreibungs-Job fuer Entwurf {DraftId} endgueltig fehlgeschlagen", draftId);
 
+            // Wurde der Entwurf inzwischen veroeffentlicht, wartet die Immobilie auf den
+            // Text - der kommt nie: Platzhalter entfernen und den Entwurf aufraeumen.
+            var publishedPropertyId = await dbContext.Set<PropertyDraft>()
+                .Where(d => d.Id == draftId)
+                .Select(d => d.PublishedPropertyId)
+                .FirstOrDefaultAsync(CancellationToken.None);
+
+            if (publishedPropertyId is { } failedPropertyId)
+            {
+                await dbContext.Set<Property>()
+                    .Where(p => p.Id == failedPropertyId && p.Description == DraftDescriptionPlaceholder.Text)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(p => p.Description, (string?)null),
+                        CancellationToken.None);
+
+                await dbContext.Set<PropertyDraft>()
+                    .Where(d => d.Id == draftId)
+                    .ExecuteDeleteAsync(CancellationToken.None);
+                return;
+            }
+
             var message = ex.Message.Length > MaxErrorLength ? ex.Message[..MaxErrorLength] : ex.Message;
             await dbContext.Set<PropertyDraft>()
                 .Where(d => d.Id == draftId)
@@ -100,5 +138,35 @@ public class DraftDescriptionProcessor(
                     .SetProperty(d => d.DescriptionCompletedAt, DateTimeOffset.UtcNow),
                     CancellationToken.None);
         }
+    }
+
+    /// <summary>
+    /// Liefert den fertigen Text an die bereits veroeffentlichte Immobilie nach und
+    /// raeumt den Entwurf ab. Nur der Platzhalter (bzw. eine leere Beschreibung) wird
+    /// ersetzt - hat der Verkaeufer die Beschreibung inzwischen selbst bearbeitet,
+    /// gewinnt sein Text.
+    /// </summary>
+    private async Task DeliverToPublishedPropertyAsync(
+        PropertyDraft draft,
+        Guid propertyId,
+        string? description,
+        CancellationToken cancellationToken)
+    {
+        var property = await dbContext.Set<Property>()
+            .FirstOrDefaultAsync(p => p.Id == propertyId, cancellationToken);
+
+        if (property is not null
+            && !string.IsNullOrWhiteSpace(description)
+            && (string.IsNullOrWhiteSpace(property.Description)
+                || property.Description == DraftDescriptionPlaceholder.Text))
+        {
+            property.Description = description.Length > 2000 ? description[..2000] : description;
+            logger.LogInformation(
+                "[PropertyDrafts] Generierte Beschreibung an veroeffentlichte Immobilie {PropertyId} nachgeliefert",
+                propertyId);
+        }
+
+        // Entwurfszeile ist nur noch Traeger des Jobs - Medien gehoeren der Immobilie
+        dbContext.Set<PropertyDraft>().Remove(draft);
     }
 }

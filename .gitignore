@@ -86,3 +86,6 @@ artifacts/
 
 # API Runtime-Uploads (AiListing Medien)
 src/api/src/Heimatplatz.Api/wwwroot/uploads/
+
+# API Bild-Varianten-Disk-Cache (ImageCache, wird zur Laufzeit befuellt)
+src/api/src/Heimatplatz.Api/cache/

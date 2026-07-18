@@ -4,6 +4,7 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Collections;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
@@ -53,8 +54,18 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private List<PropertyListItemDto>? _debugMockProperties;
 #endif
 
-    [ObservableProperty]
-    public partial ObservableCollection<PropertyListItemDto> Properties { get; set; }
+    /// <summary>
+    /// Immer dieselbe Collection-Instanz: Seitenwechsel/Reloads ersetzen den Inhalt
+    /// per ReplaceRange (eine Reset-Notification), damit die CollectionView ihren
+    /// Container-Recycling-Pool behaelt statt alles neu zu realisieren.
+    /// </summary>
+    public ObservableRangeCollection<PropertyListItemDto> Properties { get; } = [];
+
+    /// <summary>
+    /// Bittet die Page, an den Listenanfang zu scrollen. Noetig weil die ItemsSource-
+    /// Instanz gleich bleibt - die Scroll-Position wuerde einen Seitenwechsel sonst ueberleben.
+    /// </summary>
+    public event EventHandler? ScrollToTopRequested;
 
     [ObservableProperty]
     public partial int SelectedPageSize { get; set; }
@@ -277,7 +288,6 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         // Initialwerte (partial properties koennen keine Initializer haben)
         _isSyncing = true;
-        Properties = [];
         IsHausSelected = true;
         IsGrundstueckSelected = true;
         IsZwangsversteigerungSelected = true;
@@ -1026,6 +1036,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 UpdateResultCount();
             }
             while (_reloadQueued);
+
+            ScrollToTopRequested?.Invoke(this, EventArgs.Empty);
         }
         finally
         {
@@ -1147,6 +1159,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             _currentPage = page;
             ReplaceProperties(items);
             UpdatePaginationState();
+            ScrollToTopRequested?.Invoke(this, EventArgs.Empty);
         }
         finally
         {
@@ -1156,7 +1169,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     }
 
     private void ReplaceProperties(IEnumerable<PropertyListItemDto> items)
-        => Properties = new ObservableCollection<PropertyListItemDto>(items);
+        => Properties.ReplaceRange(items);
 
     /// <summary>
     /// Baut den API-Request mit allen server-seitigen Filtern. Die Ort-Auswahl wird

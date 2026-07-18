@@ -120,43 +120,60 @@
                                     SemanticProperties.Description="Bild in Großansicht öffnen"
                                     AutomationId="Foreclosure_OpenImageViewer" />
 
-                            <Button Text="‹"
-                                    Command="{Binding ShowPreviousImageCommand}"
-                                    IsVisible="{Binding HasMultipleImages}"
-                                    FontSize="22"
-                                    Padding="0"
-                                    MinimumHeightRequest="0"
-                                    MinimumWidthRequest="0"
-                                    WidthRequest="44"
-                                    HeightRequest="44"
-                                    CornerRadius="22"
-                                    BorderWidth="1"
-                                    BackgroundColor="{StaticResource GlassPillBackground}"
-                                    BorderColor="{StaticResource GlassPillStroke}"
-                                    TextColor="White"
-                                    HorizontalOptions="Start"
-                                    VerticalOptions="Center"
-                                    Margin="14,0,0,0"
-                                    AutomationId="Foreclosure_PreviousImage" />
+                            <!-- Pfeile als Geometrie statt Font-Glyph (siehe Schliessen-X) -->
+                            <Grid IsVisible="{Binding HasMultipleImages}"
+                                  HorizontalOptions="Start"
+                                  VerticalOptions="Center"
+                                  Margin="14,0,0,0">
+                                <Button Command="{Binding ShowPreviousImageCommand}"
+                                        Padding="0"
+                                        MinimumHeightRequest="0"
+                                        MinimumWidthRequest="0"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        CornerRadius="22"
+                                        BorderWidth="1"
+                                        BackgroundColor="{StaticResource GlassPillBackground}"
+                                        BorderColor="{StaticResource GlassPillStroke}"
+                                        AutomationId="Foreclosure_PreviousImage" />
+                                <Path Data="M10,1 L4,7 L10,13"
+                                      Stroke="White"
+                                      StrokeThickness="1.8"
+                                      StrokeLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      WidthRequest="14"
+                                      HeightRequest="14"
+                                      HorizontalOptions="Center"
+                                      VerticalOptions="Center"
+                                      InputTransparent="True" />
+                            </Grid>
 
-                            <Button Text="›"
-                                    Command="{Binding ShowNextImageCommand}"
-                                    IsVisible="{Binding HasMultipleImages}"
-                                    FontSize="22"
-                                    Padding="0"
-                                    MinimumHeightRequest="0"
-                                    MinimumWidthRequest="0"
-                                    WidthRequest="44"
-                                    HeightRequest="44"
-                                    CornerRadius="22"
-                                    BorderWidth="1"
-                                    BackgroundColor="{StaticResource GlassPillBackground}"
-                                    BorderColor="{StaticResource GlassPillStroke}"
-                                    TextColor="White"
-                                    HorizontalOptions="End"
-                                    VerticalOptions="Center"
-                                    Margin="0,0,14,0"
-                                    AutomationId="Foreclosure_NextImage" />
+                            <Grid IsVisible="{Binding HasMultipleImages}"
+                                  HorizontalOptions="End"
+                                  VerticalOptions="Center"
+                                  Margin="0,0,14,0">
+                                <Button Command="{Binding ShowNextImageCommand}"
+                                        Padding="0"
+                                        MinimumHeightRequest="0"
+                                        MinimumWidthRequest="0"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        CornerRadius="22"
+                                        BorderWidth="1"
+                                        BackgroundColor="{StaticResource GlassPillBackground}"
+                                        BorderColor="{StaticResource GlassPillStroke}"
+                                        AutomationId="Foreclosure_NextImage" />
+                                <Path Data="M4,1 L10,7 L4,13"
+                                      Stroke="White"
+                                      StrokeThickness="1.8"
+                                      StrokeLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      WidthRequest="14"
+                                      HeightRequest="14"
+                                      HorizontalOptions="Center"
+                                      VerticalOptions="Center"
+                                      InputTransparent="True" />
+                            </Grid>
                         </Grid>
                     </Grid>
 
@@ -176,20 +193,30 @@
                                TextColor="White" />
                     </Border>
 
-                    <!-- Teilen als kontextuelle Bildaktion (weisses Icon auf Glas) -->
-                    <ImageButton Source="icon_share_white.png"
-                                 Command="{Binding SharePropertyCommand}"
-                                 BackgroundColor="{StaticResource GlassPillBackground}"
-                                 BorderColor="{StaticResource GlassPillStroke}"
-                                 BorderWidth="1"
-                                 CornerRadius="22"
-                                 WidthRequest="44"
-                                 HeightRequest="44"
-                                 Padding="11"
-                                 Margin="14"
-                                 VerticalOptions="Start"
-                                 HorizontalOptions="End"
-                                 SemanticProperties.Description="Zwangsversteigerung teilen" />
+                    <!-- Teilen als kontextuelle Bildaktion (weisses Icon auf Glas);
+                         Icon als zentriertes Overlay: ImageButton platziert sein Bild
+                         auf WinUI nicht mittig -->
+                    <Grid Margin="14"
+                          VerticalOptions="Start"
+                          HorizontalOptions="End">
+                        <Button Command="{Binding SharePropertyCommand}"
+                                Padding="0"
+                                MinimumHeightRequest="0"
+                                MinimumWidthRequest="0"
+                                WidthRequest="44"
+                                HeightRequest="44"
+                                CornerRadius="22"
+                                BorderWidth="1"
+                                BackgroundColor="{StaticResource GlassPillBackground}"
+                                BorderColor="{StaticResource GlassPillStroke}"
+                                SemanticProperties.Description="Zwangsversteigerung teilen" />
+                        <Image Source="icon_share_white.png"
+                               WidthRequest="22"
+                               HeightRequest="22"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               InputTransparent="True" />
+                    </Grid>
 
                     <!-- Bild-Zaehler (oberhalb der Sheet-Kante) -->
                     <Border Style="{StaticResource GlassPill}"
@@ -493,9 +520,7 @@
               VerticalOptions="Center"
               Margin="14,0,0,0"
               ZIndex="9999">
-            <Button Text="‹"
-                    Command="{Binding ShowPreviousImageCommand}"
-                    FontSize="22"
+            <Button Command="{Binding ShowPreviousImageCommand}"
                     Padding="0"
                     MinimumHeightRequest="0"
                     MinimumWidthRequest="0"
@@ -505,8 +530,17 @@
                     BorderWidth="1"
                     BackgroundColor="{StaticResource GlassPillBackground}"
                     BorderColor="{StaticResource GlassPillStroke}"
-                    TextColor="White"
                     AutomationId="Foreclosure_Viewer_Previous" />
+            <Path Data="M10,1 L4,7 L10,13"
+                  Stroke="White"
+                  StrokeThickness="1.8"
+                  StrokeLineCap="Round"
+                  StrokeLineJoin="Round"
+                  WidthRequest="14"
+                  HeightRequest="14"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center"
+                  InputTransparent="True" />
         </Grid>
 
         <Grid Grid.Row="0"
@@ -516,9 +550,7 @@
               VerticalOptions="Center"
               Margin="0,0,14,0"
               ZIndex="9999">
-            <Button Text="›"
-                    Command="{Binding ShowNextImageCommand}"
-                    FontSize="22"
+            <Button Command="{Binding ShowNextImageCommand}"
                     Padding="0"
                     MinimumHeightRequest="0"
                     MinimumWidthRequest="0"
@@ -528,8 +560,17 @@
                     BorderWidth="1"
                     BackgroundColor="{StaticResource GlassPillBackground}"
                     BorderColor="{StaticResource GlassPillStroke}"
-                    TextColor="White"
                     AutomationId="Foreclosure_Viewer_Next" />
+            <Path Data="M4,1 L10,7 L4,13"
+                  Stroke="White"
+                  StrokeThickness="1.8"
+                  StrokeLineCap="Round"
+                  StrokeLineJoin="Round"
+                  WidthRequest="14"
+                  HeightRequest="14"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center"
+                  InputTransparent="True" />
         </Grid>
 
         <!-- Deutliches Schliessen-X: liegt exakt ueber dem kaum sichtbaren
@@ -541,9 +582,7 @@
               VerticalOptions="Start"
               Margin="0,50,16,0"
               ZIndex="9999">
-            <Button Text="✕"
-                    Command="{Binding CloseImageViewerCommand}"
-                    FontSize="18"
+            <Button Command="{Binding CloseImageViewerCommand}"
                     Padding="0"
                     MinimumHeightRequest="0"
                     MinimumWidthRequest="0"
@@ -553,9 +592,19 @@
                     BorderWidth="1"
                     BackgroundColor="{StaticResource GlassPillBackground}"
                     BorderColor="{StaticResource GlassPillStroke}"
-                    TextColor="White"
                     SemanticProperties.Description="Großansicht schließen"
                     AutomationId="Foreclosure_Viewer_Close" />
+            <!-- X als Geometrie statt Font-Glyph: Buttons zentrieren Text ueber
+                 Baseline-Metriken, das Glyph sitzt dadurch nie exakt mittig -->
+            <Path Data="M1,1 L13,13 M13,1 L1,13"
+                  Stroke="White"
+                  StrokeThickness="1.8"
+                  StrokeLineCap="Round"
+                  WidthRequest="14"
+                  HeightRequest="14"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center"
+                  InputTransparent="True" />
         </Grid>
 
         <!-- Zaehler im Vollbild (eigenes Grid: eigenes Sichtbarkeits-Kriterium) -->

@@ -1,5 +1,4 @@
 using Heimatplatz.Maui.ApiClient.Generated;
-using Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 
 namespace Heimatplatz.Maui.Features.Properties.Models;
 
@@ -17,7 +16,7 @@ public record DraftListItem(PropertyDraftListItemDto Dto)
         : Dto.Title!;
 
     public string StepText =>
-        $"Schritt {Dto.StepIndex + 1} von {PropertyWizardViewModel.StepCount} · {Dto.UpdatedAt.ToLocalTime():dd.MM.yyyy HH:mm}";
+        $"Entwurf · zuletzt bearbeitet {Dto.UpdatedAt.ToLocalTime():dd.MM.yyyy HH:mm}";
 
     public bool HasImage => !string.IsNullOrEmpty(Dto.FirstImageUrl);
 

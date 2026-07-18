@@ -3,6 +3,7 @@ using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
+using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Heimatplatz.Api.Features.PropertyDrafts.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.PropertyDrafts.Contracts.Models;
 using Heimatplatz.Api.Features.PropertyDrafts.Data.Entities;
@@ -50,15 +51,53 @@ public class PublishPropertyDraftHandler(
         if (string.IsNullOrWhiteSpace(data.Description) && !string.IsNullOrWhiteSpace(draft.GeneratedDescription))
             data.Description = draft.GeneratedDescription;
 
+        // Laeuft der Beschreibungs-Job noch, blockiert das die Veroeffentlichung NICHT:
+        // die Immobilie geht mit Platzhalter-Text live, der Job liefert den fertigen
+        // Text nach (PublishedPropertyId + DraftDescriptionProcessor).
+        var descriptionPending = string.IsNullOrWhiteSpace(data.Description)
+            && draft.DescriptionStatus is DraftDescriptionStatus.Queued or DraftDescriptionStatus.InProgress;
+        if (descriptionPending)
+            data.Description = DraftDescriptionPlaceholder.Text;
+
         var createRequest = MapToCreateRequest(data);
 
         var createResult = await mediator.Request(createRequest, cancellationToken);
         var response = createResult.Result;
 
-        // Nur die Entwurfs-Zeile entfernen - KEINE Medien loeschen, die neue
-        // Immobilie referenziert die hochgeladenen Bild-URLs.
-        dbContext.Set<PropertyDraft>().Remove(draft);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        if (descriptionPending)
+        {
+            // Entwurf behalten, damit der laufende Job sein Ziel findet - er ist ueber
+            // PublishedPropertyId aus der Entwurfs-Liste ausgeblendet und wird nach
+            // der Text-Nachlieferung geloescht.
+            draft.PublishedPropertyId = response.PropertyId;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Der Job kann GENAU waehrend des Publish fertig geworden sein - seine
+            // Nachlieferungs-Pruefung sah PublishedPropertyId dann noch nicht. Nach dem
+            // eigenen Commit frisch nachsehen (Spiegelbild zur Pruefung im Processor):
+            await dbContext.Entry(draft).ReloadAsync(cancellationToken);
+            if (draft.DescriptionStatus == DraftDescriptionStatus.Finished
+                && !string.IsNullOrWhiteSpace(draft.GeneratedDescription))
+            {
+                var property = await dbContext.Set<Property>()
+                    .FirstOrDefaultAsync(p => p.Id == response.PropertyId, cancellationToken);
+                if (property is not null && property.Description == DraftDescriptionPlaceholder.Text)
+                {
+                    var text = draft.GeneratedDescription;
+                    property.Description = text.Length > 2000 ? text[..2000] : text;
+                }
+
+                dbContext.Set<PropertyDraft>().Remove(draft);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+        else
+        {
+            // Nur die Entwurfs-Zeile entfernen - KEINE Medien loeschen, die neue
+            // Immobilie referenziert die hochgeladenen Bild-URLs.
+            dbContext.Set<PropertyDraft>().Remove(draft);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
 
         return new PublishPropertyDraftResponse(response.PropertyId, response.Title, response.CreatedAt);
     }

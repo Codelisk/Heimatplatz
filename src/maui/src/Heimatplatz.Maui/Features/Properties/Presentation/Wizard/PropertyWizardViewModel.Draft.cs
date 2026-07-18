@@ -111,8 +111,6 @@ public partial class PropertyWizardViewModel
             // ein offener Job wird weitergepollt
             RestoreDescriptionState(response);
 
-            CurrentStep = Math.Clamp(response.Data.StepIndex, 0, StepCount - 1);
-
             // Unveraenderten Zustand nicht sofort wieder speichern
             _lastSavedPayloadJson = JsonSerializer.Serialize(BuildPayload());
             _draftDirty = false;
@@ -129,11 +127,11 @@ public partial class PropertyWizardViewModel
         }
     }
 
-    /// <summary>Kompletter Wizard-Zustand -> Entwurfs-Payload.</summary>
+    /// <summary>Kompletter Editor-Zustand -> Entwurfs-Payload (StepIndex 0 = Ein-Seiten-Editor).</summary>
     private PropertyDraftData BuildPayload() => new()
     {
         SchemaVersion = 2,
-        StepIndex = CurrentStep,
+        StepIndex = 0,
         ImageUrls = UploadedImageUrls,
         VideoUrls = UploadedVideoUrls,
         Type = SelectedPropertyTypeItem?.Value,
@@ -142,7 +140,7 @@ public partial class PropertyWizardViewModel
         LivingAreaSquareMeters = ParseIntOrNull(Wohnflaeche),
         PlotAreaSquareMeters = ParseIntOrNull(Grundstuecksflaeche),
         YearBuilt = ParseIntOrNull(Baujahr),
-        Features = SplitFeatures(FeaturesText),
+        Features = FeatureItems.Count > 0 ? FeatureItems.ToList() : null,
         Address = NullIfEmpty(Adresse),
         MunicipalityId = Ort.SelectedGemeindeId,
         MunicipalityDisplay = NullIfEmpty(Ort.SelectedOrtText),
@@ -152,7 +150,7 @@ public partial class PropertyWizardViewModel
         DescriptionKeywords = NullIfEmpty(DescriptionKeywords)
     };
 
-    /// <summary>Entwurfs-Payload -> Wizard-Zustand (Resume).</summary>
+    /// <summary>Entwurfs-Payload -> Editor-Zustand (Resume).</summary>
     private void ApplyPayload(PropertyDraftData data)
     {
         Media.Clear();
@@ -170,7 +168,7 @@ public partial class PropertyWizardViewModel
         Wohnflaeche = data.LivingAreaSquareMeters?.ToString() ?? string.Empty;
         Grundstuecksflaeche = data.PlotAreaSquareMeters?.ToString() ?? string.Empty;
         Baujahr = data.YearBuilt?.ToString() ?? string.Empty;
-        FeaturesText = data.Features != null ? string.Join(", ", data.Features) : string.Empty;
+        SetFeatures(data.Features ?? []);
 
         Adresse = data.Address ?? string.Empty;
         Preis = data.Price is { } price
@@ -182,19 +180,16 @@ public partial class PropertyWizardViewModel
         DescriptionMode = data.DescriptionMode ?? DraftDescriptionMode.None;
         Beschreibung = data.Description ?? string.Empty;
         DescriptionKeywords = data.DescriptionKeywords ?? string.Empty;
+
+        HeroIndex = 0;
+        RefreshHero();
+        RefreshEditorState();
     }
 
     private static string? NullIfEmpty(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+    // 0 waere serverseitig ungueltig (CreateProperty lehnt <= 0 ab) -> als "keine Angabe" behandeln
     private static int? ParseIntOrNull(string value)
-        => int.TryParse(value, out var parsed) && parsed >= 0 ? parsed : null;
-
-    private static List<string>? SplitFeatures(string featuresText)
-    {
-        var features = featuresText
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToList();
-        return features.Count > 0 ? features : null;
-    }
+        => int.TryParse(value, out var parsed) && parsed > 0 ? parsed : null;
 }

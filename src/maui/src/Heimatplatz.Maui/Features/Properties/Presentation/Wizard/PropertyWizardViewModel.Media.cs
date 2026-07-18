@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Microsoft.Extensions.Logging;
 using MauiPermissions = Microsoft.Maui.ApplicationModel.Permissions;
@@ -9,9 +10,11 @@ using MauiPermissions = Microsoft.Maui.ApplicationModel.Permissions;
 namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 
 /// <summary>
-/// Schritt 1: Fotos. Der Upload laeuft eager im Hintergrund (einzeln pro Datei,
-/// nur Items ohne RemoteUrl). Videos bietet der Wizard nicht mehr an - Items aus
+/// Fotos des Editors. Der Upload laeuft eager im Hintergrund (einzeln pro Datei,
+/// nur Items ohne RemoteUrl). Videos bietet der Editor nicht mehr an - Items aus
 /// alten Entwuerfen werden nur noch angezeigt und beim Loeschen mit aufgeraeumt.
+/// Das Hero-Foto oben zeigt wie die Detailansicht jeweils EIN Foto samt
+/// ‹/›-Navigation; das erste Foto ist das Titelbild.
 /// </summary>
 public partial class PropertyWizardViewModel
 {
@@ -42,6 +45,66 @@ public partial class PropertyWizardViewModel
         }
     }
 
+    #region Hero-Foto (Einzelbild + ‹/›-Navigation wie die Detailansicht)
+
+    private List<WizardMediaItem> PhotoItems => Media.Where(m => m.IsPhoto).ToList();
+
+    [ObservableProperty]
+    public partial int HeroIndex { get; set; }
+
+    public ImageSource? CurrentHeroSource
+    {
+        get
+        {
+            var photos = PhotoItems;
+            return photos.Count == 0 ? null : photos[Math.Clamp(HeroIndex, 0, photos.Count - 1)].DisplaySource;
+        }
+    }
+
+    public string HeroCounterText
+    {
+        get
+        {
+            var count = PhotoItems.Count;
+            return count == 0 ? string.Empty : $"{Math.Clamp(HeroIndex, 0, count - 1) + 1} / {count}";
+        }
+    }
+
+    public bool HasPhotos => Media.Any(m => m.IsPhoto);
+    public bool HasMultiplePhotos => Media.Count(m => m.IsPhoto) > 1;
+
+    [RelayCommand]
+    private void ShowPreviousHeroImage()
+    {
+        var count = PhotoItems.Count;
+        if (count < 2) return;
+        HeroIndex = (HeroIndex - 1 + count) % count;
+        RefreshHero();
+    }
+
+    [RelayCommand]
+    private void ShowNextHeroImage()
+    {
+        var count = PhotoItems.Count;
+        if (count < 2) return;
+        HeroIndex = (HeroIndex + 1) % count;
+        RefreshHero();
+    }
+
+    private void RefreshHero()
+    {
+        var count = PhotoItems.Count;
+        if (HeroIndex >= count)
+            HeroIndex = Math.Max(0, count - 1);
+
+        OnPropertyChanged(nameof(CurrentHeroSource));
+        OnPropertyChanged(nameof(HeroCounterText));
+        OnPropertyChanged(nameof(HasPhotos));
+        OnPropertyChanged(nameof(HasMultiplePhotos));
+    }
+
+    #endregion
+
     private List<string> UploadedImageUrls =>
         Media.Where(m => m.IsPhoto && m.IsUploaded).Select(m => m.RemoteUrl!).ToList();
 
@@ -65,6 +128,9 @@ public partial class PropertyWizardViewModel
                 return;
             }
 
+            // Bewusst ohne Resize-Optionen: das Original bleibt in voller Qualitaet
+            // erhalten, verkleinert wird nur die lokale Vorschau bzw. serverseitig
+            // die Anzeige-Variante
             var file = await MediaPicker.Default.CapturePhotoAsync();
             if (file == null)
                 return;
@@ -116,10 +182,14 @@ public partial class PropertyWizardViewModel
     {
         // Bereits hochgeladene Datei bleibt bis zur Entwurfs-Loeschung am Server liegen -
         // sie faellt aber aus den URL-Listen und landet damit nie im Inserat.
+        item.TryDeleteLocalFile();
         Media.Remove(item);
         MediaCount = Media.Count;
         OnPropertyChanged(nameof(MediaCountText));
+        RefreshHero();
+        RefreshEditorState();
         MarkDraftDirty();
+        ScheduleAutoSave();
     }
 
     private bool EnsurePhotoCapacity()
@@ -134,20 +204,27 @@ public partial class PropertyWizardViewModel
 
     private async Task AddMediaFileAsync(FileResult file)
     {
-        using var stream = await file.OpenReadAsync();
-        using var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        var bytes = memoryStream.ToArray();
+        // Original unveraendert in den eigenen Cache kopieren (Upload liest spaeter
+        // von Platte statt alle Fotos im RAM zu halten) + kleine Vorschau erzeugen
+        var localPath = await MediaFileCache.CopyAsync(file, "wizard-media");
+        var preview = await _photoPreview.CreatePreviewAsync(localPath);
 
         var contentType = string.IsNullOrEmpty(file.ContentType)
             ? GuessContentType(file.FileName)
             : file.ContentType;
 
-        Media.Add(WizardMediaItem.FromPicked(file.FileName, contentType, bytes, isVideo: false));
+        Media.Add(WizardMediaItem.FromPicked(file.FileName, contentType, localPath, preview, isVideo: false));
         MediaCount = Media.Count;
         OnPropertyChanged(nameof(MediaCountText));
         ErrorMessage = null;
+        RefreshHero();
+        RefreshEditorState();
         MarkDraftDirty();
+        ScheduleAutoSave();
+
+        // Ohne Schrittwechsel gibt es keinen spaeteren Trigger - Upload sofort anstossen,
+        // damit die Fotos beim Veroeffentlichen laengst am Server liegen
+        StartMediaUpload();
     }
 
     private static string GuessContentType(string fileName)
@@ -161,6 +238,7 @@ public partial class PropertyWizardViewModel
             _ => "image/jpeg"
         };
     }
+
 
     #endregion
 
@@ -184,7 +262,7 @@ public partial class PropertyWizardViewModel
             await _uploadTask;
 
         // Fehlversuche vom Hintergrundlauf einmal direkt nachziehen
-        if (Media.Any(m => !m.IsUploaded && m.Data != null))
+        if (Media.Any(m => !m.IsUploaded && m.HasLocalFile))
         {
             _uploadTask = UploadPendingMediaAsync();
             await _uploadTask;
@@ -193,10 +271,11 @@ public partial class PropertyWizardViewModel
 
     private async Task UploadPendingMediaAsync()
     {
-        foreach (var item in Media.Where(m => !m.IsUploaded && m.Data != null).ToList())
+        foreach (var item in Media.Where(m => !m.IsUploaded && m.HasLocalFile).ToList())
         {
             try
             {
+                var originalBytes = await item.ReadOriginalAsync();
                 var (_, uploadResult) = await _mediator.Request(
                     new UploadListingMediaHttpRequest
                     {
@@ -208,7 +287,7 @@ public partial class PropertyWizardViewModel
                                 {
                                     FileName = item.FileName,
                                     ContentType = item.ContentType,
-                                    Base64Data = item.ToBase64()
+                                    Base64Data = Convert.ToBase64String(originalBytes)
                                 }
                             ]
                         }
@@ -219,7 +298,11 @@ public partial class PropertyWizardViewModel
                     : uploadResult?.ImageUrls?.FirstOrDefault();
 
                 if (item.IsUploaded)
+                {
+                    // Original liegt jetzt am Server - Cache-Kopie wird nicht mehr gebraucht
+                    item.TryDeleteLocalFile();
                     MarkDraftDirty();
+                }
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 using Heimatplatz.Api.Features.AiListing.Configuration;
 using Heimatplatz.Api.Features.AiListing.Contracts.Mediator.Requests;
+using Heimatplatz.Api.Shared.Media;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,7 +10,9 @@ namespace Heimatplatz.Api.Features.AiListing.Services;
 
 /// <summary>
 /// Speichert Inserats-Medien im lokalen wwwroot/uploads/listings Verzeichnis
-/// (gleiches Muster wie PropertyImageService fuer Bilder).
+/// (gleiches Muster wie PropertyImageService fuer Bilder). Fotos werden als
+/// unveraendertes Original plus Anzeige-Variante abgelegt; das Inserat bindet
+/// die Variante ein, das Original bleibt in voller Qualitaet daneben liegen.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class ListingMediaService(
@@ -19,7 +22,8 @@ public class ListingMediaService(
 ) : IListingMediaService
 {
     private const string UploadFolder = "uploads/listings";
-    private const long MaxImageSize = 10 * 1024 * 1024; // 10 MB
+    // Originale bleiben unangetastet - 108-MP-Handyfotos liegen bei 20-40 MB
+    private const long MaxImageSize = 60 * 1024 * 1024; // 60 MB
 
     private static readonly Dictionary<string, string> ImageContentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -43,7 +47,7 @@ public class ListingMediaService(
         CancellationToken ct = default)
     {
         var opts = options.Value;
-        var uploadPath = Path.Combine(environment.WebRootPath, UploadFolder);
+        var uploadPath = Path.Combine(GetWebRoot(), UploadFolder);
         Directory.CreateDirectory(uploadPath);
 
         var imageUrls = new List<string>();
@@ -80,9 +84,23 @@ public class ListingMediaService(
 
             var url = $"/{UploadFolder}/{fileName}";
             if (isImage)
+            {
+                // Anzeige-Variante einbinden (klein + auto-orientiert); ohne Variante
+                // (kleines Original oder nicht dekodierbar, z.B. HEIC) direkt das Original
+                var display = ImageDisplayVariant.TryCreate(bytes);
+                if (display != null)
+                {
+                    var displayName = ImageDisplayVariant.GetDisplayFileName(fileName);
+                    await File.WriteAllBytesAsync(Path.Combine(uploadPath, displayName), display, ct);
+                    url = $"/{UploadFolder}/{displayName}";
+                }
+
                 imageUrls.Add(url);
+            }
             else
+            {
                 videoUrls.Add(url);
+            }
 
             logger.LogInformation("Inserats-Medium gespeichert: {FileName} ({Size} bytes, {ContentType})",
                 fileName, bytes.Length, item.ContentType);
@@ -108,13 +126,24 @@ public class ListingMediaService(
         if (!relativePath.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
             return null;
 
-        var fullPath = Path.GetFullPath(Path.Combine(environment.WebRootPath, relativePath));
+        var webRoot = GetWebRoot();
+        var fullPath = Path.GetFullPath(Path.Combine(webRoot, relativePath));
 
         // Path-Traversal verhindern
-        var uploadsRoot = Path.GetFullPath(Path.Combine(environment.WebRootPath, "uploads"));
+        var uploadsRoot = Path.GetFullPath(Path.Combine(webRoot, "uploads"));
         if (!fullPath.StartsWith(uploadsRoot, StringComparison.OrdinalIgnoreCase))
             return null;
 
         return File.Exists(fullPath) ? fullPath : null;
+    }
+
+    // WebRootPath ist null, wenn kein wwwroot-Ordner neben dem ContentRoot liegt
+    // (z.B. Build-Output ohne Publish) - gleiches Fallback wie ForeclosureImageService
+    private string GetWebRoot()
+    {
+        var webRoot = environment.WebRootPath;
+        return string.IsNullOrWhiteSpace(webRoot)
+            ? Path.Combine(environment.ContentRootPath, "wwwroot")
+            : webRoot;
     }
 }

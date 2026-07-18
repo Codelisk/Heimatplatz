@@ -1,7 +1,7 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Collections;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Sync;
 using Heimatplatz.Maui.Offline;
@@ -30,7 +30,9 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     private bool _hasMore;
     private readonly IDisposable _syncSubscription;
 
-    public ObservableCollection<PropertyListItemDto> Properties { get; } = [];
+    // Feste Instanz + ReplaceRange bei Reloads (eine Reset-Notification), damit die
+    // CollectionView ihren Container-Recycling-Pool behaelt
+    public ObservableRangeCollection<PropertyListItemDto> Properties { get; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
@@ -320,10 +322,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             _currentPage = 0;
             var items = await LoadPageSafeAsync(0, forceRemoteRefresh: false);
 
-            Properties.Clear();
-            foreach (var item in items)
-                Properties.Add(item);
-
+            Properties.ReplaceRange(items);
             IsEmpty = Properties.Count == 0;
         }
         finally
@@ -351,10 +350,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             _currentPage = 0;
             var items = await LoadPageSafeAsync(0, forceRemoteRefresh: true);
 
-            Properties.Clear();
-            foreach (var item in items)
-                Properties.Add(item);
-
+            Properties.ReplaceRange(items);
             IsEmpty = Properties.Count == 0;
         }
         finally

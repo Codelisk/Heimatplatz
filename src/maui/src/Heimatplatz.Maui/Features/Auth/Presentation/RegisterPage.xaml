@@ -7,6 +7,59 @@
              Shell.FlyoutBehavior="Disabled"
              Title="Registrieren">
 
+    <ContentPage.Resources>
+        <!-- Native RadioButtons rendern View-Content auf Windows/Android nur als
+             ToString(); erst ein ControlTemplate zeichnet den zweizeiligen Inhalt -->
+        <ControlTemplate x:Key="SellerTypeRadioTemplate">
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="12"
+                  Padding="0,4">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CheckedStates">
+                            <VisualState x:Name="Checked">
+                                <VisualState.Setters>
+                                    <Setter TargetName="RadioRing"
+                                            Property="Ellipse.Stroke"
+                                            Value="{AppThemeBinding Light={StaticResource PrimaryBrush}, Dark={StaticResource PrimaryDarkBrush}}" />
+                                    <Setter TargetName="RadioDot"
+                                            Property="Opacity"
+                                            Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Unchecked">
+                                <VisualState.Setters>
+                                    <Setter TargetName="RadioRing"
+                                            Property="Ellipse.Stroke"
+                                            Value="{AppThemeBinding Light={StaticResource Gray500Brush}, Dark={StaticResource Gray400Brush}}" />
+                                    <Setter TargetName="RadioDot"
+                                            Property="Opacity"
+                                            Value="0" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+                <Grid WidthRequest="20" HeightRequest="20" VerticalOptions="Center">
+                    <Ellipse x:Name="RadioRing"
+                             Stroke="{AppThemeBinding Light={StaticResource Gray500Brush}, Dark={StaticResource Gray400Brush}}"
+                             StrokeThickness="2"
+                             Fill="Transparent"
+                             WidthRequest="20"
+                             HeightRequest="20" />
+                    <Ellipse x:Name="RadioDot"
+                             Fill="{AppThemeBinding Light={StaticResource PrimaryBrush}, Dark={StaticResource PrimaryDarkBrush}}"
+                             Opacity="0"
+                             WidthRequest="10"
+                             HeightRequest="10"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center" />
+                </Grid>
+                <ContentPresenter Grid.Column="1" VerticalOptions="Center" />
+            </Grid>
+        </ControlTemplate>
+    </ContentPage.Resources>
+
     <Grid>
 
         <ScrollView>
@@ -123,7 +176,9 @@
 
                             <!-- Privatperson -->
                             <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
-                                         GroupName="SellerType">
+                                         GroupName="SellerType"
+                                         ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
+                                         SemanticProperties.Description="Privatperson – Eigene Immobilie verkaufen">
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
                                         <Label Text="Privatperson"
@@ -136,7 +191,9 @@
 
                             <!-- Makler/Agentur -->
                             <RadioButton IsChecked="{Binding IsBrokerSeller, Mode=TwoWay}"
-                                         GroupName="SellerType">
+                                         GroupName="SellerType"
+                                         ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
+                                         SemanticProperties.Description="Makler / Agentur – Als Immobilienmakler tätig">
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
                                         <Label Text="Makler / Agentur"
@@ -149,7 +206,9 @@
 
                             <!-- Hausverwaltung -->
                             <RadioButton IsChecked="{Binding IsPropertyManagerSeller, Mode=TwoWay}"
-                                         GroupName="SellerType">
+                                         GroupName="SellerType"
+                                         ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
+                                         SemanticProperties.Description="Hausverwaltung – Objekte im Auftrag von Eigentümern verwalten">
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
                                         <Label Text="Hausverwaltung"

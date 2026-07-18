@@ -36,6 +36,9 @@ builder.Services.AddHttpClient("ImageProxy")
         AllowAutoRedirect = false,
         MaxConnectionsPerServer = 20
     });
+// Disk-Cache fuer Bild-Varianten (Proxy-Downloads, skalierte lokale Uploads)
+builder.Services.AddSingleton<ImageCache>();
+
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddExceptionHandler<UnauthorizedExceptionHandler>();
 builder.Services.AddExceptionHandler<LegacyExceptionHandler>();
@@ -319,13 +322,32 @@ const long maxImageProxyBytes = 20 * 1024 * 1024; // 20 MB
 // Image proxy endpoint - bypasses CORS for external image URLs (e.g. edikte.justiz.gv.at)
 // Optionaler ?w= Parameter skaliert serverseitig auf die Zielbreite herunter (nie hoch), damit
 // Listen-Thumbnails nicht die oft mehrere MB grossen Originalbilder ungeskaliert an den Client schicken.
-app.MapGet("/api/images/proxy", async (string url, int? w, IHttpClientFactory httpClientFactory, HttpContext ctx) =>
+// Ergebnis (skaliert oder Passthrough) landet im Disk-Cache: ohne ihn zahlt jede Erstauslieferung
+// pro Bild einen Origin-Roundtrip plus Skia-Decode/Resize - genau das laesst Listen-Fotos eintroepfeln.
+app.MapGet("/api/images/proxy", async (string url, int? w, IHttpClientFactory httpClientFactory, ImageCache imageCache, HttpContext ctx) =>
 {
     if (string.IsNullOrEmpty(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
         return Results.BadRequest("Invalid URL");
 
     if (!IsImageUrlAllowed(uri, allowedImageHosts))
         return Results.BadRequest("Host not allowed");
+
+    // Externe Quellen sind praktisch unveraenderlich (gescrapte Inserats-Fotos), daher genuegt
+    // URL+Breite als ETag-Identitaet; die Staleness ist durch das Cache-Pruning begrenzt.
+    var cacheKey = ImageCache.ComputeKey($"proxy|{url}|w={w ?? 0}");
+    var etag = $"\"{cacheKey}\"";
+
+    if (RequestMatchesETag(ctx.Request, etag))
+    {
+        SetImageCacheHeaders(ctx, etag);
+        return Results.StatusCode(StatusCodes.Status304NotModified);
+    }
+
+    if (imageCache.TryGet(cacheKey, out var cachedPath, out var cachedContentType))
+    {
+        SetImageCacheHeaders(ctx, etag);
+        return Results.File(cachedPath, cachedContentType);
+    }
 
     try
     {
@@ -392,33 +414,23 @@ app.MapGet("/api/images/proxy", async (string url, int? w, IHttpClientFactory ht
             bytes = buffered.ToArray();
         }
 
-        // Cache for 24 hours
-        ctx.Response.Headers.CacheControl = "public, max-age=86400";
+        SetImageCacheHeaders(ctx, etag);
 
         if (w is > 0 and <= 2000)
         {
-            try
+            var resized = TryResizeImageToWidth(bytes, w.Value);
+            if (resized is not null)
             {
-                using var original = SKBitmap.Decode(bytes);
-                if (original is not null && original.Width > w)
-                {
-                    var newHeight = (int)Math.Round(original.Height * (w.Value / (double)original.Width));
-                    using var resized = original.Resize(
-                        new SKSizeI(w.Value, newHeight),
-                        new SKSamplingOptions(SKCubicResampler.Mitchell));
-                    if (resized is not null)
-                    {
-                        using var image = SKImage.FromBitmap(resized);
-                        using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
-                        return Results.File(data.ToArray(), "image/jpeg");
-                    }
-                }
-            }
-            catch
-            {
-                // Dekodierung fehlgeschlagen (z.B. unbekanntes Format) - Original unskaliert ausliefern
+                await imageCache.StoreAsync(cacheKey, ".jpg", resized);
+                return Results.File(resized, "image/jpeg");
             }
         }
+
+        // Passthrough (kein Resize noetig oder Format nicht dekodierbar): ebenfalls cachen,
+        // sofern der Content-Type einer bekannten Endung zuordenbar ist
+        var extension = ImageCache.GetExtensionForContentType(contentType);
+        if (extension is not null)
+            await imageCache.StoreAsync(cacheKey, extension, bytes);
 
         return Results.File(bytes, contentType);
     }
@@ -426,6 +438,60 @@ app.MapGet("/api/images/proxy", async (string url, int? w, IHttpClientFactory ht
     {
         return Results.StatusCode(502);
     }
+}).ExcludeFromDescription();
+
+// Skalierte Auslieferung lokaler Upload-Dateien (Listen-Thumbnails). Die Display-Varianten
+// unter wwwroot/uploads sind bis zu 2560px breit - Listen-Karten brauchen ~640px. Hier wird
+// on-demand auf ?w= skaliert und das Ergebnis auf Disk gecacht; das deckt auch Alt-Uploads
+// ab, fuer die nie ein Thumbnail erzeugt wurde (keine Migration noetig).
+app.MapGet("/api/images/local", async (string path, int? w, IWebHostEnvironment env, ImageCache imageCache, HttpContext ctx) =>
+{
+    if (string.IsNullOrEmpty(path) || !path.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+        return Results.BadRequest("Invalid path");
+
+    // Gleiches WebRoot-Fallback wie PropertyImageService (Build-Output ohne Publish)
+    var webRoot = string.IsNullOrWhiteSpace(env.WebRootPath)
+        ? Path.Combine(env.ContentRootPath, "wwwroot")
+        : env.WebRootPath;
+
+    // Path-Traversal verhindern: aufgeloester Pfad muss unter uploads/ bleiben
+    var fullPath = Path.GetFullPath(Path.Combine(webRoot, path.TrimStart('/')));
+    var uploadsRoot = Path.GetFullPath(Path.Combine(webRoot, "uploads"));
+    if (!fullPath.StartsWith(uploadsRoot, StringComparison.OrdinalIgnoreCase))
+        return Results.BadRequest("Invalid path");
+
+    var localContentType = GetLocalImageContentType(Path.GetExtension(fullPath));
+    if (localContentType is null)
+        return Results.BadRequest("Unsupported file type");
+
+    var fileInfo = new FileInfo(fullPath);
+    if (!fileInfo.Exists)
+        return Results.NotFound();
+
+    // mtime+Laenge im Key: wird die Datei ersetzt, wechseln ETag und Cache-Eintrag automatisch
+    var width = w is > 0 and <= 2000 ? w.Value : 0;
+    var cacheKey = ImageCache.ComputeKey(
+        $"local|{path.ToLowerInvariant()}|w={width}|{fileInfo.LastWriteTimeUtc.Ticks}|{fileInfo.Length}");
+    var etag = $"\"{cacheKey}\"";
+
+    SetImageCacheHeaders(ctx, etag);
+
+    if (RequestMatchesETag(ctx.Request, etag))
+        return Results.StatusCode(StatusCodes.Status304NotModified);
+
+    if (width == 0)
+        return Results.File(fullPath, localContentType);
+
+    if (imageCache.TryGet(cacheKey, out var cachedPath, out var cachedContentType))
+        return Results.File(cachedPath, cachedContentType);
+
+    var bytes = await File.ReadAllBytesAsync(fullPath, ctx.RequestAborted);
+    var resized = TryResizeImageToWidth(bytes, width);
+    if (resized is null)
+        return Results.File(fullPath, localContentType); // schon klein genug oder nicht dekodierbar
+
+    await imageCache.StoreAsync(cacheKey, ".jpg", resized);
+    return Results.File(resized, "image/jpeg");
 }).ExcludeFromDescription();
 
 if (app.Environment.IsDevelopment())
@@ -474,3 +540,74 @@ static bool IsRedirectStatusCode(System.Net.HttpStatusCode statusCode) => status
     System.Net.HttpStatusCode.SeeOther or
     System.Net.HttpStatusCode.TemporaryRedirect or
     System.Net.HttpStatusCode.PermanentRedirect;
+
+// Cache-Header der Bild-Endpoints: Clients halten 24h, danach revalidieren sie per
+// If-None-Match und bekommen bei unveraendertem ETag ein koerperloses 304.
+static void SetImageCacheHeaders(HttpContext ctx, string etag)
+{
+    ctx.Response.Headers.CacheControl = "public, max-age=86400";
+    ctx.Response.Headers.ETag = etag;
+}
+
+static bool RequestMatchesETag(HttpRequest request, string etag)
+{
+    foreach (var headerValue in request.Headers.IfNoneMatch)
+    {
+        if (headerValue is null)
+            continue;
+
+        if (headerValue.Trim() == "*")
+            return true;
+
+        foreach (var candidate in headerValue.Split(','))
+        {
+            var normalized = candidate.Trim();
+            // Schwache Validatoren ("W/") gleichwertig behandeln - Inhalt ist byte-identisch
+            if (normalized.StartsWith("W/", StringComparison.Ordinal))
+                normalized = normalized[2..];
+
+            if (normalized == etag)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+// Skaliert auf Zielbreite herunter (nie hoch), Ausgabe immer JPEG 85. Liefert null wenn
+// kein Resize noetig ist oder das Format nicht dekodierbar ist (Aufrufer liefert dann
+// das Original aus) - gleiche Semantik wie zuvor inline im Proxy-Endpoint.
+static byte[]? TryResizeImageToWidth(byte[] bytes, int targetWidth)
+{
+    try
+    {
+        using var original = SKBitmap.Decode(bytes);
+        if (original is null || original.Width <= targetWidth)
+            return null;
+
+        var newHeight = Math.Max(1, (int)Math.Round(original.Height * (targetWidth / (double)original.Width)));
+        using var resized = original.Resize(
+            new SKSizeI(targetWidth, newHeight),
+            new SKSamplingOptions(SKCubicResampler.Mitchell));
+        if (resized is null)
+            return null;
+
+        using var image = SKImage.FromBitmap(resized);
+        using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
+        return data?.ToArray();
+    }
+    catch
+    {
+        return null;
+    }
+}
+
+// Content-Type lokaler Upload-Dateien anhand der Endung; null = nicht ausliefern.
+// Bewusst nur die Formate, die der Upload-Pfad (PropertyImageService) akzeptiert.
+static string? GetLocalImageContentType(string extension) => extension.ToLowerInvariant() switch
+{
+    ".jpg" or ".jpeg" => "image/jpeg",
+    ".png" => "image/png",
+    ".webp" => "image/webp",
+    _ => null
+};

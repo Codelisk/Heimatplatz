@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
@@ -24,6 +25,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly ILocationService _locationService;
+    private readonly IPhotoPreviewService _photoPreview;
     private readonly ILogger<EditPropertyViewModel> _logger;
 
     private List<LocationGemeindeDto> _municipalities = [];
@@ -124,12 +126,14 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
         IMediator mediator,
         INavigator navigator,
         ILocationService locationService,
+        IPhotoPreviewService photoPreview,
         ILogger<EditPropertyViewModel> logger)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
         _locationService = locationService;
+        _photoPreview = photoPreview;
         _logger = logger;
 
         Titel = string.Empty;
@@ -244,7 +248,6 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
                         Images.Add(new ImageItem(
                             fileName,
                             "image/jpeg",
-                            Array.Empty<byte>(),
                             Url: url));
                     }
                 }
@@ -325,6 +328,9 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
                 return;
             }
 
+            // Bewusst ohne Resize-Optionen: das Original bleibt in voller Qualitaet
+            // erhalten, angezeigt wird nur eine kleine Vorschau (100+-MP-Fotos
+            // wuerden sonst Androids Canvas-Limit sprengen)
             var files = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
             {
                 Title = "Bilder auswählen"
@@ -340,14 +346,12 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
                     break;
                 }
 
-                using var stream = await file.OpenReadAsync();
-                using var memoryStream = new MemoryStream();
-                await stream.CopyToAsync(memoryStream);
-                var fileBytes = memoryStream.ToArray();
+                var localPath = await MediaFileCache.CopyAsync(file, "edit-media");
+                var preview = await _photoPreview.CreatePreviewAsync(localPath);
 
                 var contentType = string.IsNullOrEmpty(file.ContentType) ? "image/jpeg" : file.ContentType;
 
-                Images.Add(new ImageItem(file.FileName, contentType, fileBytes));
+                Images.Add(new ImageItem(file.FileName, contentType, localPath, preview));
             }
 
             ImageCount = Images.Count;
@@ -362,6 +366,7 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
     [RelayCommand]
     private void RemoveImage(ImageItem image)
     {
+        MediaFileCache.TryDelete(image.LocalPath);
         Images.Remove(image);
         ImageCount = Images.Count;
     }
@@ -470,22 +475,28 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
 
                 var newImages = Images.Where(img => !img.IsExisting).ToList();
                 List<string> newUrls = [];
-                if (newImages.Count > 0)
+                // Einzeln hochladen: Originale in voller Qualitaet koennen 20-40 MB
+                // haben - gesammelt wuerden sie das Request-Body-Limit sprengen
+                foreach (var img in newImages)
                 {
-                    var base64Images = newImages.Select(img => new Base64ImageData
-                    {
-                        FileName = img.FileName,
-                        ContentType = img.ContentType,
-                        Base64Data = img.ToBase64()
-                    }).ToList();
-
                     var (_, uploadResult) = await _mediator.Request(
                         new UploadPropertyImagesHttpRequest
                         {
-                            Body = new UploadPropertyImagesRequest { Images = base64Images }
+                            Body = new UploadPropertyImagesRequest
+                            {
+                                Images =
+                                [
+                                    new Base64ImageData
+                                    {
+                                        FileName = img.FileName,
+                                        ContentType = img.ContentType,
+                                        Base64Data = await img.ToBase64Async()
+                                    }
+                                ]
+                            }
                         });
 
-                    newUrls = uploadResult?.ImageUrls ?? [];
+                    newUrls.AddRange(uploadResult?.ImageUrls ?? []);
                 }
 
                 imageUrls = [.. existingUrls, .. newUrls];
@@ -535,6 +546,10 @@ public partial class EditPropertyViewModel : ObservableObject, IPageLifecycleAwa
 
         if (saveSucceeded)
         {
+            // Originale liegen jetzt am Server - Cache-Kopien werden nicht mehr gebraucht
+            foreach (var img in Images.Where(i => !i.IsExisting))
+                MediaFileCache.TryDelete(img.LocalPath);
+
             _logger.LogInformation("[EditProperty] Navigating back after save");
             await _navigator.GoBack();
         }

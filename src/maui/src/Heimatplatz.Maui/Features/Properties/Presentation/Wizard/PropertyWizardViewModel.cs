@@ -1,5 +1,7 @@
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
@@ -10,28 +12,38 @@ using Shiny.Mediator;
 namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 
 /// <summary>
-/// Wizard fuer die Inseratserstellung - bewusst manueller Fluss, KI nur fuer die Beschreibung:
-///   Schritt 1: Fotos (Upload startet im Hintergrund)
-///   Schritt 2: Eckdaten (Typ, Titel, Zimmer, Flaechen, Baujahr, Ausstattung)
-///   Schritt 3: Lage &amp; Preis
-///   Schritt 4: Beschreibung (selbst schreiben ODER aus Stichwoertern/Diktat erstellen lassen -
-///              die Generierung laeuft als Server-Hintergrund-Job, weiterarbeiten ist moeglich)
-///   Schritt 5: Vorschau &amp; Veroeffentlichen
-/// Jeder Schrittwechsel speichert den Zustand als Server-Entwurf; Abbruch bietet
-/// Speichern/Verwerfen an, Fortsetzen laeuft ueber den DraftId-Navigationsparameter.
-/// Aufgeteilt in partial-Dateien pro Schritt (.Media/.Details/.LocationPrice/.Description/.Preview/.Draft).
+/// WYSIWYG-Editor fuer die Inseratserstellung: Die Seite sieht aus wie die echte
+/// Detailansicht (Hero-Foto, Content-Sheet, Stat-Kacheln) - nur dass Preis, Titel,
+/// Adresse, Eckdaten, Merkmale und Beschreibung direkt im Layout editierbar sind.
+/// Beschreibung: selbst schreiben ODER aus Stichwoertern erstellen lassen; die
+/// Generierung laeuft als Server-Hintergrund-Job und blockiert das Veroeffentlichen
+/// NICHT (der fertige Text wird dem Inserat serverseitig nachgeliefert).
+/// Jede Eingabe speichert sich automatisch als Server-Entwurf (debounced);
+/// Abbruch bietet Speichern/Verwerfen an, Fortsetzen laeuft ueber DraftId.
+/// Aufgeteilt in partial-Dateien (.Media/.Details/.LocationPrice/.Description/.Draft/.Preview).
 /// </summary>
 [ShellMap<PropertyWizardPage>("PropertyWizard")]
 public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleAware
 {
-    public const int StepCount = 5;
+    private static readonly TimeSpan AutoSaveDebounce = TimeSpan.FromSeconds(3);
+
+    /// <summary>Eingaben, die den Entwurf veraendern und die Live-Anzeige aktualisieren</summary>
+    private static readonly HashSet<string> EditorInputProperties =
+    [
+        nameof(Titel), nameof(Zimmer), nameof(Wohnflaeche), nameof(Grundstuecksflaeche),
+        nameof(Baujahr), nameof(Preis), nameof(Adresse), nameof(Beschreibung),
+        nameof(DescriptionKeywords), nameof(DescriptionMode), nameof(SelectedPropertyTypeItem),
+        nameof(GenerationStatus)
+    ];
 
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly IDictationService _dictation;
+    private readonly IPhotoPreviewService _photoPreview;
     private readonly ILogger<PropertyWizardViewModel> _logger;
 
+    private CancellationTokenSource? _autoSaveCts;
     private bool _initialized;
 
     /// <summary>Navigationsparameter: Id eines fortzusetzenden Entwurfs</summary>
@@ -39,41 +51,6 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     public string DraftId { get; set; } = string.Empty;
 
     public MunicipalitySearchModel Ort { get; }
-
-    #region Schritt-Navigation
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsMediaStep))]
-    [NotifyPropertyChangedFor(nameof(IsDetailsStep))]
-    [NotifyPropertyChangedFor(nameof(IsLocationStep))]
-    [NotifyPropertyChangedFor(nameof(IsDescriptionStep))]
-    [NotifyPropertyChangedFor(nameof(IsPreviewStep))]
-    [NotifyPropertyChangedFor(nameof(StepProgressText))]
-    [NotifyPropertyChangedFor(nameof(ShowNextButton))]
-    [NotifyPropertyChangedFor(nameof(Step2Reached))]
-    [NotifyPropertyChangedFor(nameof(Step3Reached))]
-    [NotifyPropertyChangedFor(nameof(Step4Reached))]
-    [NotifyPropertyChangedFor(nameof(Step5Reached))]
-    public partial int CurrentStep { get; set; }
-
-    public bool IsMediaStep => CurrentStep == 0;
-    public bool IsDetailsStep => CurrentStep == 1;
-    public bool IsLocationStep => CurrentStep == 2;
-    public bool IsDescriptionStep => CurrentStep == 3;
-    public bool IsPreviewStep => CurrentStep == 4;
-
-    public string StepProgressText => $"Schritt {CurrentStep + 1} von {StepCount}";
-
-    /// <summary>Der letzte Schritt hat statt "Weiter" den Veroeffentlichen-Button im Inhalt</summary>
-    public bool ShowNextButton => CurrentStep < StepCount - 1;
-
-    // Fortschrittsbalken-Segmente (Segment 1 ist immer erreicht)
-    public bool Step2Reached => CurrentStep >= 1;
-    public bool Step3Reached => CurrentStep >= 2;
-    public bool Step4Reached => CurrentStep >= 3;
-    public bool Step5Reached => CurrentStep >= 4;
-
-    #endregion
 
     #region UI-State
 
@@ -97,12 +74,14 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         INavigator navigator,
         ILocationService locationService,
         IDictationService dictation,
+        IPhotoPreviewService photoPreview,
         ILogger<PropertyWizardViewModel> logger)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
         _dictation = dictation;
+        _photoPreview = photoPreview;
         _logger = logger;
 
         Ort = new MunicipalitySearchModel(locationService, logger);
@@ -110,6 +89,9 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         InitializeDetailsStep();
         InitializeLocationPriceStep();
         InitializeDescriptionStep();
+
+        PropertyChanged += OnEditorPropertyChanged;
+        Ort.PropertyChanged += OnOrtPropertyChanged;
     }
 
     #region IPageLifecycleAware
@@ -146,69 +128,86 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
         UnsubscribeDictation();
 
+        // Offene Aenderungen sofort sichern (der Debounce-Timer wuerde sonst verpuffen)
+        FlushAutoSave();
+
         // Beschreibungs-Polling bewusst NICHT stoppen: OnDisappearing feuert auch, wenn der
         // System-MediaPicker die Seite verdeckt - der Job laeuft serverseitig ohnehin weiter.
     }
 
     #endregion
 
-    #region Weiter / Zurueck / Abbrechen
+    #region Auto-Save (debounced)
 
-    [RelayCommand]
-    private async Task NextAsync()
+    private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        ErrorMessage = null;
-
-        switch (CurrentStep)
-        {
-            case 0:
-                // Upload eager im Hintergrund starten - nur Items ohne RemoteUrl,
-                // daher kein Doppel-Upload beim Zurueckgehen und erneutem Weiter
-                StartMediaUpload();
-                break;
-
-            case 1:
-                if (!ValidateDetails())
-                    return;
-                break;
-
-            case 2:
-                if (!ValidateLocationPrice())
-                    return;
-                break;
-
-            case 3:
-                if (!await ValidateDescriptionStepAsync())
-                    return;
-                break;
-        }
-
-        await GoToStepAsync(CurrentStep + 1);
-    }
-
-    [RelayCommand]
-    private async Task BackAsync()
-    {
-        ErrorMessage = null;
-
-        if (CurrentStep == 0)
-        {
-            await CancelAsync();
+        if (e.PropertyName is not { } name || !EditorInputProperties.Contains(name))
             return;
-        }
 
-        await GoToStepAsync(CurrentStep - 1);
+        RefreshEditorState();
+        ScheduleAutoSave();
     }
 
-    /// <summary>Schrittwechsel inkl. Entwurfs-Speicherung (Fehler blockieren nicht).</summary>
-    private async Task GoToStepAsync(int step)
+    private void OnOrtPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        CurrentStep = Math.Clamp(step, 0, StepCount - 1);
-        await SaveDraftAsync();
+        if (e.PropertyName != nameof(MunicipalitySearchModel.SelectedGemeindeId))
+            return;
+
+        RefreshEditorState();
+        ScheduleAutoSave();
+    }
+
+    /// <summary>Speichert den Entwurf nach kurzer Tipp-Pause (jede Eingabe startet den Timer neu).</summary>
+    internal void ScheduleAutoSave()
+    {
+        _autoSaveCts?.Cancel();
+        _autoSaveCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _autoSaveCts = cts;
+
+        _ = AutoSaveAfterDelayAsync(cts.Token);
+    }
+
+    private async Task AutoSaveAfterDelayAsync(CancellationToken ct)
+    {
+        try
+        {
+            await Task.Delay(AutoSaveDebounce, ct);
+            await SaveDraftAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            // Neuere Eingabe hat den Timer neu gestartet
+        }
+    }
+
+    /// <summary>Bricht den Debounce ab und speichert sofort (Seite verlassen).</summary>
+    private void FlushAutoSave()
+    {
+        if (_autoSaveCts == null)
+            return;
+
+        CancelPendingAutoSave();
+        _ = SaveDraftAsync();
     }
 
     /// <summary>
-    /// Abbruch ueber Zurueck-Pfeil/Hardware-Back: pristiner Wizard geht direkt zurueck,
+    /// Verwirft einen anstehenden Auto-Save ersatzlos - nach Veroeffentlichen/Verwerfen
+    /// existiert der Server-Entwurf nicht mehr, ein spaeter feuernder Save liefe ins Leere.
+    /// </summary>
+    private void CancelPendingAutoSave()
+    {
+        _autoSaveCts?.Cancel();
+        _autoSaveCts?.Dispose();
+        _autoSaveCts = null;
+    }
+
+    #endregion
+
+    #region Abbrechen
+
+    /// <summary>
+    /// Abbruch ueber Zurueck-Pfeil/Hardware-Back: pristiner Editor geht direkt zurueck,
     /// sonst 3-Wege-Prompt (Weiter bearbeiten / Als Entwurf speichern / Verwerfen).
     /// </summary>
     [RelayCommand]
@@ -240,6 +239,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
             case "Verwerfen":
                 StopDescriptionPolling();
+                CancelPendingAutoSave();
                 await DeleteDraftAsync();
                 await _navigator.GoBack();
                 break;
@@ -260,6 +260,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     private bool HasAnyInput() =>
         _serverDraftId != null
         || Media.Count > 0
+        || FeatureItems.Count > 0
         || !string.IsNullOrWhiteSpace(DescriptionKeywords)
         || !string.IsNullOrWhiteSpace(Adresse)
         || !string.IsNullOrWhiteSpace(Preis)

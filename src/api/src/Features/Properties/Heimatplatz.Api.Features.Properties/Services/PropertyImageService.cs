@@ -1,5 +1,6 @@
 using Heimatplatz.Api;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
+using Heimatplatz.Api.Shared.Media;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,9 @@ namespace Heimatplatz.Api.Features.Properties.Services;
 
 /// <summary>
 /// Speichert Immobilien-Bilder im lokalen wwwroot/uploads Verzeichnis.
+/// Fotos werden als unveraendertes Original plus Anzeige-Variante abgelegt;
+/// das Inserat bindet die Variante ein, das Original bleibt in voller
+/// Qualitaet daneben liegen.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class PropertyImageService(
@@ -20,7 +24,8 @@ public class PropertyImageService(
 ) : IPropertyImageService
 {
     private const string UploadFolder = "uploads/properties";
-    private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB
+    // Originale bleiben unangetastet - 108-MP-Handyfotos liegen bei 20-40 MB
+    private const long MaxFileSize = 60 * 1024 * 1024; // 60 MB
     private const int MaxFiles = 20;
 
     private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -46,7 +51,7 @@ public class PropertyImageService(
         if (files.Count > MaxFiles)
             throw new ArgumentException($"Maximal {MaxFiles} Bilder erlaubt, aber {files.Count} erhalten.");
 
-        var uploadPath = Path.Combine(environment.WebRootPath, UploadFolder);
+        var uploadPath = Path.Combine(GetWebRoot(), UploadFolder);
         Directory.CreateDirectory(uploadPath);
 
         var urls = new List<string>(files.Count);
@@ -55,17 +60,10 @@ public class PropertyImageService(
         {
             ValidateFile(file);
 
-            var extension = ContentTypeToExtension.GetValueOrDefault(file.ContentType, ".jpg");
-            var fileName = $"{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(uploadPath, fileName);
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream, ct);
 
-            await using var stream = new FileStream(filePath, FileMode.Create);
-            await file.CopyToAsync(stream, ct);
-
-            var url = $"/{UploadFolder}/{fileName}";
-            urls.Add(url);
-
-            logger.LogInformation("Bild gespeichert: {FileName} ({Size} bytes)", fileName, file.Length);
+            urls.Add(await SaveImageBytesAsync(uploadPath, memoryStream.ToArray(), file.ContentType, ct));
         }
 
         return urls;
@@ -80,7 +78,7 @@ public class PropertyImageService(
         if (images.Count > MaxFiles)
             throw new ArgumentException($"Maximal {MaxFiles} Bilder erlaubt, aber {images.Count} erhalten.");
 
-        var uploadPath = Path.Combine(environment.WebRootPath, UploadFolder);
+        var uploadPath = Path.Combine(GetWebRoot(), UploadFolder);
         Directory.CreateDirectory(uploadPath);
 
         var urls = new List<string>(images.Count);
@@ -90,20 +88,36 @@ public class PropertyImageService(
             ValidateBase64Image(image);
 
             var bytes = Convert.FromBase64String(image.Base64Data);
-
-            var extension = ContentTypeToExtension.GetValueOrDefault(image.ContentType, ".jpg");
-            var fileName = $"{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(uploadPath, fileName);
-
-            await File.WriteAllBytesAsync(filePath, bytes, ct);
-
-            var url = $"/{UploadFolder}/{fileName}";
-            urls.Add(url);
-
-            logger.LogInformation("Base64-Bild gespeichert: {FileName} ({Size} bytes)", fileName, bytes.Length);
+            urls.Add(await SaveImageBytesAsync(uploadPath, bytes, image.ContentType, ct));
         }
 
         return urls;
+    }
+
+    /// <summary>
+    /// Speichert das unveraenderte Original und erzeugt daneben die Anzeige-Variante.
+    /// Zurueckgegeben wird die Varianten-URL (bzw. das Original, wenn keine noetig ist).
+    /// </summary>
+    private async Task<string> SaveImageBytesAsync(string uploadPath, byte[] bytes, string contentType, CancellationToken ct)
+    {
+        var extension = ContentTypeToExtension.GetValueOrDefault(contentType, ".jpg");
+        var fileName = $"{Guid.NewGuid()}{extension}";
+
+        await File.WriteAllBytesAsync(Path.Combine(uploadPath, fileName), bytes, ct);
+
+        var url = $"/{UploadFolder}/{fileName}";
+        var display = ImageDisplayVariant.TryCreate(bytes);
+        if (display != null)
+        {
+            var displayName = ImageDisplayVariant.GetDisplayFileName(fileName);
+            await File.WriteAllBytesAsync(Path.Combine(uploadPath, displayName), display, ct);
+            url = $"/{UploadFolder}/{displayName}";
+        }
+
+        logger.LogInformation("Bild gespeichert: {FileName} ({Size} bytes, Variante: {HasDisplay})",
+            fileName, bytes.Length, display != null);
+
+        return url;
     }
 
     /// <inheritdoc />
@@ -133,20 +147,38 @@ public class PropertyImageService(
         if (!relativePath.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
             return Task.CompletedTask;
 
-        var filePath = Path.GetFullPath(Path.Combine(environment.WebRootPath, relativePath));
+        var webRoot = GetWebRoot();
+        var filePath = Path.GetFullPath(Path.Combine(webRoot, relativePath));
 
         // Path-Traversal verhindern
-        var uploadsRoot = Path.GetFullPath(Path.Combine(environment.WebRootPath, "uploads"));
+        var uploadsRoot = Path.GetFullPath(Path.Combine(webRoot, "uploads"));
         if (!filePath.StartsWith(uploadsRoot, StringComparison.OrdinalIgnoreCase))
             return Task.CompletedTask;
 
-        if (File.Exists(filePath))
+        // Original und Anzeige-Variante teilen sich den GUID-Stamm - beide entfernen,
+        // egal welche der beiden URLs im Inserat referenziert war
+        var directory = Path.GetDirectoryName(filePath);
+        var stem = ImageDisplayVariant.GetFileStem(Path.GetFileName(filePath));
+        if (directory != null && !string.IsNullOrWhiteSpace(stem) && Directory.Exists(directory))
         {
-            File.Delete(filePath);
-            logger.LogInformation("Bild geloescht: {FilePath}", filePath);
+            foreach (var siblingPath in Directory.EnumerateFiles(directory, $"{stem}.*"))
+            {
+                File.Delete(siblingPath);
+                logger.LogInformation("Bild geloescht: {FilePath}", siblingPath);
+            }
         }
 
         return Task.CompletedTask;
+    }
+
+    // WebRootPath ist null, wenn kein wwwroot-Ordner neben dem ContentRoot liegt
+    // (z.B. Build-Output ohne Publish) - gleiches Fallback wie ForeclosureImageService
+    private string GetWebRoot()
+    {
+        var webRoot = environment.WebRootPath;
+        return string.IsNullOrWhiteSpace(webRoot)
+            ? Path.Combine(environment.ContentRootPath, "wwwroot")
+            : webRoot;
     }
 
     /// <summary>

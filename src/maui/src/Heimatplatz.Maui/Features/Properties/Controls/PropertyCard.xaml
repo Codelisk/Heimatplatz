@@ -34,8 +34,10 @@
                     Padding="0">
             <Grid>
 
-                <!-- Placeholder: Marke als Wasserzeichen -->
-                <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                <!-- Placeholder: Marke als Wasserzeichen; wird nach erfolgreichem
+                     Foto-Load ausgeblendet (sonst Overdraw unter jedem Bild) -->
+                <Border x:Name="PlaceholderPanel"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
                         StrokeThickness="0">
                     <Image Source="logo.png"
                            WidthRequest="88"
@@ -69,13 +71,16 @@
                            TextColor="White" />
                 </Border>
 
-                <!-- Action-Buttons oben rechts (je nach CardMode) -->
+                <!-- Action-Buttons oben rechts: zwei wiederverwendete Buttons statt fuenf -
+                     native Buttons sind teuer und unsichtbare werden trotzdem inflatet.
+                     Glyph/Farben/Command wechseln je CardMode im Code-Behind:
+                     FavoriteButton = Favorisieren (Default) bzw. Entfavorisieren (Favorite),
+                     BlockButton = Blockieren (Default), Entblockieren (Blocked), Loeschen (Owner) -->
                 <HorizontalStackLayout VerticalOptions="Start"
                                        HorizontalOptions="End"
                                        Margin="12"
                                        Spacing="8">
 
-                    <!-- Default: Favorisieren -->
                     <Button x:Name="FavoriteButton"
                             Text="♡"
                             FontSize="18"
@@ -88,7 +93,6 @@
                             IsVisible="False"
                             Clicked="OnFavoriteClicked" />
 
-                    <!-- Default: Blockieren -->
                     <Button x:Name="BlockButton"
                             Text="⊘"
                             FontSize="18"
@@ -100,45 +104,6 @@
                             Padding="0"
                             IsVisible="False"
                             Clicked="OnBlockClicked" />
-
-                    <!-- Favorite-Modus: Herz zum Entfavorisieren -->
-                    <Button x:Name="FavoriteActionButton"
-                            Text="♥"
-                            FontSize="18"
-                            TextColor="{StaticResource SignalRed}"
-                            BackgroundColor="{StaticResource GlassPillBackground}"
-                            WidthRequest="40"
-                            HeightRequest="40"
-                            CornerRadius="20"
-                            Padding="0"
-                            IsVisible="False"
-                            Clicked="OnFavoriteClicked" />
-
-                    <!-- Blocked-Modus: X zum Entblockieren -->
-                    <Button x:Name="BlockedActionButton"
-                            Text="✕"
-                            FontSize="16"
-                            TextColor="White"
-                            BackgroundColor="{StaticResource GlassPillBackground}"
-                            WidthRequest="40"
-                            HeightRequest="40"
-                            CornerRadius="20"
-                            Padding="0"
-                            IsVisible="False"
-                            Clicked="OnBlockClicked" />
-
-                    <!-- Owner-Modus: X zum Loeschen -->
-                    <Button x:Name="OwnerDeleteButton"
-                            Text="✕"
-                            FontSize="16"
-                            TextColor="White"
-                            BackgroundColor="{StaticResource GlassPillBackground}"
-                            WidthRequest="40"
-                            HeightRequest="40"
-                            CornerRadius="20"
-                            Padding="0"
-                            IsVisible="False"
-                            Clicked="OnOwnerDeleteClicked" />
                 </HorizontalStackLayout>
 
                 <!-- Bild-Counter unten rechts -->

@@ -7,6 +7,7 @@ public partial class HomePage : ShinyContentPage
 {
     private bool _chipBarHidden;
     private ToolbarItem? _filterToolbarItem;
+    private HomeViewModel? _viewModel;
 
     /// <summary>
     /// Filter-Symbol rechts oben: erscheint nur, solange die Chip-Zeile weggescrollt
@@ -32,6 +33,30 @@ public partial class HomePage : ShinyContentPage
         TypePanel.Detents = new ObservableCollection<DetentValue> { new(0.36), DetentValue.Half };
         AgePanel.Detents = new ObservableCollection<DetentValue> { new(0.42), DetentValue.Half };
         OrtPanel.Detents = new ObservableCollection<DetentValue> { new(0.75), DetentValue.Full };
+    }
+
+    protected override void OnBindingContextChanged()
+    {
+        base.OnBindingContextChanged();
+
+        if (_viewModel != null)
+            _viewModel.ScrollToTopRequested -= OnScrollToTopRequested;
+
+        _viewModel = BindingContext as HomeViewModel;
+        if (_viewModel != null)
+            _viewModel.ScrollToTopRequested += OnScrollToTopRequested;
+    }
+
+    /// <summary>
+    /// Nach Reload/Seitenwechsel an den Listenanfang: die ItemsSource-Instanz bleibt
+    /// gleich (ReplaceRange fuer den Recycling-Pool), die Scroll-Position wuerde den
+    /// Inhaltstausch sonst ueberleben.
+    /// </summary>
+    private void OnScrollToTopRequested(object? sender, EventArgs e)
+    {
+        if (_viewModel?.Properties.Count > 0)
+            PropertiesCollection.ScrollTo(0, position: ScrollToPosition.Start, animate: false);
+        ShowChipBar();
     }
 
     /// <summary>

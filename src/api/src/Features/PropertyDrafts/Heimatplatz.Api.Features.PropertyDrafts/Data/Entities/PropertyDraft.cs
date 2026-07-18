@@ -51,4 +51,12 @@ public class PropertyDraft : BaseEntity
     public DateTimeOffset? DescriptionRequestedAt { get; set; }
 
     public DateTimeOffset? DescriptionCompletedAt { get; set; }
+
+    /// <summary>
+    /// Gesetzt, wenn der Entwurf veroeffentlicht wurde, waehrend der Beschreibungs-Job
+    /// noch lief: Die Immobilie ist mit Platzhalter-Beschreibung live, der fertige Text
+    /// wird vom Job nachgeliefert. Solche Entwuerfe erscheinen nicht mehr in der Liste
+    /// und werden nach der Nachlieferung geloescht.
+    /// </summary>
+    public Guid? PublishedPropertyId { get; set; }
 }

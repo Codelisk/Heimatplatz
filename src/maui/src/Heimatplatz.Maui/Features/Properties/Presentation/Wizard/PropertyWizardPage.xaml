@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:steps="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
+             xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:services="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
              xmlns:wizard="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.Wizard.PropertyWizardPage"
              x:DataType="wizard:PropertyWizardViewModel"
@@ -15,111 +16,875 @@
     </Shell.BackButtonBehavior>
 
     <ContentPage.Resources>
-        <Style x:Key="StepSegment" TargetType="BoxView">
-            <Setter Property="HeightRequest" Value="4" />
-            <Setter Property="CornerRadius" Value="2" />
-            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+        <!-- "Hier ausfuellen"-Feld im Zettel-Look: opakes Papier + gestrichelte Kante
+             (Pendant zur .wys-Klasse des Web-Editors, bewusst neutral/ohne Rot) -->
+        <Style x:Key="WysField" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeDashArray" Value="4,3" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+            <Setter Property="Padding" Value="10,4" />
         </Style>
-        <Style x:Key="StepSegmentActive" TargetType="BoxView" BasedOn="{StaticResource StepSegment}">
-            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+
+        <!-- Kompaktvariante fuer Kachel-/Zeilenfelder -->
+        <Style x:Key="WysFieldTight" TargetType="Border" BasedOn="{StaticResource WysField}">
+            <Setter Property="Padding" Value="8,2" />
+        </Style>
+
+        <Style x:Key="WysEntry" TargetType="Entry">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="MinimumHeightRequest" Value="36" />
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <!-- Single-Cell-Grid wie die Detailseite: Aktionsleiste liegt UEBER dem Inhalt -->
+    <Grid>
 
-        <!-- Fortschritts-Header -->
-        <VerticalStackLayout Grid.Row="0"
-                             Spacing="8"
-                             Padding="16,12,16,8"
-                             MaximumWidthRequest="640"
-                             HorizontalOptions="Fill">
-            <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
-                <BoxView Grid.Column="0" Style="{StaticResource StepSegmentActive}" />
-                <BoxView Grid.Column="1" Style="{StaticResource StepSegment}">
-                    <BoxView.Triggers>
-                        <DataTrigger TargetType="BoxView" Binding="{Binding Step2Reached}" Value="True">
-                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                        </DataTrigger>
-                    </BoxView.Triggers>
-                </BoxView>
-                <BoxView Grid.Column="2" Style="{StaticResource StepSegment}">
-                    <BoxView.Triggers>
-                        <DataTrigger TargetType="BoxView" Binding="{Binding Step3Reached}" Value="True">
-                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                        </DataTrigger>
-                    </BoxView.Triggers>
-                </BoxView>
-                <BoxView Grid.Column="3" Style="{StaticResource StepSegment}">
-                    <BoxView.Triggers>
-                        <DataTrigger TargetType="BoxView" Binding="{Binding Step4Reached}" Value="True">
-                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                        </DataTrigger>
-                    </BoxView.Triggers>
-                </BoxView>
-                <BoxView Grid.Column="4" Style="{StaticResource StepSegment}">
-                    <BoxView.Triggers>
-                        <DataTrigger TargetType="BoxView" Binding="{Binding Step5Reached}" Value="True">
-                            <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                        </DataTrigger>
-                    </BoxView.Triggers>
-                </BoxView>
-            </Grid>
-            <Label Text="{Binding StepProgressText}"
-                   Style="{StaticResource Caption}" />
-        </VerticalStackLayout>
+        <ScrollView>
+            <!-- Bottom-Padding reserviert Platz fuer die Veroeffentlichen-Leiste -->
+            <VerticalStackLayout Spacing="0" Padding="0,0,0,132">
 
-        <!-- Banner (fix ueber dem Inhalt, kein Scrollen noetig) -->
-        <VerticalStackLayout Grid.Row="1"
+                <!-- Hero: Foto-Buehne wie die Detailansicht, nur editierbar -->
+                <Grid HeightRequest="300">
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                            StrokeThickness="0">
+                        <Image Source="logo.png"
+                               WidthRequest="110"
+                               Opacity="0.16"
+                               IsVisible="{Binding HasPhotos}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <!-- Aktuelles Foto (Einzelbild + ‹/› wie die Windows-Detailansicht) -->
+                    <Grid IsVisible="{Binding HasPhotos}">
+                        <Image Source="{Binding CurrentHeroSource}">
+                            <Image.Aspect>
+                                <OnPlatform x:TypeArguments="Aspect" Default="AspectFill">
+                                    <On Platform="WinUI" Value="AspectFit" />
+                                </OnPlatform>
+                            </Image.Aspect>
+                        </Image>
+
+                        <!-- Pfeile als Geometrie statt Font-Glyph (siehe Schliessen-X der Detail-Pages) -->
+                        <Grid IsVisible="{Binding HasMultiplePhotos}"
+                              HorizontalOptions="Start"
+                              VerticalOptions="Center"
+                              Margin="14,0,0,0">
+                            <Button Command="{Binding ShowPreviousHeroImageCommand}"
+                                    Padding="0"
+                                    MinimumHeightRequest="0"
+                                    MinimumWidthRequest="0"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    CornerRadius="22"
+                                    BorderWidth="1"
+                                    BackgroundColor="{StaticResource GlassPillBackground}"
+                                    BorderColor="{StaticResource GlassPillStroke}"
+                                    AutomationId="Wizard_PreviousImage" />
+                            <Path Data="M10,1 L4,7 L10,13"
+                                  Stroke="White"
+                                  StrokeThickness="1.8"
+                                  StrokeLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  WidthRequest="14"
+                                  HeightRequest="14"
+                                  HorizontalOptions="Center"
+                                  VerticalOptions="Center"
+                                  InputTransparent="True" />
+                        </Grid>
+
+                        <Grid IsVisible="{Binding HasMultiplePhotos}"
+                              HorizontalOptions="End"
+                              VerticalOptions="Center"
+                              Margin="0,0,14,0">
+                            <Button Command="{Binding ShowNextHeroImageCommand}"
+                                    Padding="0"
+                                    MinimumHeightRequest="0"
+                                    MinimumWidthRequest="0"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    CornerRadius="22"
+                                    BorderWidth="1"
+                                    BackgroundColor="{StaticResource GlassPillBackground}"
+                                    BorderColor="{StaticResource GlassPillStroke}"
+                                    AutomationId="Wizard_NextImage" />
+                            <Path Data="M4,1 L10,7 L4,13"
+                                  Stroke="White"
+                                  StrokeThickness="1.8"
+                                  StrokeLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  WidthRequest="14"
+                                  HeightRequest="14"
+                                  HorizontalOptions="Center"
+                                  VerticalOptions="Center"
+                                  InputTransparent="True" />
+                        </Grid>
+                    </Grid>
+
+                    <!-- Ohne Fotos: gestrichelte Upload-Zone -->
+                    <Border IsVisible="{Binding HasNoMedia}"
+                            BackgroundColor="Transparent"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                            StrokeThickness="1.6"
+                            StrokeDashArray="6,4"
+                            StrokeShape="RoundRectangle 10"
+                            Margin="24,24,24,50">
+                        <VerticalStackLayout Spacing="6"
+                                             HorizontalOptions="Center"
+                                             VerticalOptions="Center">
+                            <Label Text="📷"
+                                   FontSize="30"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Fotos hinzufügen"
+                                   Style="{StaticResource BodyStrong}"
+                                   HorizontalOptions="Center" />
+                            <Label Text="JPG oder PNG – bis zu 20 Fotos, das erste wird zum Titelbild"
+                                   Style="{StaticResource Caption}"
+                                   HorizontalTextAlignment="Center"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Button IsVisible="{Binding HasNoMedia}"
+                            BackgroundColor="Transparent"
+                            BorderColor="Transparent"
+                            BorderWidth="0"
+                            Padding="0"
+                            MinimumHeightRequest="0"
+                            Margin="24,24,24,50"
+                            Command="{Binding PickPhotosCommand}"
+                            SemanticProperties.Description="Fotos aus der Galerie hinzufügen"
+                            AutomationId="Wizard_HeroPickPhotos" />
+
+                    <!-- Typ-Badge wie am Inserat - Tipp darauf wechselt den Typ -->
+                    <Grid VerticalOptions="Start"
+                          HorizontalOptions="Start"
+                          Margin="14">
+                        <Border BackgroundColor="{Binding TypeBadgeColor}"
+                                Stroke="{StaticResource GlassPillStroke}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 2"
+                                Padding="12,5">
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="{Binding TypeBadgeText}"
+                                       FontFamily="SansBold"
+                                       FontSize="10"
+                                       CharacterSpacing="1.4"
+                                       TextColor="White"
+                                       VerticalOptions="Center" />
+                                <Label Text="▾"
+                                       FontSize="10"
+                                       TextColor="#CCFFFFFF"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </Border>
+                        <Button BackgroundColor="Transparent"
+                                BorderColor="Transparent"
+                                BorderWidth="0"
+                                Padding="0"
+                                MinimumHeightRequest="0"
+                                MinimumWidthRequest="0"
+                                Command="{Binding EditTypeCommand}"
+                                SemanticProperties.Description="Immobilientyp wechseln"
+                                AutomationId="Wizard_TypeBadge" />
+                    </Grid>
+
+                    <!-- Foto-Aktionen als Glas-Pills (Kamera / Galerie) -->
+                    <HorizontalStackLayout Spacing="8"
+                                           VerticalOptions="End"
+                                           HorizontalOptions="End"
+                                           Margin="0,0,14,38">
+                        <Button Text="📷 Aufnehmen"
+                                Command="{Binding TakePhotoCommand}"
+                                FontSize="12"
+                                Padding="12,0"
+                                MinimumHeightRequest="0"
+                                HeightRequest="34"
+                                CornerRadius="17"
+                                BorderWidth="1"
+                                BackgroundColor="{StaticResource GlassPillBackground}"
+                                BorderColor="{StaticResource GlassPillStroke}"
+                                TextColor="White"
+                                AutomationId="Wizard_TakePhoto" />
+                        <Button Text="🖼 Galerie"
+                                Command="{Binding PickPhotosCommand}"
+                                FontSize="12"
+                                Padding="12,0"
+                                MinimumHeightRequest="0"
+                                HeightRequest="34"
+                                CornerRadius="17"
+                                BorderWidth="1"
+                                BackgroundColor="{StaticResource GlassPillBackground}"
+                                BorderColor="{StaticResource GlassPillStroke}"
+                                TextColor="White"
+                                AutomationId="Wizard_PickPhotos" />
+                    </HorizontalStackLayout>
+
+                    <!-- Foto-Zaehler (oberhalb der Sheet-Kante) -->
+                    <Border Style="{StaticResource GlassPill}"
+                            Padding="8,3"
+                            Margin="14,0,14,38"
+                            VerticalOptions="End"
+                            HorizontalOptions="Start"
+                            IsVisible="{Binding HasPhotos}">
+                        <Label Text="{Binding HeroCounterText}"
+                               FontSize="11"
+                               FontFamily="SansMedium"
+                               TextColor="White" />
+                    </Border>
+                </Grid>
+
+                <!-- Content-Sheet: rundet ueber das Foto wie die Detailansicht -->
+                <Border Margin="0,-26,0,0"
+                        Padding="0,20,0,24"
+                        StrokeThickness="0"
+                        Stroke="Transparent"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
+                        StrokeShape="RoundRectangle 14,14,0,0">
+                    <VerticalStackLayout Spacing="16">
+
+                        <!-- Foto-Streifen: alle Fotos verwalten (✕ entfernt) -->
+                        <ScrollView Orientation="Horizontal"
+                                    HorizontalScrollBarVisibility="Never"
+                                    Padding="16,0"
+                                    MaximumWidthRequest="800"
+                                    HorizontalOptions="Fill"
+                                    IsVisible="{Binding HasMedia}">
+                            <HorizontalStackLayout Spacing="8"
+                                                   BindableLayout.ItemsSource="{Binding Media}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="models:WizardMediaItem">
+                                        <Grid>
+                                            <Border StrokeThickness="1"
+                                                    Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource ZettelFrameDark}}"
+                                                    StrokeShape="RoundRectangle 6"
+                                                    WidthRequest="64"
+                                                    HeightRequest="64"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}">
+                                                <Image Source="{Binding DisplaySource}"
+                                                       Aspect="AspectFill" />
+                                            </Border>
+                                            <Button Text="✕"
+                                                    FontSize="10"
+                                                    TextColor="White"
+                                                    BackgroundColor="#B0000000"
+                                                    WidthRequest="22"
+                                                    HeightRequest="22"
+                                                    CornerRadius="11"
+                                                    Padding="0"
+                                                    MinimumHeightRequest="0"
+                                                    MinimumWidthRequest="0"
+                                                    VerticalOptions="Start"
+                                                    HorizontalOptions="End"
+                                                    Margin="2"
+                                                    Command="{Binding RemoveMediaCommand, Source={RelativeSource AncestorType={x:Type wizard:PropertyWizardViewModel}}, x:DataType=wizard:PropertyWizardViewModel}"
+                                                    CommandParameter="{Binding .}"
+                                                    SemanticProperties.Description="Foto entfernen" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </HorizontalStackLayout>
+                        </ScrollView>
+
+                        <!-- Kopf: Preis, Titel, Adresse - direkt editierbar -->
+                        <VerticalStackLayout Spacing="8"
+                                             Padding="16,0"
+                                             MaximumWidthRequest="800"
+                                             HorizontalOptions="Fill">
+
+                            <!-- Preis in der Detailseiten-Typo (Serif, Markenrot) -->
+                            <Border Style="{StaticResource WysField}">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                    <Label Grid.Column="0"
+                                           Text="€"
+                                           FontFamily="Display"
+                                           FontSize="28"
+                                           VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}" />
+                                    <Entry Grid.Column="1"
+                                           Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                           Text="{Binding Preis}"
+                                           Keyboard="Numeric"
+                                           Placeholder="450000"
+                                           FontFamily="Display"
+                                           FontSize="28"
+                                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
+                                           SemanticProperties.Description="Preis in Euro"
+                                           AutomationId="Wizard_PriceEntry" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Titel -->
+                            <Border Style="{StaticResource WysField}">
+                                <Entry Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                       Text="{Binding Titel}"
+                                       Placeholder="Ihr Titel – z.B. Sonniges Einfamilienhaus mit Garten"
+                                       FontFamily="Display"
+                                       FontSize="20"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                       SemanticProperties.Description="Titel des Inserats"
+                                       AutomationId="Wizard_TitleEntry" />
+                            </Border>
+
+                            <!-- Adresse: Strasse + Ort (wie die Adresszeile der Detailansicht) -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <Border Grid.Column="0" Style="{StaticResource WysFieldTight}">
+                                    <Entry Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                           Text="{Binding Adresse}"
+                                           Placeholder="Straße und Hausnummer"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                           SemanticProperties.Description="Straße und Hausnummer"
+                                           AutomationId="Wizard_StreetEntry" />
+                                </Border>
+
+                                <!-- Ort: Auswahl-Chip bzw. Suchfeld -->
+                                <Grid Grid.Column="1">
+                                    <Border Style="{StaticResource WysFieldTight}"
+                                            IsVisible="{Binding Ort.HasNoSelectedOrt}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                               Text="{Binding Ort.OrtSearchText}"
+                                               Placeholder="Ort oder PLZ suchen…"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                               SemanticProperties.Description="Ort suchen"
+                                               AutomationId="Wizard_OrtSearch" />
+                                    </Border>
+                                    <HorizontalStackLayout IsVisible="{Binding Ort.HasSelectedOrt}"
+                                                           VerticalOptions="Center">
+                                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                                Stroke="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}"
+                                                StrokeThickness="1"
+                                                StrokeShape="RoundRectangle 14"
+                                                Padding="12,4,4,4">
+                                            <HorizontalStackLayout Spacing="2">
+                                                <Label Text="{Binding Ort.SelectedOrtText}"
+                                                       FontSize="12"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                                       VerticalOptions="Center" />
+                                                <Button Text="✕"
+                                                        FontSize="11"
+                                                        Padding="6,0"
+                                                        MinimumHeightRequest="0"
+                                                        MinimumWidthRequest="0"
+                                                        HeightRequest="24"
+                                                        BackgroundColor="Transparent"
+                                                        BorderWidth="0"
+                                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                                        Command="{Binding Ort.ClearSelectionCommand}"
+                                                        SemanticProperties.Description="Ort ändern"
+                                                        AutomationId="Wizard_ClearOrt" />
+                                            </HorizontalStackLayout>
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Grid>
+
+                            <!-- Ort-Vorschlaege (unter der Adresszeile) -->
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ort.OrtSuggestions}"
+                                                 IsVisible="{Binding Ort.HasOrtSuggestions}"
+                                                 Spacing="0">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="services:LocationGemeindeDto">
+                                        <Grid Margin="0,0,0,2">
+                                            <Border StrokeThickness="1"
+                                                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                                    StrokeShape="RoundRectangle 4"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                                                    Padding="8,10">
+                                                <Label FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{}{0} ({1})">
+                                                            <Binding Path="Name" />
+                                                            <Binding Path="PostalCode" />
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                            </Border>
+                                            <!-- Unsichtbarer Button statt TapGestureRecognizer (WinUI/DevFlow) -->
+                                            <Button BackgroundColor="Transparent"
+                                                    BorderColor="Transparent"
+                                                    BorderWidth="0"
+                                                    Padding="0"
+                                                    MinimumHeightRequest="0"
+                                                    Command="{Binding Ort.SelectGemeindeCommand, Source={RelativeSource AncestorType={x:Type wizard:PropertyWizardViewModel}}, x:DataType=wizard:PropertyWizardViewModel}"
+                                                    CommandParameter="{Binding .}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+
+                        <!-- Kernfakten-Kacheln: direkt editierbar -->
+                        <FlexLayout Wrap="Wrap"
+                                    JustifyContent="Start"
+                                    Padding="16,0,8,0"
+                                    MaximumWidthRequest="800"
+                                    HorizontalOptions="Fill">
+
+                            <Border Style="{StaticResource StatTile}"
+                                    FlexLayout.Basis="30%"
+                                    FlexLayout.Grow="1"
+                                    Margin="0,0,8,8"
+                                    IsVisible="{Binding IsHouseType}">
+                                <VerticalStackLayout Spacing="3">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                                        <Border Grid.Column="0" Style="{StaticResource WysFieldTight}">
+                                            <Entry Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                                   Text="{Binding Wohnflaeche}"
+                                                   Keyboard="Numeric"
+                                                   Placeholder="140"
+                                                   FontFamily="Display"
+                                                   FontSize="16"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                                   SemanticProperties.Description="Wohnfläche in Quadratmetern"
+                                                   AutomationId="Wizard_LivingAreaEntry" />
+                                        </Border>
+                                        <Label Grid.Column="1"
+                                               Text="m²"
+                                               FontSize="12"
+                                               VerticalOptions="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                    </Grid>
+                                    <Label Text="WOHNFLÄCHE" Style="{StaticResource StatTileLabel}" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Border Style="{StaticResource StatTile}"
+                                    FlexLayout.Basis="30%"
+                                    FlexLayout.Grow="1"
+                                    Margin="0,0,8,8">
+                                <VerticalStackLayout Spacing="3">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                                        <Border Grid.Column="0" Style="{StaticResource WysFieldTight}">
+                                            <Entry Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                                   Text="{Binding Grundstuecksflaeche}"
+                                                   Keyboard="Numeric"
+                                                   Placeholder="520"
+                                                   FontFamily="Display"
+                                                   FontSize="16"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                                   SemanticProperties.Description="Grundstücksfläche in Quadratmetern"
+                                                   AutomationId="Wizard_PlotAreaEntry" />
+                                        </Border>
+                                        <Label Grid.Column="1"
+                                               Text="m²"
+                                               FontSize="12"
+                                               VerticalOptions="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                    </Grid>
+                                    <Label Text="GRUNDSTÜCK" Style="{StaticResource StatTileLabel}" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Border Style="{StaticResource StatTile}"
+                                    FlexLayout.Basis="30%"
+                                    FlexLayout.Grow="1"
+                                    Margin="0,0,8,8"
+                                    IsVisible="{Binding IsHouseType}">
+                                <VerticalStackLayout Spacing="3">
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                               Text="{Binding Zimmer}"
+                                               Keyboard="Numeric"
+                                               Placeholder="5"
+                                               FontFamily="Display"
+                                               FontSize="16"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="Anzahl Zimmer"
+                                               AutomationId="Wizard_RoomsEntry" />
+                                    </Border>
+                                    <Label Text="ZIMMER" Style="{StaticResource StatTileLabel}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </FlexLayout>
+
+                        <!-- Gebaeude-Karte (wie die Datentabelle der Detailansicht) -->
+                        <Border Style="{StaticResource Card}"
+                                Padding="16,12"
+                                Margin="16,0"
+                                MaximumWidthRequest="768"
+                                HorizontalOptions="Fill"
+                                IsVisible="{Binding IsHouseType}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="GEBÄUDE"
+                                       Style="{StaticResource SectionHeader}" />
+                                <Grid ColumnDefinitions="*,110" Padding="0,2">
+                                    <Label Grid.Column="0"
+                                           Text="Baujahr"
+                                           FontSize="13"
+                                           VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                    <Border Grid.Column="1" Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                               Text="{Binding Baujahr}"
+                                               Keyboard="Numeric"
+                                               Placeholder="1998"
+                                               FontSize="13"
+                                               FontFamily="SansMedium"
+                                               HorizontalTextAlignment="End"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="Baujahr"
+                                               AutomationId="Wizard_YearBuiltEntry" />
+                                    </Border>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Ausstattung & Merkmale -->
+                        <Border Style="{StaticResource Card}"
+                                Padding="16,12"
+                                Margin="16,0"
+                                MaximumWidthRequest="768"
+                                HorizontalOptions="Fill">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="AUSSTATTUNG &amp; MERKMALE"
+                                       Style="{StaticResource SectionHeader}" />
+
+                                <FlexLayout Wrap="Wrap"
+                                            JustifyContent="Start"
+                                            IsVisible="{Binding HasFeatures}"
+                                            BindableLayout.ItemsSource="{Binding FeatureItems}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                                    Stroke="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}"
+                                                    StrokeThickness="1"
+                                                    StrokeShape="RoundRectangle 13"
+                                                    Padding="10,2,2,2"
+                                                    Margin="0,0,6,6">
+                                                <HorizontalStackLayout Spacing="0">
+                                                    <Label Text="{Binding .}"
+                                                           FontSize="12"
+                                                           VerticalOptions="Center"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                                    <Button Text="✕"
+                                                            FontSize="10"
+                                                            Padding="6,0"
+                                                            MinimumHeightRequest="0"
+                                                            MinimumWidthRequest="0"
+                                                            HeightRequest="22"
+                                                            BackgroundColor="Transparent"
+                                                            BorderWidth="0"
+                                                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                                            Command="{Binding RemoveFeatureCommand, Source={RelativeSource AncestorType={x:Type wizard:PropertyWizardViewModel}}, x:DataType=wizard:PropertyWizardViewModel}"
+                                                            CommandParameter="{Binding .}"
+                                                            SemanticProperties.Description="Merkmal entfernen" />
+                                                </HorizontalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </FlexLayout>
+
+                                <Border Style="{StaticResource WysFieldTight}">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                                        <Entry Grid.Column="0"
+                                               Style="{StaticResource WysEntry}"
+                                           StyleClass="borderless"
+                                               Text="{Binding NewFeatureText}"
+                                               Placeholder="Merkmal hinzufügen, z.B. Garage…"
+                                               FontSize="13"
+                                               ReturnCommand="{Binding AddFeatureCommand}"
+                                               SemanticProperties.Description="Merkmal hinzufügen"
+                                               AutomationId="Wizard_FeatureEntry" />
+                                        <Button Grid.Column="1"
+                                                Text="+"
+                                                FontSize="16"
+                                                Padding="0"
+                                                MinimumHeightRequest="0"
+                                                MinimumWidthRequest="0"
+                                                WidthRequest="30"
+                                                HeightRequest="30"
+                                                CornerRadius="15"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                                BorderWidth="0"
+                                                VerticalOptions="Center"
+                                                Command="{Binding AddFeatureCommand}"
+                                                SemanticProperties.Description="Merkmal hinzufügen"
+                                                AutomationId="Wizard_AddFeature" />
+                                    </Grid>
+                                </Border>
+
+                                <Label Text="Enter fügt hinzu. Ohne eigene Merkmale zeigt das Inserat automatisch Typ, Ort und Fläche."
+                                       Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Beschreibung: Selbst schreiben ODER erstellen lassen -->
+                        <VerticalStackLayout Spacing="10"
+                                             Padding="16,0"
+                                             MaximumWidthRequest="800"
+                                             HorizontalOptions="Fill">
+                            <Label Text="BESCHREIBUNG"
+                                   Style="{StaticResource SectionHeader}" />
+
+                            <!-- Wahlkarten -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Grid Grid.Column="0">
+                                    <Border Style="{StaticResource Card}" Padding="14,12">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsManualMode}" Value="True">
+                                                <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                <Setter Property="StrokeThickness" Value="2" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="✍️" FontSize="20" />
+                                            <Label Text="Selbst schreiben"
+                                                   Style="{StaticResource BodyStrong}">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsManualMode}" Value="True">
+                                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label Text="Sie formulieren den Text Ihres Inserats."
+                                                   Style="{StaticResource Caption}" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                    <!-- Unsichtbarer Button statt TapGestureRecognizer (WinUI/DevFlow) -->
+                                    <Button AutomationId="Wizard_ModeManual"
+                                            Text=""
+                                            BackgroundColor="Transparent"
+                                            BorderWidth="0"
+                                            CornerRadius="10"
+                                            Command="{Binding ChooseManualModeCommand}" />
+                                </Grid>
+
+                                <Grid Grid.Column="1">
+                                    <Border Style="{StaticResource Card}" Padding="14,12">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsGenerateMode}" Value="True">
+                                                <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                <Setter Property="StrokeThickness" Value="2" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="✨" FontSize="20" />
+                                            <Label Text="Erstellen lassen"
+                                                   Style="{StaticResource BodyStrong}">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsGenerateMode}" Value="True">
+                                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label Text="Aus Stichwörtern und Fotos entsteht Ihr Text."
+                                                   Style="{StaticResource Caption}" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                    <Button AutomationId="Wizard_ModeGenerate"
+                                            Text=""
+                                            BackgroundColor="Transparent"
+                                            BorderWidth="0"
+                                            CornerRadius="10"
+                                            Command="{Binding ChooseGenerateModeCommand}" />
+                                </Grid>
+                            </Grid>
+
+                            <!-- Modus: Selbst schreiben -->
+                            <VerticalStackLayout Spacing="6"
+                                                 IsVisible="{Binding IsManualMode}">
+                                <Border Style="{StaticResource WysField}">
+                                    <Editor Text="{Binding Beschreibung}"
+                                            AutomationId="Wizard_DescriptionEditor"
+                                            StyleClass="borderless"
+                                            AutoSize="TextChanges"
+                                            MinimumHeightRequest="140"
+                                            BackgroundColor="Transparent"
+                                            FontSize="14"
+                                            Placeholder="Beschreiben Sie Lage, Zustand und Besonderheiten Ihrer Immobilie (mind. 50 Zeichen)…" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Modus: Erstellen lassen -->
+                            <VerticalStackLayout Spacing="10"
+                                                 IsVisible="{Binding IsGenerateMode}">
+
+                                <Border Style="{StaticResource Card}" Padding="14,12">
+                                    <VerticalStackLayout Spacing="10">
+                                        <Label Text="Stichwörter"
+                                               Style="{StaticResource FieldLabel}" />
+
+                                        <!-- Mikrofon mit Puls-Ring (nur Android/iOS) -->
+                                        <Grid HeightRequest="100"
+                                              IsVisible="{Binding DictationSupported}">
+                                            <Border WidthRequest="72"
+                                                    HeightRequest="72"
+                                                    StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 36"
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="Center"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
+                                                <Border.Triggers>
+                                                    <DataTrigger TargetType="Border"
+                                                                 Binding="{Binding IsListening}"
+                                                                 Value="True">
+                                                        <Setter Property="BackgroundColor"
+                                                                Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                                                    </DataTrigger>
+                                                </Border.Triggers>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding ToggleDictationCommand}" />
+                                                </Border.GestureRecognizers>
+                                                <Label Text="{Binding MicButtonText}"
+                                                       FontSize="24"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center"
+                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                            </Border>
+                                        </Grid>
+
+                                        <Label Text="{Binding MicHintText}"
+                                               Style="{StaticResource Caption}"
+                                               HorizontalOptions="Center"
+                                               IsVisible="{Binding DictationSupported}" />
+
+                                        <Label Text="{Binding LivePartial}"
+                                               FontAttributes="Italic"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                               IsVisible="{Binding HasLivePartial}" />
+
+                                        <Border Style="{StaticResource WysField}">
+                                            <Editor Text="{Binding DescriptionKeywords}"
+                                                    AutomationId="Wizard_KeywordsEditor"
+                                                    StyleClass="borderless"
+                                                    AutoSize="TextChanges"
+                                                    MinimumHeightRequest="90"
+                                                    BackgroundColor="Transparent"
+                                                    FontSize="14"
+                                                    Placeholder="z.B. ruhige Lage, 2020 saniert, großer Garten, Blick ins Grüne …" />
+                                        </Border>
+
+                                        <Label Text="Diktat ist auf diesem Gerät nicht verfügbar – Stichwörter einfach eintippen."
+                                               Style="{StaticResource Caption}"
+                                               IsVisible="{Binding DictationUnsupported}" />
+
+                                        <Button Text="✨ Text erstellen lassen"
+                                                AutomationId="Wizard_RequestGeneration"
+                                                Command="{Binding RequestGenerationCommand}"
+                                                IsEnabled="{Binding CanRequestGeneration}"
+                                                Style="{StaticResource PrimaryButton}">
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button" Binding="{Binding IsGenerationFinished}" Value="True">
+                                                    <Setter Property="Text" Value="✨ Text neu erstellen lassen" />
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Status: Text wird erstellt - Veroeffentlichen ist trotzdem moeglich -->
+                                <Border Style="{StaticResource SuccessBanner}"
+                                        IsVisible="{Binding IsGenerationRunning}">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <ActivityIndicator Grid.Column="0"
+                                                           IsRunning="{Binding IsGenerationRunning}"
+                                                           WidthRequest="20"
+                                                           HeightRequest="20"
+                                                           VerticalOptions="Center" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                            <Label Text="Ihr Text wird im Hintergrund erstellt"
+                                                   FontAttributes="Bold"
+                                                   Style="{StaticResource SuccessBannerText}" />
+                                            <Label Text="Sie müssen nicht warten: Veröffentlichen Sie einfach – die fertige Beschreibung erscheint automatisch in Ihrem Inserat."
+                                                   Style="{StaticResource SuccessBannerText}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Status: fehlgeschlagen -->
+                                <Border Style="{StaticResource ErrorBanner}"
+                                        IsVisible="{Binding HasGenerationFailed}">
+                                    <Label Text="{Binding GenerationFailedMessage}"
+                                           Style="{StaticResource ErrorBannerText}" />
+                                </Border>
+
+                                <!-- Ergebnis: fertiger Text (direkt bearbeitbar) -->
+                                <VerticalStackLayout Spacing="6"
+                                                     IsVisible="{Binding IsGenerationFinished}">
+                                    <Border Style="{StaticResource WysField}">
+                                        <Editor Text="{Binding Beschreibung}"
+                                                AutomationId="Wizard_GeneratedDescriptionEditor"
+                                                StyleClass="borderless"
+                                                AutoSize="TextChanges"
+                                                MinimumHeightRequest="140"
+                                                BackgroundColor="Transparent"
+                                                FontSize="14" />
+                                    </Border>
+                                    <Label Text="Sie können den Text direkt bearbeiten."
+                                           Style="{StaticResource Caption}" />
+                                    <Button Text="Erstellten Text übernehmen"
+                                            Command="{Binding ApplyGeneratedDescriptionCommand}"
+                                            Style="{StaticResource LinkButton}"
+                                            IsVisible="{Binding ShowApplyGeneratedButton}" />
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Fehler-Banner schweben oben ueber dem Hero -->
+        <VerticalStackLayout VerticalOptions="Start"
                              Spacing="8"
-                             Padding="16,0,16,4"
+                             Padding="16,10"
                              MaximumWidthRequest="640"
                              HorizontalOptions="Fill">
             <Border Style="{StaticResource ErrorBanner}"
                     IsVisible="{Binding HasError}">
                 <Label Text="{Binding ErrorMessage}"
-                       Style="{StaticResource ErrorBannerText}" />
+                       Style="{StaticResource ErrorBannerText}"
+                       AutomationId="Wizard_ErrorText" />
             </Border>
             <Border Style="{StaticResource ErrorBanner}"
                     IsVisible="{Binding DraftSaveFailed}">
-                <Label Text="Entwurf konnte nicht gespeichert werden – wird beim nächsten Schritt erneut versucht."
+                <Label Text="Entwurf konnte nicht gespeichert werden – wird automatisch erneut versucht."
                        Style="{StaticResource ErrorBannerText}" />
             </Border>
         </VerticalStackLayout>
 
-        <!-- Schritt-Inhalte -->
-        <ScrollView Grid.Row="2">
-            <Grid Padding="16,8,16,16"
-                  MaximumWidthRequest="640"
-                  HorizontalOptions="Fill">
-                <steps:MediaStepView IsVisible="{Binding IsMediaStep}" />
-                <steps:DetailsStepView IsVisible="{Binding IsDetailsStep}" />
-                <steps:LocationStepView IsVisible="{Binding IsLocationStep}" />
-                <steps:DescriptionStepView IsVisible="{Binding IsDescriptionStep}" />
-                <steps:PreviewStepView IsVisible="{Binding IsPreviewStep}" />
-            </Grid>
-        </ScrollView>
+        <!-- Veroeffentlichen-Leiste (wie der Kontakt-Footer der Detailansicht) -->
+        <Border VerticalOptions="End"
+                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 24,24,0,0"
+                Padding="16,12,16,14">
+            <Border.Shadow>
+                <Shadow Opacity="0.3" Radius="14" Offset="0,-4" />
+            </Border.Shadow>
+            <VerticalStackLayout Spacing="8"
+                                 MaximumWidthRequest="768"
+                                 HorizontalOptions="Fill">
+                <Label Text="{Binding PublishHintText}"
+                       Style="{StaticResource Caption}"
+                       IsVisible="{Binding HasPublishHint}"
+                       AutomationId="Wizard_PublishHint" />
+                <Label Text="{Binding PublishReadyText}"
+                       Style="{StaticResource Caption}"
+                       IsVisible="{Binding CanPublish}" />
+                <Button Text="Inserat veröffentlichen"
+                        Command="{Binding PublishCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        AutomationId="Wizard_Publish" />
+            </VerticalStackLayout>
+        </Border>
 
-        <!-- Footer: Zurueck / Weiter -->
-        <Grid Grid.Row="3"
-              ColumnDefinitions="*,*"
-              ColumnSpacing="12"
-              Padding="16,8,16,16"
-              MaximumWidthRequest="640"
-              HorizontalOptions="Fill">
-            <Button Grid.Column="0"
-                    Text="Zurück"
-                    Command="{Binding BackCommand}"
-                    Style="{StaticResource SecondaryButton}" />
-            <Button Grid.Column="1"
-                    Text="Weiter"
-                    Command="{Binding NextCommand}"
-                    Style="{StaticResource PrimaryButton}"
-                    IsVisible="{Binding ShowNextButton}" />
-        </Grid>
-
-        <!-- Busy-Overlay (Entwurf laden / Analyse-Start / Veroeffentlichen) -->
-        <Grid Grid.RowSpan="4"
-              Style="{StaticResource BusyOverlay}"
+        <!-- Busy-Overlay (Entwurf laden / Job beauftragen / Veroeffentlichen) -->
+        <Grid Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsBusy}">
             <Border Style="{StaticResource BusyCard}">
                 <VerticalStackLayout Spacing="10" HorizontalOptions="Center">

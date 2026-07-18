@@ -356,8 +356,7 @@ public partial class PropertyWizardViewModel
             _ = SaveDraftAsync();
         }
 
-        if (IsPreviewStep)
-            RefreshPreview();
+        RefreshEditorState();
     }
 
     /// <summary>
@@ -394,37 +393,6 @@ public partial class PropertyWizardViewModel
 
     #endregion
 
-    #region Schritt-Validierung
-
-    /// <summary>
-    /// Verlaesst den Beschreibungs-Schritt. Waehrend einer laufenden Generierung darf
-    /// weitergegangen werden (der Text landet automatisch im Entwurf).
-    /// </summary>
-    private async Task<bool> ValidateDescriptionStepAsync()
-    {
-        if (IsListening)
-            await _dictation.StopAsync();
-
-        if (DescriptionMode == DraftDescriptionMode.None)
-        {
-            ErrorMessage = "Bitte wählen Sie, wie Ihre Beschreibung entstehen soll.";
-            return false;
-        }
-
-        if (ValidateDescriptionText())
-            return true;
-
-        if (IsGenerateMode && (IsGenerationRunning || IsGenerationFinished))
-            return true;
-
-        ErrorMessage = IsGenerateMode
-            ? "Bitte lassen Sie zuerst den Text erstellen – oder schreiben Sie die Beschreibung selbst."
-            : "Die Beschreibung muss mindestens 50 Zeichen lang sein.";
-        return false;
-    }
-
     private bool ValidateDescriptionText() =>
         !string.IsNullOrWhiteSpace(Beschreibung) && Beschreibung.Trim().Length >= 50;
-
-    #endregion
 }

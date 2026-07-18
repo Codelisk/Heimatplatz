@@ -12,6 +12,10 @@ namespace Heimatplatz.Maui.Features.Properties.Controls;
 /// </summary>
 public partial class PropertyCard : ContentView
 {
+    // Typ-/Aktionsfarben (wie Web): Signal-Rot und warmes Glas, themenunabhaengig
+    private static readonly Color SignalRed = Color.FromArgb("#DE2A2F");
+    private static readonly Color GlassBackground = Color.FromArgb("#66171310");
+
     public PropertyCard()
     {
         InitializeComponent();
@@ -22,6 +26,16 @@ public partial class PropertyCard : ContentView
         // ein Ctor-Abo auf den Singleton wuerde leaken.
         Loaded += OnCardLoaded;
         Unloaded += OnCardUnloaded;
+
+        // Wasserzeichen-Placeholder nach erfolgreichem Foto-Load ausblenden -
+        // er wuerde sonst unter jedem Foto weiter mitgezeichnet (Overdraw)
+        MainImage.PropertyChanged += OnMainImagePropertyChanged;
+    }
+
+    private void OnMainImagePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Image.IsLoading) && !MainImage.IsLoading && _currentImageUrl != null)
+            PlaceholderPanel.IsVisible = false;
     }
 
     // Zuletzt gesetzte Bild-URL, um beim Card-Recycling unnoetige Reloads zu vermeiden
@@ -274,6 +288,10 @@ public partial class PropertyCard : ContentView
         if (newImageUrl != _currentImageUrl)
         {
             _currentImageUrl = newImageUrl;
+            // Wasserzeichen zeigen bis das neue Foto geladen ist (OnMainImagePropertyChanged
+            // blendet es dann aus); bei gleicher URL (Recycling auf dieselbe Immobilie)
+            // bleibt der Zustand unangetastet
+            PlaceholderPanel.IsVisible = true;
             // Beim Card-Recycling zuerst leeren: WinUI zeigt sonst das alte Foto
             // weiter, bis das neue geladen ist (falsches Bild auf falscher Immobilie)
             MainImage.Source = null;
@@ -301,21 +319,47 @@ public partial class PropertyCard : ContentView
 
     private void UpdateActionButtonVisibility()
     {
-        FavoriteButton.IsVisible = Mode == CardMode.Default && IsAuthenticated;
-        BlockButton.IsVisible = Mode == CardMode.Default && IsAuthenticated;
-        FavoriteActionButton.IsVisible = Mode == CardMode.Favorite;
-        BlockedActionButton.IsVisible = Mode == CardMode.Blocked;
-        OwnerDeleteButton.IsVisible = Mode == CardMode.Owner;
+        // Zwei wiederverwendete Buttons fuer alle CardModes (statt fuenf, groesstenteils
+        // unsichtbarer) - Sichtbarkeit und Glyphs je Mode nachziehen
+        switch (Mode)
+        {
+            case CardMode.Favorite:
+                FavoriteButton.IsVisible = true;
+                BlockButton.IsVisible = false;
+                break;
+            case CardMode.Blocked:
+            case CardMode.Owner:
+                FavoriteButton.IsVisible = false;
+                BlockButton.IsVisible = true;
+                BlockButton.Text = "✕";
+                BlockButton.FontSize = 16;
+                break;
+            default:
+                FavoriteButton.IsVisible = IsAuthenticated;
+                BlockButton.IsVisible = IsAuthenticated;
+                BlockButton.Text = "⊘";
+                BlockButton.FontSize = 18;
+                break;
+        }
+
+        UpdateFavoriteGlyph();
     }
 
     private void UpdateFavoriteGlyph()
     {
+        // Favoriten-Seite: rotes Herz auf Glas zum Entfernen (unabhaengig vom Status)
+        if (Mode == CardMode.Favorite)
+        {
+            FavoriteButton.Text = "♥";
+            FavoriteButton.TextColor = SignalRed;
+            FavoriteButton.BackgroundColor = GlassBackground;
+            return;
+        }
+
         // Gemerkt = gefuellter roter Button statt Glas (wie Web [aria-pressed=true])
         FavoriteButton.Text = IsFavorite ? "♥" : "♡";
         FavoriteButton.TextColor = Colors.White;
-        FavoriteButton.BackgroundColor = IsFavorite
-            ? Color.FromArgb("#DE2A2F")
-            : Color.FromArgb("#66171310");
+        FavoriteButton.BackgroundColor = IsFavorite ? SignalRed : GlassBackground;
     }
 
     private static string FormatPrice(decimal price)
@@ -341,13 +385,9 @@ public partial class PropertyCard : ContentView
 
     private void OnBlockClicked(object? sender, EventArgs e)
     {
-        if (Property != null && BlockCommand?.CanExecute(Property) == true)
-            BlockCommand.Execute(Property);
-    }
-
-    private void OnOwnerDeleteClicked(object? sender, EventArgs e)
-    {
-        if (Property != null && DeleteCommand?.CanExecute(Property) == true)
-            DeleteCommand.Execute(Property);
+        // Der Button dient je nach Mode dem Blockieren/Entblockieren oder Loeschen (Owner)
+        var command = Mode == CardMode.Owner ? DeleteCommand : BlockCommand;
+        if (Property != null && command?.CanExecute(Property) == true)
+            command.Execute(Property);
     }
 }

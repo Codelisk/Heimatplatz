@@ -31,7 +31,9 @@ public class GetPropertyDraftsHandler(
         var userId = httpContextAccessor.GetRequiredUserId();
 
         var drafts = await dbContext.Set<PropertyDraft>()
-            .Where(d => d.UserId == userId)
+            // Bereits veroeffentlichte Entwuerfe (warten nur noch auf die Text-Nachlieferung
+            // des Beschreibungs-Jobs) gehoeren nicht mehr in die Liste
+            .Where(d => d.UserId == userId && d.PublishedPropertyId == null)
             .OrderByDescending(d => d.UpdatedAt ?? d.CreatedAt)
             .Select(d => new PropertyDraftListItemDto(
                 d.Id,
