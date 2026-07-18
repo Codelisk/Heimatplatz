@@ -1,44 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
-  <defs>
-    <clipPath id="clip-scene"><circle cx="240" cy="240" r="163"/></clipPath>
-    <radialGradient id="sky" gradientUnits="userSpaceOnUse" cx="240" cy="120" r="290">
-      <stop offset="0" stop-color="#fdf8ea"/>
-      <stop offset="1" stop-color="#f3e6cb"/>
-    </radialGradient>
-  </defs>
+  <defs><clipPath id="clip-flat-clean"><circle cx="240" cy="240" r="163"/></clipPath></defs>
   <circle cx="240" cy="240" r="240" fill="#9f1519"/>
-  <g transform="translate(240 240) scale(1.18) translate(-240 -240)">
-  <circle cx="240" cy="240" r="172" fill="#ffffff"/>
-  <g clip-path="url(#clip-scene)">
-    <circle cx="240" cy="240" r="163" fill="url(#sky)"/>
-    <circle cx="240" cy="120" r="29" fill="#f8dd9a" opacity=".5"/>
-    <circle cx="240" cy="120" r="19" fill="#f5c95e"/>
-    <circle cx="240" cy="120" r="33" fill="none" stroke="#e2a83e" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="0.5 9.8"/>
-    <path fill="#aed175" d="M70 336q80-18 170-10 80 8 170-6v90H70Z"/>
-    <path fill="#97c05e" d="M70 360q100-18 180-8 80 8 160-4v62H70Z"/>
-    <g fill="#3f7a44">
-      <path d="M134 250l14 34h-9l15 28h-11l13 28h-44l13-28h-11l15-28h-9Z"/>
-      <path d="M346 250l14 34h-9l15 28h-11l13 28h-44l13-28h-11l15-28h-9Z"/>
-    </g>
-    <rect x="130" y="340" width="8" height="16" rx="3" fill="#8a5f3f"/>
-    <rect x="342" y="340" width="8" height="16" rx="3" fill="#8a5f3f"/>
+  <g transform="translate(240 240) scale(1.2) translate(-240 -240)">
+  <circle cx="240" cy="240" r="170" fill="#ffffff"/>
+  <g clip-path="url(#clip-flat-clean)">
+    <!-- Himmel -->
+    <circle cx="240" cy="240" r="163" fill="#d5ebe6"/>
+    <circle cx="148" cy="148" r="29" fill="#fbe7b2" opacity=".65"/>
+    <circle cx="148" cy="148" r="19" fill="#f5c95e"/>
+    <path fill="#ffffff" d="M278 151c2-10 10-16 20-16 7 0 13 3 17 9 3-2 7-3 11-3 8 0 15 5 17 13h-65Z"/>
+
+    <!-- Zwei klare Bergsilhouetten -->
+    <path fill="#e2d4b7" d="M248 304 344 188q6-7 12 0l84 116Z"/>
+    <path fill="#ffffff" d="m320 217 24-29q6-7 12 0l23 32-17-9-12 12-12-12Z"/>
+    <path fill="#efe4cc" d="M210 304 278 216q5-7 10 0l67 88Z"/>
+    <path fill="#ffffff" d="m259 240 19-24q5-7 10 0l18 24-13-7-10 10-10-10Z"/>
+
+    <!-- Landschaft -->
+    <path fill="#bcd489" d="M70 302q94-32 184-9 82 20 156 3v114H70Z"/>
+    <path fill="#a5c96e" d="M70 326q118-34 237-8 54 12 103 2v90H70Z"/>
+
+    <!-- Reduzierte Tannen -->
     <g>
-      <rect x="272" y="178" width="18" height="46" rx="4" fill="#9f1519"/>
-      <rect x="268" y="170" width="26" height="10" rx="4.5" fill="#fff8ea"/>
-      <rect x="176" y="252" width="128" height="98" rx="9" fill="#de2a2f"/>
-      <path fill="#9f1519" d="M150 264l83-84q7-8 14 0l83 84q2 7-6 7H156q-8 0-6-7Z"/>
-      <path d="M157 258l75-77q8-8 16 0l75 77" fill="none" stroke="#fff8ea" stroke-width="9" stroke-linecap="round"/>
-      <rect x="150" y="262" width="180" height="9" rx="4.5" fill="#fff8ea"/>
-      <path fill="#fff8ea" d="M240 236c-7-7-16-12-16-20 0-6 4-9 9-9 3 0 6 2 7 5 1-3 4-5 7-5 5 0 9 3 9 9 0 8-9 13-16 20Z"/>
-      <rect x="184" y="272" width="30" height="30" rx="7" fill="#fff8ea"/>
-      <rect x="190" y="278" width="18" height="18" rx="4" fill="#f5c95e"/>
-      <rect x="266" y="272" width="30" height="30" rx="7" fill="#fff8ea"/>
-      <rect x="272" y="278" width="18" height="18" rx="4" fill="#f5c95e"/>
-      <path fill="#fff8ea" d="M224 348v-32q0-14 16-14t16 14v32Z"/>
-      <circle cx="250" cy="326" r="2.5" fill="#9f1519"/>
-      <rect x="217" y="346" width="46" height="8" rx="4" fill="#8f1316"/>
+      <path fill="#4d8a4b" d="m100 248 14 31h-8l13 27H81l13-27h-8Z"/>
+      <rect x="96" y="302" width="8" height="14" rx="3" fill="#8a5f3f"/>
+      <path fill="#5e9b5a" d="m272 252 16 29h-8l14 25h-44l14-25h-8Z"/>
+      <rect x="268" y="302" width="8" height="14" rx="3" fill="#8a5f3f"/>
     </g>
-    <path d="M92 380q118-16 296-6" fill="none" stroke="#fff8ea" stroke-width="5" stroke-linecap="round" opacity=".4"/>
+
+    <!-- Großes, freundliches Alpenhaus -->
+    <g>
+      <rect x="127" y="247" width="98" height="75" rx="8" fill="#de2a2f"/>
+      <rect x="203" y="198" width="15" height="35" rx="5" fill="#fff8ea"/>
+      <path fill="#9f1519" d="M108 250 166 184q10-12 20 0l58 66q6 7-4 7H112q-10 0-4-7Z"/>
+      <rect x="120" y="249" width="112" height="9" rx="4.5" fill="#fff8ea"/>
+
+      <rect x="164" y="214" width="24" height="24" rx="8" fill="#ffffff"/>
+      <rect x="169" y="219" width="14" height="14" rx="4" fill="#f5c95e"/>
+
+      <rect x="132" y="268" width="27" height="24" rx="5" fill="#ffffff"/>
+      <rect x="137" y="273" width="17" height="14" rx="3" fill="#f5c95e"/>
+      <rect x="193" y="268" width="27" height="24" rx="5" fill="#ffffff"/>
+      <rect x="198" y="273" width="17" height="14" rx="3" fill="#f5c95e"/>
+
+      <path fill="#fff1d2" d="M165 322v-31q0-12 11-12t11 12v31Z"/>
+      <circle cx="181" cy="301" r="2" fill="#9f1519"/>
+    </g>
+
+    <!-- Ein ruhiger Vordergrund statt vieler Kleinteile -->
+    <path fill="#f0d998" d="M70 337q137-35 340-7v80H70Z"/>
+    <path d="M86 367q137-31 314-10M82 394q144-31 322-8" fill="none" stroke="#e5c377" stroke-width="8" stroke-linecap="round"/>
   </g>
   </g>
 </svg>
