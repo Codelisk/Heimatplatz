@@ -10,10 +10,14 @@
 #   3. Play-Store-Release (ReleaseAndroid, Track production) + Push des Release-Commits
 #      - bewusst FRUEH: der Version-Bump beider Stores soll von derselben Baseline
 #        rechnen, bevor der iOS-Build seinen neuen Build nach TestFlight laedt;
-#        die Emulator-Screenshots laufen ausserdem gegen die frisch deployte Test-API
-#   4. Test-Web deployen (GitHub-Workflow DeployAstroTest, rsync gibt es nur in CI)
-#   5. Prod-Web deployen (GitHub-Workflow DeployAstro)
-#   6. Auf iOS-Build warten, dann SubmitIos (wartet auf Apple-Processing, reicht zur Review ein)
+#        die Emulator-Screenshots laufen ausserdem gegen die frisch deployte Test-API;
+#        der Claude-Textschritt spiegelt die Release-Notes auch nach metadata/ios
+#   4. iOS-Screenshots auf Codemagic starten (ios-screenshots mit Upload; erst NACH dem
+#      Release-Push, damit die Lane die neue csproj-Version aus master liest)
+#   5. Test-Web deployen (GitHub-Workflow DeployAstroTest, rsync gibt es nur in CI),
+#      danach Prod-Web (DeployAstro)
+#   6. Auf beide Codemagic-Builds warten, dann SubmitIos (wartet auf Apple-Processing,
+#      reicht mit frischen Notes/Werbetext/Screenshots zur Review ein)
 #
 # Optionen zum Ueberspringen einzelner Etappen:
 #   ./release-all.ps1 -SkipApi -SkipWeb -SkipAndroid -SkipIos
@@ -99,7 +103,23 @@ if (-not $SkipAndroid) {
     if ($LASTEXITCODE -ne 0) { throw "Push des Release-Commits fehlgeschlagen." }
 }
 
-# --- 4./5. Web (Test, dann Prod) ueber GitHub Actions ----------------------
+# --- 4. iOS-Screenshots starten (parallel zu den Web-Deploys) --------------
+$screenshotsBuildId = $null
+if (-not $SkipIos) {
+    Step "iOS-Screenshots auf Codemagic starten (laeuft parallel weiter)"
+    $body = @{
+        appId       = "6a4fa7762451d1f76ba798cd"
+        workflowId  = "ios-screenshots"
+        branch      = "master"
+        environment = @{ variables = @{ UPLOAD_SCREENSHOTS = "true" } }
+    } | ConvertTo-Json -Depth 4
+    $response = Invoke-RestMethod -Method Post -Uri "https://api.codemagic.io/builds" `
+        -Headers @{ "x-auth-token" = $codemagicToken } -ContentType "application/json" -Body $body
+    $screenshotsBuildId = $response.buildId
+    Write-Host "Codemagic-Screenshots-Build gestartet: $screenshotsBuildId"
+}
+
+# --- 5. Web (Test, dann Prod) ueber GitHub Actions --------------------------
 if (-not $SkipWeb) {
     foreach ($target in @("DeployAstroTest", "DeployAstro")) {
         Step "Web deployen: $target (GitHub-Workflow)"
@@ -113,18 +133,25 @@ if (-not $SkipWeb) {
     }
 }
 
-# --- 6. iOS: auf Build warten + einreichen ---------------------------------
+# --- 6. iOS: auf Builds warten + einreichen ---------------------------------
 if (-not $SkipIos) {
-    Step "Auf Codemagic-iOS-Build warten"
-    while ($true) {
-        $build = (Invoke-RestMethod -Uri "https://api.codemagic.io/builds/$codemagicBuildId" `
-            -Headers @{ "x-auth-token" = $codemagicToken }).build
-        Write-Host "  Codemagic: $($build.status)"
-        if ($build.status -in @("finished", "failed", "canceled", "timeout", "skipped")) { break }
-        Start-Sleep 60
+    $pendingBuilds = @(@{ Name = "TestFlight-Build"; Id = $codemagicBuildId })
+    if ($screenshotsBuildId) {
+        $pendingBuilds += @{ Name = "Screenshots-Build"; Id = $screenshotsBuildId }
     }
-    if ($build.status -ne "finished") {
-        throw "Codemagic-Build endete mit Status '$($build.status)' - siehe https://codemagic.io/app/6a4fa7762451d1f76ba798cd/build/$codemagicBuildId"
+
+    foreach ($pending in $pendingBuilds) {
+        Step "Auf Codemagic warten: $($pending.Name)"
+        while ($true) {
+            $build = (Invoke-RestMethod -Uri "https://api.codemagic.io/builds/$($pending.Id)" `
+                -Headers @{ "x-auth-token" = $codemagicToken }).build
+            Write-Host "  $($pending.Name): $($build.status)"
+            if ($build.status -in @("finished", "failed", "canceled", "timeout", "skipped")) { break }
+            Start-Sleep 60
+        }
+        if ($build.status -ne "finished") {
+            throw "$($pending.Name) endete mit Status '$($build.status)' - siehe https://codemagic.io/app/6a4fa7762451d1f76ba798cd/build/$($pending.Id)"
+        }
     }
 
     Step "iOS zur App-Store-Review einreichen (SubmitIos)"

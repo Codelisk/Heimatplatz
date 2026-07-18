@@ -40,8 +40,27 @@ public sealed class AndroidStoreTextsTask : FrostingTask<BuildContext>
 
         RunClaude(context, BuildPrompt(context, locales, targetVersionCode, displayVersion, gitLog));
         Validate(context, locales, targetVersionCode);
+        SyncIosReleaseNotes(context, targetVersionCode);
 
         context.Information("Store texts updated and validated.");
+    }
+
+    /// <summary>
+    /// Spiegelt die frisch generierten de-DE-Release-Notes nach
+    /// metadata/ios/de-DE/release_notes.txt - beide Stores bekommen denselben Text
+    /// (SubmitIos liest die Datei als whatsNew). Das Play-Limit (500) ist strenger
+    /// als das ASC-Limit (4000), der Text passt also immer.
+    /// </summary>
+    private static void SyncIosReleaseNotes(BuildContext context, int versionCode)
+    {
+        var androidChangelog = Path.Combine(
+            context.FastlaneDirectory, "metadata", "android", "de-DE", "changelogs", $"{versionCode}.txt");
+        var iosReleaseNotes = Path.Combine(
+            context.FastlaneDirectory, "metadata", "ios", "de-DE", "release_notes.txt");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(iosReleaseNotes)!);
+        File.WriteAllText(iosReleaseNotes, File.ReadAllText(androidChangelog).Trim() + "\n");
+        context.Information($"iOS-Release-Notes mit Android-Changelog {versionCode} synchronisiert.");
     }
 
     public static string[] GetLocales(BuildContext context)
@@ -142,6 +161,9 @@ public sealed class AndroidStoreTextsTask : FrostingTask<BuildContext>
                {metadataRoot}/<locale>/changelogs/{versionCode}.txt (fuer JEDE Locale):
                kurze Aufzaehlung (Zeilen mit "• ") der NUTZERSICHTBAREN Aenderungen aus dem
                Git-Log unten. Interne Umbauten, CI/Build- und Reine-Code-Aenderungen weglassen.
+               WICHTIG: Der deutsche Text wird 1:1 auch als App-Store-Release-Notes (iOS)
+               verwendet - formuliere store-neutral (kein "Play Store", kein "Android",
+               keine plattformspezifischen Features erwaehnen, die es auf iOS nicht gibt).
                Gibt es nichts Nutzersichtbares, schreibe einen kurzen generischen Text
                ("• Fehlerbehebungen und Verbesserungen" bzw. "• Bug fixes and improvements").
             4. Halte die Zeichenlimits strikt ein (werden nach deinem Lauf hart validiert).

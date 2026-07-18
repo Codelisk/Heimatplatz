@@ -1,4 +1,7 @@
-• Neuer Inserats-Assistent: Fotos zuerst, dann Eckdaten – die Beschreibung wird auf Wunsch automatisch erstellt
-• Offline verbessert: bereits geladene Inserate bleiben ohne Internet verfügbar
-• Klare Hinweise bei fehlender Verbindung – Inhalte laden automatisch neu, sobald die Verbindung zurückkehrt
-• Verbesserte Stabilität und Fehlerbehebungen
+• Inserat erstellen jetzt als Assistent in 5 Schritten – Entwürfe werden automatisch gespeichert
+• KI-Hilfe für die Beschreibung: Stichwörter eintippen oder einsprechen, der Text entsteht im Hintergrund
+• Fotos auf den Detailseiten im Vollbild ansehen
+• Profilseite übersichtlich neu gestaltet
+• Passwort zurücksetzen jetzt direkt in der App
+• Ohne Internet zeigt die App klar den Offline-Zustand
+• Kleinere Fehlerbehebungen und Verbesserungen
