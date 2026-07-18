@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Events;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Auth;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -21,6 +22,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly IDialogs _dialogs;
+    // Dialog-Button-Texte (Ja/Nein/OK) - Shiny-Defaults sind englisch
+    private readonly CommonStringsLocalized _commonLoc;
     private readonly ILogger<UserProfileViewModel> _logger;
 
     public UserProfileStringsLocalized Loc { get; }
@@ -188,7 +191,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         INavigator navigator,
         IDialogs dialogs,
         ILogger<UserProfileViewModel> logger,
-        UserProfileStringsLocalized loc)
+        UserProfileStringsLocalized loc,
+        CommonStringsLocalized commonLoc)
     {
         _authService = authService;
         _mediator = mediator;
@@ -196,6 +200,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         _dialogs = dialogs;
         _logger = logger;
         Loc = loc;
+        _commonLoc = commonLoc;
 
         UserFullName = string.Empty;
         UserInitials = string.Empty;
@@ -550,7 +555,9 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         // Schritt 1: Bestaetigung einholen (verhindert versehentliches Loeschen)
         var confirmed = await _dialogs.Confirm(
             Loc.DeleteConfirmTitle,
-            Loc.DeleteConfirmText);
+            Loc.DeleteConfirmText,
+            _commonLoc.Yes,
+            _commonLoc.No);
         if (!confirmed)
         {
             return;
@@ -572,7 +579,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
                 await _dialogs.Alert(
                     Loc.DeleteSuccessTitle,
-                    Loc.DeleteSuccessText);
+                    Loc.DeleteSuccessText,
+                    _commonLoc.Ok);
 
                 // Schritt 3: Abmelden + Navigation zur Login-Seite
                 await LogoutAsync();
@@ -581,7 +589,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             {
                 await _dialogs.Alert(
                     Loc.DeleteFailedTitle,
-                    Loc.DeleteFailedText);
+                    Loc.DeleteFailedText,
+                    _commonLoc.Ok);
             }
         }
         catch (Exception ex)
@@ -589,7 +598,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             _logger.LogError(ex, "[UserProfile] Konto-Loeschung fehlgeschlagen");
             await _dialogs.Alert(
                 Loc.DeleteFailedTitle,
-                Loc.DeleteFailedNetworkText);
+                Loc.DeleteFailedNetworkText,
+                _commonLoc.Ok);
         }
         finally
         {

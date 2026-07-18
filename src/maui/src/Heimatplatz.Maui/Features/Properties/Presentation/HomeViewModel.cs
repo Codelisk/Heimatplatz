@@ -9,6 +9,7 @@ using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Features.Properties.Sync;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -39,6 +40,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private readonly IMediator _mediator;
     private readonly ILogger<HomeViewModel> _logger;
     private readonly HomeStringsLocalized _loc;
+    // Dialog-Button-Texte (OK) - Shiny-Defaults sind englisch
+    private readonly CommonStringsLocalized _commonLoc;
 
     private int _currentPage;
     private int _totalCount;
@@ -280,7 +283,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         ILocationService locationService,
         IMediator mediator,
         ILogger<HomeViewModel> logger,
-        HomeStringsLocalized loc)
+        HomeStringsLocalized loc,
+        CommonStringsLocalized commonLoc)
     {
         _authService = authService;
         _navigator = navigator;
@@ -292,6 +296,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         _mediator = mediator;
         _logger = logger;
         _loc = loc;
+        _commonLoc = commonLoc;
 
         AgeFilterOptions = [loc.AgeOptionAll, loc.AgeOptionDay, loc.AgeOptionWeek, loc.AgeOptionMonth, loc.AgeOptionYear];
 
@@ -1559,7 +1564,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         if (!_authService.IsAuthenticated)
         {
-            await _dialogs.Alert(_loc.LoginRequiredTitle, _loc.LoginRequiredFavorite);
+            await _dialogs.Alert(_loc.LoginRequiredTitle, _loc.LoginRequiredFavorite, _commonLoc.Ok);
             return;
         }
 
@@ -1575,7 +1580,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         if (!_authService.IsAuthenticated)
         {
-            await _dialogs.Alert(_loc.LoginRequiredTitle, _loc.LoginRequiredBlock);
+            await _dialogs.Alert(_loc.LoginRequiredTitle, _loc.LoginRequiredBlock, _commonLoc.Ok);
             return;
         }
 

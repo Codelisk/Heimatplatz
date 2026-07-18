@@ -4,6 +4,7 @@ using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Core.Collections;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Sync;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Properties;
 using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,9 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// Gemeinsame Localized-Texte der Sammlungsseiten (Fehler-Hinweise etc.)
     /// </summary>
     protected CollectionStringsLocalized CollectionLoc { get; }
+
+    /// <summary>Gemeinsame Dialog-Button-Texte (Ja/Nein/OK) - Shiny-Defaults sind englisch.</summary>
+    protected CommonStringsLocalized CommonLoc { get; }
 
     private int _currentPage;
     private bool _hasMore;
@@ -157,7 +161,8 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         INavigator navigator,
         IDialogs dialogs,
         ILogger logger,
-        CollectionStringsLocalized collectionLoc)
+        CollectionStringsLocalized collectionLoc,
+        CommonStringsLocalized commonLoc)
     {
         AuthService = authService;
         Mediator = mediator;
@@ -165,6 +170,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         Dialogs = dialogs;
         Logger = logger;
         CollectionLoc = collectionLoc;
+        CommonLoc = commonLoc;
 
         IsEmpty = true;
         IsLoggedOut = !AuthService.IsAuthenticated;
@@ -453,7 +459,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     {
         if (ConfirmBeforeRemove)
         {
-            var confirmed = await Dialogs.Confirm(RemoveConfirmTitle, GetRemoveConfirmMessage(property));
+            var confirmed = await Dialogs.Confirm(RemoveConfirmTitle, GetRemoveConfirmMessage(property), CommonLoc.Yes, CommonLoc.No);
             if (!confirmed) return;
         }
 
@@ -473,7 +479,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         catch (Exception ex)
         {
             Logger.LogError(ex, "[{Type}] Error removing property {PropertyId}", GetType().Name, property.Id);
-            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(GetErrorHint(CollectionLoc, ex)));
+            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(GetErrorHint(CollectionLoc, ex)), CommonLoc.Ok);
         }
         finally
         {

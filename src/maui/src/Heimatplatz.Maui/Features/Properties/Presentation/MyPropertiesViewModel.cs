@@ -6,6 +6,7 @@ using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -25,8 +26,9 @@ public partial class MyPropertiesViewModel(
     IDialogs dialogs,
     ILogger<MyPropertiesViewModel> logger,
     CollectionStringsLocalized collectionLoc,
+    CommonStringsLocalized commonLoc,
     MyPropertiesStringsLocalized loc
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc)
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc)
 {
     public MyPropertiesStringsLocalized Loc => loc;
 
@@ -125,7 +127,9 @@ public partial class MyPropertiesViewModel(
     {
         var confirmed = await Dialogs.Confirm(
             loc.DeleteDraftConfirmTitle,
-            loc.DeleteDraftConfirmMessageFormat(draft.DisplayTitle));
+            loc.DeleteDraftConfirmMessageFormat(draft.DisplayTitle),
+            CommonLoc.Yes,
+            CommonLoc.No);
         if (!confirmed) return;
 
         try
@@ -137,7 +141,7 @@ public partial class MyPropertiesViewModel(
         catch (Exception ex)
         {
             Logger.LogError(ex, "[MyProperties] Entwurf {DraftId} konnte nicht geloescht werden", draft.Id);
-            await Dialogs.Alert(loc.DeleteDraftErrorTitle, loc.DeleteDraftErrorMessage);
+            await Dialogs.Alert(loc.DeleteDraftErrorTitle, loc.DeleteDraftErrorMessage, CommonLoc.Ok);
         }
     }
 

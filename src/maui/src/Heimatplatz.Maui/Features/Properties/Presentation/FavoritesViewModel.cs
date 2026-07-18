@@ -1,5 +1,6 @@
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -18,8 +19,9 @@ public partial class FavoritesViewModel(
     IDialogs dialogs,
     ILogger<FavoritesViewModel> logger,
     CollectionStringsLocalized collectionLoc,
+    CommonStringsLocalized commonLoc,
     FavoritesStringsLocalized loc
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc)
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc)
 {
     public FavoritesStringsLocalized Loc => loc;
 
