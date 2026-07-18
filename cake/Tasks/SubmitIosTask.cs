@@ -49,22 +49,47 @@ public sealed class SubmitIosTask : FrostingTask<BuildContext>
         }
         var appId = apps.RootElement.GetProperty("data")[0].GetProperty("id").GetString()!;
 
-        // Neuesten verarbeiteten Build ermitteln
-        var builds = asc.Get($"v1/builds?filter[app]={appId}&sort=-uploadedDate&limit=5");
+        // Neuesten verarbeiteten Build ermitteln. Mit SUBMIT_MIN_BUILD wartet der Task,
+        // bis Apple einen Build >= dieser Nummer fertig verarbeitet hat (VALID) - noetig
+        // im Gesamtlauf (release-all.ps1): direkt nach dem Codemagic-Build ist der neue
+        // Build noch PROCESSING und der Task wuerde sonst den VORHERIGEN einreichen.
+        var minBuildEnv = Environment.GetEnvironmentVariable("SUBMIT_MIN_BUILD");
+        var minBuild = int.TryParse(minBuildEnv, out var parsedMin) ? parsedMin : 0;
+        if (minBuild > 0)
+        {
+            context.Information($"Warte auf verarbeiteten TestFlight-Build >= {minBuild} (max. 45 min)...");
+        }
+
         string? buildId = null;
         var buildNumber = 0;
-        foreach (var build in builds.RootElement.GetProperty("data").EnumerateArray())
+        var deadline = DateTime.UtcNow.AddMinutes(45);
+        while (true)
         {
-            var attrs = build.GetProperty("attributes");
-            if (attrs.GetProperty("processingState").GetString() != "VALID")
-                continue;
-            buildId = build.GetProperty("id").GetString();
-            buildNumber = int.Parse(attrs.GetProperty("version").GetString()!);
-            break;
+            var builds = asc.Get($"v1/builds?filter[app]={appId}&sort=-uploadedDate&limit=5");
+            foreach (var build in builds.RootElement.GetProperty("data").EnumerateArray())
+            {
+                var attrs = build.GetProperty("attributes");
+                if (attrs.GetProperty("processingState").GetString() != "VALID")
+                    continue;
+                var candidateNumber = int.Parse(attrs.GetProperty("version").GetString()!);
+                if (candidateNumber < minBuild)
+                    continue;
+                buildId = build.GetProperty("id").GetString();
+                buildNumber = candidateNumber;
+                break;
+            }
+
+            if (buildId is not null || minBuild == 0 || DateTime.UtcNow >= deadline)
+                break;
+
+            Thread.Sleep(60_000);
         }
+
         if (buildId is null)
         {
-            throw new InvalidOperationException("Kein verarbeiteter (VALID) TestFlight-Build gefunden - erst DeployIos laufen lassen.");
+            throw new InvalidOperationException(minBuild > 0
+                ? $"Kein verarbeiteter (VALID) TestFlight-Build >= {minBuild} innerhalb des Zeitlimits gefunden."
+                : "Kein verarbeiteter (VALID) TestFlight-Build gefunden - erst DeployIos laufen lassen.");
         }
 
         // Versions-String nach VersionBump-Schema {major}.{build}.0
@@ -232,13 +257,33 @@ public sealed class SubmitIosTask : FrostingTask<BuildContext>
 internal sealed class AscClient : IDisposable
 {
     private readonly HttpClient _http;
+    private readonly string _apiKeyId;
+    private readonly string _issuerId;
+    private readonly string _keyPath;
+    private string? _jwt;
+    private DateTime _jwtExpiresAt;
 
     public AscClient(string apiKeyId, string issuerId, string keyPath)
     {
-        var jwt = StoreVersionHelper.CreateAppStoreConnectJwt(apiKeyId, issuerId, keyPath);
+        _apiKeyId = apiKeyId;
+        _issuerId = issuerId;
+        _keyPath = keyPath;
         _http = new HttpClient { BaseAddress = new Uri("https://api.appstoreconnect.apple.com/") };
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
         _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    }
+
+    /// <summary>
+    /// ASC-JWTs sind max. 20 min gueltig - bei laengeren Warteschleifen (SUBMIT_MIN_BUILD)
+    /// wird der Token daher kurz vor Ablauf erneuert.
+    /// </summary>
+    private string CurrentJwt()
+    {
+        if (_jwt is null || DateTime.UtcNow >= _jwtExpiresAt)
+        {
+            _jwt = StoreVersionHelper.CreateAppStoreConnectJwt(_apiKeyId, _issuerId, _keyPath);
+            _jwtExpiresAt = DateTime.UtcNow.AddMinutes(15);
+        }
+        return _jwt;
     }
 
     public JsonDocument Get(string url) => Send(HttpMethod.Get, url, null);
@@ -250,6 +295,7 @@ internal sealed class AscClient : IDisposable
     private JsonDocument Send(HttpMethod method, string url, object? body)
     {
         using var request = new HttpRequestMessage(method, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CurrentJwt());
         if (body is not null)
         {
             request.Content = new StringContent(
