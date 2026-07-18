@@ -139,7 +139,7 @@ public static class AstroWeb
         context.Information($"Astro SSR deployment to Hetzner ({containerName}) completed!");
     }
 
-    private static void RunProcess(
+    internal static void RunProcess(
         BuildContext context,
         string fileName,
         string arguments,

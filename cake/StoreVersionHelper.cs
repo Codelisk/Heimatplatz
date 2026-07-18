@@ -142,7 +142,7 @@ public static class StoreVersionHelper
         return last!;
     }
 
-    private static string CreateAppStoreConnectJwt(string apiKeyId, string issuerId, string keyPath)
+    internal static string CreateAppStoreConnectJwt(string apiKeyId, string issuerId, string keyPath)
     {
         var header = $"{{\"alg\":\"ES256\",\"kid\":\"{apiKeyId}\",\"typ\":\"JWT\"}}";
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

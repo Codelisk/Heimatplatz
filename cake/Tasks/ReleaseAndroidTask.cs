@@ -49,9 +49,10 @@ public sealed class ReleaseAndroidTask : FrostingTask<BuildContext>
         context.Information("--- Step 2/6: Store texts (Claude CLI) ---");
         AndroidStoreTextsTask.RunCore(context, versionCode);
 
-        // 3. Deterministische Emulator-Screenshots
-        context.Information("--- Step 3/6: Screenshots ---");
+        // 3. Deterministische Emulator-Screenshots + Store-Grafiken aus den Markenassets
+        context.Information("--- Step 3/6: Screenshots + Store-Grafiken ---");
         AndroidScreenshotsTask.RunCore(context);
+        StoreArtTask.RunCore(context);
 
         // 4. AAB bauen (alte Artefakte vorher raeumen, damit kein altes Bundle hochgeht)
         context.Information("--- Step 4/6: Build AAB ---");

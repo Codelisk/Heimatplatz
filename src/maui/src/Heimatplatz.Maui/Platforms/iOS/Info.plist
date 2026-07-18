@@ -63,6 +63,11 @@
 		<true/>
 	</dict>
 
+	<!-- Export-Compliance: nur HTTPS/Standard-Krypto - erspart die manuelle
+	     "Missing Compliance"-Erklaerung pro TestFlight-Build in App Store Connect -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<!-- Deep Link URL Schema -->
 	<key>CFBundleURLTypes</key>
 	<array>

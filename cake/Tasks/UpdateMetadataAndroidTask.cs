@@ -28,6 +28,9 @@ public sealed class UpdateMetadataAndroidTask : FrostingTask<BuildContext>
         var locales = AndroidStoreTextsTask.GetLocales(context);
         var defaultLocale = context.Configuration["Android:Release:DefaultLocale"] ?? locales[0];
 
+        // Icon + Feature-Grafik frisch aus den Markenassets rendern (Drift-Schutz)
+        StoreArtTask.RunCore(context);
+
         using var client = new PlayStoreClient(context.PlayStoreJsonKeyPath, context.AndroidPackageName);
         var editId = client.CreateEdit();
         context.Information($"Edit created: {editId}");

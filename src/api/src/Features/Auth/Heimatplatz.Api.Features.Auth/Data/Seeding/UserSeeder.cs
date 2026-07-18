@@ -22,6 +22,7 @@ public class UserSeeder(
     // Debug-Test-User mit bekannten Credentials und festen IDs (fuer konsistente DB-Referenzen)
     public static readonly Guid DebugBuyerId = Guid.Parse("CC412C93-5D61-4AE2-B928-937812946ED2");
     public static readonly Guid DebugPrivateSellerId = Guid.Parse("3FFBDB4F-DC66-4FAC-97C0-23F6B525892B");
+    public static readonly Guid DebugBothId = Guid.Parse("6E1F30B5-84C7-4A29-9D5E-F1A2843C76D0");
     public static readonly Guid DebugBrokerId = Guid.Parse("DF4E5296-0225-4E6E-8CDD-368F20E73704");
     public static readonly Guid DebugPropertyManagerId = Guid.Parse("A7B3C914-6E82-4D51-9F30-52C8E1D47A96");
     public static readonly Guid DebugAdminId = Guid.Parse("B92F4E71-3A05-4C68-8D14-7E96B0C25F83");
@@ -94,6 +95,19 @@ public class UserSeeder(
                 FirstName = "Test",
                 LastName = "Seller",
                 Email = "test.seller@heimatplatz.dev",
+                PasswordHash = testHash,
+                SellerType = SellerType.Private,
+                CreatedAt = now
+            },
+            new()
+            {
+                // Login-User der Store-Screenshot-Pipelines (cake/appsettings.json
+                // Android:/iOS:Screenshots) - braucht SellerType fuer "Meine Immobilien",
+                // Favoriten kommen implizit (jeder User ist Kaeufer). Nicht entfernen!
+                Id = DebugBothId,
+                FirstName = "Test",
+                LastName = "Both",
+                Email = "test.both@heimatplatz.dev",
                 PasswordHash = testHash,
                 SellerType = SellerType.Private,
                 CreatedAt = now

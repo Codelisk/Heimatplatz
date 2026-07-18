@@ -15,5 +15,6 @@ public sealed class DeployAstroTestTask : FrostingTask<BuildContext>
     {
         AstroWeb.Build(context, context.ApiBaseUrlTest);
         AstroWeb.Deploy(context, context.HetznerWebRootTest, "web-test");
+        DeployHealth.WaitFor(context, context.Configuration["Hetzner:WebTestHealthUrl"]);
     }
 }

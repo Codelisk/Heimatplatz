@@ -24,19 +24,28 @@ workflows:
         script: |
           dotnet workload install ios maui
 
-      - name: Decode App Store Connect API key
+      - name: Decode store keys
         script: |
           echo "$ASC_KEY_BASE64" | base64 --decode > "$CM_BUILD_DIR/cake/AuthKey.p8"
+          # Play-Key nur fuer den VersionBump-Baseline-Check: ohne ihn sieht der
+          # iOS-Lauf nur TestFlight und die Versionen driften von Android weg
+          # (z.B. iOS 1.72 waehrend Android 1.73 released).
+          if [ -n "$PLAY_STORE_JSON_KEY_BASE64" ]; then
+            echo "$PLAY_STORE_JSON_KEY_BASE64" | base64 --decode > "$CM_BUILD_DIR/cake/play-store-key.json"
+          fi
 
       - name: Run Cake DeployIos (build + TestFlight upload)
         script: |
           cd "$CM_BUILD_DIR/cake"
           export ASC_KEY_PATH="AuthKey.p8"
+          if [ -f "$CM_BUILD_DIR/cake/play-store-key.json" ]; then
+            export PLAY_STORE_JSON_KEY_PATH="play-store-key.json"
+          fi
           dotnet run -- --target=DeployIos
 
-      - name: Cleanup App Store Connect key
+      - name: Cleanup store keys
         script: |
-          rm -f "$CM_BUILD_DIR/cake/AuthKey.p8"
+          rm -f "$CM_BUILD_DIR/cake/AuthKey.p8" "$CM_BUILD_DIR/cake/play-store-key.json"
 
     artifacts:
       - artifacts/ios/**/*.ipa

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Play-Store-Icon 512x512: Markenrot-Quadrat + rundes Logo-Badge (~83% wie apple-touch-icon).
+     Wird von GenerateStoreArt per Headless-Chrome gerendert - Quelle ist IMMER das
+     aktuelle logo-mark.svg, damit das Store-Icon nie wieder vom Branding driftet. -->
+<style>
+  * { margin: 0; padding: 0; }
+  body { width: 512px; height: 512px; overflow: hidden; }
+  .canvas {
+    width: 512px;
+    height: 512px;
+    background: #9f1519;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  img { width: 424px; height: 424px; }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <img src="../../src/web/public/logo-mark.svg" alt="">
+  </div>
+</body>
+</html>

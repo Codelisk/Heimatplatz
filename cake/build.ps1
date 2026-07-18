@@ -30,9 +30,12 @@ Available Targets:
     BuildAstro           Build Astro web (src/web -> dist)
     DeployAndroid        Build and deploy to Play Store internal (fastlane, legacy)
     DeployIos            Build and deploy to TestFlight (macOS only)
-    DeployAstro          Build and deploy Astro web (Prod) to Hetzner
+    DeployAstro          Build and deploy Astro web (Prod) to Hetzner (mit Health-Check)
     DeployAstroTest      Build and deploy Astro web (Test, test.heimatplatz.at) to Hetzner
+    DeployApi            Deploy API (Prod + Test) to Hetzner: tar/scp/ssh + compose build + Health-Gate
     DeployAll            Deploy to all platforms (Android, iOS, Astro web Prod)
+    SubmitIos            Aktuelle iOS-Version per ASC-API zur App-Store-Review einreichen
+    GenerateStoreArt     Play-Icon + Feature-Grafik frisch aus logo-mark.svg rendern (Headless-Chrome)
     ComplianceCheck      Check store agreements
     ReleaseAndroid       Full Play Store release: bump + Claude texts + screenshots + AAB + upload (see release-android.ps1)
     AndroidStoreTexts    Claude CLI: review/update Play texts (de/en) + release notes

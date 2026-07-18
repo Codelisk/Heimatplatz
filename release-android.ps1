@@ -14,13 +14,23 @@
 #
 # Nur Metadaten/Screenshots ohne neues Binary hochladen:
 #   ./release-android.ps1 -MetadataOnly
+#
+# Track waehlen (Default: production aus cake/appsettings.json):
+#   ./release-android.ps1 -Track internal
 
 param(
-    [switch]$MetadataOnly
+    [switch]$MetadataOnly,
+    [ValidateSet("production", "internal", "alpha", "beta")]
+    [string]$Track
 )
 
 $ErrorActionPreference = "Stop"
 $target = $MetadataOnly ? "UpdateMetadataAndroid" : "ReleaseAndroid"
+
+if ($Track) {
+    # Ueberschreibt Android:Release:Track aus appsettings.json (BuildContext laedt Env-Vars)
+    $env:Android__Release__Track = $Track
+}
 
 & "$PSScriptRoot/cake/build.ps1" -Target $target
 exit $LASTEXITCODE

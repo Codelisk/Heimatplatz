@@ -7,5 +7,8 @@ namespace Build.Tasks;
 public sealed class DeployAstroTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
-        => AstroWeb.Deploy(context, context.HetznerWebRoot, "web");
+    {
+        AstroWeb.Deploy(context, context.HetznerWebRoot, "web");
+        DeployHealth.WaitFor(context, context.Configuration["Hetzner:WebHealthUrl"]);
+    }
 }
