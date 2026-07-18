@@ -75,7 +75,9 @@ const structuredData = [
   <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
     <header class="max-w-3xl">
       <p class="text-sm font-bold uppercase text-muted-foreground">{t("legal.kicker")}</p>
-      <h1 class="mt-3 text-4xl font-bold tracking-normal">{t("legal.privacyTitle")}</h1>
+      {/* "Datenschutzerklärung" ist ein unbrechbares Wort - ohne hyphens-auto
+          sprengt es bei text-4xl die Mobilbreite (horizontaler Overflow) */}
+      <h1 class="mt-3 text-3xl font-bold tracking-normal hyphens-auto sm:text-4xl" lang="de">{t("legal.privacyTitle")}</h1>
       <p class="mt-4 text-base leading-7 text-muted-foreground">
         {t("legal.privacyIntro")}
       </p>

@@ -68,7 +68,10 @@ function isActive(href: string) {
     zum Containing Block, der fixe Drawer darunter muesste sonst am Header kleben */}
 <header class="sticky top-0 z-40 border-b border-border">
   <div class="flex h-14 items-center justify-between gap-3 bg-background px-3 supports-[backdrop-filter]:bg-background/85 supports-[backdrop-filter]:backdrop-blur-md sm:px-4">
-    <div class="flex min-w-0 shrink-0 items-center gap-1">
+    {/* min-w-0 OHNE shrink-0: lange Seitentitel (z.B. "Blockierte Immobilien")
+        muessen auf schmalen Screens truncaten, sonst schiebt der Header den
+        Avatar aus dem Viewport (horizontaler Overflow) */}
+    <div class="flex min-w-0 items-center gap-1">
       <button
         type="button"
         class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground"
