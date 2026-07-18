@@ -1,5 +1,7 @@
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Features.Properties.Presentation;
+using Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 using Microsoft.Extensions.DependencyInjection;
 using Shiny;
 using Shiny.Extensions.Stores;
@@ -21,7 +23,14 @@ public static class ScreenshotMode
     public static bool IsActive =>
         Environment.GetEnvironmentVariable("SCREENSHOT_MODE") == "1";
 
-    /// <summary>Shell-Route, die nach dem Start angesteuert wird (leer = Startseite).</summary>
+    /// <summary>
+    /// Shell-Route, die nach dem Start angesteuert wird (leer = Startseite).
+    /// Neben echten Shell-Routen ("///Favorites") gibt es Pseudo-Routen fuer
+    /// parametrisierte Seiten ([ShellProperty]-Werte setzen nur die generierten
+    /// Nav-Methoden, GoToAsync mit Query-String greift nicht):
+    ///   "detail" = Detailseite des neuesten Haus-Inserats,
+    ///   "edit"   = WYSIWYG-Editor fuer das erste eigene Inserat.
+    /// </summary>
     public static string? Route =>
         Environment.GetEnvironmentVariable("SCREENSHOT_ROUTE");
 
@@ -87,7 +96,18 @@ public static class ScreenshotMode
 
             if (!string.IsNullOrWhiteSpace(Route))
             {
-                await shell.Dispatcher.DispatchAsync(() => shell.GoToAsync(Route));
+                switch (Route)
+                {
+                    case "detail":
+                        await NavigateDetailAsync(services);
+                        break;
+                    case "edit":
+                        await NavigateEditAsync(services);
+                        break;
+                    default:
+                        await shell.Dispatcher.DispatchAsync(() => shell.GoToAsync(Route));
+                        break;
+                }
                 Log($"navigated to '{Route}'");
             }
         }
@@ -97,6 +117,44 @@ public static class ScreenshotMode
             Log($"FAILED: {ex}");
         }
     }
+
+    /// <summary>Detailseite des neuesten Haus-Inserats (Seed: kuratierte Fotos).</summary>
+    private static async Task NavigateDetailAsync(IServiceProvider services)
+    {
+        var mediator = services.GetRequiredService<IMediator>();
+        var (_, result) = await mediator.Request(new GetPropertiesHttpRequest { Page = 0, PageSize = 20 });
+
+        var property = result?.Properties?.FirstOrDefault(p => p.Type == PropertyType.House)
+            ?? result?.Properties?.FirstOrDefault();
+        if (property == null)
+        {
+            Log("detail: no properties returned - staying on home");
+            return;
+        }
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+            services.GetRequiredService<INavigator>()
+                .NavigateTo<PropertyDetailViewModel>(vm => vm.PropertyId = property.Id.ToString()));
+    }
+
+    /// <summary>WYSIWYG-Editor (Edit-Modus) fuer das erste eigene Inserat des Screenshot-Users.</summary>
+    private static async Task NavigateEditAsync(IServiceProvider services)
+    {
+        var mediator = services.GetRequiredService<IMediator>();
+        var (_, result) = await mediator.Request(new GetUserPropertiesHttpRequest { Page = 0, PageSize = 5 });
+
+        var property = result?.Properties?.FirstOrDefault();
+        if (property == null)
+        {
+            Log("edit: user has no properties - staying on home");
+            return;
+        }
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+            services.GetRequiredService<INavigator>()
+                .NavigateTo<PropertyWizardViewModel>(vm => vm.EditPropertyId = property.Id.ToString()));
+    }
+
 
     private static async Task LoginAsync(IServiceProvider services)
     {

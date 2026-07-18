@@ -38,6 +38,11 @@ public partial class PropertyWizardViewModel
         if (IsEditMode)
             return true;
 
+        // Store-Screenshots: die Demo-Vorbefuellung darf keine Server-Entwuerfe
+        // hinterlassen (wuerde bei jedem Lauf einen weiteren Entwurf anlegen)
+        if (Core.Screenshots.ScreenshotMode.IsActive)
+            return true;
+
         if (!HasAnyInput())
             return true;
 

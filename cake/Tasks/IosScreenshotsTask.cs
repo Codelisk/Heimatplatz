@@ -40,6 +40,15 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
         context.Information("=== iOS App Store Screenshots ===");
 
         var config = LoadConfig(context);
+
+        // Deterministische Daten: Test-System frisch seeden (kuratierte Fotos, feste
+        // Favoriten). Die Seed-Verifikation laeuft gegen die gehostete Test-API - die
+        // lokale Test-API (RunLocalTestApi) findet danach eine bereits geseedete DB vor.
+        if (config.ResetTestDb)
+        {
+            TestSystemReset.Run(context, "https://test-api.heimatplatz.at");
+        }
+
         var appBundle = BuildSimulatorApp(context);
 
         var outputDir = Path.Combine(context.ProjectDirectory, "artifacts", "screenshots", "ios", config.Locale);
@@ -120,6 +129,7 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
             AppleLanguage: section["AppleLanguage"] ?? "de",
             AppleLocale: section["AppleLocale"] ?? "de_AT",
             ApiBaseUrl: apiBaseUrl,
+            ResetTestDb: bool.TryParse(section["ResetTestDb"], out var reset) && reset,
             RunLocalTestApi: runLocalTestApi,
             TestDbConnectionString: section["TestDbConnectionString"] ?? string.Empty,
             TestDbPassword: FirstNonEmpty(
@@ -610,6 +620,7 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
         string AppleLanguage,
         string AppleLocale,
         string? ApiBaseUrl,
+        bool ResetTestDb,
         bool RunLocalTestApi,
         string TestDbConnectionString,
         string TestDbPassword,

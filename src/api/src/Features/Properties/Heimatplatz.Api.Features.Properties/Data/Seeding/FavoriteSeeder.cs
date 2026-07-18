@@ -50,15 +50,18 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
         var now = DateTimeOffset.UtcNow;
         var favorites = new List<Favorite>();
 
-        // Jedem Buyer 3-5 zufaellige Favoriten geben
+        // Deterministischer Zufall: Store-Screenshots (Cake-Pipelines) sollen nach
+        // jedem Test-DB-Reset dieselben Favoriten zeigen
+        var random = new Random(20260718);
+
+        // Jedem Buyer 3-5 Favoriten geben
         foreach (var buyerId in buyers)
         {
-            // Zufaellige Anzahl von Favoriten (3-5)
-            var favoriteCount = Random.Shared.Next(3, 6);
+            var favoriteCount = random.Next(3, 6);
 
-            // Zufaellige Properties auswaehlen (keine Duplikate)
+            // Properties auswaehlen (keine Duplikate)
             var selectedProperties = properties
-                .OrderBy(_ => Random.Shared.Next())
+                .OrderBy(_ => random.Next())
                 .Take(favoriteCount)
                 .ToList();
 
@@ -69,7 +72,7 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
                     Id = Guid.NewGuid(),
                     UserId = buyerId,
                     PropertyId = propertyId,
-                    CreatedAt = now.AddDays(-Random.Shared.Next(0, 30)) // Favoriten in letzten 30 Tagen erstellt
+                    CreatedAt = now.AddDays(-random.Next(0, 30)) // Favoriten in letzten 30 Tagen erstellt
                 });
             }
         }

@@ -18,7 +18,10 @@ namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 /// leerer Datenbank, daher braucht es diese idempotente Nachkorrektur.
 /// Legt ausserdem spaeter ergaenzte Seed-Objekte nach (z.B. Roitham am Traunfall).
 /// </summary>
-public class PropertyMunicipalityFixSeeder(AppDbContext dbContext, ILogger<PropertyMunicipalityFixSeeder> logger) : ISeeder
+public class PropertyMunicipalityFixSeeder(
+    AppDbContext dbContext,
+    Microsoft.Extensions.Configuration.IConfiguration configuration,
+    ILogger<PropertyMunicipalityFixSeeder> logger) : ISeeder
 {
     // Nach dem PropertySeeder ausfuehren
     public int Order => 11;
@@ -94,7 +97,7 @@ public class PropertyMunicipalityFixSeeder(AppDbContext dbContext, ILogger<Prope
                     140, 610, 5, 2012, PropertyType.House, SellerType.Private, "Familie Berger",
                     "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Grosser Garten mit altem Baumbestand.",
                     ["Garage", "Garten", "Terrasse", "Keller", "Kachelofen"],
-                    "https://picsum.photos/seed/traunfall1/800/600",
+                    PropertySeeder.BuildSeedImageUrls(configuration, "almhuette.jpg", "wiese-blumen.jpg", "interieur-schlafzimmer.jpg"),
                     city => MunicipalityNameResolver.Resolve(municipalities, city));
 
             if (property != null)

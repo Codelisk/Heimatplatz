@@ -8,14 +8,17 @@ using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific.Enums;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 
 /// <summary>
-/// Seeder fuer Beispiel-Immobilien in Oberoesterreich
+/// Seeder fuer Beispiel-Immobilien in Oberoesterreich.
+/// Die Bilder sind kuratierte, lizenzfreie Fotos aus wwwroot/seed - stabile URLs,
+/// damit Store-Screenshots (Cake Android-/IosScreenshots) immer gleich aussehen.
 /// </summary>
-public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logger) : ISeeder
+public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration, ILogger<PropertySeeder> logger) : ISeeder
 {
     public int Order => 10;
 
@@ -69,6 +72,8 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
             return sellerId;
         }
 
+        List<string> Img(params string[] files) => BuildSeedImageUrls(configuration, files);
+
         var now = DateTimeOffset.UtcNow;
         var seedCandidates = new List<Property?>
         {
@@ -77,82 +82,82 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
                 145, 520, 5, 2018, PropertyType.House, SellerType.Broker, "Mustermann Immobilien",
                 "Wunderschoenes Einfamilienhaus mit grossem Garten in ruhiger Lage. Hochwertige Ausstattung, Fussbodenheizung, Photovoltaikanlage.",
                 ["Garage", "Garten", "Terrasse", "Keller", "Fussbodenheizung", "Photovoltaik"],
-                "https://picsum.photos/seed/haus1/800/600", GetMunicipalityId),
+                Img("haus-aelter.jpg", "interieur-wohnkueche.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
             CreateProperty("Modernes Reihenhaus in Wels", "Ringstrasse 42", "Wels", 289000,
                 120, 180, 4, 2020, PropertyType.House, SellerType.Private, "Familie Huber",
                 "Neuwertiges Reihenhaus in zentraler Lage. Perfekt fuer junge Familien. Kurze Wege zu Schulen und Geschaeften.",
                 ["Carport", "Terrasse", "Keller", "Fussbodenheizung"],
-                "https://picsum.photos/seed/haus2/800/600", GetMunicipalityId),
+                Img("haus-daemmerung.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
             CreateProperty("Villa am Traunsee", "Seeuferweg 8", "Gmunden", 890000,
                 220, 1200, 7, 2015, PropertyType.House, SellerType.Broker, "Luxus Immobilien GmbH",
                 "Exklusive Villa mit direktem Seezugang. Panoramablick auf den Traunsee. Hochwertigste Ausstattung.",
-                ["Doppelgarage", "Pool", "Sauna", "Seezugang", "Smarthome", "Klimaanlage"],
-                "https://picsum.photos/seed/villa1/800/600", GetMunicipalityId),
+                ["Doppelgarage", "Sauna", "Seezugang", "Bootshaus", "Kamin"],
+                Img("see-berge.jpg", "berg-see.jpg", "interieur-schlafzimmer.jpg"), GetMunicipalityId),
 
             CreateProperty("Landhaus in Bad Ischl", "Kaiserweg 23", "Bad Ischl", 425000,
                 165, 850, 5, 1998, PropertyType.House, SellerType.Private, "Herr Maier",
                 "Charmantes Landhaus im Salzkammergut. Renoviert mit Liebe zum Detail. Idealer Rueckzugsort.",
                 ["Garage", "Garten", "Kachelofen", "Keller", "Dachboden"],
-                "https://picsum.photos/seed/landhaus1/800/600", GetMunicipalityId),
+                Img("haus-chalet.jpg", "bauernhaus.jpg", "interieur-rustikal.jpg"), GetMunicipalityId),
 
             CreateProperty("Familienhaus in Steyr", "Bahnhofstrasse 67", "Steyr", 315000,
                 135, 450, 5, 2010, PropertyType.House, SellerType.Broker, "Immobilien Steyr",
                 "Gepflegtes Einfamilienhaus in guter Lage. Nahe Stadtzentrum und Naturgebiet.",
                 ["Garage", "Garten", "Terrasse", "Keller"],
-                "https://picsum.photos/seed/haus3/800/600", GetMunicipalityId),
+                Img("haus-teich.jpg", "interieur-wohnkueche.jpg"), GetMunicipalityId),
 
             // Grundstuecke
             CreateProperty("Baugrundstück in Wels", "Neubaugebiet Sued", "Wels", 189000,
                 null, 850, null, null, PropertyType.Land, SellerType.Private, "Familie Mueller",
                 "Voll erschlossenes Baugrundstuck in ruhiger Wohnlage. Alle Anschluesse vorhanden.",
                 ["Erschlossen", "Strom", "Wasser", "Kanal", "Gas"],
-                "https://picsum.photos/seed/grund1/800/600", GetMunicipalityId),
+                Img("grund-feld.jpg"), GetMunicipalityId),
 
             CreateProperty("Sonniges Baugrundstück Linz-Land", "Am Sonnenhang 12", "Leonding", 245000,
                 null, 720, null, null, PropertyType.Land, SellerType.Broker, "Grund & Boden OOe",
                 "Suedhanglage mit herrlichem Ausblick. Bebauungsplan liegt vor.",
                 ["Erschlossen", "Suedlage", "Aussicht"],
-                "https://picsum.photos/seed/grund2/800/600", GetMunicipalityId),
+                Img("huegel-strasse.jpg", "berge.jpg"), GetMunicipalityId),
 
             CreateProperty("Grosses Baugrundstück Muehlviertel", "Dorfstrasse", "Freistadt", 95000,
                 null, 1200, null, null, PropertyType.Land, SellerType.Private, "Gemeinde Freistadt",
                 "Guenstiges Baugrundstuck im schoenen Muehlviertel. Ruhige Lage, gute Infrastruktur.",
                 ["Teilerschlossen", "Strom", "Wasser"],
-                "https://picsum.photos/seed/grund3/800/600", GetMunicipalityId),
+                Img("grund-wald.jpg", "huegel-nebel.jpg"), GetMunicipalityId),
 
             // Zwangsversteigerungen
             CreateProperty("Zwangsversteigerung: Haus in Traun", "Industriestrasse 45", "Traun", 185000,
                 110, 380, 4, 1985, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Linz",
                 "Aelteres Haus mit Renovierungsbedarf. Versteigerungstermin: naechsten Monat. Besichtigung moeglich.",
                 ["Garage", "Keller"],
-                "https://picsum.photos/seed/zwang1/800/600", GetMunicipalityId),
+                Img("bauernhof-alt.jpg"), GetMunicipalityId),
 
             CreateProperty("Zwangsversteigerung: Grundstück Enns", "Feldweg 3", "Enns", 68000,
                 null, 650, null, null, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Steyr",
                 "Baugrundstuck aus Zwangsversteigerung. Gute Lage, erschlossen.",
                 ["Erschlossen"],
-                "https://picsum.photos/seed/zwang2/800/600", GetMunicipalityId),
+                Img("grund-sonnenuntergang.jpg"), GetMunicipalityId),
 
             // Weitere Haeuser
             CreateProperty("Bungalow in Braunau", "Gartenstrasse 18", "Braunau am Inn", 275000,
                 95, 600, 3, 2005, PropertyType.House, SellerType.Private, "Ehepaar Schmidt",
                 "Barrierefreier Bungalow, ideal fuer Senioren. Pflegeleichter Garten.",
                 ["Carport", "Garten", "Barrierefrei", "Fussbodenheizung"],
-                "https://picsum.photos/seed/bungalow1/800/600", GetMunicipalityId),
+                Img("haus-wiese.jpg", "interieur-rustikal.jpg"), GetMunicipalityId),
 
             CreateProperty("Doppelhaushälfte Vöcklabruck", "Schulweg 7", "Voecklabruck", 298000,
                 125, 280, 4, 2019, PropertyType.House, SellerType.Broker, "Hausfreund Immobilien",
                 "Neuwertige Doppelhaushaelfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
                 ["Garage", "Garten", "Terrasse", "Fussbodenheizung", "Waermepumpe"],
-                "https://picsum.photos/seed/doppel1/800/600", GetMunicipalityId),
+                Img("haus-landhaus.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
             CreateProperty("Einfamilienhaus am Traunfall", "Traunfallstrasse 12", "Roitham am Traunfall", 365000,
                 140, 610, 5, 2012, PropertyType.House, SellerType.Private, "Familie Berger",
                 "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Grosser Garten mit altem Baumbestand.",
                 ["Garage", "Garten", "Terrasse", "Keller", "Kachelofen"],
-                "https://picsum.photos/seed/traunfall1/800/600", GetMunicipalityId)
+                Img("almhuette.jpg", "wiese-blumen.jpg", "interieur-schlafzimmer.jpg"), GetMunicipalityId)
         };
 
         var properties = seedCandidates.OfType<Property>().ToList();
@@ -241,6 +246,17 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
     }
 
     /// <summary>
+    /// Kuratierte Seed-Fotos aus wwwroot/seed - absolute URLs, weil Clients
+    /// (Web-Proxy, MAUI-ImageCache) vollqualifizierte Bild-URLs erwarten.
+    /// Api:PublicBaseUrl kommt im Docker-Deploy aus der Compose-Env.
+    /// </summary>
+    internal static List<string> BuildSeedImageUrls(Microsoft.Extensions.Configuration.IConfiguration configuration, params string[] files)
+    {
+        var baseUrl = (configuration["Api:PublicBaseUrl"] ?? "http://localhost:5292").TrimEnd('/');
+        return files.Select(f => $"{baseUrl}/seed/{f}").ToList();
+    }
+
+    /// <summary>
     /// Helper: Create a Property with MunicipalityId lookup.
     /// Liefert null wenn die Gemeinde nicht aufloesbar ist (Objekt wird uebersprungen).
     /// Internal: wird auch vom PropertyMunicipalityFixSeeder fuer nachgelegte Objekte genutzt.
@@ -249,7 +265,7 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
         string title, string address, string cityName, decimal price,
         int? livingArea, int? plotArea, int? rooms, int? yearBuilt,
         PropertyType type, SellerType sellerType, string sellerName,
-        string description, List<string> features, string imageUrl,
+        string description, List<string> features, List<string> imageUrls,
         Func<string, Guid?> getMunicipalityId)
     {
         var municipalityId = getMunicipalityId(cityName);
@@ -272,7 +288,7 @@ public class PropertySeeder(AppDbContext dbContext, ILogger<PropertySeeder> logg
             SellerName = sellerName,
             Description = description,
             Features = features,
-            ImageUrls = [imageUrl]
+            ImageUrls = imageUrls
         };
     }
 

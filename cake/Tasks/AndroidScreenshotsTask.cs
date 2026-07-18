@@ -35,6 +35,12 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
         var adb = ResolveSdkTool(context, "platform-tools", "adb");
         var emulatorExe = ResolveSdkTool(context, "emulator", "emulator");
 
+        // Deterministische Daten: Test-System frisch seeden (kuratierte Fotos, feste Favoriten)
+        if (config.ResetTestDb)
+        {
+            TestSystemReset.Run(context, config.ApiBaseUrl);
+        }
+
         var apkPath = BuildEmulatorApk(context, config);
 
         foreach (var device in config.Devices)
@@ -77,6 +83,7 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
         return new ScreenshotConfig(
             Locale: section["Locale"] ?? "de-DE",
             ApiBaseUrl: section["ApiBaseUrl"] ?? "https://test-api.heimatplatz.at",
+            ResetTestDb: bool.TryParse(section["ResetTestDb"], out var reset) && reset,
             RuntimeIdentifier: section["RuntimeIdentifier"] ?? "android-x64",
             LoginEmail: FirstNonEmpty(
                 Environment.GetEnvironmentVariable("SCREENSHOT_LOGIN_EMAIL"),
@@ -498,6 +505,7 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
     private sealed record ScreenshotConfig(
         string Locale,
         string ApiBaseUrl,
+        bool ResetTestDb,
         string RuntimeIdentifier,
         string LoginEmail,
         string LoginPassword,
