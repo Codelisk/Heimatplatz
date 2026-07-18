@@ -26,6 +26,7 @@ import {
   getForeclosureAuctionSlug,
   getForeclosureCategoryLabel,
 } from "@/features/foreclosures/api";
+import { t } from "@/i18n";
 import { breadcrumbSchema } from "@/lib/seo";
 
 // SSR: Der Slug endet auf die Auktions-GUID (siehe getForeclosureAuctionSlug) -
@@ -51,10 +52,10 @@ const detailSections = getAuctionDetailSections(auction);
 const documents = getAuctionDocumentLinks(auction);
 const images = getAuctionImages(auction);
 const primaryFacts = [
-  ["Termin", formatAuctionDate(auction.AuctionDate)],
-  ["Schätzwert", formatAuctionMoney(auction.EstimatedValue)],
-  ["Mindestgebot", formatAuctionMoney(auction.MinimumBid)],
-  ["Fläche", formatAuctionArea(getAuctionPrimaryArea(auction))],
+  [t("zv.factDate"), formatAuctionDate(auction.AuctionDate)],
+  [t("zv.factEstimatedValue"), formatAuctionMoney(auction.EstimatedValue)],
+  [t("zv.factMinimumBid"), formatAuctionMoney(auction.MinimumBid)],
+  [t("zv.factArea"), formatAuctionArea(getAuctionPrimaryArea(auction))],
 ];
 ---
 
@@ -75,7 +76,7 @@ const primaryFacts = [
     <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
       <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon class="size-4" aria-hidden="true" />
-        Zurück
+        {t("common.back")}
       </a>
     </header>
 
@@ -87,7 +88,7 @@ const primaryFacts = [
           <ImageGallery images={images} title={title} />
           {/* right-40 laesst Platz fuer die drei Action-Buttons, sonst ueberlappen die Badges */}
           <div class="pointer-events-none absolute left-4 right-40 top-4 z-10 flex flex-wrap gap-2" data-photo-badges>
-            <span class="rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-brand-foreground">ZV</span>
+            <span class="rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-brand-foreground">{t("zv.badge")}</span>
             <span class="rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground">
               {getForeclosureCategoryLabel(auction.Category)}
             </span>
@@ -101,7 +102,7 @@ const primaryFacts = [
             <button
               class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
-              aria-label="Merken"
+              aria-label={t("detail.actionFavorite")}
               aria-pressed="false"
               data-property-action="favorite"
               data-property-slug={auction.Id}
@@ -112,7 +113,7 @@ const primaryFacts = [
             <button
               class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
-              aria-label="Blockieren"
+              aria-label={t("detail.actionBlock")}
               aria-pressed="false"
               data-property-action="block"
               data-property-slug={auction.Id}
@@ -123,7 +124,7 @@ const primaryFacts = [
             <button
               class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
-              aria-label="Teilen"
+              aria-label={t("detail.actionShare")}
               data-share-url={canonicalUrl}
               data-share-title={title}
             >
@@ -149,7 +150,7 @@ const primaryFacts = [
 
         <section class="mt-8" aria-labelledby="auction-object-description">
           <h2 id="auction-object-description" class="text-sm font-bold uppercase text-muted-foreground">
-            Objektbeschreibung
+            {t("zv.objectDescriptionHeading")}
           </h2>
           <p class="mt-4 max-w-3xl text-base leading-7">
             {auction.ObjectDescription}
@@ -178,14 +179,14 @@ const primaryFacts = [
           <div class="mt-8 grid gap-6 md:grid-cols-2">
             {auction.Notes && (
               <section aria-labelledby="auction-notes">
-                <h2 id="auction-notes" class="text-sm font-bold uppercase text-muted-foreground">Hinweise</h2>
+                <h2 id="auction-notes" class="text-sm font-bold uppercase text-muted-foreground">{t("zv.notesHeading")}</h2>
                 <p class="mt-3 rounded-lg border border-border bg-card p-4 text-sm leading-6">{auction.Notes}</p>
               </section>
             )}
 
             {documents.length > 0 && (
               <section aria-labelledby="auction-documents">
-                <h2 id="auction-documents" class="text-sm font-bold uppercase text-muted-foreground">Dokumente</h2>
+                <h2 id="auction-documents" class="text-sm font-bold uppercase text-muted-foreground">{t("zv.documentsHeading")}</h2>
                 <div class="mt-3 space-y-2">
                   {documents.map(([label, url]) => (
                     <a
@@ -209,13 +210,13 @@ const primaryFacts = [
       </div>
 
       <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
-        <p class="text-sm text-muted-foreground">Gericht / Quelle</p>
-        <h2 class="mt-1 text-xl font-bold">{auction.Court ?? "Bezirksgericht"}</h2>
+        <p class="text-sm text-muted-foreground">{t("zv.courtSource")}</p>
+        <h2 class="mt-1 text-xl font-bold">{auction.Court ?? t("zv.fallbackCourt")}</h2>
         <p class="mt-2 text-sm text-muted-foreground">
-          {auction.CaseNumber ? `Aktenzeichen ${auction.CaseNumber}` : "Gerichtliche Immobilienversteigerung"}
+          {auction.CaseNumber ? t("zv.caseNumber", { number: auction.CaseNumber }) : t("zv.courtAuction")}
         </p>
         <p class="mt-4 text-3xl font-bold text-price">{getAuctionPriceLabel(auction)}</p>
-        <p class="mt-2 text-sm text-muted-foreground">Mindestgebot oder Schätzwert, soweit veröffentlicht.</p>
+        <p class="mt-2 text-sm text-muted-foreground">{t("zv.priceHint")}</p>
 
         {auction.EdictUrl ? (
           <a
@@ -228,31 +229,31 @@ const primaryFacts = [
               <ExternalLinkIcon class="size-5 text-muted-foreground transition-colors group-hover:text-foreground" aria-hidden="true" />
             </span>
             <span class="min-w-0 flex-1">
-              <span class="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Amtliches Dokument</span>
-              <span class="block text-sm font-bold">Edikt öffnen</span>
-              <span class="block truncate text-xs text-muted-foreground">Alle Angaben im Original-Edikt ansehen</span>
+              <span class="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("zv.officialDocument")}</span>
+              <span class="block text-sm font-bold">{t("zv.openEdict")}</span>
+              <span class="block truncate text-xs text-muted-foreground">{t("zv.openEdictHint")}</span>
             </span>
             <ChevronRightIcon class="size-5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" aria-hidden="true" />
           </a>
         ) : (
-          <p class="mt-5 rounded-md bg-muted p-3 text-sm text-muted-foreground">Edikt noch nicht verfügbar.</p>
+          <p class="mt-5 rounded-md bg-muted p-3 text-sm text-muted-foreground">{t("zv.edictUnavailable")}</p>
         )}
 
         <div class="mt-5 border-t border-border pt-4 text-sm text-muted-foreground">
-          <p>Erfasst: {formatAuctionDate(auction.FirstSeenAt ?? auction.CreatedAt, "Nicht angegeben")}</p>
-          <p class="mt-1">Aktualisiert: {formatAuctionDate(auction.LastScrapedAt ?? auction.CreatedAt, "Nicht angegeben")}</p>
+          <p>{t("zv.firstSeen", { date: formatAuctionDate(auction.FirstSeenAt ?? auction.CreatedAt, t("zv.notSpecified")) })}</p>
+          <p class="mt-1">{t("zv.updated", { date: formatAuctionDate(auction.LastScrapedAt ?? auction.CreatedAt, t("zv.notSpecified")) })}</p>
         </div>
       </aside>
     </section>
 
     <section
       class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 shadow-[0_-12px_32px_rgba(15,23,42,0.12)] backdrop-blur"
-      aria-label="Schnellzugriff"
+      aria-label={t("zv.quickAccess")}
     >
       <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <span class="min-w-0">
           <span class="block truncate text-sm font-semibold">{getAuctionPriceLabel(auction)}</span>
-          <span class="mt-0.5 block truncate text-xs text-muted-foreground">Termin: {formatAuctionDateShort(auction.AuctionDate)}</span>
+          <span class="mt-0.5 block truncate text-xs text-muted-foreground">{t("zv.dateShort", { date: formatAuctionDateShort(auction.AuctionDate) })}</span>
         </span>
         {auction.EdictUrl ? (
           <a
@@ -261,12 +262,12 @@ const primaryFacts = [
             rel="nofollow noopener"
             target="_blank"
           >
-            Edikt ansehen
+            {t("zv.viewEdict")}
             <ExternalLinkIcon class="size-4" aria-hidden="true" />
           </a>
         ) : (
           <span class="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-muted-foreground">
-            Edikt offen
+            {t("zv.edictPending")}
           </span>
         )}
       </div>

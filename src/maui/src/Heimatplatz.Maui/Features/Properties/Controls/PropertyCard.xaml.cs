@@ -2,6 +2,7 @@ using ICommand = System.Windows.Input.ICommand;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Maui.Features.Properties.Controls;
@@ -12,13 +13,28 @@ namespace Heimatplatz.Maui.Features.Properties.Controls;
 /// </summary>
 public partial class PropertyCard : ContentView
 {
-    // Typ-/Aktionsfarben (wie Web): Signal-Rot und warmes Glas, themenunabhaengig
-    private static readonly Color SignalRed = Color.FromArgb("#DE2A2F");
-    private static readonly Color GlassBackground = Color.FromArgb("#66171310");
+    // Gemeinsame Icon-Quellen fuer alle recycelten Cards (FileImageSource ist nur
+    // ein Deskriptor - jedes Image loest selbst auf, Teilen ist unkritisch)
+    private static readonly ImageSource HeartOutlineIcon = ImageSource.FromFile("icon_heart_white.png");
+    private static readonly ImageSource HeartFilledIcon = ImageSource.FromFile("icon_heart_filled.png");
+    private static readonly ImageSource BlockGlyphIcon = ImageSource.FromFile("icon_block_white.png");
+    private static readonly ImageSource CloseGlyphIcon = ImageSource.FromFile("icon_close_white.png");
+
+    // Localized Kartentexte per Service-Locator - PropertyCard ist ein ContentView
+    // ohne DI (gleiches Muster wie IPropertyStatusService in OnCardLoaded). Statisch
+    // gecacht, damit recycelte Cards den Singleton nicht mehrfach aufloesen.
+    private static PropertyCardStringsLocalized? _locCache;
+    private static PropertyCardStringsLocalized Loc =>
+        _locCache ??= IPlatformApplication.Current!.Services.GetRequiredService<PropertyCardStringsLocalized>();
 
     public PropertyCard()
     {
         InitializeComponent();
+
+        // Statische Texte aus den Ressourcen (SemanticProperties sind nicht bindbar
+        // ohne BindingContext-Verrenkungen - Code-Behind ist hier robuster)
+        SemanticProperties.SetDescription(FavoriteButton, Loc.FavoriteActionDescription);
+        SemanticProperties.SetDescription(BlockButton, Loc.BlockActionDescription);
 
         // Favoriten-Status kommt zentral aus dem PropertyStatusService (das Herz
         // aktualisiert sich damit sofort nach jedem Toggle). Abo nur solange die
@@ -221,10 +237,10 @@ public partial class PropertyCard : ContentView
         // Typ-Badge Text und Farbe
         TypeBadgeText.Text = property.Type switch
         {
-            PropertyType.House => "HAUS",
-            PropertyType.Land => "GRUND",
-            PropertyType.Foreclosure => "ZV",
-            _ => "IMM"
+            PropertyType.House => Loc.TypeBadgeHouse,
+            PropertyType.Land => Loc.TypeBadgeLand,
+            PropertyType.Foreclosure => Loc.TypeBadgeForeclosure,
+            _ => Loc.TypeBadgeFallback
         };
 
         // Typ-Farben (wie Web): ZV = Signal-Rot, Grund = Gruen, Haus = Blau,
@@ -243,7 +259,7 @@ public partial class PropertyCard : ContentView
         if (property.PlotAreaM2.HasValue)
         {
             GrundstueckPanel.IsVisible = true;
-            GrundstueckText.Text = $"{PropertyDisplay.Number(property.PlotAreaM2.Value)} m² Grund";
+            GrundstueckText.Text = Loc.PlotAreaFormat(PropertyDisplay.Number(property.PlotAreaM2.Value));
         }
         else
         {
@@ -254,7 +270,7 @@ public partial class PropertyCard : ContentView
         if (property.LivingAreaM2.HasValue)
         {
             WohnflaechePanel.IsVisible = true;
-            WohnflaecheText.Text = $"{PropertyDisplay.Number(property.LivingAreaM2.Value)} m² Wfl";
+            WohnflaecheText.Text = Loc.LivingAreaFormat(PropertyDisplay.Number(property.LivingAreaM2.Value));
         }
         else
         {
@@ -265,7 +281,7 @@ public partial class PropertyCard : ContentView
         if (property.Rooms.HasValue)
         {
             RoomsPanel.IsVisible = true;
-            RoomsText.Text = $"{property.Rooms.Value} Zi";
+            RoomsText.Text = Loc.RoomsFormat(property.Rooms.Value);
         }
         else
         {
@@ -275,7 +291,7 @@ public partial class PropertyCard : ContentView
         // Anbieter (kompakt)
         SellerBadgeText.Text = property.SellerType switch
         {
-            SellerType.Private => "Privat",
+            SellerType.Private => Loc.SellerPrivate,
             _ => property.SellerName
         };
 
@@ -320,25 +336,23 @@ public partial class PropertyCard : ContentView
     private void UpdateActionButtonVisibility()
     {
         // Zwei wiederverwendete Buttons fuer alle CardModes (statt fuenf, groesstenteils
-        // unsichtbarer) - Sichtbarkeit und Glyphs je Mode nachziehen
+        // unsichtbarer) - Sichtbarkeit und Icons je Mode nachziehen
         switch (Mode)
         {
             case CardMode.Favorite:
-                FavoriteButton.IsVisible = true;
-                BlockButton.IsVisible = false;
+                FavoritePanel.IsVisible = true;
+                BlockPanel.IsVisible = false;
                 break;
             case CardMode.Blocked:
             case CardMode.Owner:
-                FavoriteButton.IsVisible = false;
-                BlockButton.IsVisible = true;
-                BlockButton.Text = "✕";
-                BlockButton.FontSize = 16;
+                FavoritePanel.IsVisible = false;
+                BlockPanel.IsVisible = true;
+                BlockIcon.Source = CloseGlyphIcon;
                 break;
             default:
-                FavoriteButton.IsVisible = IsAuthenticated;
-                BlockButton.IsVisible = IsAuthenticated;
-                BlockButton.Text = "⊘";
-                BlockButton.FontSize = 18;
+                FavoritePanel.IsVisible = IsAuthenticated;
+                BlockPanel.IsVisible = IsAuthenticated;
+                BlockIcon.Source = BlockGlyphIcon;
                 break;
         }
 
@@ -347,19 +361,10 @@ public partial class PropertyCard : ContentView
 
     private void UpdateFavoriteGlyph()
     {
-        // Favoriten-Seite: rotes Herz auf Glas zum Entfernen (unabhaengig vom Status)
-        if (Mode == CardMode.Favorite)
-        {
-            FavoriteButton.Text = "♥";
-            FavoriteButton.TextColor = SignalRed;
-            FavoriteButton.BackgroundColor = GlassBackground;
-            return;
-        }
-
-        // Gemerkt = gefuellter roter Button statt Glas (wie Web [aria-pressed=true])
-        FavoriteButton.Text = IsFavorite ? "♥" : "♡";
-        FavoriteButton.TextColor = Colors.White;
-        FavoriteButton.BackgroundColor = IsFavorite ? SignalRed : GlassBackground;
+        // Gemerkt = das Herz selbst fuellt sich rot, der Glas-Chip bleibt unveraendert.
+        // Auf der Favoriten-Seite ist der Eintrag immer aktiv, also immer gefuellt.
+        var filled = Mode == CardMode.Favorite || IsFavorite;
+        FavoriteIcon.Source = filled ? HeartFilledIcon : HeartOutlineIcon;
     }
 
     private static string FormatPrice(decimal price)

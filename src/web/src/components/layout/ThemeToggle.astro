@@ -2,6 +2,7 @@
 import MoonIcon from "@tabler/icons/outline/moon.svg";
 import SunIcon from "@tabler/icons/outline/sun.svg";
 import SunMoonIcon from "@tabler/icons/outline/sun-moon.svg";
+import { t } from "@/i18n";
 
 interface Props {
   class?: string;
@@ -19,7 +20,7 @@ const { class: className = "" } = Astro.props;
     className,
   ]}
   data-theme-toggle
-  aria-label="Design wechseln"
+  aria-label={t("common.themeToggle")}
 >
   <span class="grid place-items-center" data-theme-icon="system"><SunMoonIcon class="size-5" aria-hidden="true" /></span>
   <span class="grid place-items-center" data-theme-icon="light" hidden><SunIcon class="size-5" aria-hidden="true" /></span>
@@ -27,6 +28,8 @@ const { class: className = "" } = Astro.props;
 </button>
 
 <script>
+  import { t } from "@/i18n";
+
   type ThemeMode = "system" | "light" | "dark";
 
   const themeApi = (window as any).__heimatplatzTheme as
@@ -35,14 +38,14 @@ const { class: className = "" } = Astro.props;
 
   const ORDER: ThemeMode[] = ["system", "light", "dark"];
   const LABELS: Record<ThemeMode, string> = {
-    system: "Design: automatisch (System)",
-    light: "Design: hell",
-    dark: "Design: dunkel",
+    system: t("common.themeSystem"),
+    light: t("common.themeLight"),
+    dark: t("common.themeDark"),
   };
 
   function render(mode: ThemeMode) {
     document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((button) => {
-      button.setAttribute("aria-label", `${LABELS[mode]} – klicken zum Wechseln`);
+      button.setAttribute("aria-label", t("common.themeSwitchHint", { label: LABELS[mode] }));
       button.title = LABELS[mode];
       button.querySelectorAll<HTMLElement>("[data-theme-icon]").forEach((icon) => {
         icon.toggleAttribute("hidden", icon.dataset.themeIcon !== mode);

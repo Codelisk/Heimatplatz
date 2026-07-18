@@ -118,4 +118,19 @@ public partial class MunicipalitySearchModel : ObservableObject
         SelectedGemeindeId = municipalityId;
         SelectedOrtText = displayText;
     }
+
+    /// <summary>
+    /// Stellt die Auswahl fuer eine bestehende Immobilie her (Edit-Modus): der
+    /// Anzeige-Text wird aus der Gemeindeliste aufgeloest, der Fallback (z.B. der
+    /// City-Wert des Inserats) greift wenn die Liste nicht verfuegbar ist.
+    /// </summary>
+    public async Task RestoreByIdAsync(Guid municipalityId, string fallbackDisplay)
+    {
+        await EnsureLoadedAsync();
+
+        var gemeinde = _municipalities.FirstOrDefault(m => m.Id == municipalityId);
+        Restore(
+            municipalityId,
+            gemeinde != null ? $"{gemeinde.Name} ({gemeinde.PostalCode})" : fallbackDisplay);
+    }
 }

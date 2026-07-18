@@ -71,6 +71,8 @@
   <ItemGroup>
     <!-- Generierter OpenAPI-Client (eigenes Projekt: Source-Gen-Typen als Assembly-Referenz) -->
     <ProjectReference Include="..\Heimatplatz.Maui.ApiClient\Heimatplatz.Maui.ApiClient.csproj" />
+    <!-- Deutsche UI-Texte (eigenes Projekt: *Localized-Typen als Assembly-Referenz, s. dort README) -->
+    <ProjectReference Include="..\Heimatplatz.Maui.Localization\Heimatplatz.Maui.Localization.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" />

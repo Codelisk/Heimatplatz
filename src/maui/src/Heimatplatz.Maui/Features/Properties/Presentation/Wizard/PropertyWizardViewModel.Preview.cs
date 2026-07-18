@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Features.Properties.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
@@ -33,21 +34,26 @@ public partial class PropertyWizardViewModel
         get
         {
             var missing = new List<string>();
-            if (!ChecklistPhotosOk) missing.Add("Foto");
-            if (!ChecklistTitleOk) missing.Add("Titel");
-            if (!ChecklistPriceOk) missing.Add("Preis");
-            if (!ChecklistLocationOk) missing.Add("Adresse & Ort");
-            if (!ChecklistDescriptionOk) missing.Add("Beschreibung");
-            return missing.Count == 0 ? string.Empty : $"Noch offen: {string.Join(" · ", missing)}";
+            if (!ChecklistPhotosOk) missing.Add(Loc.MissingPhoto);
+            if (!ChecklistTitleOk) missing.Add(Loc.MissingTitle);
+            if (!ChecklistPriceOk) missing.Add(Loc.MissingPrice);
+            if (!ChecklistLocationOk) missing.Add(Loc.MissingLocation);
+            if (!ChecklistDescriptionOk) missing.Add(Loc.MissingDescription);
+            return missing.Count == 0 ? string.Empty : Loc.PublishHintFormat(string.Join(" · ", missing));
         }
     }
 
     public bool HasPublishHint => !CanPublish;
 
     /// <summary>Statuszeile der Aktionsleiste, wenn alles komplett ist.</summary>
-    public string PublishReadyText => IsGenerateMode && IsGenerationRunning
-        ? "Bereit – die Beschreibung wird im Hintergrund fertig erstellt"
-        : "Alles komplett – Ihr Inserat kann online gehen";
+    public string PublishReadyText => IsEditMode
+        ? Loc.PublishReadyEdit
+        : IsGenerateMode && IsGenerationRunning
+            ? Loc.PublishReadyGenerating
+            : Loc.PublishReadyCreate;
+
+    /// <summary>Text des Primaer-Buttons in der Aktionsleiste.</summary>
+    public string PublishButtonText => IsEditMode ? Loc.SaveChangesButton : Loc.PublishButton;
 
     /// <summary>Aktualisiert Live-Anzeige (Badge, Zaehler) und Checklisten-Hinweis.</summary>
     private void RefreshEditorState()
@@ -82,31 +88,37 @@ public partial class PropertyWizardViewModel
         if (!ValidateDescriptionText() && !descriptionPending)
         {
             ErrorMessage = IsGenerateMode
-                ? "Bitte lassen Sie zuerst den Text erstellen – oder schreiben Sie die Beschreibung selbst."
-                : "Die Beschreibung muss mindestens 50 Zeichen lang sein.";
+                ? Loc.ValidationDescriptionGenerateFirst
+                : Loc.ValidationDescriptionTooShort;
             return;
         }
 
         if (!string.IsNullOrWhiteSpace(Beschreibung) && Beschreibung.Trim().Length > 2000)
         {
-            ErrorMessage = "Die Beschreibung darf höchstens 2000 Zeichen lang sein.";
+            ErrorMessage = Loc.ValidationDescriptionTooLong;
             return;
         }
 
         if (!ChecklistPhotosOk)
         {
-            ErrorMessage = "Bitte fügen Sie mindestens ein Foto hinzu";
+            ErrorMessage = Loc.ValidationPhotoMissing;
             return;
         }
 
         if (!_authService.IsSeller)
         {
-            ErrorMessage = "Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.";
+            ErrorMessage = Loc.SellerAccountRequired;
+            return;
+        }
+
+        if (IsEditMode)
+        {
+            await SaveChangesAsync();
             return;
         }
 
         IsBusy = true;
-        BusyMessage = "Inserat wird veröffentlicht…";
+        BusyMessage = Loc.BusyPublishing;
         var publishSucceeded = false;
 
         try
@@ -114,7 +126,7 @@ public partial class PropertyWizardViewModel
             await EnsureMediaUploadedAsync();
             if (UploadedImageUrls.Count == 0)
             {
-                ErrorMessage = "Die Fotos konnten nicht hochgeladen werden. Bitte versuchen Sie es erneut.";
+                ErrorMessage = Loc.PhotosUploadFailed;
                 return;
             }
 
@@ -122,7 +134,7 @@ public partial class PropertyWizardViewModel
             MarkDraftDirty();
             if (!await SaveDraftAsync() || _serverDraftId is not { } draftId)
             {
-                ErrorMessage = "Der Entwurf konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.";
+                ErrorMessage = Loc.DraftSaveError;
                 return;
             }
 
@@ -139,7 +151,7 @@ public partial class PropertyWizardViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyWizard] Fehler beim Veroeffentlichen");
-            ErrorMessage = "Das Inserat konnte nicht veröffentlicht werden. Bitte versuchen Sie es erneut.";
+            ErrorMessage = Loc.PublishFailed;
         }
         finally
         {
@@ -153,14 +165,9 @@ public partial class PropertyWizardViewModel
             StopDescriptionPolling();
             CancelPendingAutoSave();
 
-            if (descriptionPending)
-            {
-                // Kein Warten auf den Job: kurz erklaeren, dass der Text spaeter erscheint
-                await Shell.Current.DisplayAlertAsync(
-                    "Inserat veröffentlicht",
-                    "Ihre Beschreibung wird gerade erstellt und erscheint in Kürze automatisch im Inserat.",
-                    "OK");
-            }
+            // Kein Erfolgs-Alert: Die Zielseite zeigt das neue Inserat sofort -
+            // dafuer laedt sie einmalig am LocalFirst-Cache vorbei
+            PropertyListRefreshSignal.Request();
 
             // Erst die gepushte Editor-Seite vom Stack der Ursprungs-Section nehmen,
             // dann zur MyProperties-Root wechseln - sonst bliebe der Editor beim

@@ -4,6 +4,7 @@ using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Debug.Services;
+using Heimatplatz.Maui.Localization.Debug;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -32,8 +33,10 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
         IApiEndpointService apiEndpoints,
         IAuthService authService,
         IMediator mediator,
-        ILogger<DebugViewModel> logger)
+        ILogger<DebugViewModel> logger,
+        DebugStringsLocalized loc)
     {
+        Loc = loc;
         _apiEndpoints = apiEndpoints;
         _authService = authService;
         _mediator = mediator;
@@ -56,6 +59,8 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
         UpdateAuthenticationState();
     }
 
+    public DebugStringsLocalized Loc { get; }
+
     [ObservableProperty]
     public partial bool IsDevelopmentSelected { get; set; }
 
@@ -66,7 +71,11 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     public partial bool IsProductionSelected { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CurrentUrlDisplay))]
     public partial string CurrentUrl { get; set; } = string.Empty;
+
+    /// <summary>Anzeige "Aktiv: {Url}" unterhalb der Endpunkt-Auswahl</summary>
+    public string CurrentUrlDisplay => Loc.ActiveUrlFormat(CurrentUrl);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -81,13 +90,17 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CurrentAuthenticationStateDisplay))]
     public partial string CurrentAuthenticationState { get; set; } = string.Empty;
 
-    public string DevelopmentUrl => _apiEndpoints.DevelopmentUrl;
+    /// <summary>Anzeige "Aktuell: {Status}" in der Anmeldestatus-Karte</summary>
+    public string CurrentAuthenticationStateDisplay => Loc.CurrentStateFormat(CurrentAuthenticationState);
 
-    public string TestUrl => _apiEndpoints.TestUrl;
+    public string DevelopmentLabel => Loc.DevelopmentEndpointFormat(_apiEndpoints.DevelopmentUrl);
 
-    public string ProductionUrl => _apiEndpoints.ProductionUrl;
+    public string TestLabel => Loc.TestEndpointFormat(_apiEndpoints.TestUrl);
+
+    public string ProductionLabel => Loc.ProductionEndpointFormat(_apiEndpoints.ProductionUrl);
 
     public void OnAppearing()
     {
@@ -112,16 +125,16 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     }
 
     [RelayCommand]
-    private Task LoginAsBuyerAsync() => LoginAsAsync(BuyerEmail, "Käufer");
+    private Task LoginAsBuyerAsync() => LoginAsAsync(BuyerEmail, Loc.RoleBuyer);
 
     [RelayCommand]
-    private Task LoginAsSellerAsync() => LoginAsAsync(SellerEmail, "Verkäufer (privat)");
+    private Task LoginAsSellerAsync() => LoginAsAsync(SellerEmail, Loc.RoleSellerPrivate);
 
     [RelayCommand]
-    private Task LoginAsBrokerAsync() => LoginAsAsync(BrokerEmail, "Makler");
+    private Task LoginAsBrokerAsync() => LoginAsAsync(BrokerEmail, Loc.RoleBroker);
 
     [RelayCommand]
-    private Task LoginAsPropertyManagerAsync() => LoginAsAsync(PropertyManagerEmail, "Hausverwaltung");
+    private Task LoginAsPropertyManagerAsync() => LoginAsAsync(PropertyManagerEmail, Loc.RolePropertyManager);
 
     partial void OnIsDevelopmentSelectedChanged(bool value)
     {
@@ -168,7 +181,7 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
 
             if (result is null)
             {
-                ErrorMessage = $"Die Anmeldung als {roleLabel} hat keine Antwort geliefert.";
+                ErrorMessage = Loc.LoginNoResponseFormat(roleLabel);
                 return;
             }
 
@@ -189,7 +202,7 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
         catch (Exception ex)
         {
             _logger.LogError(ex, "Debug-Anmeldung als {Role} ({Email}) fehlgeschlagen", roleLabel, email);
-            ErrorMessage = $"Anmeldung als {roleLabel} fehlgeschlagen. Läuft der gewählte API-Endpunkt und sind die Testbenutzer vorhanden?";
+            ErrorMessage = Loc.LoginFailedFormat(roleLabel);
         }
         finally
         {
@@ -201,19 +214,19 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     {
         var sellerLabel = _authService.SellerType switch
         {
-            "Broker" => "Verkäufer (Makler)",
-            "PropertyManager" => "Verkäufer (Hausverwaltung)",
-            "Private" => "Verkäufer (privat)",
-            _ => "Verkäufer"
+            "Broker" => Loc.RoleSellerBroker,
+            "PropertyManager" => Loc.RoleSellerPropertyManager,
+            "Private" => Loc.RoleSellerPrivate,
+            _ => Loc.RoleSeller
         };
 
         CurrentAuthenticationState = (_authService.IsAuthenticated, _authService.IsSeller, _authService.IsAdmin) switch
         {
-            (false, _, _) => "Ausgeloggt",
-            (true, _, true) => $"Admin — {_authService.UserEmail}",
-            (true, true, false) => $"{sellerLabel} — {_authService.UserEmail}",
+            (false, _, _) => Loc.StateLoggedOut,
+            (true, _, true) => Loc.StateAdminFormat(_authService.UserEmail),
+            (true, true, false) => Loc.StateUserFormat(sellerLabel, _authService.UserEmail),
             // Kaeufer ist jedes Konto implizit
-            (true, false, false) => $"Käufer — {_authService.UserEmail}"
+            (true, false, false) => Loc.StateUserFormat(Loc.RoleBuyer, _authService.UserEmail)
         };
     }
 }

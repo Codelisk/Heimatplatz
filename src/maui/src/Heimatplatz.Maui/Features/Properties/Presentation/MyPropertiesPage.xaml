@@ -7,10 +7,10 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.MyPropertiesPage"
              x:DataType="vm:MyPropertiesViewModel"
-             Title="Meine Immobilien">
+             Title="{Binding Loc.PageTitle}">
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Neu"
+        <ToolbarItem Text="{Binding Loc.NewToolbarItem}"
                      Command="{Binding NavigateToAddPropertyCommand}" />
     </ContentPage.ToolbarItems>
 
@@ -22,7 +22,7 @@
                              Padding="12,8,12,0"
                              Spacing="8"
                              IsVisible="{Binding HasDrafts}">
-            <Label Text="Entwürfe"
+            <Label Text="{Binding Loc.DraftsSectionTitle}"
                    Style="{StaticResource SectionHeader}" />
             <ScrollView MaximumHeightRequest="300">
                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding Drafts}"
@@ -71,13 +71,13 @@
                                     <VerticalStackLayout Grid.Column="2"
                                                          Spacing="6"
                                                          VerticalOptions="Center">
-                                        <Button Text="Fortsetzen"
+                                        <Button Text="{Binding Loc.ResumeDraft, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}"
                                                 FontSize="12"
                                                 Padding="10,6"
                                                 Style="{StaticResource PrimaryButton}"
                                                 Command="{Binding ResumeDraftCommand, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}"
                                                 CommandParameter="{Binding .}" />
-                                        <Button Text="Löschen"
+                                        <Button Text="{Binding Loc.DeleteDraft, Source={RelativeSource AncestorType={x:Type vm:MyPropertiesViewModel}}, x:DataType=vm:MyPropertiesViewModel}"
                                                 FontSize="12"
                                                 Padding="10,6"
                                                 Style="{StaticResource SecondaryButton}"
@@ -90,7 +90,7 @@
                     </BindableLayout.ItemTemplate>
                 </VerticalStackLayout>
             </ScrollView>
-            <Label Text="Veröffentlicht"
+            <Label Text="{Binding Loc.PublishedSectionTitle}"
                    Style="{StaticResource SectionHeader}"
                    Margin="0,8,0,0"
                    IsVisible="{Binding IsNotEmpty}" />
@@ -116,10 +116,10 @@
                             <Label Text="🏠"
                                    Style="{StaticResource EmptyStateIcon}"
                                    Opacity="0.5" />
-                            <Label Text="Noch keine Immobilien" Style="{StaticResource EmptyStateTitle}" />
-                            <Label Text="Fügen Sie Ihre erste Immobilie hinzu."
+                            <Label Text="{Binding Loc.EmptyTitle}" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.EmptyHint}"
                                    Style="{StaticResource EmptyStateHint}" />
-                            <Button Text="Immobilie hinzufügen"
+                            <Button Text="{Binding Loc.AddProperty}"
                                     Style="{StaticResource PrimaryButton}"
                                     Command="{Binding NavigateToAddPropertyCommand}"
                                     HorizontalOptions="Center"
@@ -134,10 +134,10 @@
                             <Label Text="🔒"
                                    Style="{StaticResource EmptyStateIcon}"
                                    Opacity="0.5" />
-                            <Label Text="Nicht angemeldet" Style="{StaticResource EmptyStateTitle}" />
-                            <Label Text="Melden Sie sich an, um Ihre Immobilien zu verwalten."
+                            <Label Text="{Binding Loc.NotLoggedInTitle}" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.NotLoggedInHint}"
                                    Style="{StaticResource EmptyStateHint}" />
-                            <Button Text="Anmelden"
+                            <Button Text="{Binding Loc.Login}"
                                     Style="{StaticResource PrimaryButton}"
                                     Command="{Binding GoToLoginCommand}"
                                     HorizontalOptions="Center"
@@ -152,8 +152,8 @@
                             <Label Text="🏠"
                                    Style="{StaticResource EmptyStateIcon}"
                                    Opacity="0.5" />
-                            <Label Text="Nur für Verkäufer" Style="{StaticResource EmptyStateTitle}" />
-                            <Label Text="Eigene Inserate sind nur mit einem Verkäufer-Konto möglich. Ihr Konto ist als Käufer registriert."
+                            <Label Text="{Binding Loc.SellerOnlyTitle}" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.SellerOnlyHint}"
                                    Style="{StaticResource EmptyStateHint}" />
                         </VerticalStackLayout>
 
@@ -163,9 +163,9 @@
                                              HorizontalOptions="Center"
                                              IsVisible="{Binding ShowLoadError}">
                             <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
-                            <Label Text="Laden fehlgeschlagen" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="{Binding LoadErrorMessage}" Style="{StaticResource EmptyStateHint}" />
-                            <Button Text="Erneut versuchen"
+                            <Button Text="{Binding Loc.Retry}"
                                     Style="{StaticResource SecondaryButton}"
                                     Command="{Binding RetryLoadCommand}"
                                     Margin="0,10,0,0"

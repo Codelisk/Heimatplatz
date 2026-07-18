@@ -4,6 +4,7 @@ using Heimatplatz.Features.Notifications.Contracts.Models;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Notifications.Services;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Localization.Notifications;
 using Microsoft.Extensions.Logging;
 using Shiny;
 
@@ -36,8 +37,10 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         ILocationService locationService,
         IAuthService authService,
         INavigator navigator,
-        ILogger<NotificationSettingsViewModel> logger)
+        ILogger<NotificationSettingsViewModel> logger,
+        NotificationSettingsStringsLocalized loc)
     {
+        Loc = loc;
         _notificationService = notificationService;
         _locationService = locationService;
         _authService = authService;
@@ -54,6 +57,8 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         IsPrivateSelected = true;
         IsBrokerSelected = true;
     }
+
+    public NotificationSettingsStringsLocalized Loc { get; }
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }

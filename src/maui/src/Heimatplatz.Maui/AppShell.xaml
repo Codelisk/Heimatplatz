@@ -9,6 +9,7 @@
     xmlns:properties="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
     xmlns:auth="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
     xmlns:notifications="clr-namespace:Heimatplatz.Maui.Features.Notifications.Presentation"
+    x:DataType="local:AppShell"
     Title="Heimatplatz"
     FlyoutBehavior="Flyout"
     FlyoutWidth="300"
@@ -114,7 +115,7 @@
                        FontSize="16"
                        CharacterSpacing="4"
                        TextColor="{StaticResource White}" />
-                <Label Text="Immobilien in Ihrer Region"
+                <Label Text="{Binding Loc.Tagline}"
                        FontSize="12"
                        TextColor="{StaticResource Gray300}" />
                 <controls:FlagBand Margin="0,3,0,0" />
@@ -125,38 +126,38 @@
     <!-- Sichtbare Shell-Roots: Das Framework regelt das Navigations-Icon selbst -
          Hamburger auf den Root-Seiten, Zurueck-Pfeil nur auf gepushten Detailseiten. -->
     <ShellContent
-        Title="Startseite"
+        Title="{Binding Loc.HomeTitle}"
         Icon="icon_home.png"
         ContentTemplate="{DataTemplate properties:HomePage}"
         Route="MainPage" />
     <ShellContent
-        Title="Meine Immobilien"
+        Title="{Binding Loc.MyPropertiesTitle}"
         Icon="icon_buildings.png"
         ContentTemplate="{DataTemplate properties:MyPropertiesPage}"
         Route="MyProperties" />
     <ShellContent
-        Title="Favoriten"
+        Title="{Binding Loc.FavoritesTitle}"
         Icon="icon_heart.png"
         ContentTemplate="{DataTemplate properties:FavoritesPage}"
         Route="Favorites" />
     <ShellContent
-        Title="Blockiert"
+        Title="{Binding Loc.BlockedTitle}"
         Icon="icon_block.png"
         ContentTemplate="{DataTemplate properties:BlockedPage}"
         Route="Blocked" />
     <ShellContent
-        Title="Benachrichtigungen"
+        Title="{Binding Loc.NotificationsTitle}"
         Icon="icon_bell.png"
         ContentTemplate="{DataTemplate notifications:NotificationSettingsPage}"
         Route="NotificationSettings" />
     <ShellContent
-        Title="Profil"
+        Title="{Binding Loc.ProfileTitle}"
         Icon="icon_user.png"
         ContentTemplate="{DataTemplate auth:UserProfilePage}"
         Route="UserProfile" />
     <!-- Login als verstecktes ShellContent, damit absolute Navigation (//Login) beim Logout funktioniert -->
     <ShellContent
-        Title="Anmelden"
+        Title="{Binding Loc.LoginTitle}"
         ContentTemplate="{DataTemplate auth:LoginPage}"
         Route="Login"
         FlyoutItemIsVisible="False" />
@@ -168,7 +169,7 @@
 
             <!-- Rechtliches dezent im Footer statt als eigene Menuepunkte -->
             <HorizontalStackLayout Spacing="6">
-                <Label Text="Impressum"
+                <Label Text="{Binding Loc.ImprintLink}"
                        FontSize="11"
                        TextDecorations="Underline"
                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
@@ -180,7 +181,7 @@
                 <Label Text="·"
                        FontSize="11"
                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                <Label Text="Datenschutz"
+                <Label Text="{Binding Loc.PrivacyLink}"
                        FontSize="11"
                        TextDecorations="Underline"
                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"

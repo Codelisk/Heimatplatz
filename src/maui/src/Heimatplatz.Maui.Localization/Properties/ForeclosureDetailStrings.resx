@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Zwangsversteigerung</value>
+  </data>
+  <data name="BusyLoading" xml:space="preserve">
+    <value>Lade Zwangsversteigerung...</value>
+  </data>
+  <data name="RetryButton" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+  <data name="NotAvailableTitle" xml:space="preserve">
+    <value>Nicht mehr verfügbar</value>
+  </data>
+  <data name="NotAvailableText" xml:space="preserve">
+    <value>Diese Zwangsversteigerung wurde entfernt oder ist nicht mehr aktuell.</value>
+  </data>
+  <data name="OfflineTitle" xml:space="preserve">
+    <value>Keine Internetverbindung</value>
+  </data>
+  <data name="OfflineText" xml:space="preserve">
+    <value>Diese Zwangsversteigerung ist noch nicht lokal gespeichert. Sobald Sie wieder online sind, wird sie automatisch geladen.</value>
+  </data>
+  <data name="LoadFailedTitle" xml:space="preserve">
+    <value>Laden fehlgeschlagen</value>
+  </data>
+  <data name="ServerUnreachableText" xml:space="preserve">
+    <value>Der Server ist gerade nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.</value>
+  </data>
+  <data name="TryAgainLaterText" xml:space="preserve">
+    <value>Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="OpenImageViewerSemantic" xml:space="preserve">
+    <value>Bild in Großansicht öffnen</value>
+  </data>
+  <data name="CloseViewerSemantic" xml:space="preserve">
+    <value>Großansicht schließen</value>
+  </data>
+  <data name="ShareSemantic" xml:space="preserve">
+    <value>Zwangsversteigerung teilen</value>
+  </data>
+  <data name="OfficialDocumentLabel" xml:space="preserve">
+    <value>AMTLICHES DOKUMENT</value>
+  </data>
+  <data name="OpenEdictTitle" xml:space="preserve">
+    <value>Edikt öffnen</value>
+  </data>
+  <data name="OpenEdictSubtitle" xml:space="preserve">
+    <value>Alle Angaben im Original-Edikt ansehen</value>
+  </data>
+  <data name="DescriptionHeader" xml:space="preserve">
+    <value>BESCHREIBUNG</value>
+  </data>
+  <data name="DocumentsHeader" xml:space="preserve">
+    <value>DOKUMENTE</value>
+  </data>
+  <data name="DocumentFloorPlan" xml:space="preserve">
+    <value>Grundriss</value>
+  </data>
+  <data name="DocumentSitePlan" xml:space="preserve">
+    <value>Lageplan</value>
+  </data>
+  <data name="DocumentLongAppraisal" xml:space="preserve">
+    <value>Langgutachten</value>
+  </data>
+  <data name="DocumentShortAppraisal" xml:space="preserve">
+    <value>Kurzgutachten</value>
+  </data>
+  <data name="CourtFooterLabel" xml:space="preserve">
+    <value>ZUSTÄNDIGES GERICHT</value>
+  </data>
+  <data name="PriceCaptionMinimumBid" xml:space="preserve">
+    <value>Mindestgebot</value>
+  </data>
+  <data name="PriceCaptionEstimatedValue" xml:space="preserve">
+    <value>Schätzwert</value>
+  </data>
+  <data name="TypeBadge" xml:space="preserve">
+    <value>ZV</value>
+  </data>
+  <data name="FavoriteSave" xml:space="preserve">
+    <value>Merken</value>
+  </data>
+  <data name="FavoriteSaved" xml:space="preserve">
+    <value>Gemerkt</value>
+  </data>
+  <data name="LabelCreatedAt" xml:space="preserve">
+    <value>Eingestellt am</value>
+  </data>
+  <data name="LabelAuctionDate" xml:space="preserve">
+    <value>Versteigerungstermin</value>
+  </data>
+  <data name="LabelEstimatedValue" xml:space="preserve">
+    <value>Schätzwert</value>
+  </data>
+  <data name="LabelMinimumBid" xml:space="preserve">
+    <value>Mindestgebot</value>
+  </data>
+  <data name="LabelOwnershipShare" xml:space="preserve">
+    <value>Eigentumsanteil</value>
+  </data>
+  <data name="LabelPropertyType" xml:space="preserve">
+    <value>Immobilienart</value>
+  </data>
+  <data name="TypeForeclosure" xml:space="preserve">
+    <value>Zwangsversteigerung</value>
+  </data>
+  <data name="LabelCategory" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="LabelPostalCode" xml:space="preserve">
+    <value>PLZ</value>
+  </data>
+  <data name="LabelCity" xml:space="preserve">
+    <value>Ort</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>Adresse</value>
+  </data>
+  <data name="LabelCourt" xml:space="preserve">
+    <value>Gericht</value>
+  </data>
+  <data name="LabelFileNumber" xml:space="preserve">
+    <value>Aktenzeichen</value>
+  </data>
+  <data name="LabelTotalArea" xml:space="preserve">
+    <value>Gesamtfläche</value>
+  </data>
+  <data name="LabelPlot" xml:space="preserve">
+    <value>Grundstück</value>
+  </data>
+  <data name="LabelBuildingArea" xml:space="preserve">
+    <value>Bebaute Fläche</value>
+  </data>
+  <data name="LabelRegistrationNumber" xml:space="preserve">
+    <value>Einlagezahl (EZ)</value>
+  </data>
+  <data name="LabelCadastralMunicipality" xml:space="preserve">
+    <value>Katastralgemeinde</value>
+  </data>
+  <data name="LabelPlotNumber" xml:space="preserve">
+    <value>Grundstücksnummer</value>
+  </data>
+  <data name="LabelZoningDesignation" xml:space="preserve">
+    <value>Flächenwidmung</value>
+  </data>
+  <data name="LabelRooms" xml:space="preserve">
+    <value>Zimmer</value>
+  </data>
+  <data name="LabelYearBuilt" xml:space="preserve">
+    <value>Baujahr</value>
+  </data>
+  <data name="LabelCondition" xml:space="preserve">
+    <value>Zustand</value>
+  </data>
+  <data name="LabelViewingDate" xml:space="preserve">
+    <value>Besichtigung</value>
+  </data>
+  <data name="LabelBiddingDeadline" xml:space="preserve">
+    <value>Gebotsfrist</value>
+  </data>
+  <data name="SectionBasicData" xml:space="preserve">
+    <value>BASISDATEN</value>
+  </data>
+  <data name="SectionAreas" xml:space="preserve">
+    <value>FLÄCHEN</value>
+  </data>
+  <data name="SectionBuilding" xml:space="preserve">
+    <value>GEBÄUDE</value>
+  </data>
+  <data name="SectionLandRegistry" xml:space="preserve">
+    <value>GRUNDBUCH</value>
+  </data>
+  <data name="SectionAuction" xml:space="preserve">
+    <value>VERSTEIGERUNG</value>
+  </data>
+  <data name="SectionLegal" xml:space="preserve">
+    <value>RECHTLICHES</value>
+  </data>
+  <data name="SectionDates" xml:space="preserve">
+    <value>TERMINE</value>
+  </data>
+  <data name="SectionMisc" xml:space="preserve">
+    <value>SONSTIGES</value>
+  </data>
+  <data name="TileAuctionDate" xml:space="preserve">
+    <value>TERMIN</value>
+  </data>
+  <data name="TileEstimatedValue" xml:space="preserve">
+    <value>SCHÄTZWERT</value>
+  </data>
+  <data name="TileArea" xml:space="preserve">
+    <value>FLÄCHE</value>
+  </data>
+  <data name="CopiedFeedback" xml:space="preserve">
+    <value>Kopiert!</value>
+  </data>
+  <data name="SharedFeedback" xml:space="preserve">
+    <value>Geteilt!</value>
+  </data>
+  <data name="CopiedToClipboardFeedback" xml:space="preserve">
+    <value>In Zwischenablage kopiert!</value>
+  </data>
+  <data name="ShareDescriptionFormat" xml:space="preserve">
+    <value>Zwangsversteigerung: {0}
+{1}: {2}
+Standort: {3}</value>
+  </data>
+  <data name="ShareDescriptionNoPriceFormat" xml:space="preserve">
+    <value>Zwangsversteigerung: {0}
+Standort: {1}</value>
+  </data>
+</root>

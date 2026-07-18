@@ -5,6 +5,7 @@ import {
   paragraphsFromLegalText,
   visibleLegalSections,
 } from "@/features/legal/api";
+import { t } from "@/i18n";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { breadcrumbSchema } from "@/lib/seo";
 
@@ -24,45 +25,45 @@ const pageUrl = new URL("/impressum/", Astro.site).toString();
 
 const rawDetailGroups: Array<{ title: string; items: DetailItem[] }> = [
   {
-    title: "Angaben gemäß ECG und UGB",
+    title: t("legal.groupEcgUgb"),
     items: [
-      { label: "Unternehmen", value: imprint.companyName },
-      { label: "Rechtsform", value: imprint.legalForm },
-      { label: "Inhaber", value: imprint.owner },
-      { label: "Adresse", value: [imprint.street, place, imprint.country].filter(Boolean).join("\n") },
+      { label: t("legal.labelCompany"), value: imprint.companyName },
+      { label: t("legal.labelLegalForm"), value: imprint.legalForm },
+      { label: t("legal.labelOwner"), value: imprint.owner },
+      { label: t("legal.labelAddress"), value: [imprint.street, place, imprint.country].filter(Boolean).join("\n") },
     ],
   },
   {
-    title: "Kontakt",
+    title: t("legal.contact"),
     items: [
-      { label: "E-Mail", value: imprint.email, href: `mailto:${imprint.email}` },
-      { label: "Telefon", value: imprint.phone, href: imprint.phone ? `tel:${imprint.phone}` : undefined },
-      { label: "Website", value: imprint.website, href: imprint.website, external: true },
+      { label: t("legal.labelEmail"), value: imprint.email, href: `mailto:${imprint.email}` },
+      { label: t("legal.labelPhone"), value: imprint.phone, href: imprint.phone ? `tel:${imprint.phone}` : undefined },
+      { label: t("legal.labelWebsite"), value: imprint.website, href: imprint.website, external: true },
     ],
   },
   {
-    title: "Gewerbliche Angaben",
+    title: t("legal.groupTrade"),
     items: [
-      { label: "Gewerbe", value: imprint.trade },
-      { label: "GISA-Zahl", value: imprint.gisaNumber },
-      { label: "Gewerbebehörde", value: imprint.tradeAuthority },
-      { label: "Berufsrecht", value: imprint.professionalLaw },
+      { label: t("legal.labelTrade"), value: imprint.trade },
+      { label: t("legal.labelGisaNumber"), value: imprint.gisaNumber },
+      { label: t("legal.labelTradeAuthority"), value: imprint.tradeAuthority },
+      { label: t("legal.labelProfessionalLaw"), value: imprint.professionalLaw },
     ],
   },
   {
-    title: "Kammermitgliedschaft",
+    title: t("legal.groupChamber"),
     items: [
-      { label: "Kammer", value: imprint.chamberMembership },
-      { label: "Fachgruppe", value: imprint.tradeGroup },
+      { label: t("legal.labelChamber"), value: imprint.chamberMembership },
+      { label: t("legal.labelTradeGroup"), value: imprint.tradeGroup },
     ],
   },
   {
-    title: "Steuerdaten",
+    title: t("legal.groupTax"),
     items: [
-      { label: "UID-Nummer", value: imprint.uidNumber },
-      { label: "Steuernummer", value: imprint.taxNumber },
-      { label: "DUNS", value: imprint.dunsNumber },
-      { label: "GLN", value: imprint.gln },
+      { label: t("legal.labelUidNumber"), value: imprint.uidNumber },
+      { label: t("legal.labelTaxNumber"), value: imprint.taxNumber },
+      { label: t("legal.labelDuns"), value: imprint.dunsNumber },
+      { label: t("legal.labelGln"), value: imprint.gln },
     ],
   },
 ];
@@ -105,23 +106,23 @@ const structuredData = [
 ---
 
 <BaseLayout
-  title="Impressum"
-  description="Impressum und Anbieterkennzeichnung von Heimatplatz mit Kontakt-, Gewerbe-, Kammer- und Steuerdaten."
+  title={t("legal.imprintMetaTitle")}
+  description={t("legal.imprintMetaDescription")}
   canonicalPath="/impressum/"
   structuredData={structuredData}
 >
   <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
     <header class="max-w-3xl">
-      <p class="text-sm font-bold uppercase text-muted-foreground">Rechtliches</p>
-      <h1 class="mt-3 text-4xl font-bold tracking-normal">Impressum</h1>
+      <p class="text-sm font-bold uppercase text-muted-foreground">{t("legal.kicker")}</p>
+      <h1 class="mt-3 text-4xl font-bold tracking-normal">{t("legal.imprintTitle")}</h1>
       <p class="mt-4 text-base leading-7 text-muted-foreground">
-        Anbieterkennzeichnung und Kontaktangaben zur Plattform Heimatplatz.
+        {t("legal.imprintIntro")}
       </p>
       <p class="mt-4 text-sm text-muted-foreground">
-        {updatedAt && <span>Stand: {updatedAt}</span>}
+        {updatedAt && <span>{t("legal.updatedAt", { date: updatedAt })}</span>}
         {updatedAt && imprint.version && <span> · </span>}
-        {imprint.version && <span>Version {imprint.version}</span>}
-        {!updatedAt && effectiveAt && <span>Gültig seit: {effectiveAt}</span>}
+        {imprint.version && <span>{t("legal.version", { version: imprint.version })}</span>}
+        {!updatedAt && effectiveAt && <span>{t("legal.effectiveSince", { date: effectiveAt })}</span>}
       </p>
     </header>
 
@@ -168,7 +169,7 @@ const structuredData = [
 
       <aside class="space-y-4">
         <div class="rounded-lg border border-border bg-card p-5">
-          <h2 class="text-lg font-bold">Kontakt</h2>
+          <h2 class="text-lg font-bold">{t("legal.contact")}</h2>
           <address class="mt-3 not-italic text-sm leading-6 text-muted-foreground">
             <strong class="font-semibold text-foreground">{imprint.companyName}</strong><br />
             {imprint.street}<br />
@@ -183,23 +184,23 @@ const structuredData = [
         </div>
 
         <div class="rounded-lg border border-border bg-card p-5">
-          <h2 class="text-lg font-bold">Registerdaten</h2>
+          <h2 class="text-lg font-bold">{t("legal.registerData")}</h2>
           <dl class="mt-3 space-y-3 text-sm">
             {imprint.gisaNumber && (
               <div>
-                <dt class="text-muted-foreground">GISA</dt>
+                <dt class="text-muted-foreground">{t("legal.labelGisaShort")}</dt>
                 <dd class="font-medium">{imprint.gisaNumber}</dd>
               </div>
             )}
             {imprint.uidNumber && (
               <div>
-                <dt class="text-muted-foreground">UID</dt>
+                <dt class="text-muted-foreground">{t("legal.labelUidShort")}</dt>
                 <dd class="font-medium">{imprint.uidNumber}</dd>
               </div>
             )}
             {imprint.dunsNumber && (
               <div>
-                <dt class="text-muted-foreground">DUNS</dt>
+                <dt class="text-muted-foreground">{t("legal.labelDuns")}</dt>
                 <dd class="font-medium">{imprint.dunsNumber}</dd>
               </div>
             )}

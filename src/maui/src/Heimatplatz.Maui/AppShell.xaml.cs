@@ -1,3 +1,4 @@
+using Heimatplatz.Maui.Localization;
 using Shiny;
 
 namespace Heimatplatz.Maui;
@@ -6,15 +7,20 @@ public partial class AppShell : ShinyShell
 {
     readonly List<FlyoutMenuEntry> flyoutEntries = [];
 
-    public AppShell()
+    public AppShellStringsLocalized Loc { get; }
+
+    public AppShell(AppShellStringsLocalized loc)
     {
+        Loc = loc;
+        // Shell ist ihr eigener BindingContext: XAML bindet Titel/Links auf Loc.*
+        BindingContext = this;
         InitializeComponent();
 
 #if DEBUG
         // Debug-Werkzeuge (z.B. API-Umschalter) nur in Entwicklungs-Builds im Flyout
         Items.Add(new ShellContent
         {
-            Title = "Debug",
+            Title = Loc.DebugTitle,
             Icon = "icon_bug.png",
             Route = "Debug",
             ContentTemplate = new DataTemplate(typeof(Features.Debug.Presentation.DebugPage))
@@ -23,7 +29,7 @@ public partial class AppShell : ShinyShell
 
         BuildFlyoutEntries();
 
-        VersionLabel.Text = $"Heimatplatz · Version {AppInfo.Current.VersionString}";
+        VersionLabel.Text = Loc.VersionFormat(AppInfo.Current.VersionString);
     }
 
     /// <summary>
@@ -53,7 +59,7 @@ public partial class AppShell : ShinyShell
         // Aktion statt Ziel: pusht den Inserat-Wizard (mit Zurueck-Pfeil zum Abbrechen)
         flyoutEntries.Add(new FlyoutMenuEntry
         {
-            Title = "Immobilie hinzufügen",
+            Title = Loc.AddPropertyTitle,
             Icon = "icon_add.png",
             Route = "PropertyWizard",
             IsRoot = false

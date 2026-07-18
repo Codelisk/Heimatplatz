@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
 
@@ -36,13 +37,17 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         IFilterPreferencesService filterPreferencesService,
         IFilterStateService filterStateService,
         ILocationService locationService,
-        ILogger<FilterSettingsViewModel> logger)
+        ILogger<FilterSettingsViewModel> logger,
+        FilterSettingsStringsLocalized loc)
     {
         _authService = authService;
         _filterPreferencesService = filterPreferencesService;
         _filterStateService = filterStateService;
         _locationService = locationService;
         _logger = logger;
+        Loc = loc;
+
+        AgeFilterOptions = [loc.AgeOptionAll, loc.AgeOptionDay, loc.AgeOptionWeek, loc.AgeOptionMonth, loc.AgeOptionYear];
 
         _isSyncing = true;
         IsHausSelected = true;
@@ -53,10 +58,10 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         SelectedAgeFilterIndex = 0;
         SelectedPageSize = PageSizePreference.Get();
         FilterSummary = string.Empty;
-        ResultCountText = "0 Objekte";
+        ResultCountText = loc.ObjektCountFormat(0);
         OrtPanelSearchText = string.Empty;
         OrtPanelSearchResults = [];
-        OrtPanelApplyText = "Übernehmen";
+        OrtPanelApplyText = loc.Apply;
         _isSyncing = false;
 
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
@@ -66,6 +71,9 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         SyncFiltersFromService();
         UpdateResultCount();
     }
+
+    /// <summary>Lokalisierte Texte fuer XAML-Bindings (Loc.Key)</summary>
+    public FilterSettingsStringsLocalized Loc { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSellerFilterVisible))]
@@ -88,7 +96,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     public bool IsSellerFilterVisible
         => !(IsZwangsversteigerungSelected && !IsHausSelected && !IsGrundstueckSelected);
 
-    public IReadOnlyList<string> AgeFilterOptions { get; } = ["Alle", "24 Stunden", "7 Tage", "30 Tage", "12 Monate"];
+    public IReadOnlyList<string> AgeFilterOptions { get; }
 
     [ObservableProperty]
     public partial int SelectedAgeFilterIndex { get; set; }
@@ -121,9 +129,9 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
 
     public string OrtFieldLabel => SelectedOrteCount switch
     {
-        0 => "Ort auswählen",
+        0 => Loc.OrtFieldNone,
         1 => SelectedOrte[0],
-        _ => $"{SelectedOrteCount} Orte ausgewählt"
+        _ => Loc.OrtFieldManyFormat(SelectedOrteCount)
     };
 
     [ObservableProperty]
@@ -202,7 +210,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     private void UpdateResultCount()
     {
         var count = _filterStateService.CurrentState.ResultCount;
-        ResultCountText = count == 1 ? "1 Objekt" : $"{count} Objekte";
+        ResultCountText = count == 1 ? Loc.ObjektCountOne : Loc.ObjektCountFormat(count);
     }
 
     private Task LoadFilterPreferencesAsync()
@@ -432,18 +440,18 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     {
         var parts = new List<string>();
         var types = new List<string>();
-        if (IsHausSelected) types.Add("Haus");
-        if (IsGrundstueckSelected) types.Add("Grundstück");
-        if (IsZwangsversteigerungSelected) types.Add("Zwangsversteigerung");
-        parts.Add(types.Count == 3 ? "Alle Typen" : string.Join(", ", types));
+        if (IsHausSelected) types.Add(Loc.TypeHouse);
+        if (IsGrundstueckSelected) types.Add(Loc.TypeLand);
+        if (IsZwangsversteigerungSelected) types.Add(Loc.TypeForeclosure);
+        parts.Add(types.Count == 3 ? Loc.AllTypes : string.Join(", ", types));
 
         if (IsSellerFilterVisible && IsPrivateSelected != IsBrokerSelected)
-            parts.Add(IsPrivateSelected ? "Privat" : "Makler & Verwaltung");
+            parts.Add(IsPrivateSelected ? Loc.SellerPrivate : Loc.SellerBroker);
         if (_selectedAgeFilter != AgeFilter.Alle)
             parts.Add(AgeFilterOptions[(int)_selectedAgeFilter]);
         parts.Add(SelectedOrteCount == 0
-            ? "Alle Orte"
-            : SelectedOrteCount == 1 ? SelectedOrte[0] : $"{SelectedOrteCount} Orte");
+            ? Loc.AllOrte
+            : SelectedOrteCount == 1 ? SelectedOrte[0] : Loc.OrteCountFormat(SelectedOrteCount));
 
         FilterSummary = string.Join(" · ", parts);
     }
@@ -516,7 +524,12 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
                     .OrderBy(g => g.Name, StringComparer.CurrentCulture)
                     .Select(g => new OrtGemeindeItem { Name = g.Name, PostalCode = g.PostalCode })
                     .ToList();
-                var bezirk = new OrtBezirkItem { Name = bz.Name, Gemeinden = gemeinden };
+                var bezirk = new OrtBezirkItem
+                {
+                    Name = bz.Name,
+                    Gemeinden = gemeinden,
+                    CountLabelFormatter = count => Loc.SelectedCountFormat(count)
+                };
                 foreach (var gemeinde in gemeinden)
                     gemeinde.Bezirk = bezirk;
                 return bezirk;
@@ -632,7 +645,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
             if (bezirk.Gemeinden.Count == 0 || !bezirk.Gemeinden.All(g => remaining.Contains(g.Name)))
                 continue;
 
-            OrtChips.Add(new OrtChip($"{bezirk.Name} (alle)", bezirk.Gemeinden.Select(g => g.Name).ToList()));
+            OrtChips.Add(new OrtChip(Loc.BezirkAllFormat(bezirk.Name), bezirk.Gemeinden.Select(g => g.Name).ToList()));
             foreach (var gemeinde in bezirk.Gemeinden)
                 remaining.Remove(gemeinde.Name);
         }
@@ -649,9 +662,9 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         var count = OrtBezirke.Sum(b => b.Gemeinden.Count(g => g.IsSelected));
         OrtPanelApplyText = count switch
         {
-            0 => "Übernehmen (alle Orte)",
-            1 => "Übernehmen (1 Ort)",
-            _ => $"Übernehmen ({count} Orte)"
+            0 => Loc.ApplyAllOrte,
+            1 => Loc.ApplyOneOrt,
+            _ => Loc.ApplyManyOrteFormat(count)
         };
     }
 

@@ -9,6 +9,7 @@ using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Features.Properties.Sync;
+using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -37,6 +38,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private readonly ILocationService _locationService;
     private readonly IMediator _mediator;
     private readonly ILogger<HomeViewModel> _logger;
+    private readonly HomeStringsLocalized _loc;
 
     private int _currentPage;
     private int _totalCount;
@@ -53,6 +55,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private bool _isShowingAllDebugMock;
     private List<PropertyListItemDto>? _debugMockProperties;
 #endif
+
+    /// <summary>Lokalisierte Texte fuer XAML-Bindings (Loc.Key)</summary>
+    public HomeStringsLocalized Loc => _loc;
 
     /// <summary>
     /// Immer dieselbe Collection-Instanz: Seitenwechsel/Reloads ersetzen den Inhalt
@@ -77,7 +82,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// <summary>Footer-Text: Treffer-Anzahl, bei mehreren Seiten inkl. Seitenzahl</summary>
     public string PageNumberText => PageCount <= 1
         ? FormatObjektCount(_totalCount)
-        : $"Seite {_currentPage + 1} von {PageCount} · {FormatObjektCount(_totalCount)}";
+        : _loc.PageNumberFormat(_currentPage + 1, PageCount, FormatObjektCount(_totalCount));
 
     public bool HasResults => _totalCount > 0;
     public bool HasPagination =>
@@ -152,7 +157,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// <summary>
     /// Optionen fuer den Alters-Filter Picker (Index == AgeFilter Enum-Wert)
     /// </summary>
-    public IReadOnlyList<string> AgeFilterOptions { get; } = ["Alle", "24 Stunden", "7 Tage", "30 Tage", "12 Monate"];
+    public IReadOnlyList<string> AgeFilterOptions { get; }
 
     [ObservableProperty]
     public partial int SelectedAgeFilterIndex { get; set; }
@@ -179,9 +184,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// <summary>Beschriftung des Ort-Auswahl-Felds in der Filterleiste</summary>
     public string OrtFieldLabel => SelectedOrteCount switch
     {
-        0 => "Ort auswählen",
+        0 => _loc.OrtFieldNone,
         1 => SelectedOrte[0],
-        _ => $"{SelectedOrteCount} Orte ausgewählt"
+        _ => _loc.OrtFieldManyFormat(SelectedOrteCount)
     };
 
     // Ort-Auswahl-Panel (Bottom Sheet): Bezirk->Gemeinde-Baum als Arbeitskopie
@@ -230,24 +235,24 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         get
         {
             var types = new List<string>(3);
-            if (IsHausSelected) types.Add("Haus");
-            if (IsGrundstueckSelected) types.Add("Grund");
-            if (IsZwangsversteigerungSelected) types.Add("ZV");
-            return types.Count is 0 or 3 ? "Alle Typen" : string.Join(" · ", types);
+            if (IsHausSelected) types.Add(_loc.TypeShortHouse);
+            if (IsGrundstueckSelected) types.Add(_loc.TypeShortLand);
+            if (IsZwangsversteigerungSelected) types.Add(_loc.TypeShortForeclosure);
+            return types.Count is 0 or 3 ? _loc.AllTypes : string.Join(" · ", types);
         }
     }
 
     public bool IsTypeFilterActive => !(IsHausSelected && IsGrundstueckSelected && IsZwangsversteigerungSelected);
 
-    public string AgeChipLabel => SelectedAgeFilterIndex <= 0 ? "Zeitraum" : AgeFilterOptions[SelectedAgeFilterIndex];
+    public string AgeChipLabel => SelectedAgeFilterIndex <= 0 ? _loc.ChipAgeDefault : AgeFilterOptions[SelectedAgeFilterIndex];
 
     public bool IsAgeFilterActive => SelectedAgeFilterIndex > 0;
 
     public string OrtChipLabel => SelectedOrteCount switch
     {
-        0 => "Alle Orte",
+        0 => _loc.AllOrte,
         1 => SelectedOrte[0],
-        _ => $"{SelectedOrteCount} Orte"
+        _ => _loc.OrteCountFormat(SelectedOrteCount)
     };
 
     public bool IsOrtFilterActive => SelectedOrteCount > 0;
@@ -274,7 +279,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         IPropertyStatusService propertyStatusService,
         ILocationService locationService,
         IMediator mediator,
-        ILogger<HomeViewModel> logger)
+        ILogger<HomeViewModel> logger,
+        HomeStringsLocalized loc)
     {
         _authService = authService;
         _navigator = navigator;
@@ -285,6 +291,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         _locationService = locationService;
         _mediator = mediator;
         _logger = logger;
+        _loc = loc;
+
+        AgeFilterOptions = [loc.AgeOptionAll, loc.AgeOptionDay, loc.AgeOptionWeek, loc.AgeOptionMonth, loc.AgeOptionYear];
 
         // Initialwerte (partial properties koennen keine Initializer haben)
         _isSyncing = true;
@@ -296,7 +305,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         SelectedAgeFilterIndex = 0;
         OrtPanelSearchText = string.Empty;
         OrtPanelSearchResults = [];
-        OrtPanelApplyText = "Übernehmen";
+        OrtPanelApplyText = loc.Apply;
         FilterSummary = string.Empty;
         SelectedPageSize = PageSizePreference.Get();
         _isSyncing = false;
@@ -544,20 +553,20 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         var parts = new List<string>();
 
         var types = new List<string>();
-        if (IsHausSelected) types.Add("Haus");
-        if (IsGrundstueckSelected) types.Add("Grundstück");
-        if (IsZwangsversteigerungSelected) types.Add("Zwangsversteigerung");
-        parts.Add(types.Count == 3 ? "Alle Typen" : string.Join(", ", types));
+        if (IsHausSelected) types.Add(_loc.TypeHouse);
+        if (IsGrundstueckSelected) types.Add(_loc.TypeLand);
+        if (IsZwangsversteigerungSelected) types.Add(_loc.TypeForeclosure);
+        parts.Add(types.Count == 3 ? _loc.AllTypes : string.Join(", ", types));
 
         if (IsSellerFilterVisible && IsPrivateSelected != IsBrokerSelected)
-            parts.Add(IsPrivateSelected ? "Privat" : "Makler & Verwaltung");
+            parts.Add(IsPrivateSelected ? _loc.SellerPrivate : _loc.SellerBroker);
 
         if (_selectedAgeFilter != AgeFilter.Alle)
             parts.Add(AgeFilterOptions[(int)_selectedAgeFilter]);
 
         parts.Add(SelectedOrte.Count == 0
-            ? "Alle Orte"
-            : SelectedOrte.Count == 1 ? SelectedOrte[0] : $"{SelectedOrte.Count} Orte");
+            ? _loc.AllOrte
+            : SelectedOrte.Count == 1 ? SelectedOrte[0] : _loc.OrteCountFormat(SelectedOrte.Count));
 
         FilterSummary = string.Join(" · ", parts);
         RefreshChipLabels();
@@ -784,7 +793,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                     .OrderBy(g => g.Name, StringComparer.CurrentCulture)
                     .Select(g => new OrtGemeindeItem { Name = g.Name, PostalCode = g.PostalCode })
                     .ToList();
-                var bezirk = new OrtBezirkItem { Name = bz.Name, Gemeinden = gemeinden };
+                var bezirk = new OrtBezirkItem
+                {
+                    Name = bz.Name,
+                    Gemeinden = gemeinden,
+                    CountLabelFormatter = count => _loc.SelectedCountFormat(count)
+                };
                 foreach (var gemeinde in gemeinden)
                     gemeinde.Bezirk = bezirk;
                 return bezirk;
@@ -923,7 +937,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             if (bezirk.Gemeinden.Count == 0 || !bezirk.Gemeinden.All(g => remaining.Contains(g.Name)))
                 continue;
 
-            OrtChips.Add(new OrtChip($"{bezirk.Name} (alle)", bezirk.Gemeinden.Select(g => g.Name).ToList()));
+            OrtChips.Add(new OrtChip(_loc.BezirkAllFormat(bezirk.Name), bezirk.Gemeinden.Select(g => g.Name).ToList()));
             foreach (var gemeinde in bezirk.Gemeinden)
                 remaining.Remove(gemeinde.Name);
         }
@@ -950,7 +964,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         try
         {
-            OrtPanelApplyText = "Übernehmen";
+            OrtPanelApplyText = _loc.Apply;
             await Task.Delay(400, token);
 
             var pending = OrtBezirke
@@ -964,7 +978,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             if (token.IsCancellationRequested || response == null)
                 return;
 
-            OrtPanelApplyText = $"Übernehmen ({FormatObjektCount(response.Total)})";
+            OrtPanelApplyText = _loc.ApplyWithCountFormat(FormatObjektCount(response.Total));
         }
         catch (OperationCanceledException)
         {
@@ -1023,7 +1037,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         }
 
         IsBusy = true;
-        BusyMessage = "Lade Immobilien...";
+        BusyMessage = _loc.BusyLoading;
         LoadErrorMessage = null;
         try
         {
@@ -1149,7 +1163,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             return;
 
         IsBusy = true;
-        BusyMessage = $"Lade Seite {page + 1}...";
+        BusyMessage = _loc.BusyLoadingPageFormat(page + 1);
         try
         {
             var items = await LoadPageAsync(page, CancellationToken.None);
@@ -1310,7 +1324,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             if (page == 0)
             {
                 _totalCount = 0;
-                LoadErrorMessage = $"Die Immobilien konnten nicht geladen werden. {PropertyCollectionViewModelBase.GetErrorHint(ex)}";
+                LoadErrorMessage = _loc.LoadErrorFormat(PropertyCollectionViewModelBase.GetErrorHint(ex));
             }
             return [];
         }
@@ -1448,8 +1462,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         };
 #endif
 
-    private static string FormatObjektCount(int count)
-        => count == 1 ? "1 Objekt" : $"{count} Objekte";
+    private string FormatObjektCount(int count)
+        => count == 1 ? _loc.ObjektCountOne : _loc.ObjektCountFormat(count);
 
     #endregion
 
@@ -1507,16 +1521,16 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         SelectedAgeFilterIndex = index;
     }
 
-    private static string GetSortLabel(SortOption sort) => sort switch
+    private string GetSortLabel(SortOption sort) => sort switch
     {
-        SortOption.Aelteste => "Älteste",
-        SortOption.PreisAuf => "Preis ↑",
-        SortOption.PreisAb => "Preis ↓",
-        SortOption.FlaecheAb => "Fläche ↓",
-        SortOption.FlaecheAuf => "Fläche ↑",
-        SortOption.PlzAuf => "PLZ ↑",
-        SortOption.PlzAb => "PLZ ↓",
-        _ => "Neueste"
+        SortOption.Aelteste => _loc.SortLabelOldest,
+        SortOption.PreisAuf => _loc.SortLabelPriceUp,
+        SortOption.PreisAb => _loc.SortLabelPriceDown,
+        SortOption.FlaecheAb => _loc.SortLabelAreaDown,
+        SortOption.FlaecheAuf => _loc.SortLabelAreaUp,
+        SortOption.PlzAuf => _loc.SortLabelPlzUp,
+        SortOption.PlzAb => _loc.SortLabelPlzDown,
+        _ => _loc.SortLabelNewest
     };
 
     /// <summary>
@@ -1545,7 +1559,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         if (!_authService.IsAuthenticated)
         {
-            await _dialogs.Alert("Anmeldung erforderlich", "Bitte melden Sie sich an, um Immobilien zu favorisieren.");
+            await _dialogs.Alert(_loc.LoginRequiredTitle, _loc.LoginRequiredFavorite);
             return;
         }
 
@@ -1561,15 +1575,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         if (!_authService.IsAuthenticated)
         {
-            await _dialogs.Alert("Anmeldung erforderlich", "Bitte melden Sie sich an, um Immobilien zu blockieren.");
+            await _dialogs.Alert(_loc.LoginRequiredTitle, _loc.LoginRequiredBlock);
             return;
         }
 
-        var confirmed = await _dialogs.Confirm(
-            "Blockieren?",
-            $"Möchten Sie \"{property.Title}\" wirklich blockieren? Die Immobilie wird aus der Liste ausgeblendet.");
-        if (!confirmed) return;
-
+        // Keine Rueckfrage: Blockieren ist trivial umkehrbar (Blockiert-Seite)
         var isBlocked = await _propertyStatusService.ToggleBlockedAsync(property.Id);
         if (isBlocked)
         {

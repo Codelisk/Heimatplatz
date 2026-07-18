@@ -4,6 +4,7 @@ import FilterIcon from "@tabler/icons/outline/filter.svg";
 import { NativeSelect } from "@/components/starwind/native-select";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
 import { fetchOrtRegions } from "@/features/locations/live-api";
+import { t } from "@/i18n";
 
 // Gleiche API-basierte Ortsliste wie der Desktop-Picker im SiteHeader (cached)
 const ortRegions = await fetchOrtRegions();
@@ -18,37 +19,37 @@ const ortRegions = await fetchOrtRegions();
   >
     <span class="flex items-center gap-2 text-sm font-semibold">
       <FilterIcon class="size-4" aria-hidden="true" />
-      Filter
+      {t("search.filterToggle")}
     </span>
     <span class="flex items-center gap-2 text-sm text-muted-foreground">
-      <span data-mobile-result-count>0 Objekte</span>
+      <span data-mobile-result-count>{t("search.resultCountMany", { count: 0 })}</span>
       <ChevronDownIcon class="size-4 transition-transform duration-200 group-aria-expanded:rotate-180" aria-hidden="true" />
     </span>
   </button>
 
   <form action="/" method="get" class="hidden px-3 pb-3" data-mobile-filter-body>
     <div class="grid grid-cols-2 gap-2">
-      <OrtPicker name="region" placeholder="Ort auswählen" regions={ortRegions.length > 0 ? ortRegions : undefined} />
+      <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
       <NativeSelect name="age" data-filter-age>
-        <option value="">Zeitraum</option>
-        <option value="day">24 Stunden</option>
-        <option value="week">7 Tage</option>
-        <option value="month">30 Tage</option>
-        <option value="year">1 Jahr</option>
+        <option value="">{t("filter.period")}</option>
+        <option value="day">{t("filter.period24h")}</option>
+        <option value="week">{t("filter.period7d")}</option>
+        <option value="month">{t("filter.period30d")}</option>
+        <option value="year">{t("filter.period1y")}</option>
       </NativeSelect>
     </div>
 
     <div class="mt-3 flex flex-wrap gap-2">
       {/* Kein eigener "Wohnung"-Chip: die API kennt nur House/Land/Foreclosure,
           Desktop-Header bietet ihn ebenfalls nicht - Filterung laeuft komplett serverseitig. */}
-      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="house" aria-pressed="true">Haus</button>
-      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">Grund</button>
-      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="true">ZV</button>
+      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="house" aria-pressed="true">{t("filter.typeHouse")}</button>
+      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">{t("filter.typeLand")}</button>
+      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="true">{t("filter.typeForeclosure")}</button>
       <span class="basis-full"></span>
       <div class="flex flex-wrap gap-2" data-seller-filter-group>
-        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="private" aria-pressed="true">Privat</button>
-        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="agent" aria-pressed="true">Makler</button>
-        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="court" aria-pressed="true">Portal</button>
+        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
+        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
+        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="court" aria-pressed="true">{t("filter.sellerPortal")}</button>
       </div>
     </div>
 
@@ -57,7 +58,7 @@ const ortRegions = await fetchOrtRegions();
       class="mt-3 w-full rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:border-foreground hover:text-foreground"
       data-filter-reset
     >
-      Filter zurücksetzen
+      {t("search.filterReset")}
     </button>
   </form>
 </section>

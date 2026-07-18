@@ -1,24 +1,25 @@
 ---
 import AuthShell from "@/components/auth/AuthShell.astro";
 import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
 ---
 
 <AuthShell
-  title="E-Mail-Adresse bestätigen"
-  description="Wir prüfen Ihren Bestätigungslink."
+  title={t("auth.verifyTitle")}
+  description={t("auth.verifyDescription")}
   canonicalPath="/email-bestaetigen/"
 >
   {/* Der Token kommt als ?token= aus dem Mail-Link; das globale Script ruft die API automatisch auf */}
   <div class="mt-10" data-verify-email>
-    <p class="text-sm text-muted-foreground" data-verify-pending>Ihre E-Mail-Adresse wird bestätigt...</p>
+    <p class="text-sm text-muted-foreground" data-verify-pending>{t("auth.verifyPending")}</p>
     <div data-verify-success hidden>
       <p class="text-sm font-medium text-success-foreground dark:text-success" data-verify-success-message></p>
-      <Button href="/profil/" class="mt-6">Weiter zu Ihrem Konto</Button>
+      <Button href="/profil/" class="mt-6">{t("auth.verifyContinue")}</Button>
     </div>
     <div data-verify-error hidden>
       <p class="text-sm text-error" data-verify-error-message></p>
       <p class="mt-3 text-sm text-muted-foreground">
-        Sie können in Ihrem <a class="font-semibold text-foreground" href="/profil/">Profil</a> eine neue Bestätigungs-E-Mail anfordern.
+        {t("auth.verifyErrorHelpPrefix")} <a class="font-semibold text-foreground" href="/profil/">{t("auth.verifyErrorHelpLink")}</a> {t("auth.verifyErrorHelpSuffix")}
       </p>
     </div>
   </div>

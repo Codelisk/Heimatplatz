@@ -6,7 +6,7 @@
              x:Class="Heimatplatz.Maui.Presentation.ImprintPage"
              x:DataType="presentation:ImprintViewModel"
              Shell.FlyoutBehavior="Disabled"
-             Title="Impressum">
+             Title="{Binding Loc.PageTitle}">
     <Grid>
         <ActivityIndicator IsRunning="{Binding IsLoading}"
                            IsVisible="{Binding IsLoading}"

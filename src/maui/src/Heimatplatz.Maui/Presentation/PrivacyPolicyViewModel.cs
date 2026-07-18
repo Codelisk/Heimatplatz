@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Localization.Legal;
 using Shiny;
 using Shiny.Mediator;
 
@@ -10,8 +11,10 @@ namespace Heimatplatz.Maui.Presentation;
 /// ViewModel fuer die Datenschutzerklaerung
 /// </summary>
 [ShellMap<PrivacyPolicyPage>("PrivacyPolicy")]
-public partial class PrivacyPolicyViewModel(IMediator mediator) : ObservableObject, IPageLifecycleAware
+public partial class PrivacyPolicyViewModel(IMediator mediator, PrivacyPolicyStringsLocalized loc) : ObservableObject, IPageLifecycleAware
 {
+    public PrivacyPolicyStringsLocalized Loc => loc;
+
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
 
@@ -46,15 +49,15 @@ public partial class PrivacyPolicyViewModel(IMediator mediator) : ObservableObje
             var policy = response?.PrivacyPolicy;
             if (policy == null)
             {
-                ErrorMessage = "Datenschutzerklärung konnte nicht geladen werden.";
+                ErrorMessage = loc.LoadError;
                 return;
             }
 
             var party = policy.ResponsibleParty;
             ResponsibleParty = party == null
                 ? string.Empty
-                : $"Verantwortlich: {party.CompanyName}, {party.Street}, {party.PostalCode} {party.City}, {party.Country}";
-            VersionLine = $"Version {policy.Version} - Stand: {policy.LastUpdated:d}";
+                : loc.ResponsiblePartyFormat(party.CompanyName, party.Street, party.PostalCode, party.City, party.Country);
+            VersionLine = loc.VersionFormat(policy.Version, policy.LastUpdated);
 
             Sections.Clear();
             if (policy.Sections != null)
@@ -67,7 +70,7 @@ public partial class PrivacyPolicyViewModel(IMediator mediator) : ObservableObje
         }
         catch (Exception)
         {
-            ErrorMessage = "Datenschutzerklärung konnte nicht geladen werden.";
+            ErrorMessage = loc.LoadError;
         }
         finally
         {

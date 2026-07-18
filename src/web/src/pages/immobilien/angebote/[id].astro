@@ -25,6 +25,7 @@ import {
 } from "@/features/properties/live-api";
 import { getApiPriceFact, getApiPropertyDetailSections } from "@/features/properties/detail-sections";
 import { getDisplayTitle } from "@/features/properties/format";
+import { t } from "@/i18n";
 import { breadcrumbSchema } from "@/lib/seo";
 
 // SSR: Immobilie pro Request laden - neue Inserate sind sofort erreichbar,
@@ -38,7 +39,9 @@ if (!property) {
 const canonicalPath = getApiPropertyPath(property);
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
 // Viele Titel enthalten den Ort bereits ("... in Pettenbach") - nicht doppelt anhaengen
-const pageTitle = property.Title.includes(property.City) ? property.Title : `${property.Title} in ${property.City}`;
+const pageTitle = property.Title.includes(property.City)
+  ? property.Title
+  : t("detail.metaTitle", { title: property.Title, city: property.City });
 const imageUrl = getApiPropertyImage(property);
 const images = getApiPropertyImages(property);
 const description = property.Description?.trim() ?? "";
@@ -46,21 +49,22 @@ const description = property.Description?.trim() ?? "";
 // Edikt-Semantik (LivingAreaM2 = bebaute Flaeche, PlotAreaM2 = Gesamtflaeche).
 const priceFact = getApiPriceFact(property);
 const isForeclosure = property.Type === "Foreclosure";
+const noInfo = t("detail.noInfo");
 const facts = isForeclosure
   ? [
       [priceFact.label, priceFact.value],
-      ["Fläche", property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : "Keine Angabe"],
-      ["Bebaute Fläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : "Keine Angabe"],
-      ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
+      [t("detail.factArea"), property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : noInfo],
+      [t("detail.factBuiltArea"), property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : noInfo],
+      [t("detail.factRooms"), property.Rooms ? `${property.Rooms}` : noInfo],
     ]
   : [
-      ["Preis", formatApiPriceLong(property.Price)],
-      ["Wohnfläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : "Keine Angabe"],
-      ["Grund", property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : "Keine Angabe"],
-      ["Zimmer", property.Rooms ? `${property.Rooms}` : "Keine Angabe"],
+      [t("detail.factPrice"), formatApiPriceLong(property.Price)],
+      [t("detail.factLivingArea"), property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : noInfo],
+      [t("detail.factPlot"), property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : noInfo],
+      [t("detail.factRooms"), property.Rooms ? `${property.Rooms}` : noInfo],
     ];
 const priceText = isForeclosure ? `${priceFact.label} ${priceFact.value}` : formatApiPriceLong(property.Price);
-const sellerRoleLabel = isForeclosure ? "Gericht" : getApiSellerLabel(property.SellerType);
+const sellerRoleLabel = isForeclosure ? t("detail.sellerCourt") : getApiSellerLabel(property.SellerType);
 // SourceName ist nur als echte Fremdquelle eine Info; "Heimatplatz" (unser eigenes Portal) sagt dem Nutzer nichts.
 const externalSource = property.SourceName && property.SourceName !== "Heimatplatz" ? property.SourceName : null;
 const sellerMeta = [sellerRoleLabel, externalSource].filter(Boolean).join(" · ");
@@ -78,7 +82,13 @@ const detailSections = getApiPropertyDetailSections(property);
 
 <BaseLayout
   title={pageTitle}
-  description={`${property.Title} in ${property.PostalCode} ${property.City}, Oberösterreich. ${priceText}. ${getApiAreaLabel(property)}.`}
+  description={t("detail.metaDescription", {
+    title: property.Title,
+    postalCode: property.PostalCode,
+    city: property.City,
+    price: priceText,
+    area: getApiAreaLabel(property),
+  })}
   canonicalPath={canonicalPath}
   image={imageUrl}
   structuredData={[
@@ -93,7 +103,7 @@ const detailSections = getApiPropertyDetailSections(property);
     <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
       <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon class="size-4" aria-hidden="true" />
-        Zurück
+        {t("common.back")}
       </a>
     </header>
 
@@ -123,7 +133,7 @@ const detailSections = getApiPropertyDetailSections(property);
             <button
               class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
-              aria-label="Merken"
+              aria-label={t("detail.actionFavorite")}
               aria-pressed="false"
               data-property-action="favorite"
               data-property-slug={property.Id}
@@ -134,7 +144,7 @@ const detailSections = getApiPropertyDetailSections(property);
             <button
               class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
-              aria-label="Blockieren"
+              aria-label={t("detail.actionBlock")}
               aria-pressed="false"
               data-property-action="block"
               data-property-slug={property.Id}
@@ -145,7 +155,7 @@ const detailSections = getApiPropertyDetailSections(property);
             <button
               class="pointer-events-auto grid size-10 place-items-center rounded-full bg-black/60 text-white"
               type="button"
-              aria-label="Teilen"
+              aria-label={t("detail.actionShare")}
               data-share-url={canonicalUrl}
               data-share-title={property.Title}
             >
@@ -170,7 +180,7 @@ const detailSections = getApiPropertyDetailSections(property);
 
         {detailSections.length > 0 && (
           <section class="mt-8" aria-labelledby="api-details">
-            <h2 id="api-details" class="text-sm font-bold uppercase text-muted-foreground">Details</h2>
+            <h2 id="api-details" class="text-sm font-bold uppercase text-muted-foreground">{t("detail.sectionDetails")}</h2>
             <div class="mt-4 grid gap-4 md:grid-cols-2">
               {detailSections.map((section) => (
                 <section class="rounded-lg border border-border bg-card p-4" aria-label={section.title}>
@@ -190,7 +200,7 @@ const detailSections = getApiPropertyDetailSections(property);
         )}
 
         <section class="mt-8" aria-labelledby="api-features">
-          <h2 id="api-features" class="text-sm font-bold uppercase text-muted-foreground">Ausstattung & Merkmale</h2>
+          <h2 id="api-features" class="text-sm font-bold uppercase text-muted-foreground">{t("detail.sectionFeaturesHeading")}</h2>
           <ul class="mt-4 grid gap-2 sm:grid-cols-2">
             {features.map((feature) => <li class="rounded-md bg-muted px-4 py-3 text-sm">{feature}</li>)}
           </ul>
@@ -198,19 +208,19 @@ const detailSections = getApiPropertyDetailSections(property);
 
         {description && (
           <section class="mt-8" aria-labelledby="api-description">
-            <h2 id="api-description" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
+            <h2 id="api-description" class="text-sm font-bold uppercase text-muted-foreground">{t("detail.sectionDescription")}</h2>
             <p class="mt-4 max-w-3xl text-base leading-7">{description}</p>
           </section>
         )}
       </div>
 
       <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
-        <p class="text-sm text-muted-foreground">{isForeclosure ? "Gericht" : "Anbieter"}</p>
+        <p class="text-sm text-muted-foreground">{isForeclosure ? t("detail.sellerCourt") : t("detail.sellerProvider")}</p>
         <h2 class="mt-1 text-xl font-bold">{property.SellerName}</h2>
         {!isForeclosure && sellerMeta && (
           <p class="mt-2 text-sm text-muted-foreground">{sellerMeta}</p>
         )}
-        <p class="mt-2 text-sm text-muted-foreground">Aktualisiert: {formatApiDate(property.CreatedAt) || "Live-Angebot"}</p>
+        <p class="mt-2 text-sm text-muted-foreground">{t("detail.updatedAt", { value: formatApiDate(property.CreatedAt) || t("detail.liveOffer") })}</p>
         <div class="mt-5 space-y-3">
           {contactCards.map((contact) => (
             <div class="rounded-md bg-muted p-3 text-sm">
@@ -222,10 +232,10 @@ const detailSections = getApiPropertyDetailSections(property);
                     class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
                     type="button"
                     data-copy-value={contact.Email}
-                    aria-label={`E-Mail ${contact.Email} kopieren`}
+                    aria-label={t("contact.copyEmail", { email: contact.Email })}
                   >
                     <CopyIcon class="size-3.5" aria-hidden="true" />
-                    <span data-copy-text>Kopieren</span>
+                    <span data-copy-text>{t("contact.copy")}</span>
                   </button>
                 </div>
               )}
@@ -236,10 +246,10 @@ const detailSections = getApiPropertyDetailSections(property);
                     class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
                     type="button"
                     data-copy-value={contact.Phone}
-                    aria-label={`Telefonnummer ${contact.Phone} kopieren`}
+                    aria-label={t("contact.copyPhone", { phone: contact.Phone })}
                   >
                     <CopyIcon class="size-3.5" aria-hidden="true" />
-                    <span data-copy-text>Kopieren</span>
+                    <span data-copy-text>{t("contact.copy")}</span>
                   </button>
                 </div>
               )}
@@ -247,9 +257,9 @@ const detailSections = getApiPropertyDetailSections(property);
           ))}
         </div>
         <div class="mt-5 grid gap-2">
-          {primaryEmail && <Button href={`mailto:${primaryEmail}`} variant="default" class="w-full">E-Mail schreiben</Button>}
-          {primaryPhone && <Button href={`tel:${primaryPhone.replace(/\s+/g, "")}`} variant={primaryEmail ? "outline" : "default"} class="w-full">Anrufen</Button>}
-          {!(primaryEmail || primaryPhone) && <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">Kontakt über Anbieterangaben oder Originalinserat.</p>}
+          {primaryEmail && <Button href={`mailto:${primaryEmail}`} variant="default" class="w-full">{t("contact.writeEmail")}</Button>}
+          {primaryPhone && <Button href={`tel:${primaryPhone.replace(/\s+/g, "")}`} variant={primaryEmail ? "outline" : "default"} class="w-full">{t("contact.call")}</Button>}
+          {!(primaryEmail || primaryPhone) && <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">{t("contact.viaProvider")}</p>}
         </div>
         {originalUrl && (
           <a
@@ -262,9 +272,9 @@ const detailSections = getApiPropertyDetailSections(property);
               <ExternalLinkIcon class="size-5 text-muted-foreground transition-colors group-hover:text-foreground" aria-hidden="true" />
             </span>
             <span class="min-w-0 flex-1">
-              <span class="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Quelle</span>
-              <span class="block text-sm font-bold">Original-Inserat öffnen</span>
-              <span class="block truncate text-xs text-muted-foreground">Alle Angaben direkt beim Anbieter ansehen</span>
+              <span class="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("detail.sourceLabel")}</span>
+              <span class="block text-sm font-bold">{t("detail.openOriginal")}</span>
+              <span class="block truncate text-xs text-muted-foreground">{t("detail.openOriginalHint")}</span>
             </span>
             <ChevronRightIcon class="size-5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" aria-hidden="true" />
           </a>

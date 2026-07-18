@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { getServerApiBaseUrl } from "@/lib/server/api-base";
 import { cached, TTL } from "@/lib/server/ttl-cache";
 
@@ -55,15 +56,17 @@ type ForeclosureAuctionResponse = {
 export const FORECLOSURE_BUILD_LIMIT = 128;
 const FALLBACK_AUCTION_IMAGE = "/favicon.svg";
 
+// Achtung: die Label fliessen ueber getForeclosureAuctionSlug in URLs ein —
+// Wert-Aenderungen in i18n/de/foreclosures.ts aendern also Slugs!
 const categoryLabels: Record<string, string> = {
-  Einfamilienhaus: "Einfamilienhaus",
-  Zweifamilienhaus: "Zweifamilienhaus",
-  Mehrfamilienhaus: "Mehrfamilienhaus",
-  Wohnungseigentum: "Wohnungseigentum",
-  GewerblicheLiegenschaft: "Gewerbliche Liegenschaft",
-  Grundstueck: "Grundstück",
-  LandUndForstwirtschaft: "Land- und Forstwirtschaft",
-  Sonstiges: "Sonstiges",
+  Einfamilienhaus: t("zv.categoryEinfamilienhaus"),
+  Zweifamilienhaus: t("zv.categoryZweifamilienhaus"),
+  Mehrfamilienhaus: t("zv.categoryMehrfamilienhaus"),
+  Wohnungseigentum: t("zv.categoryWohnungseigentum"),
+  GewerblicheLiegenschaft: t("zv.categoryGewerblicheLiegenschaft"),
+  Grundstueck: t("zv.categoryGrundstueck"),
+  LandUndForstwirtschaft: t("zv.categoryLandUndForstwirtschaft"),
+  Sonstiges: t("zv.categorySonstiges"),
 };
 
 function slugify(value: string) {
@@ -208,7 +211,7 @@ export function getAuctionImages(auction: ApiForeclosureAuction) {
 
 
 export function getForeclosureCategoryLabel(category: string | null | undefined) {
-  if (!category) return "Zwangsversteigerung";
+  if (!category) return t("zv.categoryFallback");
   return categoryLabels[category] ?? category;
 }
 
@@ -218,7 +221,7 @@ export function isValidAuctionDate(value: string | null | undefined) {
   return Number.isFinite(date.valueOf()) && date.getFullYear() > 1900;
 }
 
-export function formatAuctionDate(value: string | null | undefined, fallback = "Termin offen") {
+export function formatAuctionDate(value: string | null | undefined, fallback = t("zv.dateOpen")) {
   if (!isValidAuctionDate(value)) return fallback;
   return new Intl.DateTimeFormat("de-AT", {
     day: "2-digit",
@@ -229,7 +232,7 @@ export function formatAuctionDate(value: string | null | undefined, fallback = "
   }).format(new Date(value as string));
 }
 
-export function formatAuctionDateShort(value: string | null | undefined, fallback = "Termin offen") {
+export function formatAuctionDateShort(value: string | null | undefined, fallback = t("zv.dateOpen")) {
   if (!isValidAuctionDate(value)) return fallback;
   return new Intl.DateTimeFormat("de-AT", {
     day: "2-digit",
@@ -238,7 +241,7 @@ export function formatAuctionDateShort(value: string | null | undefined, fallbac
   }).format(new Date(value as string));
 }
 
-export function formatAuctionMoney(value: number | string | null | undefined, fallback = "Nicht angegeben") {
+export function formatAuctionMoney(value: number | string | null | undefined, fallback = t("zv.notSpecified")) {
   const number = asNumber(value);
   if (!number || number <= 0) return fallback;
   return new Intl.NumberFormat("de-AT", {
@@ -248,7 +251,7 @@ export function formatAuctionMoney(value: number | string | null | undefined, fa
   }).format(number);
 }
 
-export function formatAuctionArea(value: number | string | null | undefined, fallback = "Nicht angegeben") {
+export function formatAuctionArea(value: number | string | null | undefined, fallback = t("zv.notSpecified")) {
   const number = asNumber(value);
   if (!number || number <= 0) return fallback;
   return `${new Intl.NumberFormat("de-AT", { maximumFractionDigits: 0 }).format(number)} m²`;
@@ -259,70 +262,76 @@ export function getAuctionPrimaryArea(auction: ApiForeclosureAuction) {
 }
 
 export function getAuctionPriceLabel(auction: ApiForeclosureAuction) {
-  return formatAuctionMoney(auction.MinimumBid ?? auction.EstimatedValue, "Preis offen");
+  return formatAuctionMoney(auction.MinimumBid ?? auction.EstimatedValue, t("property.priceOpen"));
 }
 
 export function getAuctionTitle(auction: ApiForeclosureAuction) {
-  const category = getForeclosureCategoryLabel(auction.Category);
-  return `${category} in ${auction.PostalCode} ${auction.City}`;
+  return t("zv.titlePattern", {
+    category: getForeclosureCategoryLabel(auction.Category),
+    postalCode: auction.PostalCode,
+    city: auction.City,
+  });
 }
 
 export function getAuctionDescription(auction: ApiForeclosureAuction) {
-  const price = getAuctionPriceLabel(auction);
-  const date = formatAuctionDateShort(auction.AuctionDate);
-  const court = auction.Court ? ` Gericht: ${auction.Court}.` : "";
-  const object = truncateText(auction.ObjectDescription, 80);
-  return `${object} in ${auction.PostalCode} ${auction.City}. ${price}. Termin: ${date}.${court}`;
+  return t("zv.descriptionPattern", {
+    object: truncateText(auction.ObjectDescription, 80),
+    postalCode: auction.PostalCode,
+    city: auction.City,
+    price: getAuctionPriceLabel(auction),
+    date: formatAuctionDateShort(auction.AuctionDate),
+    courtSuffix: auction.Court ? t("zv.descriptionCourtSuffix", { court: auction.Court }) : "",
+  });
 }
 
 export function getAuctionDocumentLinks(auction: ApiForeclosureAuction) {
   return [
-    ["Edikt", auction.EdictUrl],
-    ["Grundriss", auction.FloorPlanUrl],
-    ["Lageplan", auction.SitePlanUrl],
-    ["Langschätzung", auction.LongAppraisalUrl],
-    ["Kurzschätzung", auction.ShortAppraisalUrl],
+    [t("zv.docEdict"), auction.EdictUrl],
+    [t("zv.docFloorPlan"), auction.FloorPlanUrl],
+    [t("zv.docSitePlan"), auction.SitePlanUrl],
+    [t("zv.docLongAppraisal"), auction.LongAppraisalUrl],
+    [t("zv.docShortAppraisal"), auction.ShortAppraisalUrl],
   ].filter((entry): entry is [string, string] => Boolean(entry[1]));
 }
 
 export function getAuctionDetailSections(auction: ApiForeclosureAuction) {
   const sections = [
     {
-      title: "Versteigerung",
+      title: t("zv.sectionAuction"),
       items: [
-        ["Termin", formatAuctionDate(auction.AuctionDate)],
-        ["Schätzwert", formatAuctionMoney(auction.EstimatedValue)],
-        ["Mindestgebot", formatAuctionMoney(auction.MinimumBid)],
-        ["Status", auction.Status],
-        ["Eigentumsanteil", auction.OwnershipShare],
-        ["Besichtigung", formatAuctionDate(auction.ViewingDate, "")],
-        ["Gebotsfrist", formatAuctionDate(auction.BiddingDeadline, "")],
+        [t("zv.labelDate"), formatAuctionDate(auction.AuctionDate)],
+        [t("zv.labelEstimatedValue"), formatAuctionMoney(auction.EstimatedValue)],
+        [t("zv.labelMinimumBid"), formatAuctionMoney(auction.MinimumBid)],
+        [t("zv.labelStatus"), auction.Status],
+        [t("zv.labelOwnershipShare"), auction.OwnershipShare],
+        [t("zv.labelViewing"), formatAuctionDate(auction.ViewingDate, "")],
+        [t("zv.labelBiddingDeadline"), formatAuctionDate(auction.BiddingDeadline, "")],
       ],
     },
     {
-      title: "Basisdaten",
+      title: t("zv.sectionBasics"),
       items: [
-        ["Kategorie", getForeclosureCategoryLabel(auction.Category)],
-        ["Ort", `${auction.PostalCode} ${auction.City}`],
-        ["Adresse", auction.Address],
-        ["Gesamtfläche", formatAuctionArea(auction.TotalArea, "")],
-        ["Grundstück", formatAuctionArea(auction.PlotArea, "")],
-        ["Bebaute Fläche", formatAuctionArea(auction.BuildingArea, "")],
-        ["Zimmer", auction.NumberOfRooms ? String(auction.NumberOfRooms) : ""],
-        ["Baujahr", auction.YearBuilt ? String(auction.YearBuilt) : ""],
-        ["Zustand", auction.BuildingCondition],
+        [t("zv.labelCategory"), getForeclosureCategoryLabel(auction.Category)],
+        [t("zv.labelCity"), `${auction.PostalCode} ${auction.City}`],
+        [t("zv.labelAddress"), auction.Address],
+        [t("zv.labelTotalArea"), formatAuctionArea(auction.TotalArea, "")],
+        [t("zv.labelPlot"), formatAuctionArea(auction.PlotArea, "")],
+        [t("zv.labelBuildingArea"), formatAuctionArea(auction.BuildingArea, "")],
+        [t("zv.labelRooms"), auction.NumberOfRooms ? String(auction.NumberOfRooms) : ""],
+        [t("zv.labelYearBuilt"), auction.YearBuilt ? String(auction.YearBuilt) : ""],
+        [t("zv.labelCondition"), auction.BuildingCondition],
       ],
     },
     {
-      title: "Rechtliches",
+      title: t("zv.sectionLegal"),
       items: [
-        ["Gericht", auction.Court],
-        ["Aktenzeichen", auction.CaseNumber],
-        ["Einlagezahl", auction.RegistrationNumber],
-        ["Katastralgemeinde", auction.CadastralMunicipality],
-        ["Grundstücksnummer", auction.PlotNumber],
-        ["Blatt", auction.SheetNumber],
-        ["Flächenwidmung", auction.ZoningDesignation],
+        [t("zv.labelCourt"), auction.Court],
+        [t("zv.labelCaseNumber"), auction.CaseNumber],
+        [t("zv.labelRegistrationNumber"), auction.RegistrationNumber],
+        [t("zv.labelCadastralMunicipality"), auction.CadastralMunicipality],
+        [t("zv.labelPlotNumber"), auction.PlotNumber],
+        [t("zv.labelSheet"), auction.SheetNumber],
+        [t("zv.labelZoning"), auction.ZoningDesignation],
       ],
     },
   ];

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { getServerApiBaseUrl } from "@/lib/server/api-base";
 import { cached, TTL } from "@/lib/server/ttl-cache";
 
@@ -155,10 +156,10 @@ export function isApiApartmentCandidate(property: ApiProperty) {
 }
 
 export function getApiPropertyTypeLabel(type: string, property?: ApiProperty) {
-  if (property && isApiApartmentCandidate(property)) return "Wohnung";
-  if (type === "Land") return "Grund";
-  if (type === "Foreclosure") return "Zwangsversteigerung";
-  return "Haus";
+  if (property && isApiApartmentCandidate(property)) return t("card.typeApartment");
+  if (type === "Land") return t("card.typeLand");
+  if (type === "Foreclosure") return t("card.typeForeclosure");
+  return t("card.typeHouse");
 }
 
 export function getApiPropertyTypeSearchValue(type: string, property?: ApiProperty) {
@@ -177,10 +178,10 @@ export function getApiSellerSearchValue(sellerType: string | number | null) {
 }
 
 export function getApiSellerLabel(sellerType: string | number | null) {
-  if (sellerType === "PropertyManager" || sellerType === 3) return "Verwaltung";
-  if (getApiSellerSearchValue(sellerType) === "private") return "Privat";
-  if (getApiSellerSearchValue(sellerType) === "agent") return "Makler";
-  return "Portal";
+  if (sellerType === "PropertyManager" || sellerType === 3) return t("card.sellerManager");
+  if (getApiSellerSearchValue(sellerType) === "private") return t("card.sellerPrivate");
+  if (getApiSellerSearchValue(sellerType) === "agent") return t("card.sellerAgent");
+  return t("card.sellerPortal");
 }
 
 // Kanonische Formatierung lebt in format.ts (client-sicher, keine
@@ -201,9 +202,9 @@ export function getApiAreaValue(property: ApiProperty) {
 }
 
 export function getApiAreaLabel(property: ApiProperty) {
-  if (property.PlotAreaM2) return `${property.PlotAreaM2} m² Grund`;
-  if (property.LivingAreaM2) return `${property.LivingAreaM2} m² Wfl`;
-  return "Fläche offen";
+  if (property.PlotAreaM2) return t("card.plotAreaValue", { area: String(property.PlotAreaM2) });
+  if (property.LivingAreaM2) return t("card.livingAreaValue", { area: String(property.LivingAreaM2) });
+  return t("card.areaOpen");
 }
 
 export function getApiPropertyDescription(property: ApiProperty) {

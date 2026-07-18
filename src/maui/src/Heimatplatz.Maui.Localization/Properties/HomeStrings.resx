@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="EmptyTitle" xml:space="preserve">
+    <value>Keine Treffer</value>
+  </data>
+  <data name="EmptyHint" xml:space="preserve">
+    <value>Passen Sie Ihre Filter an, um mehr Immobilien zu sehen.</value>
+  </data>
+  <data name="LoadFailedTitle" xml:space="preserve">
+    <value>Laden fehlgeschlagen</value>
+  </data>
+  <data name="RetryButton" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+  <data name="PreviousPage" xml:space="preserve">
+    <value>‹ Zurück</value>
+  </data>
+  <data name="NextPage" xml:space="preserve">
+    <value>Weiter ›</value>
+  </data>
+  <data name="ChipMore" xml:space="preserve">
+    <value>Mehr</value>
+  </data>
+  <data name="FilterToolbar" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="SortSectionTitle" xml:space="preserve">
+    <value>SORTIERUNG</value>
+  </data>
+  <data name="SortNewestFirst" xml:space="preserve">
+    <value>Neueste zuerst</value>
+  </data>
+  <data name="SortOldestFirst" xml:space="preserve">
+    <value>Älteste zuerst</value>
+  </data>
+  <data name="SortPriceAsc" xml:space="preserve">
+    <value>Preis aufsteigend</value>
+  </data>
+  <data name="SortPriceDesc" xml:space="preserve">
+    <value>Preis absteigend</value>
+  </data>
+  <data name="SortAreaDesc" xml:space="preserve">
+    <value>Fläche absteigend</value>
+  </data>
+  <data name="SortAreaAsc" xml:space="preserve">
+    <value>Fläche aufsteigend</value>
+  </data>
+  <data name="SortPlzAsc" xml:space="preserve">
+    <value>PLZ aufsteigend</value>
+  </data>
+  <data name="SortPlzDesc" xml:space="preserve">
+    <value>PLZ absteigend</value>
+  </data>
+  <data name="SortLabelNewest" xml:space="preserve">
+    <value>Neueste</value>
+  </data>
+  <data name="SortLabelOldest" xml:space="preserve">
+    <value>Älteste</value>
+  </data>
+  <data name="SortLabelPriceUp" xml:space="preserve">
+    <value>Preis ↑</value>
+  </data>
+  <data name="SortLabelPriceDown" xml:space="preserve">
+    <value>Preis ↓</value>
+  </data>
+  <data name="SortLabelAreaDown" xml:space="preserve">
+    <value>Fläche ↓</value>
+  </data>
+  <data name="SortLabelAreaUp" xml:space="preserve">
+    <value>Fläche ↑</value>
+  </data>
+  <data name="SortLabelPlzUp" xml:space="preserve">
+    <value>PLZ ↑</value>
+  </data>
+  <data name="SortLabelPlzDown" xml:space="preserve">
+    <value>PLZ ↓</value>
+  </data>
+  <data name="TypeSectionTitle" xml:space="preserve">
+    <value>IMMOBILIENTYP</value>
+  </data>
+  <data name="TypeHouse" xml:space="preserve">
+    <value>Haus</value>
+  </data>
+  <data name="TypeLand" xml:space="preserve">
+    <value>Grundstück</value>
+  </data>
+  <data name="TypeForeclosure" xml:space="preserve">
+    <value>Zwangsversteigerung</value>
+  </data>
+  <data name="TypeShortHouse" xml:space="preserve">
+    <value>Haus</value>
+  </data>
+  <data name="TypeShortLand" xml:space="preserve">
+    <value>Grund</value>
+  </data>
+  <data name="TypeShortForeclosure" xml:space="preserve">
+    <value>ZV</value>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>Alle Typen</value>
+  </data>
+  <data name="TypeSheetHint" xml:space="preserve">
+    <value>Änderungen wirken sofort auf die Liste.</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Fertig</value>
+  </data>
+  <data name="AgeSectionTitle" xml:space="preserve">
+    <value>EINGESTELLT SEIT</value>
+  </data>
+  <data name="AgeAllPeriods" xml:space="preserve">
+    <value>Alle Zeiträume</value>
+  </data>
+  <data name="AgeLastDay" xml:space="preserve">
+    <value>Letzte 24 Stunden</value>
+  </data>
+  <data name="AgeLastWeek" xml:space="preserve">
+    <value>Letzte 7 Tage</value>
+  </data>
+  <data name="AgeLastMonth" xml:space="preserve">
+    <value>Letzte 30 Tage</value>
+  </data>
+  <data name="AgeLastYear" xml:space="preserve">
+    <value>Letzte 12 Monate</value>
+  </data>
+  <data name="AgeOptionAll" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="AgeOptionDay" xml:space="preserve">
+    <value>24 Stunden</value>
+  </data>
+  <data name="AgeOptionWeek" xml:space="preserve">
+    <value>7 Tage</value>
+  </data>
+  <data name="AgeOptionMonth" xml:space="preserve">
+    <value>30 Tage</value>
+  </data>
+  <data name="AgeOptionYear" xml:space="preserve">
+    <value>12 Monate</value>
+  </data>
+  <data name="ChipAgeDefault" xml:space="preserve">
+    <value>Zeitraum</value>
+  </data>
+  <data name="SellerPrivate" xml:space="preserve">
+    <value>Privat</value>
+  </data>
+  <data name="SellerBroker" xml:space="preserve">
+    <value>Makler &amp; Verwaltung</value>
+  </data>
+  <data name="OrtPanelTitle" xml:space="preserve">
+    <value>Orte auswählen</value>
+  </data>
+  <data name="ResetButton" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="OrtSearchPlaceholder" xml:space="preserve">
+    <value>Gemeinde oder PLZ suchen</value>
+  </data>
+  <data name="OrtFieldNone" xml:space="preserve">
+    <value>Ort auswählen</value>
+  </data>
+  <data name="OrtFieldManyFormat" xml:space="preserve">
+    <value>{0} Orte ausgewählt</value>
+  </data>
+  <data name="AllOrte" xml:space="preserve">
+    <value>Alle Orte</value>
+  </data>
+  <data name="OrteCountFormat" xml:space="preserve">
+    <value>{0} Orte</value>
+  </data>
+  <data name="BezirkAllFormat" xml:space="preserve">
+    <value>{0} (alle)</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Übernehmen</value>
+  </data>
+  <data name="ApplyWithCountFormat" xml:space="preserve">
+    <value>Übernehmen ({0})</value>
+  </data>
+  <data name="ObjektCountOne" xml:space="preserve">
+    <value>1 Objekt</value>
+  </data>
+  <data name="ObjektCountFormat" xml:space="preserve">
+    <value>{0} Objekte</value>
+  </data>
+  <data name="PageNumberFormat" xml:space="preserve">
+    <value>Seite {0} von {1} · {2}</value>
+  </data>
+  <data name="BusyLoading" xml:space="preserve">
+    <value>Lade Immobilien...</value>
+  </data>
+  <data name="BusyLoadingPageFormat" xml:space="preserve">
+    <value>Lade Seite {0}...</value>
+  </data>
+  <data name="LoadErrorFormat" xml:space="preserve">
+    <value>Die Immobilien konnten nicht geladen werden. {0}</value>
+  </data>
+  <data name="LoginRequiredTitle" xml:space="preserve">
+    <value>Anmeldung erforderlich</value>
+  </data>
+  <data name="LoginRequiredFavorite" xml:space="preserve">
+    <value>Bitte melden Sie sich an, um Immobilien zu favorisieren.</value>
+  </data>
+  <data name="LoginRequiredBlock" xml:space="preserve">
+    <value>Bitte melden Sie sich an, um Immobilien zu blockieren.</value>
+  </data>
+  <data name="SelectedCountFormat" xml:space="preserve">
+    <value>{0} ausgewählt</value>
+  </data>
+</root>

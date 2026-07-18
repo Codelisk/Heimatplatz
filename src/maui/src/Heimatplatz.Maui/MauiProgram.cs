@@ -4,6 +4,7 @@ using Heimatplatz.Maui.Features.AppUpdate.Configuration;
 using Heimatplatz.Maui.Features.Auth.Infrastructure;
 using Heimatplatz.Maui.Features.Debug.Services;
 using Heimatplatz.Maui.Features.Notifications.Configuration;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -120,6 +121,9 @@ public static class MauiProgram
 
         // Alle [Singleton]/[Service]-Klassen dieser Assembly (Shiny DI Source Generator)
         builder.Services.AddGeneratedServices();
+
+        // Strongly-typed Localization (deutsche Texte aus .resx, *Localized-Klassen als Singletons)
+        builder.Services.AddStronglyTypedLocalizations();
 
         // AppStartupService ist AsSelf registriert (App-Konstruktor braucht den konkreten Typ);
         // das Logout-Event muss denselben Singleton treffen

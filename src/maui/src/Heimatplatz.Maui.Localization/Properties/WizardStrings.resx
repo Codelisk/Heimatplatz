@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitleCreate" xml:space="preserve">
+    <value>Inserat erstellen</value>
+  </data>
+  <data name="PageTitleEdit" xml:space="preserve">
+    <value>Inserat bearbeiten</value>
+  </data>
+  <data name="SellerAccountRequired" xml:space="preserve">
+    <value>Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.</value>
+  </data>
+  <data name="DiscardChangesTitle" xml:space="preserve">
+    <value>Änderungen verwerfen?</value>
+  </data>
+  <data name="DraftPromptTitle" xml:space="preserve">
+    <value>Inserat-Entwurf</value>
+  </data>
+  <data name="KeepEditing" xml:space="preserve">
+    <value>Weiter bearbeiten</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Verwerfen</value>
+  </data>
+  <data name="SaveAsDraft" xml:space="preserve">
+    <value>Als Entwurf speichern</value>
+  </data>
+  <data name="AddPhotosTitle" xml:space="preserve">
+    <value>Fotos hinzufügen</value>
+  </data>
+  <data name="AddPhotosHint" xml:space="preserve">
+    <value>JPG oder PNG – bis zu 20 Fotos, das erste wird zum Titelbild</value>
+  </data>
+  <data name="TakePhotoButton" xml:space="preserve">
+    <value>📷 Aufnehmen</value>
+  </data>
+  <data name="PickPhotosButton" xml:space="preserve">
+    <value>🖼 Galerie</value>
+  </data>
+  <data name="TypeBadgeHouse" xml:space="preserve">
+    <value>HAUS</value>
+  </data>
+  <data name="TypeBadgeLand" xml:space="preserve">
+    <value>GRUND</value>
+  </data>
+  <data name="PropertyTypePromptTitle" xml:space="preserve">
+    <value>Immobilientyp</value>
+  </data>
+  <data name="TitlePlaceholder" xml:space="preserve">
+    <value>Ihr Titel – z.B. Sonniges Einfamilienhaus mit Garten</value>
+  </data>
+  <data name="StreetPlaceholder" xml:space="preserve">
+    <value>Straße und Hausnummer</value>
+  </data>
+  <data name="OrtSearchPlaceholder" xml:space="preserve">
+    <value>Ort oder PLZ suchen…</value>
+  </data>
+  <data name="LivingAreaTileLabel" xml:space="preserve">
+    <value>WOHNFLÄCHE</value>
+  </data>
+  <data name="PlotAreaTileLabel" xml:space="preserve">
+    <value>GRUNDSTÜCK</value>
+  </data>
+  <data name="RoomsTileLabel" xml:space="preserve">
+    <value>ZIMMER</value>
+  </data>
+  <data name="BuildingSectionHeader" xml:space="preserve">
+    <value>GEBÄUDE</value>
+  </data>
+  <data name="YearBuiltLabel" xml:space="preserve">
+    <value>Baujahr</value>
+  </data>
+  <data name="FeaturesSectionHeader" xml:space="preserve">
+    <value>AUSSTATTUNG &amp; MERKMALE</value>
+  </data>
+  <data name="FeaturePlaceholder" xml:space="preserve">
+    <value>Merkmal hinzufügen, z.B. Garage…</value>
+  </data>
+  <data name="FeaturesHint" xml:space="preserve">
+    <value>Enter fügt hinzu. Ohne eigene Merkmale zeigt das Inserat automatisch Typ, Ort und Fläche.</value>
+  </data>
+  <data name="DescriptionSectionHeader" xml:space="preserve">
+    <value>BESCHREIBUNG</value>
+  </data>
+  <data name="ManualModeTitle" xml:space="preserve">
+    <value>Selbst schreiben</value>
+  </data>
+  <data name="ManualModeSubtitle" xml:space="preserve">
+    <value>Sie formulieren den Text Ihres Inserats.</value>
+  </data>
+  <data name="GenerateModeTitle" xml:space="preserve">
+    <value>Erstellen lassen</value>
+  </data>
+  <data name="GenerateModeSubtitle" xml:space="preserve">
+    <value>Aus Stichwörtern und Fotos entsteht Ihr Text.</value>
+  </data>
+  <data name="DescriptionPlaceholder" xml:space="preserve">
+    <value>Beschreiben Sie Lage, Zustand und Besonderheiten Ihrer Immobilie (mind. 50 Zeichen)…</value>
+  </data>
+  <data name="KeywordsLabel" xml:space="preserve">
+    <value>Stichwörter</value>
+  </data>
+  <data name="KeywordsPlaceholder" xml:space="preserve">
+    <value>z.B. ruhige Lage, 2020 saniert, großer Garten, Blick ins Grüne …</value>
+  </data>
+  <data name="DictationUnavailableHint" xml:space="preserve">
+    <value>Diktat ist auf diesem Gerät nicht verfügbar – Stichwörter einfach eintippen.</value>
+  </data>
+  <data name="RequestGenerationButton" xml:space="preserve">
+    <value>✨ Text erstellen lassen</value>
+  </data>
+  <data name="RequestGenerationAgainButton" xml:space="preserve">
+    <value>✨ Text neu erstellen lassen</value>
+  </data>
+  <data name="GenerationRunningTitle" xml:space="preserve">
+    <value>✨ Ihr Text wird erstellt – Sie müssen nicht warten</value>
+  </data>
+  <data name="GenerationRunningBody" xml:space="preserve">
+    <value>Tippen Sie einfach auf „Inserat veröffentlichen“ – die fertige Beschreibung erscheint automatisch in Ihrem Inserat.</value>
+  </data>
+  <data name="GeneratedEditableHint" xml:space="preserve">
+    <value>Sie können den Text direkt bearbeiten.</value>
+  </data>
+  <data name="ApplyGeneratedButton" xml:space="preserve">
+    <value>Erstellten Text übernehmen</value>
+  </data>
+  <data name="MicHintListening" xml:space="preserve">
+    <value>Aufnahme läuft – tippen zum Stoppen</value>
+  </data>
+  <data name="MicHintIdle" xml:space="preserve">
+    <value>Stichwörter einsprechen</value>
+  </data>
+  <data name="DictationNotAvailable" xml:space="preserve">
+    <value>Diktat ist auf diesem Gerät nicht verfügbar.</value>
+  </data>
+  <data name="MicPermissionDenied" xml:space="preserve">
+    <value>Mikrofon-Berechtigung wurde nicht erteilt.</value>
+  </data>
+  <data name="DictationError" xml:space="preserve">
+    <value>Fehler beim Diktat: {0}</value>
+  </data>
+  <data name="ValidationKeywordsMissing" xml:space="preserve">
+    <value>Bitte geben Sie ein paar Stichwörter zu Ihrer Immobilie ein.</value>
+  </data>
+  <data name="BusyRequestingGeneration" xml:space="preserve">
+    <value>Text wird beauftragt…</value>
+  </data>
+  <data name="GenerationRequestFailed" xml:space="preserve">
+    <value>Der Text konnte nicht beauftragt werden. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="GenerationFailed" xml:space="preserve">
+    <value>Der Text konnte nicht erstellt werden. Versuchen Sie es erneut oder schreiben Sie die Beschreibung selbst.</value>
+  </data>
+  <data name="BusyLoadingDraft" xml:space="preserve">
+    <value>Entwurf wird geladen…</value>
+  </data>
+  <data name="DraftLoadError" xml:space="preserve">
+    <value>Der Entwurf konnte nicht geladen werden.</value>
+  </data>
+  <data name="DraftSaveError" xml:space="preserve">
+    <value>Der Entwurf konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="DraftSaveFailedBanner" xml:space="preserve">
+    <value>Entwurf konnte nicht gespeichert werden – wird automatisch erneut versucht.</value>
+  </data>
+  <data name="BusyLoadingProperty" xml:space="preserve">
+    <value>Inserat wird geladen…</value>
+  </data>
+  <data name="PropertyLoadError" xml:space="preserve">
+    <value>Die Immobilie konnte nicht geladen werden.</value>
+  </data>
+  <data name="PropertyLoadErrorRetry" xml:space="preserve">
+    <value>Die Immobilie konnte nicht geladen werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</value>
+  </data>
+  <data name="InvalidPropertyId" xml:space="preserve">
+    <value>Ungültige Immobilien-Id</value>
+  </data>
+  <data name="BusySavingChanges" xml:space="preserve">
+    <value>Änderungen werden gespeichert…</value>
+  </data>
+  <data name="SaveChangesFailed" xml:space="preserve">
+    <value>Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="CameraPermissionDenied" xml:space="preserve">
+    <value>Kamera-Berechtigung wurde nicht erteilt.</value>
+  </data>
+  <data name="CaptureError" xml:space="preserve">
+    <value>Fehler bei der Aufnahme: {0}</value>
+  </data>
+  <data name="PickError" xml:space="preserve">
+    <value>Fehler bei der Auswahl: {0}</value>
+  </data>
+  <data name="PickPhotosTitle" xml:space="preserve">
+    <value>Fotos auswählen</value>
+  </data>
+  <data name="MaxPhotos" xml:space="preserve">
+    <value>Maximal {0} Fotos erlaubt</value>
+  </data>
+  <data name="PhotoSingular" xml:space="preserve">
+    <value>1 Foto</value>
+  </data>
+  <data name="PhotosCount" xml:space="preserve">
+    <value>{0} Fotos</value>
+  </data>
+  <data name="VideoSingular" xml:space="preserve">
+    <value>1 Video</value>
+  </data>
+  <data name="VideosCount" xml:space="preserve">
+    <value>{0} Videos</value>
+  </data>
+  <data name="ValidationTitleTooShort" xml:space="preserve">
+    <value>Titel muss mindestens 10 Zeichen lang sein</value>
+  </data>
+  <data name="ValidationTitleTooLong" xml:space="preserve">
+    <value>Titel darf höchstens 200 Zeichen lang sein</value>
+  </data>
+  <data name="ValidationInvalidNumber" xml:space="preserve">
+    <value>Bitte geben Sie einen gültigen Wert für "{0}" ein (größer als 0)</value>
+  </data>
+  <data name="FieldRooms" xml:space="preserve">
+    <value>Zimmer</value>
+  </data>
+  <data name="FieldLivingArea" xml:space="preserve">
+    <value>Wohnfläche</value>
+  </data>
+  <data name="FieldPlotArea" xml:space="preserve">
+    <value>Grundstücksfläche</value>
+  </data>
+  <data name="FieldYearBuilt" xml:space="preserve">
+    <value>Baujahr</value>
+  </data>
+  <data name="ValidationRoomsRange" xml:space="preserve">
+    <value>Bitte geben Sie eine realistische Zimmeranzahl an (1–200)</value>
+  </data>
+  <data name="ValidationLivingAreaRange" xml:space="preserve">
+    <value>Bitte geben Sie eine realistische Wohnfläche an (bis 10.000 m²)</value>
+  </data>
+  <data name="ValidationPlotAreaRange" xml:space="preserve">
+    <value>Bitte geben Sie eine realistische Grundstücksfläche an (bis 1.000.000 m²)</value>
+  </data>
+  <data name="ValidationYearBuiltFuture" xml:space="preserve">
+    <value>Das Baujahr darf nicht in der Zukunft liegen</value>
+  </data>
+  <data name="ValidationPriceInvalid" xml:space="preserve">
+    <value>Bitte geben Sie einen gültigen Preis ein</value>
+  </data>
+  <data name="ValidationStreetMissing" xml:space="preserve">
+    <value>Bitte geben Sie eine Straße ein</value>
+  </data>
+  <data name="ValidationOrtMissing" xml:space="preserve">
+    <value>Bitte wählen Sie einen Ort aus</value>
+  </data>
+  <data name="MissingPhoto" xml:space="preserve">
+    <value>Foto</value>
+  </data>
+  <data name="MissingTitle" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="MissingPrice" xml:space="preserve">
+    <value>Preis</value>
+  </data>
+  <data name="MissingLocation" xml:space="preserve">
+    <value>Adresse &amp; Ort</value>
+  </data>
+  <data name="MissingDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="PublishHint" xml:space="preserve">
+    <value>Noch offen: {0}</value>
+  </data>
+  <data name="PublishReadyEdit" xml:space="preserve">
+    <value>Alles komplett – Ihre Änderungen können gespeichert werden</value>
+  </data>
+  <data name="PublishReadyGenerating" xml:space="preserve">
+    <value>Bereit – veröffentlichen Sie einfach, die Beschreibung wird automatisch ergänzt</value>
+  </data>
+  <data name="PublishReadyCreate" xml:space="preserve">
+    <value>Alles komplett – Ihr Inserat kann online gehen</value>
+  </data>
+  <data name="SaveChangesButton" xml:space="preserve">
+    <value>Änderungen speichern</value>
+  </data>
+  <data name="PublishButton" xml:space="preserve">
+    <value>Inserat veröffentlichen</value>
+  </data>
+  <data name="ValidationDescriptionGenerateFirst" xml:space="preserve">
+    <value>Bitte lassen Sie zuerst den Text erstellen – oder schreiben Sie die Beschreibung selbst.</value>
+  </data>
+  <data name="ValidationDescriptionTooShort" xml:space="preserve">
+    <value>Die Beschreibung muss mindestens 50 Zeichen lang sein.</value>
+  </data>
+  <data name="ValidationDescriptionTooLong" xml:space="preserve">
+    <value>Die Beschreibung darf höchstens 2000 Zeichen lang sein.</value>
+  </data>
+  <data name="ValidationPhotoMissing" xml:space="preserve">
+    <value>Bitte fügen Sie mindestens ein Foto hinzu</value>
+  </data>
+  <data name="PhotosUploadFailed" xml:space="preserve">
+    <value>Die Fotos konnten nicht hochgeladen werden. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="BusyPublishing" xml:space="preserve">
+    <value>Inserat wird veröffentlicht…</value>
+  </data>
+  <data name="PublishFailed" xml:space="preserve">
+    <value>Das Inserat konnte nicht veröffentlicht werden. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="PropertyTypeHouse" xml:space="preserve">
+    <value>Haus</value>
+  </data>
+  <data name="PropertyTypeLand" xml:space="preserve">
+    <value>Grundstück</value>
+  </data>
+  <data name="PickPhotosSemantic" xml:space="preserve">
+    <value>Fotos aus der Galerie hinzufügen</value>
+  </data>
+  <data name="EditTypeSemantic" xml:space="preserve">
+    <value>Immobilientyp wechseln</value>
+  </data>
+  <data name="RemovePhotoSemantic" xml:space="preserve">
+    <value>Foto entfernen</value>
+  </data>
+  <data name="PriceEntrySemantic" xml:space="preserve">
+    <value>Preis in Euro</value>
+  </data>
+  <data name="TitleEntrySemantic" xml:space="preserve">
+    <value>Titel des Inserats</value>
+  </data>
+  <data name="StreetEntrySemantic" xml:space="preserve">
+    <value>Straße und Hausnummer</value>
+  </data>
+  <data name="OrtSearchSemantic" xml:space="preserve">
+    <value>Ort suchen</value>
+  </data>
+  <data name="ClearOrtSemantic" xml:space="preserve">
+    <value>Ort ändern</value>
+  </data>
+  <data name="LivingAreaEntrySemantic" xml:space="preserve">
+    <value>Wohnfläche in Quadratmetern</value>
+  </data>
+  <data name="PlotAreaEntrySemantic" xml:space="preserve">
+    <value>Grundstücksfläche in Quadratmetern</value>
+  </data>
+  <data name="RoomsEntrySemantic" xml:space="preserve">
+    <value>Anzahl Zimmer</value>
+  </data>
+  <data name="YearBuiltEntrySemantic" xml:space="preserve">
+    <value>Baujahr</value>
+  </data>
+  <data name="RemoveFeatureSemantic" xml:space="preserve">
+    <value>Merkmal entfernen</value>
+  </data>
+  <data name="AddFeatureSemantic" xml:space="preserve">
+    <value>Merkmal hinzufügen</value>
+  </data>
+</root>

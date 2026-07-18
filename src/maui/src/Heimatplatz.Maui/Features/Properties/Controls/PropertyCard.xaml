@@ -73,37 +73,57 @@
 
                 <!-- Action-Buttons oben rechts: zwei wiederverwendete Buttons statt fuenf -
                      native Buttons sind teuer und unsichtbare werden trotzdem inflatet.
-                     Glyph/Farben/Command wechseln je CardMode im Code-Behind:
+                     Icon/Command wechseln je CardMode im Code-Behind:
                      FavoriteButton = Favorisieren (Default) bzw. Entfavorisieren (Favorite),
-                     BlockButton = Blockieren (Default), Entblockieren (Blocked), Loeschen (Owner) -->
+                     BlockButton = Blockieren (Default), Entblockieren (Blocked), Loeschen (Owner).
+                     Icon als zentriertes Overlay wie auf den Detailseiten: ImageButton
+                     platziert sein Bild auf WinUI nicht mittig -->
                 <HorizontalStackLayout VerticalOptions="Start"
                                        HorizontalOptions="End"
                                        Margin="12"
                                        Spacing="8">
 
-                    <Button x:Name="FavoriteButton"
-                            Text="♡"
-                            FontSize="18"
-                            TextColor="White"
-                            BackgroundColor="{StaticResource GlassPillBackground}"
-                            WidthRequest="40"
-                            HeightRequest="40"
-                            CornerRadius="20"
-                            Padding="0"
-                            IsVisible="False"
-                            Clicked="OnFavoriteClicked" />
+                    <Grid x:Name="FavoritePanel" IsVisible="False">
+                        <Button x:Name="FavoriteButton"
+                                Padding="0"
+                                MinimumHeightRequest="0"
+                                MinimumWidthRequest="0"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                CornerRadius="20"
+                                BorderWidth="1"
+                                BackgroundColor="{StaticResource GlassPillBackground}"
+                                BorderColor="{StaticResource GlassPillStroke}"
+                                Clicked="OnFavoriteClicked" />
+                        <Image x:Name="FavoriteIcon"
+                               Source="icon_heart_white.png"
+                               WidthRequest="20"
+                               HeightRequest="20"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               InputTransparent="True" />
+                    </Grid>
 
-                    <Button x:Name="BlockButton"
-                            Text="⊘"
-                            FontSize="18"
-                            TextColor="White"
-                            BackgroundColor="{StaticResource GlassPillBackground}"
-                            WidthRequest="40"
-                            HeightRequest="40"
-                            CornerRadius="20"
-                            Padding="0"
-                            IsVisible="False"
-                            Clicked="OnBlockClicked" />
+                    <Grid x:Name="BlockPanel" IsVisible="False">
+                        <Button x:Name="BlockButton"
+                                Padding="0"
+                                MinimumHeightRequest="0"
+                                MinimumWidthRequest="0"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                CornerRadius="20"
+                                BorderWidth="1"
+                                BackgroundColor="{StaticResource GlassPillBackground}"
+                                BorderColor="{StaticResource GlassPillStroke}"
+                                Clicked="OnBlockClicked" />
+                        <Image x:Name="BlockIcon"
+                               Source="icon_block_white.png"
+                               WidthRequest="20"
+                               HeightRequest="20"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               InputTransparent="True" />
+                    </Grid>
                 </HorizontalStackLayout>
 
                 <!-- Bild-Counter unten rechts -->

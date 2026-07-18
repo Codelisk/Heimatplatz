@@ -25,19 +25,19 @@ public partial class PropertyWizardViewModel
     {
         if (!decimal.TryParse(Preis, out var preisValue) || preisValue <= 0)
         {
-            ErrorMessage = "Bitte geben Sie einen gültigen Preis ein";
+            ErrorMessage = Loc.ValidationPriceInvalid;
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(Adresse))
         {
-            ErrorMessage = "Bitte geben Sie eine Straße ein";
+            ErrorMessage = Loc.ValidationStreetMissing;
             return false;
         }
 
         if (!Ort.SelectedGemeindeId.HasValue)
         {
-            ErrorMessage = "Bitte wählen Sie einen Ort aus";
+            ErrorMessage = Loc.ValidationOrtMissing;
             return false;
         }
 

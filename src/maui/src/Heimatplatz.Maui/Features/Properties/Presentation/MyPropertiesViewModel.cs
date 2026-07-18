@@ -5,6 +5,8 @@ using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
+using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -21,13 +23,17 @@ public partial class MyPropertiesViewModel(
     IMediator mediator,
     INavigator navigator,
     IDialogs dialogs,
-    ILogger<MyPropertiesViewModel> logger
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger)
+    ILogger<MyPropertiesViewModel> logger,
+    CollectionStringsLocalized collectionLoc,
+    MyPropertiesStringsLocalized loc
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc)
 {
-    protected override string LoadingMessage => "Lade Immobilien...";
-    protected override string RemovingMessage => "Lösche Immobilie...";
-    protected override string RemoveConfirmTitle => "Immobilie löschen?";
-    protected override string RemoveErrorTitle => "Fehler beim Löschen";
+    public MyPropertiesStringsLocalized Loc => loc;
+
+    protected override string LoadingMessage => loc.LoadingMessage;
+    protected override string RemovingMessage => loc.RemovingMessage;
+    protected override string RemoveConfirmTitle => loc.RemoveConfirmTitle;
+    protected override string RemoveErrorTitle => loc.RemoveErrorTitle;
 
     // Immer neu laden um neu erstellte/bearbeitete Immobilien anzuzeigen
     protected override bool AlwaysReloadOnAppearing => true;
@@ -36,13 +42,13 @@ public partial class MyPropertiesViewModel(
     protected override bool RequiresSellerRole => true;
 
     protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
-        => $"Möchten Sie \"{property.Title}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.";
+        => loc.RemoveConfirmMessageFormat(property.Title);
 
     protected override string GetRemoveErrorMessage(string errorDetails)
-        => $"Die Immobilie konnte nicht gelöscht werden. {errorDetails}";
+        => loc.RemoveErrorMessageFormat(errorDetails);
 
     protected override string GetLoadErrorMessage(string errorDetails)
-        => $"Die Immobilien konnten nicht geladen werden. {errorDetails}";
+        => loc.LoadErrorMessageFormat(errorDetails);
 
     protected override Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, bool forceRemoteRefresh, CancellationToken ct)
@@ -51,7 +57,13 @@ public partial class MyPropertiesViewModel(
         // bei OnAppearing und Pull-to-Refresh mit, ohne die Basisklasse anzufassen).
         // Die Basisklasse zaehlt Seiten 0-basiert (Reload laedt Seite 0).
         if (page == 0)
+        {
             _ = LoadDraftsAsync();
+
+            // Nach Veroeffentlichen/Bearbeiten im Wizard einmalig am Cache vorbei,
+            // sonst fehlt das neue bzw. geaenderte Inserat bis zum naechsten Sync
+            forceRemoteRefresh |= PropertyListRefreshSignal.Consume();
+        }
 
         return FetchPageViaAsync(
             new GetUserPropertiesHttpRequest { Page = page, PageSize = pageSize },
@@ -76,7 +88,12 @@ public partial class MyPropertiesViewModel(
         try
         {
             var (_, response) = await Mediator.Request(new GetPropertyDraftsHttpRequest());
-            var items = response?.Drafts?.Select(d => new DraftListItem(d)).ToList() ?? [];
+            var items = response?.Drafts?.Select(d => new DraftListItem(
+                d,
+                DisplayTitle: string.IsNullOrWhiteSpace(d.Title)
+                    ? loc.DraftFallbackTitleFormat(d.UpdatedAt.ToLocalTime())
+                    : d.Title!,
+                StepText: loc.DraftLastEditedFormat(d.UpdatedAt.ToLocalTime()))).ToList() ?? [];
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -107,8 +124,8 @@ public partial class MyPropertiesViewModel(
     private async Task DeleteDraft(DraftListItem draft)
     {
         var confirmed = await Dialogs.Confirm(
-            "Entwurf löschen?",
-            $"Möchten Sie \"{draft.DisplayTitle}\" wirklich löschen? Auch die hochgeladenen Fotos werden entfernt.");
+            loc.DeleteDraftConfirmTitle,
+            loc.DeleteDraftConfirmMessageFormat(draft.DisplayTitle));
         if (!confirmed) return;
 
         try
@@ -120,7 +137,7 @@ public partial class MyPropertiesViewModel(
         catch (Exception ex)
         {
             Logger.LogError(ex, "[MyProperties] Entwurf {DraftId} konnte nicht geloescht werden", draft.Id);
-            await Dialogs.Alert("Fehler beim Löschen", "Der Entwurf konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.");
+            await Dialogs.Alert(loc.DeleteDraftErrorTitle, loc.DeleteDraftErrorMessage);
         }
     }
 
@@ -133,9 +150,9 @@ public partial class MyPropertiesViewModel(
     private Task NavigateToAddProperty() => Navigator.NavigateTo("PropertyWizard");
 
     /// <summary>
-    /// Navigiert zur EditPropertyPage um die ausgewaehlte Immobilie zu bearbeiten
+    /// Bearbeitet die ausgewaehlte Immobilie im WYSIWYG-Editor (Wizard im Edit-Modus)
     /// </summary>
     [RelayCommand]
     private Task EditProperty(PropertyListItemDto property)
-        => Navigator.NavigateTo<EditPropertyViewModel>(vm => vm.PropertyId = property.Id.ToString());
+        => Navigator.NavigateTo<PropertyWizardViewModel>(vm => vm.EditPropertyId = property.Id.ToString());
 }

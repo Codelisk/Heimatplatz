@@ -7,6 +7,7 @@ import PhotoPlusIcon from "@tabler/icons/outline/photo-plus.svg";
 import ShareIcon from "@tabler/icons/outline/share.svg";
 import { Button } from "@/components/starwind/button";
 import { fetchApiPropertyTypes } from "@/features/properties/live-api";
+import { t } from "@/i18n";
 
 /**
  * WYSIWYG-Inseratsformular: 1:1 wie die Immobilien-Detailansicht aufgebaut
@@ -27,11 +28,9 @@ interface Props {
 }
 
 const { editMode = false } = Astro.props;
-const submitLabel = editMode ? "Änderungen speichern" : "Inserat speichern";
+const submitLabel = editMode ? t("editor.submitSave") : t("editor.submitCreate");
 const cancelHref = editMode ? "/meine-immobilien/" : "/";
-const photoHelp = editMode
-  ? "Bestehende Bilder bleiben erhalten, neue werden beim Speichern hochgeladen."
-  : "Mindestens ein Foto ist für ein veröffentlichtes Inserat erforderlich.";
+const photoHelp = editMode ? t("editor.photoHelpEdit") : t("editor.photoHelpCreate");
 
 // Typenliste kommt aus dem Backend (PropertyType-Enum) - nicht hardcoden!
 const propertyTypes = await fetchApiPropertyTypes();
@@ -56,12 +55,12 @@ const currentYear = new Date().getFullYear();
   <div>
     <p class="wys-rise flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
       <PencilIcon class="size-4 shrink-0" aria-hidden="true" />
-      Live-Vorschau: Tippen Sie direkt in Titel, Preis oder Beschreibung – genau so sehen Käufer Ihr Inserat.
+      {t("editor.livePreviewHint")}
     </p>
 
     {/* Hero-Fotozone wie die Galerie der Detailseite, inkl. Badge- und Button-Overlays */}
     <div class="wys-rise relative mt-5 h-[320px] w-full overflow-hidden rounded-xl bg-muted sm:h-[460px]" style="--rise: 0.06s">
-      <img data-preview-hero alt="Erstes Foto Ihres Inserats" class="hidden h-full w-full object-cover" />
+      <img data-preview-hero alt={t("editor.heroAlt")} class="hidden h-full w-full object-cover" />
       <label
         for="propertyImages"
         data-preview-hero-empty
@@ -71,8 +70,8 @@ const currentYear = new Date().getFullYear();
           <span class="grid size-14 place-items-center rounded-full bg-background text-muted-foreground transition-transform duration-300 group-hover:scale-110 group-hover:text-foreground">
             <PhotoPlusIcon class="size-7" aria-hidden="true" />
           </span>
-          <span class="text-base font-bold">Fotos hinzufügen</span>
-          <span class="text-xs text-muted-foreground">JPG, PNG oder WebP – bis zu 20 Bilder, das erste wird zum Titelbild</span>
+          <span class="text-base font-bold">{t("editor.addPhotos")}</span>
+          <span class="text-xs text-muted-foreground">{t("editor.photoFormats")}</span>
         </span>
       </label>
       <label
@@ -81,7 +80,7 @@ const currentYear = new Date().getFullYear();
         class="absolute bottom-3 right-3 z-10 hidden cursor-pointer items-center gap-2 rounded-full bg-black/70 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-transform duration-300 hover:scale-105"
       >
         <PhotoPlusIcon class="size-4" aria-hidden="true" />
-        Fotos hinzufügen
+        {t("editor.addPhotos")}
       </label>
       {/* right-40 wie auf der Detailseite: Platz fuer die drei Aktions-Buttons */}
       <div class="pointer-events-none absolute left-4 right-40 top-4 z-10 flex flex-wrap items-center gap-2" data-photo-badges>
@@ -93,7 +92,7 @@ const currentYear = new Date().getFullYear();
             id="propertyType"
             name="propertyType"
             required
-            aria-label="Immobilientyp"
+            aria-label={t("editor.propertyType")}
             class="cursor-pointer appearance-none border-0 bg-transparent py-1.5 pl-3 pr-8 text-xs font-bold text-inherit outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             {propertyTypes.map((type, index) => (
@@ -102,7 +101,7 @@ const currentYear = new Date().getFullYear();
           </select>
           <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 opacity-80" aria-hidden="true" />
         </span>
-        <span class="rounded-[2px] bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground" data-preview-city>Ort</span>
+        <span class="rounded-[2px] bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground" data-preview-city>{t("editor.cityLabel")}</span>
       </div>
       {/* Merken/Blockieren/Teilen wie auf der Detailseite - im Editor nur Kulisse */}
       <div class="pointer-events-none absolute right-4 top-4 z-10 flex gap-2" aria-hidden="true">
@@ -122,7 +121,7 @@ const currentYear = new Date().getFullYear();
     />
     <div class="mt-3 hidden grid grid-cols-3 gap-2 sm:grid-cols-5" data-property-image-grid></div>
     <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-      <p data-property-image-count>Fotos 0 / 20</p>
+      <p data-property-image-count>{t("editor.photoCount", { current: 0, max: 20 })}</p>
       <p data-property-image-help>{photoHelp}</p>
     </div>
 
@@ -137,18 +136,18 @@ const currentYear = new Date().getFullYear();
           minlength="4"
           maxlength="4"
           pattern="[0-9]{4}"
-          placeholder="PLZ"
-          aria-label="Postleitzahl"
+          placeholder={t("editor.postalCodePlaceholder")}
+          aria-label={t("editor.postalCodeLabel")}
           required
         />
-        <input id="city" name="city" class="wys w-44" placeholder="Ort" aria-label="Ort" required />
+        <input id="city" name="city" class="wys w-44" placeholder={t("editor.cityLabel")} aria-label={t("editor.cityLabel")} required />
         <span aria-hidden="true">·</span>
         <input
           id="address"
           name="address"
           class="wys min-w-56 flex-1"
-          placeholder="Straße und Hausnummer"
-          aria-label="Adresse"
+          placeholder={t("editor.addressPlaceholder")}
+          aria-label={t("editor.addressLabel")}
           required
         />
       </div>
@@ -156,8 +155,8 @@ const currentYear = new Date().getFullYear();
         id="title"
         name="title"
         class="wys mt-3 w-full max-w-3xl text-3xl font-bold leading-tight sm:text-4xl"
-        placeholder="Ihr Titel – z.B. Sonniges Einfamilienhaus mit Garten"
-        aria-label="Titel des Inserats"
+        placeholder={t("editor.titlePlaceholder")}
+        aria-label={t("editor.titleLabel")}
         minlength="10"
         required
       />
@@ -166,7 +165,7 @@ const currentYear = new Date().getFullYear();
     {/* Fakten-Kacheln 1:1 wie auf der Detailseite */}
     <div class="wys-rise mt-6 grid gap-3 sm:grid-cols-4" style="--rise: 0.18s">
       <div class="wys-tile rounded-lg border border-border bg-card p-4">
-        <label for="price" class="text-sm text-muted-foreground">Preis</label>
+        <label for="price" class="text-sm text-muted-foreground">{t("editor.priceLabel")}</label>
         {/* Euro-Zeichen vorangestellt wie im de-AT-Format der Detailseite ("€ 350.000");
             bewusst KEIN text-price im Editor - Rot an Eingabefeldern liest sich als Fehler */}
         <div class="mt-1 flex items-baseline gap-1">
@@ -186,7 +185,7 @@ const currentYear = new Date().getFullYear();
         </div>
       </div>
       <div class="wys-tile rounded-lg border border-border bg-card p-4" data-structure-property-field>
-        <label for="livingArea" class="text-sm text-muted-foreground">Wohnfläche</label>
+        <label for="livingArea" class="text-sm text-muted-foreground">{t("editor.livingAreaLabel")}</label>
         <div class="mt-1 flex items-baseline gap-1">
           <input
             id="livingArea"
@@ -203,7 +202,7 @@ const currentYear = new Date().getFullYear();
         </div>
       </div>
       <div class="wys-tile rounded-lg border border-border bg-card p-4">
-        <label for="plotArea" class="text-sm text-muted-foreground">Grund</label>
+        <label for="plotArea" class="text-sm text-muted-foreground">{t("editor.plotLabel")}</label>
         <div class="mt-1 flex items-baseline gap-1">
           <input
             id="plotArea"
@@ -220,7 +219,7 @@ const currentYear = new Date().getFullYear();
         </div>
       </div>
       <div class="wys-tile rounded-lg border border-border bg-card p-4" data-structure-property-field>
-        <label for="rooms" class="text-sm text-muted-foreground">Zimmer</label>
+        <label for="rooms" class="text-sm text-muted-foreground">{t("editor.roomsLabel")}</label>
         <input
           id="rooms"
           name="rooms"
@@ -237,12 +236,12 @@ const currentYear = new Date().getFullYear();
 
     {/* Detail-Sektion wie auf der Detailseite ("Gebaeude" wie in detail-sections.ts) */}
     <section class="wys-rise mt-8" style="--rise: 0.24s" data-structure-property-field>
-      <h2 class="text-sm font-bold uppercase text-muted-foreground">Details</h2>
+      <h2 class="text-sm font-bold uppercase text-muted-foreground">{t("editor.detailsHeading")}</h2>
       <div class="mt-4 grid gap-4 md:grid-cols-2">
-        <section class="wys-tile rounded-lg border border-border bg-card p-4" aria-label="Gebäude">
-          <h3 class="text-xs font-bold uppercase text-muted-foreground">Gebäude</h3>
+        <section class="wys-tile rounded-lg border border-border bg-card p-4" aria-label={t("editor.buildingHeading")}>
+          <h3 class="text-xs font-bold uppercase text-muted-foreground">{t("editor.buildingHeading")}</h3>
           <div class="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 text-sm">
-            <label for="yearBuilt" class="text-muted-foreground">Baujahr</label>
+            <label for="yearBuilt" class="text-muted-foreground">{t("editor.yearBuiltLabel")}</label>
             <input
               id="yearBuilt"
               name="yearBuilt"
@@ -260,24 +259,24 @@ const currentYear = new Date().getFullYear();
     </section>
 
     <section class="wys-rise mt-8" style="--rise: 0.3s" aria-labelledby="preview-features-heading">
-      <h2 id="preview-features-heading" class="text-sm font-bold uppercase text-muted-foreground">Ausstattung &amp; Merkmale</h2>
+      <h2 id="preview-features-heading" class="text-sm font-bold uppercase text-muted-foreground">{t("editor.featuresHeading")}</h2>
       <input type="hidden" name="features" data-feature-store />
       <ul class="mt-4 grid gap-2 sm:grid-cols-2" data-preview-features></ul>
       <div class="mt-3 flex flex-wrap items-center gap-3">
         <input
           data-feature-input
           class="wys wys-sm w-72 max-w-full"
-          placeholder="Merkmal hinzufügen, z.B. Garage…"
-          aria-label="Merkmal hinzufügen"
+          placeholder={t("editor.featurePlaceholder")}
+          aria-label={t("editor.featureLabel")}
         />
         <p class="text-xs text-muted-foreground">
-          Enter fügt hinzu. Ohne eigene Merkmale zeigt das Inserat automatisch Typ, Ort und Fläche.
+          {t("editor.featureHint")}
         </p>
       </div>
     </section>
 
     <section class="wys-rise mt-8" style="--rise: 0.36s" aria-labelledby="description-heading">
-      <h2 id="description-heading" class="text-sm font-bold uppercase text-muted-foreground">Beschreibung</h2>
+      <h2 id="description-heading" class="text-sm font-bold uppercase text-muted-foreground">{t("editor.descriptionHeading")}</h2>
       <textarea
         id="description"
         name="description"
@@ -285,90 +284,90 @@ const currentYear = new Date().getFullYear();
         minlength="50"
         required
         class="wys wys-grow mt-4 min-h-36 w-full max-w-3xl text-base leading-7"
-        placeholder="Beschreiben Sie Lage, Zustand und Besonderheiten Ihrer Immobilie (mind. 50 Zeichen)…"
-        aria-label="Beschreibung"></textarea>
+        placeholder={t("editor.descriptionPlaceholder")}
+        aria-label={t("editor.descriptionHeading")}></textarea>
     </section>
 
     <fieldset class="mt-8 rounded-lg border border-border bg-card p-4" data-foreclosure-fields hidden>
-      <legend class="px-1 text-sm font-bold uppercase text-muted-foreground">Versteigerungsdaten</legend>
+      <legend class="px-1 text-sm font-bold uppercase text-muted-foreground">{t("editor.foreclosureLegend")}</legend>
       <div class="mt-2 grid gap-4 md:grid-cols-2">
         <div class="space-y-1">
-          <label for="foreclosureCourtName" class="wys-label">Gericht *</label>
-          <input id="foreclosureCourtName" name="foreclosureCourtName" placeholder="Bezirksgericht" class="wys wys-sm w-full" data-foreclosure-required disabled />
+          <label for="foreclosureCourtName" class="wys-label">{t("editor.fcCourt")}</label>
+          <input id="foreclosureCourtName" name="foreclosureCourtName" placeholder={t("editor.fcCourtPlaceholder")} class="wys wys-sm w-full" data-foreclosure-required disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureFileNumber" class="wys-label">Aktenzeichen *</label>
-          <input id="foreclosureFileNumber" name="foreclosureFileNumber" placeholder="Geschäftszahl" class="wys wys-sm w-full" data-foreclosure-required disabled />
+          <label for="foreclosureFileNumber" class="wys-label">{t("editor.fcFileNumber")}</label>
+          <input id="foreclosureFileNumber" name="foreclosureFileNumber" placeholder={t("editor.fcFileNumberPlaceholder")} class="wys wys-sm w-full" data-foreclosure-required disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureAuctionDate" class="wys-label">Versteigerungstermin *</label>
+          <label for="foreclosureAuctionDate" class="wys-label">{t("editor.fcAuctionDate")}</label>
           <input id="foreclosureAuctionDate" name="foreclosureAuctionDate" type="datetime-local" class="wys wys-sm w-full" data-foreclosure-required disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureMinimumBid" class="wys-label">Mindestgebot (EUR) *</label>
+          <label for="foreclosureMinimumBid" class="wys-label">{t("editor.fcMinimumBid")}</label>
           <input id="foreclosureMinimumBid" name="foreclosureMinimumBid" type="number" inputmode="numeric" min="1" step="1" placeholder="250000" class="wys wys-sm w-full" data-foreclosure-required disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureEstimatedValue" class="wys-label">Schätzwert (EUR)</label>
+          <label for="foreclosureEstimatedValue" class="wys-label">{t("editor.fcEstimatedValue")}</label>
           <input id="foreclosureEstimatedValue" name="foreclosureEstimatedValue" type="number" inputmode="numeric" min="1" step="1" placeholder="500000" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureStatus" class="wys-label">Status</label>
+          <label for="foreclosureStatus" class="wys-label">{t("editor.fcStatus")}</label>
           <select id="foreclosureStatus" name="foreclosureStatus" class="wys wys-sm w-full" disabled>
-            <option value="Scheduled">Terminiert</option>
-            <option value="Pending">Anhängig</option>
-            <option value="InProgress">Laufend</option>
-            <option value="Completed">Abgeschlossen</option>
-            <option value="Cancelled">Aufgehoben</option>
+            <option value="Scheduled">{t("editor.fcStatusScheduled")}</option>
+            <option value="Pending">{t("editor.fcStatusPending")}</option>
+            <option value="InProgress">{t("editor.fcStatusInProgress")}</option>
+            <option value="Completed">{t("editor.fcStatusCompleted")}</option>
+            <option value="Cancelled">{t("editor.fcStatusCancelled")}</option>
           </select>
         </div>
         <div class="space-y-1">
-          <label for="foreclosureViewingDate" class="wys-label">Besichtigung</label>
+          <label for="foreclosureViewingDate" class="wys-label">{t("editor.fcViewingDate")}</label>
           <input id="foreclosureViewingDate" name="foreclosureViewingDate" type="datetime-local" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureBiddingDeadline" class="wys-label">Gebotsfrist</label>
+          <label for="foreclosureBiddingDeadline" class="wys-label">{t("editor.fcBiddingDeadline")}</label>
           <input id="foreclosureBiddingDeadline" name="foreclosureBiddingDeadline" type="datetime-local" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureOwnershipShare" class="wys-label">Eigentumsanteil</label>
-          <input id="foreclosureOwnershipShare" name="foreclosureOwnershipShare" placeholder="z.B. 1/1" class="wys wys-sm w-full" disabled />
+          <label for="foreclosureOwnershipShare" class="wys-label">{t("editor.fcOwnershipShare")}</label>
+          <input id="foreclosureOwnershipShare" name="foreclosureOwnershipShare" placeholder={t("editor.fcOwnershipSharePlaceholder")} class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureEdictUrl" class="wys-label">Edikt-Link</label>
+          <label for="foreclosureEdictUrl" class="wys-label">{t("editor.fcEdictUrl")}</label>
           <input id="foreclosureEdictUrl" name="foreclosureEdictUrl" type="url" placeholder="https://..." class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureRegistrationNumber" class="wys-label">Einlagezahl</label>
+          <label for="foreclosureRegistrationNumber" class="wys-label">{t("editor.fcRegistrationNumber")}</label>
           <input id="foreclosureRegistrationNumber" name="foreclosureRegistrationNumber" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureCadastralMunicipality" class="wys-label">Katastralgemeinde</label>
+          <label for="foreclosureCadastralMunicipality" class="wys-label">{t("editor.fcCadastralMunicipality")}</label>
           <input id="foreclosureCadastralMunicipality" name="foreclosureCadastralMunicipality" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosurePlotNumber" class="wys-label">Grundstücksnummer</label>
+          <label for="foreclosurePlotNumber" class="wys-label">{t("editor.fcPlotNumber")}</label>
           <input id="foreclosurePlotNumber" name="foreclosurePlotNumber" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureTotalArea" class="wys-label">Gesamtfläche (m²)</label>
+          <label for="foreclosureTotalArea" class="wys-label">{t("editor.fcTotalArea")}</label>
           <input id="foreclosureTotalArea" name="foreclosureTotalArea" type="number" inputmode="numeric" min="1" step="1" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureBuildingArea" class="wys-label">Bebaute Fläche (m²)</label>
+          <label for="foreclosureBuildingArea" class="wys-label">{t("editor.fcBuildingArea")}</label>
           <input id="foreclosureBuildingArea" name="foreclosureBuildingArea" type="number" inputmode="numeric" min="1" step="1" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureZoningDesignation" class="wys-label">Flächenwidmung</label>
+          <label for="foreclosureZoningDesignation" class="wys-label">{t("editor.fcZoning")}</label>
           <input id="foreclosureZoningDesignation" name="foreclosureZoningDesignation" class="wys wys-sm w-full" disabled />
         </div>
         <div class="space-y-1">
-          <label for="foreclosureBuildingCondition" class="wys-label">Gebäudezustand</label>
+          <label for="foreclosureBuildingCondition" class="wys-label">{t("editor.fcBuildingCondition")}</label>
           <input id="foreclosureBuildingCondition" name="foreclosureBuildingCondition" class="wys wys-sm w-full" disabled />
         </div>
       </div>
       <div class="mt-4 space-y-1">
-        <label for="foreclosureNotes" class="wys-label">Hinweise</label>
+        <label for="foreclosureNotes" class="wys-label">{t("editor.fcNotes")}</label>
         <textarea id="foreclosureNotes" name="foreclosureNotes" rows="3" class="wys wys-sm min-h-24 w-full" disabled></textarea>
       </div>
     </fieldset>
@@ -378,20 +377,20 @@ const currentYear = new Date().getFullYear();
       Benutzerprofil (so erscheinen sie auch im veroeffentlichten Inserat).
       Statt der Kontakt-CTAs stehen hier die Speichern/Abbrechen-Aktionen. */}
   <aside class="wys-rise self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20" style="--rise: 0.12s">
-    <p class="text-sm text-muted-foreground">Anbieter</p>
-    <h2 class="mt-1 text-xl font-bold" data-preview-seller-name>Ihr Name</h2>
-    <p class="mt-2 text-sm text-muted-foreground" data-preview-seller-meta>Privat</p>
-    <p class="mt-2 text-sm text-muted-foreground">Aktualisiert: heute</p>
+    <p class="text-sm text-muted-foreground">{t("editor.sellerLabel")}</p>
+    <h2 class="mt-1 text-xl font-bold" data-preview-seller-name>{t("editor.sellerNamePlaceholder")}</h2>
+    <p class="mt-2 text-sm text-muted-foreground" data-preview-seller-meta>{t("editor.sellerTypePrivate")}</p>
+    <p class="mt-2 text-sm text-muted-foreground">{t("editor.updatedToday")}</p>
     <div class="mt-5 space-y-3">
       <div class="rounded-md bg-muted p-3 text-sm">
-        <p class="font-semibold" data-preview-seller-name>Ihr Name</p>
-        <p class="mt-1 truncate text-muted-foreground" data-preview-seller-email>ihre@email.at</p>
+        <p class="font-semibold" data-preview-seller-name>{t("editor.sellerNamePlaceholder")}</p>
+        <p class="mt-1 truncate text-muted-foreground" data-preview-seller-email>{t("editor.sellerEmailPlaceholder")}</p>
       </div>
     </div>
-    <p class="mt-3 text-xs text-muted-foreground" data-preview-seller-hint>Anbieterdaten kommen aus Ihrem Profil.</p>
+    <p class="mt-3 text-xs text-muted-foreground" data-preview-seller-hint>{t("editor.sellerHint")}</p>
     <div class="mt-5 grid gap-2">
       <Button type="submit" class="w-full">{submitLabel}</Button>
-      <Button href={cancelHref} variant="outline" class="w-full">Abbrechen</Button>
+      <Button href={cancelHref} variant="outline" class="w-full">{t("common.cancel")}</Button>
     </div>
     <p class="mt-3 hidden text-sm" data-form-status></p>
   </aside>
@@ -535,6 +534,7 @@ const currentYear = new Date().getFullYear();
 </style>
 
 <script>
+  import { t } from "@/i18n";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
 
   // Live-Vorschau: Typ-Badge, Ort-Badge, Merkmal-Chips,
@@ -554,10 +554,10 @@ const currentYear = new Date().getFullYear();
 
   // Gleiche Zuordnung wie getApiSellerLabel (live-api.ts) fuer Profil-SellerType
   const SELLER_TYPE_LABELS: Record<string, string> = {
-    Private: "Privat",
-    Broker: "Makler",
-    Builder: "Bauträger",
-    PropertyManager: "Verwaltung",
+    Private: t("editor.sellerTypePrivate"),
+    Broker: t("editor.sellerTypeBroker"),
+    Builder: t("editor.sellerTypeBuilder"),
+    PropertyManager: t("editor.sellerTypeManager"),
   };
 
   const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
@@ -612,7 +612,7 @@ const currentYear = new Date().getFullYear();
 
       const city = field("city")?.value.trim() ?? "";
       if (cityBadge) {
-        const text = city || "Ort";
+        const text = city || t("editor.cityLabel");
         if (cityBadge.textContent !== text) cityBadge.textContent = text;
       }
 
@@ -621,9 +621,9 @@ const currentYear = new Date().getFullYear();
       const plotValue = Number(field("plotArea")?.value ?? "");
       const area =
         livingValue > 0
-          ? `${livingValue} m² Wohnfläche`
+          ? t("editor.areaLiving", { value: livingValue })
           : plotValue > 0
-            ? `${plotValue} m² Grundstück`
+            ? t("editor.areaPlot", { value: plotValue })
             : "";
 
       // Eigene Merkmale (editierbar); ohne eigene zeigt das Inserat den
@@ -647,7 +647,7 @@ const currentYear = new Date().getFullYear();
             const remove = document.createElement("button");
             remove.type = "button";
             remove.className = "shrink-0 text-base leading-none text-muted-foreground transition-colors hover:text-foreground";
-            remove.setAttribute("aria-label", `Merkmal ${chip} entfernen`);
+            remove.setAttribute("aria-label", t("editor.removeFeature", { feature: chip }));
             remove.textContent = "×";
             remove.addEventListener("click", () => {
               writeFeatures(parseFeatures(featureStore?.value ?? "").filter((feature) => feature !== chip));
@@ -721,14 +721,14 @@ const currentYear = new Date().getFullYear();
     }
 
     if (!session?.AccessToken) {
-      if (hintTarget) hintTarget.textContent = "Melden Sie sich an – Name und Kontakt kommen aus Ihrem Profil.";
+      if (hintTarget) hintTarget.textContent = t("editor.loginHint");
       return;
     }
 
     const apply = (name: string | null | undefined, email: string | null | undefined, sellerType: string | null | undefined) => {
       if (name) nameTargets.forEach((target) => { target.textContent = name; });
       if (email && emailTarget) emailTarget.textContent = email;
-      if (metaTarget) metaTarget.textContent = SELLER_TYPE_LABELS[sellerType ?? ""] ?? "Privat";
+      if (metaTarget) metaTarget.textContent = SELLER_TYPE_LABELS[sellerType ?? ""] ?? t("editor.sellerTypePrivate");
     };
 
     apply(session.FullName, session.Email, null);

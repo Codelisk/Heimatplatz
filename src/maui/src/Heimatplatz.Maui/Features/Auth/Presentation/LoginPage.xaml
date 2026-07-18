@@ -4,7 +4,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
              x:Class="Heimatplatz.Maui.Features.Auth.Presentation.LoginPage"
              x:DataType="vm:LoginViewModel"
-             Title="Anmelden">
+             Title="{Binding Loc.PageTitle}">
 
     <Grid>
 
@@ -21,9 +21,9 @@
 
                 <!-- Title Section -->
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="Willkommen zurück"
+                    <Label Text="{Binding Loc.WelcomeTitle}"
                            Style="{StaticResource PageTitle}" />
-                    <Label Text="Melden Sie sich an, um fortzufahren"
+                    <Label Text="{Binding Loc.WelcomeSubtitle}"
                            Style="{StaticResource PageSubtitle}" />
                 </VerticalStackLayout>
 
@@ -39,11 +39,11 @@
 
                     <!-- E-Mail -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="E-Mail-Adresse"
+                        <Label Text="{Binding Loc.EmailLabel}"
                                Style="{StaticResource FieldLabel}" />
                         <Entry x:Name="EmailEntry"
                                Text="{Binding Email}"
-                               Placeholder="max@beispiel.at"
+                               Placeholder="{Binding Loc.EmailPlaceholder}"
                                Keyboard="Email"
                                ReturnType="Next"
                                Completed="OnEmailCompleted" />
@@ -51,15 +51,15 @@
 
                     <!-- Passwort -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Passwort"
+                        <Label Text="{Binding Loc.PasswordLabel}"
                                Style="{StaticResource FieldLabel}" />
                         <Entry x:Name="PasswortEntry"
                                Text="{Binding Passwort}"
-                               Placeholder="Ihr Passwort"
+                               Placeholder="{Binding Loc.PasswordPlaceholder}"
                                IsPassword="True"
                                ReturnType="Go"
                                ReturnCommand="{Binding LoginCommand}" />
-                        <Button Text="Passwort vergessen?"
+                        <Button Text="{Binding Loc.ForgotPasswordLink}"
                                 Command="{Binding GoToForgotPasswordCommand}"
                                 Style="{StaticResource LinkButton}"
                                 FontSize="13"
@@ -69,17 +69,17 @@
                 </VerticalStackLayout>
 
                 <!-- Login Button -->
-                <Button Text="Anmelden"
+                <Button Text="{Binding Loc.LoginButton}"
                         Command="{Binding LoginCommand}"
                         Style="{StaticResource PrimaryButton}" />
 
                 <!-- Register Link -->
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
-                    <Label Text="Noch kein Konto?"
+                    <Label Text="{Binding Loc.NoAccountYet}"
                            FontSize="14"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
                            VerticalOptions="Center" />
-                    <Button Text="Registrieren"
+                    <Button Text="{Binding Loc.RegisterLink}"
                             Command="{Binding GoToRegisterCommand}"
                             Style="{StaticResource LinkButton}"
                             FontSize="14" />

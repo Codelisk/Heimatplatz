@@ -14,7 +14,9 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation.Wizard;
 /// </summary>
 public partial class PropertyWizardViewModel
 {
-    public List<PropertyTypeItem> PropertyTypes { get; } = PropertyTypeItem.GetAll();
+    // Befuellt im Konstruktor (PropertyWizardViewModel.cs) - die lokalisierten
+    // Anzeigenamen brauchen das injizierte Loc.
+    public List<PropertyTypeItem> PropertyTypes { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsHouseType))]
@@ -27,7 +29,9 @@ public partial class PropertyWizardViewModel
     #region Typ-Badge (auf dem Hero-Foto, wie in der Detailansicht)
 
     /// <summary>Badge-Text wie auf der Detailseite/Karte (HAUS/GRUND)</summary>
-    public string TypeBadgeText => SelectedPropertyTypeItem?.Value == PropertyType.Land ? "GRUND" : "HAUS";
+    public string TypeBadgeText => SelectedPropertyTypeItem?.Value == PropertyType.Land
+        ? Loc.TypeBadgeLand
+        : Loc.TypeBadgeHouse;
 
     /// <summary>Badge-Farbe 1:1 wie PropertyDetailViewModel (Haus Blau, Grund Gruen)</summary>
     public Color TypeBadgeColor => SelectedPropertyTypeItem?.Value == PropertyType.Land
@@ -39,7 +43,7 @@ public partial class PropertyWizardViewModel
     private async Task EditTypeAsync()
     {
         var names = PropertyTypes.Select(t => t.DisplayName).ToArray();
-        var choice = await Shell.Current.DisplayActionSheetAsync("Immobilientyp", "Abbrechen", null, names);
+        var choice = await Shell.Current.DisplayActionSheetAsync(Loc.PropertyTypePromptTitle, _common.Cancel, null, names);
         var picked = PropertyTypes.FirstOrDefault(t => t.DisplayName == choice);
         if (picked != null)
             SelectedPropertyTypeItem = picked;
@@ -130,43 +134,43 @@ public partial class PropertyWizardViewModel
     {
         if (string.IsNullOrWhiteSpace(Titel) || Titel.Trim().Length < 10)
         {
-            ErrorMessage = "Titel muss mindestens 10 Zeichen lang sein";
+            ErrorMessage = Loc.ValidationTitleTooShort;
             return false;
         }
 
         if (Titel.Trim().Length > 200)
         {
-            ErrorMessage = "Titel darf höchstens 200 Zeichen lang sein";
+            ErrorMessage = Loc.ValidationTitleTooLong;
             return false;
         }
 
-        if (!TryParseOptionalInt(Zimmer, "Zimmer", out var zimmer)
-            || !TryParseOptionalInt(Wohnflaeche, "Wohnfläche", out var wohnflaeche)
-            || !TryParseOptionalInt(Grundstuecksflaeche, "Grundstücksfläche", out var grund)
-            || !TryParseOptionalInt(Baujahr, "Baujahr", out var baujahr))
+        if (!TryParseOptionalInt(Zimmer, Loc.FieldRooms, out var zimmer)
+            || !TryParseOptionalInt(Wohnflaeche, Loc.FieldLivingArea, out var wohnflaeche)
+            || !TryParseOptionalInt(Grundstuecksflaeche, Loc.FieldPlotArea, out var grund)
+            || !TryParseOptionalInt(Baujahr, Loc.FieldYearBuilt, out var baujahr))
             return false;
 
         if (zimmer > 200)
         {
-            ErrorMessage = "Bitte geben Sie eine realistische Zimmeranzahl an (1–200)";
+            ErrorMessage = Loc.ValidationRoomsRange;
             return false;
         }
 
         if (wohnflaeche > 10_000)
         {
-            ErrorMessage = "Bitte geben Sie eine realistische Wohnfläche an (bis 10.000 m²)";
+            ErrorMessage = Loc.ValidationLivingAreaRange;
             return false;
         }
 
         if (grund > 1_000_000)
         {
-            ErrorMessage = "Bitte geben Sie eine realistische Grundstücksfläche an (bis 1.000.000 m²)";
+            ErrorMessage = Loc.ValidationPlotAreaRange;
             return false;
         }
 
         if (baujahr is { } jahr && (jahr < 1000 || jahr > DateTime.Now.Year))
         {
-            ErrorMessage = "Das Baujahr darf nicht in der Zukunft liegen";
+            ErrorMessage = Loc.ValidationYearBuiltFuture;
             return false;
         }
 
@@ -182,7 +186,7 @@ public partial class PropertyWizardViewModel
         // 0 ist kein sinnvoller Wert (der Server lehnt <= 0 ab) - Feld leer lassen heisst "keine Angabe"
         if (!int.TryParse(value, out var parsed) || parsed <= 0)
         {
-            ErrorMessage = $"Bitte geben Sie einen gültigen Wert für \"{fieldName}\" ein (größer als 0)";
+            ErrorMessage = Loc.ValidationInvalidNumberFormat(fieldName);
             return false;
         }
 

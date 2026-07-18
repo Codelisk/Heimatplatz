@@ -6,7 +6,7 @@
              x:Class="Heimatplatz.Maui.Presentation.PrivacyPolicyPage"
              x:DataType="presentation:PrivacyPolicyViewModel"
              Shell.FlyoutBehavior="Disabled"
-             Title="Datenschutz">
+             Title="{Binding Loc.PageTitle}">
     <Grid>
         <ActivityIndicator IsRunning="{Binding IsLoading}"
                            IsVisible="{Binding IsLoading}"

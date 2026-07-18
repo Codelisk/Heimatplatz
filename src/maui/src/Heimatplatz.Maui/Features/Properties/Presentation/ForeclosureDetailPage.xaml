@@ -7,7 +7,7 @@
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.ForeclosureDetailPage"
              x:DataType="vm:ForeclosureDetailViewModel"
              Shell.FlyoutBehavior="Disabled"
-             Title="Zwangsversteigerung">
+             Title="{Binding Loc.PageTitle}">
 
     <Grid RowDefinitions="*,Auto">
 
@@ -28,7 +28,7 @@
                 <Label Text="{Binding LoadErrorText}"
                        Style="{StaticResource EmptyStateHint}"
                        AutomationId="ForeclosureDetail_LoadErrorMessage" />
-                <Button Text="Erneut versuchen"
+                <Button Text="{Binding Loc.RetryButton}"
                         Style="{StaticResource SecondaryButton}"
                         Command="{Binding RetryLoadCommand}"
                         IsVisible="{Binding CanRetryLoad}"
@@ -81,7 +81,7 @@
                                                 Padding="0"
                                                 MinimumHeightRequest="0"
                                                 Command="{Binding OpenImageViewerCommand, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}"
-                                                SemanticProperties.Description="Bild in Großansicht öffnen" />
+                                                SemanticProperties.Description="{Binding Loc.OpenImageViewerSemantic, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}" />
                                     </Grid>
                                 </DataTemplate>
                             </CarouselView.ItemTemplate>
@@ -117,7 +117,7 @@
                                     Padding="0"
                                     MinimumHeightRequest="0"
                                     Command="{Binding OpenImageViewerCommand}"
-                                    SemanticProperties.Description="Bild in Großansicht öffnen"
+                                    SemanticProperties.Description="{Binding Loc.OpenImageViewerSemantic}"
                                     AutomationId="Foreclosure_OpenImageViewer" />
 
                             <!-- Pfeile als Geometrie statt Font-Glyph (siehe Schliessen-X) -->
@@ -209,7 +209,7 @@
                                 BorderWidth="1"
                                 BackgroundColor="{StaticResource GlassPillBackground}"
                                 BorderColor="{StaticResource GlassPillStroke}"
-                                SemanticProperties.Description="Zwangsversteigerung teilen" />
+                                SemanticProperties.Description="{Binding Loc.ShareSemantic}" />
                         <Image Source="icon_share_white.png"
                                WidthRequest="22"
                                HeightRequest="22"
@@ -337,13 +337,13 @@
                                 <VerticalStackLayout Grid.Column="1"
                                                      Spacing="1"
                                                      VerticalOptions="Center">
-                                    <Label Text="AMTLICHES DOKUMENT"
+                                    <Label Text="{Binding Loc.OfficialDocumentLabel}"
                                            Style="{StaticResource StatTileLabel}" />
-                                    <Label Text="Edikt öffnen"
+                                    <Label Text="{Binding Loc.OpenEdictTitle}"
                                            FontFamily="SansSemibold"
                                            FontSize="14"
                                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                    <Label Text="Alle Angaben im Original-Edikt ansehen"
+                                    <Label Text="{Binding Loc.OpenEdictSubtitle}"
                                            FontSize="11"
                                            LineBreakMode="TailTruncation"
                                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
@@ -362,7 +362,7 @@
                                         Padding="0"
                                         MinimumHeightRequest="0"
                                         Command="{Binding OpenEdictCommand}"
-                                        SemanticProperties.Description="Edikt öffnen" />
+                                        SemanticProperties.Description="{Binding Loc.OpenEdictTitle}" />
                             </Grid>
                         </Border>
 
@@ -372,7 +372,7 @@
                                              MaximumWidthRequest="800"
                                              HorizontalOptions="Fill"
                                              IsVisible="{Binding HasDescription}">
-                            <Label Text="BESCHREIBUNG"
+                            <Label Text="{Binding Loc.DescriptionHeader}"
                                    Style="{StaticResource SectionHeader}" />
                             <Label Text="{Binding Description}"
                                    FontSize="14"
@@ -386,25 +386,25 @@
                                              MaximumWidthRequest="800"
                                              HorizontalOptions="Fill"
                                              IsVisible="{Binding HasDocuments}">
-                            <Label Text="DOKUMENTE"
+                            <Label Text="{Binding Loc.DocumentsHeader}"
                                    Style="{StaticResource SectionHeader}" />
                             <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                                <Button Text="Grundriss"
+                                <Button Text="{Binding Loc.DocumentFloorPlan}"
                                         Command="{Binding OpenDocumentCommand}"
                                         CommandParameter="{Binding FloorPlanUrl}"
                                         IsVisible="{Binding HasFloorPlanUrl}"
                                         Style="{StaticResource DocumentChipButton}" />
-                                <Button Text="Lageplan"
+                                <Button Text="{Binding Loc.DocumentSitePlan}"
                                         Command="{Binding OpenDocumentCommand}"
                                         CommandParameter="{Binding SitePlanUrl}"
                                         IsVisible="{Binding HasSitePlanUrl}"
                                         Style="{StaticResource DocumentChipButton}" />
-                                <Button Text="Langgutachten"
+                                <Button Text="{Binding Loc.DocumentLongAppraisal}"
                                         Command="{Binding OpenDocumentCommand}"
                                         CommandParameter="{Binding LongAppraisalUrl}"
                                         IsVisible="{Binding HasLongAppraisalUrl}"
                                         Style="{StaticResource DocumentChipButton}" />
-                                <Button Text="Kurzgutachten"
+                                <Button Text="{Binding Loc.DocumentShortAppraisal}"
                                         Command="{Binding OpenDocumentCommand}"
                                         CommandParameter="{Binding ShortAppraisalUrl}"
                                         IsVisible="{Binding HasShortAppraisalUrl}"
@@ -473,7 +473,7 @@
                                  Padding="16,12"
                                  MaximumWidthRequest="800"
                                  HorizontalOptions="Fill">
-                <Label Text="ZUSTÄNDIGES GERICHT"
+                <Label Text="{Binding Loc.CourtFooterLabel}"
                        Style="{StaticResource StatTileLabel}" />
                 <Label Text="{Binding CourtName}"
                        FontFamily="SansSemibold"
@@ -592,7 +592,7 @@
                     BorderWidth="1"
                     BackgroundColor="{StaticResource GlassPillBackground}"
                     BorderColor="{StaticResource GlassPillStroke}"
-                    SemanticProperties.Description="Großansicht schließen"
+                    SemanticProperties.Description="{Binding Loc.CloseViewerSemantic}"
                     AutomationId="Foreclosure_Viewer_Close" />
             <!-- X als Geometrie statt Font-Glyph: Buttons zentrieren Text ueber
                  Baseline-Metriken, das Glyph sitzt dadurch nie exakt mittig -->

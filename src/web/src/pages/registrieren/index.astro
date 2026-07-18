@@ -3,11 +3,12 @@ import AuthShell from "@/components/auth/AuthShell.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
+import { t } from "@/i18n";
 ---
 
 <AuthShell
-  title="Konto erstellen"
-  description="Registrieren Sie sich für Immobilien-Angebote, Favoriten und Inserate in Oberösterreich."
+  title={t("auth.createAccount")}
+  description={t("auth.registerDescription")}
   mode="register"
 >
   {/* method="post" ohne action: verhindert, dass ohne JS Zugangsdaten als
@@ -15,56 +16,56 @@ import { Label } from "@/components/starwind/label";
   <form class="mt-10 space-y-5" method="post" data-auth-form="register" data-success-redirect-seller="/meine-immobilien/" data-success-redirect="/">
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
-        <Label for="firstName">Vorname</Label>
-        <Input id="firstName" name="firstName" placeholder="Max" autocomplete="given-name" required />
+        <Label for="firstName">{t("auth.firstNameLabel")}</Label>
+        <Input id="firstName" name="firstName" placeholder={t("auth.firstNamePlaceholder")} autocomplete="given-name" required />
       </div>
       <div class="space-y-2">
-        <Label for="lastName">Nachname</Label>
-        <Input id="lastName" name="lastName" placeholder="Mustermann" autocomplete="family-name" required />
+        <Label for="lastName">{t("auth.lastNameLabel")}</Label>
+        <Input id="lastName" name="lastName" placeholder={t("auth.lastNamePlaceholder")} autocomplete="family-name" required />
       </div>
     </div>
     <div class="space-y-2">
-      <Label for="email">E-Mail Adresse</Label>
-      <Input id="email" type="email" name="email" placeholder="max@beispiel.at" autocomplete="email" required />
+      <Label for="email">{t("auth.emailLabel")}</Label>
+      <Input id="email" type="email" name="email" placeholder={t("auth.emailPlaceholder")} autocomplete="email" required />
     </div>
     <div class="space-y-2">
-      <Label for="password">Passwort</Label>
-      <Input id="password" type="password" name="password" placeholder="Mindestens 8 Zeichen" autocomplete="new-password" minlength="8" required />
+      <Label for="password">{t("auth.passwordLabel")}</Label>
+      <Input id="password" type="password" name="password" placeholder={t("auth.passwordMinHint")} autocomplete="new-password" minlength="8" required />
     </div>
     <div class="space-y-2">
-      <Label for="passwordConfirm">Passwort bestätigen</Label>
-      <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder="Passwort erneut eingeben" autocomplete="new-password" minlength="8" required />
+      <Label for="passwordConfirm">{t("auth.passwordConfirmLabel")}</Label>
+      <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder={t("auth.passwordConfirmPlaceholder")} autocomplete="new-password" minlength="8" required />
     </div>
     {/* Suchen & Favorisieren kann jedes Konto - nur das Anbieten ist eine Zusatzoption */}
     <fieldset class="space-y-3">
       <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
         <input type="checkbox" name="wantsToSell" value="yes" />
-        <span><strong>Ich möchte auch Immobilien anbieten</strong><br /><span class="text-muted-foreground">Suchen und Favorisieren ist in jedem Konto enthalten</span></span>
+        <span><strong>{t("auth.wantsToSellTitle")}</strong><br /><span class="text-muted-foreground">{t("auth.wantsToSellHint")}</span></span>
       </label>
     </fieldset>
     <fieldset class="space-y-3" data-seller-fields hidden>
-      <legend class="text-sm font-semibold">Anbietertyp</legend>
+      <legend class="text-sm font-semibold">{t("auth.sellerTypeLegend")}</legend>
       <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
         <input type="radio" name="sellerType" value="Private" checked disabled />
-        <span><strong>Privatperson</strong><br /><span class="text-muted-foreground">Eigene Immobilie privat anbieten</span></span>
+        <span><strong>{t("auth.sellerTypePrivate")}</strong><br /><span class="text-muted-foreground">{t("auth.sellerTypePrivateHint")}</span></span>
       </label>
       <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
         <input type="radio" name="sellerType" value="Broker" disabled />
-        <span><strong>Makler</strong><br /><span class="text-muted-foreground">Inserate im Namen eines Unternehmens verwalten</span></span>
+        <span><strong>{t("auth.sellerTypeBroker")}</strong><br /><span class="text-muted-foreground">{t("auth.sellerTypeBrokerHint")}</span></span>
       </label>
       <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
         <input type="radio" name="sellerType" value="PropertyManager" disabled />
-        <span><strong>Hausverwaltung</strong><br /><span class="text-muted-foreground">Objekte im Auftrag von Eigentümern verwalten</span></span>
+        <span><strong>{t("auth.sellerTypeManager")}</strong><br /><span class="text-muted-foreground">{t("auth.sellerTypeManagerHint")}</span></span>
       </label>
       <div class="space-y-2" data-company-field hidden>
-        <Label for="companyName">Firmenname</Label>
-        <Input id="companyName" name="companyName" placeholder="Immobilienunternehmen" autocomplete="organization" disabled />
+        <Label for="companyName">{t("auth.companyNameLabel")}</Label>
+        <Input id="companyName" name="companyName" placeholder={t("auth.companyNamePlaceholder")} autocomplete="organization" disabled />
       </div>
     </fieldset>
     <p class="hidden text-sm" data-form-status></p>
-    <Button type="submit" class="w-full">Konto erstellen</Button>
+    <Button type="submit" class="w-full">{t("auth.createAccount")}</Button>
   </form>
   <p class="mt-8 text-center text-sm text-muted-foreground">
-    Bereits ein Konto? <a class="font-semibold text-foreground" href="/anmelden/">Anmelden</a>
+    {t("auth.haveAccountPrompt")} <a class="font-semibold text-foreground" href="/anmelden/">{t("auth.login")}</a>
   </p>
 </AuthShell>

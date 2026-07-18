@@ -54,6 +54,7 @@ public partial class PropertyWizardViewModel
     [NotifyPropertyChangedFor(nameof(IsGenerationRunning))]
     [NotifyPropertyChangedFor(nameof(IsGenerationFinished))]
     [NotifyPropertyChangedFor(nameof(CanRequestGeneration))]
+    [NotifyPropertyChangedFor(nameof(RequestGenerationButtonText))]
     public partial DraftDescriptionStatus GenerationStatus { get; set; }
 
     public bool IsGenerationRunning =>
@@ -62,6 +63,11 @@ public partial class PropertyWizardViewModel
     public bool IsGenerationFinished => GenerationStatus == DraftDescriptionStatus.Finished;
 
     public bool CanRequestGeneration => !IsGenerationRunning;
+
+    /// <summary>Button-Text: nach einer fertigen Generierung wird "neu erstellen" angeboten</summary>
+    public string RequestGenerationButtonText => IsGenerationFinished
+        ? Loc.RequestGenerationAgainButton
+        : Loc.RequestGenerationButton;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasGenerationFailed))]
@@ -100,15 +106,16 @@ public partial class PropertyWizardViewModel
     public bool DictationUnsupported => !_dictation.IsSupported;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MicButtonText))]
+    [NotifyPropertyChangedFor(nameof(IsMicIdle))]
     [NotifyPropertyChangedFor(nameof(MicHintText))]
     public partial bool IsListening { get; set; }
 
-    public string MicButtonText => IsListening ? "◼" : "🎤";
+    /// <summary>Steuert das Mikrofon-Icon (Gegenstueck zum Stopp-Quadrat bei Aufnahme)</summary>
+    public bool IsMicIdle => !IsListening;
 
     public string MicHintText => IsListening
-        ? "Aufnahme läuft – tippen zum Stoppen"
-        : "Stichwörter einsprechen";
+        ? Loc.MicHintListening
+        : Loc.MicHintIdle;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLivePartial))]
@@ -128,6 +135,10 @@ public partial class PropertyWizardViewModel
         _dictation.FinalResult += OnDictationFinal;
         _dictation.Failed += OnDictationFailed;
         _dictation.Stopped += OnDictationStopped;
+
+        // Der DictationService ist ein Singleton - beim (Wieder-)Erscheinen der Seite
+        // den echten Zustand uebernehmen, damit das Icon nie falsch startet
+        IsListening = _dictation.IsListening;
     }
 
     private void UnsubscribeDictation()
@@ -143,32 +154,37 @@ public partial class PropertyWizardViewModel
     {
         try
         {
-            if (IsListening)
+            if (IsListening || _dictation.IsListening)
             {
+                // Sofort optisch stoppen - das Stopped-Event bestaetigt nur noch
+                IsListening = false;
                 await _dictation.StopAsync();
                 return;
             }
 
             if (!_dictation.IsSupported)
             {
-                ErrorMessage = "Diktat ist auf diesem Gerät nicht verfügbar.";
+                ErrorMessage = Loc.DictationNotAvailable;
                 return;
             }
 
             if (!await _dictation.RequestPermissionAsync())
             {
-                ErrorMessage = "Mikrofon-Berechtigung wurde nicht erteilt.";
+                ErrorMessage = Loc.MicPermissionDenied;
                 return;
             }
 
             ErrorMessage = null;
             await _dictation.StartAsync();
-            IsListening = true;
+
+            // Zustand vom Service uebernehmen statt blind auf true zu setzen -
+            // ein fehlgeschlagener Start hat IsListening dort schon zurueckgesetzt
+            IsListening = _dictation.IsListening;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyWizard] Fehler beim Diktat");
-            ErrorMessage = $"Fehler beim Diktat: {ex.Message}";
+            ErrorMessage = Loc.DictationErrorFormat(ex.Message);
             IsListening = false;
         }
     }
@@ -213,7 +229,7 @@ public partial class PropertyWizardViewModel
 
         if (string.IsNullOrWhiteSpace(DescriptionKeywords) || DescriptionKeywords.Trim().Length < 3)
         {
-            ErrorMessage = "Bitte geben Sie ein paar Stichwörter zu Ihrer Immobilie ein.";
+            ErrorMessage = Loc.ValidationKeywordsMissing;
             return;
         }
 
@@ -221,7 +237,7 @@ public partial class PropertyWizardViewModel
             return;
 
         IsBusy = true;
-        BusyMessage = "Text wird beauftragt…";
+        BusyMessage = Loc.BusyRequestingGeneration;
 
         try
         {
@@ -231,7 +247,7 @@ public partial class PropertyWizardViewModel
             MarkDraftDirty();
             if (!await SaveDraftAsync() || _serverDraftId is not { } draftId)
             {
-                ErrorMessage = "Der Entwurf konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.";
+                ErrorMessage = Loc.DraftSaveError;
                 return;
             }
 
@@ -255,7 +271,7 @@ public partial class PropertyWizardViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyWizard] Beschreibungs-Job konnte nicht gestartet werden");
-            ErrorMessage = "Der Text konnte nicht beauftragt werden. Bitte versuchen Sie es erneut.";
+            ErrorMessage = Loc.GenerationRequestFailed;
         }
         finally
         {
@@ -328,8 +344,7 @@ public partial class PropertyWizardViewModel
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         GenerationStatus = DraftDescriptionStatus.Failed;
-                        GenerationFailedMessage =
-                            "Der Text konnte nicht erstellt werden. Versuchen Sie es erneut oder schreiben Sie die Beschreibung selbst.";
+                        GenerationFailedMessage = Loc.GenerationFailed;
                     });
                     return;
                 }
@@ -385,8 +400,7 @@ public partial class PropertyWizardViewModel
                 break;
 
             case DraftDescriptionStatus.Failed:
-                GenerationFailedMessage =
-                    "Der Text konnte nicht erstellt werden. Versuchen Sie es erneut oder schreiben Sie die Beschreibung selbst.";
+                GenerationFailedMessage = Loc.GenerationFailed;
                 break;
         }
     }

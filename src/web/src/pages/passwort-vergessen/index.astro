@@ -3,23 +3,24 @@ import AuthShell from "@/components/auth/AuthShell.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
+import { t } from "@/i18n";
 ---
 
 <AuthShell
-  title="Passwort vergessen?"
-  description="Geben Sie Ihre E-Mail-Adresse ein. Wenn ein Konto existiert, senden wir Ihnen einen Link zum Zurücksetzen des Passworts."
+  title={t("auth.forgotPassword")}
+  description={t("auth.forgotDescription")}
   canonicalPath="/passwort-vergessen/"
 >
   {/* method="post" ohne action: ohne JS sollen keine Daten als GET-Query in der URL landen */}
   <form class="mt-10 space-y-5" method="post" data-forgot-password-form>
     <div class="space-y-2">
-      <Label for="email">E-Mail Adresse</Label>
-      <Input id="email" type="email" name="email" placeholder="max@beispiel.at" autocomplete="email" required />
+      <Label for="email">{t("auth.emailLabel")}</Label>
+      <Input id="email" type="email" name="email" placeholder={t("auth.emailPlaceholder")} autocomplete="email" required />
     </div>
     <p class="hidden text-sm" data-form-status></p>
-    <Button type="submit" class="w-full">Link zum Zurücksetzen anfordern</Button>
+    <Button type="submit" class="w-full">{t("auth.forgotSubmit")}</Button>
   </form>
   <p class="mt-8 text-center text-sm text-muted-foreground">
-    Zurück zur <a class="font-semibold text-foreground" href="/anmelden/">Anmeldung</a>
+    {t("auth.backToLoginPrefix")} <a class="font-semibold text-foreground" href="/anmelden/">{t("auth.backToLoginLink")}</a>
   </p>
 </AuthShell>

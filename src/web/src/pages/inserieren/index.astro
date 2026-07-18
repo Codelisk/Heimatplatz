@@ -3,24 +3,25 @@ import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import AuthGate from "@/components/app/AuthGate.astro";
 import PropertyWysiwygForm from "@/components/properties/PropertyWysiwygForm.astro";
+import { t } from "@/i18n";
 ---
 
 <BaseLayout
-  title="Immobilie in Oberösterreich inserieren"
-  description="Immobilie in Oberösterreich inserieren: Haus, Grundstück oder Zwangsversteigerung mit Fotos, Adresse, Preis und Kontaktdaten vorbereiten."
+  title={t("editor.createMetaTitle")}
+  description={t("editor.createMetaDescription")}
   canonicalPath="/inserieren/"
 >
   <article class="bg-background pb-16">
     <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-      <h1 class="sr-only">Immobilie inserieren</h1>
+      <h1 class="sr-only">{t("editor.createHeading")}</h1>
       <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon class="size-4" aria-hidden="true" />
-        Zurück
+        {t("common.back")}
       </a>
     </header>
     <AuthGate
-      title="Anmelden zum Inserieren"
-      description="Melden Sie sich an, um Ihre Immobilie in Oberösterreich zu inserieren – kostenlos als Privatperson, Makler oder Hausverwaltung."
+      title={t("editor.createAuthTitle")}
+      description={t("editor.createAuthDescription")}
     >
       <PropertyWysiwygForm />
     </AuthGate>

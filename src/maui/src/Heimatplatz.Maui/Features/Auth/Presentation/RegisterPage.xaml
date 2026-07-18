@@ -5,7 +5,7 @@
              x:Class="Heimatplatz.Maui.Features.Auth.Presentation.RegisterPage"
              x:DataType="vm:RegisterViewModel"
              Shell.FlyoutBehavior="Disabled"
-             Title="Registrieren">
+             Title="{Binding Loc.PageTitle}">
 
     <ContentPage.Resources>
         <!-- Native RadioButtons rendern View-Content auf Windows/Android nur als
@@ -74,9 +74,9 @@
 
                 <!-- Title Section -->
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="Konto erstellen"
+                    <Label Text="{Binding Loc.HeaderTitle}"
                            Style="{StaticResource PageTitle}" />
-                    <Label Text="Registrieren Sie sich für exklusive Angebote"
+                    <Label Text="{Binding Loc.HeaderSubtitle}"
                            Style="{StaticResource PageSubtitle}" />
                 </VerticalStackLayout>
 
@@ -95,22 +95,22 @@
 
                         <!-- Vorname -->
                         <VerticalStackLayout Grid.Column="0" Spacing="6">
-                            <Label Text="Vorname"
+                            <Label Text="{Binding Loc.FirstNameLabel}"
                                    Style="{StaticResource FieldLabel}" />
                             <Entry x:Name="VornameEntry"
                                    Text="{Binding Vorname}"
-                                   Placeholder="Max"
+                                   Placeholder="{Binding Loc.FirstNamePlaceholder}"
                                    ReturnType="Next"
                                    Completed="OnVornameCompleted" />
                         </VerticalStackLayout>
 
                         <!-- Nachname -->
                         <VerticalStackLayout Grid.Column="1" Spacing="6">
-                            <Label Text="Nachname"
+                            <Label Text="{Binding Loc.LastNameLabel}"
                                    Style="{StaticResource FieldLabel}" />
                             <Entry x:Name="NachnameEntry"
                                    Text="{Binding Nachname}"
-                                   Placeholder="Mustermann"
+                                   Placeholder="{Binding Loc.LastNamePlaceholder}"
                                    ReturnType="Next"
                                    Completed="OnNachnameCompleted" />
                         </VerticalStackLayout>
@@ -118,11 +118,11 @@
 
                     <!-- E-Mail -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="E-Mail-Adresse"
+                        <Label Text="{Binding Loc.EmailLabel}"
                                Style="{StaticResource FieldLabel}" />
                         <Entry x:Name="EmailEntry"
                                Text="{Binding Email}"
-                               Placeholder="max@beispiel.at"
+                               Placeholder="{Binding Loc.EmailPlaceholder}"
                                Keyboard="Email"
                                ReturnType="Next"
                                Completed="OnEmailCompleted" />
@@ -130,11 +130,11 @@
 
                     <!-- Passwort -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Passwort"
+                        <Label Text="{Binding Loc.PasswordLabel}"
                                Style="{StaticResource FieldLabel}" />
                         <Entry x:Name="PasswortEntry"
                                Text="{Binding Passwort}"
-                               Placeholder="Mindestens 8 Zeichen"
+                               Placeholder="{Binding Loc.PasswordPlaceholder}"
                                IsPassword="True"
                                ReturnType="Next"
                                Completed="OnPasswortCompleted" />
@@ -142,11 +142,11 @@
 
                     <!-- Passwort bestaetigen -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Passwort bestätigen"
+                        <Label Text="{Binding Loc.PasswordConfirmLabel}"
                                Style="{StaticResource FieldLabel}" />
                         <Entry x:Name="PasswortBestaetigungEntry"
                                Text="{Binding PasswortBestaetigung}"
-                               Placeholder="Passwort wiederholen"
+                               Placeholder="{Binding Loc.PasswordConfirmPlaceholder}"
                                IsPassword="True"
                                ReturnType="Done"
                                ReturnCommand="{Binding RegisterCommand}" />
@@ -157,9 +157,9 @@
 
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                                <Label Text="Ich möchte auch Immobilien anbieten"
+                                <Label Text="{Binding Loc.WantsToSellLabel}"
                                        Style="{StaticResource BodyStrong}" />
-                                <Label Text="Suchen und Favorisieren kann jedes Konto"
+                                <Label Text="{Binding Loc.WantsToSellHint}"
                                        Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                             <Switch Grid.Column="1"
@@ -171,19 +171,19 @@
                         <VerticalStackLayout Spacing="10"
                                              Margin="0,6,0,0"
                                              IsVisible="{Binding WantsToSell}">
-                            <Label Text="Ich biete an als:"
+                            <Label Text="{Binding Loc.OfferAsLabel}"
                                    Style="{StaticResource FieldLabel}" />
 
                             <!-- Privatperson -->
                             <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
                                          GroupName="SellerType"
                                          ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
-                                         SemanticProperties.Description="Privatperson – Eigene Immobilie verkaufen">
+                                         SemanticProperties.Description="{Binding Loc.SellerTypePrivateSemantic}">
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
-                                        <Label Text="Privatperson"
+                                        <Label Text="{Binding Loc.SellerTypePrivate}"
                                                Style="{StaticResource BodyStrong}" />
-                                        <Label Text="Eigene Immobilie verkaufen"
+                                        <Label Text="{Binding Loc.SellerTypePrivateHint}"
                                                Style="{StaticResource Caption}" />
                                     </VerticalStackLayout>
                                 </RadioButton.Content>
@@ -193,12 +193,12 @@
                             <RadioButton IsChecked="{Binding IsBrokerSeller, Mode=TwoWay}"
                                          GroupName="SellerType"
                                          ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
-                                         SemanticProperties.Description="Makler / Agentur – Als Immobilienmakler tätig">
+                                         SemanticProperties.Description="{Binding Loc.SellerTypeBrokerSemantic}">
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
-                                        <Label Text="Makler / Agentur"
+                                        <Label Text="{Binding Loc.SellerTypeBroker}"
                                                Style="{StaticResource BodyStrong}" />
-                                        <Label Text="Als Immobilienmakler tätig"
+                                        <Label Text="{Binding Loc.SellerTypeBrokerHint}"
                                                Style="{StaticResource Caption}" />
                                     </VerticalStackLayout>
                                 </RadioButton.Content>
@@ -208,12 +208,12 @@
                             <RadioButton IsChecked="{Binding IsPropertyManagerSeller, Mode=TwoWay}"
                                          GroupName="SellerType"
                                          ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
-                                         SemanticProperties.Description="Hausverwaltung – Objekte im Auftrag von Eigentümern verwalten">
+                                         SemanticProperties.Description="{Binding Loc.SellerTypePropertyManagerSemantic}">
                                 <RadioButton.Content>
                                     <VerticalStackLayout Spacing="2">
-                                        <Label Text="Hausverwaltung"
+                                        <Label Text="{Binding Loc.SellerTypePropertyManager}"
                                                Style="{StaticResource BodyStrong}" />
-                                        <Label Text="Objekte im Auftrag von Eigentümern verwalten"
+                                        <Label Text="{Binding Loc.SellerTypePropertyManagerHint}"
                                                Style="{StaticResource Caption}" />
                                     </VerticalStackLayout>
                                 </RadioButton.Content>
@@ -223,10 +223,10 @@
                             <VerticalStackLayout Spacing="6"
                                                  Margin="0,6,0,0"
                                                  IsVisible="{Binding NeedsCompanyName}">
-                                <Label Text="Firmenname"
+                                <Label Text="{Binding Loc.CompanyNameLabel}"
                                        Style="{StaticResource FieldLabel}" />
                                 <Entry Text="{Binding CompanyName}"
-                                       Placeholder="z.B. RE/MAX Premium" />
+                                       Placeholder="{Binding Loc.CompanyNamePlaceholder}" />
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
@@ -234,17 +234,17 @@
                 </VerticalStackLayout>
 
                 <!-- Register Button -->
-                <Button Text="Konto erstellen"
+                <Button Text="{Binding Loc.RegisterButton}"
                         Command="{Binding RegisterCommand}"
                         Style="{StaticResource PrimaryButton}" />
 
                 <!-- Login Link -->
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
-                    <Label Text="Bereits ein Konto?"
+                    <Label Text="{Binding Loc.AlreadyHaveAccount}"
                            FontSize="14"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
                            VerticalOptions="Center" />
-                    <Button Text="Anmelden"
+                    <Button Text="{Binding Loc.LoginLink}"
                             Command="{Binding GoToLoginCommand}"
                             Style="{StaticResource LinkButton}"
                             FontSize="14" />

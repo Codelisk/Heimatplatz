@@ -3,31 +3,32 @@ import AuthShell from "@/components/auth/AuthShell.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
+import { t } from "@/i18n";
 ---
 
 <AuthShell
-  title="Willkommen zurück"
-  description="Melden Sie sich an, um gespeicherte Immobilien, Favoriten und Inserate zu verwalten."
+  title={t("auth.loginTitle")}
+  description={t("auth.loginDescription")}
   mode="login"
 >
   {/* method="post" ohne action: verhindert, dass ohne JS Zugangsdaten als
       GET-Query in URL/History/Server-Logs landen. Der Submit läuft über JS. */}
   <form class="mt-10 space-y-5" method="post" data-auth-form="login" data-success-redirect="/favoriten/">
     <div class="space-y-2">
-      <Label for="email">E-Mail Adresse</Label>
-      <Input id="email" type="email" name="email" placeholder="max@beispiel.at" autocomplete="email" required />
+      <Label for="email">{t("auth.emailLabel")}</Label>
+      <Input id="email" type="email" name="email" placeholder={t("auth.emailPlaceholder")} autocomplete="email" required />
     </div>
     <div class="space-y-2">
       <div class="flex items-center justify-between">
-        <Label for="password">Passwort</Label>
-        <a href="/passwort-vergessen/" class="text-xs text-muted-foreground transition-colors hover:text-foreground">Passwort vergessen?</a>
+        <Label for="password">{t("auth.passwordLabel")}</Label>
+        <a href="/passwort-vergessen/" class="text-xs text-muted-foreground transition-colors hover:text-foreground">{t("auth.forgotPassword")}</a>
       </div>
-      <Input id="password" type="password" name="password" placeholder="Ihr Passwort" autocomplete="current-password" required />
+      <Input id="password" type="password" name="password" placeholder={t("auth.passwordPlaceholder")} autocomplete="current-password" required />
     </div>
     <p class="hidden text-sm" data-form-status></p>
-    <Button type="submit" class="w-full">Anmelden</Button>
+    <Button type="submit" class="w-full">{t("auth.login")}</Button>
   </form>
   <p class="mt-8 text-center text-sm text-muted-foreground">
-    Noch kein Konto? <a class="font-semibold text-foreground" href="/registrieren/">Registrieren</a>
+    {t("auth.noAccountPrompt")} <a class="font-semibold text-foreground" href="/registrieren/">{t("auth.registerLink")}</a>
   </p>
 </AuthShell>

@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
 import HomeIcon from "@tabler/icons/outline/home.svg";
+import { t } from "@/i18n";
 
 interface Props {
   title: string;
@@ -24,18 +25,18 @@ const {
 
 const emptyDefaults = {
   favorites: {
-    title: "Noch keine Favoriten",
-    text: "Markieren Sie Immobilien als Favoriten, um sie hier zu sehen.",
+    title: t("favorites.emptyTitle"),
+    text: t("favorites.emptyText"),
     Icon: HeartIcon,
   },
   blocked: {
-    title: "Keine blockierten Immobilien",
-    text: "Blockierte Immobilien werden hier angezeigt und in der Suche ausgeblendet.",
+    title: t("blocked.emptyTitle"),
+    text: t("blocked.emptyText"),
     Icon: EyeOffIcon,
   },
   mine: {
-    title: "Noch keine eigenen Inserate",
-    text: "Inserieren Sie Ihre erste Immobilie über das Menü.",
+    title: t("myProperties.emptyTitle"),
+    text: t("myProperties.emptyText"),
     Icon: HomeIcon,
   },
 } as const;
@@ -48,10 +49,10 @@ const editedDraft = isMine && Astro.url.searchParams.has("bearbeitet");
 // "=api" heisst: direkt am Server gespeichert (live), sonst lokaler Entwurf
 const savedViaApi = Astro.url.searchParams.get("gespeichert") === "api";
 const statusMessage = editedDraft
-  ? "Änderungen gespeichert."
+  ? t("myProperties.statusEdited")
   : savedViaApi
-    ? "Inserat veröffentlicht."
-    : "Entwurf gespeichert.";
+    ? t("myProperties.statusPublished")
+    : t("myProperties.statusDraftSaved");
 ---
 
 <BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex>

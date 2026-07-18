@@ -1,10 +1,11 @@
 ---
 import UserListPage from "@/components/app/UserListPage.astro";
+import { t } from "@/i18n";
 ---
 
 <UserListPage
-  title="Blockierte Immobilien"
-  description="Ausgeblendete Immobilien aus Oberösterreich."
+  title={t("blocked.metaTitle")}
+  description={t("blocked.metaDescription")}
   canonicalPath="/blockiert/"
   mode="blocked"
 />

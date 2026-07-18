@@ -43,6 +43,9 @@
     <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0014" />
     <PackageVersion Include="CommunityToolkit.Maui" Version="14.2.0" />
     <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.11.26317.2" />
+    <!-- Localization (rein deutsch, Strings aus .resx via Shiny-Generator) -->
+    <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Shiny.Extensions.Localization.Generator" Version="2.0.1" />
 
     <!-- Logging -->
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />

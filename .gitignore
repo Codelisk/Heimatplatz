@@ -3,6 +3,8 @@
 # Quellcode-Feature, kein Build-Ausgabeordner
 !src/maui/src/Heimatplatz.Maui/Features/Debug/
 !src/maui/src/Heimatplatz.Maui/Features/Debug/**
+!src/maui/src/Heimatplatz.Maui.Localization/Debug/
+!src/maui/src/Heimatplatz.Maui.Localization/Debug/**
 !src/web/src/pages/debug/
 !src/web/src/pages/debug/**
 [Rr]elease/

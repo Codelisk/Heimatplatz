@@ -47,5 +47,6 @@
   <Folder Name="/src/maui/src/">
     <Project Path="src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj" />
     <Project Path="src/maui/src/Heimatplatz.Maui.ApiClient/Heimatplatz.Maui.ApiClient.csproj" />
+    <Project Path="src/maui/src/Heimatplatz.Maui.Localization/Heimatplatz.Maui.Localization.csproj" />
   </Folder>
 </Solution>

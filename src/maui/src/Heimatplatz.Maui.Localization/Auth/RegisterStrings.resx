@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Registrieren</value>
+  </data>
+  <data name="HeaderTitle" xml:space="preserve">
+    <value>Konto erstellen</value>
+  </data>
+  <data name="HeaderSubtitle" xml:space="preserve">
+    <value>Registrieren Sie sich für exklusive Angebote</value>
+  </data>
+  <data name="FirstNameLabel" xml:space="preserve">
+    <value>Vorname</value>
+  </data>
+  <data name="FirstNamePlaceholder" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="LastNameLabel" xml:space="preserve">
+    <value>Nachname</value>
+  </data>
+  <data name="LastNamePlaceholder" xml:space="preserve">
+    <value>Mustermann</value>
+  </data>
+  <data name="EmailLabel" xml:space="preserve">
+    <value>E-Mail-Adresse</value>
+  </data>
+  <data name="EmailPlaceholder" xml:space="preserve">
+    <value>max@beispiel.at</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="PasswordPlaceholder" xml:space="preserve">
+    <value>Mindestens 8 Zeichen</value>
+  </data>
+  <data name="PasswordConfirmLabel" xml:space="preserve">
+    <value>Passwort bestätigen</value>
+  </data>
+  <data name="PasswordConfirmPlaceholder" xml:space="preserve">
+    <value>Passwort wiederholen</value>
+  </data>
+  <data name="WantsToSellLabel" xml:space="preserve">
+    <value>Ich möchte auch Immobilien anbieten</value>
+  </data>
+  <data name="WantsToSellHint" xml:space="preserve">
+    <value>Suchen und Favorisieren kann jedes Konto</value>
+  </data>
+  <data name="OfferAsLabel" xml:space="preserve">
+    <value>Ich biete an als:</value>
+  </data>
+  <data name="SellerTypePrivate" xml:space="preserve">
+    <value>Privatperson</value>
+  </data>
+  <data name="SellerTypePrivateHint" xml:space="preserve">
+    <value>Eigene Immobilie verkaufen</value>
+  </data>
+  <data name="SellerTypeBroker" xml:space="preserve">
+    <value>Makler / Agentur</value>
+  </data>
+  <data name="SellerTypeBrokerHint" xml:space="preserve">
+    <value>Als Immobilienmakler tätig</value>
+  </data>
+  <data name="SellerTypePropertyManager" xml:space="preserve">
+    <value>Hausverwaltung</value>
+  </data>
+  <data name="SellerTypePropertyManagerHint" xml:space="preserve">
+    <value>Objekte im Auftrag von Eigentümern verwalten</value>
+  </data>
+  <data name="CompanyNameLabel" xml:space="preserve">
+    <value>Firmenname</value>
+  </data>
+  <data name="CompanyNamePlaceholder" xml:space="preserve">
+    <value>z.B. RE/MAX Premium</value>
+  </data>
+  <data name="RegisterButton" xml:space="preserve">
+    <value>Konto erstellen</value>
+  </data>
+  <data name="AlreadyHaveAccount" xml:space="preserve">
+    <value>Bereits ein Konto?</value>
+  </data>
+  <data name="LoginLink" xml:space="preserve">
+    <value>Anmelden</value>
+  </data>
+  <data name="BusyRegistering" xml:space="preserve">
+    <value>Registrierung wird durchgeführt...</value>
+  </data>
+  <data name="ValidationFirstNameRequired" xml:space="preserve">
+    <value>Bitte geben Sie Ihren Vornamen ein.</value>
+  </data>
+  <data name="ValidationLastNameRequired" xml:space="preserve">
+    <value>Bitte geben Sie Ihren Nachnamen ein.</value>
+  </data>
+  <data name="ValidationEmailRequired" xml:space="preserve">
+    <value>Bitte geben Sie Ihre E-Mail-Adresse ein.</value>
+  </data>
+  <data name="ValidationPasswordRequired" xml:space="preserve">
+    <value>Bitte geben Sie ein Passwort ein.</value>
+  </data>
+  <data name="ValidationPasswordTooShort" xml:space="preserve">
+    <value>Das Passwort muss mindestens 8 Zeichen lang sein.</value>
+  </data>
+  <data name="ValidationPasswordMismatch" xml:space="preserve">
+    <value>Die Passwörter stimmen nicht überein.</value>
+  </data>
+  <data name="ValidationSellerTypeRequired" xml:space="preserve">
+    <value>Bitte wählen Sie einen Anbietertyp (Privat, Makler oder Verwaltung).</value>
+  </data>
+  <data name="ValidationCompanyNameRequired" xml:space="preserve">
+    <value>Bitte geben Sie Ihren Firmennamen ein.</value>
+  </data>
+  <data name="ErrorEmailAlreadyRegistered" xml:space="preserve">
+    <value>Diese E-Mail-Adresse ist bereits registriert.</value>
+  </data>
+  <data name="ErrorCheckInput" xml:space="preserve">
+    <value>Bitte überprüfen Sie Ihre Eingaben.</value>
+  </data>
+  <data name="ErrorTooManyAttempts" xml:space="preserve">
+    <value>Zu viele Versuche. Bitte warten Sie einen Moment.</value>
+  </data>
+  <data name="ErrorServerUnavailable" xml:space="preserve">
+    <value>Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="ErrorNoConnection" xml:space="preserve">
+    <value>Keine Internetverbindung. Bitte prüfen Sie Ihre Netzwerkverbindung.</value>
+  </data>
+  <data name="ErrorSslFailed" xml:space="preserve">
+    <value>Sichere Verbindung fehlgeschlagen. Bitte prüfen Sie Ihre Netzwerkeinstellungen.</value>
+  </data>
+  <data name="ErrorRegistrationFailed" xml:space="preserve">
+    <value>Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="SellerTypePrivateSemantic" xml:space="preserve">
+    <value>Privatperson – Eigene Immobilie verkaufen</value>
+  </data>
+  <data name="SellerTypeBrokerSemantic" xml:space="preserve">
+    <value>Makler / Agentur – Als Immobilienmakler tätig</value>
+  </data>
+  <data name="SellerTypePropertyManagerSemantic" xml:space="preserve">
+    <value>Hausverwaltung – Objekte im Auftrag von Eigentümern verwalten</value>
+  </data>
+</root>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Benachrichtigungen</value>
+  </data>
+  <data name="LoggedOutTitle" xml:space="preserve">
+    <value>Nicht angemeldet</value>
+  </data>
+  <data name="LoggedOutHint" xml:space="preserve">
+    <value>Melden Sie sich an, um Benachrichtigungen zu konfigurieren.</value>
+  </data>
+  <data name="LoginButton" xml:space="preserve">
+    <value>Anmelden</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Konfigurieren Sie, wann Sie über neue Immobilien benachrichtigt werden möchten.</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Speichern...</value>
+  </data>
+  <data name="EnableTitle" xml:space="preserve">
+    <value>Benachrichtigungen</value>
+  </data>
+  <data name="EnableCaption" xml:space="preserve">
+    <value>Push-Benachrichtigungen für neue Immobilien</value>
+  </data>
+  <data name="FilterModeTitle" xml:space="preserve">
+    <value>Filtermodus</value>
+  </data>
+  <data name="FilterModeCaption" xml:space="preserve">
+    <value>Wählen Sie, für welche Immobilien Sie benachrichtigt werden möchten.</value>
+  </data>
+  <data name="FilterModeAllTitle" xml:space="preserve">
+    <value>Alle Immobilien</value>
+  </data>
+  <data name="FilterModeAllCaption" xml:space="preserve">
+    <value>Benachrichtigung bei jeder neuen Immobilie</value>
+  </data>
+  <data name="FilterModeSameAsSearchTitle" xml:space="preserve">
+    <value>Wie Suchfilter</value>
+  </data>
+  <data name="FilterModeSameAsSearchCaption" xml:space="preserve">
+    <value>Verwendet automatisch Ihre aktuellen Suchfilter-Einstellungen</value>
+  </data>
+  <data name="FilterModeCustomTitle" xml:space="preserve">
+    <value>Benutzerdefiniert</value>
+  </data>
+  <data name="FilterModeCustomCaption" xml:space="preserve">
+    <value>Eigene Filterkriterien für Benachrichtigungen festlegen</value>
+  </data>
+  <data name="PropertyTypeTitle" xml:space="preserve">
+    <value>Immobilientyp</value>
+  </data>
+  <data name="PropertyTypeCaption" xml:space="preserve">
+    <value>Wählen Sie die Immobilientypen, für die Sie benachrichtigt werden möchten.</value>
+  </data>
+  <data name="PropertyTypeHaus" xml:space="preserve">
+    <value>Haus</value>
+  </data>
+  <data name="PropertyTypeGrundstueck" xml:space="preserve">
+    <value>Grundstück</value>
+  </data>
+  <data name="PropertyTypeZwangsversteigerung" xml:space="preserve">
+    <value>Zwangsversteigerung</value>
+  </data>
+  <data name="SellerTypeTitle" xml:space="preserve">
+    <value>Anbietertyp</value>
+  </data>
+  <data name="SellerTypeCaption" xml:space="preserve">
+    <value>Wählen Sie die Anbietertypen, für die Sie benachrichtigt werden möchten.</value>
+  </data>
+  <data name="SellerTypePrivate" xml:space="preserve">
+    <value>Privat</value>
+  </data>
+  <data name="SellerTypeBroker" xml:space="preserve">
+    <value>Makler &amp; Verwaltung</value>
+  </data>
+  <data name="LocationTitle" xml:space="preserve">
+    <value>Orte</value>
+  </data>
+  <data name="LocationCaption" xml:space="preserve">
+    <value>Wählen Sie die Orte aus, für die Sie Benachrichtigungen erhalten möchten. Leer = alle Orte.</value>
+  </data>
+  <data name="LocationSearchPlaceholder" xml:space="preserve">
+    <value>Ort oder PLZ suchen...</value>
+  </data>
+  <data name="InfoText" xml:space="preserve">
+    <value>Ihre Einstellungen werden automatisch gespeichert. Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie Ihren Filtereinstellungen entspricht.</value>
+  </data>
+</root>

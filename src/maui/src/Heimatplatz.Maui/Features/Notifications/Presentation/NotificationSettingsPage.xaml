@@ -6,7 +6,7 @@
     xmlns:presentation="clr-namespace:Heimatplatz.Maui.Features.Notifications.Presentation"
     xmlns:locations="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
     x:DataType="presentation:NotificationSettingsViewModel"
-    Title="Benachrichtigungen">
+    Title="{Binding Loc.PageTitle}">
 
     <ScrollView>
         <VerticalStackLayout
@@ -23,10 +23,10 @@
                 <Label Text="🔒"
                        Style="{StaticResource EmptyStateIcon}"
                        Opacity="0.5" />
-                <Label Text="Nicht angemeldet" Style="{StaticResource EmptyStateTitle}" />
-                <Label Text="Melden Sie sich an, um Benachrichtigungen zu konfigurieren."
+                <Label Text="{Binding Loc.LoggedOutTitle}" Style="{StaticResource EmptyStateTitle}" />
+                <Label Text="{Binding Loc.LoggedOutHint}"
                        Style="{StaticResource EmptyStateHint}" />
-                <Button Text="Anmelden"
+                <Button Text="{Binding Loc.LoginButton}"
                         Style="{StaticResource PrimaryButton}"
                         Command="{Binding GoToLoginCommand}"
                         HorizontalOptions="Center"
@@ -37,7 +37,7 @@
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsLoggedIn}">
                 <Label
                     Grid.Column="0"
-                    Text="Konfigurieren Sie, wann Sie über neue Immobilien benachrichtigt werden möchten."
+                    Text="{Binding Loc.Description}"
                     Style="{StaticResource PageSubtitle}"
                     LineBreakMode="WordWrap"
                     AutomationId="NotificationSettings_Description" />
@@ -53,7 +53,7 @@
                         WidthRequest="16"
                         HeightRequest="16" />
                     <Label
-                        Text="Speichern..."
+                        Text="{Binding Loc.Saving}"
                         Style="{StaticResource Caption}"
                         VerticalOptions="Center" />
                 </HorizontalStackLayout>
@@ -65,7 +65,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <Label
                             Grid.Column="0"
-                            Text="Benachrichtigungen"
+                            Text="{Binding Loc.EnableTitle}"
                             Style="{StaticResource BodyStrong}"
                             VerticalOptions="Center" />
                         <Switch
@@ -75,7 +75,7 @@
                             AutomationId="NotificationSettings_EnableToggle" />
                     </Grid>
                     <Label
-                        Text="Push-Benachrichtigungen für neue Immobilien"
+                        Text="{Binding Loc.EnableCaption}"
                         Style="{StaticResource Caption}" />
                 </VerticalStackLayout>
             </Border>
@@ -88,10 +88,10 @@
                     <VerticalStackLayout Spacing="16" RadioButtonGroup.GroupName="FilterMode">
                         <VerticalStackLayout Spacing="4">
                             <Label
-                                Text="Filtermodus"
+                                Text="{Binding Loc.FilterModeTitle}"
                                 Style="{StaticResource CardTitle}" />
                             <Label
-                                Text="Wählen Sie, für welche Immobilien Sie benachrichtigt werden möchten."
+                                Text="{Binding Loc.FilterModeCaption}"
                                 Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
 
@@ -106,10 +106,10 @@
                                 AutomationId="NotificationSettings_FilterMode_All" />
                             <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                 <Label
-                                    Text="Alle Immobilien"
+                                    Text="{Binding Loc.FilterModeAllTitle}"
                                     Style="{StaticResource BodyStrong}" />
                                 <Label
-                                    Text="Benachrichtigung bei jeder neuen Immobilie"
+                                    Text="{Binding Loc.FilterModeAllCaption}"
                                     Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                         </Grid>
@@ -123,10 +123,10 @@
                                 AutomationId="NotificationSettings_FilterMode_SameAsSearch" />
                             <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                 <Label
-                                    Text="Wie Suchfilter"
+                                    Text="{Binding Loc.FilterModeSameAsSearchTitle}"
                                     Style="{StaticResource BodyStrong}" />
                                 <Label
-                                    Text="Verwendet automatisch Ihre aktuellen Suchfilter-Einstellungen"
+                                    Text="{Binding Loc.FilterModeSameAsSearchCaption}"
                                     Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                         </Grid>
@@ -140,10 +140,10 @@
                                 AutomationId="NotificationSettings_FilterMode_Custom" />
                             <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                 <Label
-                                    Text="Benutzerdefiniert"
+                                    Text="{Binding Loc.FilterModeCustomTitle}"
                                     Style="{StaticResource BodyStrong}" />
                                 <Label
-                                    Text="Eigene Filterkriterien für Benachrichtigungen festlegen"
+                                    Text="{Binding Loc.FilterModeCustomCaption}"
                                     Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                         </Grid>
@@ -158,10 +158,10 @@
                         <VerticalStackLayout Spacing="16">
                             <VerticalStackLayout Spacing="4">
                                 <Label
-                                    Text="Immobilientyp"
+                                    Text="{Binding Loc.PropertyTypeTitle}"
                                     Style="{StaticResource CardTitle}" />
                                 <Label
-                                    Text="Wählen Sie die Immobilientypen, für die Sie benachrichtigt werden möchten."
+                                    Text="{Binding Loc.PropertyTypeCaption}"
                                     Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
 
@@ -171,21 +171,21 @@
                                         IsChecked="{Binding IsHausSelected, Mode=TwoWay}"
                                         VerticalOptions="Center"
                                         AutomationId="NotificationSettings_Chip_Haus" />
-                                    <Label Text="Haus" VerticalOptions="Center" />
+                                    <Label Text="{Binding Loc.PropertyTypeHaus}" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout Spacing="8">
                                     <CheckBox
                                         IsChecked="{Binding IsGrundstueckSelected, Mode=TwoWay}"
                                         VerticalOptions="Center"
                                         AutomationId="NotificationSettings_Chip_Grundstueck" />
-                                    <Label Text="Grundstück" VerticalOptions="Center" />
+                                    <Label Text="{Binding Loc.PropertyTypeGrundstueck}" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout Spacing="8">
                                     <CheckBox
                                         IsChecked="{Binding IsZwangsversteigerungSelected, Mode=TwoWay}"
                                         VerticalOptions="Center"
                                         AutomationId="NotificationSettings_Chip_Zwangsversteigerung" />
-                                    <Label Text="Zwangsversteigerung" VerticalOptions="Center" />
+                                    <Label Text="{Binding Loc.PropertyTypeZwangsversteigerung}" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
@@ -196,10 +196,10 @@
                         <VerticalStackLayout Spacing="16">
                             <VerticalStackLayout Spacing="4">
                                 <Label
-                                    Text="Anbietertyp"
+                                    Text="{Binding Loc.SellerTypeTitle}"
                                     Style="{StaticResource CardTitle}" />
                                 <Label
-                                    Text="Wählen Sie die Anbietertypen, für die Sie benachrichtigt werden möchten."
+                                    Text="{Binding Loc.SellerTypeCaption}"
                                     Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
 
@@ -209,14 +209,14 @@
                                         IsChecked="{Binding IsPrivateSelected, Mode=TwoWay}"
                                         VerticalOptions="Center"
                                         AutomationId="NotificationSettings_Chip_Private" />
-                                    <Label Text="Privat" VerticalOptions="Center" />
+                                    <Label Text="{Binding Loc.SellerTypePrivate}" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout Spacing="8">
                                     <CheckBox
                                         IsChecked="{Binding IsBrokerSelected, Mode=TwoWay}"
                                         VerticalOptions="Center"
                                         AutomationId="NotificationSettings_Chip_Broker" />
-                                    <Label Text="Makler &amp; Verwaltung" VerticalOptions="Center" />
+                                    <Label Text="{Binding Loc.SellerTypeBroker}" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
@@ -227,10 +227,10 @@
                         <VerticalStackLayout Spacing="16">
                             <VerticalStackLayout Spacing="4">
                                 <Label
-                                    Text="Orte"
+                                    Text="{Binding Loc.LocationTitle}"
                                     Style="{StaticResource CardTitle}" />
                                 <Label
-                                    Text="Wählen Sie die Orte aus, für die Sie Benachrichtigungen erhalten möchten. Leer = alle Orte."
+                                    Text="{Binding Loc.LocationCaption}"
                                     Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
 
@@ -281,7 +281,7 @@
                                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                                     <Entry Grid.Column="1"
                                            Text="{Binding OrtSearchText}"
-                                           Placeholder="Ort oder PLZ suchen..."
+                                           Placeholder="{Binding Loc.LocationSearchPlaceholder}"
                                            StyleClass="borderless"
                                            AutomationId="NotificationSettings_OrtSearch" />
                                 </Grid>
@@ -322,7 +322,7 @@
                 <!-- Info Card -->
                 <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_InfoCard">
                     <Label
-                        Text="Ihre Einstellungen werden automatisch gespeichert. Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie Ihren Filtereinstellungen entspricht."
+                        Text="{Binding Loc.InfoText}"
                         Style="{StaticResource Caption}" />
                 </Border>
 

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Localization.Auth;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -19,6 +20,8 @@ public partial class ForgotPasswordViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly ILogger<ForgotPasswordViewModel> _logger;
+
+    public ForgotPasswordStringsLocalized Loc { get; }
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
@@ -41,11 +44,13 @@ public partial class ForgotPasswordViewModel : ObservableObject
     public ForgotPasswordViewModel(
         IMediator mediator,
         INavigator navigator,
-        ILogger<ForgotPasswordViewModel> logger)
+        ILogger<ForgotPasswordViewModel> logger,
+        ForgotPasswordStringsLocalized loc)
     {
         _mediator = mediator;
         _navigator = navigator;
         _logger = logger;
+        Loc = loc;
 
         Email = string.Empty;
     }
@@ -58,7 +63,7 @@ public partial class ForgotPasswordViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(Email))
         {
-            ErrorMessage = "Bitte geben Sie Ihre E-Mail-Adresse ein.";
+            ErrorMessage = Loc.ValidationEmailRequired;
             return;
         }
 
@@ -70,13 +75,12 @@ public partial class ForgotPasswordViewModel : ObservableObject
                 Body = new ForgotPasswordRequest { Email = Email }
             });
 
-            SuccessMessage = result?.Message
-                ?? "Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir Ihnen einen Link zum Zurücksetzen gesendet.";
+            SuccessMessage = result?.Message ?? Loc.SuccessGeneric;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Passwort-Reset-Anforderung fehlgeschlagen");
-            ErrorMessage = "Die Anfrage ist fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
+            ErrorMessage = Loc.ErrorRequestFailed;
         }
         finally
         {

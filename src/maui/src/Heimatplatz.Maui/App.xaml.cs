@@ -1,5 +1,7 @@
 using Heimatplatz.Maui.Core.Screenshots;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Maui;
 
@@ -17,7 +19,7 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var shell = new AppShell();
+        var shell = new AppShell(_services.GetRequiredService<AppShellStringsLocalized>());
         ScreenshotMode.TryApply(shell, _services);
         var window = new Window(shell);
 

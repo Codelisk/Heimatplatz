@@ -4,6 +4,7 @@ import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import MapPinIcon from "@tabler/icons/outline/map-pin.svg";
 import { upperAustriaRegions } from "@/data/upper-austria-regions";
 import { slugifyLocation } from "@/features/locations/region-match";
+import { t } from "@/i18n";
 
 interface PickerLocality {
   name: string;
@@ -35,7 +36,7 @@ interface Props {
 const {
   name = "ortes",
   id,
-  placeholder = "Ort auswählen",
+  placeholder = t("filter.locationPlaceholder"),
   className = "",
   singleSelect = false,
 } = Astro.props;
@@ -96,13 +97,13 @@ const panelId = `${buttonId}-panel`;
     hidden
   >
     <div class="flex items-center justify-between border-b border-border px-3 py-2">
-      <p class="text-sm font-semibold">{singleSelect ? "Ort auswählen" : "Orte auswählen"}</p>
+      <p class="text-sm font-semibold">{singleSelect ? t("search.ortPickerTitleSingle") : t("search.ortPickerTitleMulti")}</p>
       <button
         type="button"
         class="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-primary"
         data-ort-picker-clear
       >
-        Zurücksetzen
+        {t("common.reset")}
       </button>
     </div>
 
@@ -111,7 +112,7 @@ const panelId = `${buttonId}-panel`;
         <div class="border-b border-border/60 last:border-b-0" data-ort-picker-region={region.slug}>
           <div class="flex items-center gap-1 px-2 py-1">
             {!singleSelect && (
-              <label class="grid size-7 cursor-pointer place-items-center rounded hover:bg-accent" aria-label={`Alle Orte in ${region.name} auswählen`}>
+              <label class="grid size-7 cursor-pointer place-items-center rounded hover:bg-accent" aria-label={t("search.ortPickerSelectAllRegion", { region: region.name })}>
                 <input
                   type="checkbox"
                   class="size-4 cursor-pointer accent-primary"
@@ -161,6 +162,8 @@ const panelId = `${buttonId}-panel`;
 </div>
 
 <script>
+  import { t } from "@/i18n";
+
   type OrtPickerDetail = { name: string; values: string[] };
 
   function readValues(input: HTMLInputElement): string[] {
@@ -177,7 +180,7 @@ const panelId = `${buttonId}-panel`;
   function updateLabel(picker: HTMLElement, values: string[]) {
     const label = picker.querySelector<HTMLElement>("[data-ort-picker-label]");
     const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
-    const placeholder = trigger?.getAttribute("data-ort-picker-placeholder") ?? "Ort auswählen";
+    const placeholder = trigger?.getAttribute("data-ort-picker-placeholder") ?? t("filter.locationPlaceholder");
     if (!label) return;
     if (values.length === 0) {
       label.textContent = placeholder;
@@ -191,7 +194,7 @@ const panelId = `${buttonId}-panel`;
       label.textContent = span?.textContent?.trim() ?? values[0];
       return;
     }
-    label.textContent = `${values.length} Orte ausgewählt`;
+    label.textContent = t("search.ortPickerCountSelected", { count: values.length });
   }
 
   function cssEscape(value: string) {
@@ -220,7 +223,7 @@ const panelId = `${buttonId}-panel`;
     }
     const countLabel = picker.querySelector<HTMLElement>(`[data-ort-picker-region-count="${cssEscape(regionSlug)}"]`);
     if (countLabel) {
-      countLabel.textContent = checkedCount > 0 ? `${checkedCount} ausgewählt` : "";
+      countLabel.textContent = checkedCount > 0 ? t("search.ortPickerRegionCount", { count: checkedCount }) : "";
     }
   }
 

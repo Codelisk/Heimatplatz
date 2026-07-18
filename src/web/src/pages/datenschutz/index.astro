@@ -5,6 +5,7 @@ import {
   paragraphsFromLegalText,
   visibleLegalSections,
 } from "@/features/legal/api";
+import { t } from "@/i18n";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { breadcrumbSchema } from "@/lib/seo";
 
@@ -24,11 +25,11 @@ const place = [party.postalCode, party.city].filter(Boolean).join(" ");
 const pageUrl = new URL("/datenschutz/", Astro.site).toString();
 
 const responsibleItems = [
-  { label: "Verantwortlicher", value: party.companyName },
-  { label: "Adresse", value: [party.street, place, party.country].filter(Boolean).join("\n") },
-  { label: "E-Mail", value: party.email, href: `mailto:${party.email}` },
-  { label: "Telefon", value: party.phone, href: party.phone ? `tel:${party.phone}` : undefined },
-  { label: "Datenschutzbeauftragter", value: party.dataProtectionOfficer },
+  { label: t("legal.responsibleParty"), value: party.companyName },
+  { label: t("legal.labelAddress"), value: [party.street, place, party.country].filter(Boolean).join("\n") },
+  { label: t("legal.labelEmail"), value: party.email, href: `mailto:${party.email}` },
+  { label: t("legal.labelPhone"), value: party.phone, href: party.phone ? `tel:${party.phone}` : undefined },
+  { label: t("legal.labelDataProtectionOfficer"), value: party.dataProtectionOfficer },
 ].filter((item): item is DetailItem => Boolean(item.value));
 
 const structuredData = [
@@ -66,30 +67,30 @@ const structuredData = [
 ---
 
 <BaseLayout
-  title="Datenschutz"
-  description="Datenschutzerklärung von Heimatplatz: personenbezogene Daten, Rechtsgrundlagen, Speicherdauer, Empfänger und Betroffenenrechte."
+  title={t("legal.privacyMetaTitle")}
+  description={t("legal.privacyMetaDescription")}
   canonicalPath="/datenschutz/"
   structuredData={structuredData}
 >
   <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
     <header class="max-w-3xl">
-      <p class="text-sm font-bold uppercase text-muted-foreground">Rechtliches</p>
-      <h1 class="mt-3 text-4xl font-bold tracking-normal">Datenschutzerklärung</h1>
+      <p class="text-sm font-bold uppercase text-muted-foreground">{t("legal.kicker")}</p>
+      <h1 class="mt-3 text-4xl font-bold tracking-normal">{t("legal.privacyTitle")}</h1>
       <p class="mt-4 text-base leading-7 text-muted-foreground">
-        Informationen zur Verarbeitung personenbezogener Daten auf Heimatplatz.
+        {t("legal.privacyIntro")}
       </p>
       <p class="mt-4 text-sm text-muted-foreground">
-        {updatedAt && <span>Stand: {updatedAt}</span>}
+        {updatedAt && <span>{t("legal.updatedAt", { date: updatedAt })}</span>}
         {updatedAt && policy.version && <span> · </span>}
-        {policy.version && <span>Version {policy.version}</span>}
-        {!updatedAt && effectiveAt && <span>Gültig seit: {effectiveAt}</span>}
+        {policy.version && <span>{t("legal.version", { version: policy.version })}</span>}
+        {!updatedAt && effectiveAt && <span>{t("legal.effectiveSince", { date: effectiveAt })}</span>}
       </p>
     </header>
 
     <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div class="space-y-5">
         <article class="rounded-lg border border-border bg-card p-5">
-          <h2 class="text-xl font-bold">Verantwortlicher</h2>
+          <h2 class="text-xl font-bold">{t("legal.responsibleParty")}</h2>
           <dl class="mt-4 grid gap-4 sm:grid-cols-2">
             {responsibleItems.map((item) => (
               <div>
@@ -122,7 +123,7 @@ const structuredData = [
 
       <aside class="space-y-4">
         <div class="rounded-lg border border-border bg-card p-5">
-          <h2 class="text-lg font-bold">Kontakt Datenschutz</h2>
+          <h2 class="text-lg font-bold">{t("legal.privacyContactHeading")}</h2>
           <address class="mt-3 not-italic text-sm leading-6 text-muted-foreground">
             <strong class="font-semibold text-foreground">{party.companyName}</strong><br />
             {party.street}<br />
@@ -137,11 +138,9 @@ const structuredData = [
         </div>
 
         <div class="rounded-lg border border-border bg-card p-5">
-          <h2 class="text-lg font-bold">Betroffenenrechte</h2>
+          <h2 class="text-lg font-bold">{t("legal.dataSubjectRights")}</h2>
           <p class="mt-3 text-sm leading-6 text-muted-foreground">
-            Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit,
-            Widerspruch und Widerruf einer Einwilligung können per E-Mail geltend gemacht
-            werden.
+            {t("legal.dataSubjectRightsText")}
           </p>
         </div>
       </aside>

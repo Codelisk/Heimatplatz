@@ -32,12 +32,13 @@ public static class DevFlowActions
             Services.GetRequiredService<INavigator>()
                 .NavigateTo<ForeclosureDetailViewModel>(vm => vm.PropertyId = propertyId));
 
-    [DevFlowAction("navigate-edit-property", Description = "Oeffnet die EditPropertyPage fuer die angegebene eigene Immobilie")]
+    [DevFlowAction("navigate-edit-property", Description = "Oeffnet den WYSIWYG-Editor (Wizard im Edit-Modus) fuer die angegebene eigene Immobilie")]
     public static Task NavigateEditProperty(
         [Description("Guid der Immobilie")] string propertyId) =>
         MainThread.InvokeOnMainThreadAsync(() =>
             Services.GetRequiredService<INavigator>()
-                .NavigateTo<EditPropertyViewModel>(vm => vm.PropertyId = propertyId));
+                .NavigateTo<Features.Properties.Presentation.Wizard.PropertyWizardViewModel>(
+                    vm => vm.EditPropertyId = propertyId));
 
     [DevFlowAction("mock-home-properties", Description = "Laedt einen Debug-Datensatz in die Homepage, optional API-seitenweise")]
     public static Task MockHomeProperties(

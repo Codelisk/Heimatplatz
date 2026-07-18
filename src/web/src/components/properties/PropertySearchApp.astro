@@ -5,6 +5,7 @@ import type { ApiProperty } from "@/features/properties/live-api";
 import type { OrtSlugMap } from "@/features/properties/search-query";
 import { SEARCH_PAGE_SIZE } from "@/features/properties/search-query";
 import { jsonForScriptTag } from "@/lib/utils/json";
+import { t } from "@/i18n";
 import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
 import MobileFilterPanel from "@/components/properties/MobileFilterPanel.astro";
 
@@ -44,22 +45,22 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
 <section class="border-b border-border bg-background">
   <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2 text-sm sm:px-5">
-    <span class="text-muted-foreground" data-result-count>{total} {total === 1 ? "Objekt" : "Objekte"}</span>
+    <span class="text-muted-foreground" data-result-count>{t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total })}</span>
     <label class="flex items-center gap-2">
-      <span class="sr-only">Sortierung</span>
+      <span class="sr-only">{t("search.sortLabel")}</span>
       {/* text-base auf Mobile: <select> unter 16px loest auf iOS Auto-Zoom aus */}
       <select
         class="h-9 rounded-md border border-border bg-background px-3 text-base text-foreground sm:text-sm"
         data-filter-sort
       >
-        <option value="newest">Neueste</option>
-        <option value="oldest">Älteste</option>
-        <option value="price-asc">Preis aufsteigend</option>
-        <option value="price-desc">Preis absteigend</option>
-        <option value="area-desc">Fläche absteigend</option>
-        <option value="area-asc">Fläche aufsteigend</option>
-        <option value="postal-asc">PLZ aufsteigend</option>
-        <option value="postal-desc">PLZ absteigend</option>
+        <option value="newest">{t("search.sortNewest")}</option>
+        <option value="oldest">{t("search.sortOldest")}</option>
+        <option value="price-asc">{t("search.sortPriceAsc")}</option>
+        <option value="price-desc">{t("search.sortPriceDesc")}</option>
+        <option value="area-desc">{t("search.sortAreaDesc")}</option>
+        <option value="area-asc">{t("search.sortAreaAsc")}</option>
+        <option value="postal-asc">{t("search.sortPostalAsc")}</option>
+        <option value="postal-desc">{t("search.sortPostalDesc")}</option>
       </select>
     </label>
   </div>
@@ -74,32 +75,32 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     class:list={["mx-auto max-w-7xl py-16 text-center text-sm text-muted-foreground", total !== 0 && "hidden"]}
     data-empty-state
   >
-    Keine Treffer für diese Filter. Bitte Ort, Zeitraum oder Anbieter anpassen.
+    {t("search.emptyState")}
   </p>
   <nav
     class:list={[
       "mx-auto mt-5 max-w-7xl items-center justify-center gap-4 border-t border-border pt-4",
       pageCount > 1 ? "flex" : "hidden",
     ]}
-    aria-label="Suchergebnisse Seiten"
+    aria-label={t("search.paginationLabel")}
     data-pagination
   >
     <button
       type="button"
       class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-      aria-label="Vorherige Seite"
+      aria-label={t("search.pagePrev")}
       disabled={page <= 0}
       data-page-prev
     >
       <ChevronLeftIcon class="size-5" aria-hidden="true" />
     </button>
     <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info>
-      {pageCount > 1 ? `Seite ${page + 1} von ${pageCount}` : ""}
+      {pageCount > 1 ? t("search.pageOf", { current: page + 1, total: pageCount }) : ""}
     </span>
     <button
       type="button"
       class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-      aria-label="Nächste Seite"
+      aria-label={t("search.pageNext")}
       disabled={page >= pageCount - 1}
       data-page-next
     >
@@ -112,6 +113,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
   import { getResponsiveImage } from "@/lib/images";
   import { formatApiDate, formatApiPrice, getDisplayTitle } from "@/features/properties/format";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
+  import { t } from "@/i18n";
   import {
     ALL_SELLERS,
     ALL_TYPES,
@@ -364,12 +366,12 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
   // Anbieter-Label wie getApiSellerLabel/ApiPropertyCard (Anzeige, kein Filter)
   function mapSellerLabel(property: ApiProperty) {
-    if (property.Type === "Foreclosure") return "Gericht";
+    if (property.Type === "Foreclosure") return t("card.sellerCourt");
     const sellerType = property.SellerType;
-    if (sellerType === "Private" || sellerType === 1) return "Privat";
-    if (sellerType === "Broker" || sellerType === 2) return "Makler";
-    if (sellerType === "PropertyManager" || sellerType === 3) return "Verwaltung";
-    return "Portal";
+    if (sellerType === "Private" || sellerType === 1) return t("card.sellerPrivate");
+    if (sellerType === "Broker" || sellerType === 2) return t("card.sellerAgent");
+    if (sellerType === "PropertyManager" || sellerType === 3) return t("card.sellerManager");
+    return t("card.sellerPortal");
   }
 
   function setLiveStatus(message: string, visible = true) {
@@ -482,13 +484,13 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const badge = createText(
       "span",
       `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${badgeClasses}`,
-      type === "foreclosure" ? "Zwangsversteigerung" : type === "land" ? "Grund" : type === "apartment" ? "Wohnung" : "Haus",
+      type === "foreclosure" ? t("card.typeForeclosure") : type === "land" ? t("card.typeLand") : type === "apartment" ? t("card.typeApartment") : t("card.typeHouse"),
     );
     const actions = document.createElement("div");
     actions.className = "absolute right-3 top-3 flex gap-1";
     actions.innerHTML = `
-      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Favorit speichern" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">${ICONS.heart}</button>
-      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="Immobilie blockieren" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">${ICONS.eyeOff}</button>
+      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="${t("card.favoriteAdd")}" aria-pressed="false" data-property-action="favorite" data-property-slug="${property.Id}" data-property-id="${property.Id}">${ICONS.heart}</button>
+      <button type="button" class="grid size-9 place-items-center rounded-full bg-black/55 text-white" aria-label="${t("card.blockAdd")}" aria-pressed="false" data-property-action="block" data-property-slug="${property.Id}" data-property-id="${property.Id}">${ICONS.eyeOff}</button>
     `;
     media.append(link, badge, actions);
 
@@ -508,23 +510,23 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
       createText("p", "truncate text-sm text-muted-foreground", formatAddressLine(property)),
       createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
       createMetaLine(ICONS.user, `${mapSellerLabel(property)} · ${property.SellerName}`, "mt-2"),
-      createMetaLine(ICONS.calendar, formatApiDate(property.CreatedAt) || "Live-Angebot"),
+      createMetaLine(ICONS.calendar, formatApiDate(property.CreatedAt) || t("card.liveOffer")),
     );
 
     const facts = document.createElement("dl");
     facts.className = "text-right";
     const chips = [
-      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${property.LivingAreaM2} Wfl</span>` : "",
-      property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${property.Rooms} Zi</span>` : "",
+      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>` : "",
+      property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipRooms", { value: property.Rooms })}</span>` : "",
     ].filter(Boolean).join("");
     facts.innerHTML = `
       <div>
-        <dt class="sr-only">Preis</dt>
+        <dt class="sr-only">${t("card.price")}</dt>
         <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">${formatApiPrice(property.Price)}</dd>
       </div>
       <div class="mt-1.5">
-        <dt class="sr-only">Fläche</dt>
-        <dd class="text-sm font-semibold text-muted-foreground">${area ? `${area} ${property.PlotAreaM2 ? "m² Grund" : "m² Wfl"}` : "Fläche k.A."}</dd>
+        <dt class="sr-only">${t("card.area")}</dt>
+        <dd class="text-sm font-semibold text-muted-foreground">${area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
       </div>
       <div class="mt-3 flex justify-end gap-1">${chips}</div>
     `;
@@ -596,7 +598,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
   }
 
   function updateResultMeta() {
-    const label = `${totalCount} ${totalCount === 1 ? "Objekt" : "Objekte"}`;
+    const label = t(totalCount === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: totalCount });
     if (resultCount) resultCount.textContent = label;
     if (mobileResultCount) mobileResultCount.textContent = label;
     if (emptyState) emptyState.classList.toggle("hidden", totalCount !== 0);
@@ -604,7 +606,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const pageCount = Math.max(1, Math.ceil(totalCount / SEARCH_PAGE_SIZE));
     if (pagination) pagination.classList.toggle("hidden", pageCount <= 1);
     if (pagination) pagination.classList.toggle("flex", pageCount > 1);
-    if (paginationInfo) paginationInfo.textContent = pageCount > 1 ? `Seite ${currentPage + 1} von ${pageCount}` : "";
+    if (paginationInfo) paginationInfo.textContent = pageCount > 1 ? t("search.pageOf", { current: currentPage + 1, total: pageCount }) : "";
     if (prevPage) prevPage.disabled = currentPage <= 0;
     if (nextPage) nextPage.disabled = currentPage >= pageCount - 1;
   }
@@ -651,7 +653,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     abortController?.abort();
     const controller = new AbortController();
     abortController = controller;
-    setLiveStatus("Angebote werden geladen...");
+    setLiveStatus(t("search.loading"));
 
     try {
       const query = buildPropertySearchQuery(getSearchState(), ortSlugMap);
@@ -671,7 +673,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
       setLiveStatus("", false);
     } catch {
       if (controller.signal.aborted) return;
-      setLiveStatus("Angebote konnten nicht geladen werden. Bitte später erneut versuchen.");
+      setLiveStatus(t("search.loadError"));
     }
   }
 

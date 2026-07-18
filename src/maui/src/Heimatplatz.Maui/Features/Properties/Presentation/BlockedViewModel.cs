@@ -1,5 +1,6 @@
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -16,22 +17,25 @@ public partial class BlockedViewModel(
     IMediator mediator,
     INavigator navigator,
     IDialogs dialogs,
-    ILogger<BlockedViewModel> logger
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger)
+    ILogger<BlockedViewModel> logger,
+    CollectionStringsLocalized collectionLoc,
+    BlockedStringsLocalized loc
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc)
 {
-    protected override string LoadingMessage => "Lade blockierte Immobilien...";
-    protected override string RemovingMessage => "Hebe Blockierung auf...";
-    protected override string RemoveConfirmTitle => "Blockierung aufheben?";
-    protected override string RemoveErrorTitle => "Fehler beim Aufheben";
+    public BlockedStringsLocalized Loc => loc;
 
-    protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
-        => $"Möchten Sie die Blockierung von \"{property.Title}\" wirklich aufheben? Die Immobilie wird wieder in der Hauptliste angezeigt.";
+    protected override string LoadingMessage => loc.LoadingMessage;
+    protected override string RemovingMessage => loc.RemovingMessage;
+    protected override string RemoveErrorTitle => loc.RemoveErrorTitle;
+
+    // Aufheben ist trivial umkehrbar (wieder blockieren) - keine Rueckfrage
+    protected override bool ConfirmBeforeRemove => false;
 
     protected override string GetRemoveErrorMessage(string errorDetails)
-        => $"Die Blockierung konnte nicht aufgehoben werden. {errorDetails}";
+        => loc.RemoveErrorMessageFormat(errorDetails);
 
     protected override string GetLoadErrorMessage(string errorDetails)
-        => $"Die blockierten Immobilien konnten nicht geladen werden. {errorDetails}";
+        => loc.LoadErrorMessageFormat(errorDetails);
 
     protected override Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, bool forceRemoteRefresh, CancellationToken ct)

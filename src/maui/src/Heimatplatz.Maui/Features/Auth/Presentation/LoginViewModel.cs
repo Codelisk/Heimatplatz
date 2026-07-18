@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Events;
+using Heimatplatz.Maui.Localization.Auth;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -19,6 +20,8 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
     private readonly ILogger<LoginViewModel> _logger;
+
+    public LoginStringsLocalized Loc { get; }
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
@@ -39,12 +42,14 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
         IMediator mediator,
         IAuthService authService,
         INavigator navigator,
-        ILogger<LoginViewModel> logger)
+        ILogger<LoginViewModel> logger,
+        LoginStringsLocalized loc)
     {
         _mediator = mediator;
         _authService = authService;
         _navigator = navigator;
         _logger = logger;
+        Loc = loc;
 
         Email = string.Empty;
         Passwort = string.Empty;
@@ -84,7 +89,7 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
 
         ErrorMessage = null;
         IsBusy = true;
-        BusyMessage = "Anmeldung wird durchgeführt...";
+        BusyMessage = Loc.BusyLoggingIn;
 
         try
         {
@@ -101,7 +106,7 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
 
             if (result == null)
             {
-                ErrorMessage = "Login fehlgeschlagen. Bitte versuchen Sie es erneut.";
+                ErrorMessage = Loc.LoginFailedRetry;
                 return;
             }
 
@@ -157,48 +162,48 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
     private string GetValidationError()
     {
         if (string.IsNullOrWhiteSpace(Email))
-            return "Bitte geben Sie Ihre E-Mail-Adresse ein.";
+            return Loc.ValidationEmailRequired;
         if (string.IsNullOrWhiteSpace(Passwort))
-            return "Bitte geben Sie Ihr Passwort ein.";
+            return Loc.ValidationPasswordRequired;
         return string.Empty;
     }
 
-    private static string GetUserFriendlyErrorMessage(Exception ex)
+    private string GetUserFriendlyErrorMessage(Exception ex)
     {
         var message = ex.Message;
 
         // HTTP 401 Unauthorized - falsche Anmeldedaten
         if (message.Contains("401") || message.Contains("Unauthorized"))
-            return "E-Mail-Adresse oder Passwort ist falsch.";
+            return Loc.ErrorWrongCredentials;
 
         // HTTP 403 Forbidden - Konto gesperrt oder keine Berechtigung
         if (message.Contains("403") || message.Contains("Forbidden"))
-            return "Ihr Konto ist gesperrt. Bitte kontaktieren Sie den Support.";
+            return Loc.ErrorAccountLocked;
 
         // HTTP 404 - Benutzer nicht gefunden
         if (message.Contains("404") || message.Contains("Not Found"))
-            return "Diese E-Mail-Adresse ist nicht registriert.";
+            return Loc.ErrorEmailNotRegistered;
 
         // HTTP 429 - Zu viele Versuche
         if (message.Contains("429") || message.Contains("Too Many"))
-            return "Zu viele Anmeldeversuche. Bitte warten Sie einen Moment.";
+            return Loc.ErrorTooManyAttempts;
 
         // HTTP 500+ - Serverfehler
         if (message.Contains("500") || message.Contains("502") || message.Contains("503") ||
             message.Contains("Internal Server") || message.Contains("Bad Gateway") || message.Contains("Service Unavailable"))
-            return "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut.";
+            return Loc.ErrorServerUnavailable;
 
         // Netzwerkfehler (net_http, connection, timeout, etc.)
         if (message.Contains("net_http") || message.Contains("network") || message.Contains("connection") ||
             message.Contains("timeout") || message.Contains("Timeout") || message.Contains("SocketException") ||
             message.Contains("host") || message.Contains("DNS") || message.Contains("resolve"))
-            return "Keine Internetverbindung. Bitte pruefen Sie Ihre Netzwerkverbindung.";
+            return Loc.ErrorNoConnection;
 
         // SSL/TLS Fehler
         if (message.Contains("SSL") || message.Contains("TLS") || message.Contains("certificate"))
-            return "Sichere Verbindung fehlgeschlagen. Bitte pruefen Sie Ihre Netzwerkeinstellungen.";
+            return Loc.ErrorSslFailed;
 
         // Allgemeiner Fallback - keine technischen Details anzeigen
-        return "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
+        return Loc.ErrorLoginFailed;
     }
 }

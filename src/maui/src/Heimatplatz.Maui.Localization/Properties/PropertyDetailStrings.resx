@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FallbackTitle" xml:space="preserve">
+    <value>Immobilie</value>
+  </data>
+  <data name="BusyLoading" xml:space="preserve">
+    <value>Lade Immobilie...</value>
+  </data>
+  <data name="RetryButton" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+  <data name="NotAvailableTitle" xml:space="preserve">
+    <value>Nicht mehr verfügbar</value>
+  </data>
+  <data name="NotAvailableText" xml:space="preserve">
+    <value>Dieses Inserat wurde vom Anbieter entfernt oder ist nicht mehr aktiv.</value>
+  </data>
+  <data name="OfflineTitle" xml:space="preserve">
+    <value>Keine Internetverbindung</value>
+  </data>
+  <data name="OfflineText" xml:space="preserve">
+    <value>Diese Immobilie ist noch nicht lokal gespeichert. Sobald Sie wieder online sind, wird sie automatisch geladen.</value>
+  </data>
+  <data name="LoadFailedTitle" xml:space="preserve">
+    <value>Laden fehlgeschlagen</value>
+  </data>
+  <data name="ServerUnreachableText" xml:space="preserve">
+    <value>Der Server ist gerade nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.</value>
+  </data>
+  <data name="TryAgainLaterText" xml:space="preserve">
+    <value>Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="OpenImageViewerSemantic" xml:space="preserve">
+    <value>Bild in Großansicht öffnen</value>
+  </data>
+  <data name="CloseViewerSemantic" xml:space="preserve">
+    <value>Großansicht schließen</value>
+  </data>
+  <data name="ShareSemantic" xml:space="preserve">
+    <value>Immobilie teilen</value>
+  </data>
+  <data name="SourceLabel" xml:space="preserve">
+    <value>QUELLE</value>
+  </data>
+  <data name="OpenOriginalListingTitle" xml:space="preserve">
+    <value>Original-Inserat öffnen</value>
+  </data>
+  <data name="OpenOriginalListingSubtitle" xml:space="preserve">
+    <value>Alle Angaben direkt beim Anbieter ansehen</value>
+  </data>
+  <data name="OpenOriginalListingSemantic" xml:space="preserve">
+    <value>Original-Inserat beim Anbieter öffnen</value>
+  </data>
+  <data name="DescriptionHeader" xml:space="preserve">
+    <value>BESCHREIBUNG</value>
+  </data>
+  <data name="SellerLabel" xml:space="preserve">
+    <value>ANBIETER</value>
+  </data>
+  <data name="ContactLabel" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+  <data name="CopyButton" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="TypeBadgeHouse" xml:space="preserve">
+    <value>HAUS</value>
+  </data>
+  <data name="TypeBadgeLand" xml:space="preserve">
+    <value>GRUND</value>
+  </data>
+  <data name="TypeBadgeForeclosure" xml:space="preserve">
+    <value>ZV</value>
+  </data>
+  <data name="TypeBadgeDefault" xml:space="preserve">
+    <value>IMM</value>
+  </data>
+  <data name="FavoriteSave" xml:space="preserve">
+    <value>Merken</value>
+  </data>
+  <data name="FavoriteSaved" xml:space="preserve">
+    <value>Gemerkt</value>
+  </data>
+  <data name="TypeHouse" xml:space="preserve">
+    <value>Haus</value>
+  </data>
+  <data name="TypeLand" xml:space="preserve">
+    <value>Grundstück</value>
+  </data>
+  <data name="TypeForeclosure" xml:space="preserve">
+    <value>Zwangsversteigerung</value>
+  </data>
+  <data name="LabelPropertyType" xml:space="preserve">
+    <value>Immobilienart</value>
+  </data>
+  <data name="PriceOnRequest" xml:space="preserve">
+    <value>Preis offen</value>
+  </data>
+  <data name="LabelPostalCode" xml:space="preserve">
+    <value>PLZ</value>
+  </data>
+  <data name="LabelCity" xml:space="preserve">
+    <value>Ort</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>Adresse</value>
+  </data>
+  <data name="LabelTotalArea" xml:space="preserve">
+    <value>Gesamtfläche</value>
+  </data>
+  <data name="LabelPlotArea" xml:space="preserve">
+    <value>Grundstücksfläche</value>
+  </data>
+  <data name="LabelBuildingArea" xml:space="preserve">
+    <value>Bebaute Fläche</value>
+  </data>
+  <data name="LabelLivingArea" xml:space="preserve">
+    <value>Wohnfläche</value>
+  </data>
+  <data name="LabelRooms" xml:space="preserve">
+    <value>Zimmer</value>
+  </data>
+  <data name="LabelBedrooms" xml:space="preserve">
+    <value>Schlafzimmer</value>
+  </data>
+  <data name="LabelBathrooms" xml:space="preserve">
+    <value>Badezimmer</value>
+  </data>
+  <data name="LabelFloors" xml:space="preserve">
+    <value>Stockwerke</value>
+  </data>
+  <data name="LabelYearBuilt" xml:space="preserve">
+    <value>Baujahr</value>
+  </data>
+  <data name="LabelCondition" xml:space="preserve">
+    <value>Zustand</value>
+  </data>
+  <data name="LabelApartmentFloor" xml:space="preserve">
+    <value>Etage</value>
+  </data>
+  <data name="LabelGarage" xml:space="preserve">
+    <value>Garage</value>
+  </data>
+  <data name="LabelGarden" xml:space="preserve">
+    <value>Garten</value>
+  </data>
+  <data name="LabelBasement" xml:space="preserve">
+    <value>Keller</value>
+  </data>
+  <data name="LabelElevator" xml:space="preserve">
+    <value>Aufzug</value>
+  </data>
+  <data name="LabelZoning" xml:space="preserve">
+    <value>Widmung</value>
+  </data>
+  <data name="LabelBuildingRights" xml:space="preserve">
+    <value>Baurecht</value>
+  </data>
+  <data name="LabelBuildable" xml:space="preserve">
+    <value>Bebaubar</value>
+  </data>
+  <data name="LabelUtilities" xml:space="preserve">
+    <value>Versorgung</value>
+  </data>
+  <data name="LabelSoilQuality" xml:space="preserve">
+    <value>Bodenqualität</value>
+  </data>
+  <data name="LabelCourt" xml:space="preserve">
+    <value>Gericht</value>
+  </data>
+  <data name="LabelFileNumber" xml:space="preserve">
+    <value>Aktenzeichen</value>
+  </data>
+  <data name="LabelAuctionDate" xml:space="preserve">
+    <value>Termin</value>
+  </data>
+  <data name="LabelMinimumBid" xml:space="preserve">
+    <value>Mindestgebot</value>
+  </data>
+  <data name="LabelEstimatedValue" xml:space="preserve">
+    <value>Schätzwert</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="LabelPricePerSqm" xml:space="preserve">
+    <value>Preis / m²</value>
+  </data>
+  <data name="LabelCreatedAt" xml:space="preserve">
+    <value>Eingestellt am</value>
+  </data>
+  <data name="ConditionLikeNew" xml:space="preserve">
+    <value>Neuwertig</value>
+  </data>
+  <data name="ConditionGood" xml:space="preserve">
+    <value>Gut</value>
+  </data>
+  <data name="ConditionAverage" xml:space="preserve">
+    <value>Durchschnittlich</value>
+  </data>
+  <data name="ConditionNeedsRenovation" xml:space="preserve">
+    <value>Sanierungsbedürftig</value>
+  </data>
+  <data name="ZoningResidential" xml:space="preserve">
+    <value>Wohngebiet</value>
+  </data>
+  <data name="ZoningCommercial" xml:space="preserve">
+    <value>Gewerbegebiet</value>
+  </data>
+  <data name="ZoningIndustrial" xml:space="preserve">
+    <value>Industriegebiet</value>
+  </data>
+  <data name="ZoningAgricultural" xml:space="preserve">
+    <value>Landwirtschaft</value>
+  </data>
+  <data name="ZoningMixed" xml:space="preserve">
+    <value>Mischgebiet</value>
+  </data>
+  <data name="SoilQualityHigh" xml:space="preserve">
+    <value>Hoch</value>
+  </data>
+  <data name="SoilQualityMedium" xml:space="preserve">
+    <value>Mittel</value>
+  </data>
+  <data name="SoilQualityLow" xml:space="preserve">
+    <value>Niedrig</value>
+  </data>
+  <data name="SectionBasicData" xml:space="preserve">
+    <value>BASISDATEN</value>
+  </data>
+  <data name="SectionAreas" xml:space="preserve">
+    <value>FLÄCHEN</value>
+  </data>
+  <data name="SectionBuilding" xml:space="preserve">
+    <value>GEBÄUDE</value>
+  </data>
+  <data name="SectionEquipment" xml:space="preserve">
+    <value>AUSSTATTUNG</value>
+  </data>
+  <data name="SectionPlot" xml:space="preserve">
+    <value>GRUNDSTÜCK</value>
+  </data>
+  <data name="SectionAuction" xml:space="preserve">
+    <value>VERSTEIGERUNG</value>
+  </data>
+  <data name="SectionLegal" xml:space="preserve">
+    <value>RECHTLICHES</value>
+  </data>
+  <data name="SectionLandRegistry" xml:space="preserve">
+    <value>GRUNDBUCH</value>
+  </data>
+  <data name="SectionDates" xml:space="preserve">
+    <value>TERMINE</value>
+  </data>
+  <data name="SectionCosts" xml:space="preserve">
+    <value>KOSTEN</value>
+  </data>
+  <data name="SectionMisc" xml:space="preserve">
+    <value>SONSTIGES</value>
+  </data>
+  <data name="TileArea" xml:space="preserve">
+    <value>FLÄCHE</value>
+  </data>
+  <data name="TileBuilt" xml:space="preserve">
+    <value>BEBAUT</value>
+  </data>
+  <data name="TileAuctionDate" xml:space="preserve">
+    <value>TERMIN</value>
+  </data>
+  <data name="TileLivingArea" xml:space="preserve">
+    <value>WOHNFLÄCHE</value>
+  </data>
+  <data name="TilePlot" xml:space="preserve">
+    <value>GRUNDSTÜCK</value>
+  </data>
+  <data name="TileRooms" xml:space="preserve">
+    <value>ZIMMER</value>
+  </data>
+  <data name="CopiedFeedback" xml:space="preserve">
+    <value>Kopiert!</value>
+  </data>
+  <data name="SharedFeedback" xml:space="preserve">
+    <value>Geteilt!</value>
+  </data>
+  <data name="CopiedToClipboardFeedback" xml:space="preserve">
+    <value>In Zwischenablage kopiert!</value>
+  </data>
+  <data name="EmailSubjectFormat" xml:space="preserve">
+    <value>Anfrage: {0}</value>
+  </data>
+</root>

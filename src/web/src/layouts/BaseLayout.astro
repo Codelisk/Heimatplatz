@@ -2,6 +2,7 @@
 import "@/styles/starwind.css";
 
 import { SITE } from "@/config/site";
+import { t } from "@/i18n";
 import SiteFooter from "@/components/layout/SiteFooter.astro";
 import SiteHeader from "@/components/layout/SiteHeader.astro";
 import PropertyStateScript from "@/components/properties/PropertyStateScript.astro";
@@ -131,7 +132,7 @@ const jsonLd = jsonForScriptTag([organizationSchema(), websiteSchema(), realEsta
       href="#hauptinhalt"
       class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
     >
-      Zum Inhalt springen
+      {t("common.skipToContent")}
     </a>
     {chrome && <SiteHeader />}
     <main id="hauptinhalt" class="flex-1">

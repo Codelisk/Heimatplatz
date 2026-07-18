@@ -1,10 +1,11 @@
 ---
 import UserListPage from "@/components/app/UserListPage.astro";
+import { t } from "@/i18n";
 ---
 
 <UserListPage
-  title="Meine Favoriten"
-  description="Favorisierte Immobilien aus Oberösterreich."
+  title={t("favorites.metaTitle")}
+  description={t("favorites.metaDescription")}
   canonicalPath="/favoriten/"
   mode="favorites"
 />

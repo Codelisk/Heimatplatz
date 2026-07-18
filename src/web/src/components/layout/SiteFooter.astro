@@ -1,5 +1,6 @@
 ---
 import BrandMark from "@/components/layout/BrandMark.astro";
+import { t } from "@/i18n";
 
 const year = new Date().getFullYear();
 ---
@@ -10,13 +11,13 @@ const year = new Date().getFullYear();
       <BrandMark class="h-7" />
       <div>
         <p class="text-sm font-extrabold uppercase tracking-[0.14em]">Heimatplatz</p>
-        <p class="text-xs text-muted-foreground">Immobilien in Oberösterreich – Häuser, Grundstücke, Zwangsversteigerungen.</p>
+        <p class="text-xs text-muted-foreground">{t("footer.tagline")}</p>
       </div>
     </div>
-    <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label="Rechtliches">
-      <a class="transition-colors hover:text-foreground" href="/impressum/">Impressum</a>
-      <a class="transition-colors hover:text-foreground" href="/datenschutz/">Datenschutz</a>
-      <span>© {year} Heimatplatz</span>
+    <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label={t("footer.legalAriaLabel")}>
+      <a class="transition-colors hover:text-foreground" href="/impressum/">{t("footer.imprint")}</a>
+      <a class="transition-colors hover:text-foreground" href="/datenschutz/">{t("footer.privacy")}</a>
+      <span>{t("footer.copyright", { year })}</span>
     </nav>
   </div>
 </footer>

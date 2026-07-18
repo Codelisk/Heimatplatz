@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="AuthCardTitle" xml:space="preserve">
+    <value>Anmeldestatus</value>
+  </data>
+  <data name="CurrentState" xml:space="preserve">
+    <value>Aktuell: {0}</value>
+  </data>
+  <data name="LogoutButton" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="LoginAsSellerButton" xml:space="preserve">
+    <value>Als Verkäufer (privat) anmelden</value>
+  </data>
+  <data name="LoginAsBrokerButton" xml:space="preserve">
+    <value>Als Makler anmelden</value>
+  </data>
+  <data name="LoginAsPropertyManagerButton" xml:space="preserve">
+    <value>Als Hausverwaltung anmelden</value>
+  </data>
+  <data name="LoginAsBuyerButton" xml:space="preserve">
+    <value>Als Käufer anmelden</value>
+  </data>
+  <data name="AuthHint" xml:space="preserve">
+    <value>Verwendet die Testkonten des aktuell gewählten API-Endpunkts. Dadurch funktionieren auch authentifizierte API-Aufrufe mit der ausgewählten Rolle.</value>
+  </data>
+  <data name="ApiCardTitle" xml:space="preserve">
+    <value>API-Endpunkt</value>
+  </data>
+  <data name="DevelopmentEndpoint" xml:space="preserve">
+    <value>Entwicklung — {0}</value>
+  </data>
+  <data name="TestEndpoint" xml:space="preserve">
+    <value>Test — {0}</value>
+  </data>
+  <data name="ProductionEndpoint" xml:space="preserve">
+    <value>Produktion — {0}</value>
+  </data>
+  <data name="ActiveUrl" xml:space="preserve">
+    <value>Aktiv: {0}</value>
+  </data>
+  <data name="ApiHint" xml:space="preserve">
+    <value>Wirkt sofort für alle folgenden API-Aufrufe. Nach dem Wechsel ggf. neu anmelden, da Tokens nur für die jeweilige API gelten. Entwicklung braucht die lokale API (am Gerät zusätzlich adb reverse tcp:5292 tcp:5292).</value>
+  </data>
+  <data name="RoleBuyer" xml:space="preserve">
+    <value>Käufer</value>
+  </data>
+  <data name="RoleBroker" xml:space="preserve">
+    <value>Makler</value>
+  </data>
+  <data name="RolePropertyManager" xml:space="preserve">
+    <value>Hausverwaltung</value>
+  </data>
+  <data name="RoleSellerPrivate" xml:space="preserve">
+    <value>Verkäufer (privat)</value>
+  </data>
+  <data name="RoleSellerBroker" xml:space="preserve">
+    <value>Verkäufer (Makler)</value>
+  </data>
+  <data name="RoleSellerPropertyManager" xml:space="preserve">
+    <value>Verkäufer (Hausverwaltung)</value>
+  </data>
+  <data name="RoleSeller" xml:space="preserve">
+    <value>Verkäufer</value>
+  </data>
+  <data name="StateLoggedOut" xml:space="preserve">
+    <value>Ausgeloggt</value>
+  </data>
+  <data name="StateAdmin" xml:space="preserve">
+    <value>Admin — {0}</value>
+  </data>
+  <data name="StateUser" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="LoginNoResponse" xml:space="preserve">
+    <value>Die Anmeldung als {0} hat keine Antwort geliefert.</value>
+  </data>
+  <data name="LoginFailed" xml:space="preserve">
+    <value>Anmeldung als {0} fehlgeschlagen. Läuft der gewählte API-Endpunkt und sind die Testbenutzer vorhanden?</value>
+  </data>
+</root>

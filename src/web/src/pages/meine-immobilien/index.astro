@@ -1,10 +1,11 @@
 ---
 import UserListPage from "@/components/app/UserListPage.astro";
+import { t } from "@/i18n";
 ---
 
 <UserListPage
-  title="Meine Immobilien"
-  description="Eigene Inserate verwalten, bearbeiten und löschen."
+  title={t("myProperties.metaTitle")}
+  description={t("myProperties.metaDescription")}
   canonicalPath="/meine-immobilien/"
   mode="mine"
 />

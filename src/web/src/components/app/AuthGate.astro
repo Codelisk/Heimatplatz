@@ -2,6 +2,7 @@
 import LoginIcon from "@tabler/icons/outline/login.svg";
 import UserPlusIcon from "@tabler/icons/outline/user-plus.svg";
 import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
 
 /**
  * Blendet den Slot-Inhalt nur fuer angemeldete Nutzer ein und zeigt Gaesten
@@ -28,11 +29,11 @@ const { title, description } = Astro.props;
     <div class="mt-6 flex flex-wrap justify-center gap-3">
       <Button href="/anmelden/">
         <LoginIcon class="size-4" aria-hidden="true" />
-        Anmelden
+        {t("auth.login")}
       </Button>
       <Button href="/registrieren/" variant="outline">
         <UserPlusIcon class="size-4" aria-hidden="true" />
-        Kostenlos registrieren
+        {t("auth.registerFree")}
       </Button>
     </div>
   </div>

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Events;
+using Heimatplatz.Maui.Localization.Auth;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -21,6 +22,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     private readonly INavigator _navigator;
     private readonly IDialogs _dialogs;
     private readonly ILogger<UserProfileViewModel> _logger;
+
+    public UserProfileStringsLocalized Loc { get; }
 
     [ObservableProperty]
     public partial string UserFullName { get; set; }
@@ -184,13 +187,15 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         IMediator mediator,
         INavigator navigator,
         IDialogs dialogs,
-        ILogger<UserProfileViewModel> logger)
+        ILogger<UserProfileViewModel> logger,
+        UserProfileStringsLocalized loc)
     {
         _authService = authService;
         _mediator = mediator;
         _navigator = navigator;
         _dialogs = dialogs;
         _logger = logger;
+        Loc = loc;
 
         UserFullName = string.Empty;
         UserInitials = string.Empty;
@@ -325,13 +330,13 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
         if (string.IsNullOrWhiteSpace(EditFirstName) || string.IsNullOrWhiteSpace(EditLastName))
         {
-            ProfileStatusMessage = "Bitte Vor- und Nachnamen angeben.";
+            ProfileStatusMessage = Loc.ValidationNamesRequired;
             return;
         }
 
         if (EditWantsToSell && EditNeedsCompanyName && string.IsNullOrWhiteSpace(EditCompanyName))
         {
-            ProfileStatusMessage = "Bitte den Firmennamen angeben.";
+            ProfileStatusMessage = Loc.ValidationCompanyNameRequired;
             return;
         }
 
@@ -361,7 +366,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
             if (result == null)
             {
-                ProfileStatusMessage = "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.";
+                ProfileStatusMessage = Loc.ProfileSaveFailedRetry;
                 return;
             }
 
@@ -370,12 +375,12 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             LoadUserData();
             // Kachelzeile passt sich der neuen Rolle an (z.B. Inserate-Zaehler fuer neue Verkaeufer)
             _ = LoadStatsAsync();
-            ProfileStatusMessage = "Profil gespeichert.";
+            ProfileStatusMessage = Loc.ProfileSaved;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[UserProfile] Profil-Update fehlgeschlagen");
-            ProfileStatusMessage = "Speichern fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben.";
+            ProfileStatusMessage = Loc.ProfileSaveFailedCheckInput;
         }
         finally
         {
@@ -403,17 +408,17 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             {
                 IsEmailVerified = true;
                 ShowVerifiedBadge = true;
-                VerificationStatusMessage = "Ihre E-Mail-Adresse ist bereits bestätigt.";
+                VerificationStatusMessage = Loc.VerificationAlreadyVerified;
             }
             else
             {
-                VerificationStatusMessage = "Bestätigungs-E-Mail wurde gesendet. Bitte prüfen Sie Ihr Postfach.";
+                VerificationStatusMessage = Loc.VerificationEmailSent;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[UserProfile] Verifikations-Mail-Versand fehlgeschlagen");
-            VerificationStatusMessage = "Der Versand ist fehlgeschlagen. Bitte versuchen Sie es später erneut.";
+            VerificationStatusMessage = Loc.VerificationSendFailed;
         }
         finally
         {
@@ -432,19 +437,19 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
         if (string.IsNullOrWhiteSpace(CurrentPassword) || string.IsNullOrWhiteSpace(NewPassword))
         {
-            PasswordStatusMessage = "Bitte aktuelles und neues Passwort angeben.";
+            PasswordStatusMessage = Loc.ValidationPasswordsRequired;
             return;
         }
 
         if (NewPassword.Length < 8)
         {
-            PasswordStatusMessage = "Das neue Passwort muss mindestens 8 Zeichen lang sein.";
+            PasswordStatusMessage = Loc.ValidationNewPasswordTooShort;
             return;
         }
 
         if (NewPassword != NewPasswordConfirm)
         {
-            PasswordStatusMessage = "Die Passwörter stimmen nicht überein.";
+            PasswordStatusMessage = Loc.ValidationPasswordMismatch;
             return;
         }
 
@@ -462,7 +467,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
             if (result == null)
             {
-                PasswordStatusMessage = "Passwort-Änderung fehlgeschlagen.";
+                PasswordStatusMessage = Loc.PasswordChangeFailed;
                 return;
             }
 
@@ -471,12 +476,12 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             CurrentPassword = string.Empty;
             NewPassword = string.Empty;
             NewPasswordConfirm = string.Empty;
-            PasswordStatusMessage = "Passwort geändert. Andere Geräte wurden abgemeldet.";
+            PasswordStatusMessage = Loc.PasswordChanged;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[UserProfile] Passwort-Aenderung fehlgeschlagen");
-            PasswordStatusMessage = "Passwort-Änderung fehlgeschlagen. Ist das aktuelle Passwort korrekt?";
+            PasswordStatusMessage = Loc.PasswordChangeFailedCheckCurrent;
         }
         finally
         {
@@ -504,16 +509,16 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
         SellerTypeLabel = _authService.SellerType switch
         {
-            "Broker" => "Makler / Agentur",
-            "PropertyManager" => "Hausverwaltung",
-            "Private" => "Privatperson",
+            "Broker" => Loc.SellerTypeBroker,
+            "PropertyManager" => Loc.SellerTypePropertyManager,
+            "Private" => Loc.SellerTypePrivate,
             _ => string.Empty
         };
 
         // Jeder Account ist Kaeufer; Verkaeufer wird mit Anbietertyp ausgewiesen
         RoleBadgeText = IsSeller && SellerTypeLabel.Length > 0
-            ? $"Verkäufer · {SellerTypeLabel}"
-            : "Käufer";
+            ? Loc.RoleBadgeSellerFormat(SellerTypeLabel)
+            : Loc.RoleBadgeBuyer;
 
         _logger.LogInformation("[UserProfile] Benutzerdaten geladen: {Name}, {Email}", UserFullName, UserEmail);
     }
@@ -544,8 +549,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     {
         // Schritt 1: Bestaetigung einholen (verhindert versehentliches Loeschen)
         var confirmed = await _dialogs.Confirm(
-            "Konto wirklich löschen?",
-            "Ihr Profil, Ihre Inserate, Favoriten, Blockierungen und Benachrichtigungs-Einstellungen werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.");
+            Loc.DeleteConfirmTitle,
+            Loc.DeleteConfirmText);
         if (!confirmed)
         {
             return;
@@ -566,8 +571,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
                 _logger.LogInformation("[UserProfile] Konto erfolgreich geloescht");
 
                 await _dialogs.Alert(
-                    "Konto gelöscht",
-                    "Ihr Konto und alle zugehörigen Daten wurden dauerhaft gelöscht.");
+                    Loc.DeleteSuccessTitle,
+                    Loc.DeleteSuccessText);
 
                 // Schritt 3: Abmelden + Navigation zur Login-Seite
                 await LogoutAsync();
@@ -575,16 +580,16 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             else
             {
                 await _dialogs.Alert(
-                    "Löschung fehlgeschlagen",
-                    "Ihr Konto konnte nicht gelöscht werden. Bitte versuchen Sie es später erneut.");
+                    Loc.DeleteFailedTitle,
+                    Loc.DeleteFailedText);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[UserProfile] Konto-Loeschung fehlgeschlagen");
             await _dialogs.Alert(
-                "Löschung fehlgeschlagen",
-                "Ihr Konto konnte nicht gelöscht werden. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.");
+                Loc.DeleteFailedTitle,
+                Loc.DeleteFailedNetworkText);
         }
         finally
         {

@@ -1,5 +1,6 @@
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -15,22 +16,26 @@ public partial class FavoritesViewModel(
     IMediator mediator,
     INavigator navigator,
     IDialogs dialogs,
-    ILogger<FavoritesViewModel> logger
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger)
+    ILogger<FavoritesViewModel> logger,
+    CollectionStringsLocalized collectionLoc,
+    FavoritesStringsLocalized loc
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc)
 {
-    protected override string LoadingMessage => "Lade Favoriten...";
-    protected override string RemovingMessage => "Entferne Favorit...";
-    protected override string RemoveConfirmTitle => "Favorit entfernen?";
-    protected override string RemoveErrorTitle => "Fehler beim Entfernen";
+    public FavoritesStringsLocalized Loc => loc;
+
+    protected override string LoadingMessage => loc.LoadingMessage;
+    protected override string RemovingMessage => loc.RemovingMessage;
+    protected override string RemoveConfirmTitle => loc.RemoveConfirmTitle;
+    protected override string RemoveErrorTitle => loc.RemoveErrorTitle;
 
     protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
-        => $"Möchten Sie \"{property.Title}\" wirklich aus Ihren Favoriten entfernen?";
+        => loc.RemoveConfirmMessageFormat(property.Title);
 
     protected override string GetRemoveErrorMessage(string errorDetails)
-        => $"Die Immobilie konnte nicht aus den Favoriten entfernt werden. {errorDetails}";
+        => loc.RemoveErrorMessageFormat(errorDetails);
 
     protected override string GetLoadErrorMessage(string errorDetails)
-        => $"Die Favoriten konnten nicht geladen werden. {errorDetails}";
+        => loc.LoadErrorMessageFormat(errorDetails);
 
     protected override Task<(IEnumerable<PropertyListItemDto> Items, bool HasMore, int TotalCount)> FetchPageAsync(
         int page, int pageSize, bool forceRemoteRefresh, CancellationToken ct)

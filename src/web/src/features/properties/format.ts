@@ -2,10 +2,11 @@
  * Reine Formatierungs-Helfer ohne Server-Abhaengigkeiten - dieses Modul darf
  * (anders als live-api.ts) auch von Client-Skripten importiert werden.
  */
+import { t } from "@/i18n";
 
 export function formatApiPrice(value: number | string | null | undefined) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "Preis offen";
+  if (!Number.isFinite(number) || number <= 0) return t("property.priceOpen");
   // Branchenuebliche Schreibweise ("€ 365.000") statt "365 Tsd. EUR"
   return new Intl.NumberFormat("de-AT", {
     style: "currency",
@@ -16,7 +17,7 @@ export function formatApiPrice(value: number | string | null | undefined) {
 
 export function formatApiPriceLong(value: number | string | null | undefined) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "Preis auf Anfrage";
+  if (!Number.isFinite(number) || number <= 0) return t("property.priceOnRequest");
   return new Intl.NumberFormat("de-AT", {
     style: "currency",
     currency: "EUR",

@@ -30,6 +30,12 @@ public partial class OrtBezirkItem : ObservableObject
     public required string Name { get; init; }
     public required IReadOnlyList<OrtGemeindeItem> Gemeinden { get; init; }
 
+    /// <summary>
+    /// Lokalisierter Zaehler-Text ("{0} ausgewählt") - liefert das konstruierende
+    /// ViewModel (Home bzw. FilterSettings) mit, Models haben kein DI/Loc.
+    /// </summary>
+    public required Func<int, string> CountLabelFormatter { get; init; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ExpandGlyph))]
     [NotifyPropertyChangedFor(nameof(VisibleGemeinden))]
@@ -47,7 +53,7 @@ public partial class OrtBezirkItem : ObservableObject
 
     /// <summary>Tri-State-Glyph: ✓ = alle, – = teilweise, leer = keine</summary>
     public string CheckGlyph => IsAllSelected ? "✓" : HasSelection ? "–" : string.Empty;
-    public string CountLabel => HasSelection ? $"{SelectedCount} ausgewählt" : string.Empty;
+    public string CountLabel => HasSelection ? CountLabelFormatter(SelectedCount) : string.Empty;
     public string ExpandGlyph => IsExpanded ? "▾" : "▸";
 
     /// <summary>

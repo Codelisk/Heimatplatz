@@ -5,6 +5,8 @@ using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Localization;
+using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -41,7 +43,11 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     private readonly INavigator _navigator;
     private readonly IDictationService _dictation;
     private readonly IPhotoPreviewService _photoPreview;
+    private readonly CommonStringsLocalized _common;
     private readonly ILogger<PropertyWizardViewModel> _logger;
+
+    /// <summary>Lokalisierte Texte des Editors (auch von allen partial-Dateien und im XAML genutzt)</summary>
+    public WizardStringsLocalized Loc { get; }
 
     private CancellationTokenSource? _autoSaveCts;
     private bool _initialized;
@@ -50,7 +56,33 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     [ShellProperty]
     public string DraftId { get; set; } = string.Empty;
 
+    /// <summary>Navigationsparameter: Id einer bestehenden Immobilie zum Bearbeiten (Edit-Modus)</summary>
+    [ShellProperty]
+    public string EditPropertyId { get; set; } = string.Empty;
+
     public MunicipalitySearchModel Ort { get; }
+
+    #region Modus (Erstellen vs. Bearbeiten)
+
+    /// <summary>
+    /// Edit-Modus: gleiche WYSIWYG-Ansicht, aber ohne Server-Entwuerfe und ohne
+    /// KI-Generierung - gespeichert wird direkt via UpdateProperty.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCreateMode))]
+    [NotifyPropertyChangedFor(nameof(PageTitle))]
+    [NotifyPropertyChangedFor(nameof(PublishButtonText))]
+    [NotifyPropertyChangedFor(nameof(PublishReadyText))]
+    public partial bool IsEditMode { get; set; }
+
+    public bool IsCreateMode => !IsEditMode;
+
+    public string PageTitle => IsEditMode ? Loc.PageTitleEdit : Loc.PageTitleCreate;
+
+    /// <summary>Ungespeicherte Aenderungen im Edit-Modus (steuert den Abbruch-Prompt)</summary>
+    private bool _editDirty;
+
+    #endregion
 
     #region UI-State
 
@@ -75,6 +107,8 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         ILocationService locationService,
         IDictationService dictation,
         IPhotoPreviewService photoPreview,
+        WizardStringsLocalized loc,
+        CommonStringsLocalized common,
         ILogger<PropertyWizardViewModel> logger)
     {
         _authService = authService;
@@ -82,7 +116,12 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         _navigator = navigator;
         _dictation = dictation;
         _photoPreview = photoPreview;
+        Loc = loc;
+        _common = common;
         _logger = logger;
+
+        // Vor InitializeDetailsStep befuellen - dort wird der Standard-Typ gesetzt
+        PropertyTypes = PropertyTypeItem.GetAll(loc.PropertyTypeHouse, loc.PropertyTypeLand);
 
         Ort = new MunicipalitySearchModel(locationService, logger);
 
@@ -107,7 +146,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         }
 
         if (!_authService.IsSeller)
-            ErrorMessage = "Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.";
+            ErrorMessage = Loc.SellerAccountRequired;
 
         SubscribeDictation();
 
@@ -116,8 +155,15 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         if (!_initialized)
         {
             _initialized = true;
-            if (Guid.TryParse(DraftId, out var draftId))
+            if (Guid.TryParse(EditPropertyId, out var editPropertyId))
+            {
+                IsEditMode = true;
+                _ = LoadPropertyForEditAsync(editPropertyId);
+            }
+            else if (Guid.TryParse(DraftId, out var draftId))
+            {
                 _ = LoadDraftAsync(draftId);
+            }
         }
     }
 
@@ -160,6 +206,13 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
     /// <summary>Speichert den Entwurf nach kurzer Tipp-Pause (jede Eingabe startet den Timer neu).</summary>
     internal void ScheduleAutoSave()
     {
+        // Edit-Modus kennt keine Server-Entwuerfe: Eingaben nur als "ungespeichert" merken
+        if (IsEditMode)
+        {
+            _editDirty = true;
+            return;
+        }
+
         _autoSaveCts?.Cancel();
         _autoSaveCts?.Dispose();
         var cts = new CancellationTokenSource();
@@ -216,6 +269,26 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         if (IsBusy)
             return;
 
+        // Edit-Modus: kein Entwurfs-Handling - ohne Aenderungen direkt zurueck,
+        // sonst kurz nachfragen (Zurueck wuerde die Eingaben verwerfen)
+        if (IsEditMode)
+        {
+            if (!_editDirty)
+            {
+                await _navigator.GoBack();
+                return;
+            }
+
+            var editChoice = await Shell.Current.DisplayActionSheetAsync(
+                Loc.DiscardChangesTitle,
+                Loc.KeepEditing,
+                Loc.Discard);
+
+            if (editChoice == Loc.Discard)
+                await _navigator.GoBack();
+            return;
+        }
+
         if (!HasAnyInput())
         {
             await DeleteDraftAsync();
@@ -224,25 +297,24 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         }
 
         var choice = await Shell.Current.DisplayActionSheetAsync(
-            "Inserat-Entwurf",
-            "Weiter bearbeiten",
-            "Verwerfen",
-            "Als Entwurf speichern");
+            Loc.DraftPromptTitle,
+            Loc.KeepEditing,
+            Loc.Discard,
+            Loc.SaveAsDraft);
 
-        switch (choice)
+        // Kein switch: Lokalisierte Texte sind keine Konstanten (case-Labels unzulaessig)
+        if (choice == Loc.SaveAsDraft)
         {
-            case "Als Entwurf speichern":
-                StopDescriptionPolling();
-                await SaveDraftAsync();
-                await _navigator.GoBack();
-                break;
-
-            case "Verwerfen":
-                StopDescriptionPolling();
-                CancelPendingAutoSave();
-                await DeleteDraftAsync();
-                await _navigator.GoBack();
-                break;
+            StopDescriptionPolling();
+            await SaveDraftAsync();
+            await _navigator.GoBack();
+        }
+        else if (choice == Loc.Discard)
+        {
+            StopDescriptionPolling();
+            CancelPendingAutoSave();
+            await DeleteDraftAsync();
+            await _navigator.GoBack();
         }
     }
 

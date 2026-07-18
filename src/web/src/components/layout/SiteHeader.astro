@@ -13,6 +13,7 @@ import UserPlusIcon from "@tabler/icons/outline/user-plus.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
 import { Button } from "@/components/starwind/button";
 import { NativeSelect } from "@/components/starwind/native-select";
+import { t } from "@/i18n";
 import BrandMark from "@/components/layout/BrandMark.astro";
 import ThemeToggle from "@/components/layout/ThemeToggle.astro";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
@@ -26,36 +27,36 @@ const showFilters = pathname === "/";
 const ortRegions = showFilters ? await fetchOrtRegions() : [];
 const titleByPath = [
   { test: (path: string) => path === "/", title: "HEIMATPLATZ" },
-  { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: "Immobilie" },
-  { test: (path: string) => path.startsWith("/zwangsversteigerungen/") && path !== "/zwangsversteigerungen/", title: "Zwangsversteigerung" },
-  { test: (path: string) => path.startsWith("/immobilien/bearbeiten"), title: "Immobilie bearbeiten" },
-  { test: (path: string) => path.startsWith("/inserieren"), title: "Immobilie hinzufügen" },
-  { test: (path: string) => path.startsWith("/meine-immobilien"), title: "Meine Immobilien" },
-  { test: (path: string) => path.startsWith("/favoriten"), title: "Meine Favoriten" },
-  { test: (path: string) => path.startsWith("/blockiert"), title: "Blockierte Immobilien" },
-  { test: (path: string) => path.startsWith("/benachrichtigungen"), title: "Benachrichtigungen" },
-  { test: (path: string) => path.startsWith("/filter-einstellungen"), title: "Filtereinstellungen" },
-  { test: (path: string) => path.startsWith("/profil"), title: "Mein Profil" },
-  { test: (path: string) => path.startsWith("/zwangsversteigerungen"), title: "Zwangsversteigerungen" },
+  { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: t("nav.property") },
+  { test: (path: string) => path.startsWith("/zwangsversteigerungen/") && path !== "/zwangsversteigerungen/", title: t("nav.foreclosure") },
+  { test: (path: string) => path.startsWith("/immobilien/bearbeiten"), title: t("nav.editProperty") },
+  { test: (path: string) => path.startsWith("/inserieren"), title: t("nav.addProperty") },
+  { test: (path: string) => path.startsWith("/meine-immobilien"), title: t("nav.myProperties") },
+  { test: (path: string) => path.startsWith("/favoriten"), title: t("nav.myFavorites") },
+  { test: (path: string) => path.startsWith("/blockiert"), title: t("nav.blockedProperties") },
+  { test: (path: string) => path.startsWith("/benachrichtigungen"), title: t("nav.notifications") },
+  { test: (path: string) => path.startsWith("/filter-einstellungen"), title: t("nav.filterSettings") },
+  { test: (path: string) => path.startsWith("/profil"), title: t("nav.myProfile") },
+  { test: (path: string) => path.startsWith("/zwangsversteigerungen"), title: t("nav.foreclosures") },
 ];
 const currentTitle = titleByPath.find((item) => item.test(pathname))?.title ?? "HEIMATPLATZ";
 
 // Wie Uno MainPage NavigationView.MenuItems
 const navItems = [
-  { label: "Home", href: "/", icon: HomeIcon },
-  { label: "Meine Immobilien", href: "/meine-immobilien/", icon: HomeIcon },
-  { label: "Meine Favoriten", href: "/favoriten/", icon: HeartIcon },
-  { label: "Blockierte Immobilien", href: "/blockiert/", icon: ShieldOffIcon },
+  { label: t("nav.home"), href: "/", icon: HomeIcon },
+  { label: t("nav.myProperties"), href: "/meine-immobilien/", icon: HomeIcon },
+  { label: t("nav.myFavorites"), href: "/favoriten/", icon: HeartIcon },
+  { label: t("nav.blockedProperties"), href: "/blockiert/", icon: ShieldOffIcon },
   // Inserieren erfordert ein Konto - Gaeste sehen den Eintrag nicht (PropertyStateScript blendet ein)
-  { label: "Immobilie hinzufügen", href: "/inserieren/", icon: PlusIcon, separator: true, authOnly: true },
+  { label: t("nav.addProperty"), href: "/inserieren/", icon: PlusIcon, separator: true, authOnly: true },
 ];
 
 // Wie Uno NavigationView.FooterMenuItems
 const navFooterItems = [
-  { label: "Benachrichtigungen", href: "/benachrichtigungen/", icon: BellIcon },
-  { label: "Filtereinstellungen", href: "/filter-einstellungen/", icon: FilterIcon },
+  { label: t("nav.notifications"), href: "/benachrichtigungen/", icon: BellIcon },
+  { label: t("nav.filterSettings"), href: "/filter-einstellungen/", icon: FilterIcon },
   // Nur auf Debug-Hosts (localhost/LAN-IP) sichtbar - Client-Script blendet ein
-  { label: "Debug", href: "/debug/", icon: BugIcon, debugOnly: true },
+  { label: t("nav.debug"), href: "/debug/", icon: BugIcon, debugOnly: true },
 ];
 
 function isActive(href: string) {
@@ -71,13 +72,13 @@ function isActive(href: string) {
       <button
         type="button"
         class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground"
-        aria-label="Navigation öffnen"
+        aria-label={t("nav.openNavigation")}
         aria-expanded="false"
         data-site-nav-toggle
       >
         <MenuIcon class="size-5" aria-hidden="true" />
       </button>
-      <a href="/" class="flex min-w-0 items-center gap-2.5 px-1 text-foreground" aria-label="Heimatplatz Startseite">
+      <a href="/" class="flex min-w-0 items-center gap-2.5 px-1 text-foreground" aria-label={t("nav.homeAriaLabel")}>
         <BrandMark class="h-8" />
         <span class="block truncate text-xs font-extrabold uppercase tracking-[0.14em] sm:text-sm">{currentTitle}</span>
       </a>
@@ -87,34 +88,34 @@ function isActive(href: string) {
       showFilters && (
         <form action="/" method="get" class="hidden min-w-0 flex-1 items-center justify-center gap-2 xl:flex">
           <div class="w-44">
-            <OrtPicker name="region" placeholder="Ort auswählen" regions={ortRegions.length > 0 ? ortRegions : undefined} />
+            <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
           </div>
           <NativeSelect name="age" class="w-32" data-filter-age>
-            <option value="">Zeitraum</option>
-            <option value="day">24 Stunden</option>
-            <option value="week">7 Tage</option>
-            <option value="month">30 Tage</option>
-            <option value="year">1 Jahr</option>
+            <option value="">{t("filter.period")}</option>
+            <option value="day">{t("filter.period24h")}</option>
+            <option value="week">{t("filter.period7d")}</option>
+            <option value="month">{t("filter.period30d")}</option>
+            <option value="year">{t("filter.period1y")}</option>
           </NativeSelect>
           <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="house" aria-pressed="true">
-            Haus
+            {t("filter.typeHouse")}
           </button>
           <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">
-            Grund
+            {t("filter.typeLand")}
           </button>
           <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="true">
-            ZV
+            {t("filter.typeForeclosure")}
           </button>
           <div class="flex items-center gap-2" data-seller-filter-group>
             <span class="mx-1 h-6 w-px bg-border" aria-hidden="true" />
             <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="private" aria-pressed="true">
-              Privat
+              {t("filter.sellerPrivate")}
             </button>
             <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="agent" aria-pressed="true">
-              Makler
+              {t("filter.sellerAgent")}
             </button>
             <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="court" aria-pressed="true">
-              Portal
+              {t("filter.sellerPortal")}
             </button>
           </div>
         </form>
@@ -125,10 +126,10 @@ function isActive(href: string) {
       <ThemeToggle />
       <div class="hidden items-center gap-2 sm:flex">
         <Button href="/anmelden/" variant="ghost" size="sm" data-guest-only>
-          Anmelden
+          {t("common.login")}
         </Button>
         <Button href="/registrieren/" variant="default" size="sm" data-guest-only>
-          Registrieren
+          {t("common.register")}
         </Button>
       </div>
       {/* Initialen-Avatar im Marken-Rot wie die CTA-Buttons (--primary folgt dem
@@ -137,7 +138,7 @@ function isActive(href: string) {
       <a
         href="/profil/"
         class="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground transition-colors outline-none hover:bg-primary-accent focus-visible:ring-3 focus-visible:ring-primary/50"
-        aria-label="Mein Profil"
+        aria-label={t("nav.myProfile")}
         data-auth-only
         data-auth-tooltip
         hidden
@@ -150,7 +151,7 @@ function isActive(href: string) {
   <div class="fixed inset-0 z-50 bg-black/35" data-site-nav-overlay hidden></div>
   <aside
     class="fixed inset-y-0 left-0 z-50 flex w-[min(20rem,calc(100vw-2rem))] -translate-x-full flex-col border-r border-border bg-background shadow-xl transition-transform duration-200"
-    aria-label="App-Navigation"
+    aria-label={t("nav.drawerAriaLabel")}
     aria-hidden="true"
     inert
     data-site-nav-panel
@@ -160,7 +161,7 @@ function isActive(href: string) {
         <BrandMark class="h-7" />
         Heimatplatz
       </a>
-      <button type="button" class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground" aria-label="Navigation schließen" data-site-nav-close>
+      <button type="button" class="grid size-10 place-items-center rounded-md text-foreground hover:bg-accent hover:text-accent-foreground" aria-label={t("nav.closeNavigation")} data-site-nav-close>
         <XIcon class="size-5" aria-hidden="true" />
       </button>
     </div>
@@ -201,11 +202,11 @@ function isActive(href: string) {
       <div class="mt-6 space-y-2 px-3" data-guest-only>
         <Button href="/anmelden/" variant="outline" class="w-full justify-start">
           <LoginIcon class="size-4" aria-hidden="true" />
-          Anmelden
+          {t("common.login")}
         </Button>
         <Button href="/registrieren/" class="w-full justify-start">
           <UserPlusIcon class="size-4" aria-hidden="true" />
-          Registrieren
+          {t("common.register")}
         </Button>
       </div>
     </div>
@@ -236,16 +237,16 @@ function isActive(href: string) {
       <div class="mb-2 flex items-center gap-3 rounded-md bg-muted px-3 py-2.5">
         <span class="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground" data-auth-initials aria-hidden="true">?</span>
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold" data-auth-name>Nicht angemeldet</p>
+          <p class="truncate text-sm font-semibold" data-auth-name>{t("nav.notSignedIn")}</p>
           <p class="truncate text-xs text-muted-foreground" data-auth-email></p>
         </div>
       </div>
       <a href="/profil/" class="flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground">
         <UserIcon class="size-4" aria-hidden="true" />
-        <span>Mein Profil</span>
+        <span>{t("nav.myProfile")}</span>
       </a>
       <button type="button" class="mt-1 w-full rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground" data-logout>
-        Abmelden
+        {t("common.logout")}
       </button>
     </div>
   </aside>

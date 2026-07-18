@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { formatApiDate, formatApiPriceLong, getApiPropertyTypeLabel, type ApiProperty } from "./live-api";
 
 export type DetailItem = {
@@ -12,14 +13,25 @@ export type PropertyDetailSection = {
 
 type TypeSpecificData = Record<string, unknown>;
 
+// Anzeigetitel der Sektionen dienen zugleich als Map-Schlüssel — Reihenfolge hier
+const SECTIONS = {
+  basics: t("detail.sectionBasics"),
+  areas: t("detail.sectionAreas"),
+  building: t("detail.sectionBuilding"),
+  equipment: t("detail.sectionEquipment"),
+  plot: t("detail.sectionPlot"),
+  auction: t("detail.sectionAuction"),
+  costs: t("detail.sectionCosts"),
+} as const;
+
 const SECTION_ORDER = [
-  "Basisdaten",
-  "Flächen",
-  "Gebäude",
-  "Ausstattung",
-  "Grundstück",
-  "Versteigerung",
-  "Kosten",
+  SECTIONS.basics,
+  SECTIONS.areas,
+  SECTIONS.building,
+  SECTIONS.equipment,
+  SECTIONS.plot,
+  SECTIONS.auction,
+  SECTIONS.costs,
 ] as const;
 
 function readTypeSpecificData(property: Pick<ApiProperty, "TypeSpecificData">): TypeSpecificData {
@@ -95,15 +107,15 @@ function formatDateTime(value: unknown) {
 function formatBool(value: unknown) {
   const bool = boolValue(value);
   if (bool === null) return "";
-  return bool ? "Ja" : "Nein";
+  return bool ? t("detail.yes") : t("detail.no");
 }
 
 function formatCondition(value: unknown) {
   const labels: Record<string, string> = {
-    LikeNew: "Neuwertig",
-    Good: "Gut",
-    Average: "Durchschnittlich",
-    NeedsRenovation: "Sanierungsbedürftig",
+    LikeNew: t("detail.conditionLikeNew"),
+    Good: t("detail.conditionGood"),
+    Average: t("detail.conditionAverage"),
+    NeedsRenovation: t("detail.conditionNeedsRenovation"),
   };
   const key = scalar({ value }, "value");
   return labels[key] ?? key;
@@ -111,11 +123,11 @@ function formatCondition(value: unknown) {
 
 function formatZoning(value: unknown) {
   const labels: Record<string, string> = {
-    Residential: "Wohngebiet",
-    Commercial: "Gewerbegebiet",
-    Industrial: "Industriegebiet",
-    Agricultural: "Landwirtschaft",
-    Mixed: "Mischgebiet",
+    Residential: t("detail.zoningResidential"),
+    Commercial: t("detail.zoningCommercial"),
+    Industrial: t("detail.zoningIndustrial"),
+    Agricultural: t("detail.zoningAgricultural"),
+    Mixed: t("detail.zoningMixed"),
   };
   const key = scalar({ value }, "value");
   return labels[key] ?? key;
@@ -123,9 +135,9 @@ function formatZoning(value: unknown) {
 
 function formatSoilQuality(value: unknown) {
   const labels: Record<string, string> = {
-    High: "Hoch",
-    Medium: "Mittel",
-    Low: "Niedrig",
+    High: t("detail.soilHigh"),
+    Medium: t("detail.soilMedium"),
+    Low: t("detail.soilLow"),
   };
   const key = scalar({ value }, "value");
   return labels[key] ?? key;
@@ -133,11 +145,11 @@ function formatSoilQuality(value: unknown) {
 
 function formatLegalStatus(value: unknown) {
   const labels: Record<string, string> = {
-    Pending: "Anhängig",
-    Scheduled: "Terminiert",
-    InProgress: "Laufend",
-    Completed: "Abgeschlossen",
-    Cancelled: "Aufgehoben",
+    Pending: t("detail.statusPending"),
+    Scheduled: t("detail.statusScheduled"),
+    InProgress: t("detail.statusInProgress"),
+    Completed: t("detail.statusCompleted"),
+    Cancelled: t("detail.statusCancelled"),
   };
   const key = scalar({ value }, "value");
   return labels[key] ?? key;
@@ -149,12 +161,14 @@ function formatLegalStatus(value: unknown) {
  */
 export function getApiPriceFact(property: ApiProperty): DetailItem {
   if (property.Type !== "Foreclosure") {
-    return { label: "Kaufpreis", value: formatApiPriceLong(property.Price) };
+    return { label: t("detail.labelPurchasePrice"), value: formatApiPriceLong(property.Price) };
   }
   const data = readTypeSpecificData(property);
-  const label = !numberValue(data.MinimumBid) && numberValue(data.EstimatedValue) ? "Schätzwert" : "Mindestgebot";
+  const label = !numberValue(data.MinimumBid) && numberValue(data.EstimatedValue)
+    ? t("detail.labelEstimatedValue")
+    : t("detail.labelMinimumBid");
   const price = numberValue(property.Price);
-  return { label, value: price ? formatMoney(price) : "Preis offen" };
+  return { label, value: price ? formatMoney(price) : t("property.priceOpen") };
 }
 
 export function getApiPropertyDetailSections(property: ApiProperty): PropertyDetailSection[] {
@@ -163,61 +177,61 @@ export function getApiPropertyDetailSections(property: ApiProperty): PropertyDet
   const isForeclosure = property.Type === "Foreclosure";
   const priceFact = getApiPriceFact(property);
 
-  add(sections, "Basisdaten", "Immobilienart", getApiPropertyTypeLabel(property.Type, property));
-  add(sections, "Basisdaten", priceFact.label, priceFact.value);
-  add(sections, "Basisdaten", "PLZ", property.PostalCode);
-  add(sections, "Basisdaten", "Ort", property.City);
-  add(sections, "Basisdaten", "Adresse", property.Address);
+  add(sections, SECTIONS.basics, t("detail.labelPropertyType"), getApiPropertyTypeLabel(property.Type, property));
+  add(sections, SECTIONS.basics, priceFact.label, priceFact.value);
+  add(sections, SECTIONS.basics, t("detail.labelPostalCode"), property.PostalCode);
+  add(sections, SECTIONS.basics, t("detail.labelCity"), property.City);
+  add(sections, SECTIONS.basics, t("detail.labelAddress"), property.Address);
 
   // Bei Zwangsversteigerungen tragen die Kernfelder Edikt-Semantik (LivingAreaM2 = bebaute
   // Flaeche, PlotAreaM2 = Gesamtflaeche): als "Wohnflaeche"/"Grundstuecksflaeche" waeren die
   // Werte falsch beschriftet und stuenden doppelt neben "Gesamtflaeche"/"Bebaute Flaeche".
-  add(sections, "Flächen", "Wohnfläche", formatArea(data.LivingAreaInSquareMeters) || (isForeclosure ? "" : formatArea(property.LivingAreaM2)));
-  add(sections, "Flächen", "Grundstücksfläche", formatArea(data.PlotSizeInSquareMeters)
+  add(sections, SECTIONS.areas, t("detail.labelLivingArea"), formatArea(data.LivingAreaInSquareMeters) || (isForeclosure ? "" : formatArea(property.LivingAreaM2)));
+  add(sections, SECTIONS.areas, t("detail.labelPlotArea"), formatArea(data.PlotSizeInSquareMeters)
     || (isForeclosure && numberValue(data.TotalArea) ? "" : formatArea(property.PlotAreaM2)));
-  add(sections, "Flächen", "Gesamtfläche", formatArea(data.TotalArea));
-  add(sections, "Flächen", "Bebaute Fläche", formatArea(data.BuildingArea));
+  add(sections, SECTIONS.areas, t("detail.labelTotalArea"), formatArea(data.TotalArea));
+  add(sections, SECTIONS.areas, t("detail.labelBuildingArea"), formatArea(data.BuildingArea));
 
-  add(sections, "Gebäude", "Zimmer", positiveText(data.TotalRooms) || positiveText(data.NumberOfRooms) || positiveText(property.Rooms));
-  add(sections, "Gebäude", "Schlafzimmer", positiveText(data.Bedrooms));
-  add(sections, "Gebäude", "Badezimmer", positiveText(data.Bathrooms));
-  add(sections, "Gebäude", "Stockwerke", positiveText(data.Floors));
-  add(sections, "Gebäude", "Baujahr", scalar(data, "YearBuilt") || (property.YearBuilt ? String(property.YearBuilt) : ""));
-  add(sections, "Gebäude", "Zustand", formatCondition(data.Condition));
-  add(sections, "Gebäude", "Etage", positiveText(data.ApartmentFloor));
-  add(sections, "Gebäude", "Gebäudezustand", scalar(data, "BuildingCondition"));
+  add(sections, SECTIONS.building, t("detail.labelRooms"), positiveText(data.TotalRooms) || positiveText(data.NumberOfRooms) || positiveText(property.Rooms));
+  add(sections, SECTIONS.building, t("detail.labelBedrooms"), positiveText(data.Bedrooms));
+  add(sections, SECTIONS.building, t("detail.labelBathrooms"), positiveText(data.Bathrooms));
+  add(sections, SECTIONS.building, t("detail.labelFloors"), positiveText(data.Floors));
+  add(sections, SECTIONS.building, t("detail.labelYearBuilt"), scalar(data, "YearBuilt") || (property.YearBuilt ? String(property.YearBuilt) : ""));
+  add(sections, SECTIONS.building, t("detail.labelCondition"), formatCondition(data.Condition));
+  add(sections, SECTIONS.building, t("detail.labelApartmentFloor"), positiveText(data.ApartmentFloor));
+  add(sections, SECTIONS.building, t("detail.labelBuildingCondition"), scalar(data, "BuildingCondition"));
 
-  if (boolValue(data.HasGarage) === true) add(sections, "Ausstattung", "Garage", "Ja");
-  if (boolValue(data.HasGarden) === true) add(sections, "Ausstattung", "Garten", "Ja");
-  if (boolValue(data.HasBasement) === true) add(sections, "Ausstattung", "Keller", "Ja");
-  if (boolValue(data.HasElevator) === true) add(sections, "Ausstattung", "Aufzug", "Ja");
+  if (boolValue(data.HasGarage) === true) add(sections, SECTIONS.equipment, t("detail.labelGarage"), t("detail.yes"));
+  if (boolValue(data.HasGarden) === true) add(sections, SECTIONS.equipment, t("detail.labelGarden"), t("detail.yes"));
+  if (boolValue(data.HasBasement) === true) add(sections, SECTIONS.equipment, t("detail.labelBasement"), t("detail.yes"));
+  if (boolValue(data.HasElevator) === true) add(sections, SECTIONS.equipment, t("detail.labelElevator"), t("detail.yes"));
 
-  add(sections, "Grundstück", "Widmung", formatZoning(data.Zoning) || scalar(data, "ZoningDesignation"));
-  add(sections, "Grundstück", "Baurecht", formatBool(data.HasBuildingRights));
-  add(sections, "Grundstück", "Bebaubar", formatBool(data.IsBuildable));
-  add(sections, "Grundstück", "Versorgung", formatBool(data.HasUtilities));
-  add(sections, "Grundstück", "Bodenqualität", formatSoilQuality(data.SoilQuality));
-  add(sections, "Grundstück", "Katastralgemeinde", scalar(data, "CadastralMunicipality"));
-  add(sections, "Grundstück", "Grundstücksnummer", scalar(data, "PlotNumber"));
-  add(sections, "Grundstück", "Einlagezahl", scalar(data, "RegistrationNumber"));
+  add(sections, SECTIONS.plot, t("detail.labelZoning"), formatZoning(data.Zoning) || scalar(data, "ZoningDesignation"));
+  add(sections, SECTIONS.plot, t("detail.labelBuildingRights"), formatBool(data.HasBuildingRights));
+  add(sections, SECTIONS.plot, t("detail.labelBuildable"), formatBool(data.IsBuildable));
+  add(sections, SECTIONS.plot, t("detail.labelUtilities"), formatBool(data.HasUtilities));
+  add(sections, SECTIONS.plot, t("detail.labelSoilQuality"), formatSoilQuality(data.SoilQuality));
+  add(sections, SECTIONS.plot, t("detail.labelCadastralMunicipality"), scalar(data, "CadastralMunicipality"));
+  add(sections, SECTIONS.plot, t("detail.labelPlotNumber"), scalar(data, "PlotNumber"));
+  add(sections, SECTIONS.plot, t("detail.labelRegistrationNumber"), scalar(data, "RegistrationNumber"));
 
-  add(sections, "Versteigerung", "Gericht", scalar(data, "CourtName"));
-  add(sections, "Versteigerung", "Aktenzeichen", scalar(data, "FileNumber"));
-  add(sections, "Versteigerung", "Termin", formatDateTime(data.AuctionDate));
-  add(sections, "Versteigerung", "Mindestgebot", formatMoney(data.MinimumBid));
-  add(sections, "Versteigerung", "Schätzwert", formatMoney(data.EstimatedValue));
-  add(sections, "Versteigerung", "Status", formatLegalStatus(data.Status));
-  add(sections, "Versteigerung", "Besichtigung", formatDateTime(data.ViewingDate));
-  add(sections, "Versteigerung", "Bietfrist", formatDateTime(data.BiddingDeadline));
-  add(sections, "Versteigerung", "Eigentumsanteil", scalar(data, "OwnershipShare"));
+  add(sections, SECTIONS.auction, t("detail.labelCourt"), scalar(data, "CourtName"));
+  add(sections, SECTIONS.auction, t("detail.labelFileNumber"), scalar(data, "FileNumber"));
+  add(sections, SECTIONS.auction, t("detail.labelAuctionDate"), formatDateTime(data.AuctionDate));
+  add(sections, SECTIONS.auction, t("detail.labelMinimumBid"), formatMoney(data.MinimumBid));
+  add(sections, SECTIONS.auction, t("detail.labelEstimatedValue"), formatMoney(data.EstimatedValue));
+  add(sections, SECTIONS.auction, t("detail.labelStatus"), formatLegalStatus(data.Status));
+  add(sections, SECTIONS.auction, t("detail.labelViewingDate"), formatDateTime(data.ViewingDate));
+  add(sections, SECTIONS.auction, t("detail.labelBiddingDeadline"), formatDateTime(data.BiddingDeadline));
+  add(sections, SECTIONS.auction, t("detail.labelOwnershipShare"), scalar(data, "OwnershipShare"));
 
   // Bei Zwangsversteigerungen waere das Mindestgebot / bebaute Flaeche - kein Kaufpreis pro m²
   const livingArea = numberValue(property.LivingAreaM2) ?? numberValue(data.LivingAreaInSquareMeters);
   const price = numberValue(property.Price);
   if (!isForeclosure && livingArea && price) {
-    add(sections, "Kosten", "Preis / m²", formatMoney(price / livingArea));
+    add(sections, SECTIONS.costs, t("detail.labelPricePerM2"), formatMoney(price / livingArea));
   }
-  add(sections, "Basisdaten", "Eingestellt am", formatApiDate(property.CreatedAt));
+  add(sections, SECTIONS.basics, t("detail.labelCreatedAt"), formatApiDate(property.CreatedAt));
 
   return SECTION_ORDER
     .map((title) => ({ title, items: sections.get(title) ?? [] }))

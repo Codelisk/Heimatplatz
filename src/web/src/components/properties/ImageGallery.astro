@@ -5,6 +5,7 @@ import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import PhotoIcon from "@tabler/icons/outline/photo.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
+import { t } from "@/i18n";
 import { getOriginalProxyImage, getResponsiveImage, withProxyImageWidth } from "@/lib/images";
 import { jsonForScriptTag } from "@/lib/utils/json";
 
@@ -24,7 +25,7 @@ const items = images.map((url, index) => {
     thumbSrcset: responsive.srcset,
     preview: withProxyImageWidth(url, 320),
     full: getOriginalProxyImage(url),
-    alt: `${title} – Bild ${index + 1} von ${images.length}`,
+    alt: t("gallery.imageAlt", { title, index: index + 1, count: images.length }),
   };
 });
 
@@ -63,7 +64,7 @@ const remainingCount = items.length - 3;
             sideItems.length > 0 ? "sm:col-span-2 sm:row-span-2 sm:h-full" : "sm:h-[460px]",
           ]}
           data-gallery-open="0"
-          aria-label={`${title} – Bild 1 in Großansicht öffnen`}
+          aria-label={t("gallery.openImageAria", { title, index: 1 })}
         >
           <img
             src={items[0].thumb}
@@ -79,7 +80,7 @@ const remainingCount = items.length - 3;
           <span class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <span class="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-full bg-black/70 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
             <PhotoIcon class="size-4" aria-hidden="true" />
-            {items.length === 1 ? "Foto ansehen" : `Alle ${items.length} Fotos`}
+            {items.length === 1 ? t("gallery.viewPhoto") : t("gallery.allPhotos", { count: items.length })}
             <ArrowsDiagonalIcon class="size-4" aria-hidden="true" />
           </span>
         </button>
@@ -89,7 +90,7 @@ const remainingCount = items.length - 3;
             type="button"
             class="group relative hidden cursor-zoom-in overflow-hidden bg-muted sm:block focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-foreground"
             data-gallery-open={String(index + 1)}
-            aria-label={`${title} – Bild ${index + 2} in Großansicht öffnen`}
+            aria-label={t("gallery.openImageAria", { title, index: index + 2 })}
           >
             <img
               src={item.thumb}
@@ -104,7 +105,7 @@ const remainingCount = items.length - 3;
             />
             {index === sideItems.length - 1 && remainingCount > 0 && (
               <span class="absolute inset-0 grid place-items-center bg-black/55 text-lg font-bold text-white backdrop-blur-[2px] transition-colors duration-300 group-hover:bg-black/45">
-                +{remainingCount} Fotos
+                {t("gallery.morePhotos", { count: remainingCount })}
               </span>
             )}
           </button>
@@ -116,7 +117,7 @@ const remainingCount = items.length - 3;
         class="fixed inset-0 z-[80] hidden flex-col bg-black/95 opacity-0 backdrop-blur-sm transition-opacity duration-200"
         role="dialog"
         aria-modal="true"
-        aria-label={`Bildergalerie: ${title}`}
+        aria-label={t("gallery.lightboxLabel", { title })}
       >
         <header class="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <p class="text-sm font-semibold tabular-nums text-white/90" data-lightbox-counter aria-live="polite">
@@ -129,8 +130,8 @@ const remainingCount = items.length - 3;
               href={items[0].full}
               target="_blank"
               rel="nofollow noopener"
-              title="Original in neuem Tab öffnen"
-              aria-label="Original in neuem Tab öffnen"
+              title={t("gallery.openOriginalTab")}
+              aria-label={t("gallery.openOriginalTab")}
             >
               <ExternalLinkIcon class="size-5" aria-hidden="true" />
             </a>
@@ -138,7 +139,7 @@ const remainingCount = items.length - 3;
               type="button"
               class="grid size-11 place-items-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
               data-lightbox-close
-              aria-label="Galerie schließen"
+              aria-label={t("gallery.close")}
             >
               <XIcon class="size-6" aria-hidden="true" />
             </button>
@@ -166,7 +167,7 @@ const remainingCount = items.length - 3;
                 type="button"
                 class="absolute left-3 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/25 sm:left-5"
                 data-lightbox-prev
-                aria-label="Vorheriges Bild"
+                aria-label={t("gallery.prev")}
               >
                 <ChevronLeftIcon class="size-6" aria-hidden="true" />
               </button>
@@ -174,7 +175,7 @@ const remainingCount = items.length - 3;
                 type="button"
                 class="absolute right-3 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/25 sm:right-5"
                 data-lightbox-next
-                aria-label="Nächstes Bild"
+                aria-label={t("gallery.next")}
               >
                 <ChevronRightIcon class="size-6" aria-hidden="true" />
               </button>
@@ -190,7 +191,7 @@ const remainingCount = items.length - 3;
                   type="button"
                   class="relative block h-14 w-20 shrink-0 overflow-hidden rounded-md opacity-45 outline-2 outline-offset-2 outline-transparent transition duration-200 hover:opacity-80 data-[active]:opacity-100 data-[active]:outline-white"
                   data-lightbox-thumb={String(index)}
-                  aria-label={`Bild ${index + 1} anzeigen`}
+                  aria-label={t("gallery.showImage", { index: index + 1 })}
                 >
                   <img
                     src={item.preview}

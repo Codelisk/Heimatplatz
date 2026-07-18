@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TypeBadgeHouse" xml:space="preserve">
+    <value>HAUS</value>
+  </data>
+  <data name="TypeBadgeLand" xml:space="preserve">
+    <value>GRUND</value>
+  </data>
+  <data name="TypeBadgeForeclosure" xml:space="preserve">
+    <value>ZV</value>
+  </data>
+  <data name="TypeBadgeFallback" xml:space="preserve">
+    <value>IMM</value>
+  </data>
+  <data name="PlotArea" xml:space="preserve">
+    <value>{0} m² Grund</value>
+  </data>
+  <data name="LivingArea" xml:space="preserve">
+    <value>{0} m² Wfl</value>
+  </data>
+  <data name="Rooms" xml:space="preserve">
+    <value>{0} Zi</value>
+  </data>
+  <data name="SellerPrivate" xml:space="preserve">
+    <value>Privat</value>
+  </data>
+  <data name="FavoriteActionDescription" xml:space="preserve">
+    <value>Immobilie merken</value>
+  </data>
+  <data name="BlockActionDescription" xml:space="preserve">
+    <value>Immobilie blockieren</value>
+  </data>
+</root>

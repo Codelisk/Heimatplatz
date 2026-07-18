@@ -34,6 +34,10 @@ public partial class PropertyWizardViewModel
     /// </summary>
     private async Task<bool> SaveDraftAsync()
     {
+        // Edit-Modus arbeitet direkt am veroeffentlichten Inserat - niemals Entwuerfe anlegen
+        if (IsEditMode)
+            return true;
+
         if (!HasAnyInput())
             return true;
 
@@ -93,14 +97,14 @@ public partial class PropertyWizardViewModel
     private async Task LoadDraftAsync(Guid draftId)
     {
         IsBusy = true;
-        BusyMessage = "Entwurf wird geladen…";
+        BusyMessage = Loc.BusyLoadingDraft;
 
         try
         {
             var (_, response) = await _mediator.Request(new GetPropertyDraftHttpRequest { Id = draftId });
             if (response?.Data == null)
             {
-                ErrorMessage = "Der Entwurf konnte nicht geladen werden.";
+                ErrorMessage = Loc.DraftLoadError;
                 return;
             }
 
@@ -118,7 +122,7 @@ public partial class PropertyWizardViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyWizard] Entwurf konnte nicht geladen werden");
-            ErrorMessage = "Der Entwurf konnte nicht geladen werden.";
+            ErrorMessage = Loc.DraftLoadError;
         }
         finally
         {

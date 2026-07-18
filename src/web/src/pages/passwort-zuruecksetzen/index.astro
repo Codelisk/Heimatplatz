@@ -3,27 +3,28 @@ import AuthShell from "@/components/auth/AuthShell.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
+import { t } from "@/i18n";
 ---
 
 <AuthShell
-  title="Neues Passwort wählen"
-  description="Wählen Sie ein neues Passwort für Ihr Heimatplatz-Konto. Nach der Änderung werden alle angemeldeten Geräte abgemeldet."
+  title={t("auth.resetTitle")}
+  description={t("auth.resetDescription")}
   canonicalPath="/passwort-zuruecksetzen/"
 >
   {/* Der Reset-Token kommt als ?token= aus dem Mail-Link (PropertyStateScript liest ihn aus) */}
   <form class="mt-10 space-y-5" method="post" data-reset-password-form>
     <div class="space-y-2">
-      <Label for="newPassword">Neues Passwort</Label>
-      <Input id="newPassword" type="password" name="newPassword" placeholder="Mindestens 8 Zeichen" minlength="8" autocomplete="new-password" required />
+      <Label for="newPassword">{t("auth.newPasswordLabel")}</Label>
+      <Input id="newPassword" type="password" name="newPassword" placeholder={t("auth.passwordMinHint")} minlength="8" autocomplete="new-password" required />
     </div>
     <div class="space-y-2">
-      <Label for="newPasswordConfirm">Neues Passwort bestätigen</Label>
-      <Input id="newPasswordConfirm" type="password" name="newPasswordConfirm" placeholder="Passwort wiederholen" minlength="8" autocomplete="new-password" required />
+      <Label for="newPasswordConfirm">{t("auth.newPasswordConfirmLabel")}</Label>
+      <Input id="newPasswordConfirm" type="password" name="newPasswordConfirm" placeholder={t("auth.resetConfirmPlaceholder")} minlength="8" autocomplete="new-password" required />
     </div>
     <p class="hidden text-sm" data-form-status></p>
-    <Button type="submit" class="w-full">Passwort ändern</Button>
+    <Button type="submit" class="w-full">{t("auth.changePassword")}</Button>
   </form>
   <p class="mt-8 text-center text-sm text-muted-foreground">
-    Zurück zur <a class="font-semibold text-foreground" href="/anmelden/">Anmeldung</a>
+    {t("auth.backToLoginPrefix")} <a class="font-semibold text-foreground" href="/anmelden/">{t("auth.backToLoginLink")}</a>
   </p>
 </AuthShell>

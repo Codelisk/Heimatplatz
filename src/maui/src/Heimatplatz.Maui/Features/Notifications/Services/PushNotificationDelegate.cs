@@ -1,5 +1,6 @@
 #if ANDROID || IOS
 using Heimatplatz.Maui.Core.DeepLink;
+using Heimatplatz.Maui.Localization.Notifications;
 using Microsoft.Extensions.Logging;
 using Shiny.Notifications;
 using Shiny.Push;
@@ -20,7 +21,8 @@ public class PushNotificationDelegate(
     ILogger<PushNotificationDelegate> logger,
     INotificationService notificationService,
     IDeepLinkService deepLinkService,
-    INotificationManager shinyNotificationManager) :
+    INotificationManager shinyNotificationManager,
+    NotificationStringsLocalized loc) :
 #if IOS
     IApplePushDelegate
 #else
@@ -113,7 +115,7 @@ public class PushNotificationDelegate(
     /// Reads from Notification object first (FCM notification payload),
     /// then falls back to Data dictionary (FCM data payload).
     /// </summary>
-    private static (string title, string message) ExtractNotificationContent(PushNotification notification)
+    private (string title, string message) ExtractNotificationContent(PushNotification notification)
     {
         // Try Notification object first (standard FCM notification)
         var title = notification.Notification?.Title;
@@ -125,7 +127,7 @@ public class PushNotificationDelegate(
         if (string.IsNullOrEmpty(message))
             message = GetDataValue(notification.Data, "body") ?? GetDataValue(notification.Data, "message");
 
-        return (title ?? "Notification", message ?? string.Empty);
+        return (title ?? loc.DefaultTitle, message ?? string.Empty);
     }
 
     private static string? GetDataValue(IDictionary<string, string>? data, string key)

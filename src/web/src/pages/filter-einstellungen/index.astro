@@ -2,75 +2,76 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
+import { t } from "@/i18n";
 ---
 
 <BaseLayout
-  title="Filtereinstellungen"
-  description="Standardfilter für die Immobiliensuche in Oberösterreich speichern."
+  title={t("search.settingsMetaTitle")}
+  description={t("search.settingsMetaDescription")}
   canonicalPath="/filter-einstellungen/"
   noindex
 >
   <section class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold">Filtereinstellungen</h1>
+    <h1 class="text-3xl font-bold">{t("search.settingsTitle")}</h1>
     <p class="mt-3 text-sm leading-6 text-muted-foreground">
-      Standardfilter für Ort, Immobilientyp, Anbieter, Zeitraum und Sortierung speichern.
+      {t("search.settingsIntro")}
     </p>
     <form class="mt-8 space-y-4" data-preferences-form="filters">
       <div class="rounded-lg border border-border bg-card p-4">
-        <h2 class="text-base font-semibold">Orte</h2>
+        <h2 class="text-base font-semibold">{t("search.settingsOrteTitle")}</h2>
         <p class="mt-1 text-sm text-muted-foreground">
-          Mehrere Bezirke und Gemeinden auswählen. Keine Auswahl bedeutet: alle Orte in Oberösterreich.
+          {t("search.settingsOrteHint")}
         </p>
         <div class="mt-4">
-          <OrtPicker name="locations" placeholder="Orte auswählen" />
+          <OrtPicker name="locations" placeholder={t("search.ortPlaceholderMulti")} />
         </div>
       </div>
 
       <div class="rounded-lg border border-border bg-card p-4">
-        <h2 class="text-base font-semibold">Zeitraum</h2>
-        <p class="mt-1 text-sm text-muted-foreground">Entspricht dem Zeitraum-Filter der Startseite.</p>
+        <h2 class="text-base font-semibold">{t("search.settingsAgeTitle")}</h2>
+        <p class="mt-1 text-sm text-muted-foreground">{t("search.settingsAgeHint")}</p>
         <select name="ageFilter" class="mt-4 w-full rounded-md border-border bg-background text-base text-foreground sm:text-sm">
-          <option value="0">Alle</option>
-          <option value="1">24 Stunden</option>
-          <option value="2">7 Tage</option>
-          <option value="3">30 Tage</option>
-          <option value="4">1 Jahr</option>
+          <option value="0">{t("search.ageAll")}</option>
+          <option value="1">{t("filter.period24h")}</option>
+          <option value="2">{t("filter.period7d")}</option>
+          <option value="3">{t("filter.period30d")}</option>
+          <option value="4">{t("filter.period1y")}</option>
         </select>
       </div>
 
       <div class="rounded-lg border border-border bg-card p-4">
-        <h2 class="text-base font-semibold">Immobilientyp</h2>
+        <h2 class="text-base font-semibold">{t("search.settingsTypeTitle")}</h2>
         <div class="mt-4 flex flex-wrap gap-3">
-          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="house" checked /> Haus</label>
-          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="land" checked /> Grund</label>
-          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="foreclosure" /> Zwangsversteigerungen</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="house" checked /> {t("filter.typeHouse")}</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="land" checked /> {t("filter.typeLand")}</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="foreclosure" /> {t("search.typeForeclosurePlural")}</label>
         </div>
       </div>
 
       <div class="rounded-lg border border-border bg-card p-4">
-        <h2 class="text-base font-semibold">Anbietertyp</h2>
+        <h2 class="text-base font-semibold">{t("search.settingsSellerTitle")}</h2>
         <div class="mt-4 flex flex-wrap gap-3">
-          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="private" checked /> Privat</label>
-          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="broker" checked /> Makler</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="private" checked /> {t("filter.sellerPrivate")}</label>
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="broker" checked /> {t("filter.sellerAgent")}</label>
         </div>
       </div>
 
       <div class="rounded-lg border border-border bg-card p-4">
-        <h2 class="text-base font-semibold">Sortierung</h2>
-        <p class="mt-1 text-sm text-muted-foreground">Die Standardsortierung entspricht den Optionen der Immobiliensuche.</p>
+        <h2 class="text-base font-semibold">{t("search.settingsSortTitle")}</h2>
+        <p class="mt-1 text-sm text-muted-foreground">{t("search.settingsSortHint")}</p>
         <select name="sort" class="mt-4 w-full rounded-md border-border bg-background text-base text-foreground sm:text-sm">
-          <option value="0">Neueste</option>
-          <option value="1">Älteste</option>
-          <option value="2">Preis aufsteigend</option>
-          <option value="3">Preis absteigend</option>
-          <option value="4">Fläche absteigend</option>
-          <option value="5">Fläche aufsteigend</option>
-          <option value="6">PLZ</option>
+          <option value="0">{t("search.sortNewest")}</option>
+          <option value="1">{t("search.sortOldest")}</option>
+          <option value="2">{t("search.sortPriceAsc")}</option>
+          <option value="3">{t("search.sortPriceDesc")}</option>
+          <option value="4">{t("search.sortAreaDesc")}</option>
+          <option value="5">{t("search.sortAreaAsc")}</option>
+          <option value="6">{t("search.sortPostal")}</option>
         </select>
       </div>
 
       <p class="hidden text-sm" data-form-status></p>
-      <Button type="submit">Filter speichern</Button>
+      <Button type="submit">{t("search.settingsSave")}</Button>
     </form>
   </section>
 </BaseLayout>

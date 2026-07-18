@@ -1,5 +1,7 @@
 using System.Globalization;
 using Heimatplatz.Maui.Features.Properties.Models;
+using Heimatplatz.Maui.Localization.Properties;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Maui.Features.Properties;
 
@@ -24,8 +26,16 @@ public static class PropertyDisplay
     /// <summary>"1.234"</summary>
     public static string Number(decimal value) => string.Format(Culture, "{0:N0}", value);
 
+    // Localized Status-Texte per Service-Locator - PropertyDisplay ist statisch
+    // (Aufrufer erwarten die statische API), lazy aufgeloest und gecacht wie in
+    // PropertyCard.xaml.cs. GetService statt GetRequiredService: solange die
+    // Services noch nicht bereitstehen, faellt die Anzeige auf den Rohwert zurueck.
+    private static PropertyDisplayStringsLocalized? _locCache;
+    private static PropertyDisplayStringsLocalized? Loc =>
+        _locCache ??= IPlatformApplication.Current?.Services.GetService<PropertyDisplayStringsLocalized>();
+
     /// <summary>
-    /// Deutsche Bezeichnung des Verfahrens-Status - zentral, damit
+    /// Lokalisierte Bezeichnung des Verfahrens-Status - zentral, damit
     /// PropertyDetail- und ForeclosureDetail-Seite identisch formulieren.
     /// </summary>
     public static string LegalStatusText(LegalStatus status) => LegalStatusText(status.ToString());
@@ -34,14 +44,14 @@ public static class PropertyDisplay
     /// String-Variante fuer Status-Werte direkt aus TypeSpecificData-JSON
     /// (kann auch serverseitige Werte ausserhalb des lokalen Enums enthalten).
     /// </summary>
-    public static string LegalStatusText(string status) => status switch
+    public static string LegalStatusText(string status) => Loc is not { } loc ? status : status switch
     {
-        "Pending" => "Anhängig",
-        "Scheduled" => "Terminiert",
-        "InProgress" => "Laufend",
-        "Completed" => "Abgeschlossen",
-        "Cancelled" => "Aufgehoben",
-        "Suspended" => "Ausgesetzt",
+        "Pending" => loc.LegalStatusPending,
+        "Scheduled" => loc.LegalStatusScheduled,
+        "InProgress" => loc.LegalStatusInProgress,
+        "Completed" => loc.LegalStatusCompleted,
+        "Cancelled" => loc.LegalStatusCancelled,
+        "Suspended" => loc.LegalStatusSuspended,
         _ => status
     };
 }

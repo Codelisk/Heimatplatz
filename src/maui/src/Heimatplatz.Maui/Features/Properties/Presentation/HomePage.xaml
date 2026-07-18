@@ -37,7 +37,7 @@
                 <CollectionView x:Name="PropertiesCollection"
                                 ItemsSource="{Binding Properties}"
                                 ItemSizingStrategy="MeasureFirstItem"
-                                ItemsUpdatingScrollMode="KeepItemsInView"
+                                ItemsUpdatingScrollMode="KeepScrollOffset"
                                 Scrolled="OnPropertiesScrolled"
                                 AutomationId="Home_Properties"
                                 controls:ResponsiveGrid.MinItemWidth="320">
@@ -55,8 +55,8 @@
                                                  HorizontalOptions="Center"
                                                  IsVisible="{Binding ShowRegularEmptyState}">
                                 <Label Text="🔍" Style="{StaticResource EmptyStateIcon}" />
-                                <Label Text="Keine Treffer" Style="{StaticResource EmptyStateTitle}" />
-                                <Label Text="Passen Sie Ihre Filter an, um mehr Immobilien zu sehen."
+                                <Label Text="{Binding Loc.EmptyTitle}" Style="{StaticResource EmptyStateTitle}" />
+                                <Label Text="{Binding Loc.EmptyHint}"
                                        Style="{StaticResource EmptyStateHint}" />
                             </VerticalStackLayout>
 
@@ -66,11 +66,11 @@
                                                  HorizontalOptions="Center"
                                                  IsVisible="{Binding HasLoadError}">
                                 <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
-                                <Label Text="Laden fehlgeschlagen" Style="{StaticResource EmptyStateTitle}" />
+                                <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
                                 <Label Text="{Binding LoadErrorMessage}"
                                        Style="{StaticResource EmptyStateHint}"
                                        AutomationId="Home_LoadErrorMessage" />
-                                <Button Text="Erneut versuchen"
+                                <Button Text="{Binding Loc.RetryButton}"
                                         Style="{StaticResource SecondaryButton}"
                                         Command="{Binding RetryLoadCommand}"
                                         Margin="0,10,0,0"
@@ -97,7 +97,7 @@
                               IsVisible="{Binding HasResults}"
                               AutomationId="Home_Pagination">
                             <Button Grid.Column="0"
-                                    Text="‹ Zurück"
+                                    Text="{Binding Loc.PreviousPage}"
                                     Style="{StaticResource SecondaryButton}"
                                     Command="{Binding GoToPreviousPageCommand}"
                                     IsEnabled="{Binding CanGoToPreviousPage}"
@@ -111,7 +111,7 @@
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
                                    AutomationId="Home_PageNumber" />
                             <Button Grid.Column="2"
-                                    Text="Weiter ›"
+                                    Text="{Binding Loc.NextPage}"
                                     Style="{StaticResource SecondaryButton}"
                                     Command="{Binding GoToNextPageCommand}"
                                     IsEnabled="{Binding CanGoToNextPage}"
@@ -125,65 +125,71 @@
             <!-- Filter-Chip-Zeile: alle Kernfilter einen Tap entfernt; blendet sich
                  beim Runterscrollen aus und beim Hochwischen wieder ein -->
             <!-- Feste Hoehe (= Header-Spacer der Liste): WinUI ignoriert VerticalOptions=Start
-                 bei horizontalen ScrollViews im Grid-Overlay und streckt sie sonst seitenhoch -->
-            <ScrollView x:Name="FilterChipBar"
-                        Orientation="Horizontal"
-                        HorizontalScrollBarVisibility="Never"
-                        VerticalOptions="Start"
-                        HeightRequest="56"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
-                <HorizontalStackLayout Spacing="8" Padding="12,8,12,10">
+                 bei horizontalen ScrollViews im Grid-Overlay und streckt sie sonst seitenhoch.
+                 Clippender Host, weil WinUI das Seiten-Overlay nicht an der Navbar abschneidet:
+                 die weggeschobene Zeile parkt sonst sichtbar UEBER der Navbar (deckt den Titel ab);
+                 nach dem Slide wird der Host zusaetzlich unsichtbar (Code-Behind HideChipBar). -->
+            <Grid x:Name="FilterChipBarHost"
+                  VerticalOptions="Start"
+                  HeightRequest="56"
+                  IsClippedToBounds="True">
+                <ScrollView x:Name="FilterChipBar"
+                            Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Never"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
+                    <HorizontalStackLayout Spacing="8" Padding="12,8,12,10">
 
-                    <Button Text="{Binding SortChipLabel, StringFormat='↕ {0}'}"
-                            Style="{StaticResource FilterChipStyle}"
-                            Command="{Binding OpenSortSheetCommand}"
-                            AutomationId="Home_Chip_Sort" />
+                        <Button Text="{Binding SortChipLabel, StringFormat='↕ {0}'}"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding OpenSortSheetCommand}"
+                                AutomationId="Home_Chip_Sort" />
 
-                    <Button Text="{Binding TypeChipLabel}"
-                            Style="{StaticResource FilterChipStyle}"
-                            Command="{Binding OpenTypeSheetCommand}"
-                            AutomationId="Home_Chip_Typ">
-                        <Button.Triggers>
-                            <DataTrigger TargetType="Button" Binding="{Binding IsTypeFilterActive}" Value="True">
-                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                                <Setter Property="BorderColor" Value="Transparent" />
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                            </DataTrigger>
-                        </Button.Triggers>
-                    </Button>
+                        <Button Text="{Binding TypeChipLabel}"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding OpenTypeSheetCommand}"
+                                AutomationId="Home_Chip_Typ">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsTypeFilterActive}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                    <Setter Property="BorderColor" Value="Transparent" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
 
-                    <Button Text="{Binding OrtChipLabel}"
-                            Style="{StaticResource FilterChipStyle}"
-                            Command="{Binding OpenOrtPanelCommand}"
-                            AutomationId="Home_Chip_Ort">
-                        <Button.Triggers>
-                            <DataTrigger TargetType="Button" Binding="{Binding IsOrtFilterActive}" Value="True">
-                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                                <Setter Property="BorderColor" Value="Transparent" />
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                            </DataTrigger>
-                        </Button.Triggers>
-                    </Button>
+                        <Button Text="{Binding OrtChipLabel}"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding OpenOrtPanelCommand}"
+                                AutomationId="Home_Chip_Ort">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsOrtFilterActive}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                    <Setter Property="BorderColor" Value="Transparent" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
 
-                    <Button Text="{Binding AgeChipLabel}"
-                            Style="{StaticResource FilterChipStyle}"
-                            Command="{Binding OpenAgeSheetCommand}"
-                            AutomationId="Home_Chip_Zeitraum">
-                        <Button.Triggers>
-                            <DataTrigger TargetType="Button" Binding="{Binding IsAgeFilterActive}" Value="True">
-                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                                <Setter Property="BorderColor" Value="Transparent" />
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                            </DataTrigger>
-                        </Button.Triggers>
-                    </Button>
+                        <Button Text="{Binding AgeChipLabel}"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding OpenAgeSheetCommand}"
+                                AutomationId="Home_Chip_Zeitraum">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsAgeFilterActive}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                    <Setter Property="BorderColor" Value="Transparent" />
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
 
-                    <Button Text="Mehr"
-                            Style="{StaticResource FilterChipStyle}"
-                            Command="{Binding OpenFilterSettingsCommand}"
-                            AutomationId="Home_Chip_Mehr" />
-                </HorizontalStackLayout>
-            </ScrollView>
+                        <Button Text="{Binding Loc.ChipMore}"
+                                Style="{StaticResource FilterChipStyle}"
+                                Command="{Binding OpenFilterSettingsCommand}"
+                                AutomationId="Home_Chip_Mehr" />
+                    </HorizontalStackLayout>
+                </ScrollView>
+            </Grid>
 
             <!-- Busy-Overlay -->
             <Grid Style="{StaticResource BusyOverlay}"
@@ -209,12 +215,12 @@
                              PanelCornerRadius="14"
                              PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
             <VerticalStackLayout Padding="20,6,20,16" Spacing="0">
-                <Label Text="SORTIERUNG"
+                <Label Text="{Binding Loc.SortSectionTitle}"
                        Style="{StaticResource SectionHeader}"
                        Margin="0,0,0,6" />
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Neueste zuerst" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortNewestFirst}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -228,7 +234,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Älteste zuerst" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortOldestFirst}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -242,7 +248,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Preis aufsteigend" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortPriceAsc}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -256,7 +262,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Preis absteigend" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortPriceDesc}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -270,7 +276,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Fläche absteigend" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortAreaDesc}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -284,7 +290,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Fläche aufsteigend" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortAreaAsc}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -298,7 +304,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="PLZ aufsteigend" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortPlzAsc}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -312,7 +318,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="PLZ absteigend" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.SortPlzDesc}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -333,10 +339,10 @@
                              PanelCornerRadius="14"
                              PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
             <VerticalStackLayout Padding="20,6,20,16" Spacing="12">
-                <Label Text="IMMOBILIENTYP" Style="{StaticResource SectionHeader}" />
+                <Label Text="{Binding Loc.TypeSectionTitle}" Style="{StaticResource SectionHeader}" />
 
                 <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                    <Button Text="Haus"
+                    <Button Text="{Binding Loc.TypeHouse}"
                             Style="{StaticResource FilterChipStyle}"
                             Margin="0,0,8,8"
                             Command="{Binding ToggleHausCommand}"
@@ -349,7 +355,7 @@
                             </DataTrigger>
                         </Button.Triggers>
                     </Button>
-                    <Button Text="Grundstück"
+                    <Button Text="{Binding Loc.TypeLand}"
                             Style="{StaticResource FilterChipStyle}"
                             Margin="0,0,8,8"
                             Command="{Binding ToggleGrundstueckCommand}"
@@ -362,7 +368,7 @@
                             </DataTrigger>
                         </Button.Triggers>
                     </Button>
-                    <Button Text="Zwangsversteigerung"
+                    <Button Text="{Binding Loc.TypeForeclosure}"
                             Style="{StaticResource FilterChipStyle}"
                             Margin="0,0,8,8"
                             Command="{Binding ToggleZwangsversteigerungCommand}"
@@ -377,10 +383,10 @@
                     </Button>
                 </FlexLayout>
 
-                <Label Text="Änderungen wirken sofort auf die Liste."
+                <Label Text="{Binding Loc.TypeSheetHint}"
                        Style="{StaticResource Caption}" />
 
-                <Button Text="Fertig"
+                <Button Text="{Binding Loc.Done}"
                         Style="{StaticResource PrimaryButton}"
                         Command="{Binding CloseTypeSheetCommand}"
                         AutomationId="Home_TypSheet_Fertig" />
@@ -393,12 +399,12 @@
                              PanelCornerRadius="14"
                              PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
             <VerticalStackLayout Padding="20,6,20,16" Spacing="0">
-                <Label Text="EINGESTELLT SEIT"
+                <Label Text="{Binding Loc.AgeSectionTitle}"
                        Style="{StaticResource SectionHeader}"
                        Margin="0,0,0,6" />
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Alle Zeiträume" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.AgeAllPeriods}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -416,7 +422,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Letzte 24 Stunden" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.AgeLastDay}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -434,7 +440,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Letzte 7 Tage" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.AgeLastWeek}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -452,7 +458,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Letzte 30 Tage" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.AgeLastMonth}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -470,7 +476,7 @@
                 </Grid>
 
                 <Grid HeightRequest="46" ColumnDefinitions="*,Auto">
-                    <Label Text="Letzte 12 Monate" FontSize="14.5" VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.AgeLastYear}" FontSize="14.5" VerticalOptions="Center" />
                     <Label Grid.Column="1" Text="✓" FontFamily="SansBold" FontSize="15" VerticalOptions="Center" IsVisible="False"
                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
                         <Label.Triggers>
@@ -500,11 +506,11 @@
                   Padding="16,4,16,12">
 
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                    <Label Text="Orte auswählen"
+                    <Label Text="{Binding Loc.OrtPanelTitle}"
                            Style="{StaticResource CardTitle}"
                            VerticalOptions="Center" />
                     <Button Grid.Column="1"
-                            Text="Zurücksetzen"
+                            Text="{Binding Loc.ResetButton}"
                             FontSize="13"
                             FontFamily="SansSemibold"
                             Padding="8,6"
@@ -529,7 +535,7 @@
                                VerticalOptions="Center"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                         <Entry Grid.Column="1"
-                               Placeholder="Gemeinde oder PLZ suchen"
+                               Placeholder="{Binding Loc.OrtSearchPlaceholder}"
                                Text="{Binding OrtPanelSearchText, Mode=TwoWay}"
                                BackgroundColor="Transparent"
                                StyleClass="borderless"

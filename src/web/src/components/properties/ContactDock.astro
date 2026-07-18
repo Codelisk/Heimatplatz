@@ -4,6 +4,7 @@ import CopyIcon from "@tabler/icons/outline/copy.svg";
 import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import MailIcon from "@tabler/icons/outline/mail.svg";
 import PhoneIcon from "@tabler/icons/outline/phone.svg";
+import { t } from "@/i18n";
 
 type ContactDockContact = {
   label?: string | null;
@@ -37,7 +38,7 @@ const hasDirectContact = Boolean(primaryEmail || primaryPhone);
 
 <section
   class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 shadow-[0_-12px_32px_rgba(15,23,42,0.12)] backdrop-blur"
-  aria-label="Schneller Kontakt"
+  aria-label={t("contact.dockLabel")}
   data-contact-dock
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -52,7 +53,7 @@ const hasDirectContact = Boolean(primaryEmail || primaryPhone);
         {sellerMeta && <span class="mt-0.5 block truncate text-xs text-muted-foreground">{sellerMeta}</span>}
       </span>
       <span class="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-        Kontakt
+        {t("contact.dockToggle")}
         <ChevronDownIcon class="size-4 transition-transform" aria-hidden="true" data-contact-dock-icon />
       </span>
     </button>
@@ -73,10 +74,10 @@ const hasDirectContact = Boolean(primaryEmail || primaryPhone);
                     class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
                     type="button"
                     data-copy-value={contact.email}
-                    aria-label={`E-Mail ${contact.email} kopieren`}
+                    aria-label={t("contact.copyEmail", { email: contact.email })}
                   >
                     <CopyIcon class="size-3.5" aria-hidden="true" />
-                    <span data-copy-text>Kopieren</span>
+                    <span data-copy-text>{t("contact.copy")}</span>
                   </button>
                 </div>
               )}
@@ -90,15 +91,15 @@ const hasDirectContact = Boolean(primaryEmail || primaryPhone);
                     class="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:border-foreground"
                     type="button"
                     data-copy-value={contact.phone}
-                    aria-label={`Telefonnummer ${contact.phone} kopieren`}
+                    aria-label={t("contact.copyPhone", { phone: contact.phone })}
                   >
                     <CopyIcon class="size-3.5" aria-hidden="true" />
-                    <span data-copy-text>Kopieren</span>
+                    <span data-copy-text>{t("contact.copy")}</span>
                   </button>
                 </div>
               )}
               {!contact.email && !contact.phone && (
-                <p class="mt-2 text-sm text-muted-foreground">Kontakt über Anbieterangaben oder Originalinserat.</p>
+                <p class="mt-2 text-sm text-muted-foreground">{t("contact.viaProvider")}</p>
               )}
             </div>
           ))}
@@ -107,16 +108,16 @@ const hasDirectContact = Boolean(primaryEmail || primaryPhone);
         <div class="grid gap-2 sm:grid-cols-2 lg:w-72 lg:grid-cols-1">
           {primaryEmail && (
             <a class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-accent" href={`mailto:${primaryEmail}`}>
-              E-Mail schreiben
+              {t("contact.writeEmail")}
             </a>
           )}
           {primaryPhone && (
             <a class="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 text-sm font-medium hover:border-foreground" href={`tel:${primaryPhone.replace(/\s+/g, "")}`}>
-              Anrufen
+              {t("contact.call")}
             </a>
           )}
           {!hasDirectContact && (
-            <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">Direkter Kontakt ist nicht angegeben.</p>
+            <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">{t("contact.notProvided")}</p>
           )}
           {originalUrl && (
             <a
@@ -125,7 +126,7 @@ const hasDirectContact = Boolean(primaryEmail || primaryPhone);
               rel="nofollow noopener"
               target="_blank"
             >
-              Originalinserat
+              {t("contact.originalListing")}
               <ExternalLinkIcon class="size-4" aria-hidden="true" />
             </a>
           )}

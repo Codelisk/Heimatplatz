@@ -7,7 +7,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.FavoritesPage"
              x:DataType="vm:FavoritesViewModel"
-             Title="Meine Favoriten">
+             Title="{Binding Loc.PageTitle}">
 
     <Grid>
         <RefreshView IsRefreshing="{Binding IsRefreshing}"
@@ -27,8 +27,8 @@
                                              HorizontalOptions="Center"
                                              IsVisible="{Binding ShowRegularEmptyState}">
                             <Label Text="♡" Style="{StaticResource EmptyStateIcon}" />
-                            <Label Text="Noch keine Favoriten" Style="{StaticResource EmptyStateTitle}" />
-                            <Label Text="Markieren Sie Immobilien als Favoriten, um sie hier zu sehen."
+                            <Label Text="{Binding Loc.EmptyTitle}" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.EmptyHint}"
                                    Style="{StaticResource EmptyStateHint}" />
                         </VerticalStackLayout>
 
@@ -38,9 +38,9 @@
                                              HorizontalOptions="Center"
                                              IsVisible="{Binding ShowLoadError}">
                             <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
-                            <Label Text="Laden fehlgeschlagen" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="{Binding LoadErrorMessage}" Style="{StaticResource EmptyStateHint}" />
-                            <Button Text="Erneut versuchen"
+                            <Button Text="{Binding Loc.Retry}"
                                     Style="{StaticResource SecondaryButton}"
                                     Command="{Binding RetryLoadCommand}"
                                     Margin="0,10,0,0"
@@ -56,10 +56,10 @@
                             <Label Text="🔒"
                                    Style="{StaticResource EmptyStateIcon}"
                                    Opacity="0.5" />
-                            <Label Text="Nicht angemeldet" Style="{StaticResource EmptyStateTitle}" />
-                            <Label Text="Melden Sie sich an, um Ihre Favoriten zu sehen."
+                            <Label Text="{Binding Loc.NotLoggedInTitle}" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.NotLoggedInHint}"
                                    Style="{StaticResource EmptyStateHint}" />
-                            <Button Text="Anmelden"
+                            <Button Text="{Binding Loc.Login}"
                                     Style="{StaticResource PrimaryButton}"
                                     Command="{Binding GoToLoginCommand}"
                                     HorizontalOptions="Center"

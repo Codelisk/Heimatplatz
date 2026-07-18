@@ -39,8 +39,8 @@ public partial class PropertyWizardViewModel
         {
             var photos = Media.Count(m => m.IsPhoto);
             var videos = Media.Count(m => m.IsVideo);
-            var photoText = photos == 1 ? "1 Foto" : $"{photos} Fotos";
-            var videoText = videos == 1 ? "1 Video" : $"{videos} Videos";
+            var photoText = photos == 1 ? Loc.PhotoSingular : Loc.PhotosCountFormat(photos);
+            var videoText = videos == 1 ? Loc.VideoSingular : Loc.VideosCountFormat(videos);
             return videos > 0 ? $"{photoText} · {videoText}" : photoText;
         }
     }
@@ -124,7 +124,7 @@ public partial class PropertyWizardViewModel
             var cameraStatus = await MauiPermissions.RequestAsync<MauiPermissions.Camera>();
             if (cameraStatus != PermissionStatus.Granted)
             {
-                ErrorMessage = "Kamera-Berechtigung wurde nicht erteilt.";
+                ErrorMessage = Loc.CameraPermissionDenied;
                 return;
             }
 
@@ -140,7 +140,7 @@ public partial class PropertyWizardViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyWizard] Fehler bei Foto-Aufnahme");
-            ErrorMessage = $"Fehler bei der Aufnahme: {ex.Message}";
+            ErrorMessage = Loc.CaptureErrorFormat(ex.Message);
         }
     }
 
@@ -154,7 +154,7 @@ public partial class PropertyWizardViewModel
 
             var files = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
             {
-                Title = "Fotos auswählen"
+                Title = Loc.PickPhotosTitle
             });
             if (files == null)
                 return;
@@ -163,7 +163,7 @@ public partial class PropertyWizardViewModel
             {
                 if (Media.Count(m => m.IsPhoto) >= MaxPhotos)
                 {
-                    ErrorMessage = $"Maximal {MaxPhotos} Fotos erlaubt";
+                    ErrorMessage = Loc.MaxPhotosFormat(MaxPhotos);
                     break;
                 }
 
@@ -173,7 +173,7 @@ public partial class PropertyWizardViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "[PropertyWizard] Fehler bei Foto-Auswahl");
-            ErrorMessage = $"Fehler bei der Auswahl: {ex.Message}";
+            ErrorMessage = Loc.PickErrorFormat(ex.Message);
         }
     }
 
@@ -196,7 +196,7 @@ public partial class PropertyWizardViewModel
     {
         if (Media.Count(m => m.IsPhoto) >= MaxPhotos)
         {
-            ErrorMessage = $"Maximal {MaxPhotos} Fotos erlaubt";
+            ErrorMessage = Loc.MaxPhotosFormat(MaxPhotos);
             return false;
         }
         return true;
@@ -223,8 +223,11 @@ public partial class PropertyWizardViewModel
         ScheduleAutoSave();
 
         // Ohne Schrittwechsel gibt es keinen spaeteren Trigger - Upload sofort anstossen,
-        // damit die Fotos beim Veroeffentlichen laengst am Server liegen
-        StartMediaUpload();
+        // damit die Fotos beim Veroeffentlichen laengst am Server liegen.
+        // Edit-Modus laedt erst beim Speichern hoch: es gibt keinen Entwurf, der die
+        // Dateien referenziert - bei Abbruch blieben sonst verwaiste Uploads am Server.
+        if (!IsEditMode)
+            StartMediaUpload();
     }
 
     private static string GuessContentType(string fileName)

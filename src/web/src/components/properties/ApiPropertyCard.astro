@@ -20,6 +20,7 @@ import {
 import { slugifyLocation } from "@/features/locations/region-match";
 import { getDisplayTitle } from "@/features/properties/format";
 import { getResponsiveImage } from "@/lib/images";
+import { t } from "@/i18n";
 
 interface Props {
   property: ApiProperty;
@@ -31,7 +32,7 @@ const typeSearchValue = getApiPropertyTypeSearchValue(property.Type, property);
 const sellerSearchValue = getApiSellerSearchValue(property.SellerType);
 // Zwangsversteigerungen kommen mit SellerType "court" - getApiSellerLabel liefert dafuer
 // "Portal", was hier nichtssagend ist. Wie auf der Detailseite: "Gericht".
-const sellerLabel = typeSearchValue === "foreclosure" ? "Gericht" : getApiSellerLabel(property.SellerType);
+const sellerLabel = typeSearchValue === "foreclosure" ? t("card.sellerCourt") : getApiSellerLabel(property.SellerType);
 const area = getApiAreaValue(property);
 const imageUrl = getApiPropertyImage(property);
 const responsiveImage = getResponsiveImage(imageUrl);
@@ -87,7 +88,7 @@ const citySlug = slugifyLocation(property.City);
       <button
         type="button"
         class="grid size-9 place-items-center rounded-full bg-black/55 text-white"
-        aria-label="Favorit speichern"
+        aria-label={t("card.favoriteAdd")}
         aria-pressed="false"
         data-property-action="favorite"
         data-property-slug={property.Id}
@@ -98,7 +99,7 @@ const citySlug = slugifyLocation(property.City);
       <button
         type="button"
         class="grid size-9 place-items-center rounded-full bg-black/55 text-white"
-        aria-label="Immobilie blockieren"
+        aria-label={t("card.blockAdd")}
         aria-pressed="false"
         data-property-action="block"
         data-property-slug={property.Id}
@@ -122,22 +123,22 @@ const citySlug = slugifyLocation(property.City);
       </p>
       <p class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
         <CalendarIcon class="size-3" aria-hidden="true" />
-        {formatApiDate(property.CreatedAt) || "Live-Angebot"}
+        {formatApiDate(property.CreatedAt) || t("card.liveOffer")}
       </p>
     </div>
 
     <dl class="text-right">
       <div>
-        <dt class="sr-only">Preis</dt>
+        <dt class="sr-only">{t("card.price")}</dt>
         <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">{formatApiPrice(property.Price)}</dd>
       </div>
       <div class="mt-1.5">
-        <dt class="sr-only">Fläche</dt>
-        <dd class="text-sm font-semibold text-muted-foreground">{area ? `${area} ${property.PlotAreaM2 ? "m² Grund" : "m² Wfl"}` : "Fläche k.A."}</dd>
+        <dt class="sr-only">{t("card.area")}</dt>
+        <dd class="text-sm font-semibold text-muted-foreground">{area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
       </div>
       <div class="mt-3 flex justify-end gap-1">
-        {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{property.LivingAreaM2} Wfl</span>}
-        {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{property.Rooms} Zi</span>}
+        {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
+        {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
       </div>
     </dl>
   </div>

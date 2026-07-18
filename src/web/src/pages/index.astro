@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import PropertySearchApp from "@/components/properties/PropertySearchApp.astro";
+import { t } from "@/i18n";
 import { fetchApiPropertySearch } from "@/features/properties/live-api";
 import { buildOrtSlugMap, fetchOrtRegions } from "@/features/locations/live-api";
 import {
@@ -43,8 +44,8 @@ const searchResult = await fetchApiPropertySearch(searchQuery);
 ---
 
 <BaseLayout
-  title="Heimatplatz"
-  description="Immobilien in Oberösterreich finden: Häuser, Wohnungen, Grundstücke und Zwangsversteigerungen mit Filtern und Push-Benachrichtigungen."
+  title={t("home.metaTitle")}
+  description={t("home.metaDescription")}
   canonicalPath="/"
 >
   <PropertySearchApp

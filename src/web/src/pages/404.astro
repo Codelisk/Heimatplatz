@@ -1,24 +1,24 @@
 ---
+import { t } from "@/i18n";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="Seite nicht gefunden"
-  description="Die angeforderte Seite existiert nicht oder wurde verschoben."
+  title={t("notFound.metaTitle")}
+  description={t("notFound.metaDescription")}
   noindex
 >
   <section class="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-24 text-center">
-    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Fehler 404</p>
-    <h1 class="text-3xl font-bold">Seite nicht gefunden</h1>
+    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t("notFound.kicker")}</p>
+    <h1 class="text-3xl font-bold">{t("notFound.title")}</h1>
     <p class="text-muted-foreground">
-      Die angeforderte Seite existiert nicht oder wurde verschoben. Vielleicht finden Sie das
-      gesuchte Angebot über die Startseite.
+      {t("notFound.text")}
     </p>
     <a
       href="/"
       class="mt-2 inline-flex h-10 items-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-accent"
     >
-      Zur Startseite
+      {t("notFound.backHome")}
     </a>
   </section>
 </BaseLayout>

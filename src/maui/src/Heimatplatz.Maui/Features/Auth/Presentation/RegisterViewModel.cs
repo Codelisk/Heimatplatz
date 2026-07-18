@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Events;
+using Heimatplatz.Maui.Localization.Auth;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -22,6 +23,8 @@ public partial class RegisterViewModel : ObservableObject
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
     private readonly ILogger<RegisterViewModel> _logger;
+
+    public RegisterStringsLocalized Loc { get; }
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
@@ -71,12 +74,14 @@ public partial class RegisterViewModel : ObservableObject
         IMediator mediator,
         IAuthService authService,
         INavigator navigator,
-        ILogger<RegisterViewModel> logger)
+        ILogger<RegisterViewModel> logger,
+        RegisterStringsLocalized loc)
     {
         _mediator = mediator;
         _authService = authService;
         _navigator = navigator;
         _logger = logger;
+        Loc = loc;
 
         Vorname = string.Empty;
         Nachname = string.Empty;
@@ -150,7 +155,7 @@ public partial class RegisterViewModel : ObservableObject
 
         ErrorMessage = null;
         IsBusy = true;
-        BusyMessage = "Registrierung wird durchgeführt...";
+        BusyMessage = Loc.BusyRegistering;
 
         try
         {
@@ -234,56 +239,56 @@ public partial class RegisterViewModel : ObservableObject
     private string GetValidationError()
     {
         if (string.IsNullOrWhiteSpace(Vorname))
-            return "Bitte geben Sie Ihren Vornamen ein.";
+            return Loc.ValidationFirstNameRequired;
         if (string.IsNullOrWhiteSpace(Nachname))
-            return "Bitte geben Sie Ihren Nachnamen ein.";
+            return Loc.ValidationLastNameRequired;
         if (string.IsNullOrWhiteSpace(Email))
-            return "Bitte geben Sie Ihre E-Mail-Adresse ein.";
+            return Loc.ValidationEmailRequired;
         if (string.IsNullOrWhiteSpace(Passwort))
-            return "Bitte geben Sie ein Passwort ein.";
+            return Loc.ValidationPasswordRequired;
         if (Passwort.Length < 8)
-            return "Das Passwort muss mindestens 8 Zeichen lang sein.";
+            return Loc.ValidationPasswordTooShort;
         if (Passwort != PasswortBestaetigung)
-            return "Die Passwörter stimmen nicht überein.";
+            return Loc.ValidationPasswordMismatch;
         if (WantsToSell && !IsPrivateSeller && !IsBrokerSeller && !IsPropertyManagerSeller)
-            return "Bitte wählen Sie einen Anbietertyp (Privat, Makler oder Verwaltung).";
+            return Loc.ValidationSellerTypeRequired;
         if (WantsToSell && NeedsCompanyName && string.IsNullOrWhiteSpace(CompanyName))
-            return "Bitte geben Sie Ihren Firmennamen ein.";
+            return Loc.ValidationCompanyNameRequired;
         return string.Empty;
     }
 
-    private static string GetUserFriendlyErrorMessage(Exception ex)
+    private string GetUserFriendlyErrorMessage(Exception ex)
     {
         var message = ex.Message;
 
         // HTTP 409 Conflict - E-Mail bereits registriert
         if (message.Contains("409") || message.Contains("Conflict") || message.Contains("already exists") || message.Contains("bereits"))
-            return "Diese E-Mail-Adresse ist bereits registriert.";
+            return Loc.ErrorEmailAlreadyRegistered;
 
         // HTTP 400 Bad Request - Validierungsfehler
         if (message.Contains("400") || message.Contains("Bad Request") || message.Contains("validation"))
-            return "Bitte überprüfen Sie Ihre Eingaben.";
+            return Loc.ErrorCheckInput;
 
         // HTTP 429 - Zu viele Versuche
         if (message.Contains("429") || message.Contains("Too Many"))
-            return "Zu viele Versuche. Bitte warten Sie einen Moment.";
+            return Loc.ErrorTooManyAttempts;
 
         // HTTP 500+ - Serverfehler
         if (message.Contains("500") || message.Contains("502") || message.Contains("503") ||
             message.Contains("Internal Server") || message.Contains("Bad Gateway") || message.Contains("Service Unavailable"))
-            return "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut.";
+            return Loc.ErrorServerUnavailable;
 
         // Netzwerkfehler
         if (message.Contains("net_http") || message.Contains("network") || message.Contains("connection") ||
             message.Contains("timeout") || message.Contains("Timeout") || message.Contains("SocketException") ||
             message.Contains("host") || message.Contains("DNS") || message.Contains("resolve"))
-            return "Keine Internetverbindung. Bitte pruefen Sie Ihre Netzwerkverbindung.";
+            return Loc.ErrorNoConnection;
 
         // SSL/TLS Fehler
         if (message.Contains("SSL") || message.Contains("TLS") || message.Contains("certificate"))
-            return "Sichere Verbindung fehlgeschlagen. Bitte pruefen Sie Ihre Netzwerkeinstellungen.";
+            return Loc.ErrorSslFailed;
 
         // Allgemeiner Fallback
-        return "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.";
+        return Loc.ErrorRegistrationFailed;
     }
 }

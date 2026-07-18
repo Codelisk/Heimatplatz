@@ -5,6 +5,7 @@ using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Localization.Properties;
 using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -27,6 +28,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     private readonly IPropertyStatusService _propertyStatusService;
     private readonly IInternetService _internet;
     private readonly ILogger<ForeclosureDetailViewModel> _logger;
+    private readonly ForeclosureDetailStringsLocalized _loc;
+
+    /// <summary>Lokalisierte Texte fuer XAML-Bindings (Loc.Key)</summary>
+    public ForeclosureDetailStringsLocalized Loc => _loc;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -226,7 +231,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     /// <summary>
     /// Text fuer den Favoriten-Button je nach Status
     /// </summary>
-    public string FavoriteButtonText => IsFavorite ? "Gemerkt" : "Merken";
+    public string FavoriteButtonText => IsFavorite ? _loc.FavoriteSaved : _loc.FavoriteSave;
 
     /// <summary>
     /// Icon fuer den Favoriten-Button (gefuelltes/leeres Herz)
@@ -240,7 +245,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
         IInternetService internet,
-        ILogger<ForeclosureDetailViewModel> logger)
+        ILogger<ForeclosureDetailViewModel> logger,
+        ForeclosureDetailStringsLocalized loc)
     {
         _clipboardService = clipboardService;
         _shareService = shareService;
@@ -249,14 +255,15 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         _propertyStatusService = propertyStatusService;
         _internet = internet;
         _logger = logger;
+        _loc = loc;
 
-        Title = "Zwangsversteigerung";
+        Title = loc.PageTitle;
         LoadErrorIcon = string.Empty;
         LoadErrorTitle = string.Empty;
         FormattedPrice = string.Empty;
-        PriceCaption = "Mindestgebot";
+        PriceCaption = loc.PriceCaptionMinimumBid;
         AddressText = string.Empty;
-        TypeBadgeText = "ZV";
+        TypeBadgeText = loc.TypeBadge;
         TypeBadgeColor = Color.FromArgb("#DE2A2F");
         DetailSections = [];
         StatTiles = [];
@@ -292,7 +299,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     private async Task LoadPropertyAsync(Guid propertyId)
     {
         IsBusy = true;
-        BusyMessage = "Lade Zwangsversteigerung...";
+        BusyMessage = _loc.BusyLoading;
         HasLoadError = false;
         LoadErrorText = null;
         _onlineWaitCts?.Cancel();
@@ -315,8 +322,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
                 _logger.LogWarning("[ForeclosureDetail] Property {PropertyId} not found", propertyId);
                 SetLoadError(
                     "⚖️",
-                    "Nicht mehr verfügbar",
-                    "Diese Zwangsversteigerung wurde entfernt oder ist nicht mehr aktuell.",
+                    _loc.NotAvailableTitle,
+                    _loc.NotAvailableText,
                     canRetry: false);
             }
             else
@@ -352,10 +359,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             UpdateDisplayProperties();
             SetLoadError(
                 "📡",
-                "Laden fehlgeschlagen",
+                _loc.LoadFailedTitle,
                 ex is HttpRequestException
-                    ? "Der Server ist gerade nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut."
-                    : "Bitte versuchen Sie es später erneut.",
+                    ? _loc.ServerUnreachableText
+                    : _loc.TryAgainLaterText,
                 canRetry: true);
         }
         finally
@@ -369,8 +376,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     {
         SetLoadError(
             "📡",
-            "Keine Internetverbindung",
-            "Diese Zwangsversteigerung ist noch nicht lokal gespeichert. Sobald Sie wieder online sind, wird sie automatisch geladen.",
+            _loc.OfflineTitle,
+            _loc.OfflineText,
             canRetry: true);
         StartAutoReloadWhenOnline(propertyId);
     }
@@ -419,9 +426,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         {
             FormattedPrice = string.Empty;
             HasPrice = false;
-            PriceCaption = "Mindestgebot";
+            PriceCaption = _loc.PriceCaptionMinimumBid;
             AddressText = string.Empty;
-            TypeBadgeText = "ZV";
+            TypeBadgeText = _loc.TypeBadge;
             DetailSections = [];
             StatTiles = [];
             HasStatTiles = false;
@@ -438,7 +445,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         }
 
         Title = Property.Title;
-        TypeBadgeText = "ZV";
+        TypeBadgeText = _loc.TypeBadge;
         TypeBadgeColor = Color.FromArgb("#DE2A2F");
 
         // Preis formatieren; 0 € (kein Kaufpreis, nur Schaetzwert/Mindestgebot) ausblenden
@@ -481,63 +488,63 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         // Preis-Beschriftung passend zur Quelle des Werts (Sync: Price = MinimumBid ?? EstimatedValue)
         var minimumBid = GetJsonDecimal(data, "MinimumBid");
         var estimatedValue = GetJsonDecimal(data, "EstimatedValue");
-        PriceCaption = minimumBid is > 0 ? "Mindestgebot"
-            : estimatedValue is > 0 ? "Schätzwert"
-            : "Mindestgebot";
+        PriceCaption = minimumBid is > 0 ? _loc.PriceCaptionMinimumBid
+            : estimatedValue is > 0 ? _loc.PriceCaptionEstimatedValue
+            : _loc.PriceCaptionMinimumBid;
 
         // --- VERSTEIGERUNG (wichtigste Daten zuerst) ---
-        items.Add(new PropertyDetailItem("Eingestellt am", Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung, true));
-        AddJsonDateTime(items, data, "AuctionDate", "Versteigerungstermin", PropertyDataCategory.Versteigerung, true);
-        AddJsonDecimalCurrency(items, data, "EstimatedValue", "Schätzwert", PropertyDataCategory.Versteigerung, true);
-        AddJsonDecimalCurrency(items, data, "MinimumBid", "Mindestgebot", PropertyDataCategory.Versteigerung, true);
-        AddJsonString(items, data, "OwnershipShare", "Eigentumsanteil", PropertyDataCategory.Versteigerung);
+        items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung, true));
+        AddJsonDateTime(items, data, "AuctionDate", _loc.LabelAuctionDate, PropertyDataCategory.Versteigerung, true);
+        AddJsonDecimalCurrency(items, data, "EstimatedValue", _loc.LabelEstimatedValue, PropertyDataCategory.Versteigerung, true);
+        AddJsonDecimalCurrency(items, data, "MinimumBid", _loc.LabelMinimumBid, PropertyDataCategory.Versteigerung, true);
+        AddJsonString(items, data, "OwnershipShare", _loc.LabelOwnershipShare, PropertyDataCategory.Versteigerung);
 
         // --- BASISDATEN ---
-        items.Add(new PropertyDetailItem("Immobilienart", "Zwangsversteigerung", PropertyDataCategory.Basisdaten));
-        AddJsonString(items, data, "Category", "Kategorie", PropertyDataCategory.Basisdaten);
+        items.Add(new PropertyDetailItem(_loc.LabelPropertyType, _loc.TypeForeclosure, PropertyDataCategory.Basisdaten));
+        AddJsonString(items, data, "Category", _loc.LabelCategory, PropertyDataCategory.Basisdaten);
         AddJsonStatus(items, data, PropertyDataCategory.Basisdaten);
-        AddIfNotEmpty(items, "PLZ", Property.PostalCode, PropertyDataCategory.Basisdaten);
-        AddIfNotEmpty(items, "Ort", Property.City, PropertyDataCategory.Basisdaten);
-        AddIfNotEmpty(items, "Adresse", Property.Address, PropertyDataCategory.Basisdaten);
+        AddIfNotEmpty(items, _loc.LabelPostalCode, Property.PostalCode, PropertyDataCategory.Basisdaten);
+        AddIfNotEmpty(items, _loc.LabelCity, Property.City, PropertyDataCategory.Basisdaten);
+        AddIfNotEmpty(items, _loc.LabelAddress, Property.Address, PropertyDataCategory.Basisdaten);
 
         // --- RECHTLICHES ---
         var courtName = GetJsonString(data, "CourtName");
         if (!string.IsNullOrWhiteSpace(courtName))
         {
-            items.Add(new PropertyDetailItem("Gericht", courtName, PropertyDataCategory.Rechtliches));
+            items.Add(new PropertyDetailItem(_loc.LabelCourt, courtName, PropertyDataCategory.Rechtliches));
             CourtName = courtName;
             HasCourtName = true;
         }
-        AddJsonString(items, data, "FileNumber", "Aktenzeichen", PropertyDataCategory.Rechtliches);
+        AddJsonString(items, data, "FileNumber", _loc.LabelFileNumber, PropertyDataCategory.Rechtliches);
 
         // --- FLÄCHEN ---
-        AddJsonDecimalArea(items, data, "TotalArea", "Gesamtfläche", PropertyDataCategory.Flaechen);
-        AddIfHasValue(items, "Grundstück", Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
-        AddJsonDecimalArea(items, data, "BuildingArea", "Bebaute Fläche", PropertyDataCategory.Flaechen);
+        AddJsonDecimalArea(items, data, "TotalArea", _loc.LabelTotalArea, PropertyDataCategory.Flaechen);
+        AddIfHasValue(items, _loc.LabelPlot, Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+        AddJsonDecimalArea(items, data, "BuildingArea", _loc.LabelBuildingArea, PropertyDataCategory.Flaechen);
 
         // --- GRUNDBUCH ---
-        AddJsonString(items, data, "RegistrationNumber", "Einlagezahl (EZ)", PropertyDataCategory.Grundbuch);
-        AddJsonString(items, data, "CadastralMunicipality", "Katastralgemeinde", PropertyDataCategory.Grundbuch);
-        AddJsonString(items, data, "PlotNumber", "Grundstücksnummer", PropertyDataCategory.Grundbuch);
-        AddJsonString(items, data, "ZoningDesignation", "Flächenwidmung", PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "RegistrationNumber", _loc.LabelRegistrationNumber, PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "CadastralMunicipality", _loc.LabelCadastralMunicipality, PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "PlotNumber", _loc.LabelPlotNumber, PropertyDataCategory.Grundbuch);
+        AddJsonString(items, data, "ZoningDesignation", _loc.LabelZoningDesignation, PropertyDataCategory.Grundbuch);
 
         // --- GEBÄUDE (optional) ---
         if (data.HasValue)
         {
             if (data.Value.TryGetProperty("NumberOfRooms", out var rooms) && rooms.ValueKind == JsonValueKind.Number && rooms.TryGetInt32(out var r) && r > 0)
             {
-                items.Add(new PropertyDetailItem("Zimmer", r.ToString(), PropertyDataCategory.Gebaeude));
+                items.Add(new PropertyDetailItem(_loc.LabelRooms, r.ToString(), PropertyDataCategory.Gebaeude));
             }
             if (data.Value.TryGetProperty("YearBuilt", out var yb) && yb.ValueKind == JsonValueKind.Number && yb.TryGetInt32(out var y) && y > 0)
             {
-                items.Add(new PropertyDetailItem("Baujahr", y.ToString(), PropertyDataCategory.Gebaeude));
+                items.Add(new PropertyDetailItem(_loc.LabelYearBuilt, y.ToString(), PropertyDataCategory.Gebaeude));
             }
-            AddJsonString(items, data, "BuildingCondition", "Zustand", PropertyDataCategory.Gebaeude);
+            AddJsonString(items, data, "BuildingCondition", _loc.LabelCondition, PropertyDataCategory.Gebaeude);
         }
 
         // --- TERMINE ---
-        AddJsonDateTime(items, data, "ViewingDate", "Besichtigung", PropertyDataCategory.Termine);
-        AddJsonDateTime(items, data, "BiddingDeadline", "Gebotsfrist", PropertyDataCategory.Termine);
+        AddJsonDateTime(items, data, "ViewingDate", _loc.LabelViewingDate, PropertyDataCategory.Termine);
+        AddJsonDateTime(items, data, "BiddingDeadline", _loc.LabelBiddingDeadline, PropertyDataCategory.Termine);
 
         // Beschreibung / Notizen
         var notes = GetJsonString(data, "Notes");
@@ -607,15 +614,15 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             && auctionProp.ValueKind == JsonValueKind.String
             && DateTime.TryParse(auctionProp.GetString(), out var auctionDate))
         {
-            tiles.Add(new StatTileItem("TERMIN", auctionDate.ToString("dd.MM.yy")));
+            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToString("dd.MM.yy")));
         }
 
         if (minimumBid is > 0 && estimatedValue is > 0)
-            tiles.Add(new StatTileItem("SCHÄTZWERT", PropertyDisplay.Price(estimatedValue.Value)));
+            tiles.Add(new StatTileItem(_loc.TileEstimatedValue, PropertyDisplay.Price(estimatedValue.Value)));
 
         var totalArea = GetJsonDecimal(data, "TotalArea") ?? Property?.PlotAreaM2;
         if (totalArea is > 0)
-            tiles.Add(new StatTileItem("FLÄCHE", PropertyDisplay.Area(totalArea.Value)));
+            tiles.Add(new StatTileItem(_loc.TileArea, PropertyDisplay.Area(totalArea.Value)));
 
         StatTiles = tiles;
         HasStatTiles = tiles.Count > 0;
@@ -665,12 +672,12 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             items.Add(new PropertyDetailItem(label, PropertyDisplay.Area(val), category));
     }
 
-    private static void AddJsonStatus(List<PropertyDetailItem> items, JsonElement? data, PropertyDataCategory category, bool highlighted = false)
+    private void AddJsonStatus(List<PropertyDetailItem> items, JsonElement? data, PropertyDataCategory category, bool highlighted = false)
     {
         if (data.HasValue && data.Value.TryGetProperty("Status", out var prop) && prop.ValueKind == JsonValueKind.String)
         {
             var statusValue = prop.GetString() ?? "";
-            items.Add(new PropertyDetailItem("Status", PropertyDisplay.LegalStatusText(statusValue), category, highlighted));
+            items.Add(new PropertyDetailItem(_loc.LabelStatus, PropertyDisplay.LegalStatusText(statusValue), category, highlighted));
         }
     }
 
@@ -678,16 +685,16 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
     #region Formatting Helpers
 
-    private static string GetCategoryTitle(PropertyDataCategory category) => category switch
+    private string GetCategoryTitle(PropertyDataCategory category) => category switch
     {
-        PropertyDataCategory.Basisdaten => "BASISDATEN",
-        PropertyDataCategory.Flaechen => "FLÄCHEN",
-        PropertyDataCategory.Gebaeude => "GEBÄUDE",
-        PropertyDataCategory.Grundbuch => "GRUNDBUCH",
-        PropertyDataCategory.Versteigerung => "VERSTEIGERUNG",
-        PropertyDataCategory.Rechtliches => "RECHTLICHES",
-        PropertyDataCategory.Termine => "TERMINE",
-        PropertyDataCategory.Sonstiges => "SONSTIGES",
+        PropertyDataCategory.Basisdaten => _loc.SectionBasicData,
+        PropertyDataCategory.Flaechen => _loc.SectionAreas,
+        PropertyDataCategory.Gebaeude => _loc.SectionBuilding,
+        PropertyDataCategory.Grundbuch => _loc.SectionLandRegistry,
+        PropertyDataCategory.Versteigerung => _loc.SectionAuction,
+        PropertyDataCategory.Rechtliches => _loc.SectionLegal,
+        PropertyDataCategory.Termine => _loc.SectionDates,
+        PropertyDataCategory.Sonstiges => _loc.SectionMisc,
         _ => category.ToString().ToUpperInvariant()
     };
 
@@ -746,7 +753,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         var success = await _clipboardService.CopyToClipboardAsync(text);
         if (success)
         {
-            await ShowCopyFeedbackAsync("Kopiert!", 1500);
+            await ShowCopyFeedbackAsync(_loc.CopiedFeedback, 1500);
         }
     }
 
@@ -778,17 +785,17 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         var propertyUrl = new Uri($"https://heimatplatz.at/zwangsversteigerung/{Property.Id}");
 
         var description = HasPrice
-            ? $"Zwangsversteigerung: {Property.Title}\n{PriceCaption}: {FormattedPrice}\nStandort: {AddressText}"
-            : $"Zwangsversteigerung: {Property.Title}\nStandort: {AddressText}";
+            ? _loc.ShareDescriptionFormat(Property.Title, PriceCaption, FormattedPrice, AddressText)
+            : _loc.ShareDescriptionNoPriceFormat(Property.Title, AddressText);
 
         var result = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
         if (result == ShareResult.SharedNatively)
         {
-            await ShowCopyFeedbackAsync("Geteilt!", 2000);
+            await ShowCopyFeedbackAsync(_loc.SharedFeedback, 2000);
         }
         else if (result == ShareResult.CopiedToClipboard)
         {
-            await ShowCopyFeedbackAsync("In Zwischenablage kopiert!", 2000);
+            await ShowCopyFeedbackAsync(_loc.CopiedToClipboardFeedback, 2000);
         }
     }
 

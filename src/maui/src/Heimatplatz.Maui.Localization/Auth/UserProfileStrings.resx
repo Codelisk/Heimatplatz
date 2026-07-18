@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Mein Profil</value>
+  </data>
+  <data name="VerifiedBadge" xml:space="preserve">
+    <value>✓ E-Mail bestätigt</value>
+  </data>
+  <data name="VerifyEmailTitle" xml:space="preserve">
+    <value>E-Mail-Adresse bestätigen</value>
+  </data>
+  <data name="VerifyEmailText" xml:space="preserve">
+    <value>Ihre E-Mail-Adresse ist noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner).</value>
+  </data>
+  <data name="ResendVerificationButton" xml:space="preserve">
+    <value>Bestätigungs-E-Mail erneut senden</value>
+  </data>
+  <data name="FavoritesTile" xml:space="preserve">
+    <value>Favoriten</value>
+  </data>
+  <data name="BlockedTile" xml:space="preserve">
+    <value>Blockiert</value>
+  </data>
+  <data name="MyPropertiesTile" xml:space="preserve">
+    <value>Inserate</value>
+  </data>
+  <data name="AddPropertyTitle" xml:space="preserve">
+    <value>Immobilie inserieren</value>
+  </data>
+  <data name="AddPropertySubtitle" xml:space="preserve">
+    <value>Neues Inserat erstellen</value>
+  </data>
+  <data name="NotificationsTitle" xml:space="preserve">
+    <value>Benachrichtigungen</value>
+  </data>
+  <data name="NotificationsSubtitle" xml:space="preserve">
+    <value>Hinweise zu neuen Objekten</value>
+  </data>
+  <data name="FilterSettingsTitle" xml:space="preserve">
+    <value>Filtereinstellungen</value>
+  </data>
+  <data name="FilterSettingsSubtitle" xml:space="preserve">
+    <value>Gespeicherte Suche anpassen</value>
+  </data>
+  <data name="ProfileSectionTitle" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="ProfileSectionSubtitle" xml:space="preserve">
+    <value>Name und Verkäufer-Einstellungen</value>
+  </data>
+  <data name="FirstNameLabel" xml:space="preserve">
+    <value>Vorname</value>
+  </data>
+  <data name="FirstNamePlaceholder" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="LastNameLabel" xml:space="preserve">
+    <value>Nachname</value>
+  </data>
+  <data name="LastNamePlaceholder" xml:space="preserve">
+    <value>Mustermann</value>
+  </data>
+  <data name="WantsToSellLabel" xml:space="preserve">
+    <value>Ich möchte Immobilien anbieten</value>
+  </data>
+  <data name="WantsToSellHint" xml:space="preserve">
+    <value>Jederzeit aktivierbar oder deaktivierbar - bestehende Inserate behalten ihre Angaben.</value>
+  </data>
+  <data name="SellerTypeLabel" xml:space="preserve">
+    <value>Anbietertyp</value>
+  </data>
+  <data name="SellerTypePrivate" xml:space="preserve">
+    <value>Privatperson</value>
+  </data>
+  <data name="SellerTypeBroker" xml:space="preserve">
+    <value>Makler / Agentur</value>
+  </data>
+  <data name="SellerTypePropertyManager" xml:space="preserve">
+    <value>Hausverwaltung</value>
+  </data>
+  <data name="CompanyNameLabel" xml:space="preserve">
+    <value>Firmenname</value>
+  </data>
+  <data name="CompanyNamePlaceholder" xml:space="preserve">
+    <value>z.B. RE/MAX Premium</value>
+  </data>
+  <data name="SaveProfileButton" xml:space="preserve">
+    <value>Profil speichern</value>
+  </data>
+  <data name="SecuritySectionTitle" xml:space="preserve">
+    <value>Sicherheit</value>
+  </data>
+  <data name="SecuritySectionSubtitle" xml:space="preserve">
+    <value>Passwort ändern - andere Geräte werden dabei abgemeldet</value>
+  </data>
+  <data name="CurrentPasswordLabel" xml:space="preserve">
+    <value>Aktuelles Passwort</value>
+  </data>
+  <data name="ForgotPasswordLink" xml:space="preserve">
+    <value>Passwort vergessen?</value>
+  </data>
+  <data name="NewPasswordLabel" xml:space="preserve">
+    <value>Neues Passwort</value>
+  </data>
+  <data name="NewPasswordPlaceholder" xml:space="preserve">
+    <value>Mindestens 8 Zeichen</value>
+  </data>
+  <data name="NewPasswordConfirmLabel" xml:space="preserve">
+    <value>Neues Passwort bestätigen</value>
+  </data>
+  <data name="ChangePasswordButton" xml:space="preserve">
+    <value>Passwort ändern</value>
+  </data>
+  <data name="LogoutButton" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="DeleteAccountTitle" xml:space="preserve">
+    <value>Konto löschen</value>
+  </data>
+  <data name="DeleteAccountWarning" xml:space="preserve">
+    <value>Wenn Sie Ihr Konto löschen, werden Ihr Profil, Ihre Inserate, Favoriten, Blockierungen und Benachrichtigungs-Einstellungen unwiderruflich entfernt. Diese Aktion kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="DeleteAccountButton" xml:space="preserve">
+    <value>Konto löschen</value>
+  </data>
+  <data name="RoleBadgeSeller" xml:space="preserve">
+    <value>Verkäufer · {0}</value>
+  </data>
+  <data name="RoleBadgeBuyer" xml:space="preserve">
+    <value>Käufer</value>
+  </data>
+  <data name="ValidationNamesRequired" xml:space="preserve">
+    <value>Bitte Vor- und Nachnamen angeben.</value>
+  </data>
+  <data name="ValidationCompanyNameRequired" xml:space="preserve">
+    <value>Bitte den Firmennamen angeben.</value>
+  </data>
+  <data name="ProfileSaveFailedRetry" xml:space="preserve">
+    <value>Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="ProfileSaved" xml:space="preserve">
+    <value>Profil gespeichert.</value>
+  </data>
+  <data name="ProfileSaveFailedCheckInput" xml:space="preserve">
+    <value>Speichern fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben.</value>
+  </data>
+  <data name="VerificationAlreadyVerified" xml:space="preserve">
+    <value>Ihre E-Mail-Adresse ist bereits bestätigt.</value>
+  </data>
+  <data name="VerificationEmailSent" xml:space="preserve">
+    <value>Bestätigungs-E-Mail wurde gesendet. Bitte prüfen Sie Ihr Postfach.</value>
+  </data>
+  <data name="VerificationSendFailed" xml:space="preserve">
+    <value>Der Versand ist fehlgeschlagen. Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="ValidationPasswordsRequired" xml:space="preserve">
+    <value>Bitte aktuelles und neues Passwort angeben.</value>
+  </data>
+  <data name="ValidationNewPasswordTooShort" xml:space="preserve">
+    <value>Das neue Passwort muss mindestens 8 Zeichen lang sein.</value>
+  </data>
+  <data name="ValidationPasswordMismatch" xml:space="preserve">
+    <value>Die Passwörter stimmen nicht überein.</value>
+  </data>
+  <data name="PasswordChangeFailed" xml:space="preserve">
+    <value>Passwort-Änderung fehlgeschlagen.</value>
+  </data>
+  <data name="PasswordChanged" xml:space="preserve">
+    <value>Passwort geändert. Andere Geräte wurden abgemeldet.</value>
+  </data>
+  <data name="PasswordChangeFailedCheckCurrent" xml:space="preserve">
+    <value>Passwort-Änderung fehlgeschlagen. Ist das aktuelle Passwort korrekt?</value>
+  </data>
+  <data name="DeleteConfirmTitle" xml:space="preserve">
+    <value>Konto wirklich löschen?</value>
+  </data>
+  <data name="DeleteConfirmText" xml:space="preserve">
+    <value>Ihr Profil, Ihre Inserate, Favoriten, Blockierungen und Benachrichtigungs-Einstellungen werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="DeleteSuccessTitle" xml:space="preserve">
+    <value>Konto gelöscht</value>
+  </data>
+  <data name="DeleteSuccessText" xml:space="preserve">
+    <value>Ihr Konto und alle zugehörigen Daten wurden dauerhaft gelöscht.</value>
+  </data>
+  <data name="DeleteFailedTitle" xml:space="preserve">
+    <value>Löschung fehlgeschlagen</value>
+  </data>
+  <data name="DeleteFailedText" xml:space="preserve">
+    <value>Ihr Konto konnte nicht gelöscht werden. Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="DeleteFailedNetworkText" xml:space="preserve">
+    <value>Ihr Konto konnte nicht gelöscht werden. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</value>
+  </data>
+</root>

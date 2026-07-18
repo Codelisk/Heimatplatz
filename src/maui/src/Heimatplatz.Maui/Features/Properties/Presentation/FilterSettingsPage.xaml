@@ -7,7 +7,7 @@
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.FilterSettingsPage"
              x:DataType="vm:FilterSettingsViewModel"
              Shell.FlyoutBehavior="Disabled"
-             Title="Filtereinstellungen">
+             Title="{Binding Loc.PageTitle}">
 
     <Grid>
         <ScrollView>
@@ -33,11 +33,11 @@
                     <VerticalStackLayout Spacing="10">
 
                         <!-- Immobilientyp -->
-                        <Label Text="IMMOBILIENTYP"
+                        <Label Text="{Binding Loc.TypeSectionTitle}"
                                Style="{StaticResource SectionHeader}"
                                AutomationId="FilterSettings_TypeCard" />
                         <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                            <Button Text="Haus"
+                            <Button Text="{Binding Loc.TypeHouse}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding ToggleHausCommand}"
@@ -50,7 +50,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="Grundstück"
+                            <Button Text="{Binding Loc.TypeLand}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding ToggleGrundstueckCommand}"
@@ -63,7 +63,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="Zwangsversteigerung"
+                            <Button Text="{Binding Loc.TypeForeclosure}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding ToggleZwangsversteigerungCommand}"
@@ -83,9 +83,9 @@
                                              IsVisible="{Binding IsSellerFilterVisible}"
                                              AutomationId="FilterSettings_SellerCard">
                             <BoxView Style="{StaticResource Divider}" />
-                            <Label Text="ANBIETER" Style="{StaticResource SectionHeader}" />
+                            <Label Text="{Binding Loc.SellerSectionTitle}" Style="{StaticResource SectionHeader}" />
                             <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                                <Button Text="Privat"
+                                <Button Text="{Binding Loc.SellerPrivate}"
                                         Style="{StaticResource FilterChipStyle}"
                                         Margin="0,0,8,8"
                                         Command="{Binding TogglePrivateCommand}"
@@ -98,7 +98,7 @@
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
-                                <Button Text="Makler &amp; Verwaltung"
+                                <Button Text="{Binding Loc.SellerBroker}"
                                         Style="{StaticResource FilterChipStyle}"
                                         Margin="0,0,8,8"
                                         Command="{Binding ToggleBrokerCommand}"
@@ -117,11 +117,11 @@
                         <BoxView Style="{StaticResource Divider}" />
 
                         <!-- Eingestellt seit -->
-                        <Label Text="EINGESTELLT SEIT"
+                        <Label Text="{Binding Loc.AgeSectionTitle}"
                                Style="{StaticResource SectionHeader}"
                                AutomationId="FilterSettings_AgeCard" />
                         <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                            <Button Text="Alle"
+                            <Button Text="{Binding Loc.AgeOptionAll}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -137,7 +137,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="24 Stunden"
+                            <Button Text="{Binding Loc.AgeOptionDay}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -153,7 +153,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="7 Tage"
+                            <Button Text="{Binding Loc.AgeOptionWeek}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -169,7 +169,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="30 Tage"
+                            <Button Text="{Binding Loc.AgeOptionMonth}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -185,7 +185,7 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Text="12 Monate"
+                            <Button Text="{Binding Loc.AgeOptionYear}"
                                     Style="{StaticResource FilterChipStyle}"
                                     Margin="0,0,8,8"
                                     Command="{Binding SelectAgeFilterCommand}"
@@ -206,7 +206,7 @@
                         <BoxView Style="{StaticResource Divider}" />
 
                         <!-- Orte -->
-                        <Label Text="ORTE"
+                        <Label Text="{Binding Loc.OrtSectionTitle}"
                                Style="{StaticResource SectionHeader}"
                                AutomationId="FilterSettings_OrtCard" />
 
@@ -277,7 +277,7 @@
                 <!-- Darstellung (Anzeige-Einstellung, kein Filter) -->
                 <Border Style="{StaticResource Card}" AutomationId="FilterSettings_DisplayCard">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                        <Label Text="Objekte pro Seite"
+                        <Label Text="{Binding Loc.PageSizeLabel}"
                                Style="{StaticResource BodyStrong}"
                                VerticalOptions="Center" />
                         <Border Grid.Column="1"
@@ -296,7 +296,7 @@
                     </Grid>
                 </Border>
 
-                <Button Text="Alle Filter zurücksetzen"
+                <Button Text="{Binding Loc.ResetAllFilters}"
                         Style="{StaticResource SecondaryButton}"
                         Command="{Binding ResetFiltersCommand}"
                         HorizontalOptions="Fill"
@@ -315,13 +315,13 @@
                       Padding="16,4,16,12">
 
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                        <Label Text="Orte auswählen"
+                        <Label Text="{Binding Loc.OrtPanelTitle}"
                                FontSize="16"
                                FontAttributes="Bold"
                                VerticalOptions="Center"
                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                         <Button Grid.Column="1"
-                                Text="Zurücksetzen"
+                                Text="{Binding Loc.ResetButton}"
                                 FontSize="13"
                                 Padding="8,6"
                                 MinimumHeightRequest="0"
@@ -345,7 +345,7 @@
                                    VerticalOptions="Center"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                             <Entry Grid.Column="1"
-                                   Placeholder="Gemeinde oder PLZ suchen"
+                                   Placeholder="{Binding Loc.OrtSearchPlaceholder}"
                                    Text="{Binding OrtPanelSearchText, Mode=TwoWay}"
                                    BackgroundColor="Transparent"
                                    StyleClass="borderless"

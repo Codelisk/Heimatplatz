@@ -4,7 +4,9 @@ using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Core.Collections;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Sync;
+using Heimatplatz.Maui.Localization.Properties;
 using Heimatplatz.Maui.Offline;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -25,6 +27,11 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     protected INavigator Navigator { get; }
     protected IDialogs Dialogs { get; }
     protected ILogger Logger { get; }
+
+    /// <summary>
+    /// Gemeinsame Localized-Texte der Sammlungsseiten (Fehler-Hinweise etc.)
+    /// </summary>
+    protected CollectionStringsLocalized CollectionLoc { get; }
 
     private int _currentPage;
     private bool _hasMore;
@@ -107,16 +114,27 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// </summary>
     protected virtual bool RequiresSellerRole => false;
 
+    /// <summary>
+    /// Ob vor dem Entfernen ein Bestaetigungsdialog kommt. Nur fuer destruktive
+    /// Aktionen (Inserat loeschen) - trivial umkehrbare (Blockierung aufheben)
+    /// passieren direkt.
+    /// </summary>
+    protected virtual bool ConfirmBeforeRemove => true;
+
     // Abstrakte Texte (von abgeleiteten Klassen zu implementieren)
     protected abstract string LoadingMessage { get; }
     protected abstract string RemovingMessage { get; }
-    protected abstract string RemoveConfirmTitle { get; }
     protected abstract string RemoveErrorTitle { get; }
 
     /// <summary>
-    /// Bestaetigungstext fuer das Entfernen einer Immobilie
+    /// Titel des Bestaetigungsdialogs - nur relevant wenn ConfirmBeforeRemove true ist
     /// </summary>
-    protected abstract string GetRemoveConfirmMessage(PropertyListItemDto property);
+    protected virtual string RemoveConfirmTitle => "";
+
+    /// <summary>
+    /// Bestaetigungstext fuer das Entfernen - nur relevant wenn ConfirmBeforeRemove true ist
+    /// </summary>
+    protected virtual string GetRemoveConfirmMessage(PropertyListItemDto property) => "";
 
     /// <summary>
     /// Fehlermeldung wenn das Entfernen fehlschlaegt
@@ -138,13 +156,15 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         IMediator mediator,
         INavigator navigator,
         IDialogs dialogs,
-        ILogger logger)
+        ILogger logger,
+        CollectionStringsLocalized collectionLoc)
     {
         AuthService = authService;
         Mediator = mediator;
         Navigator = navigator;
         Dialogs = dialogs;
         Logger = logger;
+        CollectionLoc = collectionLoc;
 
         IsEmpty = true;
         IsLoggedOut = !AuthService.IsAuthenticated;
@@ -296,15 +316,21 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
     /// <summary>
     /// Benutzerfreundlicher Hinweistext fuer Lade-/Aktionsfehler (keine rohen
-    /// HTTP-/Exception-Texte) - auch von HomeViewModel genutzt.
+    /// HTTP-/Exception-Texte) - auch von HomeViewModel genutzt. Bleibt statisch
+    /// wegen des externen Aufrufs, daher Service-Locator fuer die Localized-Texte
+    /// (im Instanz-Kontext wird direkt CollectionLoc verwendet).
     /// </summary>
-    public static string GetErrorHint(Exception ex) => ex switch
+    public static string GetErrorHint(Exception ex)
     {
-        OfflineDataUnavailableException =>
-            "Keine Internetverbindung. Diese Inhalte wurden noch nicht lokal gespeichert - sobald Sie wieder online sind, klappt es.",
-        HttpRequestException =>
-            "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
-        _ => "Bitte versuchen Sie es später erneut."
+        var loc = IPlatformApplication.Current!.Services.GetRequiredService<CollectionStringsLocalized>();
+        return GetErrorHint(loc, ex);
+    }
+
+    private static string GetErrorHint(CollectionStringsLocalized loc, Exception ex) => ex switch
+    {
+        OfflineDataUnavailableException => loc.ErrorHintOffline,
+        HttpRequestException => loc.ErrorHintNoConnection,
+        _ => loc.ErrorHintTryLater
     };
 
     /// <summary>
@@ -413,20 +439,23 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             // Inline-Fehlerzustand mit Retry; Folgeseiten-Fehler (Infinite Scroll) bleiben still.
             if (page == 0)
             {
-                LoadErrorMessage = GetLoadErrorMessage(GetErrorHint(ex));
+                LoadErrorMessage = GetLoadErrorMessage(GetErrorHint(CollectionLoc, ex));
             }
             return [];
         }
     }
 
     /// <summary>
-    /// Entfernt eine Immobilie aus der Sammlung (mit Bestaetigung)
+    /// Entfernt eine Immobilie aus der Sammlung (Bestaetigung nur wenn ConfirmBeforeRemove)
     /// </summary>
     [RelayCommand]
     private async Task RemoveFromCollectionAsync(PropertyListItemDto property)
     {
-        var confirmed = await Dialogs.Confirm(RemoveConfirmTitle, GetRemoveConfirmMessage(property));
-        if (!confirmed) return;
+        if (ConfirmBeforeRemove)
+        {
+            var confirmed = await Dialogs.Confirm(RemoveConfirmTitle, GetRemoveConfirmMessage(property));
+            if (!confirmed) return;
+        }
 
         IsBusy = true;
         BusyMessage = RemovingMessage;
@@ -444,7 +473,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         catch (Exception ex)
         {
             Logger.LogError(ex, "[{Type}] Error removing property {PropertyId}", GetType().Name, property.Id);
-            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(GetErrorHint(ex)));
+            await Dialogs.Alert(RemoveErrorTitle, GetRemoveErrorMessage(GetErrorHint(CollectionLoc, ex)));
         }
         finally
         {

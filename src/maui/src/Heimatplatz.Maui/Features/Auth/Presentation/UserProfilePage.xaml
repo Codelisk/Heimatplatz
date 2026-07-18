@@ -4,7 +4,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
              x:Class="Heimatplatz.Maui.Features.Auth.Presentation.UserProfilePage"
              x:DataType="vm:UserProfileViewModel"
-             Title="Mein Profil">
+             Title="{Binding Loc.PageTitle}">
 
     <ScrollView>
         <VerticalStackLayout Spacing="0">
@@ -69,7 +69,7 @@
                                 StrokeShape="RoundRectangle 14"
                                 Padding="14,6"
                                 IsVisible="{Binding ShowVerifiedBadge}">
-                            <Label Text="✓ E-Mail bestätigt"
+                            <Label Text="{Binding Loc.VerifiedBadge}"
                                    FontSize="12"
                                    FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource SuccessBannerForeground}, Dark={StaticResource SuccessBannerForegroundDark}}" />
@@ -91,15 +91,15 @@
                         Padding="16"
                         IsVisible="{Binding IsEmailNotVerified}">
                     <VerticalStackLayout Spacing="10">
-                        <Label Text="E-Mail-Adresse bestätigen"
+                        <Label Text="{Binding Loc.VerifyEmailTitle}"
                                FontAttributes="Bold"
                                FontSize="14"
                                TextColor="{AppThemeBinding Light={StaticResource WarningBannerForeground}, Dark={StaticResource WarningBannerForegroundDark}}" />
-                        <Label Text="Ihre E-Mail-Adresse ist noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach (auch den Spam-Ordner)."
+                        <Label Text="{Binding Loc.VerifyEmailText}"
                                FontSize="13"
                                LineBreakMode="WordWrap"
                                TextColor="{AppThemeBinding Light={StaticResource WarningBannerForeground}, Dark={StaticResource WarningBannerForegroundDark}}" />
-                        <Button Text="Bestätigungs-E-Mail erneut senden"
+                        <Button Text="{Binding Loc.ResendVerificationButton}"
                                 Command="{Binding ResendVerificationEmailCommand}"
                                 IsEnabled="{Binding IsNotDeletingAccount}"
                                 Style="{StaticResource SecondaryButton}" />
@@ -124,7 +124,7 @@
                         </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="2">
                             <Label Text="{Binding FavoritesCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
-                            <Label Text="Favoriten" Style="{StaticResource Caption}" />
+                            <Label Text="{Binding Loc.FavoritesTile}" Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
                     </Border>
                     <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,9">
@@ -133,7 +133,7 @@
                         </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="2">
                             <Label Text="{Binding BlockedCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
-                            <Label Text="Blockiert" Style="{StaticResource Caption}" />
+                            <Label Text="{Binding Loc.BlockedTile}" Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
                     </Border>
                     <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12,9">
@@ -142,7 +142,7 @@
                         </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="2">
                             <Label Text="{Binding MyPropertiesCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
-                            <Label Text="Inserate" Style="{StaticResource Caption}" />
+                            <Label Text="{Binding Loc.MyPropertiesTile}" Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
@@ -155,7 +155,7 @@
                         </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="2">
                             <Label Text="{Binding FavoritesCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
-                            <Label Text="Favoriten" Style="{StaticResource Caption}" />
+                            <Label Text="{Binding Loc.FavoritesTile}" Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
                     </Border>
                     <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,9">
@@ -164,7 +164,7 @@
                         </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="2">
                             <Label Text="{Binding BlockedCountText}" Style="{StaticResource PriceLabel}" FontSize="19" />
-                            <Label Text="Blockiert" Style="{StaticResource Caption}" />
+                            <Label Text="{Binding Loc.BlockedTile}" Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
@@ -179,8 +179,8 @@
                                 <TapGestureRecognizer Command="{Binding GoToAddPropertyCommand}" />
                             </Grid.GestureRecognizers>
                             <VerticalStackLayout Grid.Column="0" Spacing="1">
-                                <Label Text="Immobilie inserieren" Style="{StaticResource BodyStrong}" />
-                                <Label Text="Neues Inserat erstellen" Style="{StaticResource Caption}" />
+                                <Label Text="{Binding Loc.AddPropertyTitle}" Style="{StaticResource BodyStrong}" />
+                                <Label Text="{Binding Loc.AddPropertySubtitle}" Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                             <Label Grid.Column="1" Text="›" FontSize="20" VerticalOptions="Center"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
@@ -191,8 +191,8 @@
                                 <TapGestureRecognizer Command="{Binding GoToNotificationSettingsCommand}" />
                             </Grid.GestureRecognizers>
                             <VerticalStackLayout Grid.Column="0" Spacing="1">
-                                <Label Text="Benachrichtigungen" Style="{StaticResource BodyStrong}" />
-                                <Label Text="Hinweise zu neuen Objekten" Style="{StaticResource Caption}" />
+                                <Label Text="{Binding Loc.NotificationsTitle}" Style="{StaticResource BodyStrong}" />
+                                <Label Text="{Binding Loc.NotificationsSubtitle}" Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                             <Label Grid.Column="1" Text="›" FontSize="20" VerticalOptions="Center"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
@@ -203,8 +203,8 @@
                                 <TapGestureRecognizer Command="{Binding GoToFilterSettingsCommand}" />
                             </Grid.GestureRecognizers>
                             <VerticalStackLayout Grid.Column="0" Spacing="1">
-                                <Label Text="Filtereinstellungen" Style="{StaticResource BodyStrong}" />
-                                <Label Text="Gespeicherte Suche anpassen" Style="{StaticResource Caption}" />
+                                <Label Text="{Binding Loc.FilterSettingsTitle}" Style="{StaticResource BodyStrong}" />
+                                <Label Text="{Binding Loc.FilterSettingsSubtitle}" Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                             <Label Grid.Column="1" Text="›" FontSize="20" VerticalOptions="Center"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
@@ -216,28 +216,28 @@
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="12">
                         <VerticalStackLayout Spacing="2">
-                            <Label Text="Profil"
+                            <Label Text="{Binding Loc.ProfileSectionTitle}"
                                    Style="{StaticResource CardTitle}" />
-                            <Label Text="Name und Verkäufer-Einstellungen"
+                            <Label Text="{Binding Loc.ProfileSectionSubtitle}"
                                    Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                             <VerticalStackLayout Grid.Column="0" Spacing="6">
-                                <Label Text="Vorname" Style="{StaticResource FieldLabel}" />
-                                <Entry Text="{Binding EditFirstName}" Placeholder="Max" />
+                                <Label Text="{Binding Loc.FirstNameLabel}" Style="{StaticResource FieldLabel}" />
+                                <Entry Text="{Binding EditFirstName}" Placeholder="{Binding Loc.FirstNamePlaceholder}" />
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                <Label Text="Nachname" Style="{StaticResource FieldLabel}" />
-                                <Entry Text="{Binding EditLastName}" Placeholder="Mustermann" />
+                                <Label Text="{Binding Loc.LastNameLabel}" Style="{StaticResource FieldLabel}" />
+                                <Entry Text="{Binding EditLastName}" Placeholder="{Binding Loc.LastNamePlaceholder}" />
                             </VerticalStackLayout>
                         </Grid>
 
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <VerticalStackLayout Grid.Column="0" Spacing="1">
-                                <Label Text="Ich möchte Immobilien anbieten"
+                                <Label Text="{Binding Loc.WantsToSellLabel}"
                                        Style="{StaticResource BodyStrong}" />
-                                <Label Text="Jederzeit aktivierbar oder deaktivierbar - bestehende Inserate behalten ihre Angaben."
+                                <Label Text="{Binding Loc.WantsToSellHint}"
                                        Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                             <Switch Grid.Column="1"
@@ -246,20 +246,20 @@
                         </Grid>
 
                         <VerticalStackLayout Spacing="8" IsVisible="{Binding EditWantsToSell}">
-                            <Label Text="Anbietertyp" Style="{StaticResource FieldLabel}" />
-                            <RadioButton Content="Privatperson"
+                            <Label Text="{Binding Loc.SellerTypeLabel}" Style="{StaticResource FieldLabel}" />
+                            <RadioButton Content="{Binding Loc.SellerTypePrivate}"
                                          IsChecked="{Binding EditIsPrivate, Mode=TwoWay}"
                                          GroupName="ProfileSellerType" />
-                            <RadioButton Content="Makler / Agentur"
+                            <RadioButton Content="{Binding Loc.SellerTypeBroker}"
                                          IsChecked="{Binding EditIsBroker, Mode=TwoWay}"
                                          GroupName="ProfileSellerType" />
-                            <RadioButton Content="Hausverwaltung"
+                            <RadioButton Content="{Binding Loc.SellerTypePropertyManager}"
                                          IsChecked="{Binding EditIsPropertyManager, Mode=TwoWay}"
                                          GroupName="ProfileSellerType" />
 
                             <VerticalStackLayout Spacing="6" IsVisible="{Binding EditNeedsCompanyName}">
-                                <Label Text="Firmenname" Style="{StaticResource FieldLabel}" />
-                                <Entry Text="{Binding EditCompanyName}" Placeholder="z.B. RE/MAX Premium" />
+                                <Label Text="{Binding Loc.CompanyNameLabel}" Style="{StaticResource FieldLabel}" />
+                                <Entry Text="{Binding EditCompanyName}" Placeholder="{Binding Loc.CompanyNamePlaceholder}" />
                             </VerticalStackLayout>
                         </VerticalStackLayout>
 
@@ -267,7 +267,7 @@
                                IsVisible="{Binding HasProfileStatus}"
                                Style="{StaticResource Caption}" />
 
-                        <Button Text="Profil speichern"
+                        <Button Text="{Binding Loc.SaveProfileButton}"
                                 Command="{Binding SaveProfileCommand}"
                                 IsEnabled="{Binding IsNotDeletingAccount}"
                                 Style="{StaticResource PrimaryButton}" />
@@ -281,16 +281,16 @@
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="12">
                         <VerticalStackLayout Spacing="2">
-                            <Label Text="Sicherheit"
+                            <Label Text="{Binding Loc.SecuritySectionTitle}"
                                    Style="{StaticResource CardTitle}" />
-                            <Label Text="Passwort ändern - andere Geräte werden dabei abgemeldet"
+                            <Label Text="{Binding Loc.SecuritySectionSubtitle}"
                                    Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
 
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Aktuelles Passwort" Style="{StaticResource FieldLabel}" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{Binding Loc.CurrentPasswordLabel}" Style="{StaticResource FieldLabel}" VerticalOptions="Center" />
                             <Button Grid.Column="1"
-                                    Text="Passwort vergessen?"
+                                    Text="{Binding Loc.ForgotPasswordLink}"
                                     Command="{Binding GoToForgotPasswordCommand}"
                                     Style="{StaticResource LinkButton}"
                                     FontSize="12" />
@@ -298,11 +298,11 @@
                         <Entry Text="{Binding CurrentPassword}" IsPassword="True" />
 
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="Neues Passwort" Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding NewPassword}" IsPassword="True" Placeholder="Mindestens 8 Zeichen" />
+                            <Label Text="{Binding Loc.NewPasswordLabel}" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding NewPassword}" IsPassword="True" Placeholder="{Binding Loc.NewPasswordPlaceholder}" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="Neues Passwort bestätigen" Style="{StaticResource FieldLabel}" />
+                            <Label Text="{Binding Loc.NewPasswordConfirmLabel}" Style="{StaticResource FieldLabel}" />
                             <Entry Text="{Binding NewPasswordConfirm}" IsPassword="True" />
                         </VerticalStackLayout>
 
@@ -310,7 +310,7 @@
                                IsVisible="{Binding HasPasswordStatus}"
                                Style="{StaticResource Caption}" />
 
-                        <Button Text="Passwort ändern"
+                        <Button Text="{Binding Loc.ChangePasswordButton}"
                                 Command="{Binding ChangePasswordCommand}"
                                 IsEnabled="{Binding IsNotDeletingAccount}"
                                 Style="{StaticResource SecondaryButton}" />
@@ -321,7 +321,7 @@
                 </Border>
 
                 <!-- Abmelden (waehrend der Konto-Loeschung gesperrt) -->
-                <Button Text="Abmelden"
+                <Button Text="{Binding Loc.LogoutButton}"
                         Command="{Binding LogoutCommand}"
                         IsEnabled="{Binding IsNotDeletingAccount}"
                         Style="{StaticResource SecondaryButton}"
@@ -335,14 +335,14 @@
                         Stroke="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}"
                         Margin="0,4,0,40">
                     <VerticalStackLayout Spacing="12">
-                        <Label Text="Konto löschen"
+                        <Label Text="{Binding Loc.DeleteAccountTitle}"
                                Style="{StaticResource CardTitle}"
                                TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
-                        <Label Text="Wenn Sie Ihr Konto löschen, werden Ihr Profil, Ihre Inserate, Favoriten, Blockierungen und Benachrichtigungs-Einstellungen unwiderruflich entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+                        <Label Text="{Binding Loc.DeleteAccountWarning}"
                                Style="{StaticResource Caption}" />
 
                         <HorizontalStackLayout Spacing="12">
-                            <Button Text="Konto löschen"
+                            <Button Text="{Binding Loc.DeleteAccountButton}"
                                     Command="{Binding DeleteAccountCommand}"
                                     Style="{StaticResource DangerButton}"
                                     HorizontalOptions="Start" />

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Localization.Legal;
 using Shiny;
 using Shiny.Mediator;
 
@@ -10,8 +11,10 @@ namespace Heimatplatz.Maui.Presentation;
 /// ViewModel fuer das Impressum
 /// </summary>
 [ShellMap<ImprintPage>("Imprint")]
-public partial class ImprintViewModel(IMediator mediator) : ObservableObject, IPageLifecycleAware
+public partial class ImprintViewModel(IMediator mediator, ImprintStringsLocalized loc) : ObservableObject, IPageLifecycleAware
 {
+    public ImprintStringsLocalized Loc => loc;
+
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
 
@@ -58,7 +61,7 @@ public partial class ImprintViewModel(IMediator mediator) : ObservableObject, IP
             var imprint = response?.Imprint;
             if (imprint == null)
             {
-                ErrorMessage = "Impressum konnte nicht geladen werden.";
+                ErrorMessage = loc.LoadError;
                 return;
             }
 
@@ -67,10 +70,10 @@ public partial class ImprintViewModel(IMediator mediator) : ObservableObject, IP
             AddressLine = $"{imprint.Street}, {imprint.PostalCode} {imprint.City}, {imprint.Country}";
             // "Tel:" nur anzeigen wenn eine Nummer vorhanden ist
             ContactLine = string.IsNullOrWhiteSpace(imprint.Phone)
-                ? $"E-Mail: {imprint.Email}"
-                : $"E-Mail: {imprint.Email}  Tel: {imprint.Phone}";
-            UidLine = string.IsNullOrEmpty(imprint.UidNumber) ? string.Empty : $"UID: {imprint.UidNumber}";
-            VersionLine = $"Version {imprint.Version} - Stand: {imprint.LastUpdated:d}";
+                ? loc.EmailFormat(imprint.Email)
+                : loc.EmailPhoneFormat(imprint.Email, imprint.Phone);
+            UidLine = string.IsNullOrEmpty(imprint.UidNumber) ? string.Empty : loc.UidFormat(imprint.UidNumber);
+            VersionLine = loc.VersionFormat(imprint.Version, imprint.LastUpdated);
 
             Sections.Clear();
             if (imprint.Sections != null)
@@ -83,7 +86,7 @@ public partial class ImprintViewModel(IMediator mediator) : ObservableObject, IP
         }
         catch (Exception)
         {
-            ErrorMessage = "Impressum konnte nicht geladen werden.";
+            ErrorMessage = loc.LoadError;
         }
         finally
         {
