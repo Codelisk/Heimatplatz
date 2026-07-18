@@ -21,7 +21,8 @@ public record CreatePropertyRequest(
     int? YearBuilt = null,
     List<string>? Features = null,
     List<string>? ImageUrls = null,
-    Dictionary<string, object>? TypeSpecificData = null
+    Dictionary<string, object>? TypeSpecificData = null,
+    string? OriginalListingUrl = null
 ) : IRequest<CreatePropertyResponse>;
 
 /// <summary>

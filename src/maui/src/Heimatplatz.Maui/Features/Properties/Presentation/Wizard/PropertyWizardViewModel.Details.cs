@@ -66,6 +66,10 @@ public partial class PropertyWizardViewModel
     [ObservableProperty]
     public partial string Baujahr { get; set; }
 
+    /// <summary>Link zum Originalinserat (optional, landet am Erst-Kontakt der Immobilie)</summary>
+    [ObservableProperty]
+    public partial string OriginalListingUrl { get; set; }
+
     #region Ausstattung & Merkmale (Chips)
 
     public ObservableCollection<string> FeatureItems { get; } = [];
@@ -124,6 +128,7 @@ public partial class PropertyWizardViewModel
         Wohnflaeche = string.Empty;
         Grundstuecksflaeche = string.Empty;
         Baujahr = string.Empty;
+        OriginalListingUrl = string.Empty;
         NewFeatureText = string.Empty;
 
         SelectedPropertyTypeItem = PropertyTypes[0]; // "Haus"
@@ -171,6 +176,18 @@ public partial class PropertyWizardViewModel
         if (baujahr is { } jahr && (jahr < 1000 || jahr > DateTime.Now.Year))
         {
             ErrorMessage = Loc.ValidationYearBuiltFuture;
+            return false;
+        }
+
+        // Originalinserat: optional, aber wenn angegeben eine absolute http(s)-URL
+        // (Spiegel von PropertyFieldValidation.NormalizeOriginalListingUrl)
+        var originalUrl = OriginalListingUrl?.Trim();
+        if (!string.IsNullOrEmpty(originalUrl)
+            && (originalUrl.Length > 2000
+                || !Uri.TryCreate(originalUrl, UriKind.Absolute, out var uri)
+                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+        {
+            ErrorMessage = Loc.ValidationOriginalUrlInvalid;
             return false;
         }
 

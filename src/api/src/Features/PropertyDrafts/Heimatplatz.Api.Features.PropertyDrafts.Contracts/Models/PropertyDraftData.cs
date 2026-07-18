@@ -48,6 +48,9 @@ public class PropertyDraftData
     public string? MunicipalityDisplay { get; set; }
     public decimal? Price { get; set; }
 
+    /// <summary>Link zum Originalinserat (landet beim Veroeffentlichen am Erst-Kontakt)</summary>
+    public string? OriginalListingUrl { get; set; }
+
     // Schritt 4: Beschreibung
     /// <summary>Vom Nutzer gewaehlter Beschreibungs-Modus (Wiederherstellen der Auswahl)</summary>
     public DraftDescriptionMode DescriptionMode { get; set; }

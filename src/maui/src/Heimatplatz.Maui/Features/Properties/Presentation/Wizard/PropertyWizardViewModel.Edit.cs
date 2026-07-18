@@ -53,6 +53,9 @@ public partial class PropertyWizardViewModel
 
             Adresse = prop.Address;
             Preis = ((decimal)prop.Price).ToString("0.##", CultureInfo.CurrentCulture);
+            OriginalListingUrl = prop.Contacts
+                ?.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.OriginalListingUrl))
+                ?.OriginalListingUrl ?? string.Empty;
             await Ort.RestoreByIdAsync(prop.MunicipalityId, prop.City);
 
             // Edit kennt nur den manuellen Beschreibungsweg (keine KI-Generierung)
@@ -130,7 +133,8 @@ public partial class PropertyWizardViewModel
                     YearBuilt = baujahr,
                     // Features immer mitsenden - null wuerde serverseitig alle Merkmale loeschen
                     Features = FeatureItems.ToList(),
-                    ImageUrls = imageUrls
+                    ImageUrls = imageUrls,
+                    OriginalListingUrl = string.IsNullOrWhiteSpace(OriginalListingUrl) ? null : OriginalListingUrl.Trim()
                 }
             });
 

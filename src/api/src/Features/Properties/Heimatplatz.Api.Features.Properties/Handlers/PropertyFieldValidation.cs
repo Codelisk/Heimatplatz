@@ -15,6 +15,9 @@ internal static class PropertyFieldValidation
     private const int MaxFeatureCount = 50;
     private const int MaxFeatureLength = 100;
 
+    // Spiegel der EF-Spaltenlaenge (PropertyContactInfoConfiguration)
+    private const int MaxOriginalListingUrlLength = 2000;
+
     public static void ValidateCoreFields(int? livingAreaSquareMeters, int? plotAreaSquareMeters, int? rooms, int? yearBuilt)
     {
         if (livingAreaSquareMeters is <= 0 or > MaxLivingAreaSquareMeters)
@@ -62,5 +65,29 @@ internal static class PropertyFieldValidation
         }
 
         return normalized;
+    }
+
+    /// <summary>
+    /// Optionale Original-Inserats-URL normalisieren: leer wird null,
+    /// alles andere muss eine absolute http(s)-URL innerhalb der Spaltenlaenge sein.
+    /// </summary>
+    public static string? NormalizeOriginalListingUrl(string? originalListingUrl)
+    {
+        var trimmed = originalListingUrl?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return null;
+        }
+
+        if (trimmed.Length > MaxOriginalListingUrlLength
+            || !Uri.TryCreate(trimmed, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException(
+                $"Original listing URL must be an absolute http(s) URL with at most {MaxOriginalListingUrlLength} characters",
+                nameof(originalListingUrl));
+        }
+
+        return trimmed;
     }
 }

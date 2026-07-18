@@ -71,6 +71,7 @@ public class CreatePropertyHandler(
         PropertyFieldValidation.ValidateCoreFields(
             request.LivingAreaSquareMeters, request.PlotAreaSquareMeters, request.Rooms, request.YearBuilt);
         var features = PropertyFieldValidation.NormalizeFeatures(request.Features);
+        var originalListingUrl = PropertyFieldValidation.NormalizeOriginalListingUrl(request.OriginalListingUrl);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
         // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
@@ -168,6 +169,7 @@ public class CreatePropertyHandler(
             Source = ContactSource.Manual,
             Name = sellerInfo.SellerName,
             Email = user.Email,
+            OriginalListingUrl = originalListingUrl,
             DisplayOrder = 0,
             CreatedAt = property.CreatedAt
         };

@@ -96,6 +96,11 @@ export const editor = {
   "editor.fcBuildingCondition": "Gebäudezustand",
   "editor.fcNotes": "Hinweise",
 
+  // Originalinserat (Quelle, angezeigt wie die Quellen-Karte der Detailseite)
+  "editor.originalUrlLabel": "Originalinserat",
+  "editor.originalUrlPlaceholder": "https://…",
+  "editor.originalUrlHint": "Optional: Link zum Inserat beim ursprünglichen Anbieter – erscheint als „Original-Inserat öffnen“.",
+
   // Anbieter-Sidebar (Vorschau der Profildaten)
   "editor.sellerLabel": "Anbieter",
   "editor.sellerNamePlaceholder": "Ihr Name",
@@ -129,6 +134,7 @@ export const editor = {
   "editor.valFileNumberRequired": "Bitte das Aktenzeichen angeben.",
   "editor.valAuctionDateInvalid": "Bitte einen gültigen Versteigerungstermin angeben.",
   "editor.valMinimumBidRequired": "Bitte ein Mindestgebot größer als 0 angeben.",
+  "editor.valOriginalUrlInvalid": "Der Link zum Originalinserat muss eine vollständige http(s)-Adresse sein.",
 
   // Bild-Picker (Laufzeit-Meldungen)
   "editor.photoRequired": "Bitte fügen Sie mindestens ein Foto hinzu.",

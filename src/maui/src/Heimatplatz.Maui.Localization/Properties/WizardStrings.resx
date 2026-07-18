@@ -363,4 +363,22 @@
   <data name="AddFeatureSemantic" xml:space="preserve">
     <value>Merkmal hinzufügen</value>
   </data>
+  <data name="SourceSectionLabel" xml:space="preserve">
+    <value>QUELLE</value>
+  </data>
+  <data name="OriginalUrlLabel" xml:space="preserve">
+    <value>Originalinserat</value>
+  </data>
+  <data name="OriginalUrlPlaceholder" xml:space="preserve">
+    <value>https://…</value>
+  </data>
+  <data name="OriginalUrlHint" xml:space="preserve">
+    <value>Optional: Link zum Inserat beim ursprünglichen Anbieter – erscheint als „Original-Inserat öffnen“.</value>
+  </data>
+  <data name="OriginalUrlEntrySemantic" xml:space="preserve">
+    <value>Link zum Originalinserat</value>
+  </data>
+  <data name="ValidationOriginalUrlInvalid" xml:space="preserve">
+    <value>Der Link zum Originalinserat muss eine vollständige http(s)-Adresse sein.</value>
+  </data>
 </root>

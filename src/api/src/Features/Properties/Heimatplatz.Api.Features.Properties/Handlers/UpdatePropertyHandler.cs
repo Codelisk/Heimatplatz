@@ -3,7 +3,9 @@ using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
+using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Locations.Data.Entities;
@@ -46,8 +48,9 @@ public class UpdatePropertyHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Load existing property
+        // Load existing property (Contacts fuer die Originalinserat-URL mitladen)
         var property = await dbContext.Set<Property>()
+            .Include(p => p.Contacts)
             .FirstOrDefaultAsync(p => p.Id == propertyId, cancellationToken)
             ?? throw new KeyNotFoundException($"Property mit ID {propertyId} nicht gefunden");
 
@@ -81,6 +84,7 @@ public class UpdatePropertyHandler(
         PropertyFieldValidation.ValidateCoreFields(
             request.LivingAreaSquareMeters, request.PlotAreaSquareMeters, request.Rooms, request.YearBuilt);
         var features = PropertyFieldValidation.NormalizeFeatures(request.Features);
+        var originalListingUrl = PropertyFieldValidation.NormalizeOriginalListingUrl(request.OriginalListingUrl);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
         // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
@@ -111,6 +115,32 @@ public class UpdatePropertyHandler(
         property.Features = features;
         property.ImageUrls = request.ImageUrls ?? new List<string>();
         property.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Originalinserat-URL am Erst-Kontakt pflegen (dort zeigt sie die Detailseite an);
+        // Altbestand ohne Kontaktzeile bekommt wie bei CreateProperty einen Manual-Kontakt
+        var primaryContact = property.Contacts.OrderBy(c => c.DisplayOrder).FirstOrDefault();
+        if (primaryContact != null)
+        {
+            primaryContact.OriginalListingUrl = originalListingUrl;
+        }
+        else if (originalListingUrl != null)
+        {
+            var user = await dbContext.Set<User>()
+                .FirstAsync(u => u.Id == userId, cancellationToken);
+
+            dbContext.Set<PropertyContactInfo>().Add(new PropertyContactInfo
+            {
+                Id = Guid.NewGuid(),
+                PropertyId = property.Id,
+                Type = sellerInfo.ContactType,
+                Source = ContactSource.Manual,
+                Name = sellerInfo.SellerName,
+                Email = user.Email,
+                OriginalListingUrl = originalListingUrl,
+                DisplayOrder = 0,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
 
         // Update TypeSpecificData if provided
         if (request.TypeSpecificData != null && request.TypeSpecificData.Count > 0)

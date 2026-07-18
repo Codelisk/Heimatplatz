@@ -137,7 +137,8 @@ public class PublishPropertyDraftHandler(
             Rooms: isHouse ? data.Rooms : null,
             YearBuilt: isHouse ? data.YearBuilt : null,
             Features: data.Features,
-            ImageUrls: data.ImageUrls
+            ImageUrls: data.ImageUrls,
+            OriginalListingUrl: data.OriginalListingUrl
         );
     }
 }

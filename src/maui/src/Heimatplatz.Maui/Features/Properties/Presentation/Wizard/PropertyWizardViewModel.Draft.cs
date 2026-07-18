@@ -149,6 +149,7 @@ public partial class PropertyWizardViewModel
         MunicipalityId = Ort.SelectedGemeindeId,
         MunicipalityDisplay = NullIfEmpty(Ort.SelectedOrtText),
         Price = decimal.TryParse(Preis, out var preis) && preis > 0 ? (double)preis : null,
+        OriginalListingUrl = NullIfEmpty(OriginalListingUrl),
         DescriptionMode = DescriptionMode,
         Description = NullIfEmpty(Beschreibung),
         DescriptionKeywords = NullIfEmpty(DescriptionKeywords)
@@ -178,6 +179,7 @@ public partial class PropertyWizardViewModel
         Preis = data.Price is { } price
             ? ((decimal)price).ToString("0.##", CultureInfo.CurrentCulture)
             : string.Empty;
+        OriginalListingUrl = data.OriginalListingUrl ?? string.Empty;
         if (data.MunicipalityId is { } municipalityId)
             Ort.Restore(municipalityId, data.MunicipalityDisplay ?? string.Empty);
 

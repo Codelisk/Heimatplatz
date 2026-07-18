@@ -2079,6 +2079,12 @@
               "null",
               "object"
             ]
+          },
+          "OriginalListingUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3971,6 +3977,12 @@
             ],
             "format": "double"
           },
+          "OriginalListingUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "DescriptionMode": {
             "$ref": "#/components/schemas/DraftDescriptionMode"
           },
@@ -5087,6 +5099,12 @@
             "type": [
               "null",
               "object"
+            ]
+          },
+          "OriginalListingUrl": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         }

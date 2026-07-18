@@ -25,6 +25,9 @@ public class UpdatePropertyRequest : IRequest<UpdatePropertyResponse>
     public List<string>? Features { get; set; }
     public List<string>? ImageUrls { get; set; }
     public Dictionary<string, object>? TypeSpecificData { get; set; }
+
+    /// <summary>Link zum Originalinserat (wird am Erst-Kontakt der Immobilie gepflegt)</summary>
+    public string? OriginalListingUrl { get; set; }
 }
 
 /// <summary>

@@ -25,6 +25,7 @@
     rooms?: string;
     yearBuilt?: string;
     features?: string;
+    originalListingUrl?: string;
     imageUrls?: string[];
     [key: string]: string | string[] | undefined;
   };
@@ -1753,6 +1754,13 @@
     const rooms = toNumber(draft.rooms);
     if (draft.rooms && (!rooms || rooms > 200)) return t("editor.valRoomsUnrealistic");
 
+    // Originalinserat: optional, aber wenn angegeben eine absolute http(s)-URL
+    // (Spiegel von PropertyFieldValidation.NormalizeOriginalListingUrl)
+    const originalListingUrl = requiredText(draft.originalListingUrl);
+    if (originalListingUrl && !/^https?:\/\/\S+$/i.test(originalListingUrl)) {
+      return t("editor.valOriginalUrlInvalid");
+    }
+
     if (draft.propertyType !== "foreclosure") return "";
     if (!draft.foreclosureCourtName) return t("editor.valCourtRequired");
     if (!draft.foreclosureFileNumber) return t("editor.valFileNumberRequired");
@@ -1919,6 +1927,7 @@
         Features: parseDraftFeatures(draft.features),
         ImageUrls: imageUrls,
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
+        OriginalListingUrl: requiredText(draft.originalListingUrl) || null,
       },
     });
 
@@ -1952,6 +1961,7 @@
         Features: parseDraftFeatures(draft.features),
         ImageUrls: imageUrls,
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
+        OriginalListingUrl: requiredText(draft.originalListingUrl) || null,
       },
     });
 
@@ -2032,6 +2042,7 @@
     setField(form, "rooms", draft.rooms);
     setField(form, "yearBuilt", draft.yearBuilt);
     setField(form, "features", draft.features);
+    setField(form, "originalListingUrl", draft.originalListingUrl);
     setField(form, "municipalityId", draft.municipalityId);
     [
       "foreclosureCourtName",
@@ -2076,6 +2087,7 @@
       rooms: property.Rooms ? String(property.Rooms) : "",
       yearBuilt: property.YearBuilt ? String(property.YearBuilt) : "",
       features: (property.Features ?? []).join(", "),
+      originalListingUrl: property.Contacts?.find((contact) => contact.OriginalListingUrl)?.OriginalListingUrl ?? "",
       municipalityId: property.MunicipalityId ?? "",
       imageUrls: property.ImageUrls ?? [],
       foreclosureCourtName: readTypedString(typeSpecificData, "CourtName"),

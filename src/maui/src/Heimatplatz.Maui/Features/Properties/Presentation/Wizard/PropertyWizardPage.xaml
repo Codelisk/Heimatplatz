@@ -508,6 +508,49 @@
                             </Border>
                         </FlexLayout>
 
+                        <!-- Quellenkarte: editierbar - sitzt an derselben Stelle wie die
+                             Quellenkarte der Detailansicht (Link zum Originalinserat) -->
+                        <Border Style="{StaticResource Card}"
+                                Padding="14"
+                                Margin="16,0"
+                                MaximumWidthRequest="768"
+                                HorizontalOptions="Fill">
+                            <Grid ColumnDefinitions="44,*"
+                                  ColumnSpacing="12">
+                                <Border Grid.Column="0"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        Padding="11"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                        Stroke="Transparent"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 22"
+                                        VerticalOptions="Center">
+                                    <Image Source="{AppThemeBinding Light=icon_external_link.png, Dark=icon_external_link_white.png}"
+                                           Aspect="AspectFit" />
+                                </Border>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="{Binding Loc.SourceSectionLabel}"
+                                           Style="{StaticResource StatTileLabel}" />
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding OriginalListingUrl}"
+                                               Keyboard="Url"
+                                               Placeholder="{Binding Loc.OriginalUrlPlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.OriginalUrlEntrySemantic}"
+                                               AutomationId="Wizard_OriginalUrlEntry" />
+                                    </Border>
+                                    <Label Text="{Binding Loc.OriginalUrlHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
                         <!-- Gebaeude-Karte (wie die Datentabelle der Detailansicht) -->
                         <Border Style="{StaticResource Card}"
                                 Padding="16,12"
