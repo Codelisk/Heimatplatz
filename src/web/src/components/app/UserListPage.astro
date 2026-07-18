@@ -45,7 +45,13 @@ const Icon = empty.Icon;
 const isMine = mode === "mine";
 const savedDraft = isMine && Astro.url.searchParams.has("gespeichert");
 const editedDraft = isMine && Astro.url.searchParams.has("bearbeitet");
-const statusMessage = editedDraft ? "Änderungen gespeichert." : "Entwurf gespeichert.";
+// "=api" heisst: direkt am Server gespeichert (live), sonst lokaler Entwurf
+const savedViaApi = Astro.url.searchParams.get("gespeichert") === "api";
+const statusMessage = editedDraft
+  ? "Änderungen gespeichert."
+  : savedViaApi
+    ? "Inserat veröffentlicht."
+    : "Entwurf gespeichert.";
 ---
 
 <BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex>

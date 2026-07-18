@@ -29,13 +29,13 @@ public class LoginHandler(
 
         if (user == null)
         {
-            throw new UnauthorizedAccessException("Ungueltige E-Mail-Adresse oder Passwort.");
+            throw new UnauthorizedAccessException("Ungültige E-Mail-Adresse oder Passwort.");
         }
 
         // Passwort verifizieren
         if (!passwordHasher.Verify(request.Password, user.PasswordHash))
         {
-            throw new UnauthorizedAccessException("Ungueltige E-Mail-Adresse oder Passwort.");
+            throw new UnauthorizedAccessException("Ungültige E-Mail-Adresse oder Passwort.");
         }
 
         // Tokens generieren (Claims kommen direkt aus dem User: Seller/Admin/SellerType)

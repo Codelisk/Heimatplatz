@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Shiny;
 using Shiny.Mediator;
 
@@ -19,7 +20,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 [MediatorHttpGroup("/api/blocked")]
 public class GetUserBlockedHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration
 ) : IRequestHandler<GetUserBlockedRequest, GetUserBlockedResponse>
 {
     [MediatorHttpGet("", OperationId = "GetUserBlocked", RequiresAuthorization = true)]
@@ -71,6 +73,12 @@ public class GetUserBlockedHandler(
                 b.Property.SourceName
             ))
             .ToListAsync(cancellationToken);
+
+        // Proxy external image URLs (wie Favoriten/Suche - sonst blockt die Web-CSP externe Bildquellen)
+        var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
+        properties = properties
+            .Select(p => p with { ImageUrls = GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl, width: GetPropertiesHandler.ListThumbnailWidth) })
+            .ToList();
 
         var hasMore = (request.Page + 1) * request.PageSize < total;
 

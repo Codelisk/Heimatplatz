@@ -1538,10 +1538,15 @@
           : property.Type === "House"
             ? "bg-type-haus text-white"
             : "bg-foreground text-background";
+    const typeLabels: Record<string, string> = {
+      House: "Haus",
+      Land: "Grund",
+      Foreclosure: "Zwangsversteigerung",
+    };
     const type = createText(
       "span",
       `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${typeBadgeClasses}`,
-      property.Type,
+      typeLabels[property.Type] ?? property.Type,
     );
     imageLink.append(image);
     imageWrap.append(imageLink, type);
@@ -2225,6 +2230,18 @@
         empty?.classList.toggle("hidden", properties.length > 0);
       } catch (error) {
         console.warn("[Heimatplatz] API user list load failed", error);
+        // Fehler nicht als "leere Liste" maskieren: Kaeufer ohne Anbieter-Rolle
+        // bekommen auf "Meine Immobilien" ein 403 - auf den Profil-Schalter verweisen.
+        const emptyState = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+        const title = emptyState?.querySelector("h2");
+        const text = emptyState?.querySelector("p");
+        if (mode === "mine" && error instanceof Error && error.message.includes("403")) {
+          if (title) title.textContent = "Anbieten ist noch nicht aktiviert";
+          if (text) text.textContent = "Aktivieren Sie „Ich möchte Immobilien anbieten“ in Ihrem Profil, um Inserate zu erstellen und hier zu verwalten.";
+        } else if (title) {
+          title.textContent = "Liste konnte nicht geladen werden";
+          if (text) text.textContent = "Bitte laden Sie die Seite neu oder versuchen Sie es später erneut.";
+        }
       }
     });
   }
@@ -2269,7 +2286,7 @@
             draft.imageUrls = imageUrls;
             const updated = await updateRemoteProperty(editId, draft, imageUrls);
             if (updated) {
-              window.location.href = "/meine-immobilien/?gespeichert=api";
+              window.location.href = "/meine-immobilien/?bearbeitet=api";
               return;
             }
           }
