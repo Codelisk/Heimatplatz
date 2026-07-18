@@ -12,8 +12,8 @@ Decide for yourself: filter specifically for private listings or offers from age
 FAVORITES & NOTIFICATIONS
 Save interesting properties as favorites. Enable push notifications for your preferred locations and get informed immediately when new properties go online.
 
-LIST YOUR OWN PROPERTY – STEP BY STEP
-Want to sell? The wizard guides you to a finished listing in five steps: photos, key facts, location and price, description, preview. Your draft is saved automatically – pause any time and continue later. For the description, AI can help if you like: type a few keywords or simply dictate them – you review the finished text, adjust it and publish. Manage your ads conveniently in your personal area.
+LIST YOUR OWN PROPERTY – ALL ON ONE PAGE
+Want to sell? You design your listing right in the view it will later appear in: photos, key facts, location and price, description – all on one page. Your draft is saved automatically – pause any time and continue later. For the description, AI can help if you like: type a few keywords or simply dictate them – you review the finished text, adjust it and publish. Your photos are kept in full original quality. Manage your ads conveniently in your personal area.
 
 PRIVACY
 Heimatplatz is built on data minimization. You can browse anonymously without creating an account. Your data belongs to you.
@@ -25,7 +25,7 @@ FEATURES AT A GLANCE
 • Push notifications for new properties
 • Save and manage favorites
 • Hide unwanted properties
-• Create and edit your own listings step by step
+• Create and edit your own listings right in the final view
 • Filter private and agent offers
 • Recently loaded content also available offline
 • Minimalist, clear design

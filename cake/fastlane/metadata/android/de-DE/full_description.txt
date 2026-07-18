@@ -12,8 +12,8 @@ Entscheide selbst: Filtere gezielt nach privaten Inseraten oder Angeboten von Ma
 FAVORITEN & BENACHRICHTIGUNGEN
 Speichere interessante Objekte als Favoriten. Aktiviere Push-Benachrichtigungen für deine Wunschorte und werde sofort informiert, wenn neue Immobilien online gehen.
 
-SELBST INSERIEREN – SCHRITT FÜR SCHRITT
-Du möchtest verkaufen? Der Assistent führt dich in fünf Schritten zum fertigen Inserat: Fotos, Eckdaten, Lage und Preis, Beschreibung, Vorschau. Dein Entwurf wird automatisch gespeichert – du kannst jederzeit unterbrechen und später weitermachen. Bei der Beschreibung hilft dir auf Wunsch die KI: Tippe ein paar Stichwörter oder sprich sie einfach ein – du prüfst den fertigen Text, passt ihn an und veröffentlichst. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
+SELBST INSERIEREN – ALLES AUF EINER SEITE
+Du möchtest verkaufen? Du gestaltest dein Inserat direkt in der Ansicht, in der es später erscheint: Fotos, Eckdaten, Lage und Preis, Beschreibung – alles auf einer Seite. Dein Entwurf wird automatisch gespeichert – du kannst jederzeit unterbrechen und später weitermachen. Bei der Beschreibung hilft dir auf Wunsch die KI: Tippe ein paar Stichwörter oder sprich sie einfach ein – du prüfst den fertigen Text, passt ihn an und veröffentlichst. Deine Fotos bleiben dabei in voller Originalqualität erhalten. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
 
 DATENSCHUTZ
 Heimatplatz setzt auf Datensparsamkeit. Du kannst anonym stöbern, ohne ein Konto zu erstellen. Deine Daten gehören dir.
@@ -25,7 +25,7 @@ FUNKTIONEN IM ÜBERBLICK
 • Push-Benachrichtigungen für neue Objekte
 • Favoriten speichern und verwalten
 • Unerwünschte Objekte ausblenden
-• Eigene Inserate Schritt für Schritt erstellen und bearbeiten
+• Eigene Inserate direkt in der fertigen Ansicht erstellen und bearbeiten
 • Privat- und Maklerangebote filtern
 • Zuletzt geladene Inhalte auch offline verfügbar
 • Minimalistisches, übersichtliches Design

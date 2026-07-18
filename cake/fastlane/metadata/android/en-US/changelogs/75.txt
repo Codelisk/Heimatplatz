@@ -1,0 +1,6 @@
+• Listing creation redesigned: your listing takes shape right in the final view – all on one page
+• Photos are kept in full original quality and load faster
+• Add a link to the original listing when creating an ad
+• The app is now fully in German – including all dialogs
+• App icon and logo refined in detail
+• Minor bug fixes and improvements
