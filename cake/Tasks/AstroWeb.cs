@@ -150,6 +150,17 @@ public static class AstroWeb
     {
         label ??= $"{fileName} {arguments}";
 
+        // CreateProcess loest nur .exe auf - npm ist unter Windows eine .cmd und
+        // braucht den ABSOLUTEN Pfad, sonst zeigt %~dp0 in npm.cmd auf das
+        // Arbeitsverzeichnis statt auf das Node-Installationsverzeichnis.
+        if (OperatingSystem.IsWindows() && fileName == "npm")
+        {
+            fileName = Environment.GetEnvironmentVariable("PATH")?
+                .Split(Path.PathSeparator)
+                .Select(dir => Path.Combine(dir.Trim(), "npm.cmd"))
+                .FirstOrDefault(File.Exists) ?? "npm.cmd";
+        }
+
         var processInfo = new ProcessStartInfo
         {
             FileName = fileName,

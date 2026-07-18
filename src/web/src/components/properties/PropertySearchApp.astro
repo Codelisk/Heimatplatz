@@ -131,6 +131,22 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
   // Debug-Tab kann den Endpunkt zur Laufzeit umschalten (nur localhost/LAN, wie MAUI-DebugPage)
   const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+
+  // Angemeldet suchen: Die API filtert blockierte Immobilien nur bei
+  // authentifizierten Requests aus (GetPropertiesHandler) - dafuer braucht der
+  // Such-Fetch das Access Token aus der Session (gleicher Key wie PropertyStateScript).
+  function readAccessToken(): string | null {
+    try {
+      const raw = window.localStorage.getItem("heimatplatz:session");
+      if (!raw) return null;
+      const session = JSON.parse(raw) as { AccessToken?: string; ExpiresAt?: string };
+      if (!session.AccessToken) return null;
+      if (session.ExpiresAt && new Date(session.ExpiresAt).getTime() <= Date.now()) return null;
+      return session.AccessToken;
+    } catch {
+      return null;
+    }
+  }
   const params = new URLSearchParams(window.location.search);
   const resultCount = document.querySelector<HTMLElement>("[data-result-count]");
   const mobileResultCount = document.querySelector<HTMLElement>("[data-mobile-result-count]");
@@ -657,7 +673,11 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
     try {
       const query = buildPropertySearchQuery(getSearchState(), ortSlugMap);
-      const response = await fetch(`${API_BASE_URL}/api/properties?${query}`, { signal: controller.signal });
+      const token = readAccessToken();
+      const response = await fetch(`${API_BASE_URL}/api/properties?${query}`, {
+        signal: controller.signal,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       if (!response.ok) throw new Error(`API ${response.status}`);
       const payload = await response.json() as ApiPropertyResponse;
       const verifiedImages = await loadVerifiedImageMap();
@@ -754,11 +774,16 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     });
   });
 
+  // PropertyStateScript meldet Blockieren/Entblocken aus der Trefferliste -
+  // authentifizierter Refetch entfernt die Karte und korrigiert den Zaehler.
+  document.addEventListener("property-block-changed", () => scheduleRefresh());
+
   updateFilterChips();
   updateResultMeta();
-  // Refetch nur, wenn der effektive Initial-Zustand (URL + gespeicherte Praeferenzen)
-  // vom SSR-Zustand (nur URL) abweicht - sonst reicht das server-gerenderte Grid.
-  if (buildPropertySearchQuery(getSearchState(), ortSlugMap) !== (config?.dataset.ssrQuery ?? "")) {
+  // Refetch, wenn der effektive Initial-Zustand (URL + gespeicherte Praeferenzen)
+  // vom SSR-Zustand (nur URL) abweicht - oder eine Session existiert: SSR laeuft
+  // ohne Token, erst der authentifizierte Fetch filtert blockierte Immobilien aus.
+  if (buildPropertySearchQuery(getSearchState(), ortSlugMap) !== (config?.dataset.ssrQuery ?? "") || readAccessToken()) {
     scheduleRefresh();
   }
 </script>

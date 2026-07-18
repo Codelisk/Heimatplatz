@@ -2166,11 +2166,14 @@
     if (!status || !text) return;
 
     const params = new URLSearchParams(window.location.search);
+    // "=api" = live am Server veroeffentlicht, sonst lokaler Entwurf (wie UserListPage-SSR)
     const message = params.has("bearbeitet")
       ? t("myProperties.statusEdited")
-      : params.has("gespeichert")
-        ? t("myProperties.statusDraftSaved")
-        : "";
+      : params.get("gespeichert") === "api"
+        ? t("myProperties.statusPublished")
+        : params.has("gespeichert")
+          ? t("myProperties.statusDraftSaved")
+          : "";
 
     text.textContent = message;
     status.classList.toggle("hidden", !message);
@@ -2508,7 +2511,12 @@
         refreshActionButtons();
         syncUserLists();
         closeCardMenus();
-        void syncRemotePropertyAction(action, propertyId, active);
+        const sync = syncRemotePropertyAction(action, propertyId, active);
+        if (action === "block") {
+          // Erst nach dem Server-Sync melden: PropertySearchApp refetcht dann
+          // authentifiziert und die blockierte Karte verschwindet aus der Liste.
+          void sync.then(() => document.dispatchEvent(new CustomEvent("property-block-changed")));
+        }
         return;
       }
 
