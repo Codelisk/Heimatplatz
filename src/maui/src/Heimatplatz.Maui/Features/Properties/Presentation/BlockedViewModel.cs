@@ -1,5 +1,6 @@
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 public partial class BlockedViewModel(
     IAuthService authService,
     IMediator mediator,
+    IPropertyStatusService propertyStatusService,
     INavigator navigator,
     IDialogs dialogs,
     ILogger<BlockedViewModel> logger,
@@ -46,8 +48,15 @@ public partial class BlockedViewModel(
             static r => (r.Properties, r.HasMore, r.Total),
             forceRemoteRefresh, ct);
 
-    protected override Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId)
-        => RemoveViaAsync(
+    protected override async Task<(bool Success, string? Message)> RemovePropertyFromApiAsync(Guid propertyId)
+    {
+        var result = await RemoveViaAsync(
             new RemoveBlockedHttpRequest { PropertyId = propertyId },
             static r => (r.Success == true, r.Message));
+
+        if (result.Success)
+            propertyStatusService.NotifyBlockedRemoved(propertyId);
+
+        return result;
+    }
 }

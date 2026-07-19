@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
  * Issue #7: Immobilie hinzufuegen - Testfaelle
  *
  * Tests cover:
- * 1. JWT tokens contain correct role claims (Seller vs Buyer)
+ * 1. JWT tokens contain current role claims (buyer is implicit, Seller explicit)
  * 2. Seller can create a Haus (House) property via API
  * 3. Seller can create a Grund (Land) property via API
  * 4. Created properties have correct details and type-specific fields
@@ -17,7 +17,7 @@ import { test, expect } from "@playwright/test";
  * Note: API responses use PascalCase property names and string enum values.
  */
 
-const API_BASE = "http://localhost:5292";
+const API_BASE = process.env.API_BASE_URL ?? "http://localhost:5292";
 
 const TEST_USERS = {
   buyer: { email: "test.buyer@heimatplatz.dev", password: "Test123!" },
@@ -81,6 +81,20 @@ interface PropertyDetail {
   TypeSpecificData: string | null;
 }
 
+interface Municipality {
+  Id: string;
+  Name: string;
+  PostalCode: string;
+}
+
+interface LocationsResponse {
+  FederalProvinces: Array<{
+    Districts: Array<{
+      Municipalities: Municipality[];
+    }>;
+  }>;
+}
+
 async function apiLogin(
   email: string,
   password: string
@@ -88,7 +102,7 @@ async function apiLogin(
   const response = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, passwort: password }),
+    body: JSON.stringify({ email, password }),
   });
   if (!response.ok) {
     throw new Error(
@@ -102,14 +116,44 @@ async function createProperty(
   token: string,
   propertyData: Record<string, unknown>
 ): Promise<Response> {
+  // City/PLZ and seller data are response expectations. The current create contract
+  // accepts MunicipalityId and derives seller information from the authenticated user.
+  const { city, postalCode, sellerType, sellerName, ...requestBody } = propertyData;
+  void city;
+  void postalCode;
+  void sellerType;
+  void sellerName;
+
   return fetch(`${API_BASE}/api/properties/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(propertyData),
+    body: JSON.stringify(requestBody),
   });
+}
+
+async function resolveMunicipalityId(
+  city: string,
+  postalCode: string
+): Promise<string> {
+  const response = await fetch(`${API_BASE}/api/locations/`);
+  if (!response.ok) {
+    throw new Error(
+      `Get locations failed: ${response.status} ${await response.text()}`
+    );
+  }
+
+  const result: LocationsResponse = await response.json();
+  const municipalities = result.FederalProvinces.flatMap((province) =>
+    province.Districts.flatMap((district) => district.Municipalities)
+  );
+  const municipality = municipalities.find(
+    (item) => item.Name === city && item.PostalCode === postalCode
+  );
+  expect(municipality, `Municipality ${postalCode} ${city}`).toBeTruthy();
+  return municipality!.Id;
 }
 
 async function getUserProperties(
@@ -178,8 +222,9 @@ const HAUS_PROPERTY = {
   address: "Teststrasse 42",
   city: "Linz",
   postalCode: "4020",
+  municipalityId: "",
   price: 450000,
-  type: 1, // House
+  type: "House",
   sellerType: 1, // Private
   sellerName: "Test Seller",
   description:
@@ -196,8 +241,9 @@ const GRUND_PROPERTY = {
   address: "Feldweg 7",
   city: "Wels",
   postalCode: "4600",
+  municipalityId: "",
   price: 120000,
-  type: 2, // Land
+  type: "Land",
   sellerType: 1, // Private
   sellerName: "Test Seller",
   description:
@@ -216,6 +262,14 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
       TEST_USERS.seller.password
     );
     sellerToken = loginResult.AccessToken;
+    HAUS_PROPERTY.municipalityId = await resolveMunicipalityId(
+      HAUS_PROPERTY.city,
+      HAUS_PROPERTY.postalCode
+    );
+    GRUND_PROPERTY.municipalityId = await resolveMunicipalityId(
+      GRUND_PROPERTY.city,
+      GRUND_PROPERTY.postalCode
+    );
   });
 
   test.afterAll(async () => {
@@ -241,31 +295,25 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
       }
     });
 
-    test("JWT token for buyer contains Buyer role but NOT Seller", async () => {
+    test("JWT token for buyer has no Seller role claim", async () => {
       const buyerLogin = await apiLogin(
         TEST_USERS.buyer.email,
         TEST_USERS.buyer.password
       );
       const decoded = decodeJwtPayload(buyerLogin.AccessToken);
       const role = decoded.user_role;
-      if (Array.isArray(role)) {
-        expect(role).not.toContain("Seller");
-        expect(role).toContain("Buyer");
-      } else {
-        expect(role).toBe("Buyer");
-      }
+      // Every authenticated user is implicitly a buyer; only elevated roles are emitted.
+      expect(role).toBeUndefined();
     });
 
-    test("JWT token for 'both' user contains Buyer AND Seller roles", async () => {
+    test("JWT token for 'both' user contains the explicit Seller role", async () => {
       const bothLogin = await apiLogin(
         TEST_USERS.both.email,
         TEST_USERS.both.password
       );
       const decoded = decodeJwtPayload(bothLogin.AccessToken);
       const role = decoded.user_role;
-      expect(Array.isArray(role)).toBe(true);
-      expect(role).toContain("Buyer");
-      expect(role).toContain("Seller");
+      expect(role).toBe("Seller");
     });
 
     test("Seller can access user properties endpoint", async () => {
@@ -405,7 +453,7 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
 
   test.describe("Buyer sees Properties on Home Page (Public Listing)", () => {
     test("Public properties endpoint returns created Haus property", async () => {
-      const result = await getAllProperties({ Take: "50" });
+      const result = await getAllProperties({ PageSize: "50" });
 
       const hausProperty = result.Properties.find(
         (p) => p.Title === HAUS_PROPERTY.title
@@ -420,7 +468,7 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
     });
 
     test("Public properties endpoint returns created Grund property", async () => {
-      const result = await getAllProperties({ Take: "50" });
+      const result = await getAllProperties({ PageSize: "50" });
 
       const grundProperty = result.Properties.find(
         (p) => p.Title === GRUND_PROPERTY.title
@@ -434,7 +482,10 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
     });
 
     test("Properties can be filtered by type House", async () => {
-      const result = await getAllProperties({ Type: "1", Take: "50" });
+      const result = await getAllProperties({
+        PropertyTypesJson: JSON.stringify(["House"]),
+        PageSize: "50",
+      });
 
       const hausProperty = result.Properties.find(
         (p) => p.Title === HAUS_PROPERTY.title
@@ -448,7 +499,10 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
     });
 
     test("Properties can be filtered by type Land", async () => {
-      const result = await getAllProperties({ Type: "2", Take: "50" });
+      const result = await getAllProperties({
+        PropertyTypesJson: JSON.stringify(["Land"]),
+        PageSize: "50",
+      });
 
       const grundProperty = result.Properties.find(
         (p) => p.Title === GRUND_PROPERTY.title
@@ -463,7 +517,7 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
 
     test("Buyer can view Haus property details with seller info", async () => {
       // Find the Haus property from public listing
-      const allProperties = await getAllProperties({ Take: "50" });
+      const allProperties = await getAllProperties({ PageSize: "50" });
       const hausProperty = allProperties.Properties.find(
         (p) => p.Title === HAUS_PROPERTY.title
       );
@@ -487,7 +541,7 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
     });
 
     test("Buyer can view Grund property details with seller info", async () => {
-      const allProperties = await getAllProperties({ Take: "50" });
+      const allProperties = await getAllProperties({ PageSize: "50" });
       const grundProperty = allProperties.Properties.find(
         (p) => p.Title === GRUND_PROPERTY.title
       );
@@ -540,7 +594,7 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
 
   test.describe("Property Type Specific Fields", () => {
     test("House property has living area, rooms, and year built", async () => {
-      const allProperties = await getAllProperties({ Take: "50" });
+      const allProperties = await getAllProperties({ PageSize: "50" });
       const hausProperty = allProperties.Properties.find(
         (p) => p.Title === HAUS_PROPERTY.title
       );
@@ -558,7 +612,7 @@ test.describe("Issue #7: Immobilie hinzufuegen", () => {
     });
 
     test("Land property only has plot area, no house-specific fields", async () => {
-      const allProperties = await getAllProperties({ Take: "50" });
+      const allProperties = await getAllProperties({ PageSize: "50" });
       const grundProperty = allProperties.Properties.find(
         (p) => p.Title === GRUND_PROPERTY.title
       );

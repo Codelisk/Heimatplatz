@@ -39,6 +39,15 @@ public class MainActivity : MauiAppCompatActivity
 
     UiMode _lastNightMode;
     bool _isResumed;
+    DateTimeOffset _lastUserThemeChange = DateTimeOffset.MinValue;
+
+    /// <summary>
+    /// Kennzeichnet einen direkt in der App ausgeloesten Theme-Wechsel. AppCompat kann
+    /// dabei OnPause vor OnConfigurationChanged senden; dieser kurze Zustand darf nicht
+    /// wie ein echter Hintergrundwechsel behandelt werden, sonst geht die Shell-Route verloren.
+    /// </summary>
+    public void MarkUserInitiatedThemeChange()
+        => _lastUserThemeChange = DateTimeOffset.UtcNow;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -78,7 +87,8 @@ public class MainActivity : MauiAppCompatActivity
             return;
 
         _lastNightMode = nightMode;
-        if (!_isResumed)
+        var isRecentUserChange = DateTimeOffset.UtcNow - _lastUserThemeChange < TimeSpan.FromSeconds(3);
+        if (!_isResumed && !isRecentUserChange)
             Recreate();
     }
 }

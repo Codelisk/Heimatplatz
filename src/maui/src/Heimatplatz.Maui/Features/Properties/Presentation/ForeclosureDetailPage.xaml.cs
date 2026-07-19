@@ -21,4 +21,14 @@ public partial class ForeclosureDetailPage : ContentPage
 
         return base.OnBackButtonPressed();
     }
+
+    /// <summary>
+    /// Haelt auf Android die intern gewechselte Carousel-Position und den gebundenen
+    /// Bildzaehler synchron.
+    /// </summary>
+    private void OnImagePositionChanged(object? sender, PositionChangedEventArgs e)
+    {
+        if (BindingContext is ForeclosureDetailViewModel vm && vm.CurrentImagePosition != e.CurrentPosition)
+            vm.CurrentImagePosition = e.CurrentPosition;
+    }
 }

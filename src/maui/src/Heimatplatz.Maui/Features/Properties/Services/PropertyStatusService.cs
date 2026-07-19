@@ -54,6 +54,20 @@ public class PropertyStatusService : IPropertyStatusService
 
     public bool IsBlocked(Guid propertyId) => _blockedIds.Contains(propertyId);
 
+    public void NotifyFavoriteRemoved(Guid propertyId)
+    {
+        _favoriteIds.Remove(propertyId);
+        _logger.LogInformation("[PropertyStatus] Synchronized removed favorite: {PropertyId}", propertyId);
+        StatusChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void NotifyBlockedRemoved(Guid propertyId)
+    {
+        _blockedIds.Remove(propertyId);
+        _logger.LogInformation("[PropertyStatus] Synchronized removed blocked property: {PropertyId}", propertyId);
+        StatusChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public async Task<bool> ToggleFavoriteAsync(Guid propertyId)
     {
         if (!_authService.IsAuthenticated)

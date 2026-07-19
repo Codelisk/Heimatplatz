@@ -885,7 +885,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
         _logger.LogInformation("[PropertyDetail] Sharing property {PropertyId}", Property.Id);
 
-        var propertyUrl = new Uri($"https://heimatplatz.at/immobilie/{Property.Id}");
+        var propertyUrl = new Uri($"https://heimatplatz.at/immobilien/angebote/{Property.Id}");
 
         var description = $"{Property.Title}\n" +
                           $"{FormattedPrice}\n" +

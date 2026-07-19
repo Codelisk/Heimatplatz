@@ -7,6 +7,7 @@ using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.Logging;
 using Shiny;
+using Shiny.Mediator;
 
 namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
@@ -21,6 +22,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     private readonly IFilterPreferencesService _filterPreferencesService;
     private readonly IFilterStateService _filterStateService;
     private readonly ILocationService _locationService;
+    private readonly IMediator _mediator;
     private readonly ILogger<FilterSettingsViewModel> _logger;
 
     private bool _isSyncing;
@@ -28,6 +30,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     private Task? _preferencesLoadTask;
     private Task? _ortTreeLoadTask;
     private CancellationTokenSource? _saveDebounceCts;
+    private CancellationTokenSource? _resultCountRefreshCts;
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
     private SortOption _selectedSort = SortOption.Neueste;
     private List<Guid> _excludedSellerSourceIds = [];
@@ -37,6 +40,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         IFilterPreferencesService filterPreferencesService,
         IFilterStateService filterStateService,
         ILocationService locationService,
+        IMediator mediator,
         ILogger<FilterSettingsViewModel> logger,
         FilterSettingsStringsLocalized loc)
     {
@@ -44,6 +48,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         _filterPreferencesService = filterPreferencesService;
         _filterStateService = filterStateService;
         _locationService = locationService;
+        _mediator = mediator;
         _logger = logger;
         Loc = loc;
 
@@ -70,6 +75,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
 
         SyncFiltersFromService();
         UpdateResultCount();
+        ScheduleResultCountRefresh(TimeSpan.Zero);
     }
 
     /// <summary>Lokalisierte Texte fuer XAML-Bindings (Loc.Key)</summary>
@@ -165,7 +171,11 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     }
 
     private void OnFilterStateChanged(object? sender, EventArgs e)
-        => MainThread.BeginInvokeOnMainThread(SyncFiltersFromService);
+        => MainThread.BeginInvokeOnMainThread(() =>
+        {
+            SyncFiltersFromService();
+            ScheduleResultCountRefresh();
+        });
 
     private void OnResultCountChanged(object? sender, EventArgs e)
         => MainThread.BeginInvokeOnMainThread(UpdateResultCount);
@@ -396,8 +406,50 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         }
 
         UpdateFilterSummary();
+        ScheduleResultCountRefresh();
         if (savePreferences)
             ScheduleAutoSave();
+    }
+
+    /// <summary>
+    /// Laedt die Trefferzahl direkt mit demselben Request-Builder wie die HomePage.
+    /// Die HomePage kann beim Navigieren auf diese separate Shell-Seite bereits disposed
+    /// sein und darf daher nicht als indirekter Zaehler-Lieferant vorausgesetzt werden.
+    /// </summary>
+    private void ScheduleResultCountRefresh(TimeSpan? delay = null)
+    {
+        _resultCountRefreshCts?.Cancel();
+        _resultCountRefreshCts = new CancellationTokenSource();
+        _ = RefreshResultCountAsync(delay ?? TimeSpan.FromMilliseconds(250), _resultCountRefreshCts.Token);
+    }
+
+    private async Task RefreshResultCountAsync(TimeSpan delay, CancellationToken token)
+    {
+        try
+        {
+            if (delay > TimeSpan.Zero)
+                await Task.Delay(delay, token);
+
+            var request = await PropertyFilterRequestBuilder.BuildAsync(
+                _filterStateService.CurrentState,
+                page: 0,
+                pageSize: 1,
+                _locationService,
+                _logger,
+                token);
+            var (_, response) = await _mediator.Request(request, token);
+
+            if (!token.IsCancellationRequested && response != null)
+                _filterStateService.SetResultCount(response.Total);
+        }
+        catch (OperationCanceledException)
+        {
+            // Eine neuere Filterauswahl hat diese Vorschau ersetzt.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[FilterSettingsPage] Trefferzahl konnte nicht aktualisiert werden");
+        }
     }
 
     private void ScheduleAutoSave()
@@ -671,6 +723,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     public void Dispose()
     {
         _saveDebounceCts?.Cancel();
+        _resultCountRefreshCts?.Cancel();
         _filterStateService.FilterStateChanged -= OnFilterStateChanged;
         _filterStateService.ResultCountChanged -= OnResultCountChanged;
         _authService.AuthenticationStateChanged -= OnAuthenticationStateChanged;

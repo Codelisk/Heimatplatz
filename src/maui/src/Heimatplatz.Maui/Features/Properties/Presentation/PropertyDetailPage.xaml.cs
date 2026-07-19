@@ -39,6 +39,17 @@ public partial class PropertyDetailPage : ContentPage
         return base.OnBackButtonPressed();
     }
 
+    /// <summary>
+    /// Android aktualisiert Carousel und Indicator intern, bevor das gebundene Position-
+    /// Property zuverlaessig zurueckgeschrieben wird. Das Event haelt ViewModel, Zaehler
+    /// und Lightbox-Navigation explizit auf derselben Position.
+    /// </summary>
+    private void OnImagePositionChanged(object? sender, PositionChangedEventArgs e)
+    {
+        if (_viewModel != null && _viewModel.CurrentImagePosition != e.CurrentPosition)
+            _viewModel.CurrentImagePosition = e.CurrentPosition;
+    }
+
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(PropertyDetailViewModel.IsContactExpanded))
