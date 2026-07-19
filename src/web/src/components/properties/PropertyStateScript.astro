@@ -30,11 +30,17 @@
     [key: string]: string | string[] | undefined;
   };
 
-  // Bewusst OHNE RefreshToken: Das langlebige Token wird im Web nie verwendet
-  // (kein Refresh-Flow, abgelaufene Sessions werden einfach verworfen) und waere
-  // im localStorage nur ein Diebstahlsziel fuer jede XSS-Luecke.
+  // Session inkl. RefreshToken im localStorage: Das Web nutzt denselben
+  // Refresh-Flow wie MAUI. Serverseitig rotiert jeder Refresh den Token und
+  // Wiederverwendung widerruft die gesamte Token-Familie (Reuse-Detection) -
+  // ein gestohlener Token fliegt auf, sobald beide Seiten refreshen.
+  // ACHTUNG ExpiresAt: Das ist der Ablauf des REFRESH Tokens (~30 Tage).
+  // Der Access Token selbst laeuft nach JWT exp (~60 Minuten) ab und wird in
+  // apiRequest proaktiv erneuert.
   type Session = {
     AccessToken: string;
+    // Fehlt bei Alt-Sessions, die vor dem Refresh-Flow angelegt wurden
+    RefreshToken?: string;
     UserId: string;
     Email: string;
     FullName: string;
@@ -124,20 +130,39 @@
     }
   }
 
+  function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {
+    try {
+      const payload = accessToken.split(".")[1];
+      if (!payload) return null;
+      const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
+      return JSON.parse(window.atob(padded)) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+
+  function getJwtExpiryMs(accessToken: string): number | null {
+    const exp = decodeJwtPayload(accessToken)?.exp;
+    return typeof exp === "number" ? exp * 1000 : null;
+  }
+
   function readSession() {
-    const session = readJson<Session & { RefreshToken?: string }>(STORAGE_KEYS.session);
+    const session = readJson<Session>(STORAGE_KEYS.session);
     if (!session?.AccessToken) return null;
 
+    // ExpiresAt = Ablauf des Refresh Tokens; danach ist die Sitzung endgueltig vorbei
     if (session.ExpiresAt && new Date(session.ExpiresAt).getTime() <= Date.now()) {
       window.localStorage.removeItem(STORAGE_KEYS.session);
       return null;
     }
 
-    // Migration: Aeltere Sessions enthalten noch das RefreshToken - beim ersten
-    // Lesen entfernen (siehe Kommentar am Session-Typ).
-    if (session.RefreshToken !== undefined) {
-      delete session.RefreshToken;
-      writeJson(STORAGE_KEYS.session, session);
+    // Alt-Sessions ohne RefreshToken sind tot, sobald ihr Access Token ablaeuft
+    if (!session.RefreshToken) {
+      const accessExpiryMs = getJwtExpiryMs(session.AccessToken);
+      if (accessExpiryMs !== null && accessExpiryMs <= Date.now()) {
+        window.localStorage.removeItem(STORAGE_KEYS.session);
+        return null;
+      }
     }
 
     return session;
@@ -147,22 +172,18 @@
     const roles = new Set<string>();
     if (!session?.AccessToken) return roles;
 
-    try {
-      const payload = session.AccessToken.split(".")[1];
-      if (!payload) return roles;
-      const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
-      const parsed = JSON.parse(window.atob(padded)) as Record<string, unknown>;
-      const roleClaim = parsed.user_role;
-      const values = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
-      values.forEach((role) => {
-        if (typeof role === "string") roles.add(role.toLowerCase());
-      });
-      // Konkreter Anbietertyp (Private/Broker/PropertyManager) als eigener Claim
-      if (typeof parsed.seller_type === "string") {
-        roles.add(`seller_type:${parsed.seller_type.toLowerCase()}`);
-      }
-    } catch {
-      // Role badges are a progressive enhancement; authentication itself does not depend on this.
+    // Role badges sind Progressive Enhancement; die Anmeldung selbst haengt nicht daran
+    const parsed = decodeJwtPayload(session.AccessToken);
+    if (!parsed) return roles;
+
+    const roleClaim = parsed.user_role;
+    const values = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+    values.forEach((role) => {
+      if (typeof role === "string") roles.add(role.toLowerCase());
+    });
+    // Konkreter Anbietertyp (Private/Broker/PropertyManager) als eigener Claim
+    if (typeof parsed.seller_type === "string") {
+      roles.add(`seller_type:${parsed.seller_type.toLowerCase()}`);
     }
 
     return roles;
@@ -257,24 +278,118 @@
     await performDeleteAccount(button);
   }
 
+  // Access Token kurz vor Ablauf proaktiv erneuern, damit laufende Requests
+  // nicht in einen 401 laufen
+  const TOKEN_REFRESH_MARGIN_MS = 2 * 60 * 1000;
+
+  function isAccessTokenStale(session: Session) {
+    const accessExpiryMs = getJwtExpiryMs(session.AccessToken);
+    return accessExpiryMs !== null && accessExpiryMs - Date.now() <= TOKEN_REFRESH_MARGIN_MS;
+  }
+
+  // Single-Flight ueber alle Tabs: Die API rotiert Refresh Tokens, und ein
+  // wiederverwendeter Token widerruft die gesamte Familie (Reuse-Detection).
+  // Zwei parallele Refreshes wuerden sich also gegenseitig ausloggen - der Web
+  // Lock serialisiert sie, der Re-Read nach Lock-Erwerb uebernimmt das Ergebnis
+  // des Gewinners. Ohne Web-Locks-Support (Safari < 15.4) direkt refreshen; das
+  // Rest-Race endet schlimmstenfalls im Logout.
+  function withRefreshLock<T>(work: () => Promise<T>): Promise<T> {
+    if (navigator.locks) {
+      return navigator.locks.request("heimatplatz:token-refresh", work) as Promise<T>;
+    }
+    return work();
+  }
+
+  // Erneuert den Access Token, wenn er kurz vor Ablauf ist oder der Server ihn
+  // bereits abgelehnt hat (failedAccessToken). Liefert die aktuelle Session,
+  // oder null wenn die Sitzung endgueltig vorbei ist.
+  function refreshSession(failedAccessToken?: string): Promise<Session | null> {
+    return withRefreshLock(async () => {
+      // Re-Read nach Lock-Erwerb: ein anderer Tab kann schon refresht haben
+      const session = readSession();
+      if (!session) return null;
+      if (!isAccessTokenStale(session) && session.AccessToken !== failedAccessToken) {
+        return session;
+      }
+
+      if (!session.RefreshToken) {
+        // Alt-Session ohne Refresh-Flow: bei hartem 401 endgueltig ausloggen,
+        // sonst darf der Resttoken noch bis JWT exp weiterarbeiten
+        if (session.AccessToken === failedAccessToken) {
+          clearSession();
+          return null;
+        }
+        return session;
+      }
+
+      let response: Response;
+      try {
+        response = await fetch(new URL("/api/auth/refresh", API_BASE_URL), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ RefreshToken: session.RefreshToken }),
+        });
+      } catch {
+        // Netzwerkfehler: Sitzung behalten - der naechste Versuch refresht erneut
+        return session;
+      }
+
+      if (response.status === 401) {
+        // Refresh Token abgelaufen oder widerrufen - die Sitzung ist vorbei
+        clearSession();
+        return null;
+      }
+      if (!response.ok) {
+        // Transienter Serverfehler: Sitzung nicht wegwerfen
+        return session;
+      }
+
+      const result = await response.json() as { AccessToken: string; RefreshToken: string; ExpiresAt: string };
+      const next: Session = {
+        ...session,
+        AccessToken: result.AccessToken,
+        RefreshToken: result.RefreshToken,
+        ExpiresAt: result.ExpiresAt,
+      };
+      saveSession(next);
+      return next;
+    });
+  }
+
   async function apiRequest<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
     const url = new URL(path, API_BASE_URL);
-    const headers = new Headers(options.headers);
 
-    if (options.body !== undefined && !headers.has("content-type")) {
-      headers.set("content-type", "application/json");
+    let session = options.skipAuth ? null : readSession();
+    if (session && isAccessTokenStale(session)) {
+      session = await refreshSession();
     }
 
-    const session = readSession();
-    if (!options.skipAuth && session?.AccessToken && !headers.has("authorization")) {
-      headers.set("authorization", `Bearer ${session.AccessToken}`);
-    }
+    const doFetch = () => {
+      const headers = new Headers(options.headers);
+      if (options.body !== undefined && !headers.has("content-type")) {
+        headers.set("content-type", "application/json");
+      }
+      if (session?.AccessToken && !headers.has("authorization")) {
+        headers.set("authorization", `Bearer ${session.AccessToken}`);
+      }
+      return fetch(url, {
+        ...options,
+        headers,
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      });
+    };
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-    });
+    let response = await doFetch();
+
+    // 401 trotz (scheinbar) gueltigem Token: serverseitig invalidiert, z.B. nach
+    // Key-Rotation - einmal refreshen und den Request wiederholen
+    if (response.status === 401 && session) {
+      const failedToken = session.AccessToken;
+      session = await refreshSession(failedToken);
+      if (session && session.AccessToken !== failedToken) {
+        response = await doFetch();
+      }
+    }
 
     const contentType = response.headers.get("content-type") ?? "";
     const payload = contentType.includes("application/json")
@@ -282,6 +397,11 @@
       : await response.text();
 
     if (!response.ok) {
+      if (response.status === 401 && !options.skipAuth && !readSession()) {
+        // Sitzung endgueltig abgelaufen: Anmelde-Dialog statt kryptischem 401
+        showLoginPrompt();
+        throw new Error(t("auth.errorSessionExpired"));
+      }
       throw new Error(extractErrorMessage(payload) || t("auth.requestFailedStatus", { status: response.status }));
     }
 
@@ -453,13 +573,11 @@
                 Password: String(formData.get("password") ?? ""),
               };
 
-          const session = await apiRequest<Session & { RefreshToken?: string }>(
+          const session = await apiRequest<Session>(
             mode === "register" ? "/api/auth/register" : "/api/auth/login",
             { method: "POST", body: payload, skipAuth: true },
           );
 
-          // RefreshToken aus der API-Antwort verwerfen (siehe Session-Typ)
-          delete session.RefreshToken;
           saveSession(session);
           setFormStatus(form, t("auth.statusLoggedIn"), "success");
           // Verkaeufer landen bei ihren Inseraten, alle anderen in der Suche
@@ -581,9 +699,14 @@
             },
           );
 
-          // Alle anderen Sitzungen sind widerrufen; diese Session bekommt den neuen
-          // Access Token (RefreshToken wird bewusst nicht gespeichert, siehe Session-Typ)
-          saveSession({ ...session, AccessToken: result.AccessToken, ExpiresAt: result.ExpiresAt });
+          // Alle anderen Sitzungen sind widerrufen; diese Session bekommt das
+          // frische Token-Paar
+          saveSession({
+            ...session,
+            AccessToken: result.AccessToken,
+            RefreshToken: result.RefreshToken,
+            ExpiresAt: result.ExpiresAt,
+          });
           form.reset();
           setFormStatus(form, t("auth.statusPasswordChanged"), "success");
         } catch (error) {

@@ -83,6 +83,7 @@ export const auth = {
 
   // Generischer API-Fehler (apiRequest-Fallback ohne Servermeldung)
   "auth.requestFailedStatus": "Online-Anfrage fehlgeschlagen: {status}",
+  "auth.errorSessionExpired": "Die Sitzung ist abgelaufen. Bitte erneut anmelden.",
 
   // Registrieren/Anmelden: Validierung + Statusmeldungen
   "auth.errorPasswordMismatch": "Die Passwörter stimmen nicht überein.",
