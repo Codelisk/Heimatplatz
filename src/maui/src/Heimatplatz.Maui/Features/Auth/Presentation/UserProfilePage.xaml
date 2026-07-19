@@ -19,63 +19,90 @@
                         <GradientStop Color="{AppThemeBinding Light=#EE6A50, Dark=#1A0508}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Border.Background>
-                <VerticalStackLayout HorizontalOptions="Center" Spacing="14">
+                <Grid>
 
-                    <!-- Avatar: heller Kreis mit roten Initialen und rotem Rand (wie Web) -->
-                    <Border WidthRequest="96"
-                            HeightRequest="96"
-                            Stroke="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                            StrokeThickness="3"
-                            StrokeShape="RoundRectangle 48"
-                            BackgroundColor="{StaticResource White}"
-                            HorizontalOptions="Center">
-                        <Label Text="{Binding UserInitials}"
-                               FontSize="36"
-                               FontAttributes="Bold"
-                               TextColor="{StaticResource Primary}"
+                    <!-- Design-Umschalter rechts oben (wie der Theme-Toggle im Web-Header):
+                         System -> Hell -> Dunkel, Glass-Pill-Look wie die Foto-Overlays -->
+                    <Border HorizontalOptions="End"
+                            VerticalOptions="Start"
+                            Margin="0,-20,0,0"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            BackgroundColor="{StaticResource GlassPillBackground}"
+                            Stroke="{StaticResource GlassPillStroke}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 22"
+                            SemanticProperties.Description="{Binding ThemeModeLabel}"
+                            ToolTipProperties.Text="{Binding ThemeModeLabel}"
+                            AutomationId="Profile_ThemeToggle">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleThemeCommand}" />
+                        </Border.GestureRecognizers>
+                        <Image Source="{Binding ThemeIcon}"
+                               WidthRequest="20"
+                               HeightRequest="20"
                                HorizontalOptions="Center"
                                VerticalOptions="Center" />
                     </Border>
 
-                    <VerticalStackLayout Spacing="2">
-                        <Label Text="{Binding UserFullName}"
-                               FontSize="24"
-                               FontAttributes="Bold"
-                               TextColor="{StaticResource White}"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"
-                               LineBreakMode="WordWrap" />
-                        <Label Text="{Binding UserEmail}"
-                               FontSize="13"
-                               TextColor="#B3FFFFFF"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"
-                               LineBreakMode="TailTruncation" />
-                    </VerticalStackLayout>
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="14">
 
-                    <!-- Rollen- und Verifikations-Badges -->
-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
-                        <Border BackgroundColor="{StaticResource White}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 14"
-                                Padding="14,6">
-                            <Label Text="{Binding RoleBadgeText}"
-                                   FontSize="12"
+                        <!-- Avatar: heller Kreis mit roten Initialen und rotem Rand (wie Web) -->
+                        <Border WidthRequest="96"
+                                HeightRequest="96"
+                                Stroke="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                StrokeThickness="3"
+                                StrokeShape="RoundRectangle 48"
+                                BackgroundColor="{StaticResource White}"
+                                HorizontalOptions="Center">
+                            <Label Text="{Binding UserInitials}"
+                                   FontSize="36"
                                    FontAttributes="Bold"
-                                   TextColor="{StaticResource Gray900}" />
+                                   TextColor="{StaticResource Primary}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
                         </Border>
-                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 14"
-                                Padding="14,6"
-                                IsVisible="{Binding ShowVerifiedBadge}">
-                            <Label Text="{Binding Loc.VerifiedBadge}"
-                                   FontSize="12"
+
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding UserFullName}"
+                                   FontSize="24"
                                    FontAttributes="Bold"
-                                   TextColor="{AppThemeBinding Light={StaticResource SuccessBannerForeground}, Dark={StaticResource SuccessBannerForegroundDark}}" />
-                        </Border>
-                    </HorizontalStackLayout>
-                </VerticalStackLayout>
+                                   TextColor="{StaticResource White}"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"
+                                   LineBreakMode="WordWrap" />
+                            <Label Text="{Binding UserEmail}"
+                                   FontSize="13"
+                                   TextColor="#B3FFFFFF"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"
+                                   LineBreakMode="TailTruncation" />
+                        </VerticalStackLayout>
+
+                        <!-- Rollen- und Verifikations-Badges -->
+                        <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                            <Border BackgroundColor="{StaticResource White}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="14,6">
+                                <Label Text="{Binding RoleBadgeText}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Gray900}" />
+                            </Border>
+                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="14,6"
+                                    IsVisible="{Binding ShowVerifiedBadge}">
+                                <Label Text="{Binding Loc.VerifiedBadge}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource SuccessBannerForeground}, Dark={StaticResource SuccessBannerForegroundDark}}" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Grid>
             </Border>
 
             <VerticalStackLayout Padding="16,20,16,0"

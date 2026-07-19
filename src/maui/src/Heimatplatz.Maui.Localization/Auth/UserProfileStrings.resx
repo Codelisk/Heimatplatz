@@ -15,6 +15,15 @@
   <data name="PageTitle" xml:space="preserve">
     <value>Mein Profil</value>
   </data>
+  <data name="ThemeSystem" xml:space="preserve">
+    <value>Design: automatisch (System)</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Design: hell</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Design: dunkel</value>
+  </data>
   <data name="VerifiedBadge" xml:space="preserve">
     <value>✓ E-Mail bestätigt</value>
   </data>

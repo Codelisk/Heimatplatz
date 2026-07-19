@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Theming;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Auth;
@@ -22,6 +23,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     private readonly IMediator _mediator;
     private readonly INavigator _navigator;
     private readonly IDialogs _dialogs;
+    private readonly IThemeService _themeService;
     // Dialog-Button-Texte (Ja/Nein/OK) - Shiny-Defaults sind englisch
     private readonly CommonStringsLocalized _commonLoc;
     private readonly ILogger<UserProfileViewModel> _logger;
@@ -61,6 +63,14 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     /// <summary>Gruenes "E-Mail bestaetigt"-Badge im Hero - erst nach erfolgreichem Profil-Load sichtbar.</summary>
     [ObservableProperty]
     public partial bool ShowVerifiedBadge { get; set; }
+
+    // ===== Design-Umschalter (Hero rechts oben, wie der Web-Header) =====
+
+    [ObservableProperty]
+    public partial string ThemeIcon { get; set; }
+
+    [ObservableProperty]
+    public partial string ThemeModeLabel { get; set; }
 
     /// <summary>Beschreibung des Anbietertyps (Privatperson/Makler/Hausverwaltung)</summary>
     [ObservableProperty]
@@ -190,6 +200,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         IMediator mediator,
         INavigator navigator,
         IDialogs dialogs,
+        IThemeService themeService,
         ILogger<UserProfileViewModel> logger,
         UserProfileStringsLocalized loc,
         CommonStringsLocalized commonLoc)
@@ -198,6 +209,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         _mediator = mediator;
         _navigator = navigator;
         _dialogs = dialogs;
+        _themeService = themeService;
         _logger = logger;
         Loc = loc;
         _commonLoc = commonLoc;
@@ -218,8 +230,32 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         FavoritesCountText = "–";
         BlockedCountText = "–";
         MyPropertiesCountText = "–";
+        ThemeIcon = string.Empty;
+        ThemeModeLabel = string.Empty;
+        UpdateThemeDisplay();
 
         LoadUserData();
+    }
+
+    /// <summary>
+    /// Schaltet den Design-Modus im Zyklus System -&gt; Hell -&gt; Dunkel weiter.
+    /// Die Seiten aktualisieren sich ueber ihre AppThemeBindings von selbst.
+    /// </summary>
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        _themeService.CycleMode();
+        UpdateThemeDisplay();
+    }
+
+    private void UpdateThemeDisplay()
+    {
+        (ThemeIcon, ThemeModeLabel) = _themeService.Mode switch
+        {
+            AppThemeMode.Light => ("icon_theme_light.png", Loc.ThemeLight),
+            AppThemeMode.Dark => ("icon_theme_dark.png", Loc.ThemeDark),
+            _ => ("icon_theme_system.png", Loc.ThemeSystem)
+        };
     }
 
     public void OnAppearing()

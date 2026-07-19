@@ -20,7 +20,7 @@
                    CharacterSpacing="4"
                    VerticalOptions="Center"
                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-            <appcontrols:FlagBand WidthRequest="22" HeightRequest="10" VerticalOptions="Center" />
+            <appcontrols:FlagBand WidthRequest="21" HeightRequest="14" VerticalOptions="Center" />
         </HorizontalStackLayout>
     </Shell.TitleView>
 
