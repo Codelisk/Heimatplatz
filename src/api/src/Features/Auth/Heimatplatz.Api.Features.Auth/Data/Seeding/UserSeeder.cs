@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Heimatplatz.Api.Features.Auth.Data.Seeding;
 
 /// <summary>
-/// Seeder fuer Testbenutzer (neues Rollenmodell: Kaeufer implizit, Verkaeufer = SellerType gesetzt).
+/// Seeder für Testbenutzer (neues Rollenmodell: Käufer implizit, Verkäufer = SellerType gesetzt).
 /// </summary>
 public class UserSeeder(
     AppDbContext dbContext,
@@ -15,11 +15,11 @@ public class UserSeeder(
 ) : ISeeder
 {
     /// <summary>
-    /// Reihenfolge: Benutzer sollten frueh geseedet werden
+    /// Reihenfolge: Benutzer sollten früh geseedet werden
     /// </summary>
     public int Order => 5;
 
-    // Debug-Test-User mit bekannten Credentials und festen IDs (fuer konsistente DB-Referenzen)
+    // Debug-Test-User mit bekannten Credentials und festen IDs (für konsistente DB-Referenzen)
     public static readonly Guid DebugBuyerId = Guid.Parse("CC412C93-5D61-4AE2-B928-937812946ED2");
     public static readonly Guid DebugPrivateSellerId = Guid.Parse("3FFBDB4F-DC66-4FAC-97C0-23F6B525892B");
     public static readonly Guid DebugBothId = Guid.Parse("6E1F30B5-84C7-4A29-9D5E-F1A2843C76D0");
@@ -62,7 +62,7 @@ public class UserSeeder(
             {
                 Id = Guid.NewGuid(),
                 FirstName = "Thomas",
-                LastName = "Mueller",
+                LastName = "Müller",
                 Email = "thomas.mueller@example.com",
                 PasswordHash = testHash,
                 CreatedAt = now
@@ -102,8 +102,8 @@ public class UserSeeder(
             new()
             {
                 // Login-User der Store-Screenshot-Pipelines (cake/appsettings.json
-                // Android:/iOS:Screenshots) - braucht SellerType fuer "Meine Immobilien",
-                // Favoriten kommen implizit (jeder User ist Kaeufer). Nicht entfernen!
+                // Android:/iOS:Screenshots) - braucht SellerType für "Meine Immobilien",
+                // Favoriten kommen implizit (jeder User ist Käufer). Nicht entfernen!
                 Id = DebugBothId,
                 FirstName = "Test",
                 LastName = "Both",
@@ -146,7 +146,7 @@ public class UserSeeder(
             }
         };
 
-        // Seed-User gelten als bestaetigt - es haengt kein echtes Postfach dahinter
+        // Seed-User gelten als bestätigt - es hängt kein echtes Postfach dahinter
         foreach (var user in users)
         {
             user.EmailVerifiedAt = now;

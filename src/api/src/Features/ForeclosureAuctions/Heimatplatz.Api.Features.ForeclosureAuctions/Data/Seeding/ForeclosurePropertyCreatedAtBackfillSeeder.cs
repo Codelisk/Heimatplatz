@@ -10,7 +10,7 @@ namespace Heimatplatz.Api.Features.ForeclosureAuctions.Data.Seeding;
 
 /// <summary>
 /// Einmaliger Backfill: Setzt Property.CreatedAt auf ForeclosureAuction.PublicationDate
-/// fuer alle bestehenden Zwangsversteigerungs-Properties.
+/// für alle bestehenden Zwangsversteigerungs-Properties.
 /// </summary>
 public class ForeclosurePropertyCreatedAtBackfillSeeder(
     AppDbContext dbContext,
@@ -19,7 +19,7 @@ public class ForeclosurePropertyCreatedAtBackfillSeeder(
     public int Order => 101;
 
     /// <summary>
-    /// Daten-Backfill auf echten EDIKTE-Properties, keine Demo-Daten - laeuft auch in Produktion
+    /// Daten-Backfill auf echten EDIKTE-Properties, keine Demo-Daten - läuft auch in Produktion
     /// </summary>
     public bool IsDemoData => false;
 

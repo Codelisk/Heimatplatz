@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 
 /// <summary>
-/// Seeder fuer Beispiel-Immobilien in Oberoesterreich.
+/// Seeder für Beispiel-Immobilien in Oberösterreich.
 /// Die Bilder sind kuratierte, lizenzfreie Fotos aus wwwroot/seed - stabile URLs,
 /// damit Store-Screenshots (Cake Android-/IosScreenshots) immer gleich aussehen.
 /// </summary>
@@ -27,7 +27,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
         if (await dbContext.Set<Property>().AnyAsync(cancellationToken))
             return;
 
-        // Verkaeufer abrufen (User mit gesetztem SellerType)
+        // Verkäufer abrufen (User mit gesetztem SellerType)
         var sellers = await dbContext.Set<User>()
             .Where(u => u.SellerType != null)
             .Select(u => u.Id)
@@ -35,17 +35,17 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
 
         if (sellers.Count == 0)
         {
-            // Keine Seller vorhanden - Seeding ueberspringen
+            // Keine Seller vorhanden - Seeding überspringen
             return;
         }
 
-        // Municipalities laden fuer FK-Zuordnung (Umlaut-normalisiert, Duplikat-sicher:
-        // gleichnamige Gemeinden in verschiedenen Bezirken duerfen das Seeding nicht crashen)
+        // Municipalities laden für FK-Zuordnung (Umlaut-normalisiert, Duplikat-sicher:
+        // gleichnamige Gemeinden in verschiedenen Bezirken dürfen das Seeding nicht crashen)
         var municipalityList = await dbContext.Set<Municipality>().ToListAsync(cancellationToken);
 
         if (municipalityList.Count == 0)
         {
-            // Keine Municipalities vorhanden - Seeding ueberspringen
+            // Keine Municipalities vorhanden - Seeding überspringen
             return;
         }
 
@@ -59,11 +59,11 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
         {
             var id = MunicipalityNameResolver.Resolve(municipalities, cityName);
             if (id == null)
-                logger.LogError("[PropertySeeder] Gemeinde '{City}' nicht aufloesbar - Objekt wird uebersprungen", cityName);
+                logger.LogError("[PropertySeeder] Gemeinde '{City}' nicht auflösbar - Objekt wird übersprungen", cityName);
             return id;
         }
 
-        // Properties gleichmaessig auf Seller verteilen
+        // Properties gleichmäßig auf Seller verteilen
         var sellerIndex = 0;
         Guid GetNextSellerId()
         {
@@ -77,17 +77,17 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
         var now = DateTimeOffset.UtcNow;
         var seedCandidates = new List<Property?>
         {
-            // Haeuser
-            CreateProperty("Einfamilienhaus in Linz-Urfahr", "Hauptstrasse 15", "Linz", 349000,
+            // Häuser
+            CreateProperty("Einfamilienhaus in Linz-Urfahr", "Hauptstraße 15", "Linz", 349000,
                 145, 520, 5, 2018, PropertyType.House, SellerType.Broker, "Mustermann Immobilien",
-                "Wunderschoenes Einfamilienhaus mit grossem Garten in ruhiger Lage. Hochwertige Ausstattung, Fussbodenheizung, Photovoltaikanlage.",
-                ["Garage", "Garten", "Terrasse", "Keller", "Fussbodenheizung", "Photovoltaik"],
+                "Wunderschönes Einfamilienhaus mit großem Garten in ruhiger Lage. Hochwertige Ausstattung, Fußbodenheizung, Photovoltaikanlage.",
+                ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"],
                 Img("haus-aelter.jpg", "interieur-wohnkueche.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
-            CreateProperty("Modernes Reihenhaus in Wels", "Ringstrasse 42", "Wels", 289000,
+            CreateProperty("Modernes Reihenhaus in Wels", "Ringstraße 42", "Wels", 289000,
                 120, 180, 4, 2020, PropertyType.House, SellerType.Private, "Familie Huber",
-                "Neuwertiges Reihenhaus in zentraler Lage. Perfekt fuer junge Familien. Kurze Wege zu Schulen und Geschaeften.",
-                ["Carport", "Terrasse", "Keller", "Fussbodenheizung"],
+                "Neuwertiges Reihenhaus in zentraler Lage. Perfekt für junge Familien. Kurze Wege zu Schulen und Geschäften.",
+                ["Carport", "Terrasse", "Keller", "Fußbodenheizung"],
                 Img("haus-daemmerung.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
             CreateProperty("Villa am Traunsee", "Seeuferweg 8", "Gmunden", 890000,
@@ -98,72 +98,72 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
 
             CreateProperty("Landhaus in Bad Ischl", "Kaiserweg 23", "Bad Ischl", 425000,
                 165, 850, 5, 1998, PropertyType.House, SellerType.Private, "Herr Maier",
-                "Charmantes Landhaus im Salzkammergut. Renoviert mit Liebe zum Detail. Idealer Rueckzugsort.",
+                "Charmantes Landhaus im Salzkammergut. Renoviert mit Liebe zum Detail. Idealer Rückzugsort.",
                 ["Garage", "Garten", "Kachelofen", "Keller", "Dachboden"],
                 Img("haus-chalet.jpg", "bauernhaus.jpg", "interieur-rustikal.jpg"), GetMunicipalityId),
 
-            CreateProperty("Familienhaus in Steyr", "Bahnhofstrasse 67", "Steyr", 315000,
+            CreateProperty("Familienhaus in Steyr", "Bahnhofstraße 67", "Steyr", 315000,
                 135, 450, 5, 2010, PropertyType.House, SellerType.Broker, "Immobilien Steyr",
                 "Gepflegtes Einfamilienhaus in guter Lage. Nahe Stadtzentrum und Naturgebiet.",
                 ["Garage", "Garten", "Terrasse", "Keller"],
                 Img("haus-teich.jpg", "interieur-wohnkueche.jpg"), GetMunicipalityId),
 
-            // Grundstuecke
-            CreateProperty("Baugrundstück in Wels", "Neubaugebiet Sued", "Wels", 189000,
-                null, 850, null, null, PropertyType.Land, SellerType.Private, "Familie Mueller",
-                "Voll erschlossenes Baugrundstuck in ruhiger Wohnlage. Alle Anschluesse vorhanden.",
+            // Grundstücke
+            CreateProperty("Baugrundstück in Wels", "Neubaugebiet Süd", "Wels", 189000,
+                null, 850, null, null, PropertyType.Land, SellerType.Private, "Familie Müller",
+                "Voll erschlossenes Baugrundstück in ruhiger Wohnlage. Alle Anschlüsse vorhanden.",
                 ["Erschlossen", "Strom", "Wasser", "Kanal", "Gas"],
                 Img("grund-feld.jpg"), GetMunicipalityId),
 
             CreateProperty("Sonniges Baugrundstück Linz-Land", "Am Sonnenhang 12", "Leonding", 245000,
-                null, 720, null, null, PropertyType.Land, SellerType.Broker, "Grund & Boden OOe",
-                "Suedhanglage mit herrlichem Ausblick. Bebauungsplan liegt vor.",
-                ["Erschlossen", "Suedlage", "Aussicht"],
+                null, 720, null, null, PropertyType.Land, SellerType.Broker, "Grund & Boden OÖ",
+                "Südhanglage mit herrlichem Ausblick. Bebauungsplan liegt vor.",
+                ["Erschlossen", "Südlage", "Aussicht"],
                 Img("huegel-strasse.jpg", "berge.jpg"), GetMunicipalityId),
 
-            CreateProperty("Grosses Baugrundstück Muehlviertel", "Dorfstrasse", "Freistadt", 95000,
+            CreateProperty("Großes Baugrundstück Mühlviertel", "Dorfstraße", "Freistadt", 95000,
                 null, 1200, null, null, PropertyType.Land, SellerType.Private, "Gemeinde Freistadt",
-                "Guenstiges Baugrundstuck im schoenen Muehlviertel. Ruhige Lage, gute Infrastruktur.",
+                "Günstiges Baugrundstück im schönen Mühlviertel. Ruhige Lage, gute Infrastruktur.",
                 ["Teilerschlossen", "Strom", "Wasser"],
                 Img("grund-wald.jpg", "huegel-nebel.jpg"), GetMunicipalityId),
 
             // Zwangsversteigerungen
-            CreateProperty("Zwangsversteigerung: Haus in Traun", "Industriestrasse 45", "Traun", 185000,
+            CreateProperty("Zwangsversteigerung: Haus in Traun", "Industriestraße 45", "Traun", 185000,
                 110, 380, 4, 1985, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Linz",
-                "Aelteres Haus mit Renovierungsbedarf. Versteigerungstermin: naechsten Monat. Besichtigung moeglich.",
+                "Älteres Haus mit Renovierungsbedarf. Versteigerungstermin: nächsten Monat. Besichtigung möglich.",
                 ["Garage", "Keller"],
                 Img("bauernhof-alt.jpg"), GetMunicipalityId),
 
             CreateProperty("Zwangsversteigerung: Grundstück Enns", "Feldweg 3", "Enns", 68000,
                 null, 650, null, null, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Steyr",
-                "Baugrundstuck aus Zwangsversteigerung. Gute Lage, erschlossen.",
+                "Baugrundstück aus Zwangsversteigerung. Gute Lage, erschlossen.",
                 ["Erschlossen"],
                 Img("grund-sonnenuntergang.jpg"), GetMunicipalityId),
 
-            // Weitere Haeuser
-            CreateProperty("Bungalow in Braunau", "Gartenstrasse 18", "Braunau am Inn", 275000,
+            // Weitere Häuser
+            CreateProperty("Bungalow in Braunau", "Gartenstraße 18", "Braunau am Inn", 275000,
                 95, 600, 3, 2005, PropertyType.House, SellerType.Private, "Ehepaar Schmidt",
-                "Barrierefreier Bungalow, ideal fuer Senioren. Pflegeleichter Garten.",
-                ["Carport", "Garten", "Barrierefrei", "Fussbodenheizung"],
+                "Barrierefreier Bungalow, ideal für Senioren. Pflegeleichter Garten.",
+                ["Carport", "Garten", "Barrierefrei", "Fußbodenheizung"],
                 Img("haus-wiese.jpg", "interieur-rustikal.jpg"), GetMunicipalityId),
 
-            CreateProperty("Doppelhaushälfte Vöcklabruck", "Schulweg 7", "Voecklabruck", 298000,
+            CreateProperty("Doppelhaushälfte Vöcklabruck", "Schulweg 7", "Vöcklabruck", 298000,
                 125, 280, 4, 2019, PropertyType.House, SellerType.Broker, "Hausfreund Immobilien",
-                "Neuwertige Doppelhaushaelfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
-                ["Garage", "Garten", "Terrasse", "Fussbodenheizung", "Waermepumpe"],
+                "Neuwertige Doppelhaushälfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
+                ["Garage", "Garten", "Terrasse", "Fußbodenheizung", "Wärmepumpe"],
                 Img("haus-landhaus.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
-            CreateProperty("Einfamilienhaus am Traunfall", "Traunfallstrasse 12", "Roitham am Traunfall", 365000,
+            CreateProperty("Einfamilienhaus am Traunfall", "Traunfallstraße 12", "Roitham am Traunfall", 365000,
                 140, 610, 5, 2012, PropertyType.House, SellerType.Private, "Familie Berger",
-                "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Grosser Garten mit altem Baumbestand.",
+                "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Großer Garten mit altem Baumbestand.",
                 ["Garage", "Garten", "Terrasse", "Keller", "Kachelofen"],
                 Img("almhuette.jpg", "wiese-blumen.jpg", "interieur-schlafzimmer.jpg"), GetMunicipalityId)
         };
 
         var properties = seedCandidates.OfType<Property>().ToList();
 
-        // UserId und CreatedAt fuer alle Properties setzen
-        // Unterschiedliche CreatedAt-Zeiten fuer Age-Filter Tests
+        // UserId und CreatedAt für alle Properties setzen
+        // Unterschiedliche CreatedAt-Zeiten für Age-Filter Tests
         var createdDates = new[]
         {
             now.AddHours(-2),        // Heute
@@ -187,19 +187,19 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
             properties[i].CreatedAt = createdDates[i % createdDates.Length];
         }
 
-        // TypeSpecificData fuer alle Properties setzen
+        // TypeSpecificData für alle Properties setzen
         SetTypeSpecificData(properties);
 
-        // Kontaktdaten fuer alle Properties generieren
+        // Kontaktdaten für alle Properties generieren
         SetContactData(properties);
 
-        // SellerSource-FK fuer gewerbliche Anbieter (Makler/Verwaltung) aufloesen/anlegen,
+        // SellerSource-FK für gewerbliche Anbieter (Makler/Verwaltung) auflösen/anlegen,
         // damit der Anbieter-Ausschlussfilter auch die Demo-Inserate erfasst
         await ResolveSellerSourcesAsync(properties, cancellationToken);
 
         dbContext.Set<Property>().AddRange(properties);
 
-        // Explizit alle Contacts zum DbContext hinzufuegen (EF Core Cascade-Fix)
+        // Explizit alle Contacts zum DbContext hinzufügen (EF Core Cascade-Fix)
         var allContacts = properties.SelectMany(p => p.Contacts).ToList();
         dbContext.Set<PropertyContactInfo>().AddRange(allContacts);
 
@@ -207,8 +207,8 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
     }
 
     /// <summary>
-    /// Loest fuer alle gewerblichen Demo-Inserate (Broker/Verwaltung) die SellerSource
-    /// per Name auf bzw. legt fehlende Eintraege an und setzt die FK.
+    /// Löst für alle gewerblichen Demo-Inserate (Broker/Verwaltung) die SellerSource
+    /// per Name auf bzw. legt fehlende Einträge an und setzt die FK.
     /// </summary>
     private async Task ResolveSellerSourcesAsync(List<Property> properties, CancellationToken cancellationToken)
     {
@@ -258,8 +258,8 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
 
     /// <summary>
     /// Helper: Create a Property with MunicipalityId lookup.
-    /// Liefert null wenn die Gemeinde nicht aufloesbar ist (Objekt wird uebersprungen).
-    /// Internal: wird auch vom PropertyMunicipalityFixSeeder fuer nachgelegte Objekte genutzt.
+    /// Liefert null wenn die Gemeinde nicht auflösbar ist (Objekt wird übersprungen).
+    /// Internal: wird auch vom PropertyMunicipalityFixSeeder für nachgelegte Objekte genutzt.
     /// </summary>
     internal static Property? CreateProperty(
         string title, string address, string cityName, decimal price,
@@ -293,7 +293,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
     }
 
     /// <summary>
-    /// Setzt TypeSpecificData fuer alle Properties basierend auf ihrem Typ
+    /// Setzt TypeSpecificData für alle Properties basierend auf ihrem Typ
     /// </summary>
     internal static void SetTypeSpecificData(List<Property> properties)
     {
@@ -356,7 +356,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                         Status: LegalStatus.Scheduled,
                         FileNumber: $"{Random.Shared.Next(100, 999)} E {Random.Shared.Next(100, 999)}/{DateTime.Now.Year % 100}",
                         RegistrationNumber: $"EZ {Random.Shared.Next(1000, 9999)}/{DateTime.Now.Year}",
-                        CadastralMunicipality: "Oberoesterreich",
+                        CadastralMunicipality: "Oberösterreich",
                         PlotNumber: $"{Random.Shared.Next(100, 999)}/{Random.Shared.Next(1, 20)}",
                         TotalArea: property.PlotAreaSquareMeters ?? 500,
                         BuildingArea: property.LivingAreaSquareMeters ?? 0,
@@ -383,7 +383,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
     }
 
     /// <summary>
-    /// Generiert Kontaktdaten fuer alle Properties
+    /// Generiert Kontaktdaten für alle Properties
     /// </summary>
     internal static void SetContactData(List<Property> properties)
     {
@@ -425,10 +425,10 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
 
             property.Contacts.Add(mainContact);
 
-            // Bei Maklern: zusaetzlich Eigentuemer als zweiten Kontakt (50% Chance)
+            // Bei Maklern: zusätzlich Eigentümer als zweiten Kontakt (50% Chance)
             if (property.SellerType == SellerType.Broker && Random.Shared.Next(2) == 0)
             {
-                var ownerNames = new[] { "Herr Mueller", "Frau Schmidt", "Familie Weber", "Herr Huber", "Frau Maier" };
+                var ownerNames = new[] { "Herr Müller", "Frau Schmidt", "Familie Weber", "Herr Huber", "Frau Maier" };
                 var ownerName = ownerNames[Random.Shared.Next(ownerNames.Length)];
 
                 var ownerContact = new PropertyContactInfo

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 
 /// <summary>
-/// Seeder fuer Test-Favoriten
+/// Seeder für Test-Favoriten
 /// </summary>
 public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
 {
@@ -22,7 +22,7 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
         if (await dbContext.Set<Favorite>().AnyAsync(cancellationToken))
             return;
 
-        // Jeder Benutzer ist implizit Kaeufer - Demo-Favoriten fuer alle
+        // Jeder Benutzer ist implizit Käufer - Demo-Favoriten für alle
         // Nicht-Admin-/Nicht-System-Konten anlegen
         var buyers = await dbContext.Set<User>()
             .Where(u => !u.IsAdmin && u.Email != "system@heimatplatz.at")
@@ -31,7 +31,7 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
 
         if (buyers.Count == 0)
         {
-            // Keine Buyer vorhanden - Seeding ueberspringen
+            // Keine Buyer vorhanden - Seeding überspringen
             return;
         }
 
@@ -43,7 +43,7 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
 
         if (properties.Count == 0)
         {
-            // Keine Properties vorhanden - Seeding ueberspringen
+            // Keine Properties vorhanden - Seeding überspringen
             return;
         }
 
@@ -59,7 +59,7 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
         {
             var favoriteCount = random.Next(3, 6);
 
-            // Properties auswaehlen (keine Duplikate)
+            // Properties auswählen (keine Duplikate)
             var selectedProperties = properties
                 .OrderBy(_ => random.Next())
                 .Take(favoriteCount)

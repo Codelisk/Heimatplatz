@@ -10,7 +10,7 @@ namespace Heimatplatz.Api.Features.Locations.Data.Seeding;
 
 /// <summary>
 /// Seeder der Location-Daten (Bundesland, Bezirke, Gemeinden) von der OpenPLZ API importiert.
-/// Importiert alle 9 oesterreichischen Bundeslaender.
+/// Importiert alle 9 österreichischen Bundesländer.
 /// </summary>
 public class LocationSeeder(
     AppDbContext dbContext,
@@ -21,18 +21,18 @@ public class LocationSeeder(
     private const string OpenPlzBaseUrl = "https://openplzapi.org/at";
 
     /// <summary>
-    /// Vor allen Feature-Seedern ausfuehren (Properties braucht evtl. Gemeinden)
+    /// Vor allen Feature-Seedern ausführen (Properties braucht evtl. Gemeinden)
     /// </summary>
     public int Order => 1;
 
     /// <summary>
-    /// Referenzdaten (Bundeslaender/Bezirke/Gemeinden) - laeuft auch in Produktion
+    /// Referenzdaten (Bundesländer/Bezirke/Gemeinden) - läuft auch in Produktion
     /// </summary>
     public bool IsDemoData => false;
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        // Idempotent: nur seeden wenn noch keine Bundeslaender vorhanden
+        // Idempotent: nur seeden wenn noch keine Bundesländer vorhanden
         if (await dbContext.Set<FederalProvince>().AnyAsync(cancellationToken))
         {
             logger.LogInformation("Location data already seeded, skipping");
@@ -43,7 +43,7 @@ public class LocationSeeder(
 
         var httpClient = httpClientFactory.CreateClient();
 
-        // Nur Oberoesterreich importieren (Key "4")
+        // Nur Oberösterreich importieren (Key "4")
         await ImportFederalProvinceAsync(httpClient, "4", cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);

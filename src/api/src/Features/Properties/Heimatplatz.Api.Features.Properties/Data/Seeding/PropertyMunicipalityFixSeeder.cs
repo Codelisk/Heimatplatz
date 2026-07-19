@@ -12,18 +12,18 @@ namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 
 /// <summary>
 /// Korrigiert Gemeinde-Zuordnungen der Seed-Immobilien in bestehenden Datenbanken.
-/// Fruehere PropertySeeder-Versionen hatten ein kaputtes Namens-Matching (kein Umlaut-Handling
+/// Frühere PropertySeeder-Versionen hatten ein kaputtes Namens-Matching (kein Umlaut-Handling
 /// plus stiller Fallback auf die erste Gemeinde) - dadurch hingen Objekte an falschen Gemeinden
-/// und der Ort-Filter lieferte falsche Ergebnisse. Der PropertySeeder selbst laeuft nur bei
+/// und der Ort-Filter lieferte falsche Ergebnisse. Der PropertySeeder selbst läuft nur bei
 /// leerer Datenbank, daher braucht es diese idempotente Nachkorrektur.
-/// Legt ausserdem spaeter ergaenzte Seed-Objekte nach (z.B. Roitham am Traunfall).
+/// Legt außerdem später ergänzte Seed-Objekte nach (z.B. Roitham am Traunfall).
 /// </summary>
 public class PropertyMunicipalityFixSeeder(
     AppDbContext dbContext,
     Microsoft.Extensions.Configuration.IConfiguration configuration,
     ILogger<PropertyMunicipalityFixSeeder> logger) : ISeeder
 {
-    // Nach dem PropertySeeder ausfuehren
+    // Nach dem PropertySeeder ausführen
     public int Order => 11;
 
     /// <summary>Titel -> intendierte Gemeinde der Seed-Objekte (Stand PropertySeeder)</summary>
@@ -36,7 +36,7 @@ public class PropertyMunicipalityFixSeeder(
         ["Familienhaus in Steyr"] = "Steyr",
         ["Baugrundstück in Wels"] = "Wels",
         ["Sonniges Baugrundstück Linz-Land"] = "Leonding",
-        ["Grosses Baugrundstück Muehlviertel"] = "Freistadt",
+        ["Großes Baugrundstück Mühlviertel"] = "Freistadt",
         ["Zwangsversteigerung: Haus in Traun"] = "Traun",
         ["Zwangsversteigerung: Grundstück Enns"] = "Enns",
         ["Bungalow in Braunau"] = "Braunau am Inn",
@@ -63,13 +63,13 @@ public class PropertyMunicipalityFixSeeder(
 
         var hasChanges = false;
 
-        // Falsch zugeordnete Seed-Objekte auf die intendierte Gemeinde umhaengen
+        // Falsch zugeordnete Seed-Objekte auf die intendierte Gemeinde umhängen
         foreach (var property in seedProperties)
         {
             var expectedId = MunicipalityNameResolver.Resolve(municipalities, SeedPropertyCities[property.Title]);
             if (expectedId == null)
             {
-                logger.LogWarning("[PropertyMunicipalityFix] Gemeinde '{City}' fuer '{Title}' nicht aufloesbar",
+                logger.LogWarning("[PropertyMunicipalityFix] Gemeinde '{City}' für '{Title}' nicht auflösbar",
                     SeedPropertyCities[property.Title], property.Title);
                 continue;
             }
@@ -83,7 +83,7 @@ public class PropertyMunicipalityFixSeeder(
             }
         }
 
-        // Roitham-Objekt nachlegen (aeltere Datenbanken wurden vor diesem Seed-Eintrag befuellt)
+        // Roitham-Objekt nachlegen (ältere Datenbanken wurden vor diesem Seed-Eintrag befüllt)
         if (seedProperties.All(p => p.Title != TraunfallTitle))
         {
             var sellerId = await dbContext.Set<User>()
@@ -93,9 +93,9 @@ public class PropertyMunicipalityFixSeeder(
 
             var property = sellerId == Guid.Empty
                 ? null
-                : PropertySeeder.CreateProperty(TraunfallTitle, "Traunfallstrasse 12", "Roitham am Traunfall", 365000,
+                : PropertySeeder.CreateProperty(TraunfallTitle, "Traunfallstraße 12", "Roitham am Traunfall", 365000,
                     140, 610, 5, 2012, PropertyType.House, SellerType.Private, "Familie Berger",
-                    "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Grosser Garten mit altem Baumbestand.",
+                    "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Großer Garten mit altem Baumbestand.",
                     ["Garage", "Garten", "Terrasse", "Keller", "Kachelofen"],
                     PropertySeeder.BuildSeedImageUrls(configuration, "almhuette.jpg", "wiese-blumen.jpg", "interieur-schlafzimmer.jpg"),
                     city => MunicipalityNameResolver.Resolve(municipalities, city));

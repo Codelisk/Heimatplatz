@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Heimatplatz.Api.Features.ForeclosureAuctions.Data.Seeding;
 
 /// <summary>
-/// Erstellt den System-User fuer automatisch generierte Properties aus Zwangsversteigerungen.
-/// Wird vor UserSeeder (Order=5) ausgefuehrt, damit der System-User immer existiert.
+/// Erstellt den System-User für automatisch generierte Properties aus Zwangsversteigerungen.
+/// Wird vor UserSeeder (Order=5) ausgeführt, damit der System-User immer existiert.
 /// </summary>
 public class SystemUserSeeder(
     AppDbContext dbContext,
@@ -19,8 +19,8 @@ public class SystemUserSeeder(
     public int Order => 6;
 
     /// <summary>
-    /// System-User wird vom EDIKTE-Sync benoetigt - laeuft auch in Produktion
-    /// (Passwort ist ein zufaelliger GUID-Hash, kein bekanntes Test-Passwort)
+    /// System-User wird vom EDIKTE-Sync benötigt - läuft auch in Produktion
+    /// (Passwort ist ein zufälliger GUID-Hash, kein bekanntes Test-Passwort)
     /// </summary>
     public bool IsDemoData => false;
 

@@ -14,7 +14,7 @@ public class SellerSourceSeeder(AppDbContext dbContext) : ISeeder
     public int Order => 5;
 
     /// <summary>
-    /// Referenzdaten (bekannte Makler-Quellen fuer Filter) - laeuft auch in Produktion
+    /// Referenzdaten (bekannte Makler-Quellen für Filter) - läuft auch in Produktion
     /// </summary>
     public bool IsDemoData => false;
 
@@ -30,7 +30,7 @@ public class SellerSourceSeeder(AppDbContext dbContext) : ISeeder
             // Broker sources
             new() { Id = Guid.NewGuid(), Name = "RE/MAX", IsDefault = true, CreatedAt = now },
             new() { Id = Guid.NewGuid(), Name = "ERA Immobilien", IsDefault = true, CreatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "Engel & Voelkers", IsDefault = true, CreatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "Engel & Völkers", IsDefault = true, CreatedAt = now },
             new() { Id = Guid.NewGuid(), Name = "Raiffeisen Immobilien", IsDefault = true, CreatedAt = now },
             new() { Id = Guid.NewGuid(), Name = "sReal Immobilien", IsDefault = true, CreatedAt = now },
         };

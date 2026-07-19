@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 
 /// <summary>
-/// Seeder fuer Test-Blockierungen
+/// Seeder für Test-Blockierungen
 /// </summary>
 public class BlockedSeeder(AppDbContext dbContext) : ISeeder
 {
@@ -22,7 +22,7 @@ public class BlockedSeeder(AppDbContext dbContext) : ISeeder
         if (await dbContext.Set<Blocked>().AnyAsync(cancellationToken))
             return;
 
-        // Jeder Benutzer ist implizit Kaeufer - Demo-Favoriten fuer alle
+        // Jeder Benutzer ist implizit Käufer - Demo-Favoriten für alle
         // Nicht-Admin-/Nicht-System-Konten anlegen
         var buyers = await dbContext.Set<User>()
             .Where(u => !u.IsAdmin && u.Email != "system@heimatplatz.at")
@@ -31,7 +31,7 @@ public class BlockedSeeder(AppDbContext dbContext) : ISeeder
 
         if (buyers.Count == 0)
         {
-            // Keine Buyer vorhanden - Seeding ueberspringen
+            // Keine Buyer vorhanden - Seeding überspringen
             return;
         }
 
@@ -43,7 +43,7 @@ public class BlockedSeeder(AppDbContext dbContext) : ISeeder
 
         if (allProperties.Count == 0)
         {
-            // Keine Properties vorhanden - Seeding ueberspringen
+            // Keine Properties vorhanden - Seeding überspringen
             return;
         }
 
@@ -58,7 +58,7 @@ public class BlockedSeeder(AppDbContext dbContext) : ISeeder
         var now = DateTimeOffset.UtcNow;
         var blockedList = new List<Blocked>();
 
-        // Jedem Buyer 1-3 zufaellige Blockierungen geben (ohne bereits favorisierte)
+        // Jedem Buyer 1-3 zufällige Blockierungen geben (ohne bereits favorisierte)
         foreach (var buyerId in buyers)
         {
             // Properties holen, die der Buyer noch nicht favorisiert hat
@@ -70,10 +70,10 @@ public class BlockedSeeder(AppDbContext dbContext) : ISeeder
             if (availableProperties.Count == 0)
                 continue;
 
-            // Zufaellige Anzahl von Blockierungen (1-3)
+            // Zufällige Anzahl von Blockierungen (1-3)
             var blockedCount = Random.Shared.Next(1, Math.Min(4, availableProperties.Count + 1));
 
-            // Zufaellige Properties auswaehlen (keine Duplikate)
+            // Zufällige Properties auswählen (keine Duplikate)
             var selectedProperties = availableProperties
                 .OrderBy(_ => Random.Shared.Next())
                 .Take(blockedCount)

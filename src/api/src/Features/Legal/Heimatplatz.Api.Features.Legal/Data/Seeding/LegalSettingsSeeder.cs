@@ -15,10 +15,10 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
         WriteIndented = false
     };
 
-    public int Order => 5; // Frueh ausfuehren, da keine Abhaengigkeiten
+    public int Order => 5; // Früh ausführen, da keine Abhängigkeiten
 
     /// <summary>
-    /// Rechtsinhalte (Datenschutz/Impressum) sind Pflichtdaten - laeuft auch in Produktion
+    /// Rechtsinhalte (Datenschutz/Impressum) sind Pflichtdaten - läuft auch in Produktion
     /// </summary>
     public bool IsDemoData => false;
 
@@ -35,10 +35,10 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
         var responsibleParty = new ResponsiblePartyDto(
             CompanyName: "Ing. Daniel Hufnagl",
-            Street: "Stockham 44/Tuer 2",
+            Street: "Stockham 44/Tür 2",
             PostalCode: "4663",
             City: "Laakirchen",
-            Country: "Oesterreich",
+            Country: "Österreich",
             Email: "info@heimatplatz.at",
             Phone: null,
             DataProtectionOfficer: null
@@ -58,45 +58,45 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
             new(3, "Zweck und Rechtsgrundlage",
                 "Wir verarbeiten Ihre Daten zu folgenden Zwecken:\n\n" +
-                "a) Vertragserfuellung (Art. 6 Abs. 1 lit. b DSGVO): Bereitstellung der Plattform, Verwaltung Ihres Benutzerkontos, Vermittlung von Immobilienanfragen.\n\n" +
-                "b) Berechtigte Interessen (Art. 6 Abs. 1 lit. f DSGVO): Gewaehrleistung der IT-Sicherheit, Analyse zur Verbesserung unserer Dienste, Betrugspraevention.\n\n" +
-                "c) Einwilligung (Art. 6 Abs. 1 lit. a DSGVO): Versand von Benachrichtigungen ueber neue Immobilien (sofern aktiviert)."),
+                "a) Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO): Bereitstellung der Plattform, Verwaltung Ihres Benutzerkontos, Vermittlung von Immobilienanfragen.\n\n" +
+                "b) Berechtigte Interessen (Art. 6 Abs. 1 lit. f DSGVO): Gewährleistung der IT-Sicherheit, Analyse zur Verbesserung unserer Dienste, Betrugsprävention.\n\n" +
+                "c) Einwilligung (Art. 6 Abs. 1 lit. a DSGVO): Versand von Benachrichtigungen über neue Immobilien (sofern aktiviert)."),
 
             new(4, "Speicherdauer",
                 "- Server-Logs: 30 Tage\n" +
-                "- Benutzerkonto-Daten: Bis zur Loeschung des Kontos\n" +
+                "- Benutzerkonto-Daten: Bis zur Löschung des Kontos\n" +
                 "- Kontaktanfragen: 3 Jahre nach Abschluss\n" +
-                "- Inserate: Bis zur Loeschung durch den Nutzer"),
+                "- Inserate: Bis zur Löschung durch den Nutzer"),
 
-            new(5, "Empfaenger der Daten",
-                "Ihre Daten werden an folgende Empfaenger weitergegeben:\n\n" +
+            new(5, "Empfänger der Daten",
+                "Ihre Daten werden an folgende Empfänger weitergegeben:\n\n" +
                 "- Hosting-Anbieter (Serverstandort: EU)\n" +
                 "- Immobilienanbieter bei Kontaktanfragen (nur freigegebene Daten)\n\n" +
-                "Eine Uebermittlung in Drittlaender findet nicht statt."),
+                "Eine Übermittlung in Drittländer findet nicht statt."),
 
             new(6, "Ihre Rechte",
-                "Sie haben folgende Rechte bezueglich Ihrer personenbezogenen Daten:\n\n" +
-                "- Auskunft ueber die gespeicherten Daten (Art. 15 DSGVO)\n" +
+                "Sie haben folgende Rechte bezüglich Ihrer personenbezogenen Daten:\n\n" +
+                "- Auskunft über die gespeicherten Daten (Art. 15 DSGVO)\n" +
                 "- Berichtigung unrichtiger Daten (Art. 16 DSGVO)\n" +
-                "- Loeschung Ihrer Daten (Art. 17 DSGVO)\n" +
-                "- Einschraenkung der Verarbeitung (Art. 18 DSGVO)\n" +
-                "- Datenuebertragbarkeit (Art. 20 DSGVO)\n" +
+                "- Löschung Ihrer Daten (Art. 17 DSGVO)\n" +
+                "- Einschränkung der Verarbeitung (Art. 18 DSGVO)\n" +
+                "- Datenübertragbarkeit (Art. 20 DSGVO)\n" +
                 "- Widerspruch gegen die Verarbeitung (Art. 21 DSGVO)\n" +
                 "- Widerruf einer erteilten Einwilligung (Art. 7 Abs. 3 DSGVO)"),
 
             new(7, "Beschwerderecht",
-                "Sie haben das Recht, sich bei der zustaendigen Aufsichtsbehoerde zu beschweren:\n\n" +
-                "Oesterreichische Datenschutzbehoerde\n" +
+                "Sie haben das Recht, sich bei der zuständigen Aufsichtsbehörde zu beschweren:\n\n" +
+                "Österreichische Datenschutzbehörde\n" +
                 "Barichgasse 40-42\n" +
                 "1030 Wien\n" +
                 "E-Mail: dsb@dsb.gv.at\n" +
                 "Website: https://www.dsb.gv.at"),
 
             new(8, "Cookies und Local Storage",
-                "Unsere Website verwendet ausschliesslich technisch notwendige Cookies bzw. Local Storage fuer:\n\n" +
+                "Unsere Website verwendet ausschließlich technisch notwendige Cookies bzw. Local Storage für:\n\n" +
                 "- Speicherung Ihrer Anmeldedaten (Session)\n" +
                 "- Speicherung Ihrer Filtereinstellungen\n\n" +
-                "Fuer technisch notwendige Cookies ist keine Einwilligung erforderlich (Paragraph 165 Abs. 3 TKG)."),
+                "Für technisch notwendige Cookies ist keine Einwilligung erforderlich (Paragraph 165 Abs. 3 TKG)."),
 
             new(9, "Kontakt",
                 "Bei Fragen zum Datenschutz wenden Sie sich bitte an die oben genannte E-Mail-Adresse.")
@@ -125,10 +125,10 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
             CompanyName: "Ing. Daniel Hufnagl",
             LegalForm: "Einzelunternehmen",
             Owner: "Ing. Daniel Hufnagl",
-            Street: "Stockham 44/Tuer 2",
+            Street: "Stockham 44/Tür 2",
             PostalCode: "4663",
             City: "Laakirchen",
-            Country: "Oesterreich",
+            Country: "Österreich",
             Email: "info@heimatplatz.at",
             Phone: null,
             Website: "https://www.heimatplatz.at",
@@ -140,25 +140,25 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
             Trade: "Dienstleistungen in der automatischen Datenverarbeitung und Informationstechnik",
             TradeAuthority: "Bezirkshauptmannschaft Gmunden",
             ProfessionalLaw: "Gewerbeordnung 1994 (GewO)",
-            ChamberMembership: "Wirtschaftskammer Oberoesterreich",
+            ChamberMembership: "Wirtschaftskammer Oberösterreich",
             TradeGroup: "Fachgruppe Unternehmensberatung, Buchhaltung und Informationstechnologie"
         );
 
         var sections = new List<LegalSectionDto>
         {
             new(1, "Haftungsausschluss",
-                "Die Inhalte dieser Website wurden mit groesster Sorgfalt erstellt. " +
-                "Fuer die Richtigkeit, Vollstaendigkeit und Aktualitaet der Inhalte " +
-                "uebernehmen wir jedoch keine Gewaehr."),
+                "Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. " +
+                "Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte " +
+                "übernehmen wir jedoch keine Gewähr."),
 
             new(2, "Urheberrecht",
                 "Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten " +
-                "unterliegen dem oesterreichischen Urheberrecht. Die Vervielfaeltigung, Bearbeitung, " +
-                "Verbreitung und jede Art der Verwertung ausserhalb der Grenzen des Urheberrechtes " +
-                "beduerfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers."),
+                "unterliegen dem österreichischen Urheberrecht. Die Vervielfältigung, Bearbeitung, " +
+                "Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes " +
+                "bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers."),
 
             new(3, "Streitschlichtung",
-                "Die Europaeische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: " +
+                "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: " +
                 "https://ec.europa.eu/consumers/odr/\n\n" +
                 "Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren " +
                 "vor einer Verbraucherschlichtungsstelle teilzunehmen.")
