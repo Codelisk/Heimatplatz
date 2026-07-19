@@ -1,6 +1,7 @@
 /**
- * Misc-Seiten: 404, interner Bereich (/intern), Debug-Werkzeuge (/debug)
- * sowie statische Rahmentexte der Rechtsseiten (Impressum/Datenschutz).
+ * Misc-Seiten: 404, Debug-Werkzeuge (/debug) sowie statische Rahmentexte der
+ * Rechtsseiten (Impressum/Datenschutz). Der interne Bereich hat eine eigene
+ * Domain-Datei (./intern.ts, Präfix "intern.").
  * Key-Präfixe: "notFound." / "misc." / "legal."
  */
 export const misc = {
@@ -12,26 +13,6 @@ export const misc = {
   "notFound.text":
     "Die angeforderte Seite existiert nicht oder wurde verschoben. Vielleicht finden Sie das gesuchte Angebot über die Startseite.",
   "notFound.backHome": "Zur Startseite",
-
-  // Interner Bereich (/intern)
-  "misc.internMetaTitle": "Intern",
-  "misc.internMetaDescription": "Interner Bereich.",
-  "misc.internTitle": "Intern",
-  "misc.internIntro":
-    "Nur von der freigegebenen IP erreichbar (siehe Caddyfile). Kein Login nötig - die Netzwerk-Sperre ist die Zugriffsschranke.",
-  "misc.internSyncTriggered":
-    "Sync wurde gestartet und läuft im Hintergrund (Scraping mit Verzögerung pro Edikt - je nach Anzahl ein bis wenige Minuten). Lade diese Seite in 1-2 Minuten neu, um das Ergebnis zu sehen.",
-  "misc.internSyncFailed": "Sync konnte nicht gestartet werden. Ist die API erreichbar?",
-  "misc.internSyncHeading": "Edikte-Sync (Zwangsversteigerungen)",
-  "misc.internLastSync": "Letzter Sync",
-  "misc.internActiveAuctions": "Aktive Auktionen",
-  "misc.internRemovedAuctions": "Entfernt/Abgeschlossen",
-  "misc.internTotalChanges": "Änderungen (gesamt)",
-  "misc.internNever": "Noch nie",
-  "misc.internStatusLoadFailed": "Status konnte nicht geladen werden.",
-  "misc.internStartSync": "Sync jetzt starten",
-  "misc.internSyncExplainer":
-    "Holt die aktuelle Ediktsliste (Oberösterreich) von edikte.justiz.gv.at, aktualisiert die Zwangsversteigerungen und leitet daraus Immobilien-Inserate ab. Läuft nicht automatisch - nur bei manuellem Auslösen hier.",
 
   // Debug-Werkzeuge (/debug)
   "misc.debugMetaTitle": "Debug",

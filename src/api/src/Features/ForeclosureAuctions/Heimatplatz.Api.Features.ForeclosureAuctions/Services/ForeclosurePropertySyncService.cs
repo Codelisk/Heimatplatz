@@ -150,10 +150,16 @@ public class ForeclosurePropertySyncService(
             }
         }
 
-        // 6. Remove: Properties ohne aktive Auction loeschen
+        // 6. Remove: Properties ohne aktive Auction loeschen. Admin-ausgeblendete Properties
+        // bewusst NICHT loeschen: ein Hard-Delete+Recreate (z.B. verschobener Termin, kurzzeitig
+        // fehlender Scrape) wuerde IsHidden=false zuruecksetzen, weil CreateProperty die Zeile
+        // neu mit dem Default anlegt - eine Moderations-Entscheidung wuerde sich selbst aufheben.
+        // Die Zeile bleibt stattdessen als ausgeblendeter Waisen-Datensatz liegen (fuer die
+        // oeffentlichen Abfragen ohnehin unsichtbar) und wird beim naechsten Auftauchen des Edikts
+        // ganz normal ueber den Update-Zweig weitergefuehrt.
         foreach (var (sourceId, property) in existingProperties)
         {
-            if (!processedSourceIds.Contains(sourceId))
+            if (!processedSourceIds.Contains(sourceId) && !property.IsHidden)
             {
                 dbContext.Set<PropertyContactInfo>().RemoveRange(property.Contacts);
                 dbContext.Set<Property>().Remove(property);

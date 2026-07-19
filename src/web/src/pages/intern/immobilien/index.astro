@@ -1,0 +1,284 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import {
+  adminApiGet,
+  PROPERTY_TYPE_FORECLOSURE,
+  type AdminPropertiesPage,
+} from "@/lib/server/admin-api";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+// Aktionen (Ausblenden/Einblenden/Loeschen) laufen ueber die Server-APIRoutes
+// visibility.ts und delete.ts in diesem Ordner (Post-Redirect-Get).
+
+const PAGE_SIZE = 50;
+
+const source = Astro.url.searchParams.get("source") ?? "";
+const status = Astro.url.searchParams.get("status") ?? "";
+const search = Astro.url.searchParams.get("q")?.trim() ?? "";
+const userId = Astro.url.searchParams.get("userId")?.trim() ?? "";
+// Anzeige-Label (E-Mail) fuer den Nutzerfilter: vom verlinkenden /intern/nutzer/ mitgegeben,
+// statt es aus der aktuellen (ggf. leeren oder paginierten) Ergebnisseite zu suchen - sonst
+// faellt die Anzeige auf die rohe userId zurueck, sobald der Nutzer nicht auf der Seite liegt.
+const userLabel = Astro.url.searchParams.get("userLabel")?.trim() ?? "";
+const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "0", 10) || 0, 0);
+const action = Astro.url.searchParams.get("action") ?? "";
+
+const query = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+if (source === "user" || source === "foreclosure") query.set("source", source);
+if (status === "visible") query.set("hidden", "false");
+if (status === "hidden") query.set("hidden", "true");
+if (search) query.set("search", search);
+if (userId) query.set("userId", userId);
+
+const data = await adminApiGet<AdminPropertiesPage>(`/api/admin/properties?${query}`);
+const totalPages = data ? Math.max(Math.ceil(data.Total / data.PageSize), 1) : 1;
+
+// Filter-Zustand fuer die Action-Roundtrips (Post-Redirect-Get) und Paging-Links
+const filterParams = new URLSearchParams();
+if (source) filterParams.set("source", source);
+if (status) filterParams.set("status", status);
+if (search) filterParams.set("q", search);
+if (userId) filterParams.set("userId", userId);
+if (userLabel) filterParams.set("userLabel", userLabel);
+if (page > 0) filterParams.set("page", String(page));
+const backQuery = filterParams.toString();
+
+const actionBanner =
+  action === "hidden"
+    ? { ok: true, text: t("intern.actionHiddenOk") }
+    : action === "shown"
+      ? { ok: true, text: t("intern.actionShownOk") }
+      : action === "deleted"
+        ? { ok: true, text: t("intern.actionDeletedOk") }
+        : action === "failed"
+          ? { ok: false, text: t("intern.actionFailed") }
+          : null;
+
+const priceFormat = new Intl.NumberFormat("de-AT", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+});
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(new Date(value));
+}
+
+function pageLink(target: number) {
+  const params = new URLSearchParams(filterParams);
+  params.delete("page");
+  if (target > 0) params.set("page", String(target));
+  const qs = params.toString();
+  return qs ? `/intern/immobilien/?${qs}` : "/intern/immobilien/";
+}
+
+const filteredUser = userId ? userLabel || userId : null;
+---
+
+<BaseLayout
+  title={t("intern.propsMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/immobilien/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{t("intern.propsTitle")}</span>
+    </nav>
+
+    <h1 class="mt-2 text-3xl font-bold">{t("intern.propsTitle")}</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("intern.propsIntro")}</p>
+
+    {actionBanner && (
+      <div
+        class={`mt-6 rounded-lg border border-border p-4 text-sm ${
+          actionBanner.ok ? "bg-muted" : "bg-red-50 text-red-700"
+        }`}
+      >
+        {actionBanner.text}
+      </div>
+    )}
+
+    <form method="GET" action="/intern/immobilien/" class="mt-6 flex flex-wrap gap-2">
+      <select
+        name="source"
+        class="rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      >
+        <option value="" selected={!source}>{t("intern.propsFilterSourceAll")}</option>
+        <option value="user" selected={source === "user"}>
+          {t("intern.propsFilterSourceUser")}
+        </option>
+        <option value="foreclosure" selected={source === "foreclosure"}>
+          {t("intern.propsFilterSourceForeclosure")}
+        </option>
+      </select>
+      <select
+        name="status"
+        class="rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      >
+        <option value="" selected={!status}>{t("intern.propsFilterStatusAll")}</option>
+        <option value="visible" selected={status === "visible"}>
+          {t("intern.propsFilterStatusVisible")}
+        </option>
+        <option value="hidden" selected={status === "hidden"}>
+          {t("intern.propsFilterStatusHidden")}
+        </option>
+      </select>
+      <input
+        type="search"
+        name="q"
+        value={search}
+        placeholder={t("intern.propsSearchPlaceholder")}
+        class="min-w-48 flex-1 rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      />
+      {userId && <input type="hidden" name="userId" value={userId} />}
+      {userLabel && <input type="hidden" name="userLabel" value={userLabel} />}
+      <Button type="submit" variant="default">{t("intern.filterButton")}</Button>
+    </form>
+
+    {filteredUser && (
+      <p class="mt-3 text-sm text-muted-foreground">
+        {t("intern.propsFilterUserNote", { user: filteredUser })}
+        <a href="/intern/immobilien/" class="ml-2 font-medium hover:underline">
+          {t("intern.filterReset")}
+        </a>
+      </p>
+    )}
+
+    {!data && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.propsLoadFailed")}
+      </div>
+    )}
+
+    {data && (
+      <section class="mt-6 rounded-lg border border-border bg-card">
+        <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
+          {t("intern.propsTotal", { count: data.Total })}
+        </p>
+
+        {data.Properties.length === 0 ? (
+          <p class="px-5 py-8 text-center text-sm text-muted-foreground">
+            {t("intern.propsEmpty")}
+          </p>
+        ) : (
+          <ul class="divide-y divide-border">
+            {data.Properties.map((property) => {
+              const isForeclosure = property.Type === PROPERTY_TYPE_FORECLOSURE;
+              return (
+                <li class="flex flex-wrap items-start gap-4 px-5 py-4">
+                  {property.ThumbnailUrl ? (
+                    <img
+                      src={property.ThumbnailUrl}
+                      alt=""
+                      loading="lazy"
+                      class="h-14 w-20 shrink-0 rounded-md border border-border object-cover"
+                    />
+                  ) : (
+                    <div class="h-14 w-20 shrink-0 rounded-md border border-border bg-muted" />
+                  )}
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-medium">{property.Title}</span>
+                      {property.IsHidden && (
+                        <span class="rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700">
+                          {t("intern.badgeHidden")}
+                        </span>
+                      )}
+                      {isForeclosure && (
+                        <span class="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
+                          {t("intern.badgeForeclosure")}
+                        </span>
+                      )}
+                    </div>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                      {property.Address}, {property.PostalCode} {property.MunicipalityName}
+                      {" · "}
+                      {priceFormat.format(property.Price)}
+                    </p>
+                    <p class="mt-1 text-xs text-muted-foreground">
+                      {t("intern.propsOwnerPrefix")} {property.SellerName}
+                      {property.OwnerEmail && !isForeclosure && ` (${property.OwnerEmail})`}
+                      {" · "}
+                      {t("intern.propsCreatedPrefix")} {formatDate(property.CreatedAt)}
+                    </p>
+                  </div>
+
+                  <div class="flex shrink-0 flex-wrap items-center gap-2">
+                    {!property.IsHidden && (
+                      <a
+                        href={`/immobilien/angebote/${property.Id}`}
+                        target="_blank"
+                        rel="noopener"
+                        class="text-sm font-medium hover:underline"
+                      >
+                        {t("intern.actionOpen")}
+                      </a>
+                    )}
+                    <form method="POST" action="/intern/immobilien/visibility">
+                      <input type="hidden" name="id" value={property.Id} />
+                      <input type="hidden" name="hidden" value={property.IsHidden ? "false" : "true"} />
+                      <input type="hidden" name="back" value={backQuery} />
+                      <Button type="submit" variant="outline" size="sm">
+                        {property.IsHidden ? t("intern.actionShow") : t("intern.actionHide")}
+                      </Button>
+                    </form>
+                    {!isForeclosure && (
+                      <form
+                        method="POST"
+                        action="/intern/immobilien/delete"
+                        data-confirm={t("intern.confirmDelete")}
+                      >
+                        <input type="hidden" name="id" value={property.Id} />
+                        <input type="hidden" name="back" value={backQuery} />
+                        <Button type="submit" variant="outline" size="sm">
+                          {t("intern.actionDelete")}
+                        </Button>
+                      </form>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+    )}
+
+    {data && totalPages > 1 && (
+      <nav class="mt-6 flex items-center justify-between text-sm">
+        {page > 0 ? (
+          <a href={pageLink(page - 1)} class="font-medium hover:underline">
+            ← {t("intern.pagePrev")}
+          </a>
+        ) : (
+          <span />
+        )}
+        <span class="text-muted-foreground">
+          {t("intern.pageInfo", { page: page + 1, pages: totalPages })}
+        </span>
+        {data.HasMore ? (
+          <a href={pageLink(page + 1)} class="font-medium hover:underline">
+            {t("intern.pageNext")} →
+          </a>
+        ) : (
+          <span />
+        )}
+      </nav>
+    )}
+  </section>
+
+  <script>
+    // Loeschen nur nach Rueckfrage - der Text kommt aus data-confirm (i18n, SSR-gerendert)
+    for (const form of document.querySelectorAll<HTMLFormElement>("form[data-confirm]")) {
+      form.addEventListener("submit", (event) => {
+        if (!window.confirm(form.dataset.confirm ?? "")) event.preventDefault();
+      });
+    }
+  </script>
+</BaseLayout>

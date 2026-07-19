@@ -108,12 +108,15 @@ public class GetPropertyChangesHandler(
             .Select(c => c.PropertyId)
             .ToList();
 
+        // IsHidden ausfiltern: ein Update auf einem ausgeblendeten Inserat (z.B. ZV-Sync)
+        // faellt dadurch unten in den defensiven Deleted-Zweig - Clients raeumen es aus
+        // dem Cache statt die Listendaten eines unsichtbaren Inserats zu erhalten.
         var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
         var properties = liveIds.Count == 0
             ? []
             : await dbContext.Set<Property>()
                 .Include(p => p.Municipality)
-                .Where(p => liveIds.Contains(p.Id))
+                .Where(p => liveIds.Contains(p.Id) && !p.IsHidden)
                 .ToDictionaryAsync(p => p.Id, cancellationToken);
 
         var changes = new List<PropertyChangeDto>(netChanges.Count);

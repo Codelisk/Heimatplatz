@@ -78,6 +78,11 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
 
         builder.HasIndex(p => p.SellerSourceId);
 
+        // Admin-Moderation: bestehende Zeilen bleiben beim Migrieren sichtbar
+        builder.Property(p => p.IsHidden)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         // Indizes fuer haeufige Abfragen
         builder.HasIndex(p => p.Type);
         builder.HasIndex(p => p.MunicipalityId);

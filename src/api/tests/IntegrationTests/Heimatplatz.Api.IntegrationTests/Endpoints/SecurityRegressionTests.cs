@@ -56,6 +56,51 @@ public class SecurityRegressionTests : BaseApiIntegrationTest
     }
 
     [Test]
+    public async Task AdminUsers_WithoutAdminKey_ReturnsUnauthorized()
+    {
+        // Testing-Environment + kein konfigurierter Admin:ApiKey = fail-closed (AdminAccessGuard)
+        var response = await Client.GetAsync("/api/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task AdminProperties_WithoutAdminKey_ReturnsUnauthorized()
+    {
+        var response = await Client.GetAsync("/api/admin/properties");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task AdminStats_WithoutAdminKey_ReturnsUnauthorized()
+    {
+        var response = await Client.GetAsync("/api/admin/stats");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task AdminSetPropertyVisibility_WithoutAdminKey_ReturnsUnauthorized()
+    {
+        var response = await Client.PostAsJsonAsync("/api/admin/properties/visibility", new
+        {
+            Id = Guid.NewGuid(),
+            Hidden = true
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task AdminDeleteProperty_WithoutAdminKey_ReturnsUnauthorized()
+    {
+        var response = await Client.DeleteAsync($"/api/admin/properties/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
     public async Task CreateProperty_WithoutAuth_ReturnsUnauthorized()
     {
         var response = await Client.PostAsJsonAsync("/api/properties/", new

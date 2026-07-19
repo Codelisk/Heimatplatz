@@ -39,10 +39,12 @@ public class GetUserPropertiesHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Base query for user's properties
+        // Base query for user's properties. Admin-seitig ausgeblendete Inserate sieht auch
+        // der Eigentuemer nicht mehr - "ausgeblendet" verhaelt sich ueberall wie geloescht,
+        // nur der Intern-Bereich zeigt sie noch (inkl. Wieder-Einblenden).
         var query = dbContext.Set<Property>()
             .Include(p => p.Municipality)
-            .Where(p => p.UserId == userId);
+            .Where(p => p.UserId == userId && !p.IsHidden);
 
         // Get total count
         var total = await query.CountAsync(cancellationToken);

@@ -39,9 +39,11 @@ public class GetUserBlockedHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Base query for blocked properties
+        // Base query for blocked properties (admin-seitig ausgeblendete Inserate bleiben draussen -
+        // sonst sieht ein Nutzer, der ein spaeter moderiertes Inserat blockiert hatte, dessen
+        // vollen Inhalt weiterhin ueber die Blockiert-Liste)
         var query = dbContext.Set<Blocked>()
-            .Where(b => b.UserId == userId)
+            .Where(b => b.UserId == userId && !b.Property.IsHidden)
             .Include(b => b.Property)
                 .ThenInclude(p => p.Municipality);
 

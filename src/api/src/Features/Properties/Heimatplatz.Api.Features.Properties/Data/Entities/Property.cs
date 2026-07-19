@@ -78,6 +78,16 @@ public class Property : BaseEntity
     /// <summary>Wie funktioniert die Anfrage zu dieser Immobilie</summary>
     public InquiryType InquiryType { get; set; } = InquiryType.ContactData;
 
+    /// <summary>
+    /// Admin-Moderation: ausgeblendete Inserate sind in allen oeffentlichen Abfragen
+    /// unsichtbar (Liste, Detail, Favoriten, eigene Inserate, Blockiert-Liste) und werden
+    /// im Delta-Sync als Deleted-Tombstone ausgeliefert (siehe PropertyChangeInterceptor).
+    /// Die Zeile bleibt erhalten - der Zwangsversteigerungs-Sync ueberspringt ausgeblendete
+    /// Properties beim Aufraeumen nicht mehr aktiver Auctions (ForeclosurePropertySyncService),
+    /// ein erneut ausgeliefertes Edikt taucht also nicht mit zurueckgesetztem Flag wieder auf.
+    /// </summary>
+    public bool IsHidden { get; set; }
+
     /// <summary>Kontaktinformationen zu dieser Immobilie</summary>
     public List<PropertyContactInfo> Contacts { get; set; } = [];
 

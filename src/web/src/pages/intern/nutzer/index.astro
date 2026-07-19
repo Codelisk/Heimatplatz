@@ -1,0 +1,171 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import { adminApiGet, type AdminUsersPage } from "@/lib/server/admin-api";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+
+const PAGE_SIZE = 50;
+
+const search = Astro.url.searchParams.get("q")?.trim() ?? "";
+const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "0", 10) || 0, 0);
+
+const query = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+if (search) query.set("search", search);
+
+const data = await adminApiGet<AdminUsersPage>(`/api/admin/users?${query}`);
+const totalPages = data ? Math.max(Math.ceil(data.Total / data.PageSize), 1) : 1;
+
+// SellerType wird per globalem JsonStringEnumConverter serialisiert (Program.cs) -
+// "Private" | "Broker" | "PropertyManager", nicht die numerischen Enum-Werte.
+function roleLabel(sellerType: string | null): string {
+  switch (sellerType) {
+    case "Private":
+      return t("intern.roleSellerPrivate");
+    case "Broker":
+      return t("intern.roleBroker");
+    case "PropertyManager":
+      return t("intern.rolePropertyManager");
+    default:
+      return t("intern.roleBuyer");
+  }
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium", timeStyle: "short" }).format(
+    new Date(value),
+  );
+}
+
+function pageLink(target: number) {
+  const params = new URLSearchParams();
+  if (search) params.set("q", search);
+  if (target > 0) params.set("page", String(target));
+  const qs = params.toString();
+  return qs ? `/intern/nutzer/?${qs}` : "/intern/nutzer/";
+}
+---
+
+<BaseLayout
+  title={t("intern.usersMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/nutzer/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{t("intern.usersTitle")}</span>
+    </nav>
+
+    <h1 class="mt-2 text-3xl font-bold">{t("intern.usersTitle")}</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("intern.usersIntro")}</p>
+
+    <form method="GET" action="/intern/nutzer/" class="mt-6 flex gap-2">
+      <input
+        type="search"
+        name="q"
+        value={search}
+        placeholder={t("intern.usersSearchPlaceholder")}
+        class="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      />
+      <Button type="submit" variant="default">{t("intern.searchButton")}</Button>
+    </form>
+
+    {!data && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.usersLoadFailed")}
+      </div>
+    )}
+
+    {data && (
+      <section class="mt-6 rounded-lg border border-border bg-card">
+        <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
+          {t("intern.usersTotal", { count: data.Total })}
+        </p>
+
+        {data.Users.length === 0 ? (
+          <p class="px-5 py-8 text-center text-sm text-muted-foreground">
+            {t("intern.usersEmpty")}
+          </p>
+        ) : (
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border text-left text-muted-foreground">
+                  <th class="px-5 py-3 font-medium">{t("intern.usersColUser")}</th>
+                  <th class="px-3 py-3 font-medium">{t("intern.usersColRole")}</th>
+                  <th class="px-3 py-3 font-medium">{t("intern.usersColVerified")}</th>
+                  <th class="px-3 py-3 font-medium">{t("intern.usersColRegistered")}</th>
+                  <th class="px-5 py-3 text-right font-medium">{t("intern.usersColListings")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.Users.map((user) => (
+                  <tr class="border-b border-border last:border-b-0">
+                    <td class="px-5 py-3">
+                      <div class="font-medium">{user.FullName}</div>
+                      <div class="text-muted-foreground">{user.Email}</div>
+                      {user.CompanyName && (
+                        <div class="text-xs text-muted-foreground">{user.CompanyName}</div>
+                      )}
+                    </td>
+                    <td class="px-3 py-3 whitespace-nowrap">
+                      {roleLabel(user.SellerType)}
+                      {user.IsAdmin && (
+                        <span class="ml-1 rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
+                          {t("intern.roleAdmin")}
+                        </span>
+                      )}
+                    </td>
+                    <td class="px-3 py-3 whitespace-nowrap">
+                      {user.EmailVerified ? t("intern.verifiedYes") : t("intern.verifiedNo")}
+                    </td>
+                    <td class="px-3 py-3 whitespace-nowrap">{formatDate(user.CreatedAt)}</td>
+                    <td class="px-5 py-3 text-right whitespace-nowrap">
+                      {user.PropertyCount > 0 ? (
+                        <a
+                          href={`/intern/immobilien/?userId=${user.Id}&userLabel=${encodeURIComponent(user.Email)}`}
+                          class="font-medium hover:underline"
+                          title={t("intern.usersShowListings")}
+                        >
+                          {user.PropertyCount}
+                        </a>
+                      ) : (
+                        <span class="text-muted-foreground">0</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    )}
+
+    {data && totalPages > 1 && (
+      <nav class="mt-6 flex items-center justify-between text-sm">
+        {page > 0 ? (
+          <a href={pageLink(page - 1)} class="font-medium hover:underline">
+            ← {t("intern.pagePrev")}
+          </a>
+        ) : (
+          <span />
+        )}
+        <span class="text-muted-foreground">
+          {t("intern.pageInfo", { page: page + 1, pages: totalPages })}
+        </span>
+        {data.HasMore ? (
+          <a href={pageLink(page + 1)} class="font-medium hover:underline">
+            {t("intern.pageNext")} →
+          </a>
+        ) : (
+          <span />
+        )}
+      </nav>
+    )}
+  </section>
+</BaseLayout>

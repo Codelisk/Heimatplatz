@@ -1,6 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using Heimatplatz.Api;
+using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Configuration;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Services;
@@ -83,16 +82,9 @@ public class TriggerForeclosureAuctionSyncHandler(
 
     private bool IsAuthorized()
     {
-        var expectedKey = scrapingOptions.Value.SyncTriggerKey;
-        if (string.IsNullOrWhiteSpace(expectedKey))
-            return environment.IsDevelopment();
+        var providedKey = httpContextAccessor.HttpContext?.Request.Headers[TriggerKeyHeader].ToString();
 
-        var providedKey = httpContextAccessor.HttpContext?.Request.Headers[TriggerKeyHeader].ToString()
-            ?? string.Empty;
-
-        // FixedTimeEquals statt == : verhindert Timing-Angriffe auf den Key-Vergleich
-        return CryptographicOperations.FixedTimeEquals(
-            Encoding.UTF8.GetBytes(providedKey),
-            Encoding.UTF8.GetBytes(expectedKey));
+        return SharedKeyAuthorization.IsAuthorized(
+            scrapingOptions.Value.SyncTriggerKey, providedKey, environment.IsDevelopment());
     }
 }

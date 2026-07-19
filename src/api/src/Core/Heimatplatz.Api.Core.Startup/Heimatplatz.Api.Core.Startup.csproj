@@ -21,6 +21,8 @@
     <ProjectReference Include="..\Heimatplatz.Api.Core.Email\Heimatplatz.Api.Core.Email.csproj" />
     <!-- Contracts & Handlers -->
     <!-- Features -->
+    <ProjectReference Include="..\..\Features\Admin\Heimatplatz.Api.Features.Admin\Heimatplatz.Api.Features.Admin.csproj" />
+    <ProjectReference Include="..\..\Features\Admin\Heimatplatz.Api.Features.Admin.Contracts\Heimatplatz.Api.Features.Admin.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Auth\Heimatplatz.Api.Features.Auth\Heimatplatz.Api.Features.Auth.csproj" />
     <ProjectReference Include="..\..\Features\Auth\Heimatplatz.Api.Features.Auth.Contracts\Heimatplatz.Api.Features.Auth.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Locations\Heimatplatz.Api.Features.Locations\Heimatplatz.Api.Features.Locations.csproj" />

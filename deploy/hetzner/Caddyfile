@@ -10,11 +10,27 @@
 	}
 	respond @syncBlocked "Forbidden" 403
 
+	# Admin-Endpoints (Intern-Bereich: Nutzer-/Immobilienverwaltung): nur von HOME_IP
+	# erreichbar. Der Astro-SSR-Server umgeht Caddy ueber das interne Docker-Netz
+	# (http://api:8080) und authentifiziert sich per X-Admin-Key (ADMIN_API_KEY).
+	@adminBlocked {
+		path /api/admin*
+		not remote_ip {$HOME_IP}
+	}
+	respond @adminBlocked "Forbidden" 403
+
 	reverse_proxy api:8080
 }
 
 # Test-API (haengt an der Testdatenbank, siehe api-test in docker-compose.yml)
 {$TEST_API_DOMAIN} {
+	# Admin-Endpoints wie auf der Prod-API IP-sperren (der Key-Check der API gilt zusaetzlich)
+	@adminBlocked {
+		path /api/admin*
+		not remote_ip {$HOME_IP}
+	}
+	respond @adminBlocked "Forbidden" 403
+
 	reverse_proxy api-test:8080
 }
 

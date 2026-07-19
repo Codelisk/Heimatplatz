@@ -33,10 +33,12 @@ public class GetPropertiesHandler(
     [MediatorHttpGet("/", OperationId = "GetProperties")]
     public async Task<GetPropertiesResponse> Handle(GetPropertiesRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
-        // Include Municipality for City/PostalCode values
+        // Include Municipality for City/PostalCode values.
+        // Admin-seitig ausgeblendete Inserate (IsHidden) sind oeffentlich unsichtbar.
         var query = dbContext.Set<Property>()
             .Include(p => p.Municipality)
-            .AsNoTracking();
+            .AsNoTracking()
+            .Where(p => !p.IsHidden);
 
         // Exclude blocked properties for authenticated users
         var httpContext = httpContextAccessor.HttpContext;

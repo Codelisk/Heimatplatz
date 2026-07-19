@@ -28,9 +28,10 @@ public class GetPropertyByIdHandler(
     [MediatorHttpGet("/{Id}", OperationId = "GetPropertyById")]
     public async Task<GetPropertyByIdResponse> Handle(GetPropertyByIdRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
+        // IsHidden: moderierte Inserate liefern wie geloeschte ein leeres Ergebnis (404-Verhalten)
         var property = await dbContext.Set<Property>()
             .Include(p => p.Municipality)
-            .Where(p => p.Id == request.Id)
+            .Where(p => p.Id == request.Id && !p.IsHidden)
             .Select(p => new PropertyDto(
                 p.Id,
                 p.Title,

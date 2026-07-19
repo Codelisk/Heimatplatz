@@ -42,6 +42,9 @@ services:
       # Shared-Key fuer den manuellen Edikte-Sync-Trigger (X-Sync-Key-Header,
       # siehe TriggerForeclosureAuctionSyncHandler). Ohne Key ist der Endpoint gesperrt.
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      # Shared-Key fuer die /api/admin-Endpoints des Intern-Bereichs (X-Admin-Key-Header,
+      # siehe AdminAccessGuard). Ohne Key sind die Endpoints gesperrt (fail-closed).
+      Admin__ApiKey: ${ADMIN_API_KEY:-}
       # Web Push (VAPID) fuer Browser-Benachrichtigungen. Schluesselpaar einmalig erzeugen
       # (base64url, web-push-Format) und in der .env ablegen; ohne Keys bleibt der
       # WebPush-Transport deaktiviert.
@@ -83,6 +86,7 @@ services:
       Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
       Email__FrontendBaseUrl: https://${WEB_TEST_DOMAIN}
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      Admin__ApiKey: ${ADMIN_API_KEY:-}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}
@@ -115,6 +119,8 @@ services:
       API_BASE_URL_SERVER: http://api:8080
       # Shared-Key fuer den Edikte-Sync-Trigger (/intern/sync.ts -> X-Sync-Key)
       SYNC_TRIGGER_KEY: ${SYNC_TRIGGER_KEY:-}
+      # Shared-Key fuer die Intern-Verwaltung (/intern/* -> X-Admin-Key, lib/server/admin-api.ts)
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
     volumes:
       - /srv/heimatplatz-web:/srv/web:ro
     expose:
@@ -136,6 +142,7 @@ services:
       PORT: 8080
       API_BASE_URL_SERVER: http://api-test:8080
       SYNC_TRIGGER_KEY: ${SYNC_TRIGGER_KEY:-}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
     volumes:
       - /srv/heimatplatz-web-test:/srv/web:ro
     expose:

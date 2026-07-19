@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import { getServerApiBaseUrl } from "@/lib/server/api-base";
+import { adminApiGet, type AdminStats } from "@/lib/server/admin-api";
 
 // Erreichbarkeit ist bereits durch Caddy auf IP-Ebene beschraenkt (siehe
 // deploy/hetzner/Caddyfile, @internBlocked auf /intern*) - kein weiterer Check noetig,
@@ -25,74 +26,127 @@ async function fetchSyncStatus(): Promise<SyncStatus | null> {
   }
 }
 
-const status = await fetchSyncStatus();
+const [status, stats] = await Promise.all([
+  fetchSyncStatus(),
+  adminApiGet<AdminStats>("/api/admin/stats"),
+]);
 const triggered = Astro.url.searchParams.get("triggered") === "1";
 const triggerFailed = Astro.url.searchParams.get("triggered") === "0";
 
 function formatDate(value: string | null) {
-  if (!value) return t("misc.internNever");
+  if (!value) return t("intern.never");
   return new Intl.DateTimeFormat("de-AT", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
 }
+
+const statEntries = stats
+  ? [
+      { label: t("intern.statsTotalUsers"), value: stats.TotalUsers },
+      { label: t("intern.statsNewUsers7"), value: stats.NewUsers7Days },
+      { label: t("intern.statsNewUsers30"), value: stats.NewUsers30Days },
+      { label: t("intern.statsTotalProperties"), value: stats.TotalProperties },
+      { label: t("intern.statsUserProperties"), value: stats.UserProperties },
+      { label: t("intern.statsForeclosures"), value: stats.ForeclosureProperties },
+      { label: t("intern.statsHidden"), value: stats.HiddenProperties },
+    ]
+  : [];
 ---
 
 <BaseLayout
-  title={t("misc.internMetaTitle")}
-  description={t("misc.internMetaDescription")}
+  title={t("intern.metaTitle")}
+  description={t("intern.metaDescription")}
   canonicalPath="/intern/"
   noindex
 >
   <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold">{t("misc.internTitle")}</h1>
+    <h1 class="text-3xl font-bold">{t("intern.title")}</h1>
     <p class="mt-3 text-sm leading-6 text-muted-foreground">
-      {t("misc.internIntro")}
+      {t("intern.intro")}
     </p>
 
     {triggered && (
       <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
-        {t("misc.internSyncTriggered")}
+        {t("intern.syncTriggered")}
       </div>
     )}
     {triggerFailed && (
       <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
-        {t("misc.internSyncFailed")}
+        {t("intern.syncFailed")}
       </div>
     )}
 
     <section class="mt-8 rounded-lg border border-border bg-card p-5">
-      <h2 class="text-base font-semibold">{t("misc.internSyncHeading")}</h2>
+      <h2 class="text-base font-semibold">{t("intern.statsHeading")}</h2>
+
+      {stats ? (
+        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+          {statEntries.map((entry) => (
+            <div>
+              <dt class="text-muted-foreground">{entry.label}</dt>
+              <dd class="text-lg font-semibold">{entry.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p class="mt-4 text-sm text-muted-foreground">{t("intern.statsLoadFailed")}</p>
+      )}
+    </section>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-2">
+      <a
+        href="/intern/nutzer/"
+        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
+      >
+        <h2 class="text-base font-semibold">{t("intern.navUsers")}</h2>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          {t("intern.navUsersDescription")}
+        </p>
+      </a>
+      <a
+        href="/intern/immobilien/"
+        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
+      >
+        <h2 class="text-base font-semibold">{t("intern.navProperties")}</h2>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          {t("intern.navPropertiesDescription")}
+        </p>
+      </a>
+    </div>
+
+    <section class="mt-8 rounded-lg border border-border bg-card p-5">
+      <h2 class="text-base font-semibold">{t("intern.syncHeading")}</h2>
 
       {status ? (
         <dl class="mt-4 grid grid-cols-2 gap-4 text-sm">
           <div>
-            <dt class="text-muted-foreground">{t("misc.internLastSync")}</dt>
+            <dt class="text-muted-foreground">{t("intern.lastSync")}</dt>
             <dd class="font-medium">{formatDate(status.LastSyncAt)}</dd>
           </div>
           <div>
-            <dt class="text-muted-foreground">{t("misc.internActiveAuctions")}</dt>
+            <dt class="text-muted-foreground">{t("intern.activeAuctions")}</dt>
             <dd class="font-medium">{status.TotalActiveAuctions}</dd>
           </div>
           <div>
-            <dt class="text-muted-foreground">{t("misc.internRemovedAuctions")}</dt>
+            <dt class="text-muted-foreground">{t("intern.removedAuctions")}</dt>
             <dd class="font-medium">{status.TotalRemovedAuctions}</dd>
           </div>
           <div>
-            <dt class="text-muted-foreground">{t("misc.internTotalChanges")}</dt>
+            <dt class="text-muted-foreground">{t("intern.totalChanges")}</dt>
             <dd class="font-medium">{status.TotalChanges}</dd>
           </div>
         </dl>
       ) : (
-        <p class="mt-4 text-sm text-muted-foreground">{t("misc.internStatusLoadFailed")}</p>
+        <p class="mt-4 text-sm text-muted-foreground">{t("intern.statusLoadFailed")}</p>
       )}
 
       <form method="POST" action="/intern/sync" class="mt-6">
-        <Button type="submit" variant="default">{t("misc.internStartSync")}</Button>
+        <Button type="submit" variant="default">{t("intern.startSync")}</Button>
       </form>
 
       <p class="mt-3 text-xs leading-5 text-muted-foreground">
-        {t("misc.internSyncExplainer")}
+        {t("intern.syncExplainer")}
       </p>
     </section>
   </section>

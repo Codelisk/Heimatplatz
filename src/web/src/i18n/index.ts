@@ -14,6 +14,7 @@ import { common } from "./de/common";
 import { editor } from "./de/editor";
 import { foreclosures } from "./de/foreclosures";
 import { home } from "./de/home";
+import { intern } from "./de/intern";
 import { misc } from "./de/misc";
 import { property } from "./de/property";
 
@@ -25,6 +26,7 @@ export const de = {
   ...auth,
   ...account,
   ...foreclosures,
+  ...intern,
   ...misc,
 } as const;
 

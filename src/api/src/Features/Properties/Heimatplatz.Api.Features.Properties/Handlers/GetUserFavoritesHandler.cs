@@ -39,9 +39,9 @@ public class GetUserFavoritesHandler(
             throw new UnauthorizedAccessException("Ungueltige Benutzer-ID im Token");
         }
 
-        // Base query for favorited properties
+        // Base query for favorited properties (admin-seitig ausgeblendete Inserate bleiben draussen)
         var query = dbContext.Set<Favorite>()
-            .Where(f => f.UserId == userId)
+            .Where(f => f.UserId == userId && !f.Property.IsHidden)
             .Include(f => f.Property)
                 .ThenInclude(p => p.Municipality);
 
