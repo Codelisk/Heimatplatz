@@ -34,6 +34,18 @@ public interface IPropertyStatusService
     Task<bool> ToggleBlockedAsync(Guid propertyId);
 
     /// <summary>
+    /// Zieht den lokalen Status nach, wenn eine Favoriten-Seite den API-Remove selbst
+    /// ausgefuehrt hat. Verhindert, dass Detailseiten danach mit einem alten Cache arbeiten.
+    /// </summary>
+    void NotifyFavoriteRemoved(Guid propertyId);
+
+    /// <summary>
+    /// Zieht den lokalen Status nach, wenn eine Blockiert-Seite den API-Remove selbst
+    /// ausgefuehrt hat. Verhindert, dass die Startseite danach den falschen Toggle sendet.
+    /// </summary>
+    void NotifyBlockedRemoved(Guid propertyId);
+
+    /// <summary>
     /// Laedt die Favoriten- und Blockiert-Listen des Benutzers von der API neu
     /// </summary>
     Task RefreshStatusAsync();

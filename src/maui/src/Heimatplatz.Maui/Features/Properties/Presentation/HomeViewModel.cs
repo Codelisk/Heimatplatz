@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
@@ -47,7 +46,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private int _totalCount;
     private SortOption _selectedSort = SortOption.Neueste;
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
-    private List<LocationGemeindeDto> _municipalities = [];
+    private List<Guid> _excludedSellerSourceIds = [];
     private bool _isSyncing;
     private IDisposable? _syncSubscription;
     private CancellationTokenSource? _saveDebounceCts;
@@ -332,7 +331,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         // Den Ort-Baum bewusst NICHT hier aufbauen. Das geschlossene Bottom Sheet
         // wuerde sonst beim Homepage-Aufbau bereits hunderte Gemeinde-Views erzeugen.
-        // BuildPropertiesRequestAsync und OpenOrtPanelAsync laden die Daten bei Bedarf.
+        // PropertyFilterRequestBuilder und OpenOrtPanelAsync laden die Daten bei Bedarf.
     }
 
     #region IPageLifecycleAware
@@ -410,39 +409,13 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             _selectedAgeFilter = state.SelectedAgeFilter;
             SelectedAgeFilterIndex = (int)state.SelectedAgeFilter;
             ReplaceSelectedOrte(state.SelectedOrte);
+            _excludedSellerSourceIds = state.ExcludedSellerSourceIds.ToList();
             _selectedSort = state.SelectedSort;
             UpdateFilterSummary();
         }
         finally
         {
             _isSyncing = false;
-        }
-    }
-
-    private Task? _municipalitiesLoadTask;
-
-    /// <summary>
-    /// Laedt die Gemeinden genau einmal (single-flight). Nach einem Fehlschlag wird
-    /// beim naechsten Aufruf erneut versucht.
-    /// </summary>
-    private Task LoadMunicipalitiesAsync()
-    {
-        if (_municipalities.Count > 0)
-            return Task.CompletedTask;
-
-        return _municipalitiesLoadTask ??= LoadMunicipalitiesCoreAsync();
-
-        async Task LoadMunicipalitiesCoreAsync()
-        {
-            try
-            {
-                _municipalities = await _locationService.GetAllMunicipalitiesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[HomePage] Failed to load locations from API");
-                _municipalitiesLoadTask = null; // beim naechsten Bedarf erneut versuchen
-            }
         }
     }
 
@@ -484,6 +457,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     {
         var selectedOrteChanged = !SelectedOrte.ToHashSet(StringComparer.OrdinalIgnoreCase)
             .SetEquals(preferences.SelectedOrte);
+        var excludedSellersChanged = !_excludedSellerSourceIds.ToHashSet()
+            .SetEquals(preferences.ExcludedSellerSourceIds);
         var changed = IsHausSelected != preferences.IsHausSelected
             || IsGrundstueckSelected != preferences.IsGrundstueckSelected
             || IsZwangsversteigerungSelected != preferences.IsZwangsversteigerungSelected
@@ -491,7 +466,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             || IsBrokerSelected != preferences.IsBrokerSelected
             || _selectedAgeFilter != preferences.SelectedAgeFilter
             || _selectedSort != preferences.SelectedSort
-            || selectedOrteChanged;
+            || selectedOrteChanged
+            || excludedSellersChanged;
 
         if (!changed)
             return false;
@@ -507,6 +483,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             _selectedAgeFilter = preferences.SelectedAgeFilter;
             SelectedAgeFilterIndex = (int)preferences.SelectedAgeFilter;
             ReplaceSelectedOrte(preferences.SelectedOrte);
+            _excludedSellerSourceIds = preferences.ExcludedSellerSourceIds.ToList();
             _selectedSort = preferences.SelectedSort;
             UpdateFilterSummary();
         }
@@ -704,6 +681,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                     SelectedOrte.ToList(),
                     IsPrivateSelected,
                     IsBrokerSelected,
+                    _excludedSellerSourceIds,
                     selectedSort: _selectedSort);
             }
             finally
@@ -746,7 +724,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 IsZwangsversteigerungSelected: IsZwangsversteigerungSelected,
                 IsPrivateSelected: IsPrivateSelected,
                 IsBrokerSelected: IsBrokerSelected,
-                ExcludedSellerSourceIds: [],
+                ExcludedSellerSourceIds: _excludedSellerSourceIds,
                 SelectedSort: _selectedSort);
 
             await _filterPreferencesService.SavePreferencesAsync(preferences, token);
@@ -978,7 +956,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 .Select(g => g.Name)
                 .ToList();
 
-            var request = await BuildPropertiesRequestAsync(0, 1, pending);
+            var request = await BuildPropertiesRequestAsync(0, 1, pending, token);
             var (_, response) = await _mediator.Request(request, token);
             if (token.IsCancellationRequested || response == null)
                 return;
@@ -1195,92 +1173,30 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// explizit uebergeben, damit die Treffer-Vorschau im Ort-Panel (Arbeitskopie)
     /// denselben Weg nutzt wie das eigentliche Laden.
     /// </summary>
-    private async Task<GetPropertiesHttpRequest> BuildPropertiesRequestAsync(int page, int pageSize, IReadOnlyCollection<string> orte)
-    {
-        // SortOption auf API-Parameter mappen
-        var (sortBy, sortDesc) = _selectedSort switch
-        {
-            SortOption.Aelteste => ("CreatedAt", false),
-            SortOption.PreisAuf => ("Price", false),
-            SortOption.PreisAb => ("Price", true),
-            SortOption.FlaecheAb => ("PlotArea", true),
-            SortOption.FlaecheAuf => ("PlotArea", false),
-            SortOption.PlzAuf => ("PostalCode", false),
-            SortOption.PlzAb => ("PostalCode", true),
-            _ => ((string?)null, true)
-        };
-
-        var request = new GetPropertiesHttpRequest
-        {
-            Page = page,
-            PageSize = pageSize,
-            SortBy = sortBy,
-            SortDescending = sortDesc
-        };
-
-        // PropertyTypes-Filter (Multi-Select als JSON-Array)
-        var selectedPropertyTypes = new List<string>();
-        if (IsHausSelected) selectedPropertyTypes.Add("House");
-        if (IsGrundstueckSelected) selectedPropertyTypes.Add("Land");
-        if (IsZwangsversteigerungSelected) selectedPropertyTypes.Add("Foreclosure");
-        if (selectedPropertyTypes.Count > 0 && selectedPropertyTypes.Count < 3)
-        {
-            request.PropertyTypesJson = JsonSerializer.Serialize(selectedPropertyTypes);
-        }
-
-        // SellerTypes-Filter (Multi-Select als JSON-Array).
-        // "Makler" umfasst alle gewerblichen Anbieter, d.h. auch Hausverwaltungen.
-        var selectedSellerTypes = new List<string>();
-        if (IsPrivateSelected) selectedSellerTypes.Add("Private");
-        if (IsBrokerSelected)
-        {
-            selectedSellerTypes.Add("Broker");
-            selectedSellerTypes.Add("PropertyManager");
-        }
-        if (IsPrivateSelected != IsBrokerSelected)
-        {
-            request.SellerTypesJson = JsonSerializer.Serialize(selectedSellerTypes);
-        }
-
-        // MunicipalityIds-Filter (Ortsnamen -> Ids). Gemeinden bei Bedarf nachladen,
-        // sonst wuerde der Ort-Filter beim Kaltstart (Race mit dem Gemeinden-Load)
-        // still ignoriert und die Liste zeigt trotz Filter alle Objekte.
-        if (orte.Count > 0)
-        {
-            await LoadMunicipalitiesAsync();
-
-            var ids = _municipalities
-                .Where(m => orte.Contains(m.Name))
-                .Select(m => m.Id)
-                .ToList();
-            if (ids.Count == 0)
+    private Task<GetPropertiesHttpRequest> BuildPropertiesRequestAsync(
+        int page,
+        int pageSize,
+        IReadOnlyCollection<string> orte,
+        CancellationToken cancellationToken = default)
+        => PropertyFilterRequestBuilder.BuildAsync(
+            new FilterState
             {
-                // Keine Namen aufloesbar: Filter NICHT still weglassen (die Liste wuerde
-                // trotz aktivem Ort-Filter alle Objekte zeigen), sondern bewusst leeres
-                // Ergebnis erzwingen - das ist ehrlich und faellt sofort auf.
-                _logger.LogWarning("[HomePage] Ort-Filter aktiv, aber keine Gemeinde-Ids aufloesbar ({Orte})",
-                    string.Join(", ", orte));
-                ids = [Guid.Empty];
-            }
-
-            request.MunicipalityIdsJson = JsonSerializer.Serialize(ids);
-        }
-
-        // CreatedAfter-Filter (Alters-Filter)
-        if (_selectedAgeFilter != AgeFilter.Alle)
-        {
-            request.CreatedAfter = _selectedAgeFilter switch
-            {
-                AgeFilter.EinTag => DateTimeOffset.UtcNow.AddDays(-1),
-                AgeFilter.EineWoche => DateTimeOffset.UtcNow.AddDays(-7),
-                AgeFilter.EinMonat => DateTimeOffset.UtcNow.AddMonths(-1),
-                AgeFilter.EinJahr => DateTimeOffset.UtcNow.AddYears(-1),
-                _ => DateTimeOffset.MinValue
-            };
-        }
-
-        return request;
-    }
+                IsHausSelected = IsHausSelected,
+                IsGrundstueckSelected = IsGrundstueckSelected,
+                IsZwangsversteigerungSelected = IsZwangsversteigerungSelected,
+                SelectedAgeFilter = _selectedAgeFilter,
+                SelectedOrte = SelectedOrte.ToList(),
+                IsPrivateSelected = IsPrivateSelected,
+                IsBrokerSelected = IsBrokerSelected,
+                ExcludedSellerSourceIds = _excludedSellerSourceIds,
+                SelectedSort = _selectedSort
+            },
+            page,
+            pageSize,
+            _locationService,
+            _logger,
+            cancellationToken,
+            orte);
 
     /// <summary>
     /// Laedt eine Seite von der API mit allen server-seitigen Filtern
@@ -1307,7 +1223,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 return mockPage;
             }
 #endif
-            var request = await BuildPropertiesRequestAsync(page, SelectedPageSize, SelectedOrte.ToList());
+            var request = await BuildPropertiesRequestAsync(page, SelectedPageSize, SelectedOrte.ToList(), ct);
             Action<IMediatorContext>? configure = forceRemoteRefresh
                 ? static context => context.ForceCacheRefresh()
                 : null;

@@ -782,7 +782,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
         _logger.LogInformation("[ForeclosureDetail] Sharing property {PropertyId}", Property.Id);
 
-        var propertyUrl = new Uri($"https://heimatplatz.at/zwangsversteigerung/{Property.Id}");
+        // MAUI zeigt hier eine Property vom Typ Foreclosure. Die separate
+        // /zwangsversteigerungen/-Route ist hingegen fuer ForeclosureAuction-Datensaetze
+        // aus dem Edikte-Sync bestimmt und kennt diese Property-GUID nicht.
+        var propertyUrl = new Uri($"https://heimatplatz.at/immobilien/angebote/{Property.Id}");
 
         var description = HasPrice
             ? _loc.ShareDescriptionFormat(Property.Title, PriceCaption, FormattedPrice, AddressText)
