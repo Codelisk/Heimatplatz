@@ -28,6 +28,7 @@ FEATURES AT A GLANCE
 • Create and edit your own listings right in the final view
 • Filter private and agent offers
 • Recently loaded content also available offline
+• Choose between light and dark mode
 • Minimalist, clear design
 
 Heimatplatz – your home starts here.

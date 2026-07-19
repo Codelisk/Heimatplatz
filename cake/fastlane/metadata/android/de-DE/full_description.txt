@@ -28,6 +28,7 @@ FUNKTIONEN IM ÜBERBLICK
 • Eigene Inserate direkt in der fertigen Ansicht erstellen und bearbeiten
 • Privat- und Maklerangebote filtern
 • Zuletzt geladene Inhalte auch offline verfügbar
+• Hell- oder Dunkelmodus wählbar
 • Minimalistisches, übersichtliches Design
 
 Heimatplatz – Dein Zuhause beginnt hier.

@@ -1,0 +1,2 @@
+• Switch between light and dark mode in your profile
+• Minor bug fixes and improvements
