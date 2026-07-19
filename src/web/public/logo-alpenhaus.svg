@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480" role="img" aria-labelledby="title description">
+  <title id="title">Heimatplatz – Altes österreichisches Haus vor Berg</title>
+  <desc id="description">Klares rundes Markenzeichen: tiefroter Teller mit cremefarbener Silhouette eines alten österreichischen Bauernhauses mit Balkon-Gangl, vor einem Berg mit Schneefeld, dazu eine kleine Sonne.</desc>
+
+  <!-- Tiefroter Marken-Teller -->
+  <circle cx="240" cy="240" r="205" fill="#9f1519"/>
+
+  <!-- Sonne -->
+  <circle cx="152" cy="158" r="15" fill="#fdf6e7"/>
+
+  <!-- Berg mit Schneefeld (rote Zacken schneiden das Feld heraus) -->
+  <path fill="#fdf6e7" d="M105 295 240 108l135 187Z"/>
+  <path fill="#9f1519" d="m214 148 26-40 26 40-12-8-8 9-10-10-10 10Z"/>
+
+  <!-- Altes österreichisches Haus: steiles Giebeldach mit Vorschauz,
+       Balkon-Gangl, Giebelraute, symmetrische Fenster, Haustür.
+       Der rote Umriss trennt das Haus vom Berg dahinter. -->
+  <path fill="#fdf6e7" stroke="#9f1519" stroke-width="10" stroke-linejoin="round"
+        d="M150 302l90-78 90 78h-25v74H175v-74Z"/>
+  <path fill="#9f1519" d="m240 258 7 7-7 7-7-7Z"/>
+  <rect x="181" y="318" width="118" height="6" fill="#9f1519"/>
+  <g fill="#9f1519">
+    <rect x="192" y="324" width="4" height="9"/>
+    <rect x="213" y="324" width="4" height="9"/>
+    <rect x="234" y="324" width="4" height="9"/>
+    <rect x="255" y="324" width="4" height="9"/>
+    <rect x="276" y="324" width="4" height="9"/>
+  </g>
+  <rect x="192" y="346" width="16" height="16" rx="2" fill="#9f1519"/>
+  <rect x="272" y="346" width="16" height="16" rx="2" fill="#9f1519"/>
+  <rect x="230" y="344" width="20" height="32" rx="2" fill="#9f1519"/>
+
+  <!-- Grundlinie -->
+  <rect x="132" y="392" width="216" height="9" rx="4.5" fill="#fdf6e7"/>
+</svg>

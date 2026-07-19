@@ -6,7 +6,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 300 } });
 await page.goto("http://localhost:4321/", { waitUntil: "networkidle" });
 await page.evaluate(() => {
   document.querySelectorAll('img[src="/logo-mark.svg"]').forEach((img) => {
-    img.src = "/logo-landhaus.svg";
+    img.src = "/logo-alpenhaus.svg";
   });
 });
 await page.waitForTimeout(400);
