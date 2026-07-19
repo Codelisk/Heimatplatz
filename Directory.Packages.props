@@ -4,7 +4,7 @@
     <MicrosoftVersion>10.0.9</MicrosoftVersion>
     <MicrosoftExtensionsVersion>10.7.0</MicrosoftExtensionsVersion>
     <AspireVersion>13.4.6</AspireVersion>
-    <OpenTelemetryVersion>1.16.0</OpenTelemetryVersion>
+    <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
     <ShinyDocumentDbVersion>11.1.1</ShinyDocumentDbVersion>
@@ -84,6 +84,7 @@
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="$(AspireVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryVersion)" />
@@ -115,6 +116,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.3" />
 
     <!-- Security: transitive Pins gegen bekannte Sicherheitsluecken (NU1903) -->
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />

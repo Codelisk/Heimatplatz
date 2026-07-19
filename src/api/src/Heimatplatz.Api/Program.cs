@@ -8,6 +8,7 @@ using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Configuration;
 using Heimatplatz.Api.Core.Startup;
+using Heimatplatz.Api.Features.Telemetry.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
@@ -42,6 +43,8 @@ builder.Services.AddSingleton<ImageCache>();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddExceptionHandler<UnauthorizedExceptionHandler>();
 builder.Services.AddExceptionHandler<LegacyExceptionHandler>();
+// Muss als letzter registriert sein: loggt nur die von keinem Handler behandelten 500er
+builder.Services.AddExceptionHandler<FallbackExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddApiServices(builder.Configuration);
 
@@ -124,6 +127,18 @@ builder.Services.AddRateLimiter(options =>
             return RateLimitPartition.GetFixedWindowLimiter($"refresh:{clientIp}", _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+        }
+
+        // Anonymer Client-Log-Ingest (MAUI-Crash-Reports): strenger als der Default-Bucket,
+        // damit niemand die Telemetrie-Tabellen als anonymen Schreibkanal fluten kann
+        if (path.StartsWithSegments("/api/telemetry/client-logs"))
+        {
+            return RateLimitPartition.GetFixedWindowLimiter($"clientlogs:{clientIp}", _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             });
@@ -287,6 +302,10 @@ app.UseStaticFiles();
 // Authentication und Authorization Middleware
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Nach der Authentifizierung: user.id/client.app als Tags auf die Request-Activity
+// (Telemetrie-Anreicherung fuer Spans und Logs)
+app.UseTelemetryEnrichment();
 
 app.MapEndpoints();
 

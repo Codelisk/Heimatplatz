@@ -4,6 +4,7 @@ using Heimatplatz.Maui.Features.AppUpdate.Configuration;
 using Heimatplatz.Maui.Features.Auth.Infrastructure;
 using Heimatplatz.Maui.Features.Debug.Services;
 using Heimatplatz.Maui.Features.Notifications.Configuration;
+using Heimatplatz.Maui.Features.Telemetry.Configuration;
 using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,10 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        // So frueh wie moeglich: Crash-Hooks persistieren unbehandelte Exceptions
+        // in die Preferences, gemeldet wird beim naechsten Start (AppStartupService)
+        Features.Telemetry.Services.CrashReporter.RegisterGlobalHandlers();
+
         // Muss vor dem ersten Store-Zugriff laufen (Screenshot-Runs im Simulator)
         Core.Screenshots.ScreenshotMode.TryOverrideSecureStore();
 
@@ -142,6 +147,7 @@ public static class MauiProgram
         builder.Services.AddNotificationsFeature();
         builder.Services.AddAppUpdateFeature();
         builder.Services.AddDeepLinkFeature();
+        builder.Services.AddTelemetryFeature();
 
 #if DEBUG
         builder.Logging.AddDebug();

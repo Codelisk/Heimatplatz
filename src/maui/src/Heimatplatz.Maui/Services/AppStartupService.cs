@@ -2,6 +2,7 @@ using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Sync;
+using Heimatplatz.Maui.Features.Telemetry.Services;
 using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -19,6 +20,7 @@ public class AppStartupService(
     IMediator mediator,
     INavigator navigator,
     PropertySyncService propertySync,
+    TelemetryLogSender telemetrySender,
     ILogger<AppStartupService> logger
 ) : IEventHandler<LogoutRequestedEvent>
 {
@@ -27,6 +29,9 @@ public class AppStartupService(
     /// </summary>
     public async Task StartAsync()
     {
+        // Crash-Reports des letzten Laufs melden (fire-and-forget, fail-open)
+        _ = telemetrySender.SendPendingCrashReportsAsync();
+
         // Immobilien-Delta-Sync: haelt die lokalen Caches aktuell, solange die App laeuft
         propertySync.Start();
 

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <!-- Suppress warnings from source generated code -->
+    <NoWarn>$(NoWarn);CS8669</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Heimatplatz.Api.Features.Telemetry.Contracts\Heimatplatz.Api.Features.Telemetry.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shiny.Mediator" />
+    <PackageReference Include="Shiny.Mediator.AspNet" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <!-- OTel-SDK (BaseProcessor, SuppressInstrumentationScope) + Hosting-Integration -->
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <!-- DB-Spans (SQL-Statements) fuer Postgres; SQLite-Dev hat keine DB-Spans -->
+    <PackageReference Include="Npgsql.OpenTelemetry" />
+  </ItemGroup>
+
+</Project>

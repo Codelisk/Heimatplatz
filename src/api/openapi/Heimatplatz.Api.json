@@ -5,6 +5,219 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/admin/properties/{Id}": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "AdminDeleteProperty",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDeletePropertyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/properties": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetAdminProperties",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "Source",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Hidden",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "UserId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAdminPropertiesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetAdminStats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAdminStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetAdminUsers",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAdminUsersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/properties/visibility": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SetAdminPropertyVisibility",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPropertyVisibilityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetPropertyVisibilityResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/change-password": {
       "post": {
         "tags": [
@@ -1751,6 +1964,369 @@
           }
         }
       }
+    },
+    "/api/telemetry/error-groups/{Id}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetTelemetryErrorGroupDetail",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "OccurrenceLimit",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetErrorGroupDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/stats": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetTelemetryStats",
+        "parameters": [
+          {
+            "name": "Days",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 7
+            }
+          },
+          {
+            "name": "TopGroupCount",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTelemetryStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/traces/{TraceId}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetTelemetryTraceDetail",
+        "parameters": [
+          {
+            "name": "TraceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTraceDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/client-logs": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "IngestClientLogs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestClientLogsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestClientLogsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/error-groups": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ListTelemetryErrorGroups",
+        "parameters": [
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ErrorGroupStatus"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListErrorGroupsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/logs": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SearchTelemetryLogs",
+        "parameters": [
+          {
+            "name": "MinLevel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TraceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Source",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/TelemetrySource"
+            }
+          },
+          {
+            "name": "ErrorGroupId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchTelemetryLogsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telemetry/error-groups/status": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SetTelemetryErrorGroupStatus",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetErrorGroupStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetErrorGroupStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1816,6 +2392,172 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "AdminDeletePropertyResponse": {
+        "required": [
+          "Success",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminPropertyDto": {
+        "required": [
+          "Id",
+          "Title",
+          "Address",
+          "MunicipalityName",
+          "PostalCode",
+          "Price",
+          "Type",
+          "SellerType",
+          "SellerName",
+          "UserId",
+          "OwnerEmail",
+          "SourceName",
+          "SourceUrl",
+          "IsHidden",
+          "CreatedAt",
+          "ThumbnailUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Address": {
+            "type": "string"
+          },
+          "MunicipalityName": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "SellerName": {
+            "type": "string"
+          },
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "OwnerEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SourceUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "IsHidden": {
+            "type": "boolean"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ThumbnailUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AdminUserDto": {
+        "required": [
+          "Id",
+          "FullName",
+          "Email",
+          "SellerType",
+          "CompanyName",
+          "IsAdmin",
+          "EmailVerified",
+          "CreatedAt",
+          "PropertyCount"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "SellerType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SellerType"
+              }
+            ]
+          },
+          "CompanyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "IsAdmin": {
+            "type": "boolean"
+          },
+          "EmailVerified": {
+            "type": "boolean"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "PropertyCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -1903,6 +2645,44 @@
           "ExpiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "ClientLogEntryDto": {
+        "required": [
+          "TimestampUtc",
+          "Level",
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "TimestampUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Level": {
+            "type": "string"
+          },
+          "Message": {
+            "type": "string"
+          },
+          "ExceptionText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Screen": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Traceparent": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2109,6 +2889,36 @@
           }
         }
       },
+      "DailyErrorCountDto": {
+        "required": [
+          "Date",
+          "ErrorCount",
+          "WarningCount"
+        ],
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date"
+          },
+          "ErrorCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "WarningCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "DeleteAccountResponse": {
         "required": [
           "Success"
@@ -2197,6 +3007,67 @@
           "Finished",
           "Failed"
         ]
+      },
+      "ErrorGroupStatus": {
+        "enum": [
+          "Open",
+          "Resolved",
+          "Ignored"
+        ]
+      },
+      "ErrorGroupSummaryDto": {
+        "required": [
+          "Id",
+          "ExceptionType",
+          "Title",
+          "SampleMessage",
+          "FirstSeenUtc",
+          "LastSeenUtc",
+          "OccurrenceCount",
+          "LastTraceId",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ExceptionType": {
+            "type": "string"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "SampleMessage": {
+            "type": "string"
+          },
+          "FirstSeenUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastSeenUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "OccurrenceCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "LastTraceId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Status": {
+            "$ref": "#/components/schemas/ErrorGroupStatus"
+          }
+        }
       },
       "FederalProvinceDto": {
         "required": [
@@ -2572,6 +3443,166 @@
           }
         }
       },
+      "GetAdminPropertiesResponse": {
+        "required": [
+          "Properties",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "Properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminPropertyDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GetAdminStatsResponse": {
+        "required": [
+          "TotalUsers",
+          "NewUsers7Days",
+          "NewUsers30Days",
+          "TotalProperties",
+          "UserProperties",
+          "ForeclosureProperties",
+          "HiddenProperties"
+        ],
+        "type": "object",
+        "properties": {
+          "TotalUsers": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "NewUsers7Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "NewUsers30Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "TotalProperties": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "UserProperties": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ForeclosureProperties": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HiddenProperties": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "GetAdminUsersResponse": {
+        "required": [
+          "Users",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "Users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUserDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
+          }
+        }
+      },
       "GetDraftDescriptionResponse": {
         "required": [
           "Status",
@@ -2594,6 +3625,31 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "GetErrorGroupDetailResponse": {
+        "required": [
+          "Group",
+          "SampleStackTrace",
+          "RecentOccurrences"
+        ],
+        "type": "object",
+        "properties": {
+          "Group": {
+            "$ref": "#/components/schemas/ErrorGroupSummaryDto"
+          },
+          "SampleStackTrace": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RecentOccurrences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TelemetryLogEntryDto"
+            }
           }
         }
       },
@@ -3023,6 +4079,70 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "GetTelemetryStatsResponse": {
+        "required": [
+          "Daily",
+          "TopGroups",
+          "TotalErrors",
+          "TotalWarnings"
+        ],
+        "type": "object",
+        "properties": {
+          "Daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyErrorCountDto"
+            }
+          },
+          "TopGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorGroupSummaryDto"
+            }
+          },
+          "TotalErrors": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "TotalWarnings": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "GetTraceDetailResponse": {
+        "required": [
+          "TraceId",
+          "Spans",
+          "Logs"
+        ],
+        "type": "object",
+        "properties": {
+          "TraceId": {
+            "type": "string"
+          },
+          "Spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceSpanDto"
+            }
+          },
+          "Logs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TelemetryLogEntryDto"
+            }
           }
         }
       },
@@ -3647,6 +4767,54 @@
           }
         }
       },
+      "IngestClientLogsRequest": {
+        "required": [
+          "Source",
+          "AppVersion",
+          "Platform",
+          "Entries"
+        ],
+        "type": "object",
+        "properties": {
+          "Source": {
+            "$ref": "#/components/schemas/TelemetrySource"
+          },
+          "AppVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Platform": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientLogEntryDto"
+            }
+          }
+        }
+      },
+      "IngestClientLogsResponse": {
+        "required": [
+          "Accepted"
+        ],
+        "type": "object",
+        "properties": {
+          "Accepted": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "InquiryType": {
         "enum": [
           "None",
@@ -3678,6 +4846,47 @@
           "IsVisible": {
             "type": "boolean",
             "default": true
+          }
+        }
+      },
+      "ListErrorGroupsResponse": {
+        "required": [
+          "Groups",
+          "TotalCount",
+          "Page",
+          "PageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "Groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorGroupSummaryDto"
+            }
+          },
+          "TotalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -4733,6 +5942,47 @@
           }
         }
       },
+      "SearchTelemetryLogsResponse": {
+        "required": [
+          "Logs",
+          "TotalCount",
+          "Page",
+          "PageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "Logs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TelemetryLogEntryDto"
+            }
+          },
+          "TotalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "SellerSourceDto": {
         "required": [
           "Id",
@@ -4753,8 +6003,7 @@
         "enum": [
           "Private",
           "Broker",
-          "PropertyManager",
-          null
+          "PropertyManager"
         ]
       },
       "SendTestPushRequest": {
@@ -4789,6 +6038,278 @@
           },
           "Message": {
             "type": "string"
+          }
+        }
+      },
+      "SetErrorGroupStatusRequest": {
+        "required": [
+          "Id",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/ErrorGroupStatus"
+          }
+        }
+      },
+      "SetErrorGroupStatusResponse": {
+        "required": [
+          "Id",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/ErrorGroupStatus"
+          }
+        }
+      },
+      "SetPropertyVisibilityRequest": {
+        "required": [
+          "Id",
+          "Hidden"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Hidden": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SetPropertyVisibilityResponse": {
+        "required": [
+          "Success",
+          "IsHidden"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "IsHidden": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TelemetryLogEntryDto": {
+        "required": [
+          "Id",
+          "TimestampUtc",
+          "Level",
+          "Category",
+          "Message",
+          "TraceId",
+          "SpanId",
+          "ExceptionType",
+          "ExceptionMessage",
+          "ExceptionStackTrace",
+          "ErrorGroupId",
+          "UserId",
+          "ClientApp",
+          "Source",
+          "AttributesJson"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "TimestampUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Level": {
+            "type": "string"
+          },
+          "Category": {
+            "type": "string"
+          },
+          "Message": {
+            "type": "string"
+          },
+          "TraceId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SpanId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ExceptionType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ExceptionMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ExceptionStackTrace": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ErrorGroupId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "UserId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ClientApp": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Source": {
+            "$ref": "#/components/schemas/TelemetrySource"
+          },
+          "AttributesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TelemetrySource": {
+        "enum": [
+          "Api",
+          "Maui",
+          "Web"
+        ]
+      },
+      "TraceSpanDto": {
+        "required": [
+          "Id",
+          "TraceId",
+          "SpanId",
+          "ParentSpanId",
+          "Name",
+          "Kind",
+          "StartTimeUtc",
+          "DurationMs",
+          "StatusCode",
+          "StatusDescription",
+          "HttpMethod",
+          "HttpRoute",
+          "HttpStatusCode",
+          "UserId",
+          "ClientApp",
+          "AttributesJson"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "TraceId": {
+            "type": "string"
+          },
+          "SpanId": {
+            "type": "string"
+          },
+          "ParentSpanId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Kind": {
+            "type": "string"
+          },
+          "StartTimeUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "DurationMs": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "StatusCode": {
+            "type": "string"
+          },
+          "StatusDescription": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "HttpMethod": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "HttpRoute": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "HttpStatusCode": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "UserId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ClientApp": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "AttributesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
