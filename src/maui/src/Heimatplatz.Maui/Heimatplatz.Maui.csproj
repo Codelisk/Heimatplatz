@@ -54,11 +54,16 @@
     <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#9F1519" ForegroundScale="0.62" />
     <!-- Windows: transparenter Background (Taskbar/Start erwarten Icons ohne Farbplatte), vereinfachtes Badge ohne Textring -->
     <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" Include="Resources\AppIcon\appiconwin.svg" ForegroundFile="Resources\AppIcon\appiconfgwin.svg" />
-    <!-- iOS + MacCatalyst: opak (App-Store-Connect-Pflicht), Badge ~75% nach Apple Icon Grid.
-         Explizite Condition statt Fallback: Resizetizer prueft Duplikat-Namen ueber ALLE aktiven Items -->
-    <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#9F1519" ForegroundScale="0.75" />
-    <!-- Splash Screen -->
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#F6ECD8" BaseSize="256,256" />
+    <!-- MacCatalyst: opak (App-Store-Connect-Pflicht), Badge ~75% nach Apple Icon Grid.
+         iOS laeuft NICHT mehr ueber MauiIcon: dort kommt das Icon aus dem manuellen
+         Asset-Catalog Platforms/iOS/Resources/Assets.xcassets (iOS-18-Dark-/Tinted-Varianten,
+         dotnet/maui#25572; PNGs generiert GenerateStoreArt aus den Logo-Mastern).
+         Eingesammelt wird das Catalog automatisch (ImageAsset-Default-Glob **\*.xcassets\**),
+         verdrahtet ueber XSAppIconAssets in der Info.plist. -->
+    <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#9F1519" ForegroundScale="0.75" />
+    <!-- Splash Screen: iOS nutzt stattdessen Platforms/iOS/LaunchScreen.storyboard mit
+         Named Color (Manila/OffBlack) - das generierte Storyboard kann keinen Dark Mode -->
+    <MauiSplashScreen Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'ios'" Include="Resources\Splash\splash.svg" Color="#F6ECD8" BaseSize="256,256" />
     <!-- Images -->
     <MauiImage Include="Resources\Images\*" />
     <!-- Logo (quadratisches Abzeichen, 480x480-Quelle) auf sinnvolle Anzeigegroesse skalieren -->
@@ -111,4 +116,24 @@
   <ItemGroup Condition="$(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))">
     <BundleResource Include="Platforms\iOS\GoogleService-Info.plist" Condition="Exists('Platforms\iOS\GoogleService-Info.plist')" />
   </ItemGroup>
+  <!-- Android 13+ Themed Icons: Der Resizetizer (10.0.x) verdrahtet die Monochrome-Ebene der
+       generierten Adaptive-Icon-XMLs hart auf das Foreground-Asset (appiconfg = opaker Kreis,
+       als Themed Icon also nur ein einfarbiger Blob). Bis dotnet/maui#22543 umgesetzt ist,
+       biegen wir die XMLs nach dem Resizetizing auf die echte Silhouette um
+       (Resources/drawable/appicon_monochrome.xml). AfterTargets feuert auch wenn
+       ResizetizeImages up-to-date uebersprungen wird; WriteOnlyWhenDifferent haelt den
+       Patch idempotent (kein Timestamp-Churn -> kein unnoetiger aapt2-Lauf). -->
+  <Target Name="_HeimatplatzMonochromeIconPatch"
+          AfterTargets="ResizetizeImages"
+          Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <ItemGroup>
+      <_AdaptiveIconXml Include="$(_MauiIntermediateImages)mipmap-anydpi-v26\appicon*.xml" />
+    </ItemGroup>
+    <WriteLinesToFile
+        Condition="'@(_AdaptiveIconXml)' != ''"
+        File="%(_AdaptiveIconXml.Identity)"
+        Lines="$([System.IO.File]::ReadAllText('%(_AdaptiveIconXml.Identity)').Replace('&lt;monochrome android:drawable=&quot;@mipmap/appicon_foreground&quot; /&gt;', '&lt;monochrome android:drawable=&quot;@drawable/appicon_monochrome&quot; /&gt;'))"
+        Overwrite="true"
+        WriteOnlyWhenDifferent="true" />
+  </Target>
 </Project>

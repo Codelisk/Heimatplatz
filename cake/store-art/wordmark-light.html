@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Wordmark-Lockup (Light): Badge + HEIMATPLATZ-Schriftzug in echter Schibsted
+     Grotesk auf transparentem Grund (1200x320, - -default-background-color=00000000).
+     Fuer E-Mails, Presse, Social-Banner - dunkler Text fuer helle Untergruende. -->
+<style>
+  @font-face {
+    font-family: "Schibsted Grotesk";
+    src: url("../../src/maui/src/Heimatplatz.Maui/Resources/Fonts/SchibstedGrotesk-Bold.ttf") format("truetype");
+    font-weight: 800;
+  }
+  * { margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 320px; overflow: hidden; background: transparent; }
+  .canvas {
+    width: 1200px;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    gap: 56px;
+    font-family: "Schibsted Grotesk", sans-serif;
+  }
+  img { width: 256px; height: 256px; flex: none; }
+  h1 {
+    font-size: 104px;
+    font-weight: 800;
+    letter-spacing: 10px;
+    color: #1e1615;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <img src="../../src/web/public/logo-mark.svg" alt="">
+    <h1>HEIMATPLATZ</h1>
+  </div>
+</body>
+</html>

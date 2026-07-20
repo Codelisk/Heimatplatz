@@ -26,8 +26,18 @@ store-assets/
 │   └── screenshots-5.5-inch/             # iPhone 8 Plus (TODO)
 │       └── (1242x2208 px)
 │
+├── brand/
+│   ├── wordmark-light.png                 # Wordmark-Lockup 1200x320, dunkler Text (helle Untergruende)
+│   └── wordmark-dark.png                  # Wordmark-Lockup 1200x320, Paper-Ton (dunkle Untergruende)
+│
 └── feature-graphic.html                   # Quell-HTML fuer Feature Graphic
 ```
+
+> **Nicht von Hand bearbeiten:** Icons, Feature Graphic und Wordmarks werden von
+> `./cake/build.ps1 -Target GenerateStoreArt` aus den Logo-Mastern
+> (`src/web/public/logo-mark.svg` / `logo-mono.svg`) generiert - ebenso die
+> PWA-Icons (`src/web/public/icons/`) und das iOS-AppIcon-Set inkl. SplashLogo
+> (`src/maui/.../Platforms/iOS/Resources/Assets.xcassets/`).
 
 ## Status
 

@@ -11,4 +11,7 @@
     <color name="colorAccent">#C11F27</color>
     <!-- Status-/Navigationsleiste: passend zur Shell-NavBar (Paper / OffBlack) -->
     <color name="systemBarBackground">#F6ECD8</color>
+    <!-- Notification-Akzent (Firebase default_notification_color): bewusst lowercase,
+         weil Xamarins Manifest-Generator Ressourcen-Referenzen lowercased -->
+    <color name="notification_accent">#C11F27</color>
 </resources>

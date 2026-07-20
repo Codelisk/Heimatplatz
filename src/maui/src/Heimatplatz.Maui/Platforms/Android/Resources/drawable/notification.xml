@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Statusleisten-Icon (weisse Silhouette, nur Alpha zaehlt) aus dem Monochrome-Master
+     src/web/public/logo-mono.svg - hier nur die Home-Glyphe ohne Ring/Sonne, weil bei
+     ~18dp in der Statusleiste sonst nichts mehr lesbar ist.
+     Name "notification" ist die Shiny.Notifications-Konvention (Default-Small-Icon);
+     Firebase nutzt es zusaetzlich ueber das Manifest-meta-data default_notification_icon.
+     Pfad-Koordinaten 1:1 aus dem Master (480er-Raum), per Group auf 24dp skaliert. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:scaleX="0.08333"
+        android:scaleY="0.08333"
+        android:translateX="-8"
+        android:translateY="-7.167">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M240 116 L352 228 L322 228 L322 328 Q322 344 306 344 L174 344 Q158 344 158 328 L158 228 L128 228 Z M216 344 L216 290 Q216 266 240 266 Q264 266 264 290 L264 344 Z" />
+    </group>
+</vector>

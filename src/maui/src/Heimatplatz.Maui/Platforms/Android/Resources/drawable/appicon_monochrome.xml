@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome-Ebene fuer Android 13+ Themed Icons (komplette Badge-Silhouette aus
+     src/web/public/logo-mono.svg). Wird NICHT von MAUI verdrahtet: der Resizetizer
+     setzt die Monochrome-Ebene hart auf das Foreground-Asset (opaker Kreis -> Blob);
+     das Target _HeimatplatzMonochromeIconPatch im csproj biegt die generierten
+     Adaptive-Icon-XMLs auf dieses Drawable um (bis dotnet/maui#22543 geloest ist).
+     Adaptive-Icon-Raster: 108dp-Canvas, Safe-Zone 66dp - Silhouette liegt bei 60dp.
+     Pfad-Koordinaten 1:1 aus dem Master (480er-Raum), per Group skaliert. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.12821"
+        android:scaleY="0.12821"
+        android:translateX="23.23"
+        android:translateY="23.23">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M240 6 A234 234 0 0 1 240 474 A234 234 0 0 1 240 6 Z M240 62 A178 178 0 0 1 240 418 A178 178 0 0 1 240 62 Z M240 116 L352 228 L322 228 L322 328 Q322 344 306 344 L174 344 Q158 344 158 328 L158 228 L128 228 Z M216 344 L216 290 Q216 266 240 266 Q264 266 264 290 L264 344 Z M150 132 A18 18 0 0 1 150 168 A18 18 0 0 1 150 132 Z" />
+    </group>
+</vector>

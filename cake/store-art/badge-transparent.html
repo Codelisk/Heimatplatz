@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Rundes Logo-Badge full-bleed auf transparentem Grund (Screenshot mit
+     - -default-background-color=00000000). Viewport-relativ: dieselbe Vorlage rendert
+     PWA-Icons (192/512) und die iOS-SplashLogo-PNGs (256/512/768) - Groesse kommt
+     rein ueber - -window-size. Quelle ist IMMER das aktuelle logo-mark.svg. -->
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 100vw; height: 100vh; overflow: hidden; background: transparent; }
+  img { width: 100vw; height: 100vh; display: block; }
+</style>
+</head>
+<body>
+  <img src="../../src/web/public/logo-mark.svg" alt="">
+</body>
+</html>

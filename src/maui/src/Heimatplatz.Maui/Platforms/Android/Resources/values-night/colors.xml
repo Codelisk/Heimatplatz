@@ -5,4 +5,10 @@
     <!-- .NET MAUI 10 malt Status-Bar/Flyout-Header auf Android aus colorPrimary (dotnet/maui#32987) -->
     <color name="colorPrimary">#16100D</color>
     <color name="systemBarBackground">#16100D</color>
+    <!-- Splash-Hintergrund: Resizetizer generiert maui_splash_color nur in values/
+         (aus MauiSplashScreen Color="#F6ECD8"); dieser Night-Override verhindert den
+         hellen Manila-Blitz beim Kaltstart der dark-first App -->
+    <color name="maui_splash_color">#16100D</color>
+    <!-- Aufgehelltes Markenrot analog colorAccent (Begruendung fuer lowercase in values/) -->
+    <color name="notification_accent">#CD2025</color>
 </resources>

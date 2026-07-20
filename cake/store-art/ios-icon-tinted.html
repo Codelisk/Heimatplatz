@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- iOS-18-App-Icon (Tinted): weisse Silhouette (logo-mono.svg) bei 75% auf
+     transparentem Grund - iOS interpretiert Graustufen als Helligkeit und faerbt
+     selbst ein. Screenshot braucht - -default-background-color=00000000. -->
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 100vw; height: 100vh; overflow: hidden; background: transparent; }
+  .canvas {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  img { width: 75vw; height: 75vh; }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <img src="../../src/web/public/logo-mono.svg" alt="">
+  </div>
+</body>
+</html>
