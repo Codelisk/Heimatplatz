@@ -6,9 +6,9 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Warnungen aus generiertem OpenAPI-Client-Code (wie Uno Core.ApiClient) -->
-		<!-- CS8669: Nullable annotation context, CS9107: Captured parameter -->
-		<WarningsNotAsErrors>CS8669;CS9107</WarningsNotAsErrors>
-		<NoWarn>$(NoWarn);CS8669;CS9107;IL2026</NoWarn>
+		<!-- CS8669: Nullable annotation context, CS9107: Captured parameter, CS8073: Guid-Pfadparameter != null (immer true) -->
+		<WarningsNotAsErrors>CS8669;CS9107;CS8073</WarningsNotAsErrors>
+		<NoWarn>$(NoWarn);CS8669;CS9107;CS8073;IL2026</NoWarn>
 
 		<!-- Trimmer darf generierte Typen nicht entfernen (Konstruktoren fuer JSON-Deserialisierung) -->
 		<IsTrimmable>false</IsTrimmable>
