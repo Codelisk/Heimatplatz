@@ -1535,6 +1535,49 @@
     return [...existingUrls, ...(response.ImageUrls ?? [])];
   }
 
+  function addImageFiles(form: HTMLFormElement, files: File[]) {
+    const images = files.filter((file) => file.type.startsWith("image/"));
+    if (images.length === 0) return;
+
+    const state = getImageState(form);
+    const remaining = Math.max(0, MAX_PROPERTY_IMAGES - state.length);
+    images.slice(0, remaining).forEach((file) => {
+      state.push({
+        id: `${Date.now()}-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`,
+        url: URL.createObjectURL(file),
+        fileName: file.name,
+        contentType: file.type || "image/jpeg",
+        existing: false,
+        file,
+      });
+    });
+
+    renderImageGrid(form);
+    if (images.length > remaining) {
+      setFormStatus(form, t("editor.photoLimitReached", { remaining }), "error");
+    }
+  }
+
+  // Dateidialog bewusst per JS oeffnen (statt <label for>): showPicker ist der
+  // dokumentierte Weg, click() der Fallback fuer aeltere Browser.
+  function openImagePicker(form: HTMLFormElement, input: HTMLInputElement) {
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+        return;
+      }
+    } catch (error) {
+      console.warn("[Heimatplatz] showPicker failed, falling back to click()", error);
+    }
+
+    try {
+      input.click();
+    } catch (error) {
+      console.warn("[Heimatplatz] file picker failed", error);
+      setFormStatus(form, t("editor.photoPickerFailed"), "error");
+    }
+  }
+
   function bindImagePickers() {
     document.querySelectorAll<HTMLFormElement>("[data-local-property-form]").forEach((form) => {
       renderImageGrid(form);
@@ -1542,27 +1585,38 @@
       if (!input) return;
 
       input.addEventListener("change", () => {
-        const files = Array.from(input.files ?? []);
-        if (files.length === 0) return;
-
-        const state = getImageState(form);
-        const remaining = Math.max(0, MAX_PROPERTY_IMAGES - state.length);
-        files.slice(0, remaining).forEach((file) => {
-          state.push({
-            id: `${Date.now()}-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`,
-            url: URL.createObjectURL(file),
-            fileName: file.name,
-            contentType: file.type || "image/jpeg",
-            existing: false,
-            file,
-          });
-        });
-
+        addImageFiles(form, Array.from(input.files ?? []));
         input.value = "";
-        renderImageGrid(form);
-        if (files.length > remaining) {
-          setFormStatus(form, t("editor.photoLimitReached", { remaining }), "error");
-        }
+      });
+
+      form.querySelectorAll<HTMLElement>("[data-photo-trigger]").forEach((trigger) => {
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          openImagePicker(form, input);
+        });
+      });
+
+      // Drag&Drop auf die Fotoflaeche - unabhaengig vom Dateidialog
+      const dropzone = form.querySelector<HTMLElement>("[data-photo-dropzone]");
+      if (!dropzone) return;
+
+      const setDragState = (active: boolean) => {
+        dropzone.classList.toggle("ring-2", active);
+        dropzone.classList.toggle("ring-primary", active);
+      };
+      ["dragenter", "dragover"].forEach((type) =>
+        dropzone.addEventListener(type, (event) => {
+          event.preventDefault();
+          setDragState(true);
+        }),
+      );
+      ["dragleave", "dragend"].forEach((type) =>
+        dropzone.addEventListener(type, () => setDragState(false)),
+      );
+      dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        setDragState(false);
+        addImageFiles(form, Array.from((event as DragEvent).dataTransfer?.files ?? []));
       });
     });
   }
@@ -2392,6 +2446,9 @@
         if (mode === "mine" && error instanceof Error && error.message.includes("403")) {
           if (title) title.textContent = t("myProperties.sellerNotEnabledTitle");
           if (text) text.textContent = t("myProperties.sellerNotEnabledText");
+          // Inserieren fuehrt ohne Anbieter-Rolle ins Leere -> auf das Profil umlenken
+          document.querySelectorAll<HTMLElement>("[data-mine-cta]").forEach((cta) => cta.classList.add("hidden"));
+          document.querySelector<HTMLElement>("[data-mine-profile-cta]")?.classList.remove("hidden");
         } else if (title) {
           title.textContent = t("account.listLoadFailedTitle");
           if (text) text.textContent = t("account.listLoadFailedText");

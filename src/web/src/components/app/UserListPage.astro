@@ -3,6 +3,9 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
 import HomeIcon from "@tabler/icons/outline/home.svg";
+import PlusIcon from "@tabler/icons/outline/plus.svg";
+import UserIcon from "@tabler/icons/outline/user-cog.svg";
+import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 
 interface Props {
@@ -63,6 +66,18 @@ const statusMessage = editedDraft
       </div>
     )}
 
+    {/* Aktionsleiste fuer die gefuellte Liste; bei leerer Liste uebernimmt der
+        grosse Button im Empty-State (siehe :has()-Regel unten). */}
+    {isMine && (
+      <div class="mb-6 flex items-center justify-end gap-3" data-mine-cta-bar>
+        <h1 class="sr-only">{t("myProperties.metaTitle")}</h1>
+        <Button href="/inserieren/" data-mine-cta>
+          <PlusIcon class="size-4.5" aria-hidden="true" />
+          {t("myProperties.createCta")}
+        </Button>
+      </div>
+    )}
+
     <div class="hidden grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-remote-properties data-remote-mode={mode}></div>
     {isMine && <div class="hidden grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-local-drafts></div>}
 
@@ -70,6 +85,27 @@ const statusMessage = editedDraft
       <Icon class="size-16 text-muted-foreground" aria-hidden="true" />
       <h2 class="text-lg font-semibold">{emptyTitle ?? empty.title}</h2>
       <p class="max-w-sm text-sm text-muted-foreground">{emptyText ?? empty.text}</p>
+      {isMine && (
+        <>
+          <Button href="/inserieren/" size="lg" class="mt-3" data-mine-cta>
+            <PlusIcon class="size-5" aria-hidden="true" />
+            {t("myProperties.createCta")}
+          </Button>
+          {/* Nur fuer Kaeufer ohne Anbieter-Rolle (403): PropertyStateScript blendet um */}
+          <Button href="/profil/" size="lg" variant="outline" class="mt-3 hidden" data-mine-profile-cta>
+            <UserIcon class="size-5" aria-hidden="true" />
+            {t("myProperties.enableSellerCta")}
+          </Button>
+        </>
+      )}
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  /* Solange der Empty-State sichtbar ist, traegt sein grosser Button die Aktion -
+     die Kopfleiste waere daneben nur eine Dopplung. */
+  [data-user-page]:has([data-user-empty]:not(.hidden)) [data-mine-cta-bar] {
+    display: none;
+  }
+</style>

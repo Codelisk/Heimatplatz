@@ -88,7 +88,9 @@ export const account = {
   "myProperties.metaDescription":
     "Eigene Inserate verwalten, bearbeiten und löschen.",
   "myProperties.emptyTitle": "Noch keine eigenen Inserate",
-  "myProperties.emptyText": "Inserieren Sie Ihre erste Immobilie über das Menü.",
+  "myProperties.emptyText": "Legen Sie Ihr erstes Inserat an – Fotos, Eckdaten und Beschreibung in einem Formular.",
+  "myProperties.createCta": "Neue Immobilie hinzufügen",
+  "myProperties.enableSellerCta": "Anbieten im Profil aktivieren",
   "myProperties.statusEdited": "Änderungen gespeichert.",
   "myProperties.statusPublished": "Inserat veröffentlicht.",
   "myProperties.statusDraftSaved": "Entwurf gespeichert.",

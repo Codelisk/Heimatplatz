@@ -60,12 +60,21 @@ const currentYear = new Date().getFullYear();
     </p>
 
     {/* Hero-Fotozone wie die Galerie der Detailseite, inkl. Badge- und Button-Overlays */}
-    <div class="wys-rise relative mt-5 h-[320px] w-full overflow-hidden rounded-xl bg-muted sm:h-[460px]" style="--rise: 0.06s">
+    {/* Fotozone: Klick oeffnet den Dateidialog per JS (data-photo-trigger), zusaetzlich
+        Drag&Drop auf die Flaeche - bewusst kein <label for>, weil das Weiterreichen auf
+        einen visuell versteckten File-Input je nach Browser/Policy still scheitern kann. */}
+    <div
+      class="wys-rise relative mt-5 h-[320px] w-full overflow-hidden rounded-xl bg-muted sm:h-[460px]"
+      style="--rise: 0.06s"
+      data-photo-dropzone
+    >
       <img data-preview-hero alt={t("editor.heroAlt")} class="hidden h-full w-full object-cover" />
-      <label
-        for="propertyImages"
+      <button
+        type="button"
+        data-photo-trigger
         data-preview-hero-empty
-        class="group absolute inset-0 grid cursor-pointer place-items-center"
+        aria-label={t("editor.addPhotos")}
+        class="group absolute inset-0 grid w-full cursor-pointer place-items-center"
       >
         <span class="pointer-events-none mx-6 grid place-items-center gap-3 rounded-xl border-2 border-dashed border-border px-10 py-12 text-center transition-colors duration-300 group-hover:border-outline">
           <span class="grid size-14 place-items-center rounded-full bg-background text-muted-foreground transition-transform duration-300 group-hover:scale-110 group-hover:text-foreground">
@@ -74,15 +83,16 @@ const currentYear = new Date().getFullYear();
           <span class="text-base font-bold">{t("editor.addPhotos")}</span>
           <span class="text-xs text-muted-foreground">{t("editor.photoFormats")}</span>
         </span>
-      </label>
-      <label
-        for="propertyImages"
+      </button>
+      <button
+        type="button"
+        data-photo-trigger
         data-preview-hero-add
         class="absolute bottom-3 right-3 z-10 hidden cursor-pointer items-center gap-2 rounded-full bg-black/70 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-transform duration-300 hover:scale-105"
       >
         <PhotoPlusIcon class="size-4" aria-hidden="true" />
         {t("editor.addPhotos")}
-      </label>
+      </button>
       {/* right-40 wie auf der Detailseite: Platz fuer die drei Aktions-Buttons */}
       <div class="pointer-events-none absolute left-4 right-40 top-4 z-10 flex flex-wrap items-center gap-2" data-photo-badges>
         <span

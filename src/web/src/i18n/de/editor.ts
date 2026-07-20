@@ -27,8 +27,10 @@ export const editor = {
   "editor.photoHelpCreate": "Mindestens ein Foto ist für ein veröffentlichtes Inserat erforderlich.",
   "editor.heroAlt": "Erstes Foto Ihres Inserats",
   "editor.addPhotos": "Fotos hinzufügen",
-  "editor.photoFormats": "JPG, PNG oder WebP – bis zu 20 Bilder, das erste wird zum Titelbild",
+  "editor.photoFormats": "JPG, PNG oder WebP – klicken oder Bilder hierher ziehen, das erste wird zum Titelbild",
   "editor.photoCount": "Fotos {current} / {max}",
+  "editor.photoPickerFailed":
+    "Der Dateidialog konnte nicht geöffnet werden. Ziehen Sie die Bilder stattdessen auf die Fotofläche.",
 
   // Kopf / Live-Vorschau
   "editor.livePreviewHint":
