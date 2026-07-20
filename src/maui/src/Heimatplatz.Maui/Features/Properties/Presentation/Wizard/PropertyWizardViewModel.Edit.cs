@@ -56,6 +56,18 @@ public partial class PropertyWizardViewModel
             OriginalListingUrl = prop.Contacts
                 ?.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.OriginalListingUrl))
                 ?.OriginalListingUrl ?? string.Empty;
+
+            // Ansprechpartner = erster manuell gepflegter Kontakt jenseits des Anbieters;
+            // MUSS vorbefuellt werden, sonst wuerde Speichern ihn als "entfernt" werten
+            var contactPerson = prop.Contacts
+                ?.Where(c => c.Source == ContactSource.Manual && c.DisplayOrder > 0)
+                .OrderBy(c => c.DisplayOrder)
+                .FirstOrDefault();
+            ContactName = contactPerson?.Name ?? string.Empty;
+            ContactEmail = contactPerson?.Email ?? string.Empty;
+            ContactPhone = contactPerson?.Phone ?? string.Empty;
+            IsContactPersonVisible = contactPerson != null;
+
             await Ort.RestoreByIdAsync(prop.MunicipalityId, prop.City);
 
             // Edit kennt nur den manuellen Beschreibungsweg (keine KI-Generierung)
@@ -134,7 +146,8 @@ public partial class PropertyWizardViewModel
                     // Features immer mitsenden - null wuerde serverseitig alle Merkmale loeschen
                     Features = FeatureItems.ToList(),
                     ImageUrls = imageUrls,
-                    OriginalListingUrl = string.IsNullOrWhiteSpace(OriginalListingUrl) ? null : OriginalListingUrl.Trim()
+                    OriginalListingUrl = string.IsNullOrWhiteSpace(OriginalListingUrl) ? null : OriginalListingUrl.Trim(),
+                    ContactPerson = BuildContactPersonInput()
                 }
             });
 

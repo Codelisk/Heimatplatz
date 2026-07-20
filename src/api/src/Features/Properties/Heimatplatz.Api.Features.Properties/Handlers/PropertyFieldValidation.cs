@@ -1,3 +1,6 @@
+using Heimatplatz.Api.Features.Auth.Services;
+using Heimatplatz.Api.Features.Properties.Contracts;
+
 namespace Heimatplatz.Api.Features.Properties.Handlers;
 
 /// <summary>
@@ -15,8 +18,10 @@ internal static class PropertyFieldValidation
     private const int MaxFeatureCount = 50;
     private const int MaxFeatureLength = 100;
 
-    // Spiegel der EF-Spaltenlaenge (PropertyContactInfoConfiguration)
+    // Spiegel der EF-Spaltenlaengen (PropertyContactInfoConfiguration)
     private const int MaxOriginalListingUrlLength = 2000;
+    private const int MaxContactNameLength = 200;
+    private const int MaxContactEmailLength = 254;
 
     public static void ValidateCoreFields(int? livingAreaSquareMeters, int? plotAreaSquareMeters, int? rooms, int? yearBuilt)
     {
@@ -89,5 +94,53 @@ internal static class PropertyFieldValidation
         }
 
         return trimmed;
+    }
+
+    /// <summary>
+    /// Optionalen Ansprechpartner normalisieren: komplett leere Eingaben gelten als
+    /// "kein Ansprechpartner" (null). Sonst ist der Name Pflicht und mindestens eine
+    /// Erreichbarkeit (E-Mail oder Telefon) erforderlich - Kontakte ohne beides
+    /// wuerden in den Detailansichten ohnehin nicht angezeigt.
+    /// </summary>
+    public static ContactPersonInput? NormalizeContactPerson(ContactPersonInput? contactPerson)
+    {
+        if (contactPerson == null)
+        {
+            return null;
+        }
+
+        var name = contactPerson.Name?.Trim();
+        var hasEmail = !string.IsNullOrWhiteSpace(contactPerson.Email);
+        var hasPhone = !string.IsNullOrWhiteSpace(contactPerson.Phone);
+
+        if (string.IsNullOrEmpty(name) && !hasEmail && !hasPhone)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentException("Contact person name is required", nameof(contactPerson));
+        }
+
+        if (name.Length > MaxContactNameLength)
+        {
+            throw new ArgumentException($"Contact person name must be at most {MaxContactNameLength} characters", nameof(contactPerson));
+        }
+
+        var email = hasEmail ? UserInputValidator.NormalizeAndValidateEmail(contactPerson.Email) : null;
+        if (email is { Length: > MaxContactEmailLength })
+        {
+            throw new ArgumentException($"Contact person email must be at most {MaxContactEmailLength} characters", nameof(contactPerson));
+        }
+
+        var phone = UserInputValidator.NormalizePhone(contactPerson.Phone);
+
+        if (email == null && phone == null)
+        {
+            throw new ArgumentException("Contact person needs an email address or a phone number", nameof(contactPerson));
+        }
+
+        return new ContactPersonInput { Name = name, Email = email, Phone = phone };
     }
 }

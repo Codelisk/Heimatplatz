@@ -551,6 +551,91 @@
                             </Grid>
                         </Border>
 
+                        <!-- Anbieter & Kontakt: Anbieter-Zeile read-only aus dem Profil
+                             (wie die Anbieter-Sidebar im Web-Editor), darunter optional
+                             ein zusaetzlicher Ansprechpartner (zweiter Kontakt am Inserat) -->
+                        <Border Style="{StaticResource Card}"
+                                Padding="16,12"
+                                Margin="16,0"
+                                MaximumWidthRequest="768"
+                                HorizontalOptions="Fill">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="{Binding Loc.ContactSectionHeader}"
+                                       Style="{StaticResource SectionHeader}" />
+
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="{Binding Loc.SellerRowLabel}"
+                                           Style="{StaticResource StatTileLabel}" />
+                                    <Label Text="{Binding SellerPreviewName}"
+                                           FontFamily="SansSemibold"
+                                           FontSize="14"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                           AutomationId="Wizard_SellerPreviewName" />
+                                    <Label Text="{Binding Loc.SellerFromProfileHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+
+                                <Button Text="{Binding Loc.ContactAddButton}"
+                                        Style="{StaticResource SecondaryButton}"
+                                        FontSize="13"
+                                        IsVisible="{Binding IsContactPersonHidden}"
+                                        Command="{Binding AddContactPersonCommand}"
+                                        AutomationId="Wizard_ContactAddButton" />
+
+                                <VerticalStackLayout Spacing="8"
+                                                     IsVisible="{Binding IsContactPersonVisible}">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Loc.ContactSectionLabel}"
+                                               Style="{StaticResource StatTileLabel}"
+                                               VerticalOptions="Center" />
+                                        <Button Grid.Column="1"
+                                                Text="{Binding Loc.ContactRemoveButton}"
+                                                Style="{StaticResource LinkButton}"
+                                                FontSize="12"
+                                                Command="{Binding RemoveContactPersonCommand}"
+                                                AutomationId="Wizard_ContactRemoveButton" />
+                                    </Grid>
+
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding ContactName}"
+                                               Placeholder="{Binding Loc.ContactNamePlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.ContactNameEntrySemantic}"
+                                               AutomationId="Wizard_ContactNameEntry" />
+                                    </Border>
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding ContactEmail}"
+                                               Keyboard="Email"
+                                               Placeholder="{Binding Loc.ContactEmailPlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.ContactEmailEntrySemantic}"
+                                               AutomationId="Wizard_ContactEmailEntry" />
+                                    </Border>
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding ContactPhone}"
+                                               Keyboard="Telephone"
+                                               Placeholder="{Binding Loc.ContactPhonePlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.ContactPhoneEntrySemantic}"
+                                               AutomationId="Wizard_ContactPhoneEntry" />
+                                    </Border>
+
+                                    <Label Text="{Binding Loc.ContactPublicHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
                         <!-- Gebaeude-Karte (wie die Datentabelle der Detailansicht) -->
                         <Border Style="{StaticResource Card}"
                                 Padding="16,12"

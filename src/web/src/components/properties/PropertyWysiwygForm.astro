@@ -396,9 +396,68 @@ const currentYear = new Date().getFullYear();
       <div class="rounded-md bg-muted p-3 text-sm">
         <p class="font-semibold" data-preview-seller-name>{t("editor.sellerNamePlaceholder")}</p>
         <p class="mt-1 truncate text-muted-foreground" data-preview-seller-email>{t("editor.sellerEmailPlaceholder")}</p>
+        <p class="mt-1 hidden truncate text-muted-foreground" data-preview-seller-phone></p>
+      </div>
+
+      {/* Optionaler Ansprechpartner: erscheint im veroeffentlichten Inserat als
+          zweite Kontakt-Karte unter dem Anbieter - gleiche Optik wie die
+          Kontakt-Boxen der Detailseite */}
+      <button
+        type="button"
+        class="w-full rounded-md border border-dashed border-border px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:border-foreground/60 hover:text-foreground"
+        data-contact-person-add
+      >
+        + {t("editor.contactAdd")}
+      </button>
+      <div class="hidden rounded-md bg-muted p-3 text-sm" data-contact-person-card>
+        <div class="flex items-start justify-between gap-2">
+          <p class="wys-label">{t("editor.contactLegend")}</p>
+          <button
+            type="button"
+            class="shrink-0 text-xs text-muted-foreground underline-offset-2 hover:underline"
+            data-contact-person-remove
+          >
+            {t("editor.contactRemove")}
+          </button>
+        </div>
+        <div class="mt-2 space-y-2">
+          <input
+            id="contactName"
+            name="contactName"
+            type="text"
+            maxlength="200"
+            placeholder={t("editor.contactNamePlaceholder")}
+            aria-label={t("editor.contactNameLabel")}
+            class="wys wys-sm w-full"
+          />
+          <input
+            id="contactEmail"
+            name="contactEmail"
+            type="email"
+            inputmode="email"
+            maxlength="254"
+            placeholder={t("editor.contactEmailPlaceholder")}
+            aria-label={t("editor.contactEmailLabel")}
+            class="wys wys-sm w-full"
+          />
+          <input
+            id="contactPhone"
+            name="contactPhone"
+            type="tel"
+            inputmode="tel"
+            maxlength="50"
+            placeholder={t("editor.contactPhonePlaceholder")}
+            aria-label={t("editor.contactPhoneLabel")}
+            class="wys wys-sm w-full"
+          />
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground">{t("editor.contactPublicHint")}</p>
       </div>
     </div>
-    <p class="mt-3 text-xs text-muted-foreground" data-preview-seller-hint>{t("editor.sellerHint")}</p>
+    <p class="mt-3 text-xs text-muted-foreground" data-preview-seller-hint>
+      {t("editor.sellerHint")}
+      <a href="/profil/" class="underline underline-offset-2 transition-colors hover:text-foreground">{t("editor.sellerProfileLink")}</a>
+    </p>
 
     {/* Originalinserat: sitzt an derselben Stelle wie die Quellen-Karte der
         Detailseite - hier als editierbares Feld statt Link */}
@@ -740,6 +799,45 @@ const currentYear = new Date().getFullYear();
     update();
     updateHero();
     void initSellerPreview(form);
+    initContactPersonCard(form);
+  }
+
+  // Ansprechpartner-Karte: zugeklappt nur der "+"-Button, aufgeklappt die drei
+  // Eingabefelder. "Entfernen" leert die Felder (leere Felder = kein
+  // Ansprechpartner, der Server loescht ihn dann beim Speichern).
+  function initContactPersonCard(form: HTMLFormElement) {
+    const addButton = form.querySelector<HTMLButtonElement>("[data-contact-person-add]");
+    const card = form.querySelector<HTMLElement>("[data-contact-person-card]");
+    if (!addButton || !card) return;
+
+    const fields = ["contactName", "contactEmail", "contactPhone"]
+      .map((name) => form.elements.namedItem(name))
+      .filter((field): field is HTMLInputElement => field instanceof HTMLInputElement);
+
+    const show = (visible: boolean) => {
+      card.classList.toggle("hidden", !visible);
+      addButton.classList.toggle("hidden", visible);
+    };
+
+    addButton.addEventListener("click", () => {
+      show(true);
+      fields[0]?.focus();
+    });
+
+    form.querySelector<HTMLButtonElement>("[data-contact-person-remove]")?.addEventListener("click", () => {
+      fields.forEach((field) => {
+        field.value = "";
+      });
+      show(false);
+    });
+
+    // Entwurf-/Inserat-Prefill schreibt Felder programmatisch (ohne Events) -
+    // gleicher Watcher-Ansatz wie bei der Live-Vorschau
+    const syncFromValues = () => {
+      if (fields.some((field) => field.value.trim())) show(true);
+    };
+    window.setInterval(syncFromValues, 800);
+    syncFromValues();
   }
 
   // Anbieter-Karte: zeigt die Profildaten, die auch im veroeffentlichten
@@ -748,6 +846,7 @@ const currentYear = new Date().getFullYear();
   async function initSellerPreview(form: HTMLFormElement) {
     const nameTargets = form.querySelectorAll<HTMLElement>("[data-preview-seller-name]");
     const emailTarget = form.querySelector<HTMLElement>("[data-preview-seller-email]");
+    const phoneTarget = form.querySelector<HTMLElement>("[data-preview-seller-phone]");
     const metaTarget = form.querySelector<HTMLElement>("[data-preview-seller-meta]");
     const hintTarget = form.querySelector<HTMLElement>("[data-preview-seller-hint]");
 
@@ -776,8 +875,12 @@ const currentYear = new Date().getFullYear();
         headers: { Authorization: `Bearer ${session.AccessToken}` },
       });
       if (!response.ok) return;
-      const profile = await response.json() as { FullName?: string; Email?: string; CompanyName?: string | null; SellerType?: string | null };
+      const profile = await response.json() as { FullName?: string; Email?: string; CompanyName?: string | null; SellerType?: string | null; Phone?: string | null };
       apply(profile.CompanyName || profile.FullName, profile.Email, profile.SellerType);
+      if (phoneTarget) {
+        phoneTarget.textContent = profile.Phone ?? "";
+        phoneTarget.classList.toggle("hidden", !profile.Phone);
+      }
     } catch {
       // Session-Daten reichen als Vorschau
     }

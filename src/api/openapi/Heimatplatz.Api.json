@@ -2750,6 +2750,26 @@
           }
         }
       },
+      "ContactPersonInput": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ContactSource": {
         "enum": [
           "Manual",
@@ -2864,6 +2884,16 @@
             "type": [
               "null",
               "string"
+            ]
+          },
+          "ContactPerson": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContactPersonInput"
+              }
             ]
           }
         }
@@ -3869,6 +3899,12 @@
           "EmailVerified": {
             "type": "boolean",
             "default": false
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -5192,6 +5228,24 @@
               "string"
             ]
           },
+          "ContactName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ContactEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ContactPhone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "DescriptionMode": {
             "$ref": "#/components/schemas/DraftDescriptionMode"
           },
@@ -6477,6 +6531,12 @@
               "null",
               "string"
             ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -6521,6 +6581,12 @@
             ]
           },
           "CompanyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
             "type": [
               "null",
               "string"
@@ -6626,6 +6692,16 @@
             "type": [
               "null",
               "string"
+            ]
+          },
+          "ContactPerson": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContactPersonInput"
+              }
             ]
           }
         }

@@ -35,7 +35,8 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         nameof(Titel), nameof(Zimmer), nameof(Wohnflaeche), nameof(Grundstuecksflaeche),
         nameof(Baujahr), nameof(Preis), nameof(Adresse), nameof(Beschreibung),
         nameof(OriginalListingUrl), nameof(DescriptionKeywords), nameof(DescriptionMode),
-        nameof(SelectedPropertyTypeItem), nameof(GenerationStatus)
+        nameof(SelectedPropertyTypeItem), nameof(GenerationStatus),
+        nameof(ContactName), nameof(ContactEmail), nameof(ContactPhone)
     ];
 
     private readonly IAuthService _authService;
@@ -128,6 +129,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         InitializeDetailsStep();
         InitializeLocationPriceStep();
         InitializeDescriptionStep();
+        InitializeContactStep();
 
         PropertyChanged += OnEditorPropertyChanged;
         Ort.PropertyChanged += OnOrtPropertyChanged;
@@ -155,6 +157,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         if (!_initialized)
         {
             _initialized = true;
+            _ = LoadSellerPreviewAsync();
             if (Guid.TryParse(EditPropertyId, out var editPropertyId))
             {
                 IsEditMode = true;
@@ -339,6 +342,9 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         || Ort.SelectedGemeindeId != null
         || !string.IsNullOrWhiteSpace(Titel)
         || !string.IsNullOrWhiteSpace(OriginalListingUrl)
+        || !string.IsNullOrWhiteSpace(ContactName)
+        || !string.IsNullOrWhiteSpace(ContactEmail)
+        || !string.IsNullOrWhiteSpace(ContactPhone)
         || !string.IsNullOrWhiteSpace(Beschreibung);
 
     #endregion

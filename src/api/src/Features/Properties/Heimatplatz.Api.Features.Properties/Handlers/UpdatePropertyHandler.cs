@@ -85,6 +85,7 @@ public class UpdatePropertyHandler(
             request.LivingAreaSquareMeters, request.PlotAreaSquareMeters, request.Rooms, request.YearBuilt);
         var features = PropertyFieldValidation.NormalizeFeatures(request.Features);
         var originalListingUrl = PropertyFieldValidation.NormalizeOriginalListingUrl(request.OriginalListingUrl);
+        var contactPerson = PropertyFieldValidation.NormalizeContactPerson(request.ContactPerson);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
         // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
@@ -116,18 +117,29 @@ public class UpdatePropertyHandler(
         property.ImageUrls = request.ImageUrls ?? new List<string>();
         property.UpdatedAt = DateTimeOffset.UtcNow;
 
+        var user = await dbContext.Set<User>()
+            .FirstAsync(u => u.Id == userId, cancellationToken);
+
         // Originalinserat-URL am Erst-Kontakt pflegen (dort zeigt sie die Detailseite an);
         // Altbestand ohne Kontaktzeile bekommt wie bei CreateProperty einen Manual-Kontakt
         var primaryContact = property.Contacts.OrderBy(c => c.DisplayOrder).FirstOrDefault();
         if (primaryContact != null)
         {
             primaryContact.OriginalListingUrl = originalListingUrl;
+
+            // Anbieter-Kontakt folgt dem aktuellen Profil (wie SellerName/SellerType oben);
+            // importierte Kontakte bleiben unberuehrt
+            if (primaryContact.Source == ContactSource.Manual)
+            {
+                primaryContact.Type = sellerInfo.ContactType;
+                primaryContact.Name = sellerInfo.SellerName;
+                primaryContact.Email = user.Email;
+                primaryContact.Phone = user.Phone;
+                primaryContact.UpdatedAt = DateTimeOffset.UtcNow;
+            }
         }
         else if (originalListingUrl != null)
         {
-            var user = await dbContext.Set<User>()
-                .FirstAsync(u => u.Id == userId, cancellationToken);
-
             dbContext.Set<PropertyContactInfo>().Add(new PropertyContactInfo
             {
                 Id = Guid.NewGuid(),
@@ -136,8 +148,48 @@ public class UpdatePropertyHandler(
                 Source = ContactSource.Manual,
                 Name = sellerInfo.SellerName,
                 Email = user.Email,
+                Phone = user.Phone,
                 OriginalListingUrl = originalListingUrl,
                 DisplayOrder = 0,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        // Zusaetzlichen Ansprechpartner abgleichen: verwaltet werden nur manuell
+        // gepflegte Kontakte jenseits des Anbieters (DisplayOrder > 0); Request ohne
+        // ContactPerson entfernt einen vorhandenen Ansprechpartner
+        var extraContact = property.Contacts
+            .Where(c => c.Source == ContactSource.Manual && c.DisplayOrder > 0)
+            .OrderBy(c => c.DisplayOrder)
+            .FirstOrDefault();
+
+        if (contactPerson == null)
+        {
+            if (extraContact != null)
+            {
+                dbContext.Set<PropertyContactInfo>().Remove(extraContact);
+            }
+        }
+        else if (extraContact != null)
+        {
+            extraContact.Type = sellerInfo.ContactType;
+            extraContact.Name = contactPerson.Name;
+            extraContact.Email = contactPerson.Email;
+            extraContact.Phone = contactPerson.Phone;
+            extraContact.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+        else
+        {
+            dbContext.Set<PropertyContactInfo>().Add(new PropertyContactInfo
+            {
+                Id = Guid.NewGuid(),
+                PropertyId = property.Id,
+                Type = sellerInfo.ContactType,
+                Source = ContactSource.Manual,
+                Name = contactPerson.Name,
+                Email = contactPerson.Email,
+                Phone = contactPerson.Phone,
+                DisplayOrder = property.Contacts.Select(c => c.DisplayOrder).DefaultIfEmpty(0).Max() + 1,
                 CreatedAt = DateTimeOffset.UtcNow
             });
         }

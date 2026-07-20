@@ -26,6 +26,9 @@
     yearBuilt?: string;
     features?: string;
     originalListingUrl?: string;
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
     imageUrls?: string[];
     [key: string]: string | string[] | undefined;
   };
@@ -609,6 +612,7 @@
     CompanyName: string | null;
     IsAdmin: boolean;
     EmailVerified: boolean;
+    Phone: string | null;
   };
 
   // Profil-Formular: laedt die aktuellen Daten und speichert Aenderungen
@@ -628,6 +632,7 @@
             if (typeInput) typeInput.checked = true;
           }
           setField(form, "companyName", profile.CompanyName ?? "");
+          setField(form, "phone", profile.Phone ?? "");
           form.dispatchEvent(new Event("change"));
         } catch {
           // Formular bleibt leer; Speichern validiert serverseitig
@@ -659,6 +664,7 @@
               LastName: String(formData.get("lastName") ?? ""),
               SellerType: sellerType,
               CompanyName: wantsSeller && sellerType && sellerTypeNeedsCompany(sellerType) ? companyName : null,
+              Phone: String(formData.get("phone") ?? "").trim() || null,
             },
           });
 
@@ -1938,6 +1944,14 @@
       return t("editor.valOriginalUrlInvalid");
     }
 
+    // Ansprechpartner: optional, aber wenn angegeben Name + E-Mail oder Telefon
+    // (Spiegel von PropertyFieldValidation.NormalizeContactPerson)
+    const contactName = requiredText(draft.contactName);
+    const contactEmail = requiredText(draft.contactEmail);
+    const contactPhone = requiredText(draft.contactPhone);
+    if ((contactEmail || contactPhone) && !contactName) return t("editor.valContactNameRequired");
+    if (contactName && !contactEmail && !contactPhone) return t("editor.valContactReachRequired");
+
     if (draft.propertyType !== "foreclosure") return "";
     if (!draft.foreclosureCourtName) return t("editor.valCourtRequired");
     if (!draft.foreclosureFileNumber) return t("editor.valFileNumberRequired");
@@ -2105,6 +2119,7 @@
         ImageUrls: imageUrls,
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
         OriginalListingUrl: requiredText(draft.originalListingUrl) || null,
+        ContactPerson: buildDraftContactPerson(draft),
       },
     });
 
@@ -2139,10 +2154,21 @@
         ImageUrls: imageUrls,
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
         OriginalListingUrl: requiredText(draft.originalListingUrl) || null,
+        ContactPerson: buildDraftContactPerson(draft),
       },
     });
 
     return response;
+  }
+
+  // Optionaler Ansprechpartner: komplett leere Felder bedeuten "kein
+  // Ansprechpartner" (der Server entfernt ihn dann beim Update)
+  function buildDraftContactPerson(draft: Draft) {
+    const name = requiredText(draft.contactName);
+    const email = requiredText(draft.contactEmail);
+    const phone = requiredText(draft.contactPhone);
+    if (!name && !email && !phone) return null;
+    return { Name: name, Email: email || null, Phone: phone || null };
   }
 
   function saveLocalDraft(draft: Draft, editId: string | null) {
@@ -2220,6 +2246,9 @@
     setField(form, "yearBuilt", draft.yearBuilt);
     setField(form, "features", draft.features);
     setField(form, "originalListingUrl", draft.originalListingUrl);
+    setField(form, "contactName", draft.contactName);
+    setField(form, "contactEmail", draft.contactEmail);
+    setField(form, "contactPhone", draft.contactPhone);
     setField(form, "municipalityId", draft.municipalityId);
     [
       "foreclosureCourtName",
@@ -2248,6 +2277,13 @@
 
   function apiPropertyToDraft(property: ApiProperty) {
     const typeSpecificData = readTypeSpecificData(property);
+    // Ansprechpartner = erster manuell gepflegter Kontakt jenseits des Anbieters
+    // (DisplayOrder 0); muss beim Bearbeiten vorbefuellt werden, sonst wuerde der
+    // Server ihn beim Speichern als "entfernt" interpretieren
+    const contactPerson = (property.Contacts ?? []).find(
+      (contact) =>
+        (contact.DisplayOrder ?? 0) > 0 && (contact.Source === "Manual" || contact.Source === 0),
+    );
     return {
       id: property.Id,
       title: property.Title,
@@ -2265,6 +2301,9 @@
       yearBuilt: property.YearBuilt ? String(property.YearBuilt) : "",
       features: (property.Features ?? []).join(", "),
       originalListingUrl: property.Contacts?.find((contact) => contact.OriginalListingUrl)?.OriginalListingUrl ?? "",
+      contactName: contactPerson?.Name ?? "",
+      contactEmail: contactPerson?.Email ?? "",
+      contactPhone: contactPerson?.Phone ?? "",
       municipalityId: property.MunicipalityId ?? "",
       imageUrls: property.ImageUrls ?? [],
       foreclosureCourtName: readTypedString(typeSpecificData, "CourtName"),

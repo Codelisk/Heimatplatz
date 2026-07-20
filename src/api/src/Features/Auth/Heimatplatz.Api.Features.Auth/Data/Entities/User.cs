@@ -32,6 +32,12 @@ public class User : BaseEntity
     /// <summary>Firmenname (Pflicht bei Broker und PropertyManager)</summary>
     public string? CompanyName { get; set; }
 
+    /// <summary>
+    /// Telefonnummer (optional). Fliesst als Erreichbarkeit in den Anbieter-Kontakt
+    /// neuer/aktualisierter Inserate ein und wird dort oeffentlich angezeigt.
+    /// </summary>
+    public string? Phone { get; set; }
+
     /// <summary>Administrator (System-Faehigkeiten wie Batch-Import)</summary>
     public bool IsAdmin { get; set; }
 

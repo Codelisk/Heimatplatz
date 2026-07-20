@@ -38,6 +38,10 @@ export const account = {
   "profile.quickFiltersDescription": "Gespeicherte Suche anpassen",
   "profile.sectionTitle": "Profil",
   "profile.sectionSubtitle": "Name und Verkäufer-Einstellungen",
+  "profile.phoneLabel": "Telefonnummer (optional)",
+  "profile.phonePlaceholder": "+43 …",
+  "profile.phoneHint":
+    "Wird als Erreichbarkeit in Ihren neuen und aktualisierten Inseraten öffentlich angezeigt.",
   "profile.wantsToSellTitle": "Ich möchte Immobilien anbieten",
   "profile.wantsToSellHint":
     "Sie können das Anbieten jederzeit aktivieren oder wieder deaktivieren. Bestehende Inserate behalten ihre bisherigen Angaben.",

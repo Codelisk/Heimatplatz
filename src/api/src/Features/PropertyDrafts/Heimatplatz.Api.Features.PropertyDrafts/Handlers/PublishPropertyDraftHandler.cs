@@ -138,7 +138,17 @@ public class PublishPropertyDraftHandler(
             YearBuilt: isHouse ? data.YearBuilt : null,
             Features: data.Features,
             ImageUrls: data.ImageUrls,
-            OriginalListingUrl: data.OriginalListingUrl
+            OriginalListingUrl: data.OriginalListingUrl,
+            ContactPerson: string.IsNullOrWhiteSpace(data.ContactName)
+                && string.IsNullOrWhiteSpace(data.ContactEmail)
+                && string.IsNullOrWhiteSpace(data.ContactPhone)
+                ? null
+                : new ContactPersonInput
+                {
+                    Name = data.ContactName ?? string.Empty,
+                    Email = data.ContactEmail,
+                    Phone = data.ContactPhone
+                }
         );
     }
 }

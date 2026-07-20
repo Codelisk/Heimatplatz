@@ -139,7 +139,7 @@ public partial class PropertyWizardViewModel
     /// <summary>Kompletter Editor-Zustand -> Entwurfs-Payload (StepIndex 0 = Ein-Seiten-Editor).</summary>
     private PropertyDraftData BuildPayload() => new()
     {
-        SchemaVersion = 2,
+        SchemaVersion = 3,
         StepIndex = 0,
         ImageUrls = UploadedImageUrls,
         VideoUrls = UploadedVideoUrls,
@@ -155,6 +155,9 @@ public partial class PropertyWizardViewModel
         MunicipalityDisplay = NullIfEmpty(Ort.SelectedOrtText),
         Price = decimal.TryParse(Preis, out var preis) && preis > 0 ? (double)preis : null,
         OriginalListingUrl = NullIfEmpty(OriginalListingUrl),
+        ContactName = NullIfEmpty(ContactName),
+        ContactEmail = NullIfEmpty(ContactEmail),
+        ContactPhone = NullIfEmpty(ContactPhone),
         DescriptionMode = DescriptionMode,
         Description = NullIfEmpty(Beschreibung),
         DescriptionKeywords = NullIfEmpty(DescriptionKeywords)
@@ -185,6 +188,10 @@ public partial class PropertyWizardViewModel
             ? ((decimal)price).ToString("0.##", CultureInfo.CurrentCulture)
             : string.Empty;
         OriginalListingUrl = data.OriginalListingUrl ?? string.Empty;
+        ContactName = data.ContactName ?? string.Empty;
+        ContactEmail = data.ContactEmail ?? string.Empty;
+        ContactPhone = data.ContactPhone ?? string.Empty;
+        IsContactPersonVisible = ContactName.Length > 0 || ContactEmail.Length > 0 || ContactPhone.Length > 0;
         if (data.MunicipalityId is { } municipalityId)
             Ort.Restore(municipalityId, data.MunicipalityDisplay ?? string.Empty);
 

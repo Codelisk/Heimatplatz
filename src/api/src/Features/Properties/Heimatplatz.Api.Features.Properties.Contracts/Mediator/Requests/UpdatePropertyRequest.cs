@@ -28,6 +28,12 @@ public class UpdatePropertyRequest : IRequest<UpdatePropertyResponse>
 
     /// <summary>Link zum Originalinserat (wird am Erst-Kontakt der Immobilie gepflegt)</summary>
     public string? OriginalListingUrl { get; set; }
+
+    /// <summary>
+    /// Optionaler zusaetzlicher Ansprechpartner. null entfernt einen vorhandenen
+    /// Ansprechpartner; der Anbieter-Kontakt bleibt davon unberuehrt.
+    /// </summary>
+    public ContactPersonInput? ContactPerson { get; set; }
 }
 
 /// <summary>

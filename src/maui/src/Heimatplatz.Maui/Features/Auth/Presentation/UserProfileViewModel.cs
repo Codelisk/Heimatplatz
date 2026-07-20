@@ -107,6 +107,10 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     [ObservableProperty]
     public partial string EditCompanyName { get; set; }
 
+    /// <summary>Telefonnummer (optional) - erscheint als Erreichbarkeit in eigenen Inseraten</summary>
+    [ObservableProperty]
+    public partial string EditPhone { get; set; }
+
     /// <summary>True wenn ein Firmenname noetig ist (Makler oder Verwaltung)</summary>
     public bool EditNeedsCompanyName => EditIsBroker || EditIsPropertyManager;
 
@@ -223,6 +227,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         EditLastName = string.Empty;
         EditIsPrivate = true;
         EditCompanyName = string.Empty;
+        EditPhone = string.Empty;
         IsEmailVerified = true;
         CurrentPassword = string.Empty;
         NewPassword = string.Empty;
@@ -351,6 +356,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             EditIsBroker = profile.SellerType == ApiClient.Generated.SellerType.Broker;
             EditIsPropertyManager = profile.SellerType == ApiClient.Generated.SellerType.PropertyManager;
             EditCompanyName = profile.CompanyName ?? string.Empty;
+            EditPhone = profile.Phone ?? string.Empty;
             IsEmailVerified = profile.EmailVerified;
             ShowVerifiedBadge = profile.EmailVerified;
         }
@@ -401,7 +407,8 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
                     FirstName = EditFirstName,
                     LastName = EditLastName,
                     SellerType = sellerType,
-                    CompanyName = EditWantsToSell && EditNeedsCompanyName ? EditCompanyName : null
+                    CompanyName = EditWantsToSell && EditNeedsCompanyName ? EditCompanyName : null,
+                    Phone = string.IsNullOrWhiteSpace(EditPhone) ? null : EditPhone.Trim()
                 }
             });
 

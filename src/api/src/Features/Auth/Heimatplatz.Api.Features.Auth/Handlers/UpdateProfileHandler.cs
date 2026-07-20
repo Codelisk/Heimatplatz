@@ -33,6 +33,7 @@ public class UpdateProfileHandler(
         var firstName = UserInputValidator.ValidateName(request.FirstName, "Vorname");
         var lastName = UserInputValidator.ValidateName(request.LastName, "Nachname");
         var (sellerType, companyName) = UserInputValidator.ValidateSellerInfo(request.SellerType, request.CompanyName);
+        var phone = UserInputValidator.NormalizePhone(request.Phone);
 
         var user = await dbContext.Set<User>()
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
@@ -42,6 +43,7 @@ public class UpdateProfileHandler(
         user.LastName = lastName;
         user.SellerType = sellerType;
         user.CompanyName = companyName;
+        user.Phone = phone;
         user.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -57,7 +59,8 @@ public class UpdateProfileHandler(
             user.FullName,
             accessToken,
             user.SellerType,
-            user.CompanyName
+            user.CompanyName,
+            user.Phone
         );
     }
 

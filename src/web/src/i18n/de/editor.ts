@@ -109,7 +109,20 @@ export const editor = {
   "editor.sellerEmailPlaceholder": "ihre@email.at",
   "editor.updatedToday": "Aktualisiert: heute",
   "editor.sellerHint": "Anbieterdaten kommen aus Ihrem Profil.",
+  "editor.sellerProfileLink": "Profil bearbeiten",
   "editor.loginHint": "Melden Sie sich an – Name und Kontakt kommen aus Ihrem Profil.",
+
+  // Optionaler Ansprechpartner (zweite Kontakt-Karte des Inserats)
+  "editor.contactAdd": "Ansprechpartner hinzufügen",
+  "editor.contactLegend": "Ansprechpartner",
+  "editor.contactRemove": "Entfernen",
+  "editor.contactNamePlaceholder": "Name des Ansprechpartners",
+  "editor.contactNameLabel": "Name des Ansprechpartners",
+  "editor.contactEmailPlaceholder": "E-Mail-Adresse",
+  "editor.contactEmailLabel": "E-Mail des Ansprechpartners",
+  "editor.contactPhonePlaceholder": "Telefonnummer",
+  "editor.contactPhoneLabel": "Telefonnummer des Ansprechpartners",
+  "editor.contactPublicHint": "Wird öffentlich im Inserat angezeigt.",
 
   // Anbietertyp-Labels (wie getApiSellerLabel in live-api.ts)
   "editor.sellerTypePrivate": "Privat",
@@ -137,6 +150,9 @@ export const editor = {
   "editor.valAuctionDateInvalid": "Bitte einen gültigen Versteigerungstermin angeben.",
   "editor.valMinimumBidRequired": "Bitte ein Mindestgebot größer als 0 angeben.",
   "editor.valOriginalUrlInvalid": "Der Link zum Originalinserat muss eine vollständige http(s)-Adresse sein.",
+  "editor.valContactNameRequired": "Bitte geben Sie den Namen des Ansprechpartners an.",
+  "editor.valContactReachRequired":
+    "Bitte geben Sie für den Ansprechpartner eine E-Mail-Adresse oder Telefonnummer an.",
 
   // Bild-Picker (Laufzeit-Meldungen)
   "editor.photoRequired": "Bitte fügen Sie mindestens ein Foto hinzu.",

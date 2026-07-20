@@ -235,6 +235,12 @@ const quickLinks = [
                 </div>
               </div>
 
+              <div class="space-y-2">
+                <Label for="profilePhone">{t("profile.phoneLabel")}</Label>
+                <Input id="profilePhone" name="phone" type="tel" inputmode="tel" maxlength="50" autocomplete="tel" placeholder={t("profile.phonePlaceholder")} class="w-full" />
+                <p class="text-xs text-muted-foreground">{t("profile.phoneHint")}</p>
+              </div>
+
               <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-background/50 p-4 transition-colors has-[:checked]:border-primary/60">
                 <span class="text-sm"><strong class="font-semibold">{t("profile.wantsToSellTitle")}</strong><br /><span class="text-muted-foreground">{t("profile.wantsToSellHint")}</span></span>
                 <input type="checkbox" name="wantsToSell" value="yes" class="size-5 shrink-0 rounded" />

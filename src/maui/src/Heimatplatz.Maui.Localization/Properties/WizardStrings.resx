@@ -381,4 +381,49 @@
   <data name="ValidationOriginalUrlInvalid" xml:space="preserve">
     <value>Der Link zum Originalinserat muss eine vollständige http(s)-Adresse sein.</value>
   </data>
+  <data name="ContactSectionHeader" xml:space="preserve">
+    <value>Anbieter &amp; Kontakt</value>
+  </data>
+  <data name="SellerRowLabel" xml:space="preserve">
+    <value>ANBIETER</value>
+  </data>
+  <data name="SellerFromProfileHint" xml:space="preserve">
+    <value>Anbieterdaten kommen aus Ihrem Profil.</value>
+  </data>
+  <data name="ContactAddButton" xml:space="preserve">
+    <value>+ Ansprechpartner hinzufügen</value>
+  </data>
+  <data name="ContactSectionLabel" xml:space="preserve">
+    <value>ANSPRECHPARTNER</value>
+  </data>
+  <data name="ContactRemoveButton" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="ContactNamePlaceholder" xml:space="preserve">
+    <value>Name des Ansprechpartners</value>
+  </data>
+  <data name="ContactNameEntrySemantic" xml:space="preserve">
+    <value>Name des Ansprechpartners</value>
+  </data>
+  <data name="ContactEmailPlaceholder" xml:space="preserve">
+    <value>E-Mail-Adresse</value>
+  </data>
+  <data name="ContactEmailEntrySemantic" xml:space="preserve">
+    <value>E-Mail-Adresse des Ansprechpartners</value>
+  </data>
+  <data name="ContactPhonePlaceholder" xml:space="preserve">
+    <value>Telefonnummer</value>
+  </data>
+  <data name="ContactPhoneEntrySemantic" xml:space="preserve">
+    <value>Telefonnummer des Ansprechpartners</value>
+  </data>
+  <data name="ContactPublicHint" xml:space="preserve">
+    <value>Wird öffentlich im Inserat angezeigt.</value>
+  </data>
+  <data name="ValidationContactNameRequired" xml:space="preserve">
+    <value>Bitte den Namen des Ansprechpartners angeben.</value>
+  </data>
+  <data name="ValidationContactReachRequired" xml:space="preserve">
+    <value>Bitte für den Ansprechpartner eine E-Mail-Adresse oder Telefonnummer angeben.</value>
+  </data>
 </root>

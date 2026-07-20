@@ -213,4 +213,13 @@
   <data name="DeleteFailedNetworkText" xml:space="preserve">
     <value>Ihr Konto konnte nicht gelöscht werden. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</value>
   </data>
+  <data name="PhoneLabel" xml:space="preserve">
+    <value>Telefonnummer (optional)</value>
+  </data>
+  <data name="PhonePlaceholder" xml:space="preserve">
+    <value>+43 …</value>
+  </data>
+  <data name="PhoneHint" xml:space="preserve">
+    <value>Wird als Erreichbarkeit in Ihren neuen und aktualisierten Inseraten öffentlich angezeigt.</value>
+  </data>
 </root>

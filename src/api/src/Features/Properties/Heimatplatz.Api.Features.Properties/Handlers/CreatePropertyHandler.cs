@@ -72,6 +72,7 @@ public class CreatePropertyHandler(
             request.LivingAreaSquareMeters, request.PlotAreaSquareMeters, request.Rooms, request.YearBuilt);
         var features = PropertyFieldValidation.NormalizeFeatures(request.Features);
         var originalListingUrl = PropertyFieldValidation.NormalizeOriginalListingUrl(request.OriginalListingUrl);
+        var contactPerson = PropertyFieldValidation.NormalizeContactPerson(request.ContactPerson);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
         // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
@@ -169,6 +170,7 @@ public class CreatePropertyHandler(
             Source = ContactSource.Manual,
             Name = sellerInfo.SellerName,
             Email = user.Email,
+            Phone = user.Phone,
             OriginalListingUrl = originalListingUrl,
             DisplayOrder = 0,
             CreatedAt = property.CreatedAt
@@ -178,6 +180,27 @@ public class CreatePropertyHandler(
 
         dbContext.Set<Property>().Add(property);
         dbContext.Set<PropertyContactInfo>().Add(contact);
+
+        // Optionaler zusaetzlicher Ansprechpartner (DisplayOrder 1)
+        if (contactPerson != null)
+        {
+            var extraContact = new PropertyContactInfo
+            {
+                Id = Guid.NewGuid(),
+                PropertyId = property.Id,
+                Type = sellerInfo.ContactType,
+                Source = ContactSource.Manual,
+                Name = contactPerson.Name,
+                Email = contactPerson.Email,
+                Phone = contactPerson.Phone,
+                DisplayOrder = 1,
+                CreatedAt = property.CreatedAt
+            };
+
+            property.Contacts.Add(extraContact);
+            dbContext.Set<PropertyContactInfo>().Add(extraContact);
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         // Load Municipality for City name

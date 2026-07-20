@@ -35,6 +35,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CompanyName)
             .HasMaxLength(UserInputValidator.MaxCompanyNameLength);
 
+        builder.Property(u => u.Phone)
+            .HasMaxLength(UserInputValidator.MaxPhoneLength);
+
         builder.Property(u => u.IsAdmin)
             .HasDefaultValue(false);
 

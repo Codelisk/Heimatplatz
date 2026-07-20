@@ -105,6 +105,10 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<int?>("SellerType")
                         .HasColumnType("integer");
 

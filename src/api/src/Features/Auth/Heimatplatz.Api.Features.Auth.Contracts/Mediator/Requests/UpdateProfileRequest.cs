@@ -11,7 +11,8 @@ public record UpdateProfileRequest(
     string FirstName,
     string LastName,
     SellerType? SellerType = null,
-    string? CompanyName = null
+    string? CompanyName = null,
+    string? Phone = null
 ) : IRequest<UpdateProfileResponse>;
 
 /// <summary>
@@ -28,5 +29,6 @@ public record UpdateProfileResponse(
     string FullName,
     string AccessToken,
     SellerType? SellerType = null,
-    string? CompanyName = null
+    string? CompanyName = null,
+    string? Phone = null
 );

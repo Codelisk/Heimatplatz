@@ -9,6 +9,8 @@ export type ApiContact = {
   OriginalListingUrl?: string | null;
   SourceName?: string | null;
   Type?: string | number | null;
+  Source?: string | number | null;
+  DisplayOrder?: number | null;
 };
 
 export type ApiProperty = {

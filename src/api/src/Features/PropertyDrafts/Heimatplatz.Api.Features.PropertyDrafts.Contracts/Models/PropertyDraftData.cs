@@ -16,8 +16,9 @@ public class PropertyDraftData
     /// Version 2: manueller Wizard-Fluss (Fotos -> Eckdaten -> Lage/Preis -> Beschreibung),
     /// KI-Analyse-Felder (DictatedText/AnalysisId/...) entfernt, Beschreibungs-Generierung
     /// laeuft ueber eigene Entwurfs-Spalten + Hintergrund-Job.
+    /// Version 3: optionaler Ansprechpartner (ContactName/ContactEmail/ContactPhone).
     /// </summary>
-    public int SchemaVersion { get; set; } = 2;
+    public int SchemaVersion { get; set; } = 3;
 
     /// <summary>Zuletzt aktiver Wizard-Schritt (0-basiert)</summary>
     public int StepIndex { get; set; }
@@ -50,6 +51,11 @@ public class PropertyDraftData
 
     /// <summary>Link zum Originalinserat (landet beim Veroeffentlichen am Erst-Kontakt)</summary>
     public string? OriginalListingUrl { get; set; }
+
+    // Optionaler Ansprechpartner (landet beim Veroeffentlichen als Kontakt mit DisplayOrder 1)
+    public string? ContactName { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
 
     // Schritt 4: Beschreibung
     /// <summary>Vom Nutzer gewaehlter Beschreibungs-Modus (Wiederherstellen der Auswahl)</summary>

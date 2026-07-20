@@ -15,6 +15,8 @@ public static class UserInputValidator
     public const int MaxCompanyNameLength = 200;
     public const int MinPasswordLength = 8;
     public const int MaxPasswordLength = 128;
+    public const int MaxPhoneLength = 50;
+    private const int MinPhoneDigits = 4;
 
     /// <summary>Normalisiert eine E-Mail-Adresse (Trim + Lowercase) und validiert das Format.</summary>
     public static string NormalizeAndValidateEmail(string? email)
@@ -46,6 +48,29 @@ public static class UserInputValidator
 
         if (trimmed.Length > MaxNameLength)
             throw new ValidationException($"{fieldLabel} darf maximal {MaxNameLength} Zeichen lang sein.");
+
+        return trimmed;
+    }
+
+    /// <summary>
+    /// Normalisiert eine optionale Telefonnummer: leer wird null. Erlaubt sind Ziffern,
+    /// Leerzeichen und + - / ( ) . mit mindestens 4 Ziffern (internationale Schreibweisen
+    /// wie "+43 664 / 123 45 67" bleiben unveraendert erhalten).
+    /// </summary>
+    public static string? NormalizePhone(string? phone)
+    {
+        var trimmed = phone?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+            return null;
+
+        if (trimmed.Length > MaxPhoneLength)
+            throw new ValidationException($"Die Telefonnummer darf maximal {MaxPhoneLength} Zeichen lang sein.");
+
+        var digitCount = trimmed.Count(char.IsAsciiDigit);
+        var onlyValidChars = trimmed.All(c => char.IsAsciiDigit(c) || c is ' ' or '+' or '-' or '/' or '(' or ')' or '.');
+
+        if (digitCount < MinPhoneDigits || !onlyValidChars)
+            throw new ValidationException("Die Telefonnummer hat kein gueltiges Format.");
 
         return trimmed;
     }

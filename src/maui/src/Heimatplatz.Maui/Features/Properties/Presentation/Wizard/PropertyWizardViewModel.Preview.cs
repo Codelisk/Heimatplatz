@@ -78,7 +78,7 @@ public partial class PropertyWizardViewModel
     {
         ErrorMessage = null;
 
-        if (!ValidateDetails() || !ValidateLocationPrice())
+        if (!ValidateDetails() || !ValidateLocationPrice() || !ValidateContactPerson())
             return;
 
         // Eine laufende Generierung blockiert nicht: das Inserat geht sofort online,
