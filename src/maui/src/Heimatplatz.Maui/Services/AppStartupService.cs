@@ -38,17 +38,7 @@ public class AppStartupService(
         var sessionRestored = await authService.TryRestoreSessionAsync();
 
         if (sessionRestored)
-        {
-            try
-            {
-                await mediator.Send(new InitializePushNotificationsCommand());
-            }
-            catch (Exception ex)
-            {
-                // Push nicht verfuegbar auf dieser Plattform - ignorieren
-                logger.LogDebug(ex, "Push-Initialisierung beim Start uebersprungen");
-            }
-        }
+            _ = InitializePushNotificationsSafeAsync();
 
 #if ANDROID
         // In-App-Update-Check (fire-and-forget wie in der Uno-App)
@@ -61,6 +51,20 @@ public class AppStartupService(
             logger.LogDebug(ex, "App-Update-Check fehlgeschlagen");
         }
 #endif
+    }
+
+    private async Task InitializePushNotificationsSafeAsync()
+    {
+        try
+        {
+            await mediator.Send(new InitializePushNotificationsCommand(), CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            // Push nicht verfuegbar auf dieser Plattform - ignorieren. Die Aufgabe
+            // laeuft bewusst im Hintergrund und darf den App-Start nicht blockieren.
+            logger.LogDebug(ex, "Push-Initialisierung beim Start uebersprungen");
+        }
     }
 
     /// <summary>

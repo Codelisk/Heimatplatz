@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Heimatplatz.Features.Notifications.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 #if ANDROID || IOS
@@ -17,6 +18,9 @@ public class PushNotificationInitializer(
     INotificationService notificationService,
     ILogger<PushNotificationInitializer> logger) : IPushNotificationInitializer
 {
+    private readonly object initializationGate = new();
+    private Task? activeInitialization;
+
     /// <summary>
     /// Maximale Wartezeit fuer plattformabhaengige Aufrufe (iOS APNs-Registrierung, API-Call).
     /// Verhindert, dass die UI (z. B. "Registrierung wird durchgefuehrt...") unbegrenzt blockiert,
@@ -27,8 +31,25 @@ public class PushNotificationInitializer(
     /// <summary>
     /// Initializes push notifications after user login.
     /// </summary>
-    public async Task InitializeAsync()
+    public Task InitializeAsync()
     {
+        lock (initializationGate)
+        {
+            if (activeInitialization is { IsCompleted: false })
+            {
+                logger.LogDebug("[PushNotificationInitializer] Push initialization already in progress");
+                return activeInitialization;
+            }
+
+            activeInitialization = InitializeCoreAsync();
+            return activeInitialization;
+        }
+    }
+
+    private async Task InitializeCoreAsync()
+    {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             logger.LogInformation("[PushNotificationInitializer] Initializing push notifications...");
@@ -88,7 +109,17 @@ public class PushNotificationInitializer(
         catch (TimeoutException)
         {
             // Push-Registrierung haengt (z. B. fehlende APNs-Provisionierung) - UI nicht blockieren.
-            logger.LogWarning("[PushNotificationInitializer] Push initialization timed out after {Seconds}s and was skipped", InitTimeout.TotalSeconds);
+            logger.LogWarning(
+                "[PushNotificationInitializer] Push initialization timed out after {ElapsedMs}ms and was skipped",
+                stopwatch.ElapsedMilliseconds);
+        }
+        catch (OperationCanceledException)
+        {
+            // Shiny.Push beendet seinen internen APNs-Tokenabruf aktuell selbst per
+            // Cancellation. Das ist funktional ein Timeout und kein App-Fehler.
+            logger.LogWarning(
+                "[PushNotificationInitializer] Push initialization was canceled after {ElapsedMs}ms and was skipped",
+                stopwatch.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {

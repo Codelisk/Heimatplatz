@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Localization.Auth;
@@ -199,16 +198,6 @@ public partial class RegisterViewModel : ObservableObject
 
             // Login-Event fuer andere Features publizieren
             await _mediator.Publish(new UserLoggedInEvent(response.Result.UserId, response.Result.Email));
-
-            // Push Notifications initialisieren (nur auf mobilen Plattformen verfuegbar)
-            try
-            {
-                await _mediator.Send(new InitializePushNotificationsCommand());
-            }
-            catch (Exception pushEx)
-            {
-                _logger.LogWarning(pushEx, "Push Notifications konnten nicht initialisiert werden (nicht auf dieser Plattform verfuegbar)");
-            }
 
             // Formular zuruecksetzen (insbesondere Passwoerter nicht im Speicher behalten)
             Vorname = string.Empty;

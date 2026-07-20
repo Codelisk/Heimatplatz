@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Localization.Auth;
@@ -123,16 +122,6 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
 
             // Login-Event fuer andere Features publizieren
             await _mediator.Publish(new UserLoggedInEvent(result.UserId, result.Email));
-
-            // Push Notifications initialisieren (nur auf mobilen Plattformen verfuegbar)
-            try
-            {
-                await _mediator.Send(new InitializePushNotificationsCommand());
-            }
-            catch (Exception pushEx)
-            {
-                _logger.LogWarning(pushEx, "Push Notifications konnten nicht initialisiert werden (nicht auf dieser Plattform verfuegbar)");
-            }
 
             // Formular zuruecksetzen
             Email = string.Empty;
