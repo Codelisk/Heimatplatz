@@ -1,0 +1,7 @@
+• Listings: add your own contact person with contact details
+• Store your phone number in your profile
+• App icon adapted to light and dark appearance
+• Faster sign-in, more reliable notifications
+• Links to listings now open the right property directly
+• Polish for the header and dark mode
+• Minor bug fixes and improvements
