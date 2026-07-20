@@ -1,3 +1,4 @@
+using Heimatplatz.Maui.Features.Properties.Presentation;
 using Microsoft.Extensions.Logging;
 using Shiny;
 
@@ -8,7 +9,7 @@ namespace Heimatplatz.Maui.Core.DeepLink;
 /// Unterstuetzte Schemas:
 /// - heimatplatz://property/{guid} -> Route "PropertyDetail"
 /// - heimatplatz://foreclosure/{guid} -> Route "ForeclosureDetail"
-/// Navigiert via Shiny INavigator (ShellProperty-Konvention: Parameter "PropertyId").
+/// Navigiert via Shiny INavigator und setzt die ShellProperty stark typisiert.
 /// </summary>
 [Singleton]
 public class DeepLinkService(
@@ -18,9 +19,6 @@ public class DeepLinkService(
     private const string Scheme = "heimatplatz";
     private const string PropertyHost = "property";
     private const string ForeclosureHost = "foreclosure";
-
-    private const string PropertyDetailRoute = "PropertyDetail";
-    private const string ForeclosureDetailRoute = "ForeclosureDetail";
 
     /// <inheritdoc />
     public bool CanHandleUri(Uri uri)
@@ -51,8 +49,8 @@ public class DeepLinkService(
 
             return host switch
             {
-                PropertyHost => await NavigateAsync(PropertyDetailRoute, propertyId),
-                ForeclosureHost => await NavigateAsync(ForeclosureDetailRoute, propertyId),
+                PropertyHost => await NavigateToPropertyAsync(propertyId),
+                ForeclosureHost => await NavigateToForeclosureAsync(propertyId),
                 _ => HandleUnknownHost(host)
             };
         }
@@ -63,10 +61,19 @@ public class DeepLinkService(
         }
     }
 
-    private async Task<bool> NavigateAsync(string route, Guid propertyId)
+    private async Task<bool> NavigateToPropertyAsync(Guid propertyId)
     {
-        logger.LogInformation("[DeepLink] Navigating to {Route}: {PropertyId}", route, propertyId);
-        await navigator.NavigateTo(route, args: [("PropertyId", propertyId.ToString())]);
+        logger.LogInformation("[DeepLink] Navigating to PropertyDetail: {PropertyId}", propertyId);
+        await navigator.NavigateTo<PropertyDetailViewModel>(
+            viewModel => viewModel.PropertyId = propertyId.ToString("D"));
+        return true;
+    }
+
+    private async Task<bool> NavigateToForeclosureAsync(Guid propertyId)
+    {
+        logger.LogInformation("[DeepLink] Navigating to ForeclosureDetail: {PropertyId}", propertyId);
+        await navigator.NavigateTo<ForeclosureDetailViewModel>(
+            viewModel => viewModel.PropertyId = propertyId.ToString("D"));
         return true;
     }
 
