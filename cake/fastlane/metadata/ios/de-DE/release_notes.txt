@@ -1,2 +1,7 @@
-• Hell- und Dunkelmodus jetzt im Profil umschaltbar
+• Inserate: eigener Ansprechpartner mit Kontaktdaten angebbar
+• Telefonnummer im Profil hinterlegbar
+• App-Symbol an helles und dunkles Erscheinungsbild angepasst
+• Anmeldung beschleunigt, Benachrichtigungen zuverlässiger
+• Links zu Inseraten öffnen direkt das richtige Objekt
+• Feinschliff an Kopfzeile und Dunkelmodus
 • Kleinere Fehlerbehebungen und Verbesserungen
