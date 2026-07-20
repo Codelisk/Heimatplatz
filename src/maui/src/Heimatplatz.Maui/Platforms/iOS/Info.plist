@@ -26,11 +26,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<!-- Manuelles Asset-Catalog (Platforms/iOS/Resources/Assets.xcassets) statt MauiIcon:
-	     nur so bekommt iOS 18 die Dark-/Tinted-Icon-Varianten (dotnet/maui#25572).
-	     Pfad ist der logische Pfad nach IPhoneResourcePrefix-Strip (Platforms/iOS/Resources) -->
-	<key>XSAppIconAssets</key>
-	<string>Assets.xcassets/AppIcon.appiconset</string>
+	<!-- App-Icon kommt aus dem manuellen Asset-Catalog (Platforms/iOS/Resources/Assets.xcassets),
+	     verdrahtet ueber die AppIcon-MSBuild-Property in der csproj (nicht XSAppIconAssets:
+	     der Pfad-basierte Plist-Weg lieferte kein CFBundleIconName -> ITMS-90713 beim Upload) -->
 
 	<!-- Eigenes Launch-Storyboard mit Named Color (Dark-Mode-Splash), ersetzt MauiSplashScreen -->
 	<key>UILaunchStoryboardName</key>

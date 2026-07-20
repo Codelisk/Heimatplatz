@@ -47,6 +47,12 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <!-- iOS-App-Icon per Name aus dem manuellen Asset-Catalog (AppIcon.appiconset).
+         Bewusst die AppIcon-Property statt XSAppIconAssets im Info.plist: der Plist-Weg
+         braucht den logischen Pfad nach Prefix-Strip - mit falschem Pfad kompiliert actool
+         das Icon-Set nicht als App-Icon und CFBundleIconName fehlt (TestFlight-Upload
+         schlug mit ITMS-90713 fehl, Build 78). -->
+    <AppIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">AppIcon</AppIcon>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon: pro Plattform - es gilt nur das ERSTE passende Item, konditionale muessen vor dem Default stehen -->
@@ -59,7 +65,7 @@
          Asset-Catalog Platforms/iOS/Resources/Assets.xcassets (iOS-18-Dark-/Tinted-Varianten,
          dotnet/maui#25572; PNGs generiert GenerateStoreArt aus den Logo-Mastern).
          Eingesammelt wird das Catalog automatisch (ImageAsset-Default-Glob **\*.xcassets\**),
-         verdrahtet ueber XSAppIconAssets in der Info.plist. -->
+         verdrahtet ueber die AppIcon-Property oben (Name-basiert, kein Pfad-Gefrickel). -->
     <MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#9F1519" ForegroundScale="0.75" />
     <!-- Splash Screen: iOS nutzt stattdessen Platforms/iOS/LaunchScreen.storyboard mit
          Named Color (Manila/OffBlack) - das generierte Storyboard kann keinen Dark Mode -->
