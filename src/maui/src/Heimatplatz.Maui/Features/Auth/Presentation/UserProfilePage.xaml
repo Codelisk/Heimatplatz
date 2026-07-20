@@ -6,6 +6,47 @@
              x:DataType="vm:UserProfileViewModel"
              Title="{Binding Loc.PageTitle}">
 
+    <!-- Design-Umschalter in der Titelbar (wie der Theme-Toggle im Web-Header):
+         Titel links, Pille rechts. Fuellendes Grid als Wurzel + Inhalt vertikal
+         zentriert, sonst sitzt der TitleView-Inhalt auf Android zu tief
+         (dotnet/maui#3559). Die dunkle Glass-Pille mit weissem Icon bleibt in
+         beiden Themes lesbar: auf hellem Manila als dezenter dunkler Kreis, auf
+         dunklem Grund direkt das weisse Icon. -->
+    <Shell.TitleView>
+        <Grid HorizontalOptions="Fill"
+              VerticalOptions="Fill"
+              ColumnDefinitions="*,Auto">
+            <Label Grid.Column="0"
+                   Text="{Binding Loc.PageTitle}"
+                   FontFamily="SansSemibold"
+                   FontSize="19"
+                   VerticalOptions="Center"
+                   VerticalTextAlignment="Center"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            <Border Grid.Column="1"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center"
+                    WidthRequest="36"
+                    HeightRequest="36"
+                    BackgroundColor="{StaticResource GlassPillBackground}"
+                    Stroke="{StaticResource GlassPillStroke}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 18"
+                    SemanticProperties.Description="{Binding ThemeModeLabel}"
+                    ToolTipProperties.Text="{Binding ThemeModeLabel}"
+                    AutomationId="Profile_ThemeToggle">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ToggleThemeCommand}" />
+                </Border.GestureRecognizers>
+                <Image Source="{Binding ThemeIcon}"
+                       WidthRequest="18"
+                       HeightRequest="18"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+        </Grid>
+    </Shell.TitleView>
+
     <ScrollView>
         <VerticalStackLayout Spacing="0">
 
@@ -19,90 +60,63 @@
                         <GradientStop Color="{AppThemeBinding Light=#EE6A50, Dark=#1A0508}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Border.Background>
-                <Grid>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="14">
 
-                    <!-- Design-Umschalter rechts oben (wie der Theme-Toggle im Web-Header):
-                         System -> Hell -> Dunkel, Glass-Pill-Look wie die Foto-Overlays -->
-                    <Border HorizontalOptions="End"
-                            VerticalOptions="Start"
-                            Margin="0,-20,0,0"
-                            WidthRequest="44"
-                            HeightRequest="44"
-                            BackgroundColor="{StaticResource GlassPillBackground}"
-                            Stroke="{StaticResource GlassPillStroke}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 22"
-                            SemanticProperties.Description="{Binding ThemeModeLabel}"
-                            ToolTipProperties.Text="{Binding ThemeModeLabel}"
-                            AutomationId="Profile_ThemeToggle">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding ToggleThemeCommand}" />
-                        </Border.GestureRecognizers>
-                        <Image Source="{Binding ThemeIcon}"
-                               WidthRequest="20"
-                               HeightRequest="20"
+                    <!-- Avatar: heller Kreis mit roten Initialen und rotem Rand (wie Web) -->
+                    <Border WidthRequest="96"
+                            HeightRequest="96"
+                            Stroke="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                            StrokeThickness="3"
+                            StrokeShape="RoundRectangle 48"
+                            BackgroundColor="{StaticResource White}"
+                            HorizontalOptions="Center">
+                        <Label Text="{Binding UserInitials}"
+                               FontSize="36"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}"
                                HorizontalOptions="Center"
                                VerticalOptions="Center" />
                     </Border>
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="14">
-
-                        <!-- Avatar: heller Kreis mit roten Initialen und rotem Rand (wie Web) -->
-                        <Border WidthRequest="96"
-                                HeightRequest="96"
-                                Stroke="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                StrokeThickness="3"
-                                StrokeShape="RoundRectangle 48"
-                                BackgroundColor="{StaticResource White}"
-                                HorizontalOptions="Center">
-                            <Label Text="{Binding UserInitials}"
-                                   FontSize="36"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource Primary}"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center" />
-                        </Border>
-
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="{Binding UserFullName}"
-                                   FontSize="24"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource White}"
-                                   HorizontalOptions="Center"
-                                   HorizontalTextAlignment="Center"
-                                   LineBreakMode="WordWrap" />
-                            <Label Text="{Binding UserEmail}"
-                                   FontSize="13"
-                                   TextColor="#B3FFFFFF"
-                                   HorizontalOptions="Center"
-                                   HorizontalTextAlignment="Center"
-                                   LineBreakMode="TailTruncation" />
-                        </VerticalStackLayout>
-
-                        <!-- Rollen- und Verifikations-Badges -->
-                        <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
-                            <Border BackgroundColor="{StaticResource White}"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 14"
-                                    Padding="14,6">
-                                <Label Text="{Binding RoleBadgeText}"
-                                       FontSize="12"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource Gray900}" />
-                            </Border>
-                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 14"
-                                    Padding="14,6"
-                                    IsVisible="{Binding ShowVerifiedBadge}">
-                                <Label Text="{Binding Loc.VerifiedBadge}"
-                                       FontSize="12"
-                                       FontAttributes="Bold"
-                                       TextColor="{AppThemeBinding Light={StaticResource SuccessBannerForeground}, Dark={StaticResource SuccessBannerForegroundDark}}" />
-                            </Border>
-                        </HorizontalStackLayout>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding UserFullName}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource White}"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap" />
+                        <Label Text="{Binding UserEmail}"
+                               FontSize="13"
+                               TextColor="#B3FFFFFF"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="TailTruncation" />
                     </VerticalStackLayout>
-                </Grid>
+
+                    <!-- Rollen- und Verifikations-Badges -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                        <Border BackgroundColor="{StaticResource White}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14,6">
+                            <Label Text="{Binding RoleBadgeText}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Gray900}" />
+                        </Border>
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14,6"
+                                IsVisible="{Binding ShowVerifiedBadge}">
+                            <Label Text="{Binding Loc.VerifiedBadge}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource SuccessBannerForeground}, Dark={StaticResource SuccessBannerForegroundDark}}" />
+                        </Border>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
             </Border>
 
             <VerticalStackLayout Padding="16,20,16,0"

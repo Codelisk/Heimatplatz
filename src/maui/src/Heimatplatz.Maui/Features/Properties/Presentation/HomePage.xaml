@@ -11,17 +11,32 @@
                         x:DataType="vm:HomeViewModel"
                         Title="Heimatplatz">
 
-    <!-- Marken-Kopf statt Standard-Titel: Wordmark + Fahnenband, Hamburger bleibt links -->
+    <!-- Marken-Kopf statt Standard-Titel: Wordmark + Fahnenband, Hamburger bleibt links.
+         Auf Android setzt die Toolbar den TitleView-Inhalt sonst zu weit unten/rechts
+         (dotnet/maui#3559) - deshalb ein fuellendes Grid als Wurzel, das die volle
+         Toolbar-Hoehe einnimmt, und den Inhalt darin vertikal zentrieren. So sitzen
+         Wordmark und Flagge auf einer Linie mit dem Hamburger-Symbol. -->
     <Shell.TitleView>
-        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="HEIMATPLATZ"
-                   FontFamily="SansBold"
-                   FontSize="17"
-                   CharacterSpacing="4"
-                   VerticalOptions="Center"
-                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-            <appcontrols:FlagBand WidthRequest="21" HeightRequest="14" VerticalOptions="Center" />
-        </HorizontalStackLayout>
+        <Grid HorizontalOptions="Fill" VerticalOptions="Fill">
+            <HorizontalStackLayout Spacing="10"
+                                   HorizontalOptions="Start"
+                                   VerticalOptions="Center">
+                <Label Text="HEIMATPLATZ"
+                       FontFamily="SansBold"
+                       FontSize="17"
+                       CharacterSpacing="4"
+                       VerticalOptions="Center"
+                       VerticalTextAlignment="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                <!-- Versalien-Wordmark sitzt optisch im oberen Teil ihrer Zeilenbox
+                     (kein Unterlaengen-Raum genutzt); die Flagge auf diese Cap-Height
+                     heben, statt sie zur vollen Textbox zu zentrieren -->
+                <appcontrols:FlagBand WidthRequest="21"
+                                      HeightRequest="14"
+                                      VerticalOptions="Center"
+                                      Margin="0,0,0,1" />
+            </HorizontalStackLayout>
+        </Grid>
     </Shell.TitleView>
 
     <shiny:ShinyContentPage.PageContent>
