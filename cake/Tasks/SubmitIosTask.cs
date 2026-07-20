@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -308,8 +309,16 @@ internal sealed class AscClient : IDisposable
         var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException(
-                $"ASC {method} {url} -> HTTP {(int)response.StatusCode}: {content}");
+            var message = $"ASC {method} {url} -> HTTP {(int)response.StatusCode}: {content}";
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                message += "\n\nManueller Fix (Vorfall 19./20.07.2026): Ein gueltiger, aktiver API-Key kann trotzdem "
+                    + "dauerhaft 401 liefern, wenn im Apple-Account ein haengender Auth-Zustand vorliegt. Hilft "
+                    + "weder Key-Rotation noch Warten - nur ein frischer manueller Login (Passwort + 2FA) auf "
+                    + "https://appstoreconnect.apple.com loest ihn auf. Danach diesen Task erneut starten "
+                    + "(ggf. SUBMIT_MIN_BUILD wieder setzen).";
+            }
+            throw new InvalidOperationException(message);
         }
 
         return string.IsNullOrEmpty(content)
