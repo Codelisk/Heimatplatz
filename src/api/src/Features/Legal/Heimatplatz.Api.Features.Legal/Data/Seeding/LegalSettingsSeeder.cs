@@ -130,7 +130,7 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
             City: "Laakirchen",
             Country: "Österreich",
             Email: "info@heimatplatz.at",
-            Phone: null,
+            Phone: "+43 664 73221804",
             Website: "https://www.heimatplatz.at",
             UidNumber: "ATU75151817",
             TaxNumber: "532163383",
