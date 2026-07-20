@@ -25,11 +25,6 @@ export function buildRedirect(back: URLSearchParams, action: string): Response {
   });
 }
 
-// CSRF-Schutz fuer die destruktiven Intern-Actions: Browser setzen Sec-Fetch-Site,
-// Cross-Site-Formular-POSTs (fremde Seite -> /intern/...) werden abgelehnt. Aeltere
-// Browser ohne den Header bleiben erlaubt - die Caddy-IP-Sperre gilt zusaetzlich.
-export function rejectCrossSite(request: Request): Response | null {
-  return request.headers.get("sec-fetch-site") === "cross-site"
-    ? new Response("Forbidden", { status: 403 })
-    : null;
-}
+// CSRF-Schutz: zentral in lib/server/csrf.ts (auch von /intern/marketing genutzt),
+// hier nur re-exportiert, damit visibility.ts/delete.ts unveraendert bleiben.
+export { rejectCrossSite } from "@/lib/server/csrf";

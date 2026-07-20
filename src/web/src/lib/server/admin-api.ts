@@ -72,6 +72,22 @@ export type AdminPropertiesPage = {
 /** PropertyType.Foreclosure aus den API-Contracts (JsonStringEnumConverter -> Text, nicht 3) */
 export const PROPERTY_TYPE_FORECLOSURE = "Foreclosure";
 
+// Marketing-Feature (/api/admin/marketing) - Fehler kommen als Success=false + Error
+export type MarketingGenerateResponse = {
+  Success: boolean;
+  Subject: string | null;
+  Body: string | null;
+  SignatureText: string | null;
+  Error: string | null;
+};
+
+export type MarketingSendResponse = {
+  Success: boolean;
+  /** false = kein SMTP konfiguriert, Mail wurde nur im API-Log ausgegeben */
+  SmtpConfigured: boolean;
+  Error: string | null;
+};
+
 function adminHeaders(): Record<string, string> {
   return {
     "content-type": "application/json",
@@ -83,6 +99,25 @@ export async function adminApiGet<T>(pathWithQuery: string): Promise<T | null> {
   try {
     const response = await fetch(new URL(pathWithQuery, getServerApiBaseUrl()), {
       headers: adminHeaders(),
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * POST mit JSON-Antwort (z.B. Marketing-Generate/Send). Liefert null bei
+ * Netzwerkfehler oder nicht-JSON-Antwort; API-Fehler kommen als Success=false
+ * im Response-Body (die Handler geben auch bei Fehlern 200 + Error-Text zurueck).
+ */
+export async function adminApiPost<T>(pathWithQuery: string, body: unknown): Promise<T | null> {
+  try {
+    const response = await fetch(new URL(pathWithQuery, getServerApiBaseUrl()), {
+      method: "POST",
+      headers: adminHeaders(),
+      body: JSON.stringify(body),
     });
     if (!response.ok) return null;
     return (await response.json()) as T;

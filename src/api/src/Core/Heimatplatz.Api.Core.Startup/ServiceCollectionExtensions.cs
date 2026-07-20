@@ -12,6 +12,7 @@ using Heimatplatz.Api.Features.ForeclosureAuctions.Configuration;
 using Heimatplatz.Api.Features.Notifications.Configuration;
 using Heimatplatz.Api.Features.PropertyImport.Configuration;
 using Heimatplatz.Api.Features.AiListing.Configuration;
+using Heimatplatz.Api.Features.Marketing.Configuration;
 using Heimatplatz.Api.Features.PropertyDrafts.Configuration;
 using Heimatplatz.Api.Features.Telemetry.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,7 @@ public static class ServiceCollectionExtensions
         services.AddNotificationsFeature(configuration);
         services.AddPropertyImportFeature();
         services.AddAiListingFeature(configuration);
+        services.AddMarketingFeature(configuration);
         services.AddPropertyDraftsFeature(backgroundJobsEnabled);
         // OTel-Pipeline + Writer/Retention haengen wie TickerQ am Connection-String-Gate
         services.AddTelemetryFeature(configuration, backgroundJobsEnabled);
@@ -102,6 +104,7 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.Notifications.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.PropertyImport.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.AiListing.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
+        Heimatplatz.Api.Features.Marketing.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.PropertyDrafts.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Telemetry.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
 

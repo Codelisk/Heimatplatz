@@ -276,6 +276,15 @@ if (!app.Environment.IsDevelopment() && app.Configuration["AiListing:Provider"] 
         "(plus AiConnector__ApiKey) setzen.");
 }
 
+// Gleicher Hinweis fuer die Marketing-E-Mail-Generierung des Intern-Bereichs
+if (!app.Environment.IsDevelopment() && app.Configuration["Marketing:Provider"] != "AiConnector")
+{
+    app.Logger.LogWarning(
+        "Marketing laeuft im Mock-Modus: Die E-Mail-Text-Generierung liefert nur einen " +
+        "Platzhalter. Fuer echte Texte Marketing__Provider=AiConnector " +
+        "(plus AiConnector__ApiKey) setzen.");
+}
+
 // Datenbank initialisieren (Migration + Seeding basierend auf DatabaseOptions)
 await app.InitializeDatabaseAsync();
 

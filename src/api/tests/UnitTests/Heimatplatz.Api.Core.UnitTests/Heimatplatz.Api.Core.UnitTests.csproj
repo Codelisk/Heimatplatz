@@ -25,5 +25,6 @@
     <ProjectReference Include="..\..\..\src\Core\Heimatplatz.Api.Core.Startup\Heimatplatz.Api.Core.Startup.csproj" />
     <ProjectReference Include="..\..\..\src\Features\ForeclosureAuctions\Heimatplatz.Api.Features.ForeclosureAuctions\Heimatplatz.Api.Features.ForeclosureAuctions.csproj" />
     <ProjectReference Include="..\..\..\src\Features\Telemetry\Heimatplatz.Api.Features.Telemetry\Heimatplatz.Api.Features.Telemetry.csproj" />
+    <ProjectReference Include="..\..\..\src\Features\Marketing\Heimatplatz.Api.Features.Marketing\Heimatplatz.Api.Features.Marketing.csproj" />
   </ItemGroup>
 </Project>

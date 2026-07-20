@@ -1766,6 +1766,66 @@
         }
       }
     },
+    "/api/admin/marketing/email/generate": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GenerateAdminMarketingEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateMarketingEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateMarketingEmailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/email/send": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SendAdminMarketingEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMarketingEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMarketingEmailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/property-drafts/{Id}": {
       "delete": {
         "tags": [
@@ -3470,6 +3530,63 @@
         "properties": {
           "Status": {
             "$ref": "#/components/schemas/DraftDescriptionStatus"
+          }
+        }
+      },
+      "GenerateMarketingEmailRequest": {
+        "required": [
+          "Keywords",
+          "RecipientName"
+        ],
+        "type": "object",
+        "properties": {
+          "Keywords": {
+            "type": "string"
+          },
+          "RecipientName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GenerateMarketingEmailResponse": {
+        "required": [
+          "Success",
+          "Subject",
+          "Body",
+          "SignatureText",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SignatureText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -6059,6 +6176,47 @@
           "Broker",
           "PropertyManager"
         ]
+      },
+      "SendMarketingEmailRequest": {
+        "required": [
+          "RecipientEmail",
+          "Subject",
+          "Body"
+        ],
+        "type": "object",
+        "properties": {
+          "RecipientEmail": {
+            "type": "string"
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Body": {
+            "type": "string"
+          }
+        }
+      },
+      "SendMarketingEmailResponse": {
+        "required": [
+          "Success",
+          "SmtpConfigured",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "SmtpConfigured": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "SendTestPushRequest": {
         "required": [

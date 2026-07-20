@@ -18,6 +18,12 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAiConnectorClient(this IServiceCollection services, IConfiguration configuration)
     {
+        // Idempotent: mehrere Features (AiListing, Marketing) fordern den Client an -
+        // eine zweite Registrierung wuerde den Key-Decorator und die generierten
+        // Clients duplizieren.
+        if (services.Any(d => d.ImplementationType == typeof(AiConnectorApiKeyDecorator)))
+            return services;
+
         services.Configure<AiConnectorClientOptions>(configuration.GetSection(AiConnectorClientOptions.SectionName));
 
         // Shiny-Serializer VOR AddGeneratedOpenApiClient konfigurieren (wie Heimatplatz.Maui.ApiClient):

@@ -66,9 +66,9 @@ public class AiConnectorListingDescriptionService(
     private static string BuildPrompt(GenerateListingDescriptionRequest input, ListingDescriptionOptions descriptionOptions)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("Schreibe die Beschreibung fuer ein Immobilien-Inserat gemaess den Regeln dieses");
-        sb.AppendLine("Workspaces (AGENTS.md). Gefragt ist AUSSCHLIESSLICH der fertige Beschreibungstext");
-        sb.AppendLine("als Fliesstext.");
+        sb.AppendLine("Lies zuerst die Datei sections/inserate/AGENTS.md in diesem Workspace und schreibe");
+        sb.AppendLine("die Beschreibung fuer ein Immobilien-Inserat gemaess deren Regeln. Gefragt ist");
+        sb.AppendLine("AUSSCHLIESSLICH der fertige Beschreibungstext als Fliesstext.");
         sb.AppendLine();
 
         sb.AppendLine("Eckdaten (verbindlich - NICHTS hinzuerfinden):");
