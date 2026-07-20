@@ -29,6 +29,11 @@ public static class PushProvidersConfiguration
 
         services.AddPushNotifications(push =>
         {
+            // FCM HTTP v1 no longer supports the multipart /batch endpoint used by
+            // Shiny.Extensions.Push 3.0.0-beta-0002. A batch-level 404 is otherwise
+            // interpreted as expired tokens and prunes valid Android subscriptions.
+            // Per-device sends use the supported messages:send endpoint instead.
+            push.Configure(manager => manager.EnableBatching = false);
             push.UseRepository<EfPushRepository>();
 
             if (options.Firebase.Enabled

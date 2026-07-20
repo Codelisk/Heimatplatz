@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Heimatplatz.Features.Notifications.Contracts.Interfaces;
 using Heimatplatz.Features.Notifications.Contracts.Models;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Notifications.Services;
@@ -19,6 +20,7 @@ namespace Heimatplatz.Maui.Features.Notifications.Presentation;
 public partial class NotificationSettingsViewModel : ObservableObject, IPageLifecycleAware
 {
     private readonly INotificationService _notificationService;
+    private readonly IPushNotificationInitializer _pushNotificationInitializer;
     private readonly ILocationService _locationService;
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
@@ -34,6 +36,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 
     public NotificationSettingsViewModel(
         INotificationService notificationService,
+        IPushNotificationInitializer pushNotificationInitializer,
         ILocationService locationService,
         IAuthService authService,
         INavigator navigator,
@@ -42,6 +45,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     {
         Loc = loc;
         _notificationService = notificationService;
+        _pushNotificationInitializer = pushNotificationInitializer;
         _locationService = locationService;
         _authService = authService;
         _navigator = navigator;
@@ -179,7 +183,11 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     partial void OnIsEnabledChanged(bool value)
     {
         if (_isLoading) return;
-        _ = SavePreferencesAsync();
+
+        // Das explizite Aktivieren ist zugleich der passende User-Intent fuer den
+        // System-Permission-Dialog. Erst nach erfolgreichem Speichern Token anfordern
+        // und beim API registrieren; beim Deaktivieren nur die Praeferenz speichern.
+        _ = PersistPreferencesAsync(requestPushRegistration: value);
     }
 
     partial void OnIsFilterModeAllChanged(bool value)
@@ -352,7 +360,10 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     /// Saves preferences to the API
     /// </summary>
     [RelayCommand]
-    private async Task SavePreferencesAsync()
+    private Task SavePreferencesAsync()
+        => PersistPreferencesAsync(requestPushRegistration: false);
+
+    private async Task PersistPreferencesAsync(bool requestPushRegistration)
     {
         if (_isLoading) return;
 
@@ -371,6 +382,12 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
             if (success)
             {
                 _logger.LogInformation("Notification preferences saved successfully");
+
+                if (requestPushRegistration)
+                {
+                    _logger.LogInformation("Notifications enabled; initializing device push registration");
+                    await _pushNotificationInitializer.InitializeAsync();
+                }
             }
             else
             {
