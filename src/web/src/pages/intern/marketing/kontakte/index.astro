@@ -1,0 +1,203 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import MarketingContactForm from "@/components/intern/MarketingContactForm.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import { adminApiGet, type MarketingContactsPage } from "@/lib/server/admin-api";
+import {
+  CONTACT_STATUSES,
+  CONTACT_TYPES,
+  contactStatusBadgeClass,
+  contactStatusLabel,
+  contactTypeLabel,
+  formatInternDate,
+} from "@/lib/intern/marketing-labels";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+
+const PAGE_SIZE = 50;
+
+const search = Astro.url.searchParams.get("q")?.trim() ?? "";
+const statusFilter = Astro.url.searchParams.get("status") ?? "";
+const typeFilter = Astro.url.searchParams.get("type") ?? "";
+const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "0", 10) || 0, 0);
+const action = Astro.url.searchParams.get("action");
+const actionError = Astro.url.searchParams.get("error");
+
+const query = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+if (search) query.set("search", search);
+if (statusFilter) query.set("status", statusFilter);
+if (typeFilter) query.set("contactType", typeFilter);
+
+const data = await adminApiGet<MarketingContactsPage>(`/api/admin/marketing/contacts?${query}`);
+const totalPages = data ? Math.max(Math.ceil(data.Total / data.PageSize), 1) : 1;
+
+const selectClass =
+  "rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
+
+function pageLink(target: number) {
+  const params = new URLSearchParams();
+  if (search) params.set("q", search);
+  if (statusFilter) params.set("status", statusFilter);
+  if (typeFilter) params.set("type", typeFilter);
+  if (target > 0) params.set("page", String(target));
+  const qs = params.toString();
+  return qs ? `/intern/marketing/kontakte/?${qs}` : "/intern/marketing/kontakte/";
+}
+
+function composeLink(email: string, name: string | null) {
+  const params = new URLSearchParams({ email });
+  if (name) params.set("name", name);
+  return `/intern/marketing/schreiben/?${params}`;
+}
+---
+
+<BaseLayout
+  title={t("intern.mkContactsMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/marketing/kontakte/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/intern/marketing/" class="hover:underline">{t("intern.marketingTitle")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{t("intern.mkContactsTitle")}</span>
+    </nav>
+
+    <h1 class="mt-2 text-3xl font-bold">{t("intern.mkContactsTitle")}</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("intern.mkContactsIntro")}</p>
+
+    {action === "saved" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkContactSavedOk")}
+      </div>
+    )}
+    {action === "deleted" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkContactDeletedOk")}
+      </div>
+    )}
+    {action === "failed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkContactActionFailed", { error: actionError ?? "?" })}
+      </div>
+    )}
+
+    <form method="GET" action="/intern/marketing/kontakte/" class="mt-6 flex flex-wrap gap-2">
+      <input
+        type="search"
+        name="q"
+        value={search}
+        placeholder={t("intern.mkContactsSearchPlaceholder")}
+        class="min-w-48 flex-1 rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      />
+      <select name="status" class={selectClass}>
+        <option value="" selected={!statusFilter}>{t("intern.mkContactsFilterStatusAll")}</option>
+        {CONTACT_STATUSES.map((status) => (
+          <option value={status} selected={statusFilter === status}>
+            {contactStatusLabel(status)}
+          </option>
+        ))}
+      </select>
+      <select name="type" class={selectClass}>
+        <option value="" selected={!typeFilter}>{t("intern.mkContactsFilterTypeAll")}</option>
+        {CONTACT_TYPES.map((type) => (
+          <option value={type} selected={typeFilter === type}>{contactTypeLabel(type)}</option>
+        ))}
+      </select>
+      <Button type="submit" variant="default">{t("intern.filterButton")}</Button>
+    </form>
+
+    {!data && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkContactsLoadFailed")}
+      </div>
+    )}
+
+    {data && (
+      <section class="mt-6 rounded-lg border border-border bg-card">
+        <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
+          {t("intern.mkContactsTotal", { count: data.Total })}
+        </p>
+
+        {data.Contacts.length === 0 ? (
+          <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.mkContactsEmpty")}</p>
+        ) : (
+          <ul class="divide-y divide-border">
+            {data.Contacts.map((contact) => (
+              <li class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0">
+                  <p class="truncate font-medium">
+                    {contact.Name ?? contact.Email}
+                    {contact.Company && (
+                      <span class="text-muted-foreground"> · {contact.Company}</span>
+                    )}
+                  </p>
+                  <p class="mt-0.5 truncate text-sm text-muted-foreground">
+                    {contact.Email} · {contactTypeLabel(contact.ContactType)}
+                  </p>
+                  <p class="mt-1 text-xs text-muted-foreground">
+                    {t("intern.mkContactColLastContact")}: {formatInternDate(contact.LastContactedAt)}
+                    {" · "}
+                    {t("intern.mkContactColActivity")}: {contact.EmailCount} / {contact.ReplyCount}
+                  </p>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                  <span
+                    class={`rounded-full px-2 py-0.5 text-xs font-medium ${contactStatusBadgeClass(contact.Status)}`}
+                  >
+                    {contactStatusLabel(contact.Status)}
+                  </span>
+                  <a
+                    href={`/intern/marketing/kontakte/detail/?id=${contact.Id}`}
+                    class="text-sm underline hover:no-underline"
+                  >
+                    {t("intern.mkContactDetail")}
+                  </a>
+                  <a
+                    href={composeLink(contact.Email, contact.Name)}
+                    class="text-sm underline hover:no-underline"
+                  >
+                    {t("intern.mkContactWrite")}
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    )}
+
+    {data && totalPages > 1 && (
+      <nav class="mt-6 flex items-center justify-between text-sm">
+        {page > 0 ? (
+          <a href={pageLink(page - 1)} class="underline hover:no-underline">
+            {t("intern.pagePrev")}
+          </a>
+        ) : (
+          <span />
+        )}
+        <span class="text-muted-foreground">
+          {t("intern.pageInfo", { page: page + 1, pages: totalPages })}
+        </span>
+        {data.HasMore ? (
+          <a href={pageLink(page + 1)} class="underline hover:no-underline">
+            {t("intern.pageNext")}
+          </a>
+        ) : (
+          <span />
+        )}
+      </nav>
+    )}
+
+    <section class="mt-8 rounded-lg border border-border bg-card p-5">
+      <h2 class="text-base font-semibold">{t("intern.mkContactsNewHeading")}</h2>
+      <div class="mt-4">
+        <MarketingContactForm redirect="list" />
+      </div>
+    </section>
+  </section>
+</BaseLayout>

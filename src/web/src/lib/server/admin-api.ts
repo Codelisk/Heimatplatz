@@ -86,6 +86,132 @@ export type MarketingSendResponse = {
   /** false = kein SMTP konfiguriert, Mail wurde nur im API-Log ausgegeben */
   SmtpConfigured: boolean;
   Error: string | null;
+  ContactId: string | null;
+};
+
+// Enums serialisiert per globalem JsonStringEnumConverter als Text, nie numerisch
+export type MarketingContactType =
+  | "Unknown"
+  | "Broker"
+  | "PropertyManager"
+  | "PrivateSeller"
+  | "Municipality"
+  | "Partner"
+  | "Other";
+
+export type MarketingContactStatus =
+  | "Lead"
+  | "Contacted"
+  | "Replied"
+  | "Interested"
+  | "Customer"
+  | "NotInterested"
+  | "DoNotContact";
+
+export type MarketingEmailStatus = "Sent" | "LoggedOnly";
+
+export type MarketingStats = {
+  TotalContacts: number;
+  Leads: number;
+  Contacted: number;
+  Replied: number;
+  Interested: number;
+  Customers: number;
+  NotInterested: number;
+  EmailsSentTotal: number;
+  EmailsSent30Days: number;
+  RepliesTotal: number;
+  Replies30Days: number;
+  UnreadReplies: number;
+  ReplyRatePercent: number | null;
+};
+
+export type MarketingContact = {
+  Id: string;
+  Email: string;
+  Name: string | null;
+  Company: string | null;
+  Phone: string | null;
+  ContactType: MarketingContactType;
+  Status: MarketingContactStatus;
+  Notes: string | null;
+  Source: string | null;
+  LastContactedAt: string | null;
+  LastReplyAt: string | null;
+  CreatedAt: string;
+  EmailCount: number;
+  ReplyCount: number;
+};
+
+export type MarketingContactsPage = {
+  Contacts: MarketingContact[];
+  Total: number;
+  PageSize: number;
+  CurrentPage: number;
+  HasMore: boolean;
+};
+
+export type MarketingEmail = {
+  Id: string;
+  ContactId: string;
+  ContactEmail: string;
+  ContactName: string | null;
+  Subject: string;
+  Body: string;
+  Keywords: string | null;
+  Status: MarketingEmailStatus;
+  SentAt: string;
+  ReplyCount: number;
+};
+
+export type MarketingEmailsPage = {
+  Emails: MarketingEmail[];
+  Total: number;
+  PageSize: number;
+  CurrentPage: number;
+  HasMore: boolean;
+};
+
+export type MarketingInboundEmail = {
+  Id: string;
+  ContactId: string | null;
+  ContactName: string | null;
+  FromAddress: string;
+  FromName: string | null;
+  Subject: string | null;
+  BodyText: string | null;
+  ReceivedAt: string;
+  IsRead: boolean;
+  RepliedToEmailId: string | null;
+  RepliedToSubject: string | null;
+};
+
+export type MarketingInboxPage = {
+  Items: MarketingInboundEmail[];
+  Total: number;
+  PageSize: number;
+  CurrentPage: number;
+  HasMore: boolean;
+  ImapConfigured: boolean;
+  SyncError: string | null;
+};
+
+export type MarketingContactDetail = {
+  Contact: MarketingContact | null;
+  Emails: MarketingEmail[];
+  Replies: MarketingInboundEmail[];
+};
+
+export type MarketingSaveContactResponse = {
+  Success: boolean;
+  Id: string | null;
+  Error: string | null;
+};
+
+export type MarketingSyncResponse = {
+  Success: boolean;
+  Added: number;
+  Error: string | null;
 };
 
 function adminHeaders(): Record<string, string> {

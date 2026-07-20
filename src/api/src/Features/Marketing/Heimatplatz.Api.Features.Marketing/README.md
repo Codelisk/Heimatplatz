@@ -1,21 +1,41 @@
 # Heimatplatz.Api.Features.Marketing
 
-Marketing-Funktionen fuer den Intern-Bereich des Astro-Webs (`/intern/marketing`).
-Erster Baustein: KI-gestuetzte Marketing-E-Mails - Stichwoerter rein, Entwurf
-(Betreff + Text) raus, im Web nachbearbeiten, dann Versand von `info@heimatplatz.at`
-mit automatisch angehaengter Signatur.
+Ganzheitliches Marketing-System fuer den Intern-Bereich des Astro-Webs
+(`/intern/marketing`): KI-gestuetzte Marketing-E-Mails, Kontaktdatenbank
+potentieller Kunden (CRM), Versand-Historie, Posteingang mit
+Rueckmeldungs-Zuordnung und Auswertungs-Kennzahlen.
 
 ## Endpoints
 
+Alle unter `/api/admin/marketing/*`, geschuetzt per `X-Admin-Key`
+(`AdminAccessGuard` aus dem Admin-Feature, fail-closed) + Caddy-IP-Sperre auf
+`/api/admin*`. Fehler kommen als `Success=false` + `Error`-Text zurueck.
+
 | Methode | Pfad | Handler |
 |---------|------|---------|
-| POST | `/api/admin/marketing/email/generate` | `GenerateMarketingEmailHandler` |
-| POST | `/api/admin/marketing/email/send` | `SendMarketingEmailHandler` |
+| POST | `/email/generate` | `GenerateMarketingEmailHandler` |
+| POST | `/email/send` | `SendMarketingEmailHandler` |
+| GET | `/stats` | `GetMarketingStatsHandler` |
+| GET | `/contacts` | `GetMarketingContactsHandler` |
+| POST | `/contacts/save` | `SaveMarketingContactHandler` |
+| DELETE | `/contacts/{Id}` | `DeleteMarketingContactHandler` |
+| GET | `/contacts/detail` | `GetMarketingContactDetailHandler` |
+| GET | `/emails` | `GetMarketingEmailsHandler` |
+| GET | `/inbox` | `GetMarketingInboxHandler` |
+| POST | `/inbox/sync` | `SyncMarketingInboxHandler` |
+| POST | `/inbox/read` | `SetMarketingInboundReadHandler` |
 
-Beide Endpoints liegen bewusst unter `/api/admin/*`: gleicher `X-Admin-Key`-Schutz
-(`AdminAccessGuard` aus dem Admin-Feature, fail-closed) und gleiche Caddy-IP-Sperre
-auf `/api/admin*` (deploy/hetzner/Caddyfile). Fehler kommen als `Success=false` +
-`Error`-Text zurueck, damit der Intern-Bereich die Ursache anzeigen kann.
+## Datenmodell (EF, Auto-Discovery)
+
+- `MarketingContact` - Kontaktdatenbank (E-Mail unique/normalisiert, Typ/Status-Funnel,
+  Notizen, LastContactedAt/LastReplyAt). Wird beim Versand automatisch angelegt.
+- `MarketingEmail` - Versand-Historie mit SMTP-`MessageId` (Reply-Threading),
+  Generierungs-Stichwoertern (Auswertung) und Status `Sent`/`LoggedOnly`.
+- `MarketingInboundEmail` - Rueckmeldungen aus dem Postfach; `MessageId` unique
+  (Sync-Idempotenz), FKs auf Kontakt (Cascade) und beantwortete Mail (SetNull).
+
+Migrations liegen in BEIDEN Provider-Sets (`Core.Data/Migrations` SQLite,
+`Core.Data.Migrations.Postgres`), Demo-Kontakte im `MarketingSeeder` (IsDemoData).
 
 ## Ablauf
 
@@ -27,8 +47,17 @@ auf `/api/admin*` (deploy/hetzner/Caddyfile). Fehler kommen als `Success=false` 
      JSON-Ausgabeformat `{"subject", "body"}` - geparst von
      `MarketingEmailOutputParser`).
 2. **Send**: `MarketingEmailComposer` baut HTML + Plaintext und haengt die Signatur
-   an; Versand ueber `IEmailSender` (Core.Email, SMTP oder Logging-Fallback).
-   `SmtpConfigured=false` in der Response heisst: Mail wurde nur geloggt.
+   an; Versand ueber `IEmailSender` (Core.Email). Danach Kontakt-Upsert
+   (Lead->Contacted, LastContactedAt) + Historien-Zeile mit Message-Id.
+3. **Posteingang**: `MarketingInboxSyncService` ruft das Postfach per IMAP ab
+   (MailKit, gleiche Zugangsdaten wie SMTP, `Email:ImapHost` leer = SmtpHost).
+   Uebernommen werden NUR Antworten auf Marketing-Mails (In-Reply-To/References)
+   oder Mails bekannter Kontakte - das restliche Postfach bleibt privat.
+   Auto-Sync beim Oeffnen der Posteingang-Seite (5-Minuten-Drossel), manueller
+   Sync ueber `/inbox/sync`. Eingehende Antworten setzen den Kontakt-Status
+   Lead/Contacted -> Replied.
+4. **Auswertung**: `/stats` liefert Kontakt-Funnel, Versand-/Antwort-Volumen
+   (30 Tage), ungelesene Rueckmeldungen und die Antwortquote.
 
 ## Signatur
 
@@ -52,12 +81,15 @@ im Impressum gepflegt. Layout im Stil der Auth-Mails (Arial, Markenrot `#b3261e`
 
 Produktion setzt `Marketing__Provider=AiConnector` (deploy/hetzner/docker-compose.yml);
 Basis-URL/API-Key des AiConnectors kommen zentral aus dem
-`Heimatplatz.Api.Core.AiConnectorClient` (`Mediator:Http:...`, `AiConnector:ApiKey`).
+`Heimatplatz.Api.Core.AiConnectorClient` (`Mediator:Http:...`, `AiConnector:ApiKey`),
+der AiConnector-Timeout (5 Minuten) aus dessen partial-class-Override.
+Der Posteingang nutzt die `Email:*`-Konfiguration (Core.Email) - kein eigenes Env noetig.
 
 ## Abhaengigkeiten
 
-- `Heimatplatz.Api.Features.Marketing.Contracts` (Requests/Responses)
+- `Heimatplatz.Api.Features.Marketing.Contracts` (Requests/DTOs/Enums)
 - `Heimatplatz.Api.Features.Admin` (`IAdminAccessGuard`)
 - `Heimatplatz.Api.Features.Legal.Contracts` (`GetImprintRequest` fuer die Signatur)
-- `Heimatplatz.Api.Core.Email` (`IEmailSender`, `EmailOptions`)
+- `Heimatplatz.Api.Core.Data` (+Seeding) (AppDbContext, Entities, Seeder)
+- `Heimatplatz.Api.Core.Email` (`IEmailSender`, `EmailOptions`, MailKit/IMAP)
 - `Heimatplatz.Api.Core.AiConnectorClient` (generierter `RunPromptHttpRequest`-Client)

@@ -40,6 +40,23 @@ public class EmailOptions
     /// </summary>
     public string FrontendBaseUrl { get; set; } = "https://heimatplatz.at";
 
+    /// <summary>
+    /// IMAP-Server zum Abrufen des Postfachs (Marketing-Posteingang). Leer = gleicher
+    /// Host wie SmtpHost (bei Hetzner-Webhosting ist mail.your-server.de beides),
+    /// Zugangsdaten sind dieselben wie fuer SMTP.
+    /// </summary>
+    public string ImapHost { get; set; } = "";
+
+    /// <summary>993 = implizites TLS (Default)</summary>
+    public int ImapPort { get; set; } = 993;
+
+    /// <summary>Effektiver IMAP-Host: expliziter ImapHost oder Fallback auf SmtpHost</summary>
+    public string EffectiveImapHost => string.IsNullOrWhiteSpace(ImapHost) ? SmtpHost : ImapHost;
+
     /// <summary>Erst mit gesetztem SmtpHost wird tatsaechlich versendet</summary>
     public bool IsConfigured => !string.IsNullOrWhiteSpace(SmtpHost);
+
+    /// <summary>Postfach-Abruf moeglich (Host + Zugangsdaten vorhanden)</summary>
+    public bool IsImapConfigured =>
+        !string.IsNullOrWhiteSpace(EffectiveImapHost) && !string.IsNullOrWhiteSpace(SmtpUsername);
 }

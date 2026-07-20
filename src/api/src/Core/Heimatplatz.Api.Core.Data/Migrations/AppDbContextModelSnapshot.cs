@@ -630,6 +630,181 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("Municipalities", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ContactType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("LastContactedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("LastReplyAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(8000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactType");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("MarketingContacts", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Keywords")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("SentAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactId");
+
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("SentAt");
+
+                    b.ToTable("MarketingEmails", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingInboundEmail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BodyText")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ContactId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FromAddress")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FromName")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InReplyTo")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("MarketingEmailId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MessageId")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ReceivedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactId");
+
+                    b.HasIndex("IsRead");
+
+                    b.HasIndex("MarketingEmailId");
+
+                    b.HasIndex("MessageId")
+                        .IsUnique();
+
+                    b.HasIndex("ReceivedAt");
+
+                    b.ToTable("MarketingInboundEmails", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Notifications.Data.Entities.NotificationPreference", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1621,6 +1796,34 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Navigation("District");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
+                        .WithMany("Emails")
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contact");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingInboundEmail", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
+                        .WithMany("InboundEmails")
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", "RepliedToEmail")
+                        .WithMany("Replies")
+                        .HasForeignKey("MarketingEmailId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Contact");
+
+                    b.Navigation("RepliedToEmail");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Notifications.Data.Entities.NotificationPreference", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Auth.Data.Entities.User", "User")
@@ -1752,6 +1955,18 @@ namespace Heimatplatz.Api.Core.Data.Migrations
             modelBuilder.Entity("Heimatplatz.Api.Features.Locations.Data.Entities.FederalProvince", b =>
                 {
                     b.Navigation("Districts");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", b =>
+                {
+                    b.Navigation("Emails");
+
+                    b.Navigation("InboundEmails");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", b =>
+                {
+                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.Property", b =>

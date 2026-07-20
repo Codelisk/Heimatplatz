@@ -12,11 +12,19 @@ public record EmailMessage(
 );
 
 /// <summary>
+/// Ergebnis eines Versands. MessageId ist die SMTP-Message-Id der Mail (ohne spitze
+/// Klammern) - Aufrufer koennen sie persistieren, um spaetere Antworten ueber den
+/// In-Reply-To-Header zuzuordnen (Marketing-Posteingang). Delivered=false bedeutet:
+/// kein SMTP konfiguriert, die Mail wurde nur geloggt (LoggingEmailSender).
+/// </summary>
+public record EmailSendResult(bool Delivered, string MessageId);
+
+/// <summary>
 /// Abstraktion fuer den E-Mail-Versand. Implementierungen: SmtpEmailSender (produktiv),
 /// LoggingEmailSender (Fallback ohne SMTP-Konfiguration, loggt nur).
 /// </summary>
 public interface IEmailSender
 {
     /// <summary>Versendet die Mail; wirft bei Versand-Fehlern (Aufrufer entscheidet, ob das fatal ist).</summary>
-    Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default);
+    Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default);
 }

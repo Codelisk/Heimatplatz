@@ -16,6 +16,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Heimatplatz.Api.Features.Marketing.Contracts\Heimatplatz.Api.Features.Marketing.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Email\Heimatplatz.Api.Core.Email.csproj" />
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.AiConnectorClient\Heimatplatz.Api.Core.AiConnectorClient.csproj" />
     <!-- AdminAccessGuard (X-Admin-Key) wird mitgenutzt - gleiches Schutzmuster wie /api/admin -->

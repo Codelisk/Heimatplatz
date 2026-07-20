@@ -16,7 +16,7 @@ public class SmtpEmailSender(
     ILogger<SmtpEmailSender> logger
 ) : IEmailSender
 {
-    public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
+    public async Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         var opts = options.Value;
 
@@ -24,6 +24,11 @@ public class SmtpEmailSender(
         mime.From.Add(new MailboxAddress(opts.FromName, opts.FromAddress));
         mime.To.Add(MailboxAddress.Parse(message.ToAddress));
         mime.Subject = message.Subject;
+
+        // Message-Id vor dem Versand fixieren: geht so auf die Leitung und taucht in
+        // Antworten als In-Reply-To wieder auf (Reply-Zuordnung im Marketing-Posteingang).
+        var messageId = mime.MessageId ?? MimeKit.Utils.MimeUtils.GenerateMessageId();
+        mime.MessageId = messageId;
         mime.Body = new BodyBuilder
         {
             HtmlBody = message.HtmlBody,
@@ -45,5 +50,7 @@ public class SmtpEmailSender(
         await client.DisconnectAsync(quit: true, cancellationToken);
 
         logger.LogInformation("E-Mail \"{Subject}\" an {To} versendet.", message.Subject, message.ToAddress);
+
+        return new EmailSendResult(Delivered: true, MessageId: messageId);
     }
 }

@@ -1,4 +1,6 @@
 using Heimatplatz.Api.Core.AiConnectorClient.Configuration;
+using Heimatplatz.Api.Core.Data.Seeding.Configuration;
+using Heimatplatz.Api.Features.Marketing.Data.Seeding;
 using Heimatplatz.Api.Features.Marketing.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +20,7 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<MarketingOptions>(configuration.GetSection(MarketingOptions.SectionName));
         services.AddGeneratedServices();
+        services.AddSeeder<MarketingSeeder>();
 
         // E-Mail-Text-Provider je nach Konfiguration
         // (Mock = Dev-Platzhalter ohne KI, AiConnector = externer KI-Backend-Service)

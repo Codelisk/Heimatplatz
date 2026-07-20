@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using MimeKit.Utils;
 
 namespace Heimatplatz.Api.Core.Email;
 
@@ -8,13 +9,15 @@ namespace Heimatplatz.Api.Core.Email;
 /// </summary>
 public class LoggingEmailSender(ILogger<LoggingEmailSender> logger) : IEmailSender
 {
-    public Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
+    public Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         logger.LogWarning(
             "E-Mail-Versand nicht konfiguriert (Email__SmtpHost fehlt) - Mail wird NUR geloggt.\n" +
             "An: {To}\nBetreff: {Subject}\n{Body}",
             message.ToAddress, message.Subject, message.TextBody);
 
-        return Task.CompletedTask;
+        // Synthetische Message-Id, damit Aufrufer (Marketing-Versand-Historie) auch im
+        // Logging-Modus einen konsistenten Datensatz bekommen.
+        return Task.FromResult(new EmailSendResult(Delivered: false, MessageId: MimeUtils.GenerateMessageId()));
     }
 }

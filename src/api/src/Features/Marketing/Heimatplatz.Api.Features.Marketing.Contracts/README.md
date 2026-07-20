@@ -1,25 +1,37 @@
 # Heimatplatz.Api.Features.Marketing.Contracts
 
-Request/Response-Contracts des Marketing-Features (Intern-Bereich): KI-gestuetzte
-Erstellung und Versand von Marketing-E-Mails von `info@heimatplatz.at`.
+Request/Response-Contracts, DTOs und Enums des Marketing-Features (Intern-Bereich):
+KI-gestuetzte Marketing-E-Mails, Kontaktdatenbank (CRM), Versand-Historie,
+Posteingang und Auswertung.
 
 ## Contracts
 
-| Request | Response | Zweck |
-|---------|----------|-------|
-| `GenerateMarketingEmailRequest` | `GenerateMarketingEmailResponse` | E-Mail-Entwurf (Betreff + Text) aus Stichwoertern generieren (Provider Mock/AiConnector) |
-| `SendMarketingEmailRequest` | `SendMarketingEmailResponse` | Entwurf (ggf. nachbearbeitet) mit automatischer Signatur versenden |
+| Request | Zweck |
+|---------|-------|
+| `GenerateMarketingEmailRequest` | E-Mail-Entwurf (Betreff + Text) aus Stichwoertern generieren |
+| `SendMarketingEmailRequest` | Entwurf versenden; legt Kontakt an und speichert Historie |
+| `GetMarketingStatsRequest` | Dashboard-Kennzahlen (Funnel, Volumen, Antwortquote) |
+| `GetMarketingContactsRequest` | Kontaktliste (Suche/Filter/Paging) |
+| `SaveMarketingContactRequest` | Kontakt anlegen/bearbeiten (Upsert) |
+| `DeleteMarketingContactRequest` | Kontakt samt Historie loeschen (DSGVO) |
+| `GetMarketingContactDetailRequest` | Kontakt-Detail + Timeline |
+| `GetMarketingEmailsRequest` | Versand-Historie |
+| `GetMarketingInboxRequest` | Posteingang (mit gedrosseltem Auto-Sync) |
+| `SyncMarketingInboxRequest` | Manueller Postfach-Abruf |
+| `SetMarketingInboundReadRequest` | Gelesen-Markierung |
 
-Beide Requests werden vom `Heimatplatz.Api.Features.Marketing`-Projekt als
-`POST /api/admin/marketing/email/generate` bzw. `POST /api/admin/marketing/email/send`
-gemappt und sind ueber den `X-Admin-Key`-Header geschuetzt (siehe Admin-Feature).
+DTOs: `MarketingContactDto`, `MarketingEmailDto`, `MarketingInboundEmailDto`.
+Enums (`MarketingEnums.cs`): `MarketingContactType`, `MarketingContactStatus`,
+`MarketingEmailStatus` - serialisiert per globalem JsonStringEnumConverter als
+Enum-NAMEN-Strings; das Web vergleicht Strings, nie Zahlen.
 
 ## Design-Hinweise
 
-- Alle Parameter liegen im Body (kein Route-Parameter), damit das Binding der
-  generierten Shiny.Mediator-Endpoints eindeutig ist.
-- Die Empfaenger-E-Mail-Adresse wird nur beim Versand verwendet und bewusst nicht
-  an die KI-Generierung uebergeben.
+- Schreibende Requests liegen komplett im Body (kein Route-Parameter), damit das
+  Binding der generierten Shiny.Mediator-Endpoints eindeutig ist (Ausnahme:
+  `DELETE /contacts/{Id}` nach dem Muster des Admin-Features).
+- Listen-Filter (Status/Typ) sind bewusst `string` statt Enum, damit das
+  Query-Binding robust bleibt (leer = kein Filter).
 - Fehler werden als `Success=false` + `Error`-Text zurueckgegeben (Anzeige im
   Intern-Bereich), nicht als HTTP-Fehlercodes.
 

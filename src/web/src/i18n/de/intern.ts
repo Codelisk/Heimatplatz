@@ -147,4 +147,132 @@ export const intern = {
   "intern.marketingValidationDraft": "Betreff und E-Mail-Text dürfen nicht leer sein.",
   "intern.marketingApiUnreachable":
     "API nicht erreichbar oder ADMIN_API_KEY fehlt.",
+  "intern.marketingSentContactLink": "Zum Kontakt",
+
+  // Marketing-Dashboard (/intern/marketing)
+  "intern.marketingDashIntro":
+    "Marketing-Zentrale: E-Mails mit KI-Text erstellen und versenden, Rückmeldungen sammeln und die Kontaktdatenbank potentieller Kunden pflegen.",
+  "intern.marketingStatsHeading": "Auswertung",
+  "intern.marketingStatsContacts": "Kontakte gesamt",
+  "intern.marketingStatsLeads": "Leads",
+  "intern.marketingStatsContacted": "Kontaktiert",
+  "intern.marketingStatsReplied": "Antwort erhalten",
+  "intern.marketingStatsInterested": "Interessiert",
+  "intern.marketingStatsCustomers": "Kunden",
+  "intern.marketingStatsEmails30": "Mails (30 Tage)",
+  "intern.marketingStatsEmailsTotal": "Mails gesamt",
+  "intern.marketingStatsReplies30": "Antworten (30 Tage)",
+  "intern.marketingStatsUnread": "Ungelesen",
+  "intern.marketingStatsReplyRate": "Antwortquote",
+  "intern.marketingNavCompose": "E-Mail schreiben",
+  "intern.marketingNavComposeDescription":
+    "Stichwörter eingeben, Text per KI generieren, prüfen und von info@heimatplatz.at versenden.",
+  "intern.marketingNavInbox": "Posteingang",
+  "intern.marketingNavInboxDescription":
+    "Rückmeldungen auf Marketing-Mails und Nachrichten bekannter Kontakte.",
+  "intern.marketingNavContacts": "Kontakte",
+  "intern.marketingNavContactsDescription":
+    "Kontaktdatenbank potentieller Kunden: Makler, Hausverwaltungen, Gemeinden, Partner.",
+  "intern.marketingNavSent": "Gesendet",
+  "intern.marketingNavSentDescription": "Versand-Historie aller Marketing-E-Mails.",
+  "intern.marketingUnreadBadge": "{count} neu",
+
+  // Kontakte (/intern/marketing/kontakte)
+  "intern.mkContactsMetaTitle": "Intern – Marketing-Kontakte",
+  "intern.mkContactsTitle": "Kontakte",
+  "intern.mkContactsIntro":
+    "Potentielle Kunden und Partner. Beim Versand einer Marketing-Mail wird der Empfänger automatisch hier angelegt.",
+  "intern.mkContactsSearchPlaceholder": "E-Mail, Name oder Firma suchen …",
+  "intern.mkContactsFilterStatusAll": "Alle Status",
+  "intern.mkContactsFilterTypeAll": "Alle Typen",
+  "intern.mkContactsEmpty": "Keine Kontakte gefunden.",
+  "intern.mkContactsLoadFailed":
+    "Kontakte konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  "intern.mkContactsTotal": "{count} Kontakte",
+  "intern.mkContactsNewHeading": "Neuen Kontakt anlegen",
+  "intern.mkContactColContact": "Kontakt",
+  "intern.mkContactColStatus": "Status",
+  "intern.mkContactColLastContact": "Letzter Kontakt",
+  "intern.mkContactColActivity": "Mails / Antworten",
+  "intern.mkContactDetail": "Detail",
+  "intern.mkContactWrite": "E-Mail schreiben",
+  "intern.mkContactSavedOk": "Kontakt wurde gespeichert.",
+  "intern.mkContactDeletedOk": "Kontakt wurde gelöscht.",
+  "intern.mkContactActionFailed": "Aktion fehlgeschlagen: {error}",
+  "intern.mkContactConfirmDelete":
+    "Diesen Kontakt samt Versand-Historie und Rückmeldungen endgültig löschen?",
+
+  // Kontakt-Formular
+  "intern.mkFieldEmail": "E-Mail",
+  "intern.mkFieldName": "Name",
+  "intern.mkFieldCompany": "Firma",
+  "intern.mkFieldPhone": "Telefon",
+  "intern.mkFieldType": "Typ",
+  "intern.mkFieldStatus": "Status",
+  "intern.mkFieldNotes": "Notizen",
+  "intern.mkSave": "Speichern",
+  "intern.mkDelete": "Löschen",
+
+  // Kontakt-Detail (/intern/marketing/kontakte/detail)
+  "intern.mkDetailMetaTitle": "Intern – Kontakt",
+  "intern.mkDetailNotFound": "Kontakt wurde nicht gefunden.",
+  "intern.mkDetailTimelineHeading": "Verlauf",
+  "intern.mkDetailTimelineEmpty": "Noch keine E-Mails oder Rückmeldungen.",
+  "intern.mkDetailSentPrefix": "Gesendet:",
+  "intern.mkDetailReplyPrefix": "Antwort:",
+  "intern.mkDetailSource": "Quelle",
+  "intern.mkDetailCreated": "Angelegt",
+
+  // Kontakt-Typen (MarketingContactType, API liefert Enum-Namen als Text)
+  "intern.mkTypeUnknown": "Unbekannt",
+  "intern.mkTypeBroker": "Makler",
+  "intern.mkTypePropertyManager": "Hausverwaltung",
+  "intern.mkTypePrivateSeller": "Privatverkäufer",
+  "intern.mkTypeMunicipality": "Gemeinde",
+  "intern.mkTypePartner": "Partner",
+  "intern.mkTypeOther": "Sonstige",
+
+  // Kontakt-Status (MarketingContactStatus)
+  "intern.mkStatusLead": "Lead",
+  "intern.mkStatusContacted": "Kontaktiert",
+  "intern.mkStatusReplied": "Antwort erhalten",
+  "intern.mkStatusInterested": "Interessiert",
+  "intern.mkStatusCustomer": "Kunde",
+  "intern.mkStatusNotInterested": "Kein Interesse",
+  "intern.mkStatusDoNotContact": "Nicht kontaktieren",
+
+  // Gesendet (/intern/marketing/gesendet)
+  "intern.mkSentMetaTitle": "Intern – Gesendete Mails",
+  "intern.mkSentTitle": "Gesendet",
+  "intern.mkSentIntro": "Versand-Historie aller Marketing-E-Mails, neueste zuerst.",
+  "intern.mkSentEmpty": "Noch keine E-Mails versendet.",
+  "intern.mkSentLoadFailed":
+    "Versand-Historie konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  "intern.mkSentTotal": "{count} E-Mails",
+  "intern.mkSentBadgeLoggedOnly": "Nur geloggt",
+  "intern.mkSentReplies": "{count} Antwort(en)",
+  "intern.mkSentShowBody": "Text anzeigen",
+
+  // Posteingang (/intern/marketing/eingang)
+  "intern.mkInboxMetaTitle": "Intern – Posteingang",
+  "intern.mkInboxTitle": "Posteingang",
+  "intern.mkInboxIntro":
+    "Rückmeldungen auf Marketing-Mails und Nachrichten bekannter Kontakte aus info@heimatplatz.at. Beim Öffnen wird das Postfach automatisch abgerufen (max. alle 5 Minuten).",
+  "intern.mkInboxEmpty": "Keine Rückmeldungen vorhanden.",
+  "intern.mkInboxLoadFailed":
+    "Posteingang konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  "intern.mkInboxTotal": "{count} Rückmeldungen",
+  "intern.mkInboxSyncNow": "Jetzt abrufen",
+  "intern.mkInboxSyncOk": "Postfach abgerufen: {count} neue Rückmeldung(en).",
+  "intern.mkInboxSyncFailed": "Abruf fehlgeschlagen: {error}",
+  "intern.mkInboxNotConfigured":
+    "Postfach-Abruf nicht konfiguriert (EMAIL_SMTP_* fehlt) – es werden nur bereits gespeicherte Rückmeldungen angezeigt.",
+  "intern.mkInboxFilterAll": "Alle",
+  "intern.mkInboxFilterUnread": "Nur ungelesene",
+  "intern.mkInboxBadgeUnread": "Neu",
+  "intern.mkInboxRepliedTo": "Antwort auf: {subject}",
+  "intern.mkInboxMarkRead": "Als gelesen markieren",
+  "intern.mkInboxMarkUnread": "Als ungelesen markieren",
+  "intern.mkInboxShowBody": "Nachricht anzeigen",
+  "intern.mkInboxReadOk": "Markierung aktualisiert.",
 } as const;

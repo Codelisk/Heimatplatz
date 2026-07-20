@@ -1,0 +1,182 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import MarketingContactForm from "@/components/intern/MarketingContactForm.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import { adminApiGet, type MarketingContactDetail } from "@/lib/server/admin-api";
+import {
+  contactStatusBadgeClass,
+  contactStatusLabel,
+  contactTypeLabel,
+  formatInternDate,
+} from "@/lib/intern/marketing-labels";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+// Kontakt-Detail: Stammdaten bearbeiten + Timeline (gesendet/empfangen).
+
+const id = Astro.url.searchParams.get("id") ?? "";
+const action = Astro.url.searchParams.get("action");
+const actionError = Astro.url.searchParams.get("error");
+
+const detail = id
+  ? await adminApiGet<MarketingContactDetail>(
+      `/api/admin/marketing/contacts/detail?Id=${encodeURIComponent(id)}`,
+    )
+  : null;
+const contact = detail?.Contact ?? null;
+
+// Timeline: gesendete Mails + Rueckmeldungen zusammenfuehren, neueste zuerst
+type TimelineEntry = {
+  kind: "sent" | "reply";
+  date: string;
+  subject: string;
+  body: string;
+  badge?: string;
+};
+const timeline: TimelineEntry[] = [
+  ...(detail?.Emails ?? []).map((email) => ({
+    kind: "sent" as const,
+    date: email.SentAt,
+    subject: email.Subject,
+    body: email.Body,
+    badge: email.Status === "LoggedOnly" ? t("intern.mkSentBadgeLoggedOnly") : undefined,
+  })),
+  ...(detail?.Replies ?? []).map((reply) => ({
+    kind: "reply" as const,
+    date: reply.ReceivedAt,
+    subject: reply.Subject ?? "",
+    body: reply.BodyText ?? "",
+  })),
+].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+function composeLink(email: string, name: string | null) {
+  const params = new URLSearchParams({ email });
+  if (name) params.set("name", name);
+  return `/intern/marketing/schreiben/?${params}`;
+}
+---
+
+<BaseLayout
+  title={t("intern.mkDetailMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/marketing/kontakte/detail/"
+  noindex
+>
+  <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/intern/marketing/" class="hover:underline">{t("intern.marketingTitle")}</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/intern/marketing/kontakte/" class="hover:underline">{t("intern.mkContactsTitle")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{contact?.Name ?? contact?.Email ?? "?"}</span>
+    </nav>
+
+    {action === "saved" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkContactSavedOk")}
+      </div>
+    )}
+    {action === "failed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkContactActionFailed", { error: actionError ?? "?" })}
+      </div>
+    )}
+
+    {!contact && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkDetailNotFound")}
+      </div>
+    )}
+
+    {contact && (
+      <>
+        <div class="mt-2 flex flex-wrap items-center gap-3">
+          <h1 class="text-3xl font-bold">{contact.Name ?? contact.Email}</h1>
+          <span
+            class={`rounded-full px-2 py-0.5 text-xs font-medium ${contactStatusBadgeClass(contact.Status)}`}
+          >
+            {contactStatusLabel(contact.Status)}
+          </span>
+        </div>
+        <p class="mt-2 text-sm text-muted-foreground">
+          {contact.Email} · {contactTypeLabel(contact.ContactType)}
+          {contact.Source && ` · ${t("intern.mkDetailSource")}: ${contact.Source}`}
+          {` · ${t("intern.mkDetailCreated")}: ${formatInternDate(contact.CreatedAt)}`}
+        </p>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href={composeLink(contact.Email, contact.Name)}>
+            <Button type="button" variant="default">{t("intern.mkContactWrite")}</Button>
+          </a>
+          <form
+            method="POST"
+            action="/intern/marketing/kontakte/delete"
+            data-confirm={t("intern.mkContactConfirmDelete")}
+          >
+            <input type="hidden" name="id" value={contact.Id} />
+            <Button type="submit" variant="outline">{t("intern.mkDelete")}</Button>
+          </form>
+        </div>
+
+        <section class="mt-8 rounded-lg border border-border bg-card p-5">
+          <h2 class="text-base font-semibold">{t("intern.mkContactsTitle")}</h2>
+          <div class="mt-4">
+            <MarketingContactForm contact={contact} redirect="detail" />
+          </div>
+        </section>
+
+        <section class="mt-8 rounded-lg border border-border bg-card">
+          <h2 class="border-b border-border px-5 py-3 text-base font-semibold">
+            {t("intern.mkDetailTimelineHeading")}
+          </h2>
+
+          {timeline.length === 0 ? (
+            <p class="px-5 py-6 text-sm text-muted-foreground">
+              {t("intern.mkDetailTimelineEmpty")}
+            </p>
+          ) : (
+            <ul class="divide-y divide-border">
+              {timeline.map((entry) => (
+                <li class="px-5 py-4">
+                  <p class="text-xs text-muted-foreground">
+                    {entry.kind === "sent"
+                      ? t("intern.mkDetailSentPrefix")
+                      : t("intern.mkDetailReplyPrefix")}{" "}
+                    {formatInternDate(entry.date)}
+                    {entry.badge && (
+                      <span class="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                        {entry.badge}
+                      </span>
+                    )}
+                  </p>
+                  <p class="mt-1 font-medium">{entry.subject}</p>
+                  {entry.body && (
+                    <details class="mt-1">
+                      <summary class="cursor-pointer text-sm text-muted-foreground">
+                        {entry.kind === "sent"
+                          ? t("intern.mkSentShowBody")
+                          : t("intern.mkInboxShowBody")}
+                      </summary>
+                      <p class="mt-2 whitespace-pre-wrap text-sm">{entry.body}</p>
+                    </details>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </>
+    )}
+  </section>
+</BaseLayout>
+
+<script>
+  // Loeschen nur nach Rueckfrage - der Text kommt aus data-confirm (i18n, SSR-gerendert)
+  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-confirm]")) {
+    form.addEventListener("submit", (event) => {
+      if (!window.confirm(form.dataset.confirm ?? "")) event.preventDefault();
+    });
+  }
+</script>

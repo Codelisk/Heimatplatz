@@ -1766,6 +1766,37 @@
         }
       }
     },
+    "/api/admin/marketing/contacts/{Id}": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "DeleteMarketingContact",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteMarketingContactResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/email/generate": {
       "post": {
         "tags": [
@@ -1796,6 +1827,268 @@
         }
       }
     },
+    "/api/admin/marketing/contacts/detail": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingContactDetail",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingContactDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/contacts": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingContacts",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ContactType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingContactsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/emails": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingEmails",
+        "parameters": [
+          {
+            "name": "ContactId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingEmailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/inbox": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingInbox",
+        "parameters": [
+          {
+            "name": "UnreadOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingInboxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/stats": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingStats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/contacts/save": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SaveMarketingContact",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMarketingContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveMarketingContactResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/email/send": {
       "post": {
         "tags": [
@@ -1819,6 +2112,66 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SendMarketingEmailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/inbox/read": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SetMarketingInboundRead",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMarketingInboundReadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetMarketingInboundReadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/inbox/sync": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SyncMarketingInbox",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncMarketingInboxRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncMarketingInboxResponse"
                 }
               }
             }
@@ -3020,6 +3373,17 @@
           }
         }
       },
+      "DeleteMarketingContactResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          }
+        }
+      },
       "DeletePropertyDraftResponse": {
         "required": [
           "Success"
@@ -3904,6 +4268,309 @@
             "items": {
               "$ref": "#/components/schemas/FederalProvinceDto"
             }
+          }
+        }
+      },
+      "GetMarketingContactDetailResponse": {
+        "required": [
+          "Contact",
+          "Emails",
+          "Replies"
+        ],
+        "type": "object",
+        "properties": {
+          "Contact": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactDto"
+              }
+            ]
+          },
+          "Emails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingEmailDto"
+            }
+          },
+          "Replies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingInboundEmailDto"
+            }
+          }
+        }
+      },
+      "GetMarketingContactsResponse": {
+        "required": [
+          "Contacts",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "Contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingContactDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GetMarketingEmailsResponse": {
+        "required": [
+          "Emails",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "Emails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingEmailDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GetMarketingInboxResponse": {
+        "required": [
+          "Items",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore",
+          "ImapConfigured",
+          "SyncError"
+        ],
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingInboundEmailDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
+          },
+          "ImapConfigured": {
+            "type": "boolean"
+          },
+          "SyncError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GetMarketingStatsResponse": {
+        "required": [
+          "TotalContacts",
+          "Leads",
+          "Contacted",
+          "Replied",
+          "Interested",
+          "Customers",
+          "NotInterested",
+          "EmailsSentTotal",
+          "EmailsSent30Days",
+          "RepliesTotal",
+          "Replies30Days",
+          "UnreadReplies",
+          "ReplyRatePercent"
+        ],
+        "type": "object",
+        "properties": {
+          "TotalContacts": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Leads": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Contacted": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Replied": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Interested": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Customers": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "NotInterested": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "EmailsSentTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "EmailsSent30Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "RepliesTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Replies30Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "UnreadReplies": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ReplyRatePercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -5091,6 +5758,269 @@
           }
         }
       },
+      "MarketingContactDto": {
+        "required": [
+          "Id",
+          "Email",
+          "Name",
+          "Company",
+          "Phone",
+          "ContactType",
+          "Status",
+          "Notes",
+          "Source",
+          "LastContactedAt",
+          "LastReplyAt",
+          "CreatedAt",
+          "EmailCount",
+          "ReplyCount"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Company": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ContactType": {
+            "$ref": "#/components/schemas/MarketingContactType"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/MarketingContactStatus"
+          },
+          "Notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LastContactedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "LastReplyAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "EmailCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ReplyCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MarketingContactStatus": {
+        "enum": [
+          "Lead",
+          "Contacted",
+          "Replied",
+          "Interested",
+          "Customer",
+          "NotInterested",
+          "DoNotContact"
+        ]
+      },
+      "MarketingContactType": {
+        "enum": [
+          "Unknown",
+          "Broker",
+          "PropertyManager",
+          "PrivateSeller",
+          "Municipality",
+          "Partner",
+          "Other"
+        ]
+      },
+      "MarketingEmailDto": {
+        "required": [
+          "Id",
+          "ContactId",
+          "ContactEmail",
+          "ContactName",
+          "Subject",
+          "Body",
+          "Keywords",
+          "Status",
+          "SentAt",
+          "ReplyCount"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ContactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ContactEmail": {
+            "type": "string"
+          },
+          "ContactName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Body": {
+            "type": "string"
+          },
+          "Keywords": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Status": {
+            "$ref": "#/components/schemas/MarketingEmailStatus"
+          },
+          "SentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ReplyCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MarketingEmailStatus": {
+        "enum": [
+          "Sent",
+          "LoggedOnly"
+        ]
+      },
+      "MarketingInboundEmailDto": {
+        "required": [
+          "Id",
+          "ContactId",
+          "ContactName",
+          "FromAddress",
+          "FromName",
+          "Subject",
+          "BodyText",
+          "ReceivedAt",
+          "IsRead",
+          "RepliedToEmailId",
+          "RepliedToSubject"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ContactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "ContactName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "FromAddress": {
+            "type": "string"
+          },
+          "FromName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "BodyText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ReceivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "IsRead": {
+            "type": "boolean"
+          },
+          "RepliedToEmailId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "RepliedToSubject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "MunicipalityDto": {
         "required": [
           "Id",
@@ -6007,6 +6937,87 @@
           }
         }
       },
+      "SaveMarketingContactRequest": {
+        "required": [
+          "Id",
+          "Email",
+          "Name",
+          "Company",
+          "Phone",
+          "ContactType",
+          "Status",
+          "Notes"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Company": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ContactType": {
+            "$ref": "#/components/schemas/MarketingContactType"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/MarketingContactStatus"
+          },
+          "Notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SaveMarketingContactResponse": {
+        "required": [
+          "Success",
+          "Id",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SavePropertyDraftRequest": {
         "type": "object",
         "properties": {
@@ -6193,6 +7204,18 @@
           },
           "Body": {
             "type": "string"
+          },
+          "RecipientName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Keywords": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -6215,6 +7238,13 @@
               "null",
               "string"
             ]
+          },
+          "ContactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -6285,6 +7315,33 @@
           }
         }
       },
+      "SetMarketingInboundReadRequest": {
+        "required": [
+          "Id",
+          "IsRead"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IsRead": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SetMarketingInboundReadResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          }
+        }
+      },
       "SetPropertyVisibilityRequest": {
         "required": [
           "Id",
@@ -6313,6 +7370,36 @@
           },
           "IsHidden": {
             "type": "boolean"
+          }
+        }
+      },
+      "SyncMarketingInboxRequest": {
+        "type": "object"
+      },
+      "SyncMarketingInboxResponse": {
+        "required": [
+          "Success",
+          "Added",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Added": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

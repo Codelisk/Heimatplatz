@@ -6,7 +6,8 @@ import { t } from "@/i18n";
 /**
  * Proxy fuer den E-Mail-Versand: nimmt den (ggf. nachbearbeiteten) Entwurf entgegen
  * und ruft POST /api/admin/marketing/email/send mit dem serverseitigen
- * ADMIN_API_KEY auf. Die Signatur haengt die API an - hier geht nur der Fliesstext hin.
+ * ADMIN_API_KEY auf. Die Signatur haengt die API an; Name/Stichwoerter gehen mit,
+ * damit die API den Kontakt anlegt und den Versand in der Historie speichert.
  */
 export const POST: APIRoute = async ({ request }) => {
   const blocked = rejectCrossSite(request);
@@ -15,6 +16,9 @@ export const POST: APIRoute = async ({ request }) => {
   const payload = await request.json().catch(() => null);
   const recipientEmail =
     typeof payload?.recipientEmail === "string" ? payload.recipientEmail.trim() : "";
+  const recipientName =
+    typeof payload?.recipientName === "string" ? payload.recipientName.trim() : "";
+  const keywords = typeof payload?.keywords === "string" ? payload.keywords.trim() : "";
   const subject = typeof payload?.subject === "string" ? payload.subject.trim() : "";
   const body = typeof payload?.body === "string" ? payload.body.trim() : "";
 
@@ -29,6 +33,8 @@ export const POST: APIRoute = async ({ request }) => {
     RecipientEmail: recipientEmail,
     Subject: subject,
     Body: body,
+    RecipientName: recipientName || null,
+    Keywords: keywords || null,
   });
 
   if (!result) {
@@ -39,6 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
     ok: result.Success,
     smtpConfigured: result.SmtpConfigured,
     error: result.Error,
+    contactId: result.ContactId,
   });
 };
 
