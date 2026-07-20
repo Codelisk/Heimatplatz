@@ -1,1 +1,2 @@
-• Fehlerbehebungen und Verbesserungen
+• Hell- und Dunkelmodus jetzt im Profil umschaltbar
+• Kleinere Fehlerbehebungen und Verbesserungen
