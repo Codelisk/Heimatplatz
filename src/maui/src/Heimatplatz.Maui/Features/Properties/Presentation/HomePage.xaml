@@ -21,25 +21,28 @@
             <HorizontalStackLayout Spacing="10"
                                    HorizontalOptions="Start"
                                    VerticalOptions="Center">
-                <!-- Die Zeilenbox wird im HStack zentriert, die Versalien sitzen aber
-                     ~6px TIEFER als die Boxmitte (SansBold hat viel Oberraum, kein
-                     Unterlaengen-Raum genutzt). Ohne Ausgleich wirkt der Schriftzug
-                     tiefer als Hamburger und Flagge. Unterrand-Margin hebt die Box an,
-                     bis die Cap-Height auf einer Linie mit dem Hamburger liegt. -->
+                <!-- Androids Label-Zeilenbox hat bei SansBold deutlich mehr Oberraum
+                     als Unterraum. Eine asymmetrische Margin ist hier ungeeignet: Sie
+                     vergroessert die gemessene HStack-Hoehe und verschiebt den Text beim
+                     Zentrieren nur um die halbe Margin. Die minimale vertikale Skalierung
+                     macht die sichtbare Versalien-Hoehe gerade (34px wie der Hamburger),
+                     TranslationY legt danach beide Pixelmitten exakt uebereinander. -->
                 <Label Text="HEIMATPLATZ"
                        FontFamily="SansBold"
                        FontSize="17"
                        CharacterSpacing="4"
                        VerticalOptions="Center"
                        VerticalTextAlignment="Center"
-                       Margin="0,0,0,4"
+                       ScaleY="{OnPlatform Android=1.03, Default=1}"
+                       TranslationY="{OnPlatform Android=-3, Default=0}"
                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                <!-- Flagge liegt bereits auf Hamburger-Hoehe (HStack-Mitte = Toolbar-Mitte);
-                     das 1px hebt sie optisch auf die Cap-Height des angehobenen Wordmarks -->
-                <appcontrols:FlagBand WidthRequest="21"
-                                      HeightRequest="14"
+                <!-- Gerade Rastermasse bei weiterhin exaktem 3:2-Flaggenverhaeltnis:
+                     Rahmen, Farbflaeche und Hamburger teilen dadurch dieselbe
+                     halbe Pixelmitte; Translation gleicht nur die Toolbar-Optik aus. -->
+                <appcontrols:FlagBand WidthRequest="{OnPlatform Android=21.6, Default=21}"
+                                      HeightRequest="{OnPlatform Android=14.4, Default=14}"
                                       VerticalOptions="Center"
-                                      Margin="0,0,0,1" />
+                                      TranslationY="{OnPlatform Android=-0.94, Default=0}" />
             </HorizontalStackLayout>
         </Grid>
     </Shell.TitleView>
