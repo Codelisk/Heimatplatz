@@ -49,6 +49,17 @@ export const intern = {
   "intern.syncExplainer":
     "Holt die aktuelle Ediktsliste (Oberösterreich) von edikte.justiz.gv.at, aktualisiert die Zwangsversteigerungen und leitet daraus Immobilien-Inserate ab. Läuft nicht automatisch - nur bei manuellem Auslösen hier.",
 
+  // WKO-Firmen-Sync
+  "intern.wkoSyncHeading": "WKO-Firmen-Sync (Immobilienbranche OÖ)",
+  "intern.wkoSyncTriggered":
+    "WKO-Sync wurde gestartet und läuft im Hintergrund (mehrere Suchbegriffe mit Verzögerung pro Request - beim ersten Lauf mit allen Detailseiten kann das 30-60 Minuten dauern, danach nur noch wenige Minuten). Lade diese Seite später neu, um das Ergebnis zu sehen.",
+  "intern.wkoSyncFailed": "WKO-Sync konnte nicht gestartet werden. Ist die API erreichbar?",
+  "intern.wkoActiveCompanies": "Aktive Firmen",
+  "intern.wkoRemovedCompanies": "Nicht mehr gelistet",
+  "intern.wkoStartSync": "WKO-Sync jetzt starten",
+  "intern.wkoSyncExplainer":
+    "Durchsucht firmen.wko.at nach Immobilien-Firmen in Oberösterreich (Makler, Treuhänder, Verwaltung, Büro) und speichert Kontaktdaten, Firmendaten und Gewerbeberechtigungen. Bereits bekannte Firmen werden beim erneuten Lauf übersprungen - nur neue Firmen werden voll gescraped. Läuft nicht automatisch - nur bei manuellem Auslösen hier.",
+
   // Nutzerverwaltung (/intern/nutzer)
   "intern.usersMetaTitle": "Intern – Nutzer",
   "intern.usersTitle": "Nutzer",

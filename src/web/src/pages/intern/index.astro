@@ -16,6 +16,12 @@ type SyncStatus = {
   TotalChanges: number;
 };
 
+type WkoSyncStatus = {
+  LastSyncAt: string | null;
+  TotalActiveCompanies: number;
+  TotalRemovedCompanies: number;
+};
+
 async function fetchSyncStatus(): Promise<SyncStatus | null> {
   try {
     const response = await fetch(new URL("/api/foreclosure-auctions/sync/status", getServerApiBaseUrl()));
@@ -26,12 +32,25 @@ async function fetchSyncStatus(): Promise<SyncStatus | null> {
   }
 }
 
-const [status, stats] = await Promise.all([
+async function fetchWkoSyncStatus(): Promise<WkoSyncStatus | null> {
+  try {
+    const response = await fetch(new URL("/api/wko-companies/sync/status", getServerApiBaseUrl()));
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+const [status, wkoStatus, stats] = await Promise.all([
   fetchSyncStatus(),
+  fetchWkoSyncStatus(),
   adminApiGet<AdminStats>("/api/admin/stats"),
 ]);
 const triggered = Astro.url.searchParams.get("triggered") === "1";
 const triggerFailed = Astro.url.searchParams.get("triggered") === "0";
+const wkoTriggered = Astro.url.searchParams.get("wkoTriggered") === "1";
+const wkoTriggerFailed = Astro.url.searchParams.get("wkoTriggered") === "0";
 
 function formatDate(value: string | null) {
   if (!value) return t("intern.never");
@@ -74,6 +93,16 @@ const statEntries = stats
     {triggerFailed && (
       <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
         {t("intern.syncFailed")}
+      </div>
+    )}
+    {wkoTriggered && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.wkoSyncTriggered")}
+      </div>
+    )}
+    {wkoTriggerFailed && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.wkoSyncFailed")}
       </div>
     )}
 
@@ -156,6 +185,37 @@ const statEntries = stats
 
       <p class="mt-3 text-xs leading-5 text-muted-foreground">
         {t("intern.syncExplainer")}
+      </p>
+    </section>
+
+    <section class="mt-8 rounded-lg border border-border bg-card p-5">
+      <h2 class="text-base font-semibold">{t("intern.wkoSyncHeading")}</h2>
+
+      {wkoStatus ? (
+        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <dt class="text-muted-foreground">{t("intern.lastSync")}</dt>
+            <dd class="font-medium">{formatDate(wkoStatus.LastSyncAt)}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">{t("intern.wkoActiveCompanies")}</dt>
+            <dd class="font-medium">{wkoStatus.TotalActiveCompanies}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">{t("intern.wkoRemovedCompanies")}</dt>
+            <dd class="font-medium">{wkoStatus.TotalRemovedCompanies}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p class="mt-4 text-sm text-muted-foreground">{t("intern.statusLoadFailed")}</p>
+      )}
+
+      <form method="POST" action="/intern/wko-sync" class="mt-6">
+        <Button type="submit" variant="default">{t("intern.wkoStartSync")}</Button>
+      </form>
+
+      <p class="mt-3 text-xs leading-5 text-muted-foreground">
+        {t("intern.wkoSyncExplainer")}
       </p>
     </section>
   </section>

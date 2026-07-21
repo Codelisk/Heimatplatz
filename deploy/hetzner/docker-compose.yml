@@ -45,6 +45,8 @@ services:
       # Shared-Key fuer den manuellen Edikte-Sync-Trigger (X-Sync-Key-Header,
       # siehe TriggerForeclosureAuctionSyncHandler). Ohne Key ist der Endpoint gesperrt.
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      # Gleicher Key fuer den WKO-Firmen-Sync (TriggerWkoCompanySyncHandler)
+      WkoCompanies__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       # Shared-Key fuer die /api/admin-Endpoints des Intern-Bereichs (X-Admin-Key-Header,
       # siehe AdminAccessGuard). Ohne Key sind die Endpoints gesperrt (fail-closed).
       Admin__ApiKey: ${ADMIN_API_KEY:-}
@@ -90,6 +92,7 @@ services:
       Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
       Email__FrontendBaseUrl: https://${WEB_TEST_DOMAIN}
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      WkoCompanies__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       Admin__ApiKey: ${ADMIN_API_KEY:-}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
