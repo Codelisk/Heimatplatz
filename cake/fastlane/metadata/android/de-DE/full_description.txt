@@ -4,7 +4,7 @@ IMMOBILIEN ENTDECKEN
 Durchsuche aktuelle Angebote aus ganz Oberösterreich. Filtere nach Immobilientyp, Ort und Zeitraum. Sortiere nach Preis, Fläche oder Aktualität – und finde genau das, was zu dir passt.
 
 ZWANGSVERSTEIGERUNGEN
-Heimatplatz zeigt dir aktuelle Versteigerungen aus der österreichischen Ediktsdatei. Mit Schätzwert, Mindestgebot, Versteigerungstermin und Gerichtsinformationen hast du alle Details auf einen Blick.
+Auf Wunsch zeigt dir Heimatplatz aktuelle Versteigerungen aus der österreichischen Ediktsdatei – einfach im Filter zuschalten. Mit Schätzwert, Mindestgebot, Versteigerungstermin und Gerichtsinformationen hast du alle Details auf einen Blick.
 
 PRIVAT ODER MAKLER
 Entscheide selbst: Filtere gezielt nach privaten Inseraten oder Angeboten von Maklern und Verwaltungen. Heimatplatz zeigt dir transparent, wer hinter jedem Inserat steht.

@@ -1,0 +1,4 @@
+• Zwangsversteigerungen sind jetzt standardmäßig ausgeblendet – im Filter jederzeit zuschaltbar
+• Benachrichtigungen werden zuverlässiger zugestellt
+• Feinschliff an Dunkelmodus und Filterleiste
+• Kleinere Fehlerbehebungen und Verbesserungen

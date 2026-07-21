@@ -1,0 +1,4 @@
+• Foreclosure auctions are now hidden by default – enable them in the filter any time
+• Notifications are delivered more reliably
+• Polish for dark mode and the filter bar
+• Minor bug fixes and improvements
