@@ -103,6 +103,15 @@ public class ThemeService : IThemeService
             _ => UIKit.UIUserInterfaceStyle.Unspecified
         };
 
+        // Beide Wege setzen: bei window.Created haengt das UIWindow u.U. noch nicht
+        // an der Scene (ConnectedScenes leer), dafuer existiert das PlatformView -
+        // spaeter (Activated/Theme-Wechsel) ist es garantiert ueber die Scenes da.
+        foreach (var mauiWindow in Application.Current?.Windows ?? [])
+        {
+            if (mauiWindow.Handler?.PlatformView is UIKit.UIWindow platformWindow)
+                platformWindow.OverrideUserInterfaceStyle = style;
+        }
+
         foreach (var scene in UIKit.UIApplication.SharedApplication.ConnectedScenes)
         {
             if (scene is UIKit.UIWindowScene windowScene)

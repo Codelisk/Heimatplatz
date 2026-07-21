@@ -38,8 +38,11 @@ public partial class App : Application
 
         // Beim Initialize im App-Konstruktor existiert das native Window noch nicht -
         // erzwungenes Hell/Dunkel hier nachziehen (Android: Systemleisten,
-        // iOS: OverrideUserInterfaceStyle fuer System-Flaechen wie Pull-to-Refresh)
+        // iOS: OverrideUserInterfaceStyle fuer System-Flaechen wie Pull-to-Refresh).
+        // Activated zusaetzlich, weil bei Created auf iOS das UIWindow noch nicht
+        // zuverlaessig an der Scene haengt - Apply ist idempotent.
         window.Created += (_, _) => _theme.Apply();
+        window.Activated += (_, _) => _theme.Apply();
 
         return window;
     }
