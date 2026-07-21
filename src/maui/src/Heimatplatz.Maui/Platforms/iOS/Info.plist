@@ -73,6 +73,13 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 
+	<!-- iOS 26 "Liquid Glass" abschalten: legt sonst runde Glas-Kapseln hinter jeden
+	     Navbar-Button (Hamburger/Zurueck/Filter) und passt nicht zum flachen App-Design.
+	     ACHTUNG: Uebergangs-Schluessel - Apple ignoriert ihn ab dem uebernaechsten
+	     SDK (Xcode 27); dann braucht es echtes Liquid-Glass-Styling. -->
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
+
 	<!-- Deep Link URL Schema -->
 	<key>CFBundleURLTypes</key>
 	<array>
