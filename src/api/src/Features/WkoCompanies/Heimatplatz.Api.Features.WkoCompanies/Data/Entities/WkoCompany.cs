@@ -54,8 +54,15 @@ public class WkoCompany : BaseEntity
     /// <summary>Rechtsform (z.B. GmbH, e.U.)</summary>
     public string? LegalForm { get; set; }
 
-    /// <summary>Gruendungsjahr</summary>
+    /// <summary>Gruendungsjahr (aus dem "Ueber uns"-Freitext, z.B. "2014 gegruendet")</summary>
     public int? FoundedYear { get; set; }
+
+    /// <summary>
+    /// Gruendungsdatum: fruehestes "Seit"-Datum aller Gewerbeberechtigungen. Laut WKO-Hinweis
+    /// "kann vom Gruendungsdatum abweichen" - praeziser ist auf firmen.wko.at nichts verfuegbar.
+    /// Grundlage fuer inkrementelle Abfragen (GetWkoCompaniesRequest.FoundedFrom).
+    /// </summary>
+    public DateTimeOffset? FoundedDate { get; set; }
 
     /// <summary>Ob die Firma als Lehrbetrieb ausgezeichnet ist</summary>
     public bool IsTrainingCompany { get; set; }

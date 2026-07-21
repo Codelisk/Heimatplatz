@@ -11,4 +11,7 @@ public record WkoCompanyPermit
     public string? Description { get; init; }
     public string? ManagingDirector { get; init; }
     public string? GisaNumber { get; init; }
+
+    /// <summary>"Seit"-Datum der Berechtigung (WKO: "kann vom Gruendungsdatum abweichen")</summary>
+    public DateTimeOffset? Since { get; init; }
 }

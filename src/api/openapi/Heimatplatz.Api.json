@@ -2801,6 +2801,22 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "FoundedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "FirstSeenFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "responses": {
@@ -8459,6 +8475,13 @@
             ],
             "format": "int32"
           },
+          "FoundedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
           "IsTrainingCompany": {
             "type": "boolean"
           },
@@ -8537,6 +8560,13 @@
               "null",
               "string"
             ]
+          },
+          "Since": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       }

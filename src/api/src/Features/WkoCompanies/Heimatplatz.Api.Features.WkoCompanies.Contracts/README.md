@@ -30,6 +30,8 @@ Anwendung ausgetauscht werden.
 - `PostalCode`: Nach Postleitzahl filtern
 - `SearchText`: Volltextsuche über Name/Kategorie
 - `IsActive`: Nur aktive (noch auf firmen.wko.at gelistete) Firmen
+- `FoundedFrom`: Nur Firmen mit Gründungsdatum (frühestes Berechtigungs-"Seit"-Datum) ab X
+- `FirstSeenFrom`: Nur Firmen, die ab Zeitpunkt X erstmals gescraped wurden
 
 ## Abhängigkeiten
 

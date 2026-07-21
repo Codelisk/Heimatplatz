@@ -40,6 +40,14 @@ public class GetWkoCompaniesHandler(AppDbContext dbContext)
         if (request.IsActive.HasValue)
             query = query.Where(c => c.IsActive == request.IsActive.Value);
 
+        // Inkrementelle Abfragen: "alle Firmen ab Datum X" - wahlweise nach Gruendungsdatum
+        // (FoundedDate, fruehestes Berechtigungs-Datum) oder nach Scrape-Zeitpunkt (FirstSeenAt).
+        if (request.FoundedFrom.HasValue)
+            query = query.Where(c => c.FoundedDate >= request.FoundedFrom.Value);
+
+        if (request.FirstSeenFrom.HasValue)
+            query = query.Where(c => c.FirstSeenAt >= request.FirstSeenFrom.Value);
+
         var page = Math.Max(request.Page, 1);
         var pageSize = Math.Clamp(request.PageSize, 1, MaxPageSize);
 
@@ -79,13 +87,15 @@ public class GetWkoCompaniesHandler(AppDbContext dbContext)
         Gln = c.Gln,
         LegalForm = c.LegalForm,
         FoundedYear = c.FoundedYear,
+        FoundedDate = c.FoundedDate,
         IsTrainingCompany = c.IsTrainingCompany,
         Permits = c.Permits.Select(p => new WkoCompanyPermitDto
         {
             FachgruppeName = p.FachgruppeName,
             Description = p.Description,
             ManagingDirector = p.ManagingDirector,
-            GisaNumber = p.GisaNumber
+            GisaNumber = p.GisaNumber,
+            Since = p.Since
         }).ToList(),
         CreatedAt = c.CreatedAt,
         WkoFirmaId = c.WkoFirmaId,

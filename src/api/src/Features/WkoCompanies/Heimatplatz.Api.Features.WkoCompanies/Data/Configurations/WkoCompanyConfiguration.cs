@@ -88,5 +88,6 @@ public class WkoCompanyConfiguration : IEntityTypeConfiguration<WkoCompany>
         builder.HasIndex(c => c.PostalCode);
         builder.HasIndex(c => c.IsActive);
         builder.HasIndex(c => c.CreatedAt);
+        builder.HasIndex(c => c.FoundedDate);
     }
 }

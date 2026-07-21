@@ -41,6 +41,16 @@ public class WkoScrapingOptions
     ];
 
     /// <summary>
+    /// Inkrementeller Modus (Default): Firmen, deren WKO-Firmaid bereits in der Datenbank
+    /// steht, bekommen beim erneuten Sync KEINEN Detailseiten-Request mehr - nur neue Firmen
+    /// werden voll gescraped, Bestandsfirmen werden lediglich als "weiterhin gelistet"
+    /// markiert (LastScrapedAt/Reaktivierung). Spart bei ~1000+ Treffern fast alle Requests.
+    /// false = jeder Lauf laedt alle Detailseiten neu und aktualisiert geaenderte Firmen
+    /// (Content-Hash) - gelegentlich sinnvoll, um Kontaktdaten-Aenderungen nachzuziehen.
+    /// </summary>
+    public bool SkipDetailsForKnownCompanies { get; set; } = true;
+
+    /// <summary>
     /// Intervall des automatischen Hintergrund-Syncs (WkoCompanySyncWorker) in Stunden.
     /// 0 oder negativ (Default) deaktiviert die automatische Ausfuehrung - der Sync wird
     /// bewusst nur manuell ausgeloest (analog ForeclosureAuctions).

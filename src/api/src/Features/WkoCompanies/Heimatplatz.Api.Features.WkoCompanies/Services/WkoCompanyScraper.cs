@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
@@ -146,7 +147,9 @@ public partial class WkoCompanyScraper(
                     FachgruppeName = card.QuerySelector(".card-heading")?.TextContent.Trim(),
                     Description = hiddenFields.GetValueOrDefault("Gewerbewortlaut"),
                     ManagingDirector = hiddenFields.GetValueOrDefault("Gewerberechtliche Geschäftsführung")?.Trim(),
-                    GisaNumber = hiddenFields.GetValueOrDefault("GISA-Zahl")
+                    GisaNumber = hiddenFields.GetValueOrDefault("GISA-Zahl"),
+                    // "Datum" im versteckten Detail-Block: "Seit 28.10.2016 (kann vom Gruendungsdatum abweichen)"
+                    Since = ParseGermanDate(hiddenFields.GetValueOrDefault("Datum"))
                 };
             })
             .ToList();
@@ -318,6 +321,34 @@ public partial class WkoCompanyScraper(
         return result;
     }
 
+    // WKO nennt nur einen Kalendertag, keine Uhrzeit. Auf Wiener MITTAG verankern statt
+    // Mitternacht (Mitternacht Wien = 22:00 UTC des Vortags), damit der Kalendertag in
+    // jeder Anzeige-Zeitzone stabil bleibt - gleiches Muster wie ParsePublicationDate
+    // im ForeclosureAuctionSyncService.
+    private static readonly TimeZoneInfo ViennaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna");
+
+    private static DateTimeOffset? ParseGermanDate(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+
+        var match = GermanDatePattern().Match(text);
+        if (!match.Success) return null;
+
+        if (!DateTime.TryParseExact(
+            match.Groups[1].Value,
+            "d.M.yyyy", // d/M matchen beim Parsen ein- UND zweistellig
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var localDate))
+        {
+            return null;
+        }
+
+        var viennaNoon = localDate.Date.AddHours(12);
+        var utc = TimeZoneInfo.ConvertTimeToUtc(viennaNoon, ViennaTimeZone);
+        return new DateTimeOffset(utc, TimeSpan.Zero);
+    }
+
     private static Guid? ExtractFirmaId(string? href)
     {
         if (string.IsNullOrEmpty(href)) return null;
@@ -347,4 +378,7 @@ public partial class WkoCompanyScraper(
 
     [GeneratedRegex(@"^Öffnungszeiten:\s*", RegexOptions.IgnoreCase)]
     private static partial Regex OpeningHoursPrefixPattern();
+
+    [GeneratedRegex(@"(\d{1,2}\.\d{1,2}\.\d{4})")]
+    private static partial Regex GermanDatePattern();
 }

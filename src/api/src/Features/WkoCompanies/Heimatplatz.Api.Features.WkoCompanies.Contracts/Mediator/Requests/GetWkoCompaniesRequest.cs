@@ -11,7 +11,9 @@ public record GetWkoCompaniesRequest(
     string? City = null,
     string? PostalCode = null,
     string? SearchText = null,
-    bool? IsActive = null
+    bool? IsActive = null,
+    DateTimeOffset? FoundedFrom = null,
+    DateTimeOffset? FirstSeenFrom = null
 ) : IRequest<GetWkoCompaniesResponse>;
 
 /// <summary>
@@ -34,6 +36,9 @@ public record WkoCompanyPermitDto
     public string? Description { get; init; }
     public string? ManagingDirector { get; init; }
     public string? GisaNumber { get; init; }
+
+    /// <summary>"Seit"-Datum der Berechtigung (WKO: "kann vom Gruendungsdatum abweichen")</summary>
+    public DateTimeOffset? Since { get; init; }
 }
 
 /// <summary>
@@ -62,6 +67,10 @@ public record WkoCompanyDto
     public string? Gln { get; init; }
     public string? LegalForm { get; init; }
     public int? FoundedYear { get; init; }
+
+    /// <summary>Fruehestes "Seit"-Datum der Gewerbeberechtigungen (Gruendungsdatum-Naeherung)</summary>
+    public DateTimeOffset? FoundedDate { get; init; }
+
     public bool IsTrainingCompany { get; init; }
 
     public List<WkoCompanyPermitDto> Permits { get; init; } = [];

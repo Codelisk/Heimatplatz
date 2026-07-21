@@ -29,6 +29,13 @@ Firmenbuchnummer, Rechtsform, Gruendungsjahr und Gewerbeberechtigungen.
 - **Change-Detection**: SHA256-Content-Hash wie bei `ForeclosureAuctions` - unveraenderte
   Firmen werden nicht neu geschrieben, verschwundene Firmen werden soft-deleted
   (`IsActive=false`), keine Hard-Deletes
+- **Inkrementeller Sync (Default)**: bekannte Firmen (WKO-Firmaid bereits in der DB) bekommen
+  beim erneuten Lauf keinen Detailseiten-Request - nur neue Firmen werden voll gescraped
+  (`SkipDetailsForKnownCompanies`, s.u.)
+- **Gruendungsdatum**: `FoundedDate` = fruehestes "Seit"-Datum der Gewerbeberechtigungen
+  (WKO-Hinweis: "kann vom Gruendungsdatum abweichen"); abfragbar ueber den
+  `FoundedFrom`-Filter ("alle Firmen ab Datum X"), alternativ `FirstSeenFrom`
+  fuer "seit wann bei uns bekannt"
 - **Seeding**: 8 realistische (fiktive) Testeintraege fuer die lokale Entwicklung
 
 ## Datenmodell
@@ -69,6 +76,7 @@ Abschnitt `WkoCompanies:Scraping` (`WkoScrapingOptions`):
 | `Region` | `oberösterreich` | URL-Pfadsegment, wie von firmen.wko.at verwendet |
 | `BranchKeywords` | Immobilienmakler(in), Immobilientreuhänder(in), Immobilienverwaltung, Immobilienbüro | Suchbegriffe, ueber Firmaid dedupliziert |
 | `DelayBetweenRequestsMs` | `1500` | Rate-Limit zwischen JEDEM Request (Pagination UND Detailseiten) - firmen.wko.at antwortet bei zu dichten Requests mit HTTP 429 |
+| `SkipDetailsForKnownCompanies` | `true` | Inkrementeller Modus: nur NEUE Firmen bekommen einen Detailseiten-Request; `false` = jeder Lauf aktualisiert alle Firmen (Content-Hash) |
 | `MaxPagesPerKeyword` | `50` | Sicherheitsgrenze fuer die "Mehr laden"-Pagination pro Suchbegriff |
 | `SyncIntervalHours` | `0` (deaktiviert) | Optionaler automatischer Hintergrund-Sync |
 | `SyncTriggerKey` | - | Shared-Key fuer `POST /api/wko-companies/sync` (Header `X-Sync-Key`), fail-closed ausserhalb Development |

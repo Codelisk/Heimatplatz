@@ -87,6 +87,28 @@ public class WkoCompanySyncService(
             {
                 scrapedFirmaIds.Add(searchResult.WkoFirmaId);
 
+                // Inkrementeller Modus: bekannte Firmen NICHT erneut per Detailseite scrapen -
+                // nur den "weiterhin gelistet"-Stand nachziehen. Neue Firmen (unbekannte
+                // Firmaid) laufen weiter unten durch den vollen Detail-Fetch.
+                if (options.Value.SkipDetailsForKnownCompanies
+                    && existingCompanies.TryGetValue(searchResult.WkoFirmaId, out var known))
+                {
+                    known.LastScrapedAt = now;
+
+                    if (!known.IsActive)
+                    {
+                        known.IsActive = true;
+                        known.RemovedAt = null;
+                        updated++;
+                    }
+                    else
+                    {
+                        unchanged++;
+                    }
+
+                    continue;
+                }
+
                 var detail = await scraper.GetDetailAsync(searchResult.DetailUrl, ct);
                 var contentHash = ComputeContentHash(searchResult, detail);
 
@@ -188,6 +210,9 @@ public class WkoCompanySyncService(
         entity.Gln = detail.Gln;
         entity.LegalForm = detail.LegalForm;
         entity.FoundedYear = detail.FoundedYear;
+        // Fruehestes "Seit"-Datum der Berechtigungen als Gruendungsdatum-Naeherung
+        // (Min ueberspringt null-Werte und liefert null, wenn kein Datum vorhanden ist)
+        entity.FoundedDate = detail.Permits.Min(p => p.Since) ?? entity.FoundedDate;
         entity.IsTrainingCompany = searchResult.IsTrainingCompany;
         entity.Permits = detail.Permits;
     }
@@ -212,7 +237,7 @@ public class WkoCompanySyncService(
             ["LegalForm"] = detail.LegalForm ?? "",
             ["FoundedYear"] = detail.FoundedYear?.ToString() ?? "",
             ["IsTrainingCompany"] = searchResult.IsTrainingCompany.ToString(),
-            ["Permits"] = string.Join("|", detail.Permits.Select(p => $"{p.FachgruppeName}:{p.Description}:{p.ManagingDirector}:{p.GisaNumber}"))
+            ["Permits"] = string.Join("|", detail.Permits.Select(p => $"{p.FachgruppeName}:{p.Description}:{p.ManagingDirector}:{p.GisaNumber}:{p.Since:yyyy-MM-dd}"))
         };
 
         var content = string.Join("|", fields.Select(f => $"{f.Key}={f.Value}"));

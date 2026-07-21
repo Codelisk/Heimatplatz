@@ -1590,6 +1590,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<long?>("FirstSeenAt")
                         .HasColumnType("INTEGER");
 
+                    b.Property<long?>("FoundedDate")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("FoundedYear")
                         .HasColumnType("INTEGER");
 
@@ -1659,6 +1662,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.HasIndex("City");
 
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("FoundedDate");
 
                     b.HasIndex("IsActive");
 
