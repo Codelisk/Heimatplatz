@@ -85,7 +85,6 @@ export const home = {
   "card.sellerPrivate": "Privat",
   "card.sellerAgent": "Makler",
   "card.sellerManager": "Verwaltung",
-  "card.sellerPortal": "Portal",
 
   // Immobilien-Karten: Fakten
   "card.liveOffer": "Live-Angebot",

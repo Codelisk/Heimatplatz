@@ -56,7 +56,6 @@ export const common = {
   "filter.typeForeclosure": "ZV",
   "filter.sellerPrivate": "Privat",
   "filter.sellerAgent": "Makler",
-  "filter.sellerPortal": "Portal",
 
   "footer.tagline": "Immobilien in Oberösterreich – Häuser, Grundstücke, Zwangsversteigerungen.",
   "footer.legalAriaLabel": "Rechtliches",

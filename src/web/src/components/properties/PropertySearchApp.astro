@@ -254,7 +254,6 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const selected = [
       preferences.IsPrivateSelected !== false ? "private" : "",
       preferences.IsBrokerSelected !== false ? "agent" : "",
-      "court",
     ].filter(Boolean);
     return selected.length > 0 && selected.length < SELLER_VALUES.length ? selected.join(",") : "";
   }
@@ -393,10 +392,9 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
   function mapSellerLabel(property: ApiProperty) {
     if (property.Type === "Foreclosure") return t("card.sellerCourt");
     const sellerType = property.SellerType;
-    if (sellerType === "Private" || sellerType === 1) return t("card.sellerPrivate");
     if (sellerType === "Broker" || sellerType === 2) return t("card.sellerAgent");
     if (sellerType === "PropertyManager" || sellerType === 3) return t("card.sellerManager");
-    return t("card.sellerPortal");
+    return t("card.sellerPrivate");
   }
 
   function setLiveStatus(message: string, visible = true) {

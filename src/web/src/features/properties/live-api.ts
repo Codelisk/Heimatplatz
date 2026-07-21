@@ -172,18 +172,16 @@ export function getApiPropertyTypeSearchValue(type: string, property?: ApiProper
 }
 
 export function getApiSellerSearchValue(sellerType: string | number | null) {
-  if (sellerType === "Private" || sellerType === 1) return "private";
   // Gewerbliche Anbieter: Makler (2) und Hausverwaltung (3)
   if (sellerType === "Broker" || sellerType === 2) return "agent";
   if (sellerType === "PropertyManager" || sellerType === 3) return "agent";
-  return "court";
+  return "private";
 }
 
 export function getApiSellerLabel(sellerType: string | number | null) {
   if (sellerType === "PropertyManager" || sellerType === 3) return t("card.sellerManager");
-  if (getApiSellerSearchValue(sellerType) === "private") return t("card.sellerPrivate");
   if (getApiSellerSearchValue(sellerType) === "agent") return t("card.sellerAgent");
-  return t("card.sellerPortal");
+  return t("card.sellerPrivate");
 }
 
 // Kanonische Formatierung lebt in format.ts (client-sicher, keine

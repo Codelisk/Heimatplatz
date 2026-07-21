@@ -30,8 +30,8 @@ const { property } = Astro.props;
 const href = getApiPropertyPath(property);
 const typeSearchValue = getApiPropertyTypeSearchValue(property.Type, property);
 const sellerSearchValue = getApiSellerSearchValue(property.SellerType);
-// Zwangsversteigerungen kommen mit SellerType "court" - getApiSellerLabel liefert dafuer
-// "Portal", was hier nichtssagend ist. Wie auf der Detailseite: "Gericht".
+// Zwangsversteigerungen tragen den SellerType des ZV-Syncs (Broker) - hier
+// aussagekraeftiger wie auf der Detailseite: "Gericht".
 const sellerLabel = typeSearchValue === "foreclosure" ? t("card.sellerCourt") : getApiSellerLabel(property.SellerType);
 const area = getApiAreaValue(property);
 const imageUrl = getApiPropertyImage(property);

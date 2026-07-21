@@ -10,7 +10,7 @@
 export const SEARCH_PAGE_SIZE = 24;
 
 export const ALL_TYPES = ["house", "land", "foreclosure"] as const;
-export const ALL_SELLERS = ["private", "agent", "court"] as const;
+export const ALL_SELLERS = ["private", "agent"] as const;
 
 export type OrtSlugMap = Record<string, string[]>;
 
@@ -100,12 +100,9 @@ export function buildPropertySearchQuery(state: PropertySearchState, ortSlugMap:
   const sellers = [...new Set(state.sellers)].filter((seller) =>
     (ALL_SELLERS as readonly string[]).includes(seller));
   if (sellers.length > 0 && sellers.length < ALL_SELLERS.length) {
-    // "Portal" (court) = Inserate ohne zugeordneten Anbietertyp: der Enum-Wert 0
-    // ist kein definierter SellerType, JsonStringEnumConverter akzeptiert die Zahl.
-    const apiSellers: (string | number)[] = [];
+    const apiSellers: string[] = [];
     if (sellers.includes("private")) apiSellers.push("Private");
     if (sellers.includes("agent")) apiSellers.push("Broker", "PropertyManager");
-    if (sellers.includes("court")) apiSellers.push(0);
     params.set("SellerTypesJson", JSON.stringify(apiSellers));
   }
 
