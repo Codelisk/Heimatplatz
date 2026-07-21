@@ -54,7 +54,8 @@ public class GetMarketingInboxHandler(
             .Select(i => new MarketingInboundEmailDto(
                 i.Id, i.ContactId, i.Contact != null ? i.Contact.Name : null,
                 i.FromAddress, i.FromName, i.Subject, i.BodyText, i.ReceivedAt, i.IsRead,
-                i.MarketingEmailId, i.RepliedToEmail != null ? i.RepliedToEmail.Subject : null))
+                i.MarketingEmailId, i.RepliedToEmail != null ? i.RepliedToEmail.Subject : null,
+                i.IsBounce))
             .ToListAsync(cancellationToken);
 
         return new GetMarketingInboxResponse(

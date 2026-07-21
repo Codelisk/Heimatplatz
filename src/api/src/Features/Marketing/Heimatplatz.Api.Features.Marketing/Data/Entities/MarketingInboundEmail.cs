@@ -35,4 +35,12 @@ public class MarketingInboundEmail : BaseEntity
     public DateTimeOffset ReceivedAt { get; set; }
 
     public bool IsRead { get; set; }
+
+    /// <summary>
+    /// Unzustellbarkeits-Meldung (Bounce/NDR, z.B. von mailer-daemon) statt echter
+    /// Antwort. Bounces zaehlen nicht als Rueckmeldung des Kontakts und setzen den
+    /// Kontakt-Status NICHT auf Replied; die referenzierte Versand-Mail wird
+    /// stattdessen als DeliveryFailed markiert.
+    /// </summary>
+    public bool IsBounce { get; set; }
 }

@@ -40,6 +40,8 @@ public class MarketingInboundEmailConfiguration : IEntityTypeConfiguration<Marke
             .HasForeignKey(x => x.MarketingEmailId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.Property(x => x.IsBounce).IsRequired().HasDefaultValue(false);
+
         builder.HasIndex(x => x.ReceivedAt);
         builder.HasIndex(x => x.IsRead);
     }

@@ -108,7 +108,7 @@ export type MarketingContactStatus =
   | "NotInterested"
   | "DoNotContact";
 
-export type MarketingEmailStatus = "Sent" | "LoggedOnly";
+export type MarketingEmailStatus = "Sent" | "LoggedOnly" | "DeliveryFailed";
 
 export type MarketingStats = {
   TotalContacts: number;
@@ -184,6 +184,8 @@ export type MarketingInboundEmail = {
   IsRead: boolean;
   RepliedToEmailId: string | null;
   RepliedToSubject: string | null;
+  /** Unzustellbarkeits-Meldung (Bounce) statt echter Antwort */
+  IsBounce: boolean;
 };
 
 export type MarketingInboxPage = {

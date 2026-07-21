@@ -12,5 +12,6 @@ public record MarketingInboundEmailDto(
     DateTimeOffset ReceivedAt,
     bool IsRead,
     Guid? RepliedToEmailId,
-    string? RepliedToSubject
+    string? RepliedToSubject,
+    bool IsBounce
 );

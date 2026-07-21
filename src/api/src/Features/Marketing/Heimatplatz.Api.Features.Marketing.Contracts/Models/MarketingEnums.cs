@@ -34,9 +34,12 @@ public enum MarketingContactStatus
 /// <summary>Versand-Ergebnis einer Marketing-E-Mail.</summary>
 public enum MarketingEmailStatus
 {
-    /// <summary>Per SMTP versendet</summary>
+    /// <summary>Per SMTP versendet (vom Mailserver angenommen)</summary>
     Sent = 0,
 
     /// <summary>Kein SMTP konfiguriert - nur im Log ausgegeben, nicht zugestellt</summary>
-    LoggedOnly = 1
+    LoggedOnly = 1,
+
+    /// <summary>Unzustellbar: der Posteingang-Sync hat einen Bounce/NDR zugeordnet</summary>
+    DeliveryFailed = 2
 }

@@ -39,7 +39,8 @@ public class GetMarketingStatsHandler(
             byStatus.FirstOrDefault(x => x.Status == status)?.Count ?? 0;
 
         var emailsSentTotal = await emails.CountAsync(cancellationToken);
-        var emailsWithReply = await emails.CountAsync(e => e.Replies.Any(), cancellationToken);
+        // Bounces sind keine Antworten - weder fuer die Quote noch fuer die Zaehler
+        var emailsWithReply = await emails.CountAsync(e => e.Replies.Any(r => !r.IsBounce), cancellationToken);
 
         return new GetMarketingStatsResponse(
             TotalContacts: byStatus.Sum(x => x.Count),
@@ -51,8 +52,9 @@ public class GetMarketingStatsHandler(
             NotInterested: CountOf(MarketingContactStatus.NotInterested),
             EmailsSentTotal: emailsSentTotal,
             EmailsSent30Days: await emails.CountAsync(e => e.SentAt >= since30Days, cancellationToken),
-            RepliesTotal: await inbound.CountAsync(cancellationToken),
-            Replies30Days: await inbound.CountAsync(i => i.ReceivedAt >= since30Days, cancellationToken),
+            RepliesTotal: await inbound.CountAsync(i => !i.IsBounce, cancellationToken),
+            Replies30Days: await inbound.CountAsync(i => i.ReceivedAt >= since30Days && !i.IsBounce, cancellationToken),
+            // Ungelesen inkl. Bounces - auch die sollen auffallen
             UnreadReplies: await inbound.CountAsync(i => !i.IsRead, cancellationToken),
             ReplyRatePercent: emailsSentTotal > 0
                 ? (int)Math.Round(100.0 * emailsWithReply / emailsSentTotal)

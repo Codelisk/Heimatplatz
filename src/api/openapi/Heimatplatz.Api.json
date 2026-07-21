@@ -5942,7 +5942,8 @@
       "MarketingEmailStatus": {
         "enum": [
           "Sent",
-          "LoggedOnly"
+          "LoggedOnly",
+          "DeliveryFailed"
         ]
       },
       "MarketingInboundEmailDto": {
@@ -5957,7 +5958,8 @@
           "ReceivedAt",
           "IsRead",
           "RepliedToEmailId",
-          "RepliedToSubject"
+          "RepliedToSubject",
+          "IsBounce"
         ],
         "type": "object",
         "properties": {
@@ -6018,6 +6020,9 @@
               "null",
               "string"
             ]
+          },
+          "IsBounce": {
+            "type": "boolean"
           }
         }
       },

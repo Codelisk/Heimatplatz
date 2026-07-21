@@ -123,6 +123,11 @@ const backQuery = unreadOnly ? "unread" : "";
                       {t("intern.mkInboxBadgeUnread")}
                     </span>
                   )}
+                  {item.IsBounce && (
+                    <span class="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-900 dark:bg-red-900/40 dark:text-red-200">
+                      {t("intern.mkInboxBadgeBounce")}
+                    </span>
+                  )}
                   {item.ContactId ? (
                     <a
                       href={`/intern/marketing/kontakte/detail/?id=${item.ContactId}`}

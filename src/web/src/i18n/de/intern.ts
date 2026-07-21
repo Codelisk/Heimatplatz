@@ -250,6 +250,7 @@ export const intern = {
     "Versand-Historie konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
   "intern.mkSentTotal": "{count} E-Mails",
   "intern.mkSentBadgeLoggedOnly": "Nur geloggt",
+  "intern.mkSentBadgeFailed": "Zustellung fehlgeschlagen",
   "intern.mkSentReplies": "{count} Antwort(en)",
   "intern.mkSentShowBody": "Text anzeigen",
 
@@ -270,6 +271,7 @@ export const intern = {
   "intern.mkInboxFilterAll": "Alle",
   "intern.mkInboxFilterUnread": "Nur ungelesene",
   "intern.mkInboxBadgeUnread": "Neu",
+  "intern.mkInboxBadgeBounce": "Unzustellbar",
   "intern.mkInboxRepliedTo": "Antwort auf: {subject}",
   "intern.mkInboxMarkRead": "Als gelesen markieren",
   "intern.mkInboxMarkUnread": "Als ungelesen markieren",

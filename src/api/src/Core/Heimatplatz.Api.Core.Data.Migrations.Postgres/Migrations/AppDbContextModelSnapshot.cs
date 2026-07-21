@@ -773,6 +773,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<bool>("IsBounce")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 

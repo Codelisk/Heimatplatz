@@ -73,6 +73,11 @@ function pageLink(target: number) {
                       {t("intern.mkSentBadgeLoggedOnly")}
                     </span>
                   )}
+                  {email.Status === "DeliveryFailed" && (
+                    <span class="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-900 dark:bg-red-900/40 dark:text-red-200">
+                      {t("intern.mkSentBadgeFailed")}
+                    </span>
+                  )}
                   {email.ReplyCount > 0 && (
                     <span class="rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-900 dark:bg-green-900/40 dark:text-green-200">
                       {t("intern.mkSentReplies", { count: email.ReplyCount })}

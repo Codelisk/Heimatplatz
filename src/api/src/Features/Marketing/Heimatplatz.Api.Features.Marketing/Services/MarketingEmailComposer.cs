@@ -56,7 +56,9 @@ public class MarketingEmailComposer(IMediator mediator) : IMarketingEmailCompose
             </div>
             """;
 
-        return new EmailMessage(toAddress, subject.Trim(), html, text);
+        // Marketing-Mails sollen wie von Hand verschickt im Webmail (Gesendet-Ordner)
+        // auftauchen - Auth-Mails lassen das bewusst aus.
+        return new EmailMessage(toAddress, subject.Trim(), html, text, ArchiveToSentFolder: true);
     }
 
     private async Task<ImprintDto?> LoadImprintAsync(CancellationToken ct)

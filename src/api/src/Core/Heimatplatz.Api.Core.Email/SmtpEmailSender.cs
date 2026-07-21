@@ -1,3 +1,5 @@
+using MailKit;
+using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
@@ -51,6 +53,68 @@ public class SmtpEmailSender(
 
         logger.LogInformation("E-Mail \"{Subject}\" an {To} versendet.", message.Subject, message.ToAddress);
 
+        if (message.ArchiveToSentFolder && opts.IsImapConfigured)
+            await ArchiveToSentFolderAsync(mime, opts, cancellationToken);
+
         return new EmailSendResult(Delivered: true, MessageId: messageId);
+    }
+
+    /// <summary>
+    /// Legt die versendete Mail per IMAP-APPEND im Gesendet-Ordner ab, damit sie im
+    /// Webmail sichtbar ist. Fehler hier duerfen den Versand NICHT scheitern lassen -
+    /// die Mail ist bereits beim SMTP-Server, es geht nur noch um die Kopie.
+    /// </summary>
+    private async Task ArchiveToSentFolderAsync(MimeMessage mime, EmailOptions opts, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var imap = new ImapClient();
+            imap.Timeout = opts.TimeoutSeconds * 1000;
+
+            var socketOptions = opts.ImapPort == 993
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls;
+            await imap.ConnectAsync(opts.EffectiveImapHost, opts.ImapPort, socketOptions, cancellationToken);
+            await imap.AuthenticateAsync(opts.SmtpUsername, opts.SmtpPassword, cancellationToken);
+
+            var sent = ResolveSentFolder(imap);
+            if (sent is null)
+            {
+                logger.LogWarning("Gesendet-Ordner im Postfach nicht gefunden - Kopie der Mail an {To} nicht abgelegt.", mime.To);
+                return;
+            }
+
+            // Als gelesen markieren - die eigene gesendete Mail soll nicht "neu" wirken
+            await sent.AppendAsync(mime, MessageFlags.Seen, cancellationToken);
+            await imap.DisconnectAsync(quit: true, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Kopie in den Gesendet-Ordner fehlgeschlagen (Versand selbst war erfolgreich).");
+        }
+    }
+
+    /// <summary>
+    /// SPECIAL-USE-Ordner (\\Sent) bevorzugen; Fallback auf gaengige Ordnernamen,
+    /// falls der Server die Erweiterung nicht anbietet.
+    /// </summary>
+    private static IMailFolder? ResolveSentFolder(ImapClient imap)
+    {
+        try
+        {
+            var special = imap.GetFolder(SpecialFolder.Sent);
+            if (special is not null)
+                return special;
+        }
+        catch (NotSupportedException)
+        {
+            // Server ohne SPECIAL-USE/XLIST - unten per Namen suchen
+        }
+
+        string[] candidates = ["Sent", "Sent Items", "Sent Messages", "Gesendet", "Gesendete Elemente"];
+        var personal = imap.GetFolder(imap.PersonalNamespaces[0]);
+        return personal
+            .GetSubfolders(subscribedOnly: false)
+            .FirstOrDefault(f => candidates.Contains(f.Name, StringComparer.OrdinalIgnoreCase));
     }
 }

@@ -10,6 +10,7 @@ using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using Shiny;
 
 namespace Heimatplatz.Api.Features.Marketing.Services;
@@ -116,6 +117,7 @@ public class MarketingInboxSyncService(
 
         var added = 0;
         var updatedContacts = new Dictionary<Guid, MarketingContact>();
+        var updatedEmails = new Dictionary<Guid, MarketingEmail>();
 
         foreach (var summary in summaries)
         {
@@ -139,13 +141,23 @@ public class MarketingInboxSyncService(
             if (knownMessageIds.Contains(messageId))
                 continue;
 
-            // Zuordnung 1: Antwort auf eine versendete Marketing-Mail?
-            Guid? repliedToEmailId = null;
-            Guid? contactId = null;
+            var fromNormalized = from.Trim();
             var referencedIds = (summary.References ?? Enumerable.Empty<string>())
                 .Append(envelope.InReplyTo)
                 .Select(NormalizeMessageId)
-                .Where(id => id != null);
+                .Where(id => id != null)
+                .ToList();
+
+            // Bounce-Kandidat? (mailer-daemon/postmaster bzw. NDR-Betreff; nie von einer
+            // bekannten Kontakt-Adresse.) Endgueltig zaehlt nur, ob sich die Meldung einer
+            // VERSENDETEN Mail zuordnen laesst - fremde Bounces werden ignoriert.
+            var isKnownContactSender = contactsByEmail.TryGetValue(fromNormalized, out var senderContactId);
+            var isBounceCandidate = !isKnownContactSender && LooksLikeBounce(fromNormalized, envelope.Subject);
+
+            // Zuordnung 1: Reply-Header auf eine versendete Marketing-Mail?
+            Guid? repliedToEmailId = null;
+            Guid? contactId = null;
+            MimeMessage? mime = null;
             foreach (var refId in referencedIds)
             {
                 if (sentByMessageId.TryGetValue(refId!, out var sent))
@@ -156,15 +168,35 @@ public class MarketingInboxSyncService(
                 }
             }
 
-            // Zuordnung 2: Absender ist ein bekannter Kontakt?
-            if (contactId is null && contactsByEmail.TryGetValue(from.Trim(), out var byAddress))
-                contactId = byAddress;
+            // Viele NDRs setzen keine Reply-Header, haengen aber die Originalmail an -
+            // dort nach unseren Message-Ids suchen.
+            if (isBounceCandidate && repliedToEmailId is null)
+            {
+                mime = await inbox.GetMessageAsync(summary.UniqueId, ct);
+                var rawText = SafeMessageText(mime);
+                foreach (var (sentId, sent) in sentByMessageId)
+                {
+                    if (rawText.Contains(sentId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        repliedToEmailId = sent.Id;
+                        contactId = sent.ContactId;
+                        break;
+                    }
+                }
+            }
 
-            // Weder Antwort noch bekannter Kontakt -> gehoert nicht in den Marketing-Eingang
+            var isBounce = isBounceCandidate && repliedToEmailId is not null;
+
+            // Zuordnung 2 (nur echte Mails): Absender ist ein bekannter Kontakt?
+            if (!isBounce && contactId is null && isKnownContactSender)
+                contactId = senderContactId;
+
+            // Weder Antwort/Bounce zu unseren Mails noch bekannter Kontakt ->
+            // gehoert nicht in den Marketing-Eingang
             if (contactId is null)
                 continue;
 
-            var mime = await inbox.GetMessageAsync(summary.UniqueId, ct);
+            mime ??= await inbox.GetMessageAsync(summary.UniqueId, ct);
             var bodyText = mime.TextBody;
             if (string.IsNullOrWhiteSpace(bodyText) && !string.IsNullOrWhiteSpace(mime.HtmlBody))
                 bodyText = HtmlToPlainText(mime.HtmlBody);
@@ -176,17 +208,34 @@ public class MarketingInboxSyncService(
                 Id = Guid.NewGuid(),
                 ContactId = contactId,
                 MarketingEmailId = repliedToEmailId,
-                FromAddress = from.Trim(),
+                FromAddress = fromNormalized,
                 FromName = envelope.From?.Mailboxes?.FirstOrDefault()?.Name,
                 Subject = Truncate(envelope.Subject ?? "", 500),
                 BodyText = Truncate(bodyText?.Trim() ?? "", MaxBodyLength),
                 MessageId = messageId,
                 InReplyTo = NormalizeMessageId(envelope.InReplyTo),
                 ReceivedAt = receivedAt,
-                IsRead = false
+                IsRead = false,
+                IsBounce = isBounce
             });
             knownMessageIds.Add(messageId);
             added++;
+
+            if (isBounce)
+            {
+                // Versand-Mail als unzustellbar markieren; Kontakt-Status bleibt
+                // unangetastet (ein Bounce ist KEINE Antwort des Kontakts)
+                if (!updatedEmails.TryGetValue(repliedToEmailId!.Value, out var sentEmail))
+                {
+                    sentEmail = await dbContext.Set<MarketingEmail>()
+                        .FirstOrDefaultAsync(e => e.Id == repliedToEmailId, ct);
+                    if (sentEmail is not null)
+                        updatedEmails[repliedToEmailId.Value] = sentEmail;
+                }
+                if (sentEmail is { Status: MarketingEmailStatus.Sent })
+                    sentEmail.Status = MarketingEmailStatus.DeliveryFailed;
+                continue;
+            }
 
             // Kontakt-Status nachziehen (nur automatische Uebergaenge, nichts ueberschreiben,
             // was der Nutzer manuell weitergeschaltet hat)
@@ -212,6 +261,34 @@ public class MarketingInboxSyncService(
         logger.LogInformation("[Marketing] Posteingang-Sync abgeschlossen: {Added} neue Rückmeldung(en) aus {Total} geprüften Mails",
             added, summaries.Count);
         return added;
+    }
+
+    /// <summary>
+    /// Bounce-Kandidat anhand Absender/Betreff. Bewusst grosszuegig - die endgueltige
+    /// Einstufung verlangt zusaetzlich einen Treffer auf eine unserer Message-Ids.
+    /// </summary>
+    private static bool LooksLikeBounce(string fromAddress, string? subject) =>
+        fromAddress.StartsWith("mailer-daemon@", StringComparison.OrdinalIgnoreCase) ||
+        fromAddress.StartsWith("postmaster@", StringComparison.OrdinalIgnoreCase) ||
+        (subject is not null && Regex.IsMatch(subject,
+            "undeliver|delivery (status|failed|has failed)|returned to sender|failure notice|unzustellbar",
+            RegexOptions.IgnoreCase));
+
+    /// <summary>
+    /// Kompletter Mail-Text (inkl. angehaengter Originalmail) fuer die Message-Id-Suche
+    /// in Bounces; gekappt, damit Riesen-Mails den Sync nicht aufblasen.
+    /// </summary>
+    private static string SafeMessageText(MimeMessage mime)
+    {
+        try
+        {
+            var full = mime.ToString();
+            return full.Length <= 200_000 ? full : full[..200_000];
+        }
+        catch
+        {
+            return (mime.TextBody ?? "") + "\n" + (mime.HtmlBody ?? "");
+        }
     }
 
     /// <summary>Message-Ids vergleichbar machen: spitze Klammern/Whitespace entfernen.</summary>
