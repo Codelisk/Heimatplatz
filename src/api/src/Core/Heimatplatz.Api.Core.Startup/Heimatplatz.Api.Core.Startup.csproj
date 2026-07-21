@@ -45,6 +45,8 @@
     <ProjectReference Include="..\..\Features\PropertyDrafts\Heimatplatz.Api.Features.PropertyDrafts.Contracts\Heimatplatz.Api.Features.PropertyDrafts.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Telemetry\Heimatplatz.Api.Features.Telemetry\Heimatplatz.Api.Features.Telemetry.csproj" />
     <ProjectReference Include="..\..\Features\Telemetry\Heimatplatz.Api.Features.Telemetry.Contracts\Heimatplatz.Api.Features.Telemetry.Contracts.csproj" />
+    <ProjectReference Include="..\..\Features\WkoCompanies\Heimatplatz.Api.Features.WkoCompanies\Heimatplatz.Api.Features.WkoCompanies.csproj" />
+    <ProjectReference Include="..\..\Features\WkoCompanies\Heimatplatz.Api.Features.WkoCompanies.Contracts\Heimatplatz.Api.Features.WkoCompanies.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

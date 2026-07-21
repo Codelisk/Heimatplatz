@@ -1554,6 +1554,127 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.ToTable("TelemetrySpans", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.WkoCompanies.Data.Entities.WkoCompany", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CategoryText")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CompanyCourt")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("CompanyRegisterNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DetailUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTimeOffset?>("FirstSeenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("FoundedYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Gln")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsTrainingCompany")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastScrapedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LegalForm")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("OpeningHoursText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Permits")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phones")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTimeOffset?>("RemovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SourceSearchTerm")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Street")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("WkoFirmaId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("City");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("PostalCode");
+
+                    b.HasIndex("WkoFirmaId")
+                        .IsUnique();
+
+                    b.ToTable("WkoCompanies", (string)null);
+                });
+
             modelBuilder.Entity("TickerQ.Utilities.Entities.CronTickerEntity", b =>
                 {
                     b.Property<Guid>("Id")

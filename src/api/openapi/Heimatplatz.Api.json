@@ -2740,6 +2740,163 @@
           }
         }
       }
+    },
+    "/api/wko-companies": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetWkoCompanies",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SearchText",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWkoCompaniesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wko-companies/{Id}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetWkoCompanyById",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWkoCompanyByIdResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wko-companies/sync/status": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetWkoCompanySyncStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWkoCompanySyncStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wko-companies/sync": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "TriggerWkoCompanySync",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerWkoCompanySyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerWkoCompanySyncResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5176,6 +5333,87 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "GetWkoCompaniesResponse": {
+        "required": [
+          "Companies"
+        ],
+        "type": "object",
+        "properties": {
+          "Companies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WkoCompanyDto"
+            }
+          },
+          "TotalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "GetWkoCompanyByIdResponse": {
+        "type": "object",
+        "properties": {
+          "Company": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WkoCompanyDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetWkoCompanySyncStatusResponse": {
+        "type": "object",
+        "properties": {
+          "LastSyncAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "TotalActiveCompanies": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "TotalRemovedCompanies": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -7671,6 +7909,60 @@
           }
         }
       },
+      "TriggerWkoCompanySyncRequest": {
+        "type": "object"
+      },
+      "TriggerWkoCompanySyncResponse": {
+        "type": "object",
+        "properties": {
+          "Created": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Updated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Removed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Unchanged": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Errors": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ErrorMessages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "UnregisterDeviceRequest": {
         "required": [
           "DeviceToken",
@@ -8066,6 +8358,185 @@
           "AlreadyVerified": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "WkoCompanyDto": {
+        "required": [
+          "Id",
+          "Name",
+          "CreatedAt",
+          "WkoFirmaId",
+          "DetailUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "CategoryText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PostalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "City": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Website": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "OpeningHoursText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CompanyRegisterNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CompanyCourt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Gln": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LegalForm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "FoundedYear": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "IsTrainingCompany": {
+            "type": "boolean"
+          },
+          "Permits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WkoCompanyPermitDto"
+            }
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "WkoFirmaId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "DetailUrl": {
+            "type": "string"
+          },
+          "SourceSearchTerm": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "FirstSeenAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "LastScrapedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "RemovedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "WkoCompanyPermitDto": {
+        "type": "object",
+        "properties": {
+          "FachgruppeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ManagingDirector": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "GisaNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }
