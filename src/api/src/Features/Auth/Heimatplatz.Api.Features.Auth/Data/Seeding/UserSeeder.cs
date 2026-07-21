@@ -42,9 +42,9 @@ public class UserSeeder(
             new()
             {
                 Id = Guid.NewGuid(),
-                FirstName = "Max",
-                LastName = "Mustermann",
-                Email = "max.mustermann@example.com",
+                FirstName = "Franz",
+                LastName = "Huber",
+                Email = "franz.huber@example.com",
                 PasswordHash = testHash,
                 SellerType = SellerType.Private,
                 CreatedAt = now
@@ -104,10 +104,11 @@ public class UserSeeder(
                 // Login-User der Store-Screenshot-Pipelines (cake/appsettings.json
                 // Android:/iOS:Screenshots) - braucht SellerType für "Meine Immobilien",
                 // Favoriten kommen implizit (jeder User ist Käufer). Nicht entfernen!
+                // Name/E-Mail erscheinen im Profil-Screenshot, daher realistisch statt "Test Both".
                 Id = DebugBothId,
-                FirstName = "Test",
-                LastName = "Both",
-                Email = "test.both@heimatplatz.dev",
+                FirstName = "Max",
+                LastName = "Mustermann",
+                Email = "max.mustermann@heimatplatz.dev",
                 PasswordHash = testHash,
                 SellerType = SellerType.Private,
                 CreatedAt = now

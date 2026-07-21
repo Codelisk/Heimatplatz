@@ -22,7 +22,7 @@ const API_BASE = process.env.API_BASE_URL ?? "http://localhost:5292";
 const TEST_USERS = {
   buyer: { email: "test.buyer@heimatplatz.dev", password: "Test123!" },
   seller: { email: "test.seller@heimatplatz.dev", password: "Test123!" },
-  both: { email: "test.both@heimatplatz.dev", password: "Test123!" },
+  both: { email: "max.mustermann@heimatplatz.dev", password: "Test123!" },
 };
 
 // API responses use PascalCase

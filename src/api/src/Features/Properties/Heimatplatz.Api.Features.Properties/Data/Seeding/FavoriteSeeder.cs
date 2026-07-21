@@ -1,6 +1,7 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,9 +24,11 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
             return;
 
         // Jeder Benutzer ist implizit Käufer - Demo-Favoriten für alle
-        // Nicht-Admin-/Nicht-System-Konten anlegen
+        // Nicht-Admin-/Nicht-System-Konten anlegen. OrderBy: ohne stabile Reihenfolge
+        // wandert die Random-Sequenz pro Reset zwischen den Usern (GUIDs sind je Reset neu)
         var buyers = await dbContext.Set<User>()
             .Where(u => !u.IsAdmin && u.Email != "system@heimatplatz.at")
+            .OrderBy(u => u.Email)
             .Select(u => u.Id)
             .ToListAsync(cancellationToken);
 
@@ -53,6 +56,30 @@ public class FavoriteSeeder(AppDbContext dbContext) : ISeeder
         // Deterministischer Zufall: Store-Screenshots (Cake-Pipelines) sollen nach
         // jedem Test-DB-Reset dieselben Favoriten zeigen
         var random = new Random(20260718);
+
+        // Screenshot-User der Store-Pipelines: kuratierte statt zufällige Favoriten -
+        // die neuesten Häuser (Seed-Fotos!) ergeben ansprechende, stabile Store-Screenshots
+        var screenshotUserId = Heimatplatz.Api.Features.Auth.Data.Seeding.UserSeeder.DebugBothId;
+        if (buyers.Remove(screenshotUserId))
+        {
+            var curated = await dbContext.Set<Property>()
+                .Where(p => p.Type == PropertyType.House)
+                .OrderByDescending(p => p.CreatedAt).ThenBy(p => p.Id)
+                .Take(5)
+                .Select(p => p.Id)
+                .ToListAsync(cancellationToken);
+
+            for (var i = 0; i < curated.Count; i++)
+            {
+                favorites.Add(new Favorite
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = screenshotUserId,
+                    PropertyId = curated[i],
+                    CreatedAt = now.AddDays(-i)
+                });
+            }
+        }
 
         // Jedem Buyer 3-5 Favoriten geben
         foreach (var buyerId in buyers)

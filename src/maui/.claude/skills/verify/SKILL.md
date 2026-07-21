@@ -16,7 +16,7 @@ HEIMATPLATZ_API_URL="https://test-api.heimatplatz.at" ./Heimatplatz.Maui.exe &  
 maui devflow agent status    # Agent-Check (wait kann haengen, status reicht)
 ```
 
-Login-Zustand persistiert zwischen Starts (Shiny Stores). Seed-User: `test.seller@heimatplatz.dev` / `test.both@heimatplatz.dev`, Passwort `Test123!`.
+Login-Zustand persistiert zwischen Starts (Shiny Stores). Seed-User: `test.seller@heimatplatz.dev` / `max.mustermann@heimatplatz.dev` (Käufer+Verkäufer, Screenshot-User "Max Mustermann"), Passwort `Test123!`.
 
 ## DevFlow-Gotchas (Windows)
 
