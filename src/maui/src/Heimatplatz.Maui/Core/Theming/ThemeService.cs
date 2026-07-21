@@ -90,6 +90,27 @@ public class ThemeService : IThemeService
             insets.AppearanceLightStatusBars = !dark;
             insets.AppearanceLightNavigationBars = !dark;
         }
+#elif IOS || MACCATALYST
+        // MAUI reicht UserAppTheme nur an den gerade aktiven ViewController weiter -
+        // beim App-Start existiert der noch nicht. System-gezeichnete Flaechen
+        // (Pull-to-Refresh-Control, Navbar-Transluzenz, Tastatur, Alerts) folgen dann
+        // weiter dem GERAETE-Theme und erscheinen z.B. hell ueber der dunklen App.
+        // Deshalb das erzwungene Theme direkt auf alle nativen Fenster legen.
+        var style = Mode switch
+        {
+            AppThemeMode.Light => UIKit.UIUserInterfaceStyle.Light,
+            AppThemeMode.Dark => UIKit.UIUserInterfaceStyle.Dark,
+            _ => UIKit.UIUserInterfaceStyle.Unspecified
+        };
+
+        foreach (var scene in UIKit.UIApplication.SharedApplication.ConnectedScenes)
+        {
+            if (scene is UIKit.UIWindowScene windowScene)
+            {
+                foreach (var nativeWindow in windowScene.Windows)
+                    nativeWindow.OverrideUserInterfaceStyle = style;
+            }
+        }
 #endif
     }
 }

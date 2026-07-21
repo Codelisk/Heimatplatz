@@ -264,6 +264,13 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
     </Style>
 
+    <!-- iOS laesst die native UICollectionView transparent und mappt den RefreshView-
+         Hintergrund nur aufs UIRefreshControl - der Bounce-/Pull-to-Refresh-Bereich
+         zeigte daher die System-Flaeche (hell) statt des App-Hintergrunds. -->
+    <Style TargetType="CollectionView">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
+    </Style>
+
     <Style TargetType="SearchBar">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
         <Setter Property="PlaceholderColor" Value="{StaticResource Gray500}" />

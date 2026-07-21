@@ -8,6 +8,7 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 public partial class HomePage : ShinyContentPage
 {
     private bool _chipBarHidden;
+    private double? _chipBarAnimationTarget;
     private ToolbarItem? _filterToolbarItem;
     private HomeViewModel? _viewModel;
 
@@ -110,28 +111,73 @@ public partial class HomePage : ShinyContentPage
             ShowChipBar();
     }
 
-    private void ShowChipBar()
+    protected override void OnAppearing()
     {
-        if (!_chipBarHidden) return;
-        _chipBarHidden = false;
-        ToolbarItems.Remove(FilterToolbarItem);
-        FilterChipBarHost.IsVisible = true;
-        _ = FilterChipBar.TranslateToAsync(0, 0, 160, Easing.CubicOut);
+        base.OnAppearing();
+
+        // Selbstheilung: Wegnavigieren (z.B. Tap auf eine Karte) bricht eine laufende
+        // Slide-Animation ab und laesst die Zeile sonst halb verschoben stehen -
+        // auf iOS scheint sie dann verschwommen durch die transluzente Navbar und
+        // ist nicht mehr klickbar. Beim Zurueckkehren den Sollzustand neu anfahren.
+        TransitionChipBar(_chipBarHidden);
     }
 
-    private async void HideChipBar()
-    {
-        if (_chipBarHidden) return;
-        _chipBarHidden = true;
-        if (!ToolbarItems.Contains(FilterToolbarItem))
-            ToolbarItems.Add(FilterToolbarItem);
+    private void ShowChipBar() => TransitionChipBar(hide: false);
 
-        // WinUI clippt das Overlay nicht an der Navbar: ohne echtes Ausblenden bleibt
-        // die weggeschobene Zeile ueber der Navbar sichtbar. Nach dem Slide daher den
-        // Host verstecken - ausser ein zwischenzeitliches ShowChipBar hat die Animation
-        // abgebrochen (canceled) oder den Zustand schon zurueckgesetzt.
-        var canceled = await FilterChipBar.TranslateToAsync(0, -(FilterChipBar.Height + 8), 160, Easing.CubicIn);
-        if (!canceled && _chipBarHidden)
+    private void HideChipBar() => TransitionChipBar(hide: true);
+
+    /// <summary>
+    /// Faehrt die Chip-Zeile in den gewuenschten Zustand. Kein Fire-and-Forget:
+    /// der Endzustand wird nach der Animation hart gesetzt, ein gestrandeter
+    /// Zwischenstand (extern abgebrochene Animation) beim naechsten Aufruf erneut
+    /// animiert. Das Toolbar-Symbol wird erst nach abgeschlossenem Slide in die
+    /// Navbar gehaengt - Add/Remove baut die native Leiste um, waehrend Scroll und
+    /// Animation fuehrte das auf iOS zu eingefrorenen/unklickbaren Symbolen.
+    /// </summary>
+    private async void TransitionChipBar(bool hide)
+    {
+        // Host-Hoehe statt gemessener Hoehe: fix aus XAML (56) und damit auch vor
+        // dem ersten Layout-Pass gueltig.
+        var target = hide ? -(FilterChipBarHost.HeightRequest + 8) : 0d;
+
+        // Kein Neustart, wenn das Ziel erreicht ist oder eine Animation dorthin
+        // laeuft - Scrolled feuert am Listenanfang fuer jedes Delta erneut.
+        if (_chipBarHidden == hide &&
+            (_chipBarAnimationTarget == target ||
+             (_chipBarAnimationTarget is null && FilterChipBar.TranslationY == target)))
+            return;
+
+        _chipBarHidden = hide;
+        _chipBarAnimationTarget = target;
+
+        if (!hide)
+        {
+            ToolbarItems.Remove(FilterToolbarItem);
+            FilterChipBarHost.IsVisible = true;
+        }
+
+        var canceled = await FilterChipBar.TranslateToAsync(0, target, 160, hide ? Easing.CubicIn : Easing.CubicOut);
+
+        if (_chipBarAnimationTarget == target)
+            _chipBarAnimationTarget = null;
+
+        // Abgebrochen oder Sollzustand inzwischen gewechselt: der Nachfolger (bzw.
+        // die Selbstheilung beim naechsten Aufruf) uebernimmt.
+        if (canceled || _chipBarHidden != hide)
+            return;
+
+        // Endzustand festnageln - Animationsreste (Bruchpixel) machen die Zeile auf
+        // iOS unscharf.
+        FilterChipBar.TranslationY = target;
+
+        if (hide)
+        {
+            // WinUI clippt das Overlay nicht an der Navbar: ohne echtes Ausblenden
+            // bleibt die weggeschobene Zeile ueber der Navbar sichtbar.
             FilterChipBarHost.IsVisible = false;
+
+            if (!ToolbarItems.Contains(FilterToolbarItem))
+                ToolbarItems.Add(FilterToolbarItem);
+        }
     }
 }

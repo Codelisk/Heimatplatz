@@ -36,8 +36,9 @@ public partial class App : Application
         // beim Zurueckkehren sofort einen Delta-Sync anstossen
         window.Resumed += (_, _) => _startup.OnAppResumed();
 
-        // Android: beim Initialize im App-Konstruktor existiert das Activity-Window
-        // noch nicht - erzwungenes Hell/Dunkel hier auf die Systemleisten nachziehen
+        // Beim Initialize im App-Konstruktor existiert das native Window noch nicht -
+        // erzwungenes Hell/Dunkel hier nachziehen (Android: Systemleisten,
+        // iOS: OverrideUserInterfaceStyle fuer System-Flaechen wie Pull-to-Refresh)
         window.Created += (_, _) => _theme.Apply();
 
         return window;
