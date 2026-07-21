@@ -56,10 +56,19 @@ services:
       PushNotifications__WebPush__PublicKey: ${WEBPUSH_VAPID_PUBLIC_KEY:-}
       PushNotifications__WebPush__PrivateKey: ${WEBPUSH_VAPID_PRIVATE_KEY:-}
       PushNotifications__WebPush__Subject: ${WEBPUSH_VAPID_SUBJECT:-mailto:info@heimatplatz.at}
+      # APNs (iOS): .p8-Key liegt als Secret auf dem Server (nicht im Repo)
+      PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
+      PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
+      PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}
+      PushNotifications__Apns__PrivateKeyPath: /run/secrets/apns-auth-key.p8
+      # FCM (Android): Firebase-Service-Account (Projekt heimatplatz-b77ca) als Secret
+      PushNotifications__Firebase__ServiceAccountPath: /run/secrets/firebase-service-account.json
     volumes:
       # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
       # Container-Rebuilds ueberleben.
       - api_uploads:/app/wwwroot/uploads
+      - ./secrets/apns-auth-key.p8:/run/secrets/apns-auth-key.p8:ro
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     # Kein Host-Port-Mapping - nur ueber das interne Docker-Netzwerk via Caddy erreichbar.
     expose:
       - "8080"
@@ -98,12 +107,15 @@ services:
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}
       PushNotifications__Apns__PrivateKeyPath: /run/secrets/apns-auth-key.p8
+      # FCM (Android): gleicher Firebase-Service-Account wie Prod
+      PushNotifications__Firebase__ServiceAccountPath: /run/secrets/firebase-service-account.json
       # Web Push (VAPID): gleiches Schluesselpaar wie Prod, siehe Kommentar beim api-Service
       PushNotifications__WebPush__PublicKey: ${WEBPUSH_VAPID_PUBLIC_KEY:-}
       PushNotifications__WebPush__PrivateKey: ${WEBPUSH_VAPID_PRIVATE_KEY:-}
       PushNotifications__WebPush__Subject: ${WEBPUSH_VAPID_SUBJECT:-mailto:info@heimatplatz.at}
     volumes:
       - ./secrets/apns-auth-key.p8:/run/secrets/apns-auth-key.p8:ro
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
       - api_test_uploads:/app/wwwroot/uploads
     expose:
       - "8080"
