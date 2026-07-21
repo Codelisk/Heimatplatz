@@ -118,6 +118,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     ALL_SELLERS,
     ALL_TYPES,
     buildPropertySearchQuery,
+    DEFAULT_TYPES,
     normalizeTypeValue,
     SEARCH_PAGE_SIZE,
     type OrtSlugMap,
@@ -176,6 +177,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
   const mobileBody = document.querySelector<HTMLElement>("[data-mobile-filter-body]");
   const config = document.querySelector<HTMLElement>("[data-search-config]");
   const TYPE_VALUES: string[] = [...ALL_TYPES];
+  const DEFAULT_TYPE_VALUES: string[] = [...DEFAULT_TYPES];
   const SELLER_VALUES: string[] = [...ALL_SELLERS];
 
   // Slug -> MunicipalityIds, vom SSR eingebettet (gleiche Quelle wie der OrtPicker)
@@ -241,12 +243,16 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
   function getSelectedTypes(preferences: StoredFilterPreferences | null) {
     if (!preferences) return "";
+    // Zwangsversteigerungen nur bei explizitem Opt-in ("=== true"): fehlt der Wert
+    // in aelteren Praeferenzen, gilt der Standard (deaktiviert). Eine Voll-Auswahl
+    // wird bewusst NICHT auf "kein Filter" reduziert, sonst fiele sie auf den
+    // Default (ohne Zwangsversteigerungen) zurueck.
     const selected = [
       preferences.IsHausSelected !== false ? "house" : "",
       preferences.IsGrundstueckSelected !== false ? "land" : "",
-      preferences.IsZwangsversteigerungSelected !== false ? "foreclosure" : "",
+      preferences.IsZwangsversteigerungSelected === true ? "foreclosure" : "",
     ].filter(Boolean);
-    return selected.length > 0 && selected.length < TYPE_VALUES.length ? selected.join(",") : "";
+    return selected.join(",");
   }
 
   function getSelectedSellers(preferences: StoredFilterPreferences | null) {
@@ -316,7 +322,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
       .flatMap((value) => splitSelection(value, allowed));
   }
 
-  function initialSelection(name: string, presetValue: string, storedValue: string, allowed: string[]) {
+  function initialSelection(name: string, presetValue: string, storedValue: string, allowed: string[], fallback: string[] = allowed) {
     const queryValues = getQuerySelection(name, allowed);
     if (queryValues.length > 0) return queryValues;
 
@@ -326,12 +332,12 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const storedValues = splitSelection(storedValue, allowed);
     if (storedValues.length > 0) return storedValues;
 
-    return [...allowed];
+    return [...fallback];
   }
 
   const initial = {
     q: params.get("q") ?? preset.q,
-    types: initialSelection("type", preset.type, storedInitial.type, TYPE_VALUES),
+    types: initialSelection("type", preset.type, storedInitial.type, TYPE_VALUES, DEFAULT_TYPE_VALUES),
     sellers: initialSelection("seller", preset.seller, storedInitial.seller, SELLER_VALUES),
     age: initialValue("age", preset.age, storedInitial.age),
     sort: params.get("sort") ?? storedInitial.sort,
@@ -571,7 +577,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
   function getActiveTypes() {
     const values = Array.from(selectedTypes).filter((value) => TYPE_VALUES.includes(value));
-    return values.length > 0 ? values : [...TYPE_VALUES];
+    return values.length > 0 ? values : [...DEFAULT_TYPE_VALUES];
   }
 
   function getActiveSellers() {
@@ -642,8 +648,13 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
     const q = (input?.value ?? initial.q).trim();
     if (q) url.searchParams.set("q", q);
+    // Der type-Parameter entfaellt nur bei der Standard-Auswahl (ohne Zwangs-
+    // versteigerungen) - eine Voll-Auswahl muss explizit in der URL stehen,
+    // sonst wuerde SSR beim Reload/Teilen wieder den Default anwenden.
     const types = getActiveTypes();
-    if (types.length < TYPE_VALUES.length) url.searchParams.set("type", types.join(","));
+    const isDefaultTypes = types.length === DEFAULT_TYPE_VALUES.length
+      && DEFAULT_TYPE_VALUES.every((type) => types.includes(type));
+    if (!isDefaultTypes) url.searchParams.set("type", types.join(","));
     const sellers = getActiveSellers();
     if (sellers.length < SELLER_VALUES.length) url.searchParams.set("seller", sellers.join(","));
     if (selectedOrtSlugs.size > 0) url.searchParams.set("region", Array.from(selectedOrtSlugs).join(","));
@@ -772,7 +783,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
       if (typeof api === "function") api("region", []);
       setSelectValue(ageControls, "");
       selectedTypes.clear();
-      TYPE_VALUES.forEach((type) => selectedTypes.add(type));
+      DEFAULT_TYPE_VALUES.forEach((type) => selectedTypes.add(type));
       selectedSellers.clear();
       SELLER_VALUES.forEach((seller) => selectedSellers.add(seller));
       if (sort) sort.value = "newest";

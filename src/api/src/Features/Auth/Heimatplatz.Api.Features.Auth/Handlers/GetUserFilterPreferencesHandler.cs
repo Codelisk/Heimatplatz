@@ -41,7 +41,7 @@ public class GetUserFilterPreferencesHandler(
                 SelectedAgeFilter: 0,
                 IsHausSelected: true,
                 IsGrundstueckSelected: true,
-                IsZwangsversteigerungSelected: true,
+                IsZwangsversteigerungSelected: false,
                 IsPrivateSelected: true,
                 IsBrokerSelected: true,
                 ExcludedSellerSourceIds: [],

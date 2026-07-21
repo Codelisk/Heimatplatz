@@ -39,9 +39,9 @@ public class UserFilterPreferences : BaseEntity
     public bool IsGrundstueckSelected { get; set; } = true;
 
     /// <summary>
-    /// Ob Zwangsversteigerungen im Filter selektiert sind
+    /// Ob Zwangsversteigerungen im Filter selektiert sind (standardmaessig deaktiviert)
     /// </summary>
-    public bool IsZwangsversteigerungSelected { get; set; } = true;
+    public bool IsZwangsversteigerungSelected { get; set; }
 
     /// <summary>
     /// Whether private sellers are included in filter results

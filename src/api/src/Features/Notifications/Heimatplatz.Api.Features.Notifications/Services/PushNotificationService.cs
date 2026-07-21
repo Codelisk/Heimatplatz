@@ -161,9 +161,10 @@ public class PushNotificationService(
         PropertyType propertyType,
         SellerType sellerType)
     {
-        // If user has no saved filter preferences, match all (like default filter)
+        // If user has no saved filter preferences, match the default filter:
+        // Haus + Grundstueck, Zwangsversteigerungen sind standardmaessig deaktiviert
         if (filterPrefs == null)
-            return true;
+            return propertyType != PropertyType.Foreclosure;
 
         // Check location filter
         var selectedOrtes = JsonSerializer.Deserialize<List<string>>(filterPrefs.SelectedOrtesJson) ?? [];

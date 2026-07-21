@@ -19,14 +19,15 @@ public record FilterPreferencesDto(
 )
 {
     /// <summary>
-    /// Erstellt leere Standard-Filtereinstellungen (alle Typen selektiert)
+    /// Erstellt leere Standard-Filtereinstellungen (Haus + Grundstueck selektiert,
+    /// Zwangsversteigerungen standardmaessig deaktiviert - wie Web/API)
     /// </summary>
     public static FilterPreferencesDto Default => new(
         SelectedOrte: [],
         SelectedAgeFilter: AgeFilter.Alle,
         IsHausSelected: true,
         IsGrundstueckSelected: true,
-        IsZwangsversteigerungSelected: true,
+        IsZwangsversteigerungSelected: false,
         IsPrivateSelected: true,
         IsBrokerSelected: true,
         ExcludedSellerSourceIds: [],

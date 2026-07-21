@@ -10,6 +10,12 @@
 export const SEARCH_PAGE_SIZE = 24;
 
 export const ALL_TYPES = ["house", "land", "foreclosure"] as const;
+/**
+ * Standard-Typauswahl ohne URL-Parameter und ohne gespeicherte Praeferenzen:
+ * Zwangsversteigerungen sind standardmaessig deaktiviert und muessen aktiv
+ * dazugewaehlt werden (dann steht "foreclosure" explizit in URL/Praeferenzen).
+ */
+export const DEFAULT_TYPES = ["house", "land"] as const;
 export const ALL_SELLERS = ["private", "agent"] as const;
 
 export type OrtSlugMap = Record<string, string[]>;

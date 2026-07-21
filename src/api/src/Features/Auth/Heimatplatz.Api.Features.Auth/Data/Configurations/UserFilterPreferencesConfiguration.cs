@@ -29,8 +29,12 @@ public class UserFilterPreferencesConfiguration : IEntityTypeConfiguration<UserF
         builder.Property(x => x.IsGrundstueckSelected)
             .HasDefaultValue(true);
 
+        // Zwangsversteigerungen sind standardmaessig deaktiviert. Der DB-Default muss
+        // mit dem CLR-Default (false) uebereinstimmen, sonst wuerde EF beim Insert
+        // ein explizit gespeichertes "false" als "nicht gesetzt" werten und der
+        // DB-Default es still ueberschreiben (bool-Sentinel-Falle).
         builder.Property(x => x.IsZwangsversteigerungSelected)
-            .HasDefaultValue(true);
+            .HasDefaultValue(false);
 
         builder.Property(x => x.IsPrivateSelected)
             .HasDefaultValue(true);

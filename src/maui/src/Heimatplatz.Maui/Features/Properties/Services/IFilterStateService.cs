@@ -56,7 +56,8 @@ public record FilterState
 {
     public bool IsHausSelected { get; init; } = true;
     public bool IsGrundstueckSelected { get; init; } = true;
-    public bool IsZwangsversteigerungSelected { get; init; } = true;
+    /// <summary>Zwangsversteigerungen sind standardmaessig deaktiviert (wie Web/API)</summary>
+    public bool IsZwangsversteigerungSelected { get; init; }
     public AgeFilter SelectedAgeFilter { get; init; } = AgeFilter.Alle;
     public IReadOnlyList<string> SelectedOrte { get; init; } = [];
     public bool IsPrivateSelected { get; init; } = true;

@@ -196,7 +196,7 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<bool>("IsZwangsversteigerungSelected")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
-                        .HasDefaultValue(true);
+                        .HasDefaultValue(false);
 
                     b.Property<int>("SelectedAgeFilter")
                         .ValueGeneratedOnAdd()

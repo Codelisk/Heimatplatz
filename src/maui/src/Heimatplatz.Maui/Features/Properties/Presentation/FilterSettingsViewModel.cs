@@ -57,7 +57,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         _isSyncing = true;
         IsHausSelected = true;
         IsGrundstueckSelected = true;
-        IsZwangsversteigerungSelected = true;
+        IsZwangsversteigerungSelected = false;
         IsPrivateSelected = true;
         IsBrokerSelected = true;
         SelectedAgeFilterIndex = 0;
@@ -532,7 +532,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         _isSyncing = true;
         IsHausSelected = true;
         IsGrundstueckSelected = true;
-        IsZwangsversteigerungSelected = true;
+        IsZwangsversteigerungSelected = false;
         IsPrivateSelected = true;
         IsBrokerSelected = true;
         _selectedAgeFilter = AgeFilter.Alle;

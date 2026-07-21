@@ -106,7 +106,9 @@ function isActive(href: string) {
           <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">
             {t("filter.typeLand")}
           </button>
-          <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="true">
+          {/* Zwangsversteigerungen sind standardmaessig deaktiviert - Chip startet
+              unpressed, updateFilterChips uebernimmt danach URL/Praeferenzen */}
+          <button type="button" class="rounded-md border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="false">
             {t("filter.typeForeclosure")}
           </button>
           <div class="flex items-center gap-2" data-seller-filter-group>

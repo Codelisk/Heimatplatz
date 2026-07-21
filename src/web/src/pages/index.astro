@@ -8,6 +8,7 @@ import {
   ALL_SELLERS,
   ALL_TYPES,
   buildPropertySearchQuery,
+  DEFAULT_TYPES,
   normalizeTypeValue,
   type PropertySearchState,
 } from "@/features/properties/search-query";
@@ -28,9 +29,13 @@ function parseSelection(name: string, allowed: readonly string[]) {
 const ortRegions = await fetchOrtRegions();
 const ortSlugMap = buildOrtSlugMap(ortRegions);
 
+// Ohne ?type-Parameter gilt die Standard-Auswahl (Zwangsversteigerungen aus) -
+// identisch zum Client-Default in PropertySearchApp, damit der Initial-Query matcht.
+const typeSelection = parseSelection("type", ALL_TYPES);
+
 const searchState: PropertySearchState = {
   q: params.get("q") ?? "",
-  types: parseSelection("type", ALL_TYPES),
+  types: typeSelection.length > 0 ? typeSelection : [...DEFAULT_TYPES],
   sellers: parseSelection("seller", ALL_SELLERS),
   ortSlugs: (params.get("region") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
   age: params.get("age") ?? "",

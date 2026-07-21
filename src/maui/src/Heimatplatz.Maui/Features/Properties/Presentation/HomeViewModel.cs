@@ -299,11 +299,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
         AgeFilterOptions = [loc.AgeOptionAll, loc.AgeOptionDay, loc.AgeOptionWeek, loc.AgeOptionMonth, loc.AgeOptionYear];
 
-        // Initialwerte (partial properties koennen keine Initializer haben)
+        // Initialwerte (partial properties koennen keine Initializer haben);
+        // Zwangsversteigerungen standardmaessig deaktiviert (wie Web/API)
         _isSyncing = true;
         IsHausSelected = true;
         IsGrundstueckSelected = true;
-        IsZwangsversteigerungSelected = true;
+        IsZwangsversteigerungSelected = false;
         IsPrivateSelected = true;
         IsBrokerSelected = true;
         SelectedAgeFilterIndex = 0;
