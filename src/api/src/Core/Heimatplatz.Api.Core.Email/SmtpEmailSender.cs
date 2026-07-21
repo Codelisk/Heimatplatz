@@ -25,6 +25,12 @@ public class SmtpEmailSender(
         var mime = new MimeMessage();
         mime.From.Add(new MailboxAddress(opts.FromName, opts.FromAddress));
         mime.To.Add(MailboxAddress.Parse(message.ToAddress));
+        if (!string.IsNullOrWhiteSpace(message.CcAddress))
+            mime.Cc.Add(MailboxAddress.Parse(message.CcAddress));
+        // MailKit nimmt Bcc als Envelope-Empfaenger mit, versteckt den Header aber
+        // beim SMTP-Versand - nur die IMAP-Kopie im Gesendet-Ordner behaelt ihn.
+        if (!string.IsNullOrWhiteSpace(message.BccAddress))
+            mime.Bcc.Add(MailboxAddress.Parse(message.BccAddress));
         mime.Subject = message.Subject;
 
         // Message-Id vor dem Versand fixieren: geht so auf die Leitung und taucht in
@@ -51,7 +57,8 @@ public class SmtpEmailSender(
         await client.SendAsync(mime, cancellationToken);
         await client.DisconnectAsync(quit: true, cancellationToken);
 
-        logger.LogInformation("E-Mail \"{Subject}\" an {To} versendet.", message.Subject, message.ToAddress);
+        logger.LogInformation("E-Mail \"{Subject}\" an {To} versendet (Cc: {Cc}, Bcc: {Bcc}).",
+            message.Subject, message.ToAddress, message.CcAddress ?? "-", message.BccAddress ?? "-");
 
         if (message.ArchiveToSentFolder && opts.IsImapConfigured)
             await ArchiveToSentFolderAsync(mime, opts, cancellationToken);

@@ -4,7 +4,7 @@ Zentraler E-Mail-Versand fuer die API (Verifikations-Mails, Passwort-Reset etc.)
 
 ## Zweck und Verantwortlichkeiten
 
-- `IEmailSender` - Abstraktion fuer den Versand einer `EmailMessage` (HTML + Plain-Text-Alternative)
+- `IEmailSender` - Abstraktion fuer den Versand einer `EmailMessage` (HTML + Plain-Text-Alternative, optional `CcAddress`/`BccAddress` fuer offene/verdeckte Kopien; MailKit versteckt den Bcc-Header beim SMTP-Versand, die Gesendet-Ordner-Kopie behaelt ihn)
 - `SmtpEmailSender` - produktiver Versand via MailKit/SMTP (Hetzner-Webhosting-Mailbox `info@heimatplatz.at`, Server `mail.your-server.de`)
 - `LoggingEmailSender` - Fallback ohne SMTP-Konfiguration: loggt die Mail nur (lokale Entwicklung; Links koennen aus dem Log kopiert werden)
 - `EmailOptions` - Konfiguration (Section `Email`)

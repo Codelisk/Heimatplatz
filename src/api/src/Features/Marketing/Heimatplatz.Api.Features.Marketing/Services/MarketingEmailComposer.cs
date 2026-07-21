@@ -43,7 +43,7 @@ public class MarketingEmailComposer(IMediator mediator) : IMarketingEmailCompose
         return string.Join('\n', lines);
     }
 
-    public async Task<EmailMessage> ComposeAsync(string toAddress, string subject, string body, CancellationToken ct = default)
+    public async Task<EmailMessage> ComposeAsync(string toAddress, string subject, string body, string? ccAddress = null, string? bccAddress = null, CancellationToken ct = default)
     {
         var imprint = await LoadImprintAsync(ct);
         var signatureText = await GetSignatureTextAsync(ct);
@@ -58,7 +58,7 @@ public class MarketingEmailComposer(IMediator mediator) : IMarketingEmailCompose
 
         // Marketing-Mails sollen wie von Hand verschickt im Webmail (Gesendet-Ordner)
         // auftauchen - Auth-Mails lassen das bewusst aus.
-        return new EmailMessage(toAddress, subject.Trim(), html, text, ArchiveToSentFolder: true);
+        return new EmailMessage(toAddress, subject.Trim(), html, text, ArchiveToSentFolder: true, CcAddress: ccAddress, BccAddress: bccAddress);
     }
 
     private async Task<ImprintDto?> LoadImprintAsync(CancellationToken ct)

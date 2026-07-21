@@ -81,6 +81,11 @@ export type MarketingGenerateResponse = {
   Error: string | null;
 };
 
+/** Signatur-Vorschau fuer die Compose-Seite (GET /api/admin/marketing/email/signature) */
+export type MarketingSignatureResponse = {
+  SignatureText: string;
+};
+
 export type MarketingSendResponse = {
   Success: boolean;
   /** false = kein SMTP konfiguriert, Mail wurde nur im API-Log ausgegeben */

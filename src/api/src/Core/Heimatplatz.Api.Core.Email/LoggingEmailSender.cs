@@ -13,8 +13,9 @@ public class LoggingEmailSender(ILogger<LoggingEmailSender> logger) : IEmailSend
     {
         logger.LogWarning(
             "E-Mail-Versand nicht konfiguriert (Email__SmtpHost fehlt) - Mail wird NUR geloggt.\n" +
-            "An: {To}\nBetreff: {Subject}\n{Body}",
-            message.ToAddress, message.Subject, message.TextBody);
+            "An: {To}\nCc: {Cc}\nBcc: {Bcc}\nBetreff: {Subject}\n{Body}",
+            message.ToAddress, message.CcAddress ?? "-", message.BccAddress ?? "-",
+            message.Subject, message.TextBody);
 
         // Synthetische Message-Id, damit Aufrufer (Marketing-Versand-Historie) auch im
         // Logging-Modus einen konsistenten Datensatz bekommen.

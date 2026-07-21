@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
+import { adminApiGet, type MarketingSignatureResponse } from "@/lib/server/admin-api";
 import { t } from "@/i18n";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
@@ -10,6 +11,14 @@ import { t } from "@/i18n";
 
 const prefillEmail = Astro.url.searchParams.get("email")?.trim() ?? "";
 const prefillName = Astro.url.searchParams.get("name")?.trim() ?? "";
+
+// Signatur-Vorschau schon beim Laden, damit auch selbst geschriebene E-Mails
+// (ohne KI-Generierung) sehen, was beim Versand angehaengt wird. Bei nicht
+// erreichbarer API bleibt die Vorschau leer - der Versand haengt die Signatur
+// serverseitig ohnehin an.
+const signaturePreview =
+  (await adminApiGet<MarketingSignatureResponse>("/api/admin/marketing/email/signature"))
+    ?.SignatureText ?? "";
 
 const inputClass =
   "w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
@@ -60,6 +69,33 @@ const inputClass =
         </label>
 
         <label class="flex flex-col gap-1 text-sm">
+          <span class="font-medium">{t("intern.marketingCcLabel")}</span>
+          <input
+            type="email"
+            data-hook="cc-email"
+            placeholder={t("intern.marketingCcPlaceholder")}
+            class={inputClass}
+          />
+        </label>
+
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="font-medium">{t("intern.marketingBccLabel")}</span>
+          <input
+            type="email"
+            data-hook="bcc-email"
+            placeholder={t("intern.marketingBccPlaceholder")}
+            class={inputClass}
+          />
+        </label>
+      </div>
+    </section>
+
+    <section class="mt-6 rounded-lg border border-border bg-card p-5">
+      <h2 class="text-base font-semibold">{t("intern.marketingAiHeading")}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{t("intern.marketingAiHint")}</p>
+
+      <div class="mt-4 flex flex-col gap-4">
+        <label class="flex flex-col gap-1 text-sm">
           <span class="font-medium">{t("intern.marketingKeywordsLabel")}</span>
           <textarea
             rows="4"
@@ -69,7 +105,7 @@ const inputClass =
         </label>
 
         <div class="flex items-center gap-3">
-          <Button type="button" variant="default" data-hook="generate">
+          <Button type="button" variant="outline" data-hook="generate">
             {t("intern.marketingGenerate")}
           </Button>
           <span class="hidden text-sm text-muted-foreground" data-hook="generate-status">
@@ -79,7 +115,7 @@ const inputClass =
       </div>
     </section>
 
-    <section class="mt-6 hidden rounded-lg border border-border bg-card p-5" data-hook="draft-section">
+    <section class="mt-6 rounded-lg border border-border bg-card p-5" data-hook="draft-section">
       <h2 class="text-base font-semibold">{t("intern.marketingDraftHeading")}</h2>
 
       <div class="mt-4 flex flex-col gap-4">
@@ -90,14 +126,18 @@ const inputClass =
 
         <label class="flex flex-col gap-1 text-sm">
           <span class="font-medium">{t("intern.marketingBodyLabel")}</span>
-          <textarea rows="14" data-hook="body" class={inputClass}></textarea>
+          <textarea
+            rows="14"
+            data-hook="body"
+            placeholder={t("intern.marketingBodyPlaceholder")}
+            class={inputClass}></textarea>
         </label>
 
         <div class="flex flex-col gap-1 text-sm">
           <span class="font-medium text-muted-foreground">{t("intern.marketingSignatureLabel")}</span>
           <pre
             data-hook="signature"
-            class="whitespace-pre-wrap rounded-md border border-border bg-muted px-3 py-2 font-sans text-sm text-muted-foreground"></pre>
+            class="whitespace-pre-wrap rounded-md border border-border bg-muted px-3 py-2 font-sans text-sm text-muted-foreground">{signaturePreview}</pre>
         </div>
 
         <div class="flex items-center gap-3">
@@ -131,6 +171,8 @@ const inputClass =
 
   const recipientEmail = hook<HTMLInputElement>("recipient-email");
   const recipientName = hook<HTMLInputElement>("recipient-name");
+  const ccEmail = hook<HTMLInputElement>("cc-email");
+  const bccEmail = hook<HTMLInputElement>("bcc-email");
   const keywords = hook<HTMLTextAreaElement>("keywords");
   const generateButton = hook<HTMLButtonElement>("generate");
   const generateStatus = hook<HTMLSpanElement>("generate-status");
@@ -183,6 +225,10 @@ const inputClass =
       showBanner(bannerError, bannerOk, t("intern.marketingValidationKeywords"));
       return;
     }
+    // Selbst geschriebener (oder frueher generierter) Entwurf soll nicht
+    // kommentarlos verloren gehen.
+    if ((subject.value.trim() || body.value.trim()) && !window.confirm(t("intern.marketingConfirmOverwrite")))
+      return;
 
     generateButton.disabled = true;
     generateStatus.classList.remove("hidden");
@@ -208,7 +254,6 @@ const inputClass =
       subject.value = result.subject ?? "";
       body.value = result.body ?? "";
       signature.textContent = result.signatureText ?? "";
-      draftSection.classList.remove("hidden");
       generateButton.textContent = t("intern.marketingRegenerate");
       draftSection.scrollIntoView({ behavior: "smooth", block: "start" });
     } finally {
@@ -225,11 +270,26 @@ const inputClass =
       showBanner(bannerError, bannerOk, t("intern.marketingValidationRecipient"));
       return;
     }
+    const cc = ccEmail.value.trim();
+    if (cc && !ccEmail.checkValidity()) {
+      showBanner(bannerError, bannerOk, t("intern.marketingValidationCc"));
+      return;
+    }
+    const bcc = bccEmail.value.trim();
+    if (bcc && !bccEmail.checkValidity()) {
+      showBanner(bannerError, bannerOk, t("intern.marketingValidationBcc"));
+      return;
+    }
     if (!subject.value.trim() || !body.value.trim()) {
       showBanner(bannerError, bannerOk, t("intern.marketingValidationDraft"));
       return;
     }
-    if (!window.confirm(t("intern.marketingConfirmSend", { email }))) return;
+    const copyLines = [
+      ...(cc ? [t("intern.marketingConfirmCc", { cc })] : []),
+      ...(bcc ? [t("intern.marketingConfirmBcc", { bcc })] : []),
+    ];
+    const confirmMessage = [t("intern.marketingConfirmSend", { email }), ...copyLines].join("\n");
+    if (!window.confirm(confirmMessage)) return;
 
     sendButton.disabled = true;
     sendStatus.classList.remove("hidden");
@@ -237,6 +297,8 @@ const inputClass =
       const result = await postJson("/intern/marketing/schreiben/send", {
         recipientEmail: email,
         recipientName: recipientName.value.trim(),
+        ccEmail: cc,
+        bccEmail: bcc,
         keywords: keywords.value.trim(),
         subject: subject.value.trim(),
         body: body.value.trim(),

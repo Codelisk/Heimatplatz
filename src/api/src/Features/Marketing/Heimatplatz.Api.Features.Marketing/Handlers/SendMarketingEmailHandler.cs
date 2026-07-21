@@ -48,9 +48,25 @@ public class SendMarketingEmailHandler(
         if (string.IsNullOrWhiteSpace(request.Body))
             return new SendMarketingEmailResponse(false, smtpConfigured, "Der E-Mail-Text darf nicht leer sein.");
 
+        string? ccAddress = null;
+        if (!string.IsNullOrWhiteSpace(request.CcEmail))
+        {
+            if (!MailAddress.TryCreate(request.CcEmail.Trim(), out var cc))
+                return new SendMarketingEmailResponse(false, smtpConfigured, "Die CC-E-Mail-Adresse ist ungültig.");
+            ccAddress = cc.Address;
+        }
+
+        string? bccAddress = null;
+        if (!string.IsNullOrWhiteSpace(request.BccEmail))
+        {
+            if (!MailAddress.TryCreate(request.BccEmail.Trim(), out var bcc))
+                return new SendMarketingEmailResponse(false, smtpConfigured, "Die BCC-E-Mail-Adresse ist ungültig.");
+            bccAddress = bcc.Address;
+        }
+
         try
         {
-            var message = await composer.ComposeAsync(recipient.Address, request.Subject, request.Body, cancellationToken);
+            var message = await composer.ComposeAsync(recipient.Address, request.Subject, request.Body, ccAddress, bccAddress, cancellationToken);
             var result = await emailSender.SendAsync(message, cancellationToken);
 
             var contactId = await RecordSendAsync(recipient.Address, request, result, cancellationToken);

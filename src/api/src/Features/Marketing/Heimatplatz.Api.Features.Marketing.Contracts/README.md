@@ -9,7 +9,8 @@ Posteingang und Auswertung.
 | Request | Zweck |
 |---------|-------|
 | `GenerateMarketingEmailRequest` | E-Mail-Entwurf (Betreff + Text) aus Stichwoertern generieren |
-| `SendMarketingEmailRequest` | Entwurf versenden; legt Kontakt an und speichert Historie |
+| `GetMarketingEmailSignatureRequest` | Signatur-Vorschau fuer selbst geschriebene E-Mails (ohne Generierung) |
+| `SendMarketingEmailRequest` | Entwurf versenden (selbst geschrieben oder generiert, optional CC/BCC); legt Kontakt an und speichert Historie |
 | `GetMarketingStatsRequest` | Dashboard-Kennzahlen (Funnel, Volumen, Antwortquote) |
 | `GetMarketingContactsRequest` | Kontaktliste (Suche/Filter/Paging) |
 | `SaveMarketingContactRequest` | Kontakt anlegen/bearbeiten (Upsert) |

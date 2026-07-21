@@ -128,12 +128,19 @@ export const intern = {
   "intern.marketingMetaTitle": "Intern – Marketing",
   "intern.marketingTitle": "Marketing",
   "intern.marketingIntro":
-    "E-Mail an einen Kontakt: Stichwörter eingeben, Text per KI generieren lassen, prüfen und anpassen, dann von info@heimatplatz.at versenden. Die Signatur mit den Impressum-Kontaktdaten wird beim Versand automatisch angehängt.",
-  "intern.marketingEmailHeading": "E-Mail erstellen",
+    "E-Mail an einen Kontakt: Text selbst schreiben oder per KI aus Stichwörtern generieren lassen, prüfen und anpassen, dann von info@heimatplatz.at versenden. Die Signatur mit den Impressum-Kontaktdaten wird beim Versand automatisch angehängt.",
+  "intern.marketingEmailHeading": "Empfänger",
   "intern.marketingRecipientLabel": "Empfänger-E-Mail",
   "intern.marketingRecipientPlaceholder": "kontakt@beispiel.at",
   "intern.marketingRecipientNameLabel": "Empfänger-Name (optional, für die Anrede)",
   "intern.marketingRecipientNamePlaceholder": "z. B. Frau Maier, Firma Muster GmbH",
+  "intern.marketingCcLabel": "CC (optional, erhält eine offene Kopie)",
+  "intern.marketingCcPlaceholder": "kopie@beispiel.at",
+  "intern.marketingBccLabel": "BCC (optional, erhält eine verdeckte Kopie – für andere Empfänger unsichtbar)",
+  "intern.marketingBccPlaceholder": "verdeckte-kopie@beispiel.at",
+  "intern.marketingAiHeading": "Text per KI generieren (optional)",
+  "intern.marketingAiHint":
+    "Wer den Text lieber selbst schreibt, überspringt diesen Schritt und tippt unten direkt in den Entwurf.",
   "intern.marketingKeywordsLabel": "Stichwörter / Inhalt",
   "intern.marketingKeywordsPlaceholder":
     "Worum geht es? Anlass, gewünschte Punkte, Tonalität – die KI macht daraus den E-Mail-Text.",
@@ -142,18 +149,26 @@ export const intern = {
   "intern.marketingGenerating":
     "Die KI erstellt den Text – das kann ein bis zwei Minuten dauern …",
   "intern.marketingGenerateFailed": "Generierung fehlgeschlagen: {error}",
-  "intern.marketingDraftHeading": "Entwurf prüfen & senden",
+  "intern.marketingConfirmOverwrite":
+    "Betreff und E-Mail-Text werden durch den KI-Vorschlag ersetzt. Fortfahren?",
+  "intern.marketingDraftHeading": "Entwurf schreiben & senden",
   "intern.marketingSubjectLabel": "Betreff",
   "intern.marketingBodyLabel": "E-Mail-Text",
+  "intern.marketingBodyPlaceholder":
+    "E-Mail-Text hier selbst schreiben – oder oben per KI generieren lassen. Grußformel ohne Namen, die Signatur folgt automatisch.",
   "intern.marketingSignatureLabel": "Signatur (wird automatisch angehängt)",
   "intern.marketingSend": "E-Mail senden",
   "intern.marketingSending": "E-Mail wird versendet …",
   "intern.marketingConfirmSend": "E-Mail jetzt an {email} senden?",
+  "intern.marketingConfirmCc": "CC an {cc}",
+  "intern.marketingConfirmBcc": "BCC an {bcc}",
   "intern.marketingSendOk": "E-Mail wurde an {email} versendet.",
   "intern.marketingSendOkNoSmtp":
     "Achtung: Es ist kein SMTP-Server konfiguriert (EMAIL_SMTP_* fehlt in der Server-.env) – die E-Mail wurde nur im API-Log ausgegeben, NICHT zugestellt.",
   "intern.marketingSendFailed": "Versand fehlgeschlagen: {error}",
   "intern.marketingValidationRecipient": "Bitte eine gültige Empfänger-E-Mail-Adresse eingeben.",
+  "intern.marketingValidationCc": "Bitte eine gültige CC-E-Mail-Adresse eingeben (oder das Feld leer lassen).",
+  "intern.marketingValidationBcc": "Bitte eine gültige BCC-E-Mail-Adresse eingeben (oder das Feld leer lassen).",
   "intern.marketingValidationKeywords": "Bitte Stichwörter eingeben.",
   "intern.marketingValidationDraft": "Betreff und E-Mail-Text dürfen nicht leer sein.",
   "intern.marketingApiUnreachable":

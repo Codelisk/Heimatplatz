@@ -8,13 +8,19 @@ namespace Heimatplatz.Api.Core.Email;
 /// normalerweise macht das der Mail-Client). Genutzt von Marketing-Mails, damit sie
 /// im Webmail auftauchen; Auth-Mails bleiben bewusst ohne (kein IMAP-Roundtrip im
 /// Registrierungs-Flow).
+/// CcAddress (optional) erhaelt eine offene Kopie (Cc-Header, fuer den Empfaenger
+/// sichtbar), BccAddress (optional) eine verdeckte Kopie (MailKit versteckt den
+/// Bcc-Header beim SMTP-Versand, in der Gesendet-Ordner-Kopie bleibt er sichtbar);
+/// genutzt von Marketing-Mails.
 /// </summary>
 public record EmailMessage(
     string ToAddress,
     string Subject,
     string HtmlBody,
     string TextBody,
-    bool ArchiveToSentFolder = false
+    bool ArchiveToSentFolder = false,
+    string? CcAddress = null,
+    string? BccAddress = null
 );
 
 /// <summary>

@@ -14,6 +14,7 @@ Alle unter `/api/admin/marketing/*`, geschuetzt per `X-Admin-Key`
 | Methode | Pfad | Handler |
 |---------|------|---------|
 | POST | `/email/generate` | `GenerateMarketingEmailHandler` |
+| GET | `/email/signature` | `GetMarketingEmailSignatureHandler` |
 | POST | `/email/send` | `SendMarketingEmailHandler` |
 | GET | `/stats` | `GetMarketingStatsHandler` |
 | GET | `/contacts` | `GetMarketingContactsHandler` |
@@ -39,16 +40,22 @@ Migrations liegen in BEIDEN Provider-Sets (`Core.Data/Migrations` SQLite,
 
 ## Ablauf
 
-1. **Generate**: `IMarketingEmailGenerator` erstellt aus Stichwoertern (+ optionalem
-   Empfaenger-Namen fuer die Anrede) einen Entwurf. Provider:
+1. **Generate** (optional): `IMarketingEmailGenerator` erstellt aus Stichwoertern
+   (+ optionalem Empfaenger-Namen fuer die Anrede) einen Entwurf - die Compose-Seite
+   erlaubt auch komplett selbst geschriebene E-Mails (`/email/signature` liefert
+   dafuer die Signatur-Vorschau ohne Generierung). Provider:
    - `Mock` (Default): Platzhalter-Text ohne KI fuer lokale Entwicklung.
    - `AiConnector`: Prompt im Workspace `projects/heimatplatz`, Section
      `sections/marketing/email` (AGENTS.md definiert Rolle, Ton und das
      JSON-Ausgabeformat `{"subject", "body"}` - geparst von
      `MarketingEmailOutputParser`).
 2. **Send**: `MarketingEmailComposer` baut HTML + Plaintext und haengt die Signatur
-   an; Versand ueber `IEmailSender` (Core.Email). Danach Kontakt-Upsert
-   (Lead->Contacted, LastContactedAt) + Historien-Zeile mit Message-Id.
+   an; Versand ueber `IEmailSender` (Core.Email). Optional geht eine offene Kopie
+   an eine CC-Adresse (`CcEmail`) und/oder eine verdeckte Kopie an eine
+   BCC-Adresse (`BccEmail`) - beide werden bewusst NICHT als Kontakt angelegt
+   und nicht in der Historie gespeichert (die Gesendet-Kopie im Postfach enthaelt
+   die Cc-/Bcc-Header). Danach Kontakt-Upsert (Lead->Contacted, LastContactedAt) +
+   Historien-Zeile mit Message-Id.
 3. **Posteingang**: `MarketingInboxSyncService` ruft das Postfach per IMAP ab
    (MailKit, gleiche Zugangsdaten wie SMTP, `Email:ImapHost` leer = SmtpHost).
    Uebernommen werden NUR Antworten auf Marketing-Mails (In-Reply-To/References)

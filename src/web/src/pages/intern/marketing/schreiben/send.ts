@@ -18,6 +18,8 @@ export const POST: APIRoute = async ({ request }) => {
     typeof payload?.recipientEmail === "string" ? payload.recipientEmail.trim() : "";
   const recipientName =
     typeof payload?.recipientName === "string" ? payload.recipientName.trim() : "";
+  const ccEmail = typeof payload?.ccEmail === "string" ? payload.ccEmail.trim() : "";
+  const bccEmail = typeof payload?.bccEmail === "string" ? payload.bccEmail.trim() : "";
   const keywords = typeof payload?.keywords === "string" ? payload.keywords.trim() : "";
   const subject = typeof payload?.subject === "string" ? payload.subject.trim() : "";
   const body = typeof payload?.body === "string" ? payload.body.trim() : "";
@@ -35,6 +37,8 @@ export const POST: APIRoute = async ({ request }) => {
     Body: body,
     RecipientName: recipientName || null,
     Keywords: keywords || null,
+    CcEmail: ccEmail || null,
+    BccEmail: bccEmail || null,
   });
 
   if (!result) {
