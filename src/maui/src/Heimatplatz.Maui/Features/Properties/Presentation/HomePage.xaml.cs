@@ -172,9 +172,15 @@ public partial class HomePage : ShinyContentPage
 
         if (hide)
         {
-            // WinUI clippt das Overlay nicht an der Navbar: ohne echtes Ausblenden
-            // bleibt die weggeschobene Zeile ueber der Navbar sichtbar.
+#if WINDOWS
+            // NUR WinUI: dort clippt das Overlay nicht an der Navbar, ohne echtes
+            // Ausblenden bleibt die weggeschobene Zeile ueber der Navbar sichtbar.
+            // Auf iOS darf der Host NICHT unsichtbar werden: ein IsVisible-Toggle
+            // laesst die ScrollView beim Wiedereinblenden stale rendern (unscharf,
+            // Taps gehen ins Leere, bis man sie seitlich scrollt und damit ein
+            // Re-Layout erzwingt). Dort reicht IsClippedToBounds des Hosts.
             FilterChipBarHost.IsVisible = false;
+#endif
 
             if (!ToolbarItems.Contains(FilterToolbarItem))
                 ToolbarItems.Add(FilterToolbarItem);
