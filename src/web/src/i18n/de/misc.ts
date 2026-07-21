@@ -51,6 +51,16 @@ export const misc = {
   "misc.debugApiExplainer":
     "Wirkt sofort für alle folgenden API-Aufrufe im Browser (Live-Angebote, Favoriten, Anmeldung usw.). Nach dem Wechsel ggf. neu anmelden, da Tokens nur für die jeweilige API gelten. Statisch gebaute Inhalte (z.B. Detailseiten) stammen weiterhin aus dem Build.",
 
+  // Beispiel-Originalinserat (/beispiel-originalinserat): Ziel der Demo-Links
+  "misc.demoListingMetaTitle": "Beispiel-Originalinserat",
+  "misc.demoListingMetaDescription":
+    "Hinweisseite: Dieser Original-Inserat-Link stammt aus Demo-Daten und ist nur ein Beispiel.",
+  "misc.demoListingKicker": "Demo-Daten",
+  "misc.demoListingTitle": "Diese Verlinkung ist nur ein Beispiel",
+  "misc.demoListingText":
+    "Sie haben den Link „Originalinserat“ bei einem Demo-Inserat geöffnet. Die Demo-Inserate enthalten anonyme Beispieldaten und verweisen bewusst nicht auf echte Inserate anderer Plattformen. Bei echten Inseraten führt dieser Link direkt zur ursprünglichen Anzeige.",
+  "misc.demoListingNumber": "Beispiel-Inserats-Nr. {number}",
+
   // Rechtsseiten: statische Rahmentexte (Inhalte kommen aus der API)
   "legal.kicker": "Rechtliches",
   "legal.updatedAt": "Stand: {date}",

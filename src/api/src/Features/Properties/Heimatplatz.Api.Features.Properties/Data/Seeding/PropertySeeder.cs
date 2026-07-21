@@ -191,7 +191,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
         SetTypeSpecificData(properties);
 
         // Kontaktdaten für alle Properties generieren
-        SetContactData(properties);
+        SetContactData(properties, configuration);
 
         // SellerSource-FK für gewerbliche Anbieter (Makler/Verwaltung) auflösen/anlegen,
         // damit der Anbieter-Ausschlussfilter auch die Demo-Inserate erfasst
@@ -385,7 +385,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
     /// <summary>
     /// Generiert Kontaktdaten für alle Properties
     /// </summary>
-    internal static void SetContactData(List<Property> properties)
+    internal static void SetContactData(List<Property> properties, IConfiguration configuration)
     {
         var emailDomains = new[] { "gmail.com", "gmx.at", "outlook.com", "immobilien.at" };
         var phonePrefix = new[] { "+43 650", "+43 664", "+43 676", "+43 699" };
@@ -408,6 +408,10 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                 ? $"{nameParts[0].ToLower()}.{nameParts[^1].ToLower()}"
                 : property.SellerName.ToLower().Replace(" ", ".");
 
+            // Jedes Seed-Inserat verlinkt sein "Originalinserat" - wie vom WYSIWYG-Editor
+            // erzeugt haengt die URL am Erst-Kontakt (ohne SourceName)
+            var (originalSourceName, originalListingUrl) = BuildOriginalListingLink(configuration, property.Title);
+
             var mainContact = new PropertyContactInfo
             {
                 Id = Guid.NewGuid(),
@@ -417,7 +421,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                 Name = property.SellerName,
                 Email = $"{emailName}@{emailDomains[Random.Shared.Next(emailDomains.Length)]}",
                 Phone = $"{phonePrefix[Random.Shared.Next(phonePrefix.Length)]} {Random.Shared.Next(1000000, 9999999)}",
-                OriginalListingUrl = null,
+                OriginalListingUrl = originalListingUrl,
                 SourceName = null,
                 DisplayOrder = 0,
                 CreatedAt = property.CreatedAt
@@ -446,18 +450,9 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                 property.Contacts.Add(ownerContact);
             }
 
-            // Bei einigen Properties: Import-Quelle mit Original-Link (30% Chance)
+            // Bei einigen Properties: zusaetzlicher Import-Kontakt mit derselben Quelle (30% Chance)
             if (Random.Shared.Next(10) < 3)
             {
-                var importSources = new[] {
-                    ("ImmoScout24", "https://www.immobilienscout24.at/expose/"),
-                    ("willhaben", "https://www.willhaben.at/iad/immobilien/d/"),
-                    ("ImmobilienNET", "https://www.immobilien.net/expose/")
-                };
-
-                var (sourceName, baseUrl) = importSources[Random.Shared.Next(importSources.Length)];
-                var sourceId = Random.Shared.Next(100000, 999999).ToString();
-
                 var importContact = new PropertyContactInfo
                 {
                     Id = Guid.NewGuid(),
@@ -465,9 +460,9 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                     Type = ContactType.Agent,
                     Source = ContactSource.Import,
                     Name = property.SellerName,
-                    OriginalListingUrl = $"{baseUrl}{sourceId}",
-                    SourceName = sourceName,
-                    SourceId = sourceId,
+                    OriginalListingUrl = originalListingUrl,
+                    SourceName = originalSourceName,
+                    SourceId = originalListingUrl[(originalListingUrl.LastIndexOf('=') + 1)..],
                     DisplayOrder = property.Contacts.Count,
                     CreatedAt = property.CreatedAt
                 };
@@ -475,5 +470,23 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                 property.Contacts.Add(importContact);
             }
         }
+    }
+
+    /// <summary>
+    /// Anonymer Original-Inserat-Beispiel-Link pro Seed-Objekt: zeigt intern auf die
+    /// eigene Webseite (/beispiel-originalinserat), keine echten Fremdportale.
+    /// Deterministisch (stabiler Titel-Hash statt string.GetHashCode, das pro Prozess
+    /// randomisiert ist), damit Backfill und Erst-Seeding dieselbe URL erzeugen.
+    /// </summary>
+    internal static (string SourceName, string Url) BuildOriginalListingLink(IConfiguration configuration, string title)
+    {
+        var webBaseUrl = (configuration["Email:FrontendBaseUrl"] ?? "https://heimatplatz.at").TrimEnd('/');
+
+        var hash = 0;
+        foreach (var c in title)
+            hash = unchecked(hash * 31 + c);
+
+        var sourceId = 100000 + Math.Abs(hash) % 900000;
+        return ("Beispiel-Portal", $"{webBaseUrl}/beispiel-originalinserat?nr={sourceId}");
     }
 }

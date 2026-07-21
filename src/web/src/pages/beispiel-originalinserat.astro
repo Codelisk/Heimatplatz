@@ -1,0 +1,29 @@
+---
+import { t } from "@/i18n";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+// Ziel der "Originalinserat"-Links aus den Demo-Seed-Daten (PropertySeeder).
+// Die Nr. ist ein anonymer Beispielwert ohne Bezug zu echten Inseraten.
+const number = Astro.url.searchParams.get("nr");
+---
+
+<BaseLayout
+  title={t("misc.demoListingMetaTitle")}
+  description={t("misc.demoListingMetaDescription")}
+  noindex
+>
+  <section class="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-24 text-center">
+    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t("misc.demoListingKicker")}</p>
+    <h1 class="text-3xl font-bold">{t("misc.demoListingTitle")}</h1>
+    <p class="text-muted-foreground">
+      {t("misc.demoListingText")}
+    </p>
+    {number && <p class="text-sm text-muted-foreground">{t("misc.demoListingNumber", { number })}</p>}
+    <a
+      href="/"
+      class="mt-2 inline-flex h-10 items-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-accent"
+    >
+      {t("notFound.backHome")}
+    </a>
+  </section>
+</BaseLayout>

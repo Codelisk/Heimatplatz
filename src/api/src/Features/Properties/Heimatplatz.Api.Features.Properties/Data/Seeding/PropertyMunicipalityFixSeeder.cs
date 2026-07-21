@@ -26,8 +26,11 @@ public class PropertyMunicipalityFixSeeder(
     // Nach dem PropertySeeder ausführen
     public int Order => 11;
 
-    /// <summary>Titel -> intendierte Gemeinde der Seed-Objekte (Stand PropertySeeder)</summary>
-    private static readonly Dictionary<string, string> SeedPropertyCities = new()
+    /// <summary>
+    /// Titel -> intendierte Gemeinde der Seed-Objekte (Stand PropertySeeder).
+    /// Internal: dient auch anderen Backfill-Seedern als Kennung "das ist ein Seed-Objekt".
+    /// </summary>
+    internal static readonly Dictionary<string, string> SeedPropertyCities = new()
     {
         ["Einfamilienhaus in Linz-Urfahr"] = "Linz",
         ["Modernes Reihenhaus in Wels"] = "Wels",
@@ -106,7 +109,7 @@ public class PropertyMunicipalityFixSeeder(
                 property.CreatedAt = DateTimeOffset.UtcNow.AddDays(-2);
 
                 PropertySeeder.SetTypeSpecificData([property]);
-                PropertySeeder.SetContactData([property]);
+                PropertySeeder.SetContactData([property], configuration);
 
                 dbContext.Set<Property>().Add(property);
                 dbContext.Set<PropertyContactInfo>().AddRange(property.Contacts);
