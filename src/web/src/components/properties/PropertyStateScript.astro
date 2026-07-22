@@ -583,6 +583,9 @@
 
           saveSession(session);
           setFormStatus(form, t("auth.statusLoggedIn"), "success");
+          if (mode === "register") {
+            window.rybbit?.event("registration_completed", { seller: String(wantsSeller) });
+          }
           // Verkaeufer landen bei ihren Inseraten, alle anderen in der Suche
           const sellerRedirect = form.getAttribute("data-success-redirect-seller");
           const redirect = (mode === "register" && wantsSeller && sellerRedirect)
