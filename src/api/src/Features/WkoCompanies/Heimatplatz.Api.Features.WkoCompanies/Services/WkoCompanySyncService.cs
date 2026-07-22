@@ -165,6 +165,12 @@ public class WkoCompanySyncService(
                     existingCompanies[searchResult.WkoFirmaId] = entity;
                     created++;
                 }
+
+                // Nach jedem Detail-Fetch sofort persistieren: macht den Teilfortschritt fuer
+                // parallele Requests (/intern/firmen, Sync-Status) live sichtbar und ueberlebt
+                // einen Abbruch/Container-Restart - der einzelne SaveChanges am Ende war beim
+                // abgebrochenen Prod-Sync am 21.7.2026 der Grund, warum NICHTS gespeichert war.
+                await dbContext.SaveChangesAsync(ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -190,6 +196,10 @@ public class WkoCompanySyncService(
                 removed++;
             }
         }
+
+        // Persistiert die Removed-Markierungen und die LastScrapedAt-Updates des Skip-Pfads
+        // (bekannte Firmen ohne Detail-Fetch), die oben bewusst nicht einzeln gespeichert werden.
+        await dbContext.SaveChangesAsync(ct);
 
         // 4. Amtliche Firmenbuch-Anreicherung: laeuft unabhaengig davon, ob eine Firma in
         // diesem Lauf neu/aktualisiert/uebersprungen wurde - deckt damit auch Bestandsfirmen ab,
@@ -219,6 +229,10 @@ public class WkoCompanySyncService(
                         company.FirmenbuchFoundedDate = ToViennaNoonUtc(auszug.FoundedDate) ?? company.FirmenbuchFoundedDate;
                         if (auszug.People.Count > 0)
                             company.FirmenbuchManagingDirectors = auszug.People;
+
+                        // Jede erfolgreiche Anreicherung sofort sichern (gleiches Muster wie
+                        // beim Upsert oben: Teilfortschritt sichtbar, Abbruch verliert nichts)
+                        await dbContext.SaveChangesAsync(ct);
                     }
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -236,8 +250,6 @@ public class WkoCompanySyncService(
                 await Task.Delay(firmenbuchOptions.Value.DelayBetweenRequestsMs, ct);
             }
         }
-
-        await dbContext.SaveChangesAsync(ct);
 
         logger.LogInformation(
             "WKO-Sync abgeschlossen: {Created} neu, {Updated} aktualisiert, {Removed} entfernt, {Unchanged} unveraendert, {Errors} Fehler",

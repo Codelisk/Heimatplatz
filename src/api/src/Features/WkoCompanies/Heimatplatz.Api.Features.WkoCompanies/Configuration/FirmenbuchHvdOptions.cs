@@ -15,8 +15,10 @@ public class FirmenbuchHvdOptions
     public string BaseUrl { get; set; } = "https://justizonline.gv.at/jop/api/at.gv.justiz.fbw/ws";
 
     /// <summary>
-    /// X-API-KEY fuer die Schnittstelle (Registrierung bei JustizOnline noetig,
-    /// siehe firmenbuch@brz.gv.at). Leer/nicht gesetzt = Anreicherung deaktiviert.
+    /// X-API-KEY fuer die Schnittstelle. Standardquelle ist der zentrale JustizOnline-
+    /// IWG-Zugriffstoken (<c>JustizOnline:IwgApiKey</c>, siehe PostConfigure in
+    /// ServiceCollectionExtensions); ein hier gesetzter Wert uebersteuert ihn.
+    /// Leer/nicht gesetzt = Anreicherung deaktiviert.
     /// </summary>
     public string? ApiKey { get; set; }
 

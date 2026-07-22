@@ -10,9 +10,10 @@ namespace Heimatplatz.Api.Features.WkoCompanies.Services;
 
 /// <summary>
 /// Client fuer die amtliche "FBW-WebServices (HVD)"-Schnittstelle des Bundesministeriums fuer
-/// Justiz (SOAP 1.2, X-API-KEY-Header). Reichert WkoCompany-Datensaetze ueber die
-/// Firmenbuchnummer (FNR) mit amtlichen Daten an: praezises Gruendungsdatum (frühestes
-/// Vollzugsdatum), EUID und Geschaeftsfuehrung samt Geburtsdatum. Kein WSDL/SOAP-Toolchain
+/// Justiz (SOAP 1.2, X-API-KEY-Header = JustizOnline-IWG-Zugriffstoken). Reichert
+/// WkoCompany-Datensaetze ueber die Firmenbuchnummer (FNR) mit amtlichen Daten an: praezises
+/// Gruendungsdatum (DATERST, Fallback fruehestes Vollzugsdatum), EUID und Geschaeftsfuehrung
+/// samt Geburtsdatum. Kein WSDL/SOAP-Toolchain
 /// im Einsatz - Request/Response werden direkt per XDocument gebaut/geparst (Antwort-Elemente
 /// werden ueber LocalName statt exakter Namespace-Praefixe gesucht, da die Schnittstelle in
 /// jeder Antwort alle bekannten Namespaces deklariert, unabhaengig von der aufgerufenen
@@ -43,7 +44,7 @@ public class FirmenbuchHvdClient(
             new XElement(soap + "Header"),
             new XElement(soap + "Body",
                 new XElement(aus + "AUSZUG_V2_REQUEST",
-                    new XElement(aus + "FNR", fnr),
+                    new XElement(aus + "FNR", NormalizeFnr(fnr)),
                     new XElement(aus + "STICHTAG", DateOnly.FromDateTime(DateTime.UtcNow).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
                     new XElement(aus + "UMFANG", "Kurzinformation"))));
 
@@ -91,10 +92,21 @@ public class FirmenbuchHvdClient(
         }
     }
 
-    private static FirmenbuchAuszug ParseAuszug(XElement auszug)
+    internal static FirmenbuchAuszug ParseAuszug(XElement auszug)
     {
         var euidContainer = auszug.Elements().FirstOrDefault(e => e.Name.LocalName == "EUID");
         var euid = euidContainer?.Elements().FirstOrDefault(e => e.Name.LocalName == "EUID")?.Value;
+
+        // Gruendungsdatum: bevorzugt das amtliche Ersteintragungsdatum (DATERST in FI_DKZ09,
+        // yyyyMMdd) - es reicht in die Handelsregister-Aera vor 1991 zurueck. Das aelteste
+        // Vollzugsdatum ist nur Fallback: bei Altfirmen ist das lediglich die FBG-Ersterfassung
+        // (1994+), nicht die Gruendung.
+        var erstDates = auszug.Descendants()
+            .Where(e => e.Name.LocalName == "DATERST")
+            .Select(e => ParseCompactDate(e.Value))
+            .Where(d => d.HasValue)
+            .Select(d => d!.Value)
+            .ToList();
 
         var vollzugsDates = auszug.Elements()
             .Where(e => e.Name.LocalName == "VOLLZ")
@@ -103,15 +115,20 @@ public class FirmenbuchHvdClient(
             .Where(d => d.HasValue)
             .Select(d => d!.Value)
             .ToList();
-        DateOnly? foundedDate = vollzugsDates.Count > 0 ? vollzugsDates.Min() : null;
+
+        DateOnly? foundedDate = erstDates.Count > 0 ? erstDates.Min()
+            : vollzugsDates.Count > 0 ? vollzugsDates.Min()
+            : null;
 
         // Rollentext je Personennummer (PNR, z.B. "  A") aus den FUN-Eintraegen sammeln,
-        // um ihn anschliessend den PER-Eintraegen (selbe PNR) zuzuordnen.
+        // um ihn anschliessend den PER-Eintraegen (selbe PNR) zuzuordnen. Die echte
+        // Schnittstelle liefert PNR/FKENTEXT als ATTRIBUTE am FUN/PER-Element (live am
+        // 22.7.2026 verifiziert), das XSD legt Kind-Elemente nahe - beide Formen matchen.
         var roleByPnr = new Dictionary<string, string>();
         foreach (var fun in auszug.Elements().Where(e => e.Name.LocalName == "FUN"))
         {
-            var pnr = NormalizePnr(fun.Elements().FirstOrDefault(e => e.Name.LocalName == "PNR")?.Value);
-            var roleText = fun.Elements().FirstOrDefault(e => e.Name.LocalName == "FKENTEXT")?.Value;
+            var pnr = NormalizePnr(AttributeOrElementValue(fun, "PNR"));
+            var roleText = AttributeOrElementValue(fun, "FKENTEXT");
             if (pnr != null && !string.IsNullOrWhiteSpace(roleText))
                 roleByPnr[pnr] = roleText;
         }
@@ -124,12 +141,9 @@ public class FirmenbuchHvdClient(
             if (string.IsNullOrWhiteSpace(name))
                 continue;
 
-            var birthText = peDkz02?.Elements().FirstOrDefault(e => e.Name.LocalName == "GEBURTSDATUM")?.Value;
-            var birthDate = DateOnly.TryParseExact(birthText, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var birth)
-                ? birth
-                : (DateOnly?)null;
+            var birthDate = ParseCompactDate(peDkz02?.Elements().FirstOrDefault(e => e.Name.LocalName == "GEBURTSDATUM")?.Value);
 
-            var pnr = NormalizePnr(per.Elements().FirstOrDefault(e => e.Name.LocalName == "PNR")?.Value);
+            var pnr = NormalizePnr(AttributeOrElementValue(per, "PNR"));
 
             people.Add(new FirmenbuchPerson
             {
@@ -147,10 +161,32 @@ public class FirmenbuchHvdClient(
         };
     }
 
+    /// <summary>
+    /// WKO liefert die Firmenbuchnummer teils mit "FN"-Praefix oder Leerzeichen vor dem
+    /// Pruefzeichen ("FN 120121 z") - die Schnittstelle erwartet nur Ziffern+Pruefzeichen
+    /// und lehnt alles andere mit einem SOAP-Fault ab.
+    /// </summary>
+    internal static string NormalizeFnr(string fnr)
+    {
+        var trimmed = fnr.Trim();
+        if (trimmed.StartsWith("FN", StringComparison.OrdinalIgnoreCase))
+            trimmed = trimmed[2..];
+        return string.Concat(trimmed.Where(c => !char.IsWhiteSpace(c)));
+    }
+
+    private static string? AttributeOrElementValue(XElement element, string localName) =>
+        element.Attributes().FirstOrDefault(a => a.Name.LocalName == localName)?.Value
+        ?? element.Elements().FirstOrDefault(e => e.Name.LocalName == localName)?.Value;
+
     private static string? NormalizePnr(string? pnr) => string.IsNullOrWhiteSpace(pnr) ? null : pnr.Trim();
 
     private static DateOnly? ParseDate(string? value) =>
         !string.IsNullOrEmpty(value) && DateOnly.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            ? date
+            : null;
+
+    private static DateOnly? ParseCompactDate(string? value) =>
+        DateOnly.TryParseExact(value, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
             ? date
             : null;
 }

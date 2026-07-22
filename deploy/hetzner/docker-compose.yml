@@ -47,6 +47,9 @@ services:
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       # Gleicher Key fuer den WKO-Firmen-Sync (TriggerWkoCompanySyncHandler)
       WkoCompanies__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      # JustizOnline-IWG-Token (X-Api-Key gegen justizonline.gv.at/jop/api,
+      # Firmenbuch-HVD u.a.). Ohne Wert bleiben JustizOnline-Abfragen deaktiviert.
+      JustizOnline__IwgApiKey: ${JUSTIZONLINE_IWG_API_KEY:-}
       # Shared-Key fuer die /api/admin-Endpoints des Intern-Bereichs (X-Admin-Key-Header,
       # siehe AdminAccessGuard). Ohne Key sind die Endpoints gesperrt (fail-closed).
       Admin__ApiKey: ${ADMIN_API_KEY:-}
@@ -108,6 +111,7 @@ services:
       Email__FrontendBaseUrl: https://${WEB_TEST_DOMAIN}
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       WkoCompanies__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      JustizOnline__IwgApiKey: ${JUSTIZONLINE_IWG_API_KEY:-}
       Admin__ApiKey: ${ADMIN_API_KEY:-}
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}

@@ -25,7 +25,10 @@ public record FirmenbuchAuszug
     /// <summary>European Unique Identifier (EUID)</summary>
     public string? Euid { get; init; }
 
-    /// <summary>Fruehestes Vollzugsdatum (i.d.R. die Neueintragung) - amtliches Gruendungsdatum</summary>
+    /// <summary>
+    /// Amtliches Gruendungsdatum: Ersteintragungsdatum (DATERST) wenn vorhanden, sonst das
+    /// frueheste Vollzugsdatum (bei Altfirmen nur die FBG-Ersterfassung 1994+).
+    /// </summary>
     public DateOnly? FoundedDate { get; init; }
 
     public List<FirmenbuchPerson> People { get; init; } = [];

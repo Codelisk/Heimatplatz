@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Features\WkoCompanies\Heimatplatz.Api.Features.WkoCompanies\Heimatplatz.Api.Features.WkoCompanies.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="FluentAssertions" />
