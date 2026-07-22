@@ -43,10 +43,16 @@ public class GetWkoCompaniesHandler(AppDbContext dbContext)
         // Inkrementelle Abfragen: "alle Firmen ab Datum X" - wahlweise nach Gruendungsdatum
         // (FoundedDate, fruehestes Berechtigungs-Datum) oder nach Scrape-Zeitpunkt (FirstSeenAt).
         if (request.FoundedFrom.HasValue)
-            query = query.Where(c => c.FoundedDate >= request.FoundedFrom.Value);
+        {
+            var foundedFrom = request.FoundedFrom.Value.ToUniversalTime();
+            query = query.Where(c => c.FoundedDate >= foundedFrom);
+        }
 
         if (request.FirstSeenFrom.HasValue)
-            query = query.Where(c => c.FirstSeenAt >= request.FirstSeenFrom.Value);
+        {
+            var firstSeenFrom = request.FirstSeenFrom.Value.ToUniversalTime();
+            query = query.Where(c => c.FirstSeenAt >= firstSeenFrom);
+        }
 
         var page = Math.Max(request.Page, 1);
         var pageSize = Math.Clamp(request.PageSize, 1, MaxPageSize);

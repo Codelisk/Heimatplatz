@@ -697,7 +697,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             AddIfNotEmpty(items, _loc.LabelCourt, foreclosureData.CourtName, PropertyDataCategory.Versteigerung);
             AddIfNotEmpty(items, _loc.LabelFileNumber, foreclosureData.FileNumber, PropertyDataCategory.Versteigerung);
             if (foreclosureData.AuctionDate != default)
-                items.Add(new PropertyDetailItem(_loc.LabelAuctionDate, foreclosureData.AuctionDate.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung));
+                items.Add(new PropertyDetailItem(_loc.LabelAuctionDate, foreclosureData.AuctionDate.ToLocalTime().ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung));
             if (foreclosureData.MinimumBid > 0)
                 items.Add(new PropertyDetailItem(_loc.LabelMinimumBid, PropertyDisplay.Price(foreclosureData.MinimumBid), PropertyDataCategory.Versteigerung));
             if (foreclosureData.EstimatedValue is > 0)
@@ -719,7 +719,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             items.Add(new PropertyDetailItem(_loc.LabelPricePerSqm, PropertyDisplay.PriceExact(pricePerSqm.Value), PropertyDataCategory.Kosten));
 
         // --- Basisdaten: Eingestellt am ---
-        items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
+        items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, Property.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
 
         // Nach Kategorie gruppieren, leere Sektionen entfallen automatisch
         DetailSections = items
@@ -756,7 +756,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
                 tiles.Add(new StatTileItem(_loc.TileBuilt, PropertyDisplay.Area(buildingArea.Value)));
 
             if (foreclosureData?.AuctionDate is { } auctionDate && auctionDate != default)
-                tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToString("dd.MM.yy")));
+                tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yy")));
         }
         else
         {

@@ -86,6 +86,23 @@ public class AppDbContextTests : BaseApiUnitTest
         result[1].CreatedAt.Should().Be(older);
     }
 
+    [Test]
+    public void SaveChanges_NormalizesPersistedDateTimeOffsetsToUtc()
+    {
+        var viennaTime = new DateTimeOffset(2026, 7, 22, 8, 30, 0, TimeSpan.FromHours(2));
+        var user = CreateUser("utc@test.dev", viennaTime);
+        user.EmailVerifiedAt = viennaTime.AddMinutes(15);
+
+        _dbContext.Set<User>().Add(user);
+        _dbContext.SaveChanges();
+
+        user.CreatedAt.Offset.Should().Be(TimeSpan.Zero);
+        user.CreatedAt.UtcTicks.Should().Be(viennaTime.UtcTicks);
+        user.EmailVerifiedAt.Should().NotBeNull();
+        user.EmailVerifiedAt!.Value.Offset.Should().Be(TimeSpan.Zero);
+        user.EmailVerifiedAt.Value.UtcTicks.Should().Be(viennaTime.AddMinutes(15).UtcTicks);
+    }
+
     private static User CreateUser(string email, DateTimeOffset createdAt) => new()
     {
         Id = Guid.NewGuid(),

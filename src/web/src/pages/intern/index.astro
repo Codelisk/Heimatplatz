@@ -57,6 +57,7 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("de-AT", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Europe/Vienna",
   }).format(new Date(value));
 }
 

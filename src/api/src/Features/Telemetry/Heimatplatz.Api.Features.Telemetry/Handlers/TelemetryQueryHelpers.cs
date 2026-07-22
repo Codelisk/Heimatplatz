@@ -17,8 +17,14 @@ internal static class TelemetryQueryHelpers
     public static bool TryParseTime(string? value, out DateTimeOffset result)
     {
         result = default;
-        return !string.IsNullOrWhiteSpace(value)
-            && DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+        if (string.IsNullOrWhiteSpace(value)
+            || !DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+        {
+            return false;
+        }
+
+        result = result.ToUniversalTime();
+        return true;
     }
 
     /// <summary>-1 fuer unbekannte Level-Namen</summary>

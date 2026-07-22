@@ -201,7 +201,9 @@ public class MarketingInboxSyncService(
             if (string.IsNullOrWhiteSpace(bodyText) && !string.IsNullOrWhiteSpace(mime.HtmlBody))
                 bodyText = HtmlToPlainText(mime.HtmlBody);
 
-            var receivedAt = envelope.Date ?? DateTimeOffset.UtcNow;
+            // Mail-Header behalten den Absender-Offset (z.B. +02:00). PostgreSQL
+            // timestamptz akzeptiert ueber Npgsql nur UTC-DateTimeOffsets.
+            var receivedAt = (envelope.Date ?? DateTimeOffset.UtcNow).ToUniversalTime();
 
             dbContext.Set<MarketingInboundEmail>().Add(new MarketingInboundEmail
             {

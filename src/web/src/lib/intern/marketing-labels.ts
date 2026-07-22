@@ -82,7 +82,9 @@ export function contactStatusBadgeClass(status: MarketingContactStatus | string)
 
 export function formatInternDate(value: string | null | undefined): string {
   if (!value) return "–";
-  return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium", timeStyle: "short" }).format(
-    new Date(value),
-  );
+  return new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Vienna",
+  }).format(new Date(value));
 }

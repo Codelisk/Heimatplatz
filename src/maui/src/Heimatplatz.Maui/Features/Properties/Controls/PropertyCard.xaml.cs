@@ -296,7 +296,7 @@ public partial class PropertyCard : ContentView
         };
 
         // Eingestellt am
-        CreatedAtText.Text = property.CreatedAt.ToString("dd.MM.yyyy");
+        CreatedAtText.Text = property.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy");
 
         // Bild (erstes Bild) und Bild-Counter
         var imageUrls = property.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList();

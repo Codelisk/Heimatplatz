@@ -111,5 +111,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
             }
         }
+
+        // PostgreSQL speichert DateTimeOffset als timestamptz. Npgsql akzeptiert
+        // dafuer ausschliesslich Offset 00:00. Eigene Zeitquellen verwenden bereits
+        // UtcNow; diese Normalisierung schuetzt zusaetzlich Werte aus Requests,
+        // Fremd-APIs und Mail-Headern und erhaelt dabei denselben Zeitpunkt.
+        foreach (var entry in ChangeTracker.Entries()
+                     .Where(e => e.State is EntityState.Added or EntityState.Modified))
+        {
+            foreach (var property in entry.Properties)
+            {
+                var propertyType = Nullable.GetUnderlyingType(property.Metadata.ClrType)
+                    ?? property.Metadata.ClrType;
+                if (propertyType == typeof(DateTimeOffset)
+                    && property.CurrentValue is DateTimeOffset value
+                    && value.Offset != TimeSpan.Zero)
+                {
+                    property.CurrentValue = value.ToUniversalTime();
+                }
+            }
+        }
     }
 }

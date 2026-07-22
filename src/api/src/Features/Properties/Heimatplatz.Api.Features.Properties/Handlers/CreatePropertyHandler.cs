@@ -271,7 +271,7 @@ public class CreatePropertyHandler(
             throw new ArgumentException("Bathrooms must be at least 1", nameof(data.Bathrooms));
         }
 
-        if (data.YearBuilt.HasValue && (data.YearBuilt < 1800 || data.YearBuilt > DateTime.Now.Year + 5))
+        if (data.YearBuilt.HasValue && (data.YearBuilt < 1800 || data.YearBuilt > DateTime.UtcNow.Year + 5))
         {
             throw new ArgumentException("Year built is not valid", nameof(data.YearBuilt));
         }
@@ -292,7 +292,7 @@ public class CreatePropertyHandler(
             throw new ArgumentException("Court name is required", nameof(data.CourtName));
         }
 
-        if (data.AuctionDate < DateTime.Now.AddDays(-30))
+        if (data.AuctionDate < DateTime.UtcNow.AddDays(-30))
         {
             throw new ArgumentException("Auction date cannot be more than 30 days in the past", nameof(data.AuctionDate));
         }

@@ -43,10 +43,16 @@ public class GetForeclosureAuctionsHandler(
         // DateTimeOffset-Vergleiche laufen auch auf SQLite in SQL - die Konverter im
         // AppDbContext speichern dort als long (UTC-Ticks), kein In-Memory-Umweg noetig
         if (request.AuctionDateFrom.HasValue)
-            query = query.Where(fa => fa.AuctionDate >= request.AuctionDateFrom.Value);
+        {
+            var auctionDateFrom = request.AuctionDateFrom.Value.ToUniversalTime();
+            query = query.Where(fa => fa.AuctionDate >= auctionDateFrom);
+        }
 
         if (request.AuctionDateTo.HasValue)
-            query = query.Where(fa => fa.AuctionDate <= request.AuctionDateTo.Value);
+        {
+            var auctionDateTo = request.AuctionDateTo.Value.ToUniversalTime();
+            query = query.Where(fa => fa.AuctionDate <= auctionDateTo);
+        }
 
         if (request.MaxEstimatedValue.HasValue)
             query = query.Where(fa => fa.EstimatedValue <= request.MaxEstimatedValue.Value);

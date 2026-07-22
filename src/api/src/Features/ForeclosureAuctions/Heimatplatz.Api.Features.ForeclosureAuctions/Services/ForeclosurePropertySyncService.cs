@@ -325,7 +325,7 @@ public class ForeclosurePropertySyncService(
         };
     }
 
-    private static ForeclosurePropertyData BuildForeclosurePropertyData(ForeclosureAuction auction)
+    internal static ForeclosurePropertyData BuildForeclosurePropertyData(ForeclosureAuction auction)
     {
         // Status traegt den Edikt-Typ aus dem Seitentitel der Ediktsdatei
         // ("Versteigerung - Objekt 1", "Verschiebung", "Zuschlag mit Ueberbot - ...").
@@ -347,7 +347,9 @@ public class ForeclosurePropertySyncService(
 
         return new ForeclosurePropertyData(
             CourtName: auction.Court ?? "Bezirksgericht",
-            AuctionDate: auction.AuctionDate.DateTime,
+            // UtcDateTime statt DateTime: DateTime wuerde Kind=Unspecified liefern und
+            // beim JSON-Serialisieren das "Z" verlieren (live dadurch zwei Stunden zu frueh).
+            AuctionDate: auction.AuctionDate.UtcDateTime,
             MinimumBid: auction.MinimumBid ?? 0,
             EstimatedValue: auction.EstimatedValue,
             Encumbrances: [],
@@ -362,8 +364,8 @@ public class ForeclosurePropertySyncService(
             BuildingCondition: auction.BuildingCondition,
             NumberOfRooms: auction.NumberOfRooms,
             YearBuilt: auction.YearBuilt,
-            ViewingDate: auction.ViewingDate?.DateTime,
-            BiddingDeadline: auction.BiddingDeadline?.DateTime,
+            ViewingDate: auction.ViewingDate?.UtcDateTime,
+            BiddingDeadline: auction.BiddingDeadline?.UtcDateTime,
             OwnershipShare: auction.OwnershipShare,
             Notes: auction.Notes,
             EdictUrl: auction.EdictUrl,

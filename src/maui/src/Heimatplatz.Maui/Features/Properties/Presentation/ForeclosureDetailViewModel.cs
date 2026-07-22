@@ -493,7 +493,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             : _loc.PriceCaptionMinimumBid;
 
         // --- VERSTEIGERUNG (wichtigste Daten zuerst) ---
-        items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, Property.CreatedAt.ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung, true));
+        items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, Property.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"), PropertyDataCategory.Versteigerung, true));
         AddJsonDateTime(items, data, "AuctionDate", _loc.LabelAuctionDate, PropertyDataCategory.Versteigerung, true);
         AddJsonDecimalCurrency(items, data, "EstimatedValue", _loc.LabelEstimatedValue, PropertyDataCategory.Versteigerung, true);
         AddJsonDecimalCurrency(items, data, "MinimumBid", _loc.LabelMinimumBid, PropertyDataCategory.Versteigerung, true);
@@ -614,7 +614,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             && auctionProp.ValueKind == JsonValueKind.String
             && DateTime.TryParse(auctionProp.GetString(), out var auctionDate))
         {
-            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToString("dd.MM.yy")));
+            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yy")));
         }
 
         if (minimumBid is > 0 && estimatedValue is > 0)
@@ -656,7 +656,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String)
         {
             if (DateTime.TryParse(prop.GetString(), out var dt))
-                items.Add(new PropertyDetailItem(label, dt.ToString("dd.MM.yyyy HH:mm"), category, highlighted));
+                items.Add(new PropertyDetailItem(label, dt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"), category, highlighted));
         }
     }
 

@@ -63,7 +63,10 @@ const priceFormat = new Intl.NumberFormat("de-AT", {
 });
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(new Date(value));
+  return new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeZone: "Europe/Vienna",
+  }).format(new Date(value));
 }
 
 function pageLink(target: number) {

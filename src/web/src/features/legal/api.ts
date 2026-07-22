@@ -335,6 +335,7 @@ export function formatLegalDate(value: string) {
   if (!Number.isFinite(date.valueOf())) return "";
 
   return new Intl.DateTimeFormat("de-AT", {
+    timeZone: "Europe/Vienna",
     day: "2-digit",
     month: "long",
     year: "numeric",

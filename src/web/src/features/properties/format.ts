@@ -38,6 +38,7 @@ export function formatApiDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return "";
   return new Intl.DateTimeFormat("de-AT", {
+    timeZone: "Europe/Vienna",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

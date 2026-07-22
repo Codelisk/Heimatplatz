@@ -224,6 +224,7 @@ export function isValidAuctionDate(value: string | null | undefined) {
 export function formatAuctionDate(value: string | null | undefined, fallback = t("zv.dateOpen")) {
   if (!isValidAuctionDate(value)) return fallback;
   return new Intl.DateTimeFormat("de-AT", {
+    timeZone: "Europe/Vienna",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -235,6 +236,7 @@ export function formatAuctionDate(value: string | null | undefined, fallback = t
 export function formatAuctionDateShort(value: string | null | undefined, fallback = t("zv.dateOpen")) {
   if (!isValidAuctionDate(value)) return fallback;
   return new Intl.DateTimeFormat("de-AT", {
+    timeZone: "Europe/Vienna",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

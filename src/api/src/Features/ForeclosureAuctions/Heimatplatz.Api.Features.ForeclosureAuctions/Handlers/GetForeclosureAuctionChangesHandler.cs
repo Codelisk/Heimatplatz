@@ -27,7 +27,10 @@ public class GetForeclosureAuctionChangesHandler(AppDbContext dbContext)
         // DateTimeOffset-Vergleiche laufen auch auf SQLite in SQL - die Konverter im
         // AppDbContext speichern dort als long (UTC-Ticks), kein In-Memory-Umweg noetig
         if (request.Since.HasValue)
-            query = query.Where(c => c.CreatedAt >= request.Since.Value);
+        {
+            var since = request.Since.Value.ToUniversalTime();
+            query = query.Where(c => c.CreatedAt >= since);
+        }
 
         if (!string.IsNullOrWhiteSpace(request.ChangeType))
             query = query.Where(c => c.ChangeType == request.ChangeType);

@@ -33,9 +33,11 @@ function roleLabel(sellerType: string | null): string {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium", timeStyle: "short" }).format(
-    new Date(value),
-  );
+  return new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Vienna",
+  }).format(new Date(value));
 }
 
 function pageLink(target: number) {

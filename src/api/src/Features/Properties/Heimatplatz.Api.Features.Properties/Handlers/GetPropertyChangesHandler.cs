@@ -62,6 +62,9 @@ public class GetPropertyChangesHandler(
             };
         }
 
+        // Npgsql akzeptiert auch bei timestamptz-Abfrageparametern nur Offset 00:00.
+        since = since.ToUniversalTime();
+
         // SQLite (lokale Entwicklung) kann DateTimeOffset-Vergleiche nicht in SQL uebersetzen -
         // dort in-memory filtern (Journal ist durch Retention klein); Postgres filtert in SQL
         var journal = dbContext.Set<PropertyChange>();

@@ -342,7 +342,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                 case PropertyType.Foreclosure:
                     // Realistic foreclosure data with all fields populated
                     var estimatedValue = property.Price * 1.2m; // Estimated value higher than minimum bid
-                    var auctionDate = DateTime.Now.AddDays(30 + Random.Shared.Next(0, 60));
+                    var auctionDate = DateTime.UtcNow.AddDays(30 + Random.Shared.Next(0, 60));
                     var foreclosureData = new ForeclosurePropertyData(
                         CourtName: property.SellerName,
                         AuctionDate: auctionDate,
@@ -354,8 +354,8 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                             new Encumbrance("Grundsteuer", 2500, "Finanzamt")
                         ],
                         Status: LegalStatus.Scheduled,
-                        FileNumber: $"{Random.Shared.Next(100, 999)} E {Random.Shared.Next(100, 999)}/{DateTime.Now.Year % 100}",
-                        RegistrationNumber: $"EZ {Random.Shared.Next(1000, 9999)}/{DateTime.Now.Year}",
+                        FileNumber: $"{Random.Shared.Next(100, 999)} E {Random.Shared.Next(100, 999)}/{DateTime.UtcNow.Year % 100}",
+                        RegistrationNumber: $"EZ {Random.Shared.Next(1000, 9999)}/{DateTime.UtcNow.Year}",
                         CadastralMunicipality: "Oberösterreich",
                         PlotNumber: $"{Random.Shared.Next(100, 999)}/{Random.Shared.Next(1, 20)}",
                         TotalArea: property.PlotAreaSquareMeters ?? 500,
