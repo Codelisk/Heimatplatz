@@ -70,6 +70,28 @@ public class WkoCompany : BaseEntity
     /// <summary>Gewerbeberechtigungen (Fachgruppe, Gewerbewortlaut, gewerberechtl. Geschaeftsfuehrung, GISA-Zahl)</summary>
     public List<WkoCompanyPermit> Permits { get; set; } = [];
 
+    // === Amtliche Firmenbuch-Daten (ueber FBW-WebServices HVD angereichert, siehe FirmenbuchHvdClient) ===
+
+    /// <summary>European Unique Identifier laut Firmenbuch</summary>
+    public string? Euid { get; set; }
+
+    /// <summary>
+    /// Amtliches Gruendungsdatum laut Firmenbuch (fruehestes Vollzugsdatum, i.d.R. die
+    /// Neueintragung) - praeziser als <see cref="FoundedDate"/>, das nur aus dem
+    /// Gewerbeberechtigungs-"Seit"-Datum genaehert ist.
+    /// </summary>
+    public DateTimeOffset? FirmenbuchFoundedDate { get; set; }
+
+    /// <summary>Geschaeftsfuehrung/Vertretung laut Firmenbuch (Name, Geburtsdatum, Funktion)</summary>
+    public List<FirmenbuchPerson> FirmenbuchManagingDirectors { get; set; } = [];
+
+    /// <summary>
+    /// Wann die Firmenbuch-Anreicherung zuletzt (erfolgreich oder erfolglos) versucht wurde.
+    /// Null = noch nie versucht (z.B. weil FirmenbuchHvd:ApiKey noch nicht konfiguriert ist) -
+    /// treibt die Skip-Logik im Sync (nur unversuchte Firmen bekommen einen Anreicherungs-Request).
+    /// </summary>
+    public DateTimeOffset? FirmenbuchEnrichedAt { get; set; }
+
     // === Scraping-Daten ===
 
     /// <summary>Eindeutige Firmaid aus firmen.wko.at (Natural Key)</summary>

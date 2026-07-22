@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
         services.AddGeneratedServices();
 
         services.Configure<WkoScrapingOptions>(configuration.GetSection(WkoScrapingOptions.SectionName));
+        services.Configure<FirmenbuchHvdOptions>(configuration.GetSection(FirmenbuchHvdOptions.SectionName));
 
         // HttpClient fuer WkoCompanyScraper mit Resilience (Retry/Circuit-Breaker fuer HTTP 429,
         // das firmen.wko.at bei zu dichten Requests zurueckgibt)
@@ -25,6 +26,15 @@ public static class ServiceCollectionExtensions
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
             client.Timeout = TimeSpan.FromSeconds(
                 configuration.GetValue($"{WkoScrapingOptions.SectionName}:TimeoutSeconds", 30));
+        })
+        .AddStandardResilienceHandler();
+
+        // HttpClient fuer die amtliche Firmenbuch-HVD-Schnittstelle (eigenes, dokumentiertes
+        // Rate-Limit mit sauberem HTTP 429 - AddStandardResilienceHandler faengt das ab)
+        services.AddHttpClient<IFirmenbuchHvdClient, FirmenbuchHvdClient>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(
+                configuration.GetValue($"{FirmenbuchHvdOptions.SectionName}:TimeoutSeconds", 30));
         })
         .AddStandardResilienceHandler();
 

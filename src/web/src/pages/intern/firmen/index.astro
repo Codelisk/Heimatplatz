@@ -1,0 +1,184 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import { fetchWkoCompanies, type WkoCompaniesPage } from "@/lib/server/wko-api";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile). Die
+// /api/wko-companies-Lese-Endpoints sind unauthentifiziert (oeffentliche Firmenverzeichnis-
+// Daten) - kein X-Admin-Key wie bei den Marketing-/Nutzer-/Immobilien-Seiten noetig.
+
+const PAGE_SIZE = 50;
+
+const search = Astro.url.searchParams.get("q")?.trim() ?? "";
+const status = Astro.url.searchParams.get("status") ?? "";
+const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "1", 10) || 1, 1);
+
+const query = new URLSearchParams({ Page: String(page), PageSize: String(PAGE_SIZE) });
+if (search) query.set("SearchText", search);
+if (status === "active") query.set("IsActive", "true");
+if (status === "inactive") query.set("IsActive", "false");
+
+const data: WkoCompaniesPage | null = await fetchWkoCompanies(query);
+const totalPages = data ? Math.max(Math.ceil(data.TotalCount / data.PageSize), 1) : 1;
+
+function pageLink(target: number) {
+  const params = new URLSearchParams();
+  if (search) params.set("q", search);
+  if (status) params.set("status", status);
+  if (target > 1) params.set("page", String(target));
+  const qs = params.toString();
+  return qs ? `/intern/firmen/?${qs}` : "/intern/firmen/";
+}
+
+function formatDate(value: string | null) {
+  if (!value) return null;
+  return new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeZone: "Europe/Vienna",
+  }).format(new Date(value));
+}
+---
+
+<BaseLayout
+  title={t("intern.wkoMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/firmen/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{t("intern.wkoTitle")}</span>
+    </nav>
+
+    <h1 class="mt-2 text-3xl font-bold">{t("intern.wkoTitle")}</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("intern.wkoIntro")}</p>
+
+    <form method="GET" action="/intern/firmen/" class="mt-6 flex flex-wrap gap-2">
+      <input
+        type="search"
+        name="q"
+        value={search}
+        placeholder={t("intern.wkoSearchPlaceholder")}
+        class="min-w-48 flex-1 rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      />
+      <select
+        name="status"
+        class="rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      >
+        <option value="" selected={!status}>{t("intern.wkoFilterStatusAll")}</option>
+        <option value="active" selected={status === "active"}>
+          {t("intern.wkoFilterStatusActive")}
+        </option>
+        <option value="inactive" selected={status === "inactive"}>
+          {t("intern.wkoFilterStatusInactive")}
+        </option>
+      </select>
+      <Button type="submit" variant="default">{t("intern.filterButton")}</Button>
+    </form>
+
+    {!data && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.wkoLoadFailed")}
+      </div>
+    )}
+
+    {data && (
+      <section class="mt-6 rounded-lg border border-border bg-card">
+        <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
+          {t("intern.wkoTotal", { count: data.TotalCount })}
+        </p>
+
+        {data.Companies.length === 0 ? (
+          <p class="px-5 py-8 text-center text-sm text-muted-foreground">{t("intern.wkoEmpty")}</p>
+        ) : (
+          <ul class="divide-y divide-border">
+            {data.Companies.map((company) => {
+              const foundedOfficial = formatDate(company.FirmenbuchFoundedDate);
+              const contactParts = [
+                company.Phones.length > 0 ? company.Phones.join(", ") : null,
+                company.Email,
+              ].filter(Boolean);
+              return (
+                <li class="flex flex-col gap-2 px-5 py-4">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-medium">{company.Name}</span>
+                    {!company.IsActive && (
+                      <span class="rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700">
+                        {t("intern.wkoBadgeInactive")}
+                      </span>
+                    )}
+                    {company.IsTrainingCompany && (
+                      <span class="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
+                        {t("intern.wkoBadgeTrainingCompany")}
+                      </span>
+                    )}
+                  </div>
+                  {company.CategoryText && (
+                    <p class="text-sm text-muted-foreground">{company.CategoryText}</p>
+                  )}
+                  <p class="text-sm text-muted-foreground">
+                    {[company.Street, [company.PostalCode, company.City].filter(Boolean).join(" ")]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                  {contactParts.length > 0 && (
+                    <p class="text-sm text-muted-foreground">{contactParts.join(" · ")}</p>
+                  )}
+                  <p class="text-xs text-muted-foreground">
+                    {t("intern.wkoColFounded")}:{" "}
+                    {foundedOfficial
+                      ? `${foundedOfficial} (${t("intern.wkoFoundedOfficial")})`
+                      : company.FoundedYear
+                        ? `${company.FoundedYear} (${t("intern.wkoFoundedApprox")})`
+                        : "–"}
+                  </p>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <a
+                      href={`/intern/firmen/detail/?id=${company.Id}`}
+                      class="text-sm font-medium hover:underline"
+                    >
+                      {t("intern.wkoDetailLink")}
+                    </a>
+                    <a
+                      href={company.DetailUrl}
+                      target="_blank"
+                      rel="noopener"
+                      class="text-sm text-muted-foreground hover:underline"
+                    >
+                      {t("intern.wkoWkoLink")}
+                    </a>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+    )}
+
+    {data && totalPages > 1 && (
+      <nav class="mt-6 flex items-center justify-between text-sm">
+        {page > 1 ? (
+          <a href={pageLink(page - 1)} class="font-medium hover:underline">
+            ← {t("intern.pagePrev")}
+          </a>
+        ) : (
+          <span />
+        )}
+        <span class="text-muted-foreground">
+          {t("intern.pageInfo", { page, pages: totalPages })}
+        </span>
+        {page < totalPages ? (
+          <a href={pageLink(page + 1)} class="font-medium hover:underline">
+            {t("intern.pageNext")} →
+          </a>
+        ) : (
+          <span />
+        )}
+      </nav>
+    )}
+  </section>
+</BaseLayout>

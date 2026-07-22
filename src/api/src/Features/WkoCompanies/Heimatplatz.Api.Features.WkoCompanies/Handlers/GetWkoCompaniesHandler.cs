@@ -103,6 +103,15 @@ public class GetWkoCompaniesHandler(AppDbContext dbContext)
             GisaNumber = p.GisaNumber,
             Since = p.Since
         }).ToList(),
+        Euid = c.Euid,
+        FirmenbuchFoundedDate = c.FirmenbuchFoundedDate,
+        FirmenbuchManagingDirectors = c.FirmenbuchManagingDirectors.Select(p => new FirmenbuchPersonDto
+        {
+            Name = p.Name,
+            BirthDate = p.BirthDate,
+            Role = p.Role
+        }).ToList(),
+        FirmenbuchEnrichedAt = c.FirmenbuchEnrichedAt,
         CreatedAt = c.CreatedAt,
         WkoFirmaId = c.WkoFirmaId,
         DetailUrl = c.DetailUrl,

@@ -21,6 +21,7 @@ Anwendung ausgetauscht werden.
 
 - `WkoCompanyDto` - Vollständige Firmen-Details
 - `WkoCompanyPermitDto` - Einzelne Gewerbeberechtigung (Fachgruppe, Gewerbewortlaut, gewerberechtliche Geschäftsführung, GISA-Zahl)
+- `FirmenbuchPersonDto` - Person laut amtlichem Firmenbuch-Auszug (Name, Geburtsdatum, Funktion) - leer solange kein Firmenbuch-HVD-API-Key konfiguriert ist
 
 ## Filter-Optionen
 

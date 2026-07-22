@@ -42,6 +42,16 @@ public record WkoCompanyPermitDto
 }
 
 /// <summary>
+/// DTO fuer eine Person laut amtlichem Firmenbuch-Auszug (Geschaeftsfuehrung o.ae.)
+/// </summary>
+public record FirmenbuchPersonDto
+{
+    public string? Name { get; init; }
+    public DateOnly? BirthDate { get; init; }
+    public string? Role { get; init; }
+}
+
+/// <summary>
 /// DTO fuer WKO-Firmen-Details
 /// </summary>
 public record WkoCompanyDto
@@ -74,6 +84,13 @@ public record WkoCompanyDto
     public bool IsTrainingCompany { get; init; }
 
     public List<WkoCompanyPermitDto> Permits { get; init; } = [];
+
+    // Amtliche Firmenbuch-Daten (FBW-WebServices HVD) - null/leer solange kein ApiKey
+    // konfiguriert ist oder die Anreicherung noch nicht gelaufen ist
+    public string? Euid { get; init; }
+    public DateTimeOffset? FirmenbuchFoundedDate { get; init; }
+    public List<FirmenbuchPersonDto> FirmenbuchManagingDirectors { get; init; } = [];
+    public DateTimeOffset? FirmenbuchEnrichedAt { get; init; }
 
     public required DateTimeOffset CreatedAt { get; init; }
 

@@ -71,7 +71,7 @@ public class GetPrivacyPolicyHandler(AppDbContext dbContext) : IRequestHandler<G
     {
         var responsibleParty = new ResponsiblePartyDto(
             CompanyName: "Ing. Daniel Hufnagl",
-            Street: "Stockham 44/Tuer 2",
+            Street: "Stockham 44",
             PostalCode: "4663",
             City: "Laakirchen",
             Country: "Oesterreich",

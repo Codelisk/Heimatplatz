@@ -36,6 +36,15 @@ Firmenbuchnummer, Rechtsform, Gruendungsjahr und Gewerbeberechtigungen.
   (WKO-Hinweis: "kann vom Gruendungsdatum abweichen"); abfragbar ueber den
   `FoundedFrom`-Filter ("alle Firmen ab Datum X"), alternativ `FirstSeenFrom`
   fuer "seit wann bei uns bekannt"
+- **Amtliche Firmenbuch-Anreicherung** (optional, `FirmenbuchHvdClient`): reichert Firmen mit
+  Firmenbuchnummer ueber die offizielle "FBW-WebServices (HVD)"-Schnittstelle des
+  Bundesministeriums fuer Justiz an - liefert `Euid`, `FirmenbuchFoundedDate` (praezises
+  amtliches Gruendungsdatum statt der WKO-Naeherung) und `FirmenbuchManagingDirectors`
+  (Geschaeftsfuehrung mit Geburtsdatum). Ohne konfigurierten `FirmenbuchHvd:ApiKey` bleibt die
+  Anreicherung inaktiv (kein HTTP-Request), der restliche Sync laeuft unveraendert. Bewusst
+  NICHT openfirmenbuch.at gescraped - deren Nutzungsbedingungen untersagen automatisierte
+  Zugriffe explizit; die offizielle Schnittstelle ist fuer maschinelle Nutzung vorgesehen
+  (High Value Dataset nach DVO (EU) 2023/138). API-Key-Registrierung: firmenbuch@brz.gv.at.
 - **Seeding**: 8 realistische (fiktive) Testeintraege fuer die lokale Entwicklung
 
 ## Datenmodell
@@ -80,6 +89,14 @@ Abschnitt `WkoCompanies:Scraping` (`WkoScrapingOptions`):
 | `MaxPagesPerKeyword` | `50` | Sicherheitsgrenze fuer die "Mehr laden"-Pagination pro Suchbegriff |
 | `SyncIntervalHours` | `0` (deaktiviert) | Optionaler automatischer Hintergrund-Sync |
 | `SyncTriggerKey` | - | Shared-Key fuer `POST /api/wko-companies/sync` (Header `X-Sync-Key`), fail-closed ausserhalb Development |
+
+Abschnitt `WkoCompanies:FirmenbuchHvd` (`FirmenbuchHvdOptions`):
+
+| Feld | Default | Beschreibung |
+|------|---------|--------------|
+| `BaseUrl` | `https://justizonline.gv.at/jop/api/at.gv.justiz.fbw/ws` | |
+| `ApiKey` | - | X-API-KEY der Firmenbuch-HVD-Schnittstelle; leer = Anreicherung deaktiviert |
+| `DelayBetweenRequestsMs` | `300` | Rate-Limit zwischen Anreicherungs-Requests |
 
 ## Verwendung
 

@@ -1592,6 +1592,20 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<string>("Euid")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset?>("FirmenbuchEnrichedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("FirmenbuchFoundedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FirmenbuchManagingDirectors")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset?>("FirstSeenAt")
                         .HasColumnType("timestamp with time zone");
 

@@ -67,6 +67,15 @@ public class WkoCompanyConfiguration : IEntityTypeConfiguration<WkoCompany>
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<List<WkoCompanyPermit>>(v, (JsonSerializerOptions?)null) ?? new List<WkoCompanyPermit>());
 
+        // === Amtliche Firmenbuch-Daten ===
+        builder.Property(c => c.Euid)
+            .HasMaxLength(50);
+
+        builder.Property(c => c.FirmenbuchManagingDirectors)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<FirmenbuchPerson>>(v, (JsonSerializerOptions?)null) ?? new List<FirmenbuchPerson>());
+
         // === Scraping-Daten ===
         builder.Property(c => c.DetailUrl)
             .IsRequired()

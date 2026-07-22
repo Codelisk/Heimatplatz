@@ -35,7 +35,7 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 
         var responsibleParty = new ResponsiblePartyDto(
             CompanyName: "Ing. Daniel Hufnagl",
-            Street: "Stockham 44/Tür 2",
+            Street: "Stockham 44",
             PostalCode: "4663",
             City: "Laakirchen",
             Country: "Österreich",
@@ -125,7 +125,7 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
             CompanyName: "Ing. Daniel Hufnagl",
             LegalForm: "Einzelunternehmen",
             Owner: "Ing. Daniel Hufnagl",
-            Street: "Stockham 44/Tür 2",
+            Street: "Stockham 44",
             PostalCode: "4663",
             City: "Laakirchen",
             Country: "Österreich",

@@ -14,11 +14,18 @@ namespace Heimatplatz.Api.Features.WkoCompanies.Services;
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class WkoCompanySyncService(
     IWkoCompanyScraper scraper,
+    IFirmenbuchHvdClient firmenbuchClient,
     AppDbContext dbContext,
     IOptions<WkoScrapingOptions> options,
+    IOptions<FirmenbuchHvdOptions> firmenbuchOptions,
     ILogger<WkoCompanySyncService> logger
 ) : IWkoCompanySyncService
 {
+    // Firmenbuch nennt nur einen Kalendertag, keine Uhrzeit. Auf Wiener MITTAG verankern
+    // (nicht Mitternacht) haelt den Kalendertag in jeder Anzeige-Zeitzone stabil - gleiches
+    // Muster wie ParsePublicationDate im ForeclosureAuctionSyncService.
+    private static readonly TimeZoneInfo ViennaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna");
+
     public async Task<WkoCompanySyncResult> SyncAllAsync(CancellationToken ct = default)
     {
         logger.LogInformation("Starte WKO-Firmen-Sync (Region={Region}, {Count} Suchbegriffe)", options.Value.Region, options.Value.BranchKeywords.Count);
@@ -184,6 +191,52 @@ public class WkoCompanySyncService(
             }
         }
 
+        // 4. Amtliche Firmenbuch-Anreicherung: laeuft unabhaengig davon, ob eine Firma in
+        // diesem Lauf neu/aktualisiert/uebersprungen wurde - deckt damit auch Bestandsfirmen ab,
+        // die vor Konfiguration eines FirmenbuchHvd:ApiKey angelegt wurden. Ohne konfigurierten
+        // Key macht IsConfigured/GetAuszugAsync gar keinen HTTP-Request (siehe FirmenbuchHvdClient).
+        if (firmenbuchClient.IsConfigured)
+        {
+            var toEnrich = existingCompanies.Values
+                .Where(c => c.FirmenbuchEnrichedAt == null && !string.IsNullOrWhiteSpace(c.CompanyRegisterNumber))
+                .ToList();
+
+            logger.LogInformation("Firmenbuch-Anreicherung: {Count} Firmen ohne bisherigen Versuch", toEnrich.Count);
+
+            foreach (var company in toEnrich)
+            {
+                try
+                {
+                    var auszug = await firmenbuchClient.GetAuszugAsync(company.CompanyRegisterNumber!, ct);
+
+                    // Nur bei Erfolg als "versucht" markieren - bei Fehlern (Netzwerk, SOAP-Fault,
+                    // z.B. wegen eines voruebergehenden Ausfalls) soll der naechste Sync es erneut
+                    // probieren statt die Firma dauerhaft unangereichert zu lassen.
+                    if (auszug != null)
+                    {
+                        company.FirmenbuchEnrichedAt = now;
+                        company.Euid = auszug.Euid ?? company.Euid;
+                        company.FirmenbuchFoundedDate = ToViennaNoonUtc(auszug.FoundedDate) ?? company.FirmenbuchFoundedDate;
+                        if (auszug.People.Count > 0)
+                            company.FirmenbuchManagingDirectors = auszug.People;
+                    }
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    errors++;
+                    var msg = $"Firmenbuch-Anreicherung fehlgeschlagen fuer {company.Name} ({company.CompanyRegisterNumber}): {ex.Message}";
+                    errorMessages.Add(msg);
+                    logger.LogWarning(ex, "Firmenbuch-Anreicherung fehlgeschlagen fuer {Name} ({Fnr})", company.Name, company.CompanyRegisterNumber);
+                }
+
+                await Task.Delay(firmenbuchOptions.Value.DelayBetweenRequestsMs, ct);
+            }
+        }
+
         await dbContext.SaveChangesAsync(ct);
 
         logger.LogInformation(
@@ -191,6 +244,15 @@ public class WkoCompanySyncService(
             created, updated, removed, unchanged, errors);
 
         return new WkoCompanySyncResult(created, updated, removed, unchanged, errors, errorMessages);
+    }
+
+    private static DateTimeOffset? ToViennaNoonUtc(DateOnly? date)
+    {
+        if (!date.HasValue) return null;
+
+        var viennaNoon = date.Value.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.FromHours(12)));
+        var utc = TimeZoneInfo.ConvertTimeToUtc(viennaNoon, ViennaTimeZone);
+        return new DateTimeOffset(utc, TimeSpan.Zero);
     }
 
     private static void ApplyDetailFields(WkoCompany entity, WkoCompanySearchResult searchResult, WkoCompanyDetail detail)

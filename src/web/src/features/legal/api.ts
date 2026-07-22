@@ -51,7 +51,7 @@ type RawRecord = Record<string, unknown>;
 
 const fallbackResponsibleParty: ResponsibleParty = {
   companyName: "Ing. Daniel Hufnagl",
-  street: "Stockham 44/Tür 2",
+  street: "Stockham 44",
   postalCode: "4663",
   city: "Laakirchen",
   country: "Österreich",
