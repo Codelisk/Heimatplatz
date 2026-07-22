@@ -60,4 +60,21 @@ const searchResult = await fetchApiPropertySearch(searchQuery);
     ssrQuery={searchQuery}
     ortSlugMap={ortSlugMap}
   />
+
+  {/* Makler-Teaser: bewusst als schmale Sektion unterm Feed statt In-Feed-Karte -
+      die Startseite bleibt Endnutzer-Territorium, der Teaser stoert die Suche nicht */}
+  <section class="px-3 pb-8 sm:px-5" aria-label={t("nav.forBrokers")}>
+    <div class="mx-auto flex max-w-7xl flex-col gap-4 rounded-lg border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div>
+        <p class="text-lg font-bold">{t("broker.homeTeaserTitle")}</p>
+        <p class="mt-1 text-sm leading-6 text-muted-foreground">{t("broker.homeTeaserText")}</p>
+      </div>
+      <a
+        href="/makler/"
+        class="inline-flex shrink-0 self-start rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:self-auto"
+      >
+        {t("broker.homeTeaserCta")}
+      </a>
+    </div>
+  </section>
 </BaseLayout>

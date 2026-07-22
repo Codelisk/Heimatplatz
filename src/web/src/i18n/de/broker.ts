@@ -67,6 +67,11 @@ export const broker = {
   "broker.altContact":
     "Lieber direkt? Schreiben Sie uns – ein Link zu Ihren Inseraten genügt:",
 
+  "broker.homeTeaserTitle": "Sie sind Makler?",
+  "broker.homeTeaserText":
+    "Wir bringen Ihre Immobilien kostenlos auf Heimatplatz – Zugang, Einrichtung und Inserate übernehmen wir für Sie.",
+  "broker.homeTeaserCta": "Zum Makler-Service",
+
   "broker.registerHintTitle": "Sie sind Makler?",
   "broker.registerHintText":
     "Wir übernehmen Einrichtung und Inserate kostenlos für Sie.",
