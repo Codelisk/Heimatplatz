@@ -280,10 +280,23 @@ body {
   :is(span.bg-brand, span.bg-foreground, span.bg-type-haus, span.bg-type-grund) {
   border-radius: 2px;
 }
-/* Suchleiste (Startseite): Filter-Chips und Treffer-Stempel. Die Chips
+/* Suchleiste (Startseite): Filter als klassisches Segmented Control. Die Chips
    schalten rein ueber aria-pressed (PropertySearchApp setzt nur das Attribut) -
-   gedrueckt = Tinten-Invertierung wie ein Stempel, die Typ-Farbe haengt als
-   eckiger Farbpunkt dran (gleiche Codierung wie die Foto-Badges der Karten). */
+   ausgewaehlt = gehobenes Papier-Segment auf dem Muted-Track (statt der
+   frueheren Tinten-Invertierung, auf deren Fast-Schwarz die Typ-Farben nicht
+   trugen); der eckige Farbpunkt behaelt die Codierung der Foto-Badges. */
+:root {
+  --segment-selected: var(--card);
+  --segment-rand: oklch(0.3 0.02 55 / 16%);
+  --segment-shadow: 0 1px 3px oklch(0.28 0.04 55 / 28%);
+}
+.dark {
+  /* Auf dunklem Track hebt eine leicht hellere Flaeche + helle Haarlinie das
+     aktive Segment (gleiches Dark-Elevation-Muster wie --zettel-rand) */
+  --segment-selected: oklch(0.31 0.018 55);
+  --segment-rand: oklch(0.95 0.012 70 / 28%);
+  --segment-shadow: 0 1px 3px oklch(0 0 0 / 45%);
+}
 .filter-chip-group {
   display: inline-flex;
   align-items: center;
@@ -300,29 +313,31 @@ body {
   gap: 0.5rem;
   min-height: 2.25rem;
   padding: 0 0.875rem;
+  /* Transparente Kante reserviert den Platz der aktiven Haarlinie (kein Springen) */
+  border: 1px solid transparent;
   border-radius: calc(var(--radius) - 2px);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--muted-foreground);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
-/* In der Desktop-Suchleiste kompakter; das Mobile-Panel behaelt die Touch-Hoehe */
+/* In der Desktop-Suchleiste kompakter (Gesamthoehe = h-9 der Selects daneben);
+   das Mobile-Panel behaelt die Touch-Hoehe */
 @media (min-width: 64rem) {
   .filter-chip {
-    min-height: 1.875rem;
+    min-height: 1.75rem;
   }
 }
 .filter-chip:hover {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
+  color: var(--foreground);
+  background-color: color-mix(in oklch, var(--segment-selected) 45%, transparent);
 }
 .filter-chip[aria-pressed="true"] {
-  background-color: var(--secondary-accent);
-  color: var(--background);
-}
-.filter-chip[aria-pressed="true"]:hover {
-  background-color: color-mix(in oklch, var(--secondary-accent) 86%, var(--background));
+  background-color: var(--segment-selected);
+  border-color: var(--segment-rand);
+  box-shadow: var(--segment-shadow);
+  color: var(--foreground);
 }
 /* Typ-Chips tragen ihren Farbpunkt (eckig wie die Badges); abgewaehlt = abgedimmt */
 .filter-chip[data-filter-type]::before {
@@ -347,19 +362,13 @@ body {
   --chip-dot: var(--brand);
 }
 
-/* Treffer-Stempel: roter Vermerk wie ein Stempel am schwarzen Brett */
-.result-stamp {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.3125rem 0.625rem;
-  border: 1.5px solid color-mix(in oklch, var(--primary) 65%, transparent);
-  border-radius: 2px;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+/* Trefferzahl: ruhiger Vermerk statt rotem Stempel (war zu dominant) */
+.result-count {
   white-space: nowrap;
-  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
 }
 
 /* Betriebssystem-Wunsch "mehr Kontrast": Text und Raender anheben, Palette bleibt */

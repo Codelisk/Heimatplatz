@@ -80,15 +80,13 @@ const ortRegions = await fetchOrtRegions();
       </div>
     </form>
     <div class="flex flex-1 items-center justify-between gap-3 lg:flex-none lg:justify-end">
-      <span class="result-stamp" data-result-count>{t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total })}</span>
-      <label class="flex items-center gap-1">
-        <ArrowsSortIcon class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <span class="result-count" data-result-count>{t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total })}</span>
+      <label class="flex items-center">
         <span class="sr-only">{t("search.sortLabel")}</span>
-        {/* text-base auf Mobile: <select> unter 16px loest auf iOS Auto-Zoom aus */}
-        <select
-          class="h-9 cursor-pointer rounded-md border-0 bg-transparent py-0 pl-2 pr-8 text-base font-semibold text-foreground sm:text-sm"
-          data-filter-sort
-        >
+        {/* Gleiche eingefasste Optik wie das Zeitraum-Select; das Sortier-Icon
+            sitzt als Indikator im Rahmen (ersetzt den Chevron-Slot).
+            text-base auf Mobile: <select> unter 16px loest auf iOS Auto-Zoom aus */}
+        <NativeSelect size="sm" class="cursor-pointer text-base sm:text-sm" data-filter-sort>
           <option value="newest">{t("search.sortNewest")}</option>
           <option value="oldest">{t("search.sortOldest")}</option>
           <option value="price-asc">{t("search.sortPriceAsc")}</option>
@@ -97,7 +95,12 @@ const ortRegions = await fetchOrtRegions();
           <option value="area-asc">{t("search.sortAreaAsc")}</option>
           <option value="postal-asc">{t("search.sortPostalAsc")}</option>
           <option value="postal-desc">{t("search.sortPostalDesc")}</option>
-        </select>
+          <ArrowsSortIcon
+            slot="icon"
+            class="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-foreground opacity-50"
+            aria-hidden="true"
+          />
+        </NativeSelect>
       </label>
     </div>
   </div>
