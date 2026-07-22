@@ -113,7 +113,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
-  import { formatApiDate, formatApiPrice, getDisplayTitle } from "@/features/properties/format";
+  import { formatApiDate, formatApiPrice, getApiLocationLine, getApiStreetLine, getDisplayTitle } from "@/features/properties/format";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
   import { t } from "@/i18n";
   import {
@@ -422,16 +422,6 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     return `/immobilien/angebote/${encodeURIComponent(id)}/`;
   }
 
-  // Wie getApiAddressLine (live-api.ts): PLZ+Ort-Fallback, doppelte PLZ vermeiden
-  function formatAddressLine(property: ApiProperty) {
-    const address = (property.Address ?? "").trim();
-    const postalCode = (property.PostalCode ?? "").trim();
-    if (!address) return [postalCode, property.City].filter(Boolean).join(" ");
-    // Adressen aus Importen enthalten oft schon die PLZ ("4742 Pram")
-    if (!postalCode || address.startsWith(postalCode)) return address;
-    return `${postalCode} ${address}`;
-  }
-
   // Inline-SVGs 1:1 aus ApiPropertyCard.astro (Tabler heart/eye-off/user/calendar),
   // damit JS-gerenderte Karten identisch zu den SSR-Karten aussehen.
   const ICONS = {
@@ -546,11 +536,12 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const titleLink = document.createElement("a");
     titleLink.href = getApiDetailPath(property.Id);
     titleLink.className = "hover:underline";
-    titleLink.textContent = property.City || property.Title;
+    titleLink.textContent = getApiLocationLine(property) || property.City || property.Title;
     title.append(titleLink);
+    const streetLine = getApiStreetLine(property);
     left.append(
       title,
-      createText("p", "truncate text-sm text-muted-foreground", formatAddressLine(property)),
+      ...(streetLine ? [createText("p", "truncate text-sm text-muted-foreground", streetLine)] : []),
       createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
     );
 

@@ -232,6 +232,9 @@
   --zettel-shadow: 0 14px 28px -14px oklch(0.28 0.04 55 / 35%);
   --zettel-shadow-hover: 0 18px 34px -16px oklch(0.28 0.04 55 / 45%);
   --zettel-frame: oklch(0.3 0.02 55 / 18%);
+  /* Zettel-Kante: hell trennt der Schlagschatten, die Kante bleibt unsichtbar */
+  --zettel-rand: transparent;
+  --zettel-rand-hover: transparent;
 }
 .dark {
   --fuge: oklch(1 0 0 / 3%);
@@ -239,6 +242,11 @@
   --zettel-shadow-hover: 0 18px 34px -16px oklch(0 0 0 / 90%);
   /* Foto-Rand auf dunkler Karte als Weisston statt Tinte */
   --zettel-frame: oklch(0.95 0.01 70 / 16%);
+  /* Schwarzer Schatten traegt auf Fast-Schwarz nicht - auf dunklen Flaechen
+     uebernimmt eine helle Haarlinie die Kantentrennung (klassisches
+     Dark-Elevation-Muster) */
+  --zettel-rand: oklch(0.95 0.012 70 / 22%);
+  --zettel-rand-hover: oklch(0.95 0.012 70 / 34%);
 }
 body {
   /* Angedeutete Bretterfugen, bewusst knapp ueber der Wahrnehmungsschwelle */
@@ -252,11 +260,11 @@ body {
    Foto mit Papierrand eingefasst */
 [data-property-card] {
   position: relative;
-  border-color: transparent;
+  border-color: var(--zettel-rand);
   box-shadow: var(--zettel-shadow);
 }
 [data-property-card]:hover {
-  border-color: transparent;
+  border-color: var(--zettel-rand-hover);
   box-shadow: var(--zettel-shadow-hover);
 }
 [data-property-card] > div:first-child {

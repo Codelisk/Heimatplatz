@@ -34,6 +34,44 @@ export function getDisplayTitle(title: string) {
   return title.replace(/^\s*Zwangsversteigerung\s*[:\-–—]\s*/i, "").trim() || title;
 }
 
+type ApiAddressParts = {
+  Address?: string | null;
+  PostalCode?: string | null;
+  City?: string | null;
+};
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Ortszeile der Karte: PLZ gehoert vor den Ort ("4742 Pram"), nie vor die Strasse. */
+export function getApiLocationLine(property: ApiAddressParts) {
+  return [property.PostalCode?.trim(), property.City?.trim()].filter(Boolean).join(" ");
+}
+
+/**
+ * Strassenzeile der Karte: Address ohne die Ortsteile, die Importe oft
+ * mitliefern ("4742 Pram", "Pram Bahnhofstrasse 3", "Bahnhofstrasse 3, 4742 Pram").
+ * Liefert "" wenn die Adresse nichts ueber PLZ+Ort hinaus enthaelt.
+ */
+export function getApiStreetLine(property: ApiAddressParts) {
+  const postalCode = escapeRegExp((property.PostalCode ?? "").trim());
+  const city = escapeRegExp((property.City ?? "").trim());
+  let street = (property.Address ?? "").trim();
+  if (!street) return "";
+
+  if (postalCode) street = street.replace(new RegExp(`^${postalCode}(?:[\\s,]+|$)`, "i"), "").trim();
+  if (city) {
+    // Nachgestelltes ", (PLZ) Ort" abschneiden
+    street = street.replace(new RegExp(`[\\s,]+(?:${postalCode ? `${postalCode}\\s+` : ""})?${city}$`, "i"), "").trim();
+    // Fuehrenden Ortsnamen nur strippen, wenn danach keine blosse Hausnummer
+    // folgt - "Pram 44" IST die Strassenangabe in Doerfern ohne Strassennamen
+    const rest = street.replace(new RegExp(`^${city}(?:[\\s,]+|$)`, "i"), "").trim();
+    if (rest !== street && !/^\d/.test(rest)) street = rest;
+  }
+  return street;
+}
+
 export function formatApiDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return "";
