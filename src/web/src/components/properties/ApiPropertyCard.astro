@@ -37,9 +37,10 @@ const sellerLabel = typeSearchValue === "foreclosure" ? t("card.sellerCourt") : 
 // Fusszeile vertraegt fehlende Namen (kein haengender Trennpunkt)
 const sellerLine = [sellerLabel, property.SellerName?.trim()].filter(Boolean).join(" · ");
 const area = getApiAreaValue(property);
-// Kopfzeile "PLZ Ort", darunter nur die Strasse - PLZ direkt vor der
-// Strasse ("4742 Bahnhofstrasse 3") liest sich falsch
-const locationLine = getApiLocationLine(property) || property.City || property.Title;
+// Titel als Kopfzeile, darunter "PLZ Ort" und dann die Strasse - die PLZ
+// gehoert zum Ort, nie vor die Strasse ("4742 Bahnhofstrasse 3" liest sich falsch)
+const displayTitle = getDisplayTitle(property.Title);
+const locationLine = getApiLocationLine(property) || property.City;
 const streetLine = getApiStreetLine(property);
 const imageUrl = getApiPropertyImage(property);
 const responsiveImage = getResponsiveImage(imageUrl);
@@ -120,10 +121,10 @@ const citySlug = slugifyLocation(property.City);
   <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
     <div class="min-w-0">
       <h2 class="truncate text-base font-semibold">
-        <a href={href} class="hover:underline">{locationLine}</a>
+        <a href={href} class="hover:underline">{displayTitle || locationLine}</a>
       </h2>
+      {locationLine && <p class="truncate text-sm text-muted-foreground">{locationLine}</p>}
       {streetLine && <p class="truncate text-sm text-muted-foreground">{streetLine}</p>}
-      <p class="mt-1 truncate text-xs text-muted-foreground">{getDisplayTitle(property.Title)}</p>
     </div>
 
     <dl class="text-right">

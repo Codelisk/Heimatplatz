@@ -1777,14 +1777,17 @@
     const titleLink = document.createElement("a");
     titleLink.href = `/immobilien/angebote/${encodeURIComponent(property.Id)}/`;
     titleLink.className = "hover:underline";
-    titleLink.textContent = getApiLocationLine(property) || property.City || property.Title;
+    // Titel als Kopfzeile, darunter "PLZ Ort" und Strasse (wie ApiPropertyCard.astro)
+    const locationLine = getApiLocationLine(property) || property.City;
+    titleLink.textContent = getDisplayTitle(property.Title) || locationLine;
     title.append(titleLink);
     const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-price", formatApiPrice(property.Price));
     head.append(title, price);
-    // Kopfzeile traegt "PLZ Ort", hier bleibt nur die Strasse
     const streetLine = getApiStreetLine(property);
-    const address = streetLine ? [createText("p", "mt-1 text-sm text-muted-foreground", streetLine)] : [];
-    const subtitle = createText("p", "mt-1 text-xs text-muted-foreground", getDisplayTitle(property.Title));
+    const address = [
+      ...(locationLine ? [createText("p", "mt-1 text-sm text-muted-foreground", locationLine)] : []),
+      ...(streetLine ? [createText("p", "text-sm text-muted-foreground", streetLine)] : []),
+    ];
     const meta = createText(
       "p",
       "mt-4 text-sm font-semibold",
@@ -1804,9 +1807,9 @@
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">${t("common.edit")}</a>
         <button type="button" class="inline-flex h-9 items-center rounded-md bg-error px-3 text-sm font-medium text-error-foreground" data-remote-delete="${property.Id}">${t("common.delete")}</button>
       `;
-      body.append(head, ...address, subtitle, meta, actions);
+      body.append(head, ...address, meta, actions);
     } else {
-      body.append(head, ...address, subtitle, meta);
+      body.append(head, ...address, meta);
     }
     card.append(imageWrap, body);
     return card;

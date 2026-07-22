@@ -536,13 +536,15 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const titleLink = document.createElement("a");
     titleLink.href = getApiDetailPath(property.Id);
     titleLink.className = "hover:underline";
-    titleLink.textContent = getApiLocationLine(property) || property.City || property.Title;
+    // Titel als Kopfzeile, darunter "PLZ Ort" und Strasse (wie ApiPropertyCard.astro)
+    const locationLine = getApiLocationLine(property) || property.City;
+    titleLink.textContent = getDisplayTitle(property.Title) || locationLine;
     title.append(titleLink);
     const streetLine = getApiStreetLine(property);
     left.append(
       title,
+      ...(locationLine ? [createText("p", "truncate text-sm text-muted-foreground", locationLine)] : []),
       ...(streetLine ? [createText("p", "truncate text-sm text-muted-foreground", streetLine)] : []),
-      createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
     );
 
     const facts = document.createElement("dl");
