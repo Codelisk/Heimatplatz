@@ -280,6 +280,88 @@ body {
   :is(span.bg-brand, span.bg-foreground, span.bg-type-haus, span.bg-type-grund) {
   border-radius: 2px;
 }
+/* Suchleiste (Startseite): Filter-Chips und Treffer-Stempel. Die Chips
+   schalten rein ueber aria-pressed (PropertySearchApp setzt nur das Attribut) -
+   gedrueckt = Tinten-Invertierung wie ein Stempel, die Typ-Farbe haengt als
+   eckiger Farbpunkt dran (gleiche Codierung wie die Foto-Badges der Karten). */
+.filter-chip-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--input);
+  border-radius: var(--radius);
+  /* Opak wie die Eingabefelder: Bretterfugen scheinen nicht durch */
+  background-color: var(--muted);
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding: 0 0.875rem;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+/* In der Desktop-Suchleiste kompakter; das Mobile-Panel behaelt die Touch-Hoehe */
+@media (min-width: 64rem) {
+  .filter-chip {
+    min-height: 1.875rem;
+  }
+}
+.filter-chip:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.filter-chip[aria-pressed="true"] {
+  background-color: var(--secondary-accent);
+  color: var(--background);
+}
+.filter-chip[aria-pressed="true"]:hover {
+  background-color: color-mix(in oklch, var(--secondary-accent) 86%, var(--background));
+}
+/* Typ-Chips tragen ihren Farbpunkt (eckig wie die Badges); abgewaehlt = abgedimmt */
+.filter-chip[data-filter-type]::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background-color: var(--chip-dot, currentColor);
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+}
+.filter-chip[data-filter-type][aria-pressed="true"]::before {
+  opacity: 1;
+}
+.filter-chip[data-filter-type="house"] {
+  --chip-dot: var(--type-haus);
+}
+.filter-chip[data-filter-type="land"] {
+  --chip-dot: var(--type-grund);
+}
+.filter-chip[data-filter-type="foreclosure"] {
+  --chip-dot: var(--brand);
+}
+
+/* Treffer-Stempel: roter Vermerk wie ein Stempel am schwarzen Brett */
+.result-stamp {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3125rem 0.625rem;
+  border: 1.5px solid color-mix(in oklch, var(--primary) 65%, transparent);
+  border-radius: 2px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--primary);
+}
+
 /* Betriebssystem-Wunsch "mehr Kontrast": Text und Raender anheben, Palette bleibt */
 @media (prefers-contrast: more) {
   :root {

@@ -1,13 +1,17 @@
 ---
+import ArrowsSortIcon from "@tabler/icons/outline/arrows-sort.svg";
 import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
 import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
+import { NativeSelect } from "@/components/starwind/native-select";
 import type { ApiProperty } from "@/features/properties/live-api";
 import type { OrtSlugMap } from "@/features/properties/search-query";
 import { SEARCH_PAGE_SIZE } from "@/features/properties/search-query";
+import { fetchOrtRegions } from "@/features/locations/live-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
 import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
 import MobileFilterPanel from "@/components/properties/MobileFilterPanel.astro";
+import OrtPicker from "@/components/properties/OrtPicker.astro";
 
 interface Props {
   apiProperties?: ApiProperty[];
@@ -29,6 +33,10 @@ const {
   ortSlugMap = {},
 } = Astro.props;
 const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
+// Such-Picker arbeitet auf der echten Bezirk/Gemeinde-Hierarchie der API
+// (Slugs -> MunicipalityIds, serverseitige Filterung). Cached, faellt bei
+// API-Ausfall auf die statischen SEO-Ortsteile zurueck.
+const ortRegions = await fetchOrtRegions();
 ---
 
 <MobileFilterPanel />
@@ -43,26 +51,55 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 </div>
 <script is:inline type="application/json" data-ort-slug-map set:html={jsonForScriptTag(ortSlugMap)} />
 
-<section class="border-b border-border bg-background">
-  <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2 text-sm sm:px-5">
-    <span class="text-muted-foreground" data-result-count>{t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total })}</span>
-    <label class="flex items-center gap-2">
-      <span class="sr-only">{t("search.sortLabel")}</span>
-      {/* text-base auf Mobile: <select> unter 16px loest auf iOS Auto-Zoom aus */}
-      <select
-        class="h-9 rounded-md border border-border bg-background px-3 text-base text-foreground sm:text-sm"
-        data-filter-sort
-      >
-        <option value="newest">{t("search.sortNewest")}</option>
-        <option value="oldest">{t("search.sortOldest")}</option>
-        <option value="price-asc">{t("search.sortPriceAsc")}</option>
-        <option value="price-desc">{t("search.sortPriceDesc")}</option>
-        <option value="area-desc">{t("search.sortAreaDesc")}</option>
-        <option value="area-asc">{t("search.sortAreaAsc")}</option>
-        <option value="postal-asc">{t("search.sortPostalAsc")}</option>
-        <option value="postal-desc">{t("search.sortPostalDesc")}</option>
-      </select>
-    </label>
+{/* Suchleiste: Desktop-Filter links, Treffer-Stempel + Sortierung rechts.
+    Ab lg klebt sie unter dem Header (Filter bleiben beim Scrollen greifbar);
+    auf Mobile liefert das MobileFilterPanel darueber die Filter. */}
+<section class="z-30 border-b border-border bg-background supports-[backdrop-filter]:bg-background/85 supports-[backdrop-filter]:backdrop-blur-md lg:sticky lg:top-14">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2 sm:px-5">
+    <form action="/" method="get" class="hidden min-w-0 flex-1 flex-wrap items-center gap-2.5 lg:flex">
+      <div class="w-44 xl:w-56">
+        <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
+      </div>
+      <NativeSelect name="age" size="sm" class="w-32" data-filter-age>
+        <option value="">{t("filter.period")}</option>
+        <option value="day">{t("filter.period24h")}</option>
+        <option value="week">{t("filter.period7d")}</option>
+        <option value="month">{t("filter.period30d")}</option>
+        <option value="year">{t("filter.period1y")}</option>
+      </NativeSelect>
+      <div class="filter-chip-group" role="group" aria-label={t("search.settingsTypeTitle")}>
+        <button type="button" class="filter-chip" data-filter-type="house" aria-pressed="true">{t("filter.typeHouse")}</button>
+        <button type="button" class="filter-chip" data-filter-type="land" aria-pressed="true">{t("filter.typeLand")}</button>
+        {/* Zwangsversteigerungen sind standardmaessig deaktiviert - Chip startet
+            unpressed, updateFilterChips uebernimmt danach URL/Praeferenzen */}
+        <button type="button" class="filter-chip" data-filter-type="foreclosure" aria-pressed="false">{t("filter.typeForeclosure")}</button>
+      </div>
+      <div class="filter-chip-group" role="group" aria-label={t("search.settingsSellerTitle")} data-seller-filter-group>
+        <button type="button" class="filter-chip" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
+        <button type="button" class="filter-chip" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
+      </div>
+    </form>
+    <div class="flex flex-1 items-center justify-between gap-3 lg:flex-none lg:justify-end">
+      <span class="result-stamp" data-result-count>{t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total })}</span>
+      <label class="flex items-center gap-1">
+        <ArrowsSortIcon class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <span class="sr-only">{t("search.sortLabel")}</span>
+        {/* text-base auf Mobile: <select> unter 16px loest auf iOS Auto-Zoom aus */}
+        <select
+          class="h-9 cursor-pointer rounded-md border-0 bg-transparent py-0 pl-2 pr-8 text-base font-semibold text-foreground sm:text-sm"
+          data-filter-sort
+        >
+          <option value="newest">{t("search.sortNewest")}</option>
+          <option value="oldest">{t("search.sortOldest")}</option>
+          <option value="price-asc">{t("search.sortPriceAsc")}</option>
+          <option value="price-desc">{t("search.sortPriceDesc")}</option>
+          <option value="area-desc">{t("search.sortAreaDesc")}</option>
+          <option value="area-asc">{t("search.sortAreaAsc")}</option>
+          <option value="postal-asc">{t("search.sortPostalAsc")}</option>
+          <option value="postal-desc">{t("search.sortPostalDesc")}</option>
+        </select>
+      </label>
+    </div>
   </div>
 </section>
 
@@ -592,13 +629,8 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
   }
 
   function setChipPressed(button: HTMLButtonElement, pressed: boolean) {
+    // Die Optik haengt komplett am Attribut (.filter-chip[aria-pressed] in starwind.css)
     button.setAttribute("aria-pressed", String(pressed));
-    button.classList.toggle("border-primary", pressed);
-    button.classList.toggle("bg-primary", pressed);
-    button.classList.toggle("text-primary-foreground", pressed);
-    button.classList.toggle("border-border", !pressed);
-    button.classList.toggle("bg-background", !pressed);
-    button.classList.toggle("text-foreground", !pressed);
   }
 
   function updateFilterChips() {

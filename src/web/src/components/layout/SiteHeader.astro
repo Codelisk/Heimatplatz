@@ -13,19 +13,11 @@ import UserIcon from "@tabler/icons/outline/user.svg";
 import UserPlusIcon from "@tabler/icons/outline/user-plus.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
 import { Button } from "@/components/starwind/button";
-import { NativeSelect } from "@/components/starwind/native-select";
 import { t } from "@/i18n";
 import BrandMark from "@/components/layout/BrandMark.astro";
 import ThemeToggle from "@/components/layout/ThemeToggle.astro";
-import OrtPicker from "@/components/properties/OrtPicker.astro";
-import { fetchOrtRegions } from "@/features/locations/live-api";
 
 const pathname = Astro.url.pathname;
-const showFilters = pathname === "/";
-// Such-Picker arbeitet auf der echten Bezirk/Gemeinde-Hierarchie der API
-// (Slugs -> MunicipalityIds, serverseitige Filterung). Cached, faellt bei
-// API-Ausfall auf die statischen SEO-Ortsteile zurueck.
-const ortRegions = showFilters ? await fetchOrtRegions() : [];
 const titleByPath = [
   { test: (path: string) => path === "/", title: "HEIMATPLATZ" },
   { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: t("nav.property") },
@@ -92,43 +84,9 @@ function isActive(href: string) {
       </a>
     </div>
 
-    {
-      showFilters && (
-        <form action="/" method="get" class="hidden min-w-0 flex-1 items-center justify-center gap-2 xl:flex">
-          <div class="w-44">
-            <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
-          </div>
-          <NativeSelect name="age" class="w-32" data-filter-age>
-            <option value="">{t("filter.period")}</option>
-            <option value="day">{t("filter.period24h")}</option>
-            <option value="week">{t("filter.period7d")}</option>
-            <option value="month">{t("filter.period30d")}</option>
-            <option value="year">{t("filter.period1y")}</option>
-          </NativeSelect>
-          <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="house" aria-pressed="true">
-            {t("filter.typeHouse")}
-          </button>
-          <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">
-            {t("filter.typeLand")}
-          </button>
-          {/* Zwangsversteigerungen sind standardmaessig deaktiviert - Chip startet
-              unpressed, updateFilterChips uebernimmt danach URL/Praeferenzen */}
-          <button type="button" class="rounded-md border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="false">
-            {t("filter.typeForeclosure")}
-          </button>
-          <div class="flex items-center gap-2" data-seller-filter-group>
-            <span class="mx-1 h-6 w-px bg-border" aria-hidden="true" />
-            <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="private" aria-pressed="true">
-              {t("filter.sellerPrivate")}
-            </button>
-            <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="agent" aria-pressed="true">
-              {t("filter.sellerAgent")}
-            </button>
-          </div>
-        </form>
-      )
-    }
-
+    {/* Die Such-Filter leben seit dem Suchleisten-Redesign nicht mehr im Header,
+        sondern in der Suchleiste der Startseite (PropertySearchApp) - der Header
+        bleibt auf allen Seiten eine reine Titel-/Aktionszeile. */}
     <div class="flex shrink-0 items-center gap-1.5">
       <ThemeToggle />
       <div class="hidden items-center gap-2 sm:flex">
