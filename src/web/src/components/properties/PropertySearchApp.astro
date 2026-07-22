@@ -441,15 +441,16 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     calendar: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12"></path><path d="M16 3v4"></path><path d="M8 3v4"></path><path d="M4 11h16"></path><path d="M11 15h1"></path><path d="M12 15v3"></path></svg>',
   };
 
-  // Fusszeile der Karte (Verkaeufer links, Datum rechts) - 1:1 zu ApiPropertyCard.astro
+  // Fusszeile der Karte (Verkaeufer links, Datum rechts) - 1:1 zu ApiPropertyCard.astro.
+  // mt-auto pinnt sie an den Kartenboden (Grid-Zeilen strecken die Karten gleich hoch).
   function createCardFooter(property: ApiProperty) {
     const footer = document.createElement("div");
-    footer.className = "flex items-center justify-between gap-3 border-t border-border/70 bg-muted/40 px-3 py-2 text-xs text-muted-foreground";
+    footer.className = "mt-auto flex items-center justify-between gap-3 border-t border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground";
 
     const seller = document.createElement("span");
     seller.className = "flex min-w-0 items-center gap-1.5";
     seller.innerHTML = ICONS.user.replace('class="size-3"', 'class="size-3.5 shrink-0"');
-    seller.append(createText("span", "truncate", `${mapSellerLabel(property)} · ${property.SellerName}`));
+    seller.append(createText("span", "truncate", [mapSellerLabel(property), property.SellerName?.trim()].filter(Boolean).join(" · ")));
 
     const date = document.createElement("span");
     date.className = "flex shrink-0 items-center gap-1.5";
@@ -487,7 +488,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const type = mapType(property);
     const area = property.PlotAreaM2 ?? property.LivingAreaM2 ?? 0;
 
-    article.className = "property-card group overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg";
+    article.className = "property-card group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg";
     article.dataset.propertyCard = "";
     article.dataset.liveProperty = "true";
     article.dataset.slug = property.Id;
@@ -568,7 +569,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
         <dt class="sr-only">${t("card.area")}</dt>
         <dd class="text-sm font-semibold text-muted-foreground">${area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
       </div>
-      <div class="mt-3 flex justify-end gap-1">${chips}</div>
+      ${chips ? `<div class="mt-3 flex justify-end gap-1">${chips}</div>` : ""}
     `;
 
     body.append(left, facts);
