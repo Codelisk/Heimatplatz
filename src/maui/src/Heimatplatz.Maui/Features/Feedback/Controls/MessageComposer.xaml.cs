@@ -26,6 +26,18 @@ public partial class MessageComposer : ContentView
         typeof(MessageComposer),
         string.Empty);
 
+    /// <summary>
+    /// true = unten angedockte Chat-Zeile (Haarlinie, hebt sich ueber die Tastatur -
+    /// Verlaufsseite). false = normales Formularfeld im Scroll-Inhalt (Compose-Seite):
+    /// keine Anhebe-Logik, die Tastatur schiebt die Seite wie ueberall per Pan.
+    /// </summary>
+    public static readonly BindableProperty DockedProperty = BindableProperty.Create(
+        nameof(Docked),
+        typeof(bool),
+        typeof(MessageComposer),
+        true,
+        propertyChanged: (bindable, _, _) => ((MessageComposer)bindable).ApplyDockedLayout());
+
     public MessageComposer()
     {
         InitializeComponent();
@@ -62,6 +74,18 @@ public partial class MessageComposer : ContentView
         set => SetValue(PlaceholderProperty, value);
     }
 
+    public bool Docked
+    {
+        get => (bool)GetValue(DockedProperty);
+        set => SetValue(DockedProperty, value);
+    }
+
+    private void ApplyDockedLayout()
+    {
+        DividerLine.IsVisible = Docked;
+        InnerStack.Padding = Docked ? new Thickness(12, 10, 12, 14) : new Thickness(0);
+    }
+
     // Der innere Baum bindet direkt gegen den Composer (x:DataType), damit die
     // Vorlagen ohne RelativeSource-Umwege auskommen
     private static void OnComposerChanged(BindableObject bindable, object oldValue, object newValue)
@@ -88,7 +112,8 @@ public partial class MessageComposer : ContentView
         // adjustResize - die Tastatur wuerde die Zeile verdecken. Wir lesen die
         // IME-Insets deshalb selbst von den Root-Insets des Fensters (GlobalLayout
         // feuert bei jedem Tastatur-Ein/Ausblenden) und heben die Zeile per Margin.
-        if (!OperatingSystem.IsAndroidVersionAtLeast(35))
+        // Nur fuer die angedockte Chat-Zeile - als Formularfeld uebernimmt Pan.
+        if (!Docked || !OperatingSystem.IsAndroidVersionAtLeast(35))
             return;
 
         var decor = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Window?.DecorView;
@@ -110,7 +135,7 @@ public partial class MessageComposer : ContentView
     /// <summary>Aktuellen IME-Inset lesen und die Zeile heben/senken (nur bei eigenem Fokus).</summary>
     private void ApplyKeyboardMargin()
     {
-        if (!OperatingSystem.IsAndroidVersionAtLeast(35))
+        if (!Docked || !OperatingSystem.IsAndroidVersionAtLeast(35))
             return;
 
         var decor = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Window?.DecorView;
@@ -142,9 +167,18 @@ public partial class MessageComposer : ContentView
     private sealed class KeyboardWatcher(MessageComposer owner, Android.Views.View decor)
         : Java.Lang.Object, Android.Views.ViewTreeObserver.IOnGlobalLayoutListener
     {
+        private double _lastImeDp = -1;
+
         public void OnGlobalLayout()
         {
+            // GlobalLayout feuert bei JEDEM Layout-Durchlauf (auch pro Tastendruck durch
+            // das mitwachsende Textfeld) - nur bei echter Tastatur-Aenderung reagieren,
+            // sonst ruckelt das Tippen durch die staendigen Main-Thread-Posts
             var imeDp = ReadImeDp(decor);
+            if (Math.Abs(imeDp - _lastImeDp) < 0.5)
+                return;
+
+            _lastImeDp = imeDp;
             MainThread.BeginInvokeOnMainThread(() => owner.SetKeyboardMargin(imeDp));
         }
     }

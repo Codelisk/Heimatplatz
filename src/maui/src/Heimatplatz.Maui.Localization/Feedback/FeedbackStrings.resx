@@ -190,7 +190,7 @@
     <value>Wiedergabe fehlgeschlagen.</value>
   </data>
   <data name="ComposeHint" xml:space="preserve">
-    <value>Text schreiben, Bilder anhängen oder eine Sprachnachricht aufnehmen – alles direkt in der Zeile unten.</value>
+    <value>Bilder und Sprachnachricht hängen Sie mit den Symbolen direkt an die Nachricht an.</value>
   </data>
   <data name="MessagePlaceholder" xml:space="preserve">
     <value>Nachricht schreiben …</value>

@@ -15,10 +15,12 @@
           RowDefinitions="Auto,Auto">
 
         <BoxView Grid.Row="0"
+                 x:Name="DividerLine"
                  HeightRequest="1"
                  Color="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
 
         <VerticalStackLayout Grid.Row="1"
+                             x:Name="InnerStack"
                              Spacing="8"
                              Padding="12,10,12,14">
 

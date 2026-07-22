@@ -9,75 +9,74 @@
     x:DataType="presentation:FeedbackComposeViewModel"
     Title="{Binding Loc.ComposeTitle}">
 
-    <!-- Wie im Messenger: oben die Anfrage-Angaben, unten fest die Eingabezeile,
-         an der Text, Bilder und Sprachnachricht gemeinsam haengen -->
-    <Grid RowDefinitions="*,Auto">
+    <!-- Normales Formular: die Nachrichten-Zeile (Text + Bilder + Sprachnachricht)
+         sitzt als Feld IM Formular unter dem Betreff - nichts dockt, nichts hebt
+         sich, die Tastatur schiebt die Seite wie ueberall (kein Layout-Geruckel,
+         keine ueberlagerten Felder). Angedockt ist die Zeile nur im Chat-Verlauf. -->
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="16,20,16,32"
+            Spacing="20"
+            MaximumWidthRequest="600"
+            HorizontalOptions="Fill">
 
-        <ScrollView Grid.Row="0" x:Name="FormScroll">
-            <VerticalStackLayout
-                Padding="16,20,16,16"
-                Spacing="20"
-                MaximumWidthRequest="600"
-                HorizontalOptions="Fill">
+            <!-- Kategorie -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{Binding Loc.CategoryLegend}" Style="{StaticResource CardTitle}" />
+                    <FlexLayout BindableLayout.ItemsSource="{Binding Categories}"
+                                Wrap="Wrap"
+                                JustifyContent="Start"
+                                AutomationId="Feedback_CategoryChips">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:FeedbackCategoryOption">
+                                <Button Text="{Binding Label}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Margin="0,0,8,8"
+                                        Command="{Binding SelectCategoryCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackComposeViewModel}}, x:DataType=presentation:FeedbackComposeViewModel}"
+                                        CommandParameter="{Binding .}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
 
-                <!-- Kategorie -->
-                <Border Style="{StaticResource Card}">
-                    <VerticalStackLayout Spacing="12">
-                        <Label Text="{Binding Loc.CategoryLegend}" Style="{StaticResource CardTitle}" />
-                        <FlexLayout BindableLayout.ItemsSource="{Binding Categories}"
-                                    Wrap="Wrap"
-                                    JustifyContent="Start"
-                                    AutomationId="Feedback_CategoryChips">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="models:FeedbackCategoryOption">
-                                    <Button Text="{Binding Label}"
-                                            Style="{StaticResource FilterChipStyle}"
-                                            Margin="0,0,8,8"
-                                            Command="{Binding SelectCategoryCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackComposeViewModel}}, x:DataType=presentation:FeedbackComposeViewModel}"
-                                            CommandParameter="{Binding .}">
-                                        <Button.Triggers>
-                                            <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                                            </DataTrigger>
-                                        </Button.Triggers>
-                                    </Button>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </FlexLayout>
-                    </VerticalStackLayout>
-                </Border>
+            <!-- Betreff (optional) -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Loc.SubjectLabel}" Style="{StaticResource FieldLabel}" />
+                    <Border StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="12,0">
+                        <Entry Text="{Binding Subject}"
+                               Placeholder="{Binding Loc.SubjectPlaceholder}"
+                               MaxLength="200"
+                               StyleClass="borderless"
+                               AutomationId="Feedback_SubjectEntry" />
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
 
-                <!-- Betreff (optional) -->
-                <Border Style="{StaticResource Card}">
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="{Binding Loc.SubjectLabel}" Style="{StaticResource FieldLabel}" />
-                        <Border StrokeThickness="1"
-                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                                StrokeShape="RoundRectangle 10"
-                                Padding="12,0">
-                            <Entry Text="{Binding Subject}"
-                                   Placeholder="{Binding Loc.SubjectPlaceholder}"
-                                   MaxLength="200"
-                                   StyleClass="borderless"
-                                   AutomationId="Feedback_SubjectEntry" />
-                        </Border>
-                    </VerticalStackLayout>
-                </Border>
+            <!-- Nachricht mit Anhaengen direkt an der Zeile -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{Binding Loc.BodyLabel}" Style="{StaticResource FieldLabel}" />
+                    <controls:MessageComposer Docked="False"
+                                              Composer="{Binding Composer}"
+                                              SendCommand="{Binding SendCommand}"
+                                              Placeholder="{Binding Loc.MessagePlaceholder}" />
+                    <Label Text="{Binding Loc.ComposeHint}" Style="{StaticResource Caption}" />
+                </VerticalStackLayout>
+            </Border>
 
-                <Label Text="{Binding Loc.ComposeHint}"
-                       Style="{StaticResource Caption}"
-                       HorizontalTextAlignment="Center"
-                       Margin="8,4,8,0" />
-
-            </VerticalStackLayout>
-        </ScrollView>
-
-        <controls:MessageComposer Grid.Row="1"
-                                  x:Name="ComposerView"
-                                  Composer="{Binding Composer}"
-                                  SendCommand="{Binding SendCommand}"
-                                  Placeholder="{Binding Loc.MessagePlaceholder}"
-                                  BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
-    </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
