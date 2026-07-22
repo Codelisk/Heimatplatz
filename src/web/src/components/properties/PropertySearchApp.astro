@@ -113,7 +113,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
-  import { formatApiDate, formatApiPrice, getApiAddressLine, getDisplayTitle } from "@/features/properties/format";
+  import { formatApiDate, formatApiPrice, getApiLocationLine, getApiStreetLine, getDisplayTitle } from "@/features/properties/format";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
   import { t } from "@/i18n";
   import {
@@ -527,39 +527,43 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     `;
     media.append(link, badge, actions);
 
-    // Volle Zeilen statt zwei Spalten (wie ApiPropertyCard.astro): Titel+Preis,
-    // Adresse, Fakten-Chips
     const body = document.createElement("div");
-    body.className = "p-3";
-    const head = document.createElement("div");
-    head.className = "flex items-baseline justify-between gap-3";
+    body.className = "grid grid-cols-[1fr_auto] gap-3 p-3";
+    const left = document.createElement("div");
+    left.className = "min-w-0";
     const title = document.createElement("h2");
-    title.className = "min-w-0 truncate text-base font-semibold";
+    title.className = "truncate text-base font-semibold";
     const titleLink = document.createElement("a");
     titleLink.href = getApiDetailPath(property.Id);
     titleLink.className = "hover:underline";
-    const addressLine = getApiAddressLine(property);
-    titleLink.textContent = getDisplayTitle(property.Title) || addressLine;
+    titleLink.textContent = getApiLocationLine(property) || property.City || property.Title;
     title.append(titleLink);
-    const price = document.createElement("p");
-    price.className = "shrink-0 whitespace-nowrap text-xl font-bold leading-none text-price";
-    price.innerHTML = `<span class="sr-only">${t("card.price")}: </span>${formatApiPrice(property.Price)}`;
-    head.append(title, price);
-
-    const chipRow = document.createElement("div");
-    chipRow.className = "mt-3 flex flex-wrap gap-1";
-    chipRow.innerHTML = [
-      property.PlotAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.plotAreaValue", { area: property.PlotAreaM2 })}</span>` : "",
-      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.livingAreaValue", { area: property.LivingAreaM2 })}</span>` : "",
-      property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipRooms", { value: property.Rooms })}</span>` : "",
-      !area ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.areaUnknown")}</span>` : "",
-    ].filter(Boolean).join("");
-
-    body.append(
-      head,
-      ...(addressLine ? [createText("p", "truncate text-sm text-muted-foreground", addressLine)] : []),
-      chipRow,
+    const streetLine = getApiStreetLine(property);
+    left.append(
+      title,
+      ...(streetLine ? [createText("p", "truncate text-sm text-muted-foreground", streetLine)] : []),
+      createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
     );
+
+    const facts = document.createElement("dl");
+    facts.className = "text-right";
+    const chips = [
+      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>` : "",
+      property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipRooms", { value: property.Rooms })}</span>` : "",
+    ].filter(Boolean).join("");
+    facts.innerHTML = `
+      <div>
+        <dt class="sr-only">${t("card.price")}</dt>
+        <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">${formatApiPrice(property.Price)}</dd>
+      </div>
+      <div class="mt-1.5">
+        <dt class="sr-only">${t("card.area")}</dt>
+        <dd class="text-sm font-semibold text-muted-foreground">${area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
+      </div>
+      ${chips ? `<div class="mt-3 flex justify-end gap-1">${chips}</div>` : ""}
+    `;
+
+    body.append(left, facts);
     article.append(media, body, createCardFooter(property));
     return article;
   }
