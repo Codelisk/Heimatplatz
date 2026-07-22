@@ -182,12 +182,22 @@
                   ColumnSpacing="8"
                   IsVisible="{Binding IsIdle}">
 
+                <!-- Fokus-Ring: hat das Nachrichtenfeld den Fokus, wird der Rahmen rot -
+                     damit ist immer klar, in welchem Feld man gerade schreibt -->
                 <Border Grid.Column="0"
+                        x:Name="InputPill"
                         StrokeThickness="1"
                         Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                         BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
                         StrokeShape="RoundRectangle 22"
                         Padding="4,2">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border"
+                                     Binding="{Binding Source={x:Reference MessageEditor}, Path=IsFocused, x:DataType=Editor}"
+                                     Value="True">
+                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        </DataTrigger>
+                    </Border.Triggers>
                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="0">
                         <!-- Galerie: 40 hoch = Editor-Mindesthoehe -> Icon sitzt bei einer
                              Zeile mittig; waechst der Text, bleibt es unten (Messenger-Muster) -->
@@ -210,6 +220,7 @@
 
                         <!-- Waechst bis ~Halbbild mit, erst danach scrollt der Text -->
                         <Editor Grid.Column="1"
+                                x:Name="MessageEditor"
                                 Text="{Binding Text}"
                                 Placeholder="{Binding Placeholder, Source={RelativeSource AncestorType={x:Type controls:MessageComposer}}, x:DataType=controls:MessageComposer}"
                                 MaxLength="4000"

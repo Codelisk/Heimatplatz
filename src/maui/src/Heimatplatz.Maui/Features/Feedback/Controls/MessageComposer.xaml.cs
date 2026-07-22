@@ -29,7 +29,20 @@ public partial class MessageComposer : ContentView
     public MessageComposer()
     {
         InitializeComponent();
+
+        // Die Zeile hebt sich NUR ueber die Tastatur, wenn das eigene Nachrichtenfeld
+        // den Fokus hat - beim Tippen in anderen Feldern (z.B. Betreff) bleibt sie
+        // unten, sonst springt das Layout bei jedem Fokuswechsel hin und her.
+        MessageEditor.Focused += (_, _) =>
+        {
+            EditorFocused?.Invoke(this, EventArgs.Empty);
+            OnEditorFocusChanged(true);
+        };
+        MessageEditor.Unfocused += (_, _) => OnEditorFocusChanged(false);
     }
+
+    /// <summary>Feuert, wenn das Nachrichtenfeld den Fokus bekommt (Seiten scrollen dann passend).</summary>
+    public event EventHandler? EditorFocused;
 
     public FeedbackComposer? Composer
     {
@@ -59,6 +72,13 @@ public partial class MessageComposer : ContentView
 
 #if ANDROID
     private KeyboardWatcher? _keyboardWatcher;
+    private bool _editorFocused;
+
+    private void OnEditorFocusChanged(bool focused)
+    {
+        _editorFocused = focused;
+        ApplyKeyboardMargin();
+    }
 
     protected override void OnHandlerChanged()
     {
@@ -87,26 +107,51 @@ public partial class MessageComposer : ContentView
         }
     }
 
+    /// <summary>Aktuellen IME-Inset lesen und die Zeile heben/senken (nur bei eigenem Fokus).</summary>
+    private void ApplyKeyboardMargin()
+    {
+        if (!OperatingSystem.IsAndroidVersionAtLeast(35))
+            return;
+
+        var decor = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Window?.DecorView;
+        if (decor == null)
+            return;
+
+        SetKeyboardMargin(ReadImeDp(decor));
+    }
+
+    private static double ReadImeDp(Android.Views.View decor)
+    {
+        var insets = AndroidX.Core.View.ViewCompat.GetRootWindowInsets(decor);
+        if (insets == null)
+            return 0;
+
+        // Voller IME-Inset: die Zeile soll direkt auf der Tastatur-Oberkante sitzen
+        var ime = insets.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.Ime())?.Bottom ?? 0;
+        var density = decor.Resources?.DisplayMetrics?.Density ?? 1f;
+        return Math.Max(0, ime) / density;
+    }
+
+    private void SetKeyboardMargin(double imeDp)
+    {
+        var bottomDp = _editorFocused ? imeDp : 0;
+        if (Math.Abs(Margin.Bottom - bottomDp) > 0.5)
+            Margin = new Thickness(0, 0, 0, bottomDp);
+    }
+
     private sealed class KeyboardWatcher(MessageComposer owner, Android.Views.View decor)
         : Java.Lang.Object, Android.Views.ViewTreeObserver.IOnGlobalLayoutListener
     {
         public void OnGlobalLayout()
         {
-            var insets = AndroidX.Core.View.ViewCompat.GetRootWindowInsets(decor);
-            if (insets == null)
-                return;
-
-            // Voller IME-Inset: die Zeile soll direkt auf der Tastatur-Oberkante sitzen
-            var ime = insets.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.Ime())?.Bottom ?? 0;
-            var density = decor.Resources?.DisplayMetrics?.Density ?? 1f;
-            var bottomDp = Math.Max(0, ime) / density;
-
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (Math.Abs(owner.Margin.Bottom - bottomDp) > 0.5)
-                    owner.Margin = new Thickness(0, 0, 0, bottomDp);
-            });
+            var imeDp = ReadImeDp(decor);
+            MainThread.BeginInvokeOnMainThread(() => owner.SetKeyboardMargin(imeDp));
         }
+    }
+#else
+    private static void OnEditorFocusChanged(bool focused)
+    {
+        // iOS/Windows verschieben Eingaben selbst ueber die Tastatur - nichts zu tun
     }
 #endif
 }

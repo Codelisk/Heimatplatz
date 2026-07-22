@@ -13,7 +13,7 @@
          an der Text, Bilder und Sprachnachricht gemeinsam haengen -->
     <Grid RowDefinitions="*,Auto">
 
-        <ScrollView Grid.Row="0">
+        <ScrollView Grid.Row="0" x:Name="FormScroll">
             <VerticalStackLayout
                 Padding="16,20,16,16"
                 Spacing="20"
@@ -74,6 +74,7 @@
         </ScrollView>
 
         <controls:MessageComposer Grid.Row="1"
+                                  x:Name="ComposerView"
                                   Composer="{Binding Composer}"
                                   SendCommand="{Binding SendCommand}"
                                   Placeholder="{Binding Loc.MessagePlaceholder}"
