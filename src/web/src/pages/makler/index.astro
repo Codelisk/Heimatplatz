@@ -1,4 +1,10 @@
 ---
+import ArmchairIcon from "@tabler/icons/outline/armchair.svg";
+import ArrowRightIcon from "@tabler/icons/outline/arrow-right.svg";
+import GiftIcon from "@tabler/icons/outline/gift.svg";
+import KeyIcon from "@tabler/icons/outline/key.svg";
+import MapPinIcon from "@tabler/icons/outline/map-pin.svg";
+import BrandMark from "@/components/layout/BrandMark.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
@@ -17,10 +23,10 @@ const steps = [
 ];
 
 const benefits = [
-  { title: t("broker.benefit1Title"), text: t("broker.benefit1Text") },
-  { title: t("broker.benefit2Title"), text: t("broker.benefit2Text") },
-  { title: t("broker.benefit3Title"), text: t("broker.benefit3Text") },
-  { title: t("broker.benefit4Title"), text: t("broker.benefit4Text") },
+  { title: t("broker.benefit1Title"), text: t("broker.benefit1Text"), icon: ArmchairIcon },
+  { title: t("broker.benefit2Title"), text: t("broker.benefit2Text"), icon: GiftIcon },
+  { title: t("broker.benefit3Title"), text: t("broker.benefit3Text"), icon: MapPinIcon },
+  { title: t("broker.benefit4Title"), text: t("broker.benefit4Text"), icon: KeyIcon },
 ];
 
 const structuredData = [
@@ -45,26 +51,57 @@ const structuredData = [
   canonicalPath="/makler/"
   structuredData={structuredData}
 >
-  <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-    <header class="max-w-3xl">
-      <p class="text-sm font-bold uppercase text-muted-foreground">{t("broker.kicker")}</p>
-      <h1 class="mt-3 text-3xl font-bold tracking-normal hyphens-auto sm:text-4xl" lang="de">{t("broker.title")}</h1>
-      <p class="mt-4 text-base leading-7 text-muted-foreground">
-        {t("broker.intro")}
-      </p>
-      <a
-        href="#anfrage"
-        class="mt-6 inline-flex rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-      >
-        {t("broker.ctaButton")}
-      </a>
-    </header>
+  {/* Hero im Markenpanel-Look der Auth-Seiten: gleicher Rot-Verlauf, gleiche
+      Haus-Linienzeichnung, das Abzeichen wird wie dort als Siegel "aufgestempelt" */}
+  <section class="relative overflow-hidden bg-[linear-gradient(160deg,#c9161c,#ee6a50)] text-white dark:bg-[linear-gradient(160deg,#bb0916,#1a0508)]">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="0.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="pointer-events-none absolute -right-24 -top-20 size-[36rem] text-white/10"
+      aria-hidden="true"
+    >
+      <path d="M3.5 12.5 12 5l8.5 7.5" />
+      <path d="M6.5 11.5V19h11v-7.5" />
+      <path d="M12 19v-4" />
+    </svg>
 
-    <h2 class="mt-14 text-2xl font-bold">{t("broker.stepsTitle")}</h2>
-    <ol class="mt-5 grid gap-5 sm:grid-cols-3">
+    <div class="mx-auto grid max-w-5xl gap-10 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-8">
+      <div>
+        <p class="hero-rise text-sm font-bold uppercase tracking-[0.14em] text-white/80" style="--rise-delay: 0s">{t("broker.kicker")}</p>
+        <h1 class="hero-rise mt-4 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight hyphens-auto sm:text-5xl" style="--rise-delay: 0.08s" lang="de">
+          {t("broker.title")}
+        </h1>
+        <p class="hero-rise mt-5 max-w-xl text-base leading-7 text-white/85 sm:text-lg sm:leading-8" style="--rise-delay: 0.16s">
+          {t("broker.intro")}
+        </p>
+        <div class="hero-rise mt-8 flex flex-wrap items-center gap-4" style="--rise-delay: 0.24s">
+          <a
+            href="#anfrage"
+            class="group inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-bold text-[#b3261e] shadow-lg transition-transform hover:-translate-y-0.5"
+          >
+            {t("broker.ctaButton")}
+            <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+          </a>
+          <a href="#ablauf" class="text-sm font-semibold text-white/85 underline-offset-4 hover:text-white hover:underline">
+            {t("broker.heroSecondaryCta")}
+          </a>
+        </div>
+      </div>
+      {/* Siegel wie im Auth-Panel: kommt gross an und setzt sich mit 6 Grad ab */}
+      <BrandMark tile class="broker-seal hidden h-36 drop-shadow-[0_10px_24px_rgba(0,0,0,0.3)] lg:block" />
+    </div>
+  </section>
+
+  <section id="ablauf" class="mx-auto max-w-5xl scroll-mt-20 px-4 py-14 sm:px-6 lg:px-8">
+    <h2 class="section-title text-2xl font-bold sm:text-3xl">{t("broker.stepsTitle")}</h2>
+    <ol class="mt-8 grid gap-6 sm:grid-cols-3">
       {steps.map((step, index) => (
-        <li class="rounded-lg border border-border bg-card p-5">
-          <span class="grid size-9 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground" aria-hidden="true">
+        <li class="zettel reveal rounded-lg bg-card p-5 pt-6" style={`--reveal-delay: ${index * 0.12}s; --zettel-tilt: ${[-1.2, 0.8, -0.6][index]}deg`}>
+          <span class="step-stamp grid size-11 place-items-center rounded-full text-lg font-extrabold" aria-hidden="true">
             {index + 1}
           </span>
           <h3 class="mt-4 text-lg font-bold">{step.title}</h3>
@@ -72,20 +109,32 @@ const structuredData = [
         </li>
       ))}
     </ol>
+  </section>
 
-    <h2 class="mt-14 text-2xl font-bold">{t("broker.benefitsTitle")}</h2>
-    <div class="mt-5 grid gap-5 sm:grid-cols-2">
-      {benefits.map((benefit) => (
-        <article class="rounded-lg border border-border bg-card p-5">
-          <h3 class="text-lg font-bold">{benefit.title}</h3>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">{benefit.text}</p>
-        </article>
-      ))}
+  <section class="mx-auto max-w-5xl px-4 pb-14 sm:px-6 lg:px-8">
+    <h2 class="section-title text-2xl font-bold sm:text-3xl">{t("broker.benefitsTitle")}</h2>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2">
+      {benefits.map((benefit, index) => {
+        const Icon = benefit.icon;
+        return (
+          <article class="zettel zettel-hover reveal rounded-lg bg-card p-5" style={`--reveal-delay: ${index * 0.1}s; --zettel-tilt: 0deg`}>
+            <div class="flex items-center gap-3">
+              <span class="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground" aria-hidden="true">
+                <Icon class="size-5" />
+              </span>
+              <h3 class="text-lg font-bold">{benefit.title}</h3>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">{benefit.text}</p>
+          </article>
+        );
+      })}
     </div>
+  </section>
 
-    <div id="anfrage" class="mt-14 grid gap-8 scroll-mt-20 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <div class="rounded-lg border border-border bg-card p-5 sm:p-6">
-        <h2 class="text-2xl font-bold">{t("broker.formTitle")}</h2>
+  <section id="anfrage" class="mx-auto max-w-5xl scroll-mt-20 px-4 pb-16 sm:px-6 lg:px-8">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="zettel reveal rounded-lg bg-card p-5 sm:p-7" style="--reveal-delay: 0s; --zettel-tilt: 0deg">
+        <h2 class="section-title text-2xl font-bold sm:text-3xl">{t("broker.formTitle")}</h2>
         <p class="mt-2 text-sm text-muted-foreground">{t("broker.formIntro")}</p>
 
         {/* method="post" ohne action: Submit läuft über JS gegen die API,
@@ -129,14 +178,19 @@ const structuredData = [
           <Button type="submit" class="w-full sm:w-auto">{t("broker.submit")}</Button>
         </form>
 
-        <div class="hidden rounded-md border border-border bg-background p-5 text-center" data-broker-success>
-          <p class="text-lg font-bold">{t("broker.successTitle")}</p>
+        {/* Erfolg als Amtsstempel: das "EINGELANGT" wird aufgestempelt (gleiche
+            Bewegung wie das Hero-Siegel), Panel wird per JS eingeblendet */}
+        <div class="hidden py-8 text-center" data-broker-success>
+          <span class="success-stamp inline-block border-4 border-primary px-5 py-2 text-xl font-extrabold uppercase tracking-[0.2em] text-primary">
+            {t("broker.successStamp")}
+          </span>
+          <p class="mt-6 text-lg font-bold">{t("broker.successTitle")}</p>
           <p class="mt-2 text-sm text-muted-foreground">{t("broker.successText")}</p>
         </div>
       </div>
 
       <aside class="space-y-4">
-        <div class="rounded-lg border border-border bg-card p-5">
+        <div class="zettel reveal rounded-lg bg-card p-5" style="--reveal-delay: 0.12s; --zettel-tilt: 0.8deg">
           <p class="text-sm leading-6 text-muted-foreground">{t("broker.altContact")}</p>
           <p class="mt-1 text-sm leading-6">
             <a class="font-semibold text-foreground underline-offset-4 hover:underline" href={`mailto:${contactEmail}`}>{contactEmail}</a>
@@ -147,6 +201,143 @@ const structuredData = [
   </section>
 </BaseLayout>
 
+<style>
+  /* Hero-Einstieg: Zeilen steigen nacheinander auf (nur einmalig beim Laden) */
+  .hero-rise {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-rise {
+      animation: broker-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      animation-delay: var(--rise-delay, 0s);
+    }
+
+    @keyframes broker-rise {
+      from {
+        opacity: 0;
+        translate: 0 16px;
+      }
+      to {
+        opacity: 1;
+        translate: 0 0;
+      }
+    }
+  }
+
+  /* Abzeichen-Siegel: gleiche Stempel-Bewegung wie im Auth-Markenpanel */
+  .broker-seal {
+    rotate: 6deg;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .broker-seal {
+      animation: broker-seal-stamp 0.45s cubic-bezier(0.2, 0.85, 0.3, 1) 0.35s both;
+    }
+
+    @keyframes broker-seal-stamp {
+      from {
+        opacity: 0;
+        scale: 1.35;
+        rotate: 15deg;
+      }
+      to {
+        opacity: 1;
+        scale: 1;
+        rotate: 6deg;
+      }
+    }
+  }
+
+  /* Abschnitts-Titel mit rotem Unterstrich-Akzent */
+  .section-title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.5rem;
+  }
+
+  .section-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 2.5rem;
+    border-radius: 2px;
+    background: var(--primary);
+  }
+
+  /* Zettel wie die Inserat-Karten: Schatten statt Border, leicht schief
+     angeschlagen (--zettel-tilt), beim Hover hebt sich der Zettel */
+  .zettel {
+    box-shadow: var(--zettel-shadow);
+    rotate: var(--zettel-tilt, 0deg);
+  }
+
+  .zettel-hover {
+    transition:
+      translate 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .zettel-hover:hover {
+    translate: 0 -4px;
+    box-shadow: var(--zettel-shadow-hover);
+  }
+
+  /* Schritt-Nummern als runder Stempel: Doppelring, leicht verdreht */
+  .step-stamp {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    rotate: -6deg;
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+  }
+
+  /* Scroll-Reveal: Karten tauchen gestaffelt auf, sobald sie ins Bild kommen.
+     Ohne JS (oder mit reduzierter Bewegung) bleibt alles sofort sichtbar -
+     die Startwerte setzt erst html.broker-reveal-ready (vom Script gestempelt). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html.broker-reveal-ready) .reveal {
+      opacity: 0;
+      translate: 0 18px;
+      transition:
+        opacity 0.5s ease,
+        translate 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+      transition-delay: var(--reveal-delay, 0s);
+    }
+
+    :global(html.broker-reveal-ready) .reveal.revealed {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  /* Erfolgs-Stempel: wird beim Einblenden aufgedrueckt */
+  .success-stamp {
+    rotate: -4deg;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-broker-success]:not(.hidden) .success-stamp {
+      animation: broker-stamp-in 0.4s cubic-bezier(0.2, 0.85, 0.3, 1) 0.1s both;
+    }
+
+    @keyframes broker-stamp-in {
+      from {
+        opacity: 0;
+        scale: 1.6;
+        rotate: 6deg;
+      }
+      to {
+        opacity: 1;
+        scale: 1;
+        rotate: -4deg;
+      }
+    }
+  }
+</style>
+
 <script>
   import { t } from "@/i18n";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
@@ -154,6 +345,26 @@ const structuredData = [
   const CONTACT_EMAIL = "info@heimatplatz.at";
   // Gleiche Endpunkt-Aufloesung wie PropertyStateScript: Debug-Override vor Build-Konfiguration
   const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+
+  // Scroll-Reveal: erst hier scharf schalten (Klasse am <html>), damit die Karten
+  // ohne JavaScript nie unsichtbar haengen bleiben (CSS-Startwert opacity:0)
+  const reveals = Array.from(document.querySelectorAll(".reveal"));
+  const motionOk = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+  if (motionOk && "IntersectionObserver" in window && reveals.length > 0) {
+    document.documentElement.classList.add("broker-reveal-ready");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" }
+    );
+    for (const element of reveals) observer.observe(element);
+  }
 
   const form = document.querySelector<HTMLFormElement>("[data-broker-lead-form]");
 
@@ -201,7 +412,11 @@ const structuredData = [
       }
 
       form.classList.add("hidden");
-      document.querySelector("[data-broker-success]")?.classList.remove("hidden");
+      const success = document.querySelector<HTMLElement>("[data-broker-success]");
+      if (success) {
+        success.classList.remove("hidden");
+        success.scrollIntoView({ block: "center", behavior: motionOk ? "smooth" : "auto" });
+      }
     } catch {
       setStatus(t("broker.errorGeneric", { email: CONTACT_EMAIL }), "error");
     } finally {

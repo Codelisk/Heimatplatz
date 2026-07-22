@@ -71,6 +71,9 @@ export const broker = {
   "broker.homeTeaserText":
     "Wir bringen Ihre Immobilien kostenlos auf Heimatplatz – Zugang, Einrichtung und Inserate übernehmen wir für Sie.",
   "broker.homeTeaserCta": "Zum Makler-Service",
+  "broker.teaserDismiss": "Hinweis ausblenden",
+  "broker.heroSecondaryCta": "So funktioniert's",
+  "broker.successStamp": "Eingelangt",
 
   "broker.registerHintTitle": "Sie sind Makler?",
   "broker.registerHintText":
