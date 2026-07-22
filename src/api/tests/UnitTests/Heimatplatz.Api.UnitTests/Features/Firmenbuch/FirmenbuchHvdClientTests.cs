@@ -1,10 +1,10 @@
 using System.Xml.Linq;
 using FluentAssertions;
-using Heimatplatz.Api.Features.WkoCompanies.Services;
+using Heimatplatz.Api.Features.Firmenbuch.Services;
 using Heimatplatz.Api.UnitTests.Infrastructure;
 using NUnit.Framework;
 
-namespace Heimatplatz.Api.UnitTests.Features.WkoCompanies;
+namespace Heimatplatz.Api.UnitTests.Features.Firmenbuch;
 
 /// <summary>
 /// Tests fuer das Parsen der FBW-WebServices-(HVD)-Antworten (AUSZUG_V2). Die Fixture bildet

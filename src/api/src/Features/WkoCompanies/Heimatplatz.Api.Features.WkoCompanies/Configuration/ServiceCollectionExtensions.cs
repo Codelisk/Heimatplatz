@@ -16,15 +16,6 @@ public static class ServiceCollectionExtensions
         services.AddGeneratedServices();
 
         services.Configure<WkoScrapingOptions>(configuration.GetSection(WkoScrapingOptions.SectionName));
-        services.Configure<FirmenbuchHvdOptions>(configuration.GetSection(FirmenbuchHvdOptions.SectionName));
-
-        // ApiKey-Fallback auf den zentralen JustizOnline-IWG-Zugriffstoken (JustizOnline:IwgApiKey,
-        // env JUSTIZONLINE_IWG_API_KEY) - der Feature-eigene Abschnitt bleibt als Override moeglich.
-        services.PostConfigure<FirmenbuchHvdOptions>(o =>
-        {
-            if (string.IsNullOrWhiteSpace(o.ApiKey))
-                o.ApiKey = configuration["JustizOnline:IwgApiKey"];
-        });
 
         // HttpClient fuer WkoCompanyScraper mit Resilience (Retry/Circuit-Breaker fuer HTTP 429,
         // das firmen.wko.at bei zu dichten Requests zurueckgibt)
@@ -37,15 +28,8 @@ public static class ServiceCollectionExtensions
         })
         .AddStandardResilienceHandler();
 
-        // HttpClient fuer die amtliche Firmenbuch-HVD-Schnittstelle (eigenes, dokumentiertes
-        // Rate-Limit mit sauberem HTTP 429 - AddStandardResilienceHandler faengt das ab)
-        services.AddHttpClient<IFirmenbuchHvdClient, FirmenbuchHvdClient>(client =>
-        {
-            client.Timeout = TimeSpan.FromSeconds(
-                configuration.GetValue($"{FirmenbuchHvdOptions.SectionName}:TimeoutSeconds", 30));
-        })
-        .AddStandardResilienceHandler();
-
+        // Der Firmenbuch-HVD-Client (IFirmenbuchHvdClient, fuer die Anreicherung) wird vom
+        // Firmenbuch-Feature registriert (AddFirmenbuchFeature in Core.Startup).
         services.AddScoped<IWkoCompanySyncService, WkoCompanySyncService>();
 
         services.AddSeeder<WkoCompanySeeder>();

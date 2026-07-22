@@ -1,4 +1,5 @@
 using Heimatplatz.Api.Core.Data.Entities;
+using Heimatplatz.Api.Features.Firmenbuch.Data.Entities;
 
 namespace Heimatplatz.Api.Features.WkoCompanies.Data.Entities;
 

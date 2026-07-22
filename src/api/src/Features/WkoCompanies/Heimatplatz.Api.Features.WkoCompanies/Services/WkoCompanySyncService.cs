@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Firmenbuch.Configuration;
+using Heimatplatz.Api.Features.Firmenbuch.Services;
 using Heimatplatz.Api.Features.WkoCompanies.Configuration;
 using Heimatplatz.Api.Features.WkoCompanies.Data.Entities;
 using Microsoft.EntityFrameworkCore;

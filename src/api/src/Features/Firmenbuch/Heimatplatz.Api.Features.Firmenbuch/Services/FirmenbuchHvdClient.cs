@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
-using Heimatplatz.Api.Features.WkoCompanies.Configuration;
-using Heimatplatz.Api.Features.WkoCompanies.Data.Entities;
+using Heimatplatz.Api.Features.Firmenbuch.Configuration;
+using Heimatplatz.Api.Features.Firmenbuch.Data.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Heimatplatz.Api.Features.WkoCompanies.Services;
+namespace Heimatplatz.Api.Features.Firmenbuch.Services;
 
 /// <summary>
 /// Client fuer die amtliche "FBW-WebServices (HVD)"-Schnittstelle des Bundesministeriums fuer
@@ -26,6 +26,7 @@ public class FirmenbuchHvdClient(
 ) : IFirmenbuchHvdClient
 {
     private const string AuszugRequestNs = "ns://firmenbuch.justiz.gv.at/Abfrage/v2/AuszugRequest";
+    private const string SucheFirmaRequestNs = "ns://firmenbuch.justiz.gv.at/Abfrage/SucheFirmaRequest";
     private const string SoapNs = "http://www.w3.org/2003/05/soap-envelope";
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(options.Value.ApiKey);
@@ -91,6 +92,106 @@ public class FirmenbuchHvdClient(
             return null;
         }
     }
+
+    public async Task<List<FirmenbuchSearchResult>?> SearchAsync(string wortlaut, string ortNr = "", CancellationToken ct = default)
+    {
+        if (!IsConfigured)
+            return null;
+
+        XNamespace soap = SoapNs;
+        XNamespace su = SucheFirmaRequestNs;
+
+        // SUCHBEREICH 1 = eingetragene UND geloeschte Firmen (keine Zweigniederlassungen) -
+        // bewusst inklusive geloeschter, der Status steht am Treffer und wird mitgespeichert.
+        var envelope = new XElement(soap + "Envelope",
+            new XAttribute(XNamespace.Xmlns + "soap", SoapNs),
+            new XAttribute(XNamespace.Xmlns + "su", SucheFirmaRequestNs),
+            new XElement(soap + "Header"),
+            new XElement(soap + "Body",
+                new XElement(su + "SUCHEFIRMAREQUEST",
+                    new XElement(su + "FIRMENWORTLAUT", wortlaut),
+                    new XElement(su + "EXAKTESUCHE", "true"),
+                    new XElement(su + "SUCHBEREICH", "1"),
+                    new XElement(su + "GERICHT", string.Empty),
+                    new XElement(su + "RECHTSFORM", string.Empty),
+                    new XElement(su + "RECHTSEIGENSCHAFT", string.Empty),
+                    new XElement(su + "ORTNR", ortNr))));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, options.Value.BaseUrl)
+        {
+            Content = new StringContent(envelope.ToString(SaveOptions.DisableFormatting))
+        };
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/soap+xml") { CharSet = "UTF-8" };
+        request.Headers.Add("X-API-KEY", options.Value.ApiKey);
+
+        try
+        {
+            using var response = await httpClient.SendAsync(request, ct);
+            var body = await response.Content.ReadAsStringAsync(ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("Firmenbuch-Suche '{Wortlaut}' (OrtNr={OrtNr}) lieferte HTTP {StatusCode}", wortlaut, ortNr, (int)response.StatusCode);
+                return null;
+            }
+
+            var document = XDocument.Parse(body);
+
+            var fault = document.Descendants().FirstOrDefault(e => e.Name.LocalName == "Fault");
+            if (fault != null)
+            {
+                var reason = fault.Descendants().FirstOrDefault(e => e.Name.LocalName == "Text")?.Value;
+                logger.LogWarning("Firmenbuch-Suche '{Wortlaut}' (OrtNr={OrtNr}) SOAP-Fault: {Reason}", wortlaut, ortNr, reason ?? "unbekannt");
+                return null;
+            }
+
+            return ParseSearchResults(document);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Fehler bei Firmenbuch-Suche '{Wortlaut}' (OrtNr={OrtNr})", wortlaut, ortNr);
+            return null;
+        }
+    }
+
+    internal static List<FirmenbuchSearchResult> ParseSearchResults(XDocument document)
+    {
+        var results = new List<FirmenbuchSearchResult>();
+        foreach (var ergebnis in document.Descendants().Where(e => e.Name.LocalName == "ERGEBNIS"))
+        {
+            var fnr = ergebnis.Elements().FirstOrDefault(e => e.Name.LocalName == "FNR")?.Value;
+            if (string.IsNullOrWhiteSpace(fnr))
+                continue;
+
+            // NAME kann mehrzeilig sein (mehrere NAME-Elemente pro Treffer) - zusammenfuegen
+            var name = string.Join(" ", ergebnis.Elements()
+                .Where(e => e.Name.LocalName == "NAME")
+                .Select(e => e.Value.Trim())
+                .Where(v => v.Length > 0));
+            if (name.Length == 0)
+                continue;
+
+            var rechtsform = ergebnis.Elements().FirstOrDefault(e => e.Name.LocalName == "RECHTSFORM");
+            var gericht = ergebnis.Elements().FirstOrDefault(e => e.Name.LocalName == "GERICHT");
+
+            results.Add(new FirmenbuchSearchResult
+            {
+                Fnr = NormalizeFnr(fnr),
+                Name = name,
+                Status = NullIfEmpty(ergebnis.Elements().FirstOrDefault(e => e.Name.LocalName == "STATUS")?.Value),
+                Sitz = NullIfEmpty(ergebnis.Elements().FirstOrDefault(e => e.Name.LocalName == "SITZ")?.Value),
+                RechtsformCode = NullIfEmpty(rechtsform?.Elements().FirstOrDefault(e => e.Name.LocalName == "CODE")?.Value),
+                RechtsformText = NullIfEmpty(rechtsform?.Elements().FirstOrDefault(e => e.Name.LocalName == "TEXT")?.Value),
+                Rechtseigenschaft = NullIfEmpty(ergebnis.Elements().FirstOrDefault(e => e.Name.LocalName == "RECHTSEIGENSCHAFT")?.Value),
+                GerichtCode = NullIfEmpty(gericht?.Elements().FirstOrDefault(e => e.Name.LocalName == "CODE")?.Value),
+                GerichtText = NullIfEmpty(gericht?.Elements().FirstOrDefault(e => e.Name.LocalName == "TEXT")?.Value)
+            });
+        }
+
+        return results;
+    }
+
+    private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     internal static FirmenbuchAuszug ParseAuszug(XElement auszug)
     {

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Heimatplatz.Api.Features.Firmenbuch.Data.Entities;
 using Heimatplatz.Api.Features.WkoCompanies.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
