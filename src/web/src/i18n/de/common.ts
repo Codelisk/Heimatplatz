@@ -44,6 +44,7 @@ export const common = {
   "nav.myProfile": "Mein Profil",
   "nav.debug": "Debug",
   "nav.notSignedIn": "Nicht angemeldet",
+  "nav.forBrokers": "Für Makler",
 
   "filter.locationPlaceholder": "Ort auswählen",
   "filter.period": "Zeitraum",
@@ -58,7 +59,8 @@ export const common = {
   "filter.sellerAgent": "Makler",
 
   "footer.tagline": "Immobilien in Oberösterreich – Häuser, Grundstücke, Zwangsversteigerungen.",
-  "footer.legalAriaLabel": "Rechtliches",
+  "footer.legalAriaLabel": "Weitere Seiten und Rechtliches",
+  "footer.forBrokers": "Für Makler",
   "footer.imprint": "Impressum",
   "footer.privacy": "Datenschutz",
   "footer.copyright": "© {year} Heimatplatz",

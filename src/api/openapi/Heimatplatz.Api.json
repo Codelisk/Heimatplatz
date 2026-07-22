@@ -2199,6 +2199,36 @@
         }
       }
     },
+    "/api/marketing/broker-lead": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SubmitBrokerLead",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitBrokerLeadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitBrokerLeadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/property-drafts/{Id}": {
       "delete": {
         "tags": [
@@ -7814,6 +7844,74 @@
           },
           "IsHidden": {
             "type": "boolean"
+          }
+        }
+      },
+      "SubmitBrokerLeadRequest": {
+        "required": [
+          "Email",
+          "Company",
+          "ContactName",
+          "Phone",
+          "ListingsUrl",
+          "Message",
+          "Fax"
+        ],
+        "type": "object",
+        "properties": {
+          "Email": {
+            "type": "string"
+          },
+          "Company": {
+            "type": "string"
+          },
+          "ContactName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ListingsUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Fax": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SubmitBrokerLeadResponse": {
+        "required": [
+          "Success",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

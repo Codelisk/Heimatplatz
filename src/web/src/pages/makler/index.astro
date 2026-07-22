@@ -1,0 +1,211 @@
+---
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { Textarea } from "@/components/starwind/textarea";
+import { t } from "@/i18n";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { breadcrumbSchema } from "@/lib/seo";
+
+const contactEmail = "info@heimatplatz.at";
+const pageUrl = new URL("/makler/", Astro.site).toString();
+
+const steps = [
+  { title: t("broker.step1Title"), text: t("broker.step1Text") },
+  { title: t("broker.step2Title"), text: t("broker.step2Text") },
+  { title: t("broker.step3Title"), text: t("broker.step3Text") },
+];
+
+const benefits = [
+  { title: t("broker.benefit1Title"), text: t("broker.benefit1Text") },
+  { title: t("broker.benefit2Title"), text: t("broker.benefit2Text") },
+  { title: t("broker.benefit3Title"), text: t("broker.benefit3Text") },
+  { title: t("broker.benefit4Title"), text: t("broker.benefit4Text") },
+];
+
+const structuredData = [
+  breadcrumbSchema([
+    { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+    { name: t("nav.forBrokers"), url: pageUrl },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: t("broker.metaTitle"),
+    description: t("broker.metaDescription"),
+    url: pageUrl,
+    inLanguage: "de-AT",
+  },
+];
+---
+
+<BaseLayout
+  title={t("broker.metaTitle")}
+  description={t("broker.metaDescription")}
+  canonicalPath="/makler/"
+  structuredData={structuredData}
+>
+  <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+    <header class="max-w-3xl">
+      <p class="text-sm font-bold uppercase text-muted-foreground">{t("broker.kicker")}</p>
+      <h1 class="mt-3 text-3xl font-bold tracking-normal hyphens-auto sm:text-4xl" lang="de">{t("broker.title")}</h1>
+      <p class="mt-4 text-base leading-7 text-muted-foreground">
+        {t("broker.intro")}
+      </p>
+      <a
+        href="#anfrage"
+        class="mt-6 inline-flex rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+      >
+        {t("broker.ctaButton")}
+      </a>
+    </header>
+
+    <h2 class="mt-14 text-2xl font-bold">{t("broker.stepsTitle")}</h2>
+    <ol class="mt-5 grid gap-5 sm:grid-cols-3">
+      {steps.map((step, index) => (
+        <li class="rounded-lg border border-border bg-card p-5">
+          <span class="grid size-9 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground" aria-hidden="true">
+            {index + 1}
+          </span>
+          <h3 class="mt-4 text-lg font-bold">{step.title}</h3>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">{step.text}</p>
+        </li>
+      ))}
+    </ol>
+
+    <h2 class="mt-14 text-2xl font-bold">{t("broker.benefitsTitle")}</h2>
+    <div class="mt-5 grid gap-5 sm:grid-cols-2">
+      {benefits.map((benefit) => (
+        <article class="rounded-lg border border-border bg-card p-5">
+          <h3 class="text-lg font-bold">{benefit.title}</h3>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">{benefit.text}</p>
+        </article>
+      ))}
+    </div>
+
+    <div id="anfrage" class="mt-14 grid gap-8 scroll-mt-20 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="rounded-lg border border-border bg-card p-5 sm:p-6">
+        <h2 class="text-2xl font-bold">{t("broker.formTitle")}</h2>
+        <p class="mt-2 text-sm text-muted-foreground">{t("broker.formIntro")}</p>
+
+        {/* method="post" ohne action: Submit läuft über JS gegen die API,
+            ohne JS sollen die Eingaben nicht als GET-Query in der URL landen */}
+        <form class="mt-6 space-y-5" method="post" data-broker-lead-form>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="company">{t("broker.companyLabel")}</Label>
+              <Input id="company" name="company" placeholder={t("broker.companyPlaceholder")} autocomplete="organization" maxlength="200" required />
+            </div>
+            <div class="space-y-2">
+              <Label for="contactName">{t("broker.nameLabel")}</Label>
+              <Input id="contactName" name="contactName" placeholder={t("broker.namePlaceholder")} autocomplete="name" maxlength="200" />
+            </div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="email">{t("broker.emailLabel")}</Label>
+              <Input id="email" type="email" name="email" placeholder={t("broker.emailPlaceholder")} autocomplete="email" required />
+            </div>
+            <div class="space-y-2">
+              <Label for="phone">{t("broker.phoneLabel")}</Label>
+              <Input id="phone" type="tel" name="phone" placeholder={t("broker.phonePlaceholder")} autocomplete="tel" maxlength="50" />
+            </div>
+          </div>
+          <div class="space-y-2">
+            <Label for="listingsUrl">{t("broker.listingsUrlLabel")}</Label>
+            <Input id="listingsUrl" type="url" name="listingsUrl" placeholder={t("broker.listingsUrlPlaceholder")} inputmode="url" maxlength="500" />
+            <p class="text-xs text-muted-foreground">{t("broker.listingsUrlHint")}</p>
+          </div>
+          <div class="space-y-2">
+            <Label for="message">{t("broker.messageLabel")}</Label>
+            <Textarea id="message" name="message" placeholder={t("broker.messagePlaceholder")} rows={4} maxlength="2000" />
+          </div>
+          {/* Honeypot: für Menschen unsichtbar - Bots füllen es aus, die API verwirft dann still */}
+          <div class="hidden" aria-hidden="true">
+            <label for="fax">Fax</label>
+            <input id="fax" type="text" name="fax" tabindex="-1" autocomplete="off" />
+          </div>
+          <p class="hidden text-sm" data-form-status></p>
+          <Button type="submit" class="w-full sm:w-auto">{t("broker.submit")}</Button>
+        </form>
+
+        <div class="hidden rounded-md border border-border bg-background p-5 text-center" data-broker-success>
+          <p class="text-lg font-bold">{t("broker.successTitle")}</p>
+          <p class="mt-2 text-sm text-muted-foreground">{t("broker.successText")}</p>
+        </div>
+      </div>
+
+      <aside class="space-y-4">
+        <div class="rounded-lg border border-border bg-card p-5">
+          <p class="text-sm leading-6 text-muted-foreground">{t("broker.altContact")}</p>
+          <p class="mt-1 text-sm leading-6">
+            <a class="font-semibold text-foreground underline-offset-4 hover:underline" href={`mailto:${contactEmail}`}>{contactEmail}</a>
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { t } from "@/i18n";
+  import { readDebugApiUrl } from "@/lib/utils/debug-host";
+
+  const CONTACT_EMAIL = "info@heimatplatz.at";
+  // Gleiche Endpunkt-Aufloesung wie PropertyStateScript: Debug-Override vor Build-Konfiguration
+  const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+
+  const form = document.querySelector<HTMLFormElement>("[data-broker-lead-form]");
+
+  function setStatus(message: string, tone: "info" | "error") {
+    const status = form?.querySelector<HTMLElement>("[data-form-status]");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove("hidden", "text-muted-foreground", "text-error");
+    status.classList.add(tone === "error" ? "text-error" : "text-muted-foreground");
+  }
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const data = new FormData(form);
+    const submitButton = form.querySelector<HTMLButtonElement>("button[type='submit']");
+    if (submitButton) submitButton.disabled = true;
+    setStatus(t("broker.submitting"), "info");
+
+    try {
+      const response = await fetch(new URL("/api/marketing/broker-lead", API_BASE_URL), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        // PascalCase wie alle API-Contracts (PropertyNamingPolicy = null)
+        body: JSON.stringify({
+          Email: String(data.get("email") ?? ""),
+          Company: String(data.get("company") ?? ""),
+          ContactName: String(data.get("contactName") ?? "") || null,
+          Phone: String(data.get("phone") ?? "") || null,
+          ListingsUrl: String(data.get("listingsUrl") ?? "") || null,
+          Message: String(data.get("message") ?? "") || null,
+          Fax: String(data.get("fax") ?? "") || null,
+        }),
+      });
+
+      if (response.status === 429) {
+        setStatus(t("broker.errorRateLimited"), "error");
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as { Success?: boolean; Error?: string | null } | null;
+      if (!response.ok || !payload?.Success) {
+        setStatus(payload?.Error || t("broker.errorGeneric", { email: CONTACT_EMAIL }), "error");
+        return;
+      }
+
+      form.classList.add("hidden");
+      document.querySelector("[data-broker-success]")?.classList.remove("hidden");
+    } catch {
+      setStatus(t("broker.errorGeneric", { email: CONTACT_EMAIL }), "error");
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+</script>

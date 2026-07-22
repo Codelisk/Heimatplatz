@@ -20,6 +20,7 @@ Posteingang und Auswertung.
 | `GetMarketingInboxRequest` | Posteingang (mit gedrosseltem Auto-Sync) |
 | `SyncMarketingInboxRequest` | Manueller Postfach-Abruf |
 | `SetMarketingInboundReadRequest` | Gelesen-Markierung |
+| `SubmitBrokerLeadRequest` | OEFFENTLICHE Makler-Anfrage der `/makler/`-Seite (Concierge-Onboarding); `Fax` ist ein Honeypot-Feld |
 
 DTOs: `MarketingContactDto`, `MarketingEmailDto`, `MarketingInboundEmailDto`.
 Enums (`MarketingEnums.cs`): `MarketingContactType`, `MarketingContactStatus`,

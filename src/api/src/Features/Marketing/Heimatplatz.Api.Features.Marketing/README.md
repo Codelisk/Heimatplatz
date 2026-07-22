@@ -11,6 +11,14 @@ Alle unter `/api/admin/marketing/*`, geschuetzt per `X-Admin-Key`
 (`AdminAccessGuard` aus dem Admin-Feature, fail-closed) + Caddy-IP-Sperre auf
 `/api/admin*`. Fehler kommen als `Success=false` + `Error`-Text zurueck.
 
+Ausnahme: `POST /api/marketing/broker-lead` (`SubmitBrokerLeadHandler`) ist
+OEFFENTLICH (anonym, bewusst NICHT unter `/api/admin`) - das Anfrage-Formular
+der `/makler/`-Seite des Webs. Upsert in die Kontaktdatenbank (Typ Broker,
+Status Interested, Quelle "Makler-Anfrage", Anfrage als Notiz; gepflegte Felder
+werden nie ueberschrieben) + Benachrichtigungs-Mail ans Team-Postfach
+(`Email:FromAddress`). Spam-Schutz: Honeypot-Feld `Fax` (still verworfen) und
+enges Rate-Limit (5/min pro IP, Program.cs).
+
 | Methode | Pfad | Handler |
 |---------|------|---------|
 | POST | `/email/generate` | `GenerateMarketingEmailHandler` |

@@ -38,6 +38,7 @@ const titleByPath = [
   { test: (path: string) => path.startsWith("/filter-einstellungen"), title: t("nav.filterSettings") },
   { test: (path: string) => path.startsWith("/profil"), title: t("nav.myProfile") },
   { test: (path: string) => path.startsWith("/zwangsversteigerungen"), title: t("nav.foreclosures") },
+  { test: (path: string) => path.startsWith("/makler"), title: t("nav.forBrokers") },
 ];
 const currentTitle = titleByPath.find((item) => item.test(pathname))?.title ?? "HEIMATPLATZ";
 

@@ -132,6 +132,19 @@ builder.Services.AddRateLimiter(options =>
             });
         }
 
+        // Oeffentliche Makler-Anfrage (/makler/-Formular): loest eine Mail ans Team-Postfach
+        // aus und schreibt in die Marketing-Kontaktdatenbank - eng begrenzen wie die
+        // Auth-Mail-Endpunkte, damit niemand Postfach oder CRM fluten kann
+        if (path.StartsWithSegments("/api/marketing/broker-lead"))
+        {
+            return RateLimitPartition.GetFixedWindowLimiter($"brokerlead:{clientIp}", _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+        }
+
         // Anonymer Client-Log-Ingest (MAUI-Crash-Reports): strenger als der Default-Bucket,
         // damit niemand die Telemetrie-Tabellen als anonymen Schreibkanal fluten kann
         if (path.StartsWithSegments("/api/telemetry/client-logs"))

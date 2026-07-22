@@ -15,6 +15,7 @@ const year = new Date().getFullYear();
       </div>
     </div>
     <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label={t("footer.legalAriaLabel")}>
+      <a class="transition-colors hover:text-foreground" href="/makler/">{t("footer.forBrokers")}</a>
       <a class="transition-colors hover:text-foreground" href="/impressum/">{t("footer.imprint")}</a>
       <a class="transition-colors hover:text-foreground" href="/datenschutz/">{t("footer.privacy")}</a>
       <span>{t("footer.copyright", { year })}</span>
