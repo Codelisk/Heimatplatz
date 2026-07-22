@@ -1286,6 +1286,325 @@
         }
       }
     },
+    "/api/feedback/messages": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "AddFeedbackMessage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeedbackMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddFeedbackMessageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feedback": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "CreateFeedbackTicket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFeedbackTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateFeedbackTicketResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMyFeedbackTickets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMyFeedbackTicketsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feedback/{TicketId}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetFeedbackTicketDetail",
+        "parameters": [
+          {
+            "name": "TicketId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetFeedbackTicketResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feedback/attachments": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UploadFeedbackAttachment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadFeedbackAttachmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadFeedbackAttachmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/feedback/stats": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetAdminFeedbackStats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAdminFeedbackStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/feedback/{Id}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetAdminFeedbackTicketDetail",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAdminFeedbackTicketDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/feedback": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetAdminFeedbackTickets",
+        "parameters": [
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAdminFeedbackTicketsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/feedback/reply": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ReplyToFeedbackTicket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyToFeedbackTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplyToFeedbackTicketResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/feedback/status": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SetFeedbackTicketStatus",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFeedbackTicketStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetFeedbackTicketStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/foreclosure-auctions/{Id}": {
       "get": {
         "tags": [
@@ -3051,6 +3370,50 @@
           }
         }
       },
+      "AddFeedbackMessageRequest": {
+        "required": [
+          "TicketId",
+          "Body",
+          "Attachments"
+        ],
+        "type": "object",
+        "properties": {
+          "TicketId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Body": {
+            "type": "string"
+          },
+          "Attachments": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/FeedbackAttachmentInput"
+            }
+          }
+        }
+      },
+      "AddFeedbackMessageResponse": {
+        "required": [
+          "Message"
+        ],
+        "type": "object",
+        "properties": {
+          "Message": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FeedbackMessageDto"
+              }
+            ]
+          }
+        }
+      },
       "AdminDeletePropertyResponse": {
         "required": [
           "Success",
@@ -3063,6 +3426,153 @@
           },
           "Message": {
             "type": "string"
+          }
+        }
+      },
+      "AdminFeedbackTicketDetailDto": {
+        "required": [
+          "Id",
+          "Category",
+          "Subject",
+          "Status",
+          "CreatedAt",
+          "UserId",
+          "UserName",
+          "UserEmail",
+          "Source",
+          "AppVersion",
+          "Messages"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Category": {
+            "$ref": "#/components/schemas/FeedbackCategory"
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/FeedbackTicketStatus"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "UserName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "UserEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Source": {
+            "$ref": "#/components/schemas/FeedbackSource"
+          },
+          "AppVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedbackMessageDto"
+            }
+          }
+        }
+      },
+      "AdminFeedbackTicketSummaryDto": {
+        "required": [
+          "Id",
+          "Category",
+          "Subject",
+          "Status",
+          "CreatedAt",
+          "LastMessageAt",
+          "HasUnreadFromUser",
+          "MessageCount",
+          "LastMessagePreview",
+          "UserId",
+          "UserName",
+          "UserEmail",
+          "Source",
+          "AppVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Category": {
+            "$ref": "#/components/schemas/FeedbackCategory"
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/FeedbackTicketStatus"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "HasUnreadFromUser": {
+            "type": "boolean"
+          },
+          "MessageCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "LastMessagePreview": {
+            "type": "string"
+          },
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "UserName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "UserEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Source": {
+            "$ref": "#/components/schemas/FeedbackSource"
+          },
+          "AppVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3439,6 +3949,66 @@
           "PropertyManager"
         ]
       },
+      "CreateFeedbackTicketRequest": {
+        "required": [
+          "Category",
+          "Subject",
+          "Body",
+          "Source",
+          "AppVersion",
+          "Attachments"
+        ],
+        "type": "object",
+        "properties": {
+          "Category": {
+            "$ref": "#/components/schemas/FeedbackCategory"
+          },
+          "Subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Body": {
+            "type": "string"
+          },
+          "Source": {
+            "$ref": "#/components/schemas/FeedbackSource"
+          },
+          "AppVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Attachments": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/FeedbackAttachmentInput"
+            }
+          }
+        }
+      },
+      "CreateFeedbackTicketResponse": {
+        "required": [
+          "TicketId",
+          "MessageId"
+        ],
+        "type": "object",
+        "properties": {
+          "TicketId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "MessageId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "CreatePropertyRequest": {
         "required": [
           "Title",
@@ -3790,6 +4360,234 @@
             "items": {
               "$ref": "#/components/schemas/DistrictDto"
             }
+          }
+        }
+      },
+      "FeedbackAttachmentDto": {
+        "required": [
+          "Id",
+          "Kind",
+          "Url",
+          "ThumbnailUrl",
+          "ContentType",
+          "FileSizeBytes",
+          "DurationSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Kind": {
+            "$ref": "#/components/schemas/FeedbackAttachmentKind"
+          },
+          "Url": {
+            "type": "string"
+          },
+          "ThumbnailUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ContentType": {
+            "type": "string"
+          },
+          "FileSizeBytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "DurationSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "FeedbackAttachmentInput": {
+        "required": [
+          "Url",
+          "DurationSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "Url": {
+            "type": "string"
+          },
+          "DurationSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "FeedbackAttachmentKind": {
+        "enum": [
+          "Image",
+          "Audio"
+        ]
+      },
+      "FeedbackAuthor": {
+        "enum": [
+          "User",
+          "Team"
+        ]
+      },
+      "FeedbackCategory": {
+        "enum": [
+          "Idea",
+          "Problem",
+          "Question",
+          "Praise",
+          "Other"
+        ]
+      },
+      "FeedbackMessageDto": {
+        "required": [
+          "Id",
+          "Author",
+          "Body",
+          "CreatedAt",
+          "Attachments"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Author": {
+            "$ref": "#/components/schemas/FeedbackAuthor"
+          },
+          "Body": {
+            "type": "string"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedbackAttachmentDto"
+            }
+          }
+        }
+      },
+      "FeedbackSource": {
+        "enum": [
+          "Unknown",
+          "Web",
+          "Android",
+          "Ios",
+          "Windows"
+        ]
+      },
+      "FeedbackTicketDetailDto": {
+        "required": [
+          "Id",
+          "Category",
+          "Subject",
+          "Status",
+          "CreatedAt",
+          "Messages"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Category": {
+            "$ref": "#/components/schemas/FeedbackCategory"
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/FeedbackTicketStatus"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedbackMessageDto"
+            }
+          }
+        }
+      },
+      "FeedbackTicketStatus": {
+        "enum": [
+          "Open",
+          "InProgress",
+          "Answered",
+          "Closed"
+        ]
+      },
+      "FeedbackTicketSummaryDto": {
+        "required": [
+          "Id",
+          "Category",
+          "Subject",
+          "Status",
+          "CreatedAt",
+          "LastMessageAt",
+          "HasUnread",
+          "MessageCount",
+          "LastMessagePreview"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Category": {
+            "$ref": "#/components/schemas/FeedbackCategory"
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/FeedbackTicketStatus"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "HasUnread": {
+            "type": "boolean"
+          },
+          "MessageCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "LastMessagePreview": {
+            "type": "string"
           }
         }
       },
@@ -4221,6 +5019,112 @@
           }
         }
       },
+      "GetAdminFeedbackStatsResponse": {
+        "required": [
+          "Total",
+          "Open",
+          "InProgress",
+          "UnreadFromUser"
+        ],
+        "type": "object",
+        "properties": {
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Open": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "InProgress": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "UnreadFromUser": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "GetAdminFeedbackTicketDetailResponse": {
+        "required": [
+          "Ticket"
+        ],
+        "type": "object",
+        "properties": {
+          "Ticket": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdminFeedbackTicketDetailDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetAdminFeedbackTicketsResponse": {
+        "required": [
+          "Tickets",
+          "Total",
+          "PageSize",
+          "Page",
+          "HasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "Tickets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminFeedbackTicketSummaryDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
+          }
+        }
+      },
       "GetAdminPropertiesResponse": {
         "required": [
           "Properties",
@@ -4428,6 +5332,24 @@
             "items": {
               "$ref": "#/components/schemas/TelemetryLogEntryDto"
             }
+          }
+        }
+      },
+      "GetFeedbackTicketResponse": {
+        "required": [
+          "Ticket"
+        ],
+        "type": "object",
+        "properties": {
+          "Ticket": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FeedbackTicketDetailDto"
+              }
+            ]
           }
         }
       },
@@ -4845,6 +5767,29 @@
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "GetMyFeedbackTicketsResponse": {
+        "required": [
+          "Tickets",
+          "UnreadCount"
+        ],
+        "type": "object",
+        "properties": {
+          "Tickets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedbackTicketSummaryDto"
+            }
+          },
+          "UnreadCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
               "integer",
               "string"
             ],
@@ -7275,6 +8220,48 @@
           }
         }
       },
+      "ReplyToFeedbackTicketRequest": {
+        "required": [
+          "TicketId",
+          "Body"
+        ],
+        "type": "object",
+        "properties": {
+          "TicketId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Body": {
+            "type": "string"
+          }
+        }
+      },
+      "ReplyToFeedbackTicketResponse": {
+        "required": [
+          "Success",
+          "MessageId",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "MessageId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ResendVerificationEmailRequest": {
         "type": "object"
       },
@@ -7786,6 +8773,40 @@
           },
           "Status": {
             "$ref": "#/components/schemas/ErrorGroupStatus"
+          }
+        }
+      },
+      "SetFeedbackTicketStatusRequest": {
+        "required": [
+          "TicketId",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "TicketId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/FeedbackTicketStatus"
+          }
+        }
+      },
+      "SetFeedbackTicketStatusResponse": {
+        "required": [
+          "Success",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -8568,6 +9589,49 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "UploadFeedbackAttachmentRequest": {
+        "required": [
+          "FileName",
+          "ContentType",
+          "Base64Data"
+        ],
+        "type": "object",
+        "properties": {
+          "FileName": {
+            "type": "string"
+          },
+          "ContentType": {
+            "type": "string"
+          },
+          "Base64Data": {
+            "type": "string"
+          }
+        }
+      },
+      "UploadFeedbackAttachmentResponse": {
+        "required": [
+          "Url",
+          "Kind",
+          "FileSizeBytes"
+        ],
+        "type": "object",
+        "properties": {
+          "Url": {
+            "type": "string"
+          },
+          "Kind": {
+            "$ref": "#/components/schemas/FeedbackAttachmentKind"
+          },
+          "FileSizeBytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
           }
         }
       },

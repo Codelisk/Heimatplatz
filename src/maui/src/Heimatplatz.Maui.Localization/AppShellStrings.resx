@@ -30,6 +30,9 @@
   <data name="NotificationsTitle" xml:space="preserve">
     <value>Benachrichtigungen</value>
   </data>
+  <data name="FeedbackTitle" xml:space="preserve">
+    <value>Feedback</value>
+  </data>
   <data name="ProfileTitle" xml:space="preserve">
     <value>Profil</value>
   </data>

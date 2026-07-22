@@ -221,6 +221,95 @@ export type MarketingSyncResponse = {
   Error: string | null;
 };
 
+// Feedback-Feature (/api/admin/feedback) - Nutzer-Anfragen mit Verlauf und Anhaengen.
+// Enums serialisiert per globalem JsonStringEnumConverter als Text, nie numerisch.
+export type FeedbackCategory = "Idea" | "Problem" | "Question" | "Praise" | "Other";
+
+export type FeedbackTicketStatus = "Open" | "InProgress" | "Answered" | "Closed";
+
+export type FeedbackSource = "Unknown" | "Web" | "Android" | "Ios" | "Windows";
+
+export type FeedbackAttachment = {
+  Id: string;
+  Kind: "Image" | "Audio";
+  /** Absolute URL (Original bzw. Display-Variante bei Bildern) */
+  Url: string;
+  /** Skalierte Bild-Vorschau via /api/images/local (null bei Audio) */
+  ThumbnailUrl: string | null;
+  ContentType: string;
+  FileSizeBytes: number;
+  DurationSeconds: number | null;
+};
+
+export type FeedbackMessage = {
+  Id: string;
+  Author: "User" | "Team";
+  Body: string;
+  CreatedAt: string;
+  Attachments: FeedbackAttachment[];
+};
+
+export type AdminFeedbackTicket = {
+  Id: string;
+  Category: FeedbackCategory;
+  Subject: string;
+  Status: FeedbackTicketStatus;
+  CreatedAt: string;
+  LastMessageAt: string;
+  HasUnreadFromUser: boolean;
+  MessageCount: number;
+  LastMessagePreview: string;
+  UserId: string;
+  UserName: string | null;
+  UserEmail: string | null;
+  Source: FeedbackSource;
+  AppVersion: string | null;
+};
+
+export type AdminFeedbackTicketsPage = {
+  Tickets: AdminFeedbackTicket[];
+  Total: number;
+  PageSize: number;
+  Page: number;
+  HasMore: boolean;
+};
+
+export type AdminFeedbackTicketDetail = {
+  Id: string;
+  Category: FeedbackCategory;
+  Subject: string;
+  Status: FeedbackTicketStatus;
+  CreatedAt: string;
+  UserId: string;
+  UserName: string | null;
+  UserEmail: string | null;
+  Source: FeedbackSource;
+  AppVersion: string | null;
+  Messages: FeedbackMessage[];
+};
+
+export type AdminFeedbackTicketDetailResponse = {
+  Ticket: AdminFeedbackTicketDetail | null;
+};
+
+export type FeedbackReplyResponse = {
+  Success: boolean;
+  MessageId: string | null;
+  Error: string | null;
+};
+
+export type FeedbackStatusResponse = {
+  Success: boolean;
+  Error: string | null;
+};
+
+export type AdminFeedbackStats = {
+  Total: number;
+  Open: number;
+  InProgress: number;
+  UnreadFromUser: number;
+};
+
 function adminHeaders(): Record<string, string> {
   return {
     "content-type": "application/json",

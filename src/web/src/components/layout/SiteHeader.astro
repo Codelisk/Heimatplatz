@@ -6,6 +6,7 @@ import HeartIcon from "@tabler/icons/outline/heart.svg";
 import HomeIcon from "@tabler/icons/outline/home.svg";
 import LoginIcon from "@tabler/icons/outline/login.svg";
 import MenuIcon from "@tabler/icons/outline/menu-2.svg";
+import MessageIcon from "@tabler/icons/outline/message-circle.svg";
 import PlusIcon from "@tabler/icons/outline/plus.svg";
 import ShieldOffIcon from "@tabler/icons/outline/shield-off.svg";
 import UserIcon from "@tabler/icons/outline/user.svg";
@@ -36,6 +37,7 @@ const titleByPath = [
   { test: (path: string) => path.startsWith("/blockiert"), title: t("nav.blockedProperties") },
   { test: (path: string) => path.startsWith("/benachrichtigungen"), title: t("nav.notifications") },
   { test: (path: string) => path.startsWith("/filter-einstellungen"), title: t("nav.filterSettings") },
+  { test: (path: string) => path.startsWith("/feedback"), title: t("nav.feedback") },
   { test: (path: string) => path.startsWith("/profil"), title: t("nav.myProfile") },
   { test: (path: string) => path.startsWith("/zwangsversteigerungen"), title: t("nav.foreclosures") },
   { test: (path: string) => path.startsWith("/makler"), title: t("nav.forBrokers") },
@@ -50,6 +52,8 @@ const navItems = [
   { label: t("nav.blockedProperties"), href: "/blockiert/", icon: ShieldOffIcon },
   // Inserieren erfordert ein Konto - Gaeste sehen den Eintrag nicht (PropertyStateScript blendet ein)
   { label: t("nav.addProperty"), href: "/inserieren/", icon: PlusIcon, separator: true, authOnly: true },
+  // Feedback ebenso konto-gebunden (Antworten landen im eigenen Verlauf)
+  { label: t("nav.feedback"), href: "/feedback/", icon: MessageIcon, authOnly: true },
 ];
 
 // Wie Uno NavigationView.FooterMenuItems

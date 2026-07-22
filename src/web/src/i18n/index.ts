@@ -13,6 +13,7 @@ import { auth } from "./de/auth";
 import { broker } from "./de/broker";
 import { common } from "./de/common";
 import { editor } from "./de/editor";
+import { feedback } from "./de/feedback";
 import { foreclosures } from "./de/foreclosures";
 import { home } from "./de/home";
 import { intern } from "./de/intern";
@@ -27,6 +28,7 @@ export const de = {
   ...auth,
   ...account,
   ...broker,
+  ...feedback,
   ...foreclosures,
   ...intern,
   ...misc,

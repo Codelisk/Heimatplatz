@@ -1,3 +1,4 @@
+using Heimatplatz.Maui.Features.Feedback.Presentation;
 using Heimatplatz.Maui.Features.Properties.Presentation;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -9,6 +10,7 @@ namespace Heimatplatz.Maui.Core.DeepLink;
 /// Unterstuetzte Schemas:
 /// - heimatplatz://property/{guid} -> Route "PropertyDetail"
 /// - heimatplatz://foreclosure/{guid} -> Route "ForeclosureDetail"
+/// - heimatplatz://feedback/{guid} -> Route "FeedbackThread" (Push bei Team-Antwort)
 /// Navigiert via Shiny INavigator und setzt die ShellProperty stark typisiert.
 /// </summary>
 [Singleton]
@@ -19,6 +21,7 @@ public class DeepLinkService(
     private const string Scheme = "heimatplatz";
     private const string PropertyHost = "property";
     private const string ForeclosureHost = "foreclosure";
+    private const string FeedbackHost = "feedback";
 
     /// <inheritdoc />
     public bool CanHandleUri(Uri uri)
@@ -51,6 +54,7 @@ public class DeepLinkService(
             {
                 PropertyHost => await NavigateToPropertyAsync(propertyId),
                 ForeclosureHost => await NavigateToForeclosureAsync(propertyId),
+                FeedbackHost => await NavigateToFeedbackAsync(propertyId),
                 _ => HandleUnknownHost(host)
             };
         }
@@ -74,6 +78,14 @@ public class DeepLinkService(
         logger.LogInformation("[DeepLink] Navigating to ForeclosureDetail: {PropertyId}", propertyId);
         await navigator.NavigateTo<ForeclosureDetailViewModel>(
             viewModel => viewModel.PropertyId = propertyId.ToString("D"));
+        return true;
+    }
+
+    private async Task<bool> NavigateToFeedbackAsync(Guid ticketId)
+    {
+        logger.LogInformation("[DeepLink] Navigating to FeedbackThread: {TicketId}", ticketId);
+        await navigator.NavigateTo<FeedbackThreadViewModel>(
+            viewModel => viewModel.TicketId = ticketId.ToString("D"));
         return true;
     }
 

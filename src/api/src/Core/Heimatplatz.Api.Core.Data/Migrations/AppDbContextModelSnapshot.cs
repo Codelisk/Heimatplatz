@@ -227,6 +227,132 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("UserFilterPreferences");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("DurationSeconds")
+                        .HasColumnType("REAL");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId");
+
+                    b.ToTable("FeedbackAttachments", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Author")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId", "CreatedAt");
+
+                    b.ToTable("FeedbackMessages", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackTicket", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AppVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("HasUnreadForTeam")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("HasUnreadForUser")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("LastMessageAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastMessageAt");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FeedbackTickets", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1908,6 +2034,28 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackAttachment", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackMessage", "Message")
+                        .WithMany("Attachments")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackMessage", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackTicket", "Ticket")
+                        .WithMany("Messages")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuctionChange", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuction", "ForeclosureAuction")
@@ -2085,6 +2233,16 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackMessage", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackTicket", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.ForeclosureAuctions.Data.Entities.ForeclosureAuction", b =>

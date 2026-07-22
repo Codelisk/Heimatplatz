@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Feedback &amp; Wünsche</value>
+  </data>
+  <data name="Intro" xml:space="preserve">
+    <value>Was fehlt Ihnen, was stört Sie, was gefällt Ihnen? Wir lesen jede Nachricht und antworten direkt hier.</value>
+  </data>
+  <data name="NewFeedback" xml:space="preserve">
+    <value>Neues Feedback</value>
+  </data>
+  <data name="EmptyTitle" xml:space="preserve">
+    <value>Noch keine Anfragen</value>
+  </data>
+  <data name="EmptyHint" xml:space="preserve">
+    <value>Ihr erstes Feedback landet hier – inklusive unserer Antwort.</value>
+  </data>
+  <data name="LoadFailedTitle" xml:space="preserve">
+    <value>Anfragen konnten nicht geladen werden</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+  <data name="LoggedOutTitle" xml:space="preserve">
+    <value>Nicht angemeldet</value>
+  </data>
+  <data name="LoggedOutHint" xml:space="preserve">
+    <value>Melden Sie sich an, um uns Feedback zu schicken und Antworten zu erhalten.</value>
+  </data>
+  <data name="LoginButton" xml:space="preserve">
+    <value>Anmelden</value>
+  </data>
+  <data name="UnreadBadge" xml:space="preserve">
+    <value>Neue Antwort</value>
+  </data>
+  <data name="MessageCountFormat" xml:space="preserve">
+    <value>{0} Nachrichten</value>
+  </data>
+  <data name="StatusOpen" xml:space="preserve">
+    <value>Offen</value>
+  </data>
+  <data name="StatusInProgress" xml:space="preserve">
+    <value>In Arbeit</value>
+  </data>
+  <data name="StatusAnswered" xml:space="preserve">
+    <value>Beantwortet</value>
+  </data>
+  <data name="StatusClosed" xml:space="preserve">
+    <value>Abgeschlossen</value>
+  </data>
+  <data name="CategoryIdea" xml:space="preserve">
+    <value>Wunsch / Idee</value>
+  </data>
+  <data name="CategoryProblem" xml:space="preserve">
+    <value>Problem melden</value>
+  </data>
+  <data name="CategoryQuestion" xml:space="preserve">
+    <value>Frage</value>
+  </data>
+  <data name="CategoryPraise" xml:space="preserve">
+    <value>Lob</value>
+  </data>
+  <data name="CategoryOther" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
+  <data name="ComposeTitle" xml:space="preserve">
+    <value>Neues Feedback</value>
+  </data>
+  <data name="CategoryLegend" xml:space="preserve">
+    <value>Worum geht es?</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>Betreff (optional)</value>
+  </data>
+  <data name="SubjectPlaceholder" xml:space="preserve">
+    <value>Kurz zusammengefasst …</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>Ihre Nachricht</value>
+  </data>
+  <data name="BodyPlaceholder" xml:space="preserve">
+    <value>Beschreiben Sie Ihr Anliegen – je konkreter, desto besser können wir helfen.</value>
+  </data>
+  <data name="PhotosLabel" xml:space="preserve">
+    <value>Bilder (optional)</value>
+  </data>
+  <data name="PhotosHint" xml:space="preserve">
+    <value>Screenshots oder Fotos helfen uns, Ihr Anliegen zu verstehen.</value>
+  </data>
+  <data name="AddPhoto" xml:space="preserve">
+    <value>Bild auswählen</value>
+  </data>
+  <data name="TakePhoto" xml:space="preserve">
+    <value>Foto aufnehmen</value>
+  </data>
+  <data name="PickPhotosTitle" xml:space="preserve">
+    <value>Bilder auswählen</value>
+  </data>
+  <data name="MaxPhotosFormat" xml:space="preserve">
+    <value>Maximal {0} Bilder pro Nachricht.</value>
+  </data>
+  <data name="CameraPermissionDenied" xml:space="preserve">
+    <value>Kein Kamera-Zugriff – bitte in den Einstellungen erlauben.</value>
+  </data>
+  <data name="VoiceLabel" xml:space="preserve">
+    <value>Sprachnachricht (optional)</value>
+  </data>
+  <data name="VoiceHint" xml:space="preserve">
+    <value>Sprechen Sie Ihr Anliegen einfach ein – wir hören es uns an.</value>
+  </data>
+  <data name="RecordStart" xml:space="preserve">
+    <value>● Aufnehmen</value>
+  </data>
+  <data name="RecordStop" xml:space="preserve">
+    <value>■ Aufnahme beenden</value>
+  </data>
+  <data name="RecordingFormat" xml:space="preserve">
+    <value>Aufnahme läuft … {0}</value>
+  </data>
+  <data name="VoiceDurationFormat" xml:space="preserve">
+    <value>Sprachnachricht ({0})</value>
+  </data>
+  <data name="VoicePlay" xml:space="preserve">
+    <value>▶ Anhören</value>
+  </data>
+  <data name="VoiceStopPlayback" xml:space="preserve">
+    <value>■ Stopp</value>
+  </data>
+  <data name="VoiceDelete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="MicPermissionDenied" xml:space="preserve">
+    <value>Kein Mikrofon-Zugriff – bitte in den Einstellungen erlauben.</value>
+  </data>
+  <data name="RecordFailed" xml:space="preserve">
+    <value>Aufnahme fehlgeschlagen. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Feedback absenden</value>
+  </data>
+  <data name="Sending" xml:space="preserve">
+    <value>Wird gesendet …</value>
+  </data>
+  <data name="UploadingFormat" xml:space="preserve">
+    <value>Anhang {0} von {1} wird hochgeladen …</value>
+  </data>
+  <data name="ErrorEmpty" xml:space="preserve">
+    <value>Bitte geben Sie eine Nachricht ein oder hängen Sie etwas an.</value>
+  </data>
+  <data name="SendFailedFormat" xml:space="preserve">
+    <value>Senden fehlgeschlagen: {0}</value>
+  </data>
+  <data name="ThreadTitle" xml:space="preserve">
+    <value>Anfrage</value>
+  </data>
+  <data name="You" xml:space="preserve">
+    <value>Sie</value>
+  </data>
+  <data name="Team" xml:space="preserve">
+    <value>Heimatplatz-Team</value>
+  </data>
+  <data name="ReplyPlaceholder" xml:space="preserve">
+    <value>Antwort schreiben …</value>
+  </data>
+  <data name="ReplySend" xml:space="preserve">
+    <value>Senden</value>
+  </data>
+  <data name="VoiceMessage" xml:space="preserve">
+    <value>Sprachnachricht</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Diese Anfrage wurde nicht gefunden.</value>
+  </data>
+  <data name="ThreadLoadFailed" xml:space="preserve">
+    <value>Verlauf konnte nicht geladen werden.</value>
+  </data>
+  <data name="AudioPlayFailed" xml:space="preserve">
+    <value>Wiedergabe fehlgeschlagen.</value>
+  </data>
+</root>
