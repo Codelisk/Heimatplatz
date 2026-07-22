@@ -41,7 +41,10 @@ public class FeedbackAttachmentService(
         ["audio/m4a"] = ".m4a",
         ["audio/x-m4a"] = ".m4a",
         ["audio/aac"] = ".aac",
-        ["audio/mpeg"] = ".mp3"
+        ["audio/mpeg"] = ".mp3",
+        // Browser-Aufnahme (MediaRecorder): Chrome/Firefox liefern webm/ogg, Safari mp4
+        ["audio/webm"] = ".webm",
+        ["audio/ogg"] = ".ogg"
     };
 
     private static readonly Dictionary<string, (FeedbackAttachmentKind Kind, string ContentType)> ExtensionToMeta = new(StringComparer.OrdinalIgnoreCase)
@@ -53,7 +56,9 @@ public class FeedbackAttachmentService(
         [".wav"] = (FeedbackAttachmentKind.Audio, "audio/wav"),
         [".m4a"] = (FeedbackAttachmentKind.Audio, "audio/mp4"),
         [".aac"] = (FeedbackAttachmentKind.Audio, "audio/aac"),
-        [".mp3"] = (FeedbackAttachmentKind.Audio, "audio/mpeg")
+        [".mp3"] = (FeedbackAttachmentKind.Audio, "audio/mpeg"),
+        [".webm"] = (FeedbackAttachmentKind.Audio, "audio/webm"),
+        [".ogg"] = (FeedbackAttachmentKind.Audio, "audio/ogg")
     };
 
     /// <inheritdoc />
@@ -66,7 +71,7 @@ public class FeedbackAttachmentService(
         var isAudio = AudioContentTypeToExtension.ContainsKey(contentType);
         if (!isImage && !isAudio)
             throw new ArgumentException(
-                $"Dateityp '{contentType}' fuer '{fileName}' nicht erlaubt. Erlaubt: JPEG, PNG, WebP, WAV, M4A, AAC, MP3.");
+                $"Dateityp '{contentType}' fuer '{fileName}' nicht erlaubt. Erlaubt: JPEG, PNG, WebP, WAV, M4A, AAC, MP3, WebM, OGG.");
 
         // Base64-Laenge pruefen (Base64 ist ca. 4/3 der originalen Groesse)
         var maxSize = isImage ? MaxImageSize : MaxAudioSize;

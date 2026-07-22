@@ -75,4 +75,20 @@ export const feedback = {
   "feedback.replyPlaceholder": "Deine Antwort …",
   "feedback.replySend": "Senden",
   "feedback.replySuccess": "Antwort gesendet.",
+
+  // Messenger-Eingabezeile (Bilder + Sprachnachricht haengen an der Zeile)
+  "feedback.messagePlaceholder": "Nachricht schreiben …",
+  "feedback.attachImages": "Bilder anhängen",
+  "feedback.attachCamera": "Foto aufnehmen",
+  "feedback.recordStart": "Sprachnachricht aufnehmen",
+  "feedback.recordStop": "Aufnahme übernehmen",
+  "feedback.recordCancel": "Aufnahme verwerfen",
+  "feedback.send": "Senden",
+  "feedback.voiceAttached": "Sprachnachricht",
+  "feedback.voicePlay": "Sprachnachricht anhören",
+  "feedback.attachmentRemove": "Anhang entfernen",
+  "feedback.micDenied": "Kein Mikrofon-Zugriff - bitte im Browser erlauben.",
+  "feedback.recordFailed": "Aufnahme fehlgeschlagen.",
+  "feedback.composeHint":
+    "Text schreiben, Bilder anhängen oder eine Sprachnachricht aufnehmen - alles direkt in der Zeile.",
 } as const;

@@ -11,27 +11,45 @@ namespace Heimatplatz.Maui.Features.Feedback.Presentation;
 
 /// <summary>
 /// Verlauf einer Anfrage als Chat (eigene Nachrichten rechts, Team links) mit
-/// Bild-/Sprachnachricht-Anhaengen und Antwort-Zeile. Ziel des Push-Deep-Links
-/// heimatplatz://feedback/{ticketId}; das Laden markiert Team-Antworten als gelesen.
+/// Bild-/Sprachnachricht-Anhaengen und Messenger-Eingabezeile. Ziel des
+/// Push-Deep-Links heimatplatz://feedback/{ticketId}; das Laden markiert
+/// Team-Antworten als gelesen.
 /// </summary>
 [ShellMap<FeedbackThreadPage>("FeedbackThread")]
-public partial class FeedbackThreadViewModel(
-    IFeedbackService feedbackService,
-    IAudioPlaybackService playback,
-    INavigator navigator,
-    ILogger<FeedbackThreadViewModel> logger,
-    FeedbackStringsLocalized loc
-) : ObservableObject, IPageLifecycleAware
+public partial class FeedbackThreadViewModel : ObservableObject, IPageLifecycleAware
 {
     private const string RemoteAudioCacheSubfolder = "feedback-audio-remote";
 
     // Sprachnachrichten sind oeffentliche GUID-URLs - schlichter geteilter Client reicht
     private static readonly HttpClient AudioHttpClient = new();
 
+    private readonly IFeedbackService _feedbackService;
+    private readonly IAudioPlaybackService _playback;
+    private readonly INavigator _navigator;
+    private readonly ILogger<FeedbackThreadViewModel> _logger;
+
     private bool _loadedOnce;
     private bool _playbackHooked;
 
-    public FeedbackStringsLocalized Loc { get; } = loc;
+    public FeedbackThreadViewModel(
+        IFeedbackService feedbackService,
+        IAudioPlaybackService playback,
+        FeedbackComposer composer,
+        INavigator navigator,
+        ILogger<FeedbackThreadViewModel> logger,
+        FeedbackStringsLocalized loc)
+    {
+        _feedbackService = feedbackService;
+        _playback = playback;
+        _navigator = navigator;
+        _logger = logger;
+        Loc = loc;
+        Composer = composer.Initialize();
+    }
+
+    public FeedbackStringsLocalized Loc { get; }
+
+    public FeedbackComposer Composer { get; }
 
     /// <summary>Navigationsparameter: Id der zu ladenden Anfrage</summary>
     [ShellProperty]
@@ -60,21 +78,12 @@ public partial class FeedbackThreadViewModel(
     [ObservableProperty]
     public partial bool IsContentVisible { get; set; }
 
-    [ObservableProperty]
-    public partial string ReplyText { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsNotSending))]
-    public partial bool IsSending { get; set; }
-
-    public bool IsNotSending => !IsSending;
-
     public void OnAppearing()
     {
         if (!_playbackHooked)
         {
             _playbackHooked = true;
-            playback.PlaybackEnded += (_, _) =>
+            _playback.PlaybackEnded += (_, _) =>
                 MainThread.BeginInvokeOnMainThread(ResetPlayingStates);
         }
 
@@ -86,8 +95,7 @@ public partial class FeedbackThreadViewModel(
 
     public void OnDisappearing()
     {
-        if (playback.IsPlaying)
-            _ = playback.StopAsync();
+        Composer.Suspend();
         ResetPlayingStates();
     }
 
@@ -105,7 +113,7 @@ public partial class FeedbackThreadViewModel(
             IsBusy = true;
             ErrorMessage = null;
 
-            var ticket = await feedbackService.GetTicketAsync(ticketId);
+            var ticket = await _feedbackService.GetTicketAsync(ticketId);
             if (ticket == null)
             {
                 ErrorMessage = Loc.NotFound;
@@ -126,7 +134,7 @@ public partial class FeedbackThreadViewModel(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "[Feedback] Laden des Verlaufs fehlgeschlagen: {TicketId}", TicketId);
+            _logger.LogError(ex, "[Feedback] Laden des Verlaufs fehlgeschlagen: {TicketId}", TicketId);
             ErrorMessage = Loc.ThreadLoadFailed;
         }
         finally
@@ -138,34 +146,44 @@ public partial class FeedbackThreadViewModel(
     [RelayCommand]
     private async Task SendReplyAsync()
     {
-        var body = ReplyText.Trim();
-        if (body.Length == 0 || !Guid.TryParse(TicketId, out var ticketId))
+        if (!Guid.TryParse(TicketId, out var ticketId))
             return;
+
+        await Composer.FinishPendingRecordingAsync();
+
+        if (!Composer.CanSend)
+        {
+            Composer.ErrorMessage = Loc.ErrorEmpty;
+            return;
+        }
 
         try
         {
-            IsSending = true;
-            var message = await feedbackService.AddMessageAsync(ticketId, body, []);
+            Composer.IsSending = true;
+            Composer.ErrorMessage = null;
+
+            var attachments = await Composer.UploadAttachmentsAsync();
+            var message = await _feedbackService.AddMessageAsync(ticketId, Composer.Text.Trim(), attachments);
             if (message == null)
             {
-                ErrorMessage = Loc.NotFound;
+                Composer.ErrorMessage = Loc.NotFound;
                 return;
             }
 
             Messages.Add(FeedbackDisplay.ToMessageItem(message, Loc));
-            ReplyText = string.Empty;
+            Composer.Reset();
 
             // Nutzer-Antwort oeffnet die Anfrage serverseitig wieder
             StatusLabel = FeedbackDisplay.StatusLabel(ApiClient.Generated.FeedbackTicketStatus.Open, Loc);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "[Feedback] Antwort senden fehlgeschlagen: {TicketId}", TicketId);
-            ErrorMessage = Loc.SendFailedFormat(ex.Message);
+            _logger.LogError(ex, "[Feedback] Antwort senden fehlgeschlagen: {TicketId}", TicketId);
+            Composer.ErrorMessage = Loc.SendFailedFormat(ex.Message);
         }
         finally
         {
-            IsSending = false;
+            Composer.IsSending = false;
         }
     }
 
@@ -174,25 +192,25 @@ public partial class FeedbackThreadViewModel(
     {
         if (item.IsPlaying)
         {
-            await playback.StopAsync();
+            await _playback.StopAsync();
             ResetPlayingStates();
             return;
         }
 
-        if (playback.IsPlaying)
-            await playback.StopAsync();
+        if (_playback.IsPlaying)
+            await _playback.StopAsync();
         ResetPlayingStates();
 
         try
         {
             var localPath = await EnsureLocalAudioAsync(item.Url);
-            item.IsPlaying = await playback.PlayFileAsync(localPath);
+            item.IsPlaying = await _playback.PlayFileAsync(localPath);
             if (!item.IsPlaying)
                 ErrorMessage = Loc.AudioPlayFailed;
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "[Feedback] Sprachnachricht-Download fehlgeschlagen: {Url}", item.Url);
+            _logger.LogWarning(ex, "[Feedback] Sprachnachricht-Download fehlgeschlagen: {Url}", item.Url);
             ErrorMessage = Loc.AudioPlayFailed;
         }
     }
@@ -202,7 +220,7 @@ public partial class FeedbackThreadViewModel(
         => Launcher.Default.OpenAsync(item.FullUrl);
 
     [RelayCommand]
-    private Task GoBackAsync() => navigator.GoBack();
+    private Task GoBackAsync() => _navigator.GoBack();
 
     /// <summary>Laedt eine remote Sprachnachricht einmalig in den Cache (Dateiname = GUID aus der URL).</summary>
     private static async Task<string> EnsureLocalAudioAsync(string url)

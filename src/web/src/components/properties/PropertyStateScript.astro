@@ -2896,83 +2896,315 @@
   }
 
   /**
-   * Bild-Auswahl fuer Feedback-Formulare: Button oeffnet den versteckten File-Input,
-   * Vorschau-Grid mit Entfernen-Button. Vorschauen via createObjectURL (CSP: blob:).
+   * Nachrichten-Eingabe im Messenger-Stil (Markup: components/app/MessageComposer.astro):
+   * Bilder und Sprachnachricht haengen direkt an der Zeile. Bild-Vorschauen ueber
+   * createObjectURL (CSP: blob:), Sprachaufnahme ueber MediaRecorder - fehlt die API
+   * (z.B. ohne HTTPS), bleibt das Mikrofon ausgeblendet, alles andere funktioniert.
    */
-  function setupFeedbackImagePicker(form: HTMLFormElement) {
-    const input = form.querySelector<HTMLInputElement>("[data-feedback-images]");
-    const grid = form.querySelector<HTMLElement>("[data-feedback-image-grid]");
-    const addButton = form.querySelector<HTMLButtonElement>("[data-feedback-images-add]");
-    let files: File[] = [];
+  type ComposerAttachment = {
+    kind: "image" | "audio";
+    blob: Blob;
+    fileName: string;
+    contentType: string;
+    durationSeconds: number | null;
+    previewUrl: string;
+  };
 
-    function render() {
-      if (!grid) return;
-      grid.querySelectorAll("img").forEach((img) => URL.revokeObjectURL(img.src));
-      grid.innerHTML = "";
-      grid.hidden = files.length === 0;
+  function canRecordAudio() {
+    return (
+      typeof MediaRecorder !== "undefined" &&
+      !!navigator.mediaDevices &&
+      typeof navigator.mediaDevices.getUserMedia === "function"
+    );
+  }
 
-      files.forEach((file, index) => {
+  function readBlobAsDataUrl(blob: Blob) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener("load", () => resolve(String(reader.result)));
+      reader.addEventListener("error", () => reject(reader.error));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function setupMessageComposer(root: HTMLElement, onSend: () => void | Promise<void>) {
+    const list = root.querySelector<HTMLElement>("[data-composer-attachments]");
+    const input = root.querySelector<HTMLTextAreaElement>("[data-composer-input]");
+    const fileInput = root.querySelector<HTMLInputElement>("[data-composer-files]");
+    const captureInput = root.querySelector<HTMLInputElement>("[data-composer-capture]");
+    const attachButton = root.querySelector<HTMLButtonElement>("[data-composer-attach]");
+    const cameraButton = root.querySelector<HTMLButtonElement>("[data-composer-camera]");
+    const micButton = root.querySelector<HTMLButtonElement>("[data-composer-mic]");
+    const sendButton = root.querySelector<HTMLButtonElement>("[data-composer-send]");
+    const row = root.querySelector<HTMLElement>("[data-composer-row]");
+    const recordingRow = root.querySelector<HTMLElement>("[data-composer-recording]");
+    const recordTime = root.querySelector<HTMLElement>("[data-composer-record-time]");
+    const cancelRecord = root.querySelector<HTMLButtonElement>("[data-composer-record-cancel]");
+    const stopRecord = root.querySelector<HTMLButtonElement>("[data-composer-record-stop]");
+    const errorEl = root.querySelector<HTMLElement>("[data-composer-error]");
+    const statusEl = root.querySelector<HTMLElement>("[data-composer-status]");
+
+    const attachments: ComposerAttachment[] = [];
+    let recorder: MediaRecorder | null = null;
+    let recordStream: MediaStream | null = null;
+    let recordChunks: Blob[] = [];
+    let recordStartedAt = 0;
+    let recordTimer: number | undefined;
+    let recordCancelled = false;
+    let sending = false;
+
+    function setError(message: string) {
+      if (!errorEl) return;
+      errorEl.textContent = message;
+      errorEl.classList.toggle("hidden", message.length === 0);
+    }
+
+    function setStatus(message: string) {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.classList.toggle("hidden", message.length === 0);
+    }
+
+    /** Leeres Feld ohne Anhang zeigt das Mikrofon, sonst den Senden-Pfeil (wie im Messenger). */
+    function updateButtons() {
+      const hasText = (input?.value ?? "").trim().length > 0;
+      const showMic = canRecordAudio() && !hasText && attachments.length === 0;
+      if (micButton) micButton.hidden = !showMic;
+      if (sendButton) {
+        sendButton.hidden = showMic;
+        sendButton.disabled = sending;
+      }
+    }
+
+    function renderAttachments() {
+      if (!list) return;
+      list.innerHTML = "";
+      list.hidden = attachments.length === 0;
+
+      attachments.forEach((attachment, index) => {
         const cell = document.createElement("div");
         cell.className = "relative";
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(file);
-        img.alt = file.name;
-        img.className = "aspect-square w-full rounded-md border border-border object-cover";
+
+        if (attachment.kind === "image") {
+          const img = document.createElement("img");
+          img.src = attachment.previewUrl;
+          img.alt = attachment.fileName;
+          img.className = "size-16 rounded-lg border border-border object-cover";
+          cell.append(img);
+        } else {
+          const audioWrap = document.createElement("div");
+          audioWrap.className =
+            "flex h-16 items-center rounded-lg border border-border bg-muted px-3";
+          const audio = document.createElement("audio");
+          audio.controls = true;
+          audio.src = attachment.previewUrl;
+          audio.className = "h-8 max-w-[190px]";
+          audioWrap.append(audio);
+          cell.append(audioWrap);
+        }
+
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className =
           "absolute -right-2 -top-2 grid size-6 place-items-center rounded-full border border-border bg-background text-xs shadow-sm hover:bg-muted";
         remove.textContent = "✕";
-        remove.setAttribute("aria-label", t("feedback.photoRemove"));
+        remove.setAttribute("aria-label", t("feedback.attachmentRemove"));
         remove.addEventListener("click", () => {
-          files.splice(index, 1);
-          render();
+          URL.revokeObjectURL(attachment.previewUrl);
+          attachments.splice(index, 1);
+          renderAttachments();
+          updateButtons();
         });
-        cell.append(img, remove);
-        grid.append(cell);
+        cell.append(remove);
+        list.append(cell);
       });
     }
 
-    addButton?.addEventListener("click", () => input?.click());
-    input?.addEventListener("change", () => {
-      const selected = Array.from(input.files ?? []);
-      input.value = "";
-      for (const file of selected) {
-        if (files.length >= MAX_FEEDBACK_IMAGES) {
-          setFormStatus(form, t("feedback.photosMax", { count: MAX_FEEDBACK_IMAGES }), "error");
+    function addImageFiles(files: File[]) {
+      for (const file of files) {
+        if (attachments.filter((item) => item.kind === "image").length >= MAX_FEEDBACK_IMAGES) {
+          setError(t("feedback.photosMax", { count: MAX_FEEDBACK_IMAGES }));
           break;
         }
-        files.push(file);
+        attachments.push({
+          kind: "image",
+          blob: file,
+          fileName: file.name,
+          contentType: file.type || "image/jpeg",
+          durationSeconds: null,
+          previewUrl: URL.createObjectURL(file),
+        });
       }
-      render();
+      renderAttachments();
+      updateButtons();
+    }
+
+    function setRecordingUi(active: boolean) {
+      if (recordingRow) {
+        recordingRow.classList.toggle("hidden", !active);
+        recordingRow.classList.toggle("flex", active);
+      }
+      if (row) row.classList.toggle("hidden", active);
+    }
+
+    function stopStream() {
+      recordStream?.getTracks().forEach((track) => track.stop());
+      recordStream = null;
+      window.clearInterval(recordTimer);
+      recordTimer = undefined;
+    }
+
+    async function startRecording() {
+      setError("");
+      try {
+        recordStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch {
+        setError(t("feedback.micDenied"));
+        return;
+      }
+
+      let activeRecorder: MediaRecorder;
+      try {
+        activeRecorder = new MediaRecorder(recordStream);
+      } catch {
+        setError(t("feedback.recordFailed"));
+        stopStream();
+        return;
+      }
+
+      recorder = activeRecorder;
+      recordChunks = [];
+      recordCancelled = false;
+      recordStartedAt = Date.now();
+
+      activeRecorder.addEventListener("dataavailable", (event) => {
+        if (event.data.size > 0) recordChunks.push(event.data);
+      });
+      activeRecorder.addEventListener("stop", () => {
+        const durationSeconds = (Date.now() - recordStartedAt) / 1000;
+        stopStream();
+        setRecordingUi(false);
+        recorder = null;
+
+        if (recordCancelled || recordChunks.length === 0) {
+          updateButtons();
+          return;
+        }
+
+        // mimeType kann "audio/webm;codecs=opus" sein - der Server kennt nur den Basistyp
+        const contentType = (activeRecorder.mimeType || "audio/webm").split(";")[0];
+        const extension = contentType.includes("ogg")
+          ? "ogg"
+          : contentType.includes("mp4")
+            ? "m4a"
+            : "webm";
+        const blob = new Blob(recordChunks, { type: contentType });
+
+        attachments.push({
+          kind: "audio",
+          blob,
+          fileName: `sprachnachricht.${extension}`,
+          contentType,
+          durationSeconds,
+          previewUrl: URL.createObjectURL(blob),
+        });
+
+        renderAttachments();
+        updateButtons();
+      });
+
+      activeRecorder.start();
+      setRecordingUi(true);
+      if (recordTime) recordTime.textContent = "0:00";
+      recordTimer = window.setInterval(() => {
+        if (!recordTime) return;
+        const total = Math.floor((Date.now() - recordStartedAt) / 1000);
+        recordTime.textContent = `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+      }, 500);
+    }
+
+    attachButton?.addEventListener("click", () => fileInput?.click());
+    cameraButton?.addEventListener("click", () => captureInput?.click());
+    fileInput?.addEventListener("change", () => {
+      addImageFiles(Array.from(fileInput.files ?? []));
+      fileInput.value = "";
+    });
+    captureInput?.addEventListener("change", () => {
+      addImageFiles(Array.from(captureInput.files ?? []));
+      captureInput.value = "";
+    });
+    micButton?.addEventListener("click", () => void startRecording());
+    cancelRecord?.addEventListener("click", () => {
+      recordCancelled = true;
+      recorder?.stop();
+    });
+    stopRecord?.addEventListener("click", () => recorder?.stop());
+    sendButton?.addEventListener("click", () => void onSend());
+
+    input?.addEventListener("input", () => {
+      updateButtons();
+      // Eingabefeld waechst mit dem Text (wie im Messenger)
+      input.style.height = "auto";
+      input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
     });
 
+    updateButtons();
+    renderAttachments();
+
     return {
-      getFiles: () => files,
-      clear: () => {
-        files = [];
-        render();
+      get text() {
+        return (input?.value ?? "").trim();
+      },
+      get hasContent() {
+        return (input?.value ?? "").trim().length > 0 || attachments.length > 0;
+      },
+      setError,
+      setSending(value: boolean) {
+        sending = value;
+        setStatus(value ? t("feedback.submitting") : "");
+        updateButtons();
+      },
+      /** Beendet eine laufende Aufnahme, damit sie beim Senden nicht verloren geht. */
+      async finishPendingRecording() {
+        const active = recorder;
+        if (!active || active.state === "inactive") return;
+        await new Promise<void>((resolve) => {
+          active.addEventListener("stop", () => resolve(), { once: true });
+          active.stop();
+        });
+      },
+      /** Laedt alle Anhaenge einzeln hoch und liefert die Referenzen fuer die API. */
+      async uploadAttachments() {
+        const uploaded: { Url: string; DurationSeconds: number | null }[] = [];
+        for (const [index, attachment] of attachments.entries()) {
+          setStatus(t("feedback.uploadingPhotos", { current: index + 1, total: attachments.length }));
+          const dataUrl = await readBlobAsDataUrl(attachment.blob);
+          const response = await apiRequest<{ Url: string }>("/api/feedback/attachments", {
+            method: "POST",
+            body: {
+              FileName: attachment.fileName,
+              ContentType: attachment.contentType,
+              Base64Data: dataUrl.split(",")[1] ?? "",
+            },
+          });
+          uploaded.push({ Url: response.Url, DurationSeconds: attachment.durationSeconds });
+        }
+        setStatus("");
+        return uploaded;
+      },
+      reset() {
+        if (input) {
+          input.value = "";
+          input.style.height = "auto";
+        }
+        attachments.forEach((attachment) => URL.revokeObjectURL(attachment.previewUrl));
+        attachments.length = 0;
+        renderAttachments();
+        setError("");
+        setStatus("");
+        updateButtons();
       },
     };
-  }
-
-  /** Laedt die Bilder einzeln hoch (grosse Originale) und liefert die Anhang-Referenzen. */
-  async function uploadFeedbackImages(form: HTMLFormElement, files: File[]) {
-    const attachments: { Url: string; DurationSeconds: number | null }[] = [];
-    for (const [index, file] of files.entries()) {
-      setFormStatus(form, t("feedback.uploadingPhotos", { current: index + 1, total: files.length }), "info");
-      const dataUrl = await readFileAsDataUrl(file);
-      const uploaded = await apiRequest<{ Url: string }>("/api/feedback/attachments", {
-        method: "POST",
-        body: {
-          FileName: file.name,
-          ContentType: file.type || "image/jpeg",
-          Base64Data: dataUrl.split(",")[1] ?? "",
-        },
-      });
-      attachments.push({ Url: uploaded.Url, DurationSeconds: null });
-    }
-    return attachments;
   }
 
   function createFeedbackBadge(text: string, classes: string) {
@@ -3090,47 +3322,47 @@
 
   function bindFeedbackPage() {
     const form = document.querySelector<HTMLFormElement>("[data-feedback-form]");
-    if (!form) return;
+    const composerRoot = form?.querySelector<HTMLElement>("[data-message-composer]");
+    if (!form || !composerRoot) return;
 
-    const picker = setupFeedbackImagePicker(form);
-    const submitButton = form.querySelector<HTMLButtonElement>("[data-feedback-submit]");
+    const composer = setupMessageComposer(composerRoot, submit);
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const formData = new FormData(form);
-      const body = (formData.get("body")?.toString() ?? "").trim();
-      const files = picker.getFiles();
-
-      if (!body && files.length === 0) {
-        setFormStatus(form, t("feedback.errorEmpty"), "error");
+    async function submit() {
+      await composer.finishPendingRecording();
+      if (!composer.hasContent) {
+        composer.setError(t("feedback.errorEmpty"));
         return;
       }
 
-      if (submitButton) submitButton.disabled = true;
-      setFormStatus(form, t("feedback.submitting"), "info");
+      const formData = new FormData(form!);
+      composer.setSending(true);
+      composer.setError("");
       try {
-        const attachments = await uploadFeedbackImages(form, files);
+        const attachments = await composer.uploadAttachments();
         await apiRequest("/api/feedback", {
           method: "POST",
           body: {
             Category: formData.get("category")?.toString() ?? "Idea",
             Subject: formData.get("subject")?.toString().trim() || null,
-            Body: body,
+            Body: composer.text,
             Source: "Web",
             AppVersion: null,
             Attachments: attachments,
           },
         });
-        form.reset();
-        picker.clear();
-        setFormStatus(form, t("feedback.submitSuccess"), "success");
+
+        composer.reset();
+        const subjectField = form!.querySelector<HTMLInputElement>("input[name='subject']");
+        if (subjectField) subjectField.value = "";
         void renderFeedbackTicketList();
       } catch (cause) {
-        setFormStatus(form, t("feedback.errorGeneric", { error: cause instanceof Error ? cause.message : String(cause) }), "error");
+        composer.setError(
+          t("feedback.errorGeneric", { error: cause instanceof Error ? cause.message : String(cause) }),
+        );
       } finally {
-        if (submitButton) submitButton.disabled = false;
+        composer.setSending(false);
       }
-    });
+    }
 
     void renderFeedbackTicketList();
   }
@@ -3144,7 +3376,6 @@
     const badges = container.querySelector<HTMLElement>("[data-thread-badges]");
     const subject = container.querySelector<HTMLElement>("[data-thread-subject]");
     const messages = container.querySelector<HTMLElement>("[data-thread-messages]");
-    const replyForm = container.querySelector<HTMLFormElement>("[data-feedback-reply-form]");
     const ticketId = new URLSearchParams(window.location.search).get("id") ?? "";
 
     function showThreadError(message: string) {
@@ -3185,38 +3416,37 @@
       }
     }
 
-    if (replyForm) {
-      const picker = setupFeedbackImagePicker(replyForm);
-      const submitButton = replyForm.querySelector<HTMLButtonElement>("[data-feedback-submit]");
-      replyForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const body = (new FormData(replyForm).get("body")?.toString() ?? "").trim();
-        const files = picker.getFiles();
-        if (!body && files.length === 0) {
-          setFormStatus(replyForm, t("feedback.errorEmpty"), "error");
+    const composerRoot = container.querySelector<HTMLElement>("[data-message-composer]");
+    if (composerRoot) {
+      const composer = setupMessageComposer(composerRoot, sendReply);
+
+      async function sendReply() {
+        await composer.finishPendingRecording();
+        if (!composer.hasContent) {
+          composer.setError(t("feedback.errorEmpty"));
           return;
         }
 
-        if (submitButton) submitButton.disabled = true;
-        setFormStatus(replyForm, t("feedback.submitting"), "info");
+        composer.setSending(true);
+        composer.setError("");
         try {
-          const attachments = await uploadFeedbackImages(replyForm, files);
+          const attachments = await composer.uploadAttachments();
           const response = await apiRequest<{ Message: FeedbackMessageDto | null }>("/api/feedback/messages", {
             method: "POST",
-            body: { TicketId: ticketId, Body: body, Attachments: attachments },
+            body: { TicketId: ticketId, Body: composer.text, Attachments: attachments },
           });
           if (response.Message) {
             messages?.append(renderFeedbackMessage(response.Message));
           }
-          replyForm.reset();
-          picker.clear();
-          setFormStatus(replyForm, t("feedback.replySuccess"), "success");
+          composer.reset();
         } catch (cause) {
-          setFormStatus(replyForm, t("feedback.errorGeneric", { error: cause instanceof Error ? cause.message : String(cause) }), "error");
+          composer.setError(
+            t("feedback.errorGeneric", { error: cause instanceof Error ? cause.message : String(cause) }),
+          );
         } finally {
-          if (submitButton) submitButton.disabled = false;
+          composer.setSending(false);
         }
-      });
+      }
     }
 
     void loadThread();

@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:presentation="clr-namespace:Heimatplatz.Maui.Features.Feedback.Presentation"
     xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Feedback.Models"
+    xmlns:controls="clr-namespace:Heimatplatz.Maui.Features.Feedback.Controls"
     x:DataType="presentation:FeedbackThreadViewModel"
     Title="{Binding Loc.ThreadTitle}">
 
@@ -145,31 +146,14 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Antwort-Zeile -->
-        <Grid Grid.Row="1"
-              ColumnDefinitions="*,Auto"
-              ColumnSpacing="10"
-              Padding="16,10,16,14"
-              IsVisible="{Binding IsContentVisible}"
-              BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
-            <Border Grid.Column="0"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                    StrokeShape="RoundRectangle 10"
-                    Padding="12,0">
-                <Entry Text="{Binding ReplyText}"
-                       Placeholder="{Binding Loc.ReplyPlaceholder}"
-                       MaxLength="4000"
-                       ReturnCommand="{Binding SendReplyCommand}"
-                       StyleClass="borderless"
-                       AutomationId="Feedback_ReplyEntry" />
-            </Border>
-            <Button Grid.Column="1"
-                    Text="{Binding Loc.ReplySend}"
-                    Style="{StaticResource PrimaryButton}"
-                    Command="{Binding SendReplyCommand}"
-                    IsEnabled="{Binding IsNotSending}"
-                    AutomationId="Feedback_ReplySend" />
-        </Grid>
+        <!-- Antwort-Zeile: gleiche Messenger-Eingabe wie beim Erstellen,
+             damit auch Antworten Bilder und Sprachnachrichten enthalten koennen -->
+        <controls:MessageComposer Grid.Row="1"
+                                  Composer="{Binding Composer}"
+                                  SendCommand="{Binding SendReplyCommand}"
+                                  Placeholder="{Binding Loc.ReplyPlaceholder}"
+                                  IsVisible="{Binding IsContentVisible}"
+                                  BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
+
     </Grid>
 </ContentPage>

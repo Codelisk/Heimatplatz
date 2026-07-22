@@ -4,15 +4,14 @@ import AlertTriangleIcon from "@tabler/icons/outline/alert-triangle.svg";
 import HelpCircleIcon from "@tabler/icons/outline/help-circle.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import DotsIcon from "@tabler/icons/outline/dots.svg";
-import PhotoPlusIcon from "@tabler/icons/outline/photo-plus.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import AuthGate from "@/components/app/AuthGate.astro";
-import { Button } from "@/components/starwind/button";
+import MessageComposer from "@/components/app/MessageComposer.astro";
 import { t } from "@/i18n";
 
-// Feedback & Wuensche: Kategorie waehlen, Nachricht + Bilder schicken, unten die
-// eigenen Anfragen mit Antwort-Status. Logik in PropertyStateScript.astro
-// (bindFeedbackPage - dort lebt apiRequest mit Token-Refresh).
+// Feedback & Wuensche: Kategorie waehlen, Nachricht mit Bildern/Sprachnachricht
+// direkt in der Messenger-Zeile schicken, unten die eigenen Anfragen.
+// Logik in PropertyStateScript.astro (bindFeedbackPage + setupMessageComposer).
 
 const categories = [
   { value: "Idea", icon: BulbIcon, label: t("feedback.categoryIdea"), hint: t("feedback.categoryIdeaHint") },
@@ -37,9 +36,9 @@ const inputClass =
       <h1 class="text-3xl font-bold">{t("feedback.title")}</h1>
       <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("feedback.intro")}</p>
 
-      <form data-feedback-form class="mt-6 rounded-lg border border-border bg-card p-5 sm:p-6" novalidate>
-        <fieldset>
-          <legend class="text-base font-semibold">{t("feedback.categoryLegend")}</legend>
+      <form data-feedback-form class="mt-6" novalidate>
+        <fieldset class="rounded-lg border border-border bg-card p-5">
+          <legend class="px-1 text-base font-semibold">{t("feedback.categoryLegend")}</legend>
           <div class="mt-3 grid gap-3 sm:grid-cols-2">
             {categories.map((category, index) => (
               <label class="cursor-pointer">
@@ -62,7 +61,7 @@ const inputClass =
           </div>
         </fieldset>
 
-        <label class="mt-6 block">
+        <label class="mt-4 block">
           <span class="mb-1 block text-sm font-medium">{t("feedback.subjectLabel")}</span>
           <input
             type="text"
@@ -73,37 +72,8 @@ const inputClass =
           />
         </label>
 
-        <label class="mt-4 block">
-          <span class="mb-1 block text-sm font-medium">{t("feedback.bodyLabel")}</span>
-          <textarea
-            name="body"
-            rows="6"
-            maxlength="4000"
-            placeholder={t("feedback.bodyPlaceholder")}
-            class={inputClass}></textarea>
-        </label>
-
         <div class="mt-4">
-          <span class="mb-1 block text-sm font-medium">{t("feedback.photosLabel")}</span>
-          <p class="text-xs text-muted-foreground">{t("feedback.photosHint")}</p>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            class="sr-only"
-            data-feedback-images
-          />
-          <div class="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-5" data-feedback-image-grid hidden></div>
-          <Button type="button" variant="outline" size="sm" class="mt-3" data-feedback-images-add>
-            <PhotoPlusIcon class="size-4" aria-hidden="true" />
-            {t("feedback.photosAdd")}
-          </Button>
-        </div>
-
-        <p class="mt-4 hidden text-sm" data-form-status></p>
-
-        <div class="mt-5">
-          <Button type="submit" data-feedback-submit>{t("feedback.submit")}</Button>
+          <MessageComposer placeholder={t("feedback.messagePlaceholder")} hint={t("feedback.composeHint")} />
         </div>
       </form>
 

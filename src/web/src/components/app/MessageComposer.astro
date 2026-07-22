@@ -1,0 +1,120 @@
+---
+import PaperclipIcon from "@tabler/icons/outline/paperclip.svg";
+import CameraIcon from "@tabler/icons/outline/camera.svg";
+import MicrophoneIcon from "@tabler/icons/outline/microphone.svg";
+import SendIcon from "@tabler/icons/outline/send.svg";
+import TrashIcon from "@tabler/icons/outline/trash.svg";
+import CheckIcon from "@tabler/icons/outline/check.svg";
+import { t } from "@/i18n";
+
+/**
+ * Nachrichten-Eingabe im Messenger-Stil: Bilder und Sprachnachricht haengen
+ * direkt an der Zeile. Die Logik sitzt in PropertyStateScript
+ * (setupMessageComposer) - hier nur das Markup mit den data-Hooks.
+ *
+ * Das Mikrofon blendet sich selbst aus, wenn der Browser keine Aufnahme kann
+ * (MediaRecorder/getUserMedia fehlt, z.B. ohne HTTPS).
+ */
+interface Props {
+  placeholder: string;
+  /** Sichtbarer Absende-Text neben der Zeile (nur auf der Erstellen-Seite) */
+  hint?: string;
+}
+
+const { placeholder, hint } = Astro.props;
+---
+
+<div class="rounded-2xl border border-border bg-card p-2" data-message-composer>
+  {/* Anhang-Vorschau */}
+  <div class="flex flex-wrap gap-2 p-1.5 pb-2" data-composer-attachments hidden></div>
+
+  <p class="hidden px-2 pb-1 text-sm text-error" data-composer-error></p>
+  <p class="hidden px-2 pb-1 text-sm text-muted-foreground" data-composer-status></p>
+
+  {/* Aufnahme laeuft */}
+  <div class="hidden items-center gap-3 px-1.5 py-1" data-composer-recording>
+    <button
+      type="button"
+      class="grid size-10 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      aria-label={t("feedback.recordCancel")}
+      data-composer-record-cancel
+    >
+      <TrashIcon class="size-5" aria-hidden="true" />
+    </button>
+    <span class="flex flex-1 items-center gap-2 text-sm font-semibold text-brand">
+      <span class="size-2.5 animate-pulse rounded-full bg-brand" aria-hidden="true"></span>
+      <span data-composer-record-time>0:00</span>
+    </span>
+    <button
+      type="button"
+      class="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90"
+      aria-label={t("feedback.recordStop")}
+      data-composer-record-stop
+    >
+      <CheckIcon class="size-5" aria-hidden="true" />
+    </button>
+  </div>
+
+  {/* Normale Zeile */}
+  <div class="flex items-end gap-1" data-composer-row>
+    <button
+      type="button"
+      class="grid size-10 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      aria-label={t("feedback.attachImages")}
+      data-composer-attach
+    >
+      <PaperclipIcon class="size-5" aria-hidden="true" />
+    </button>
+    <button
+      type="button"
+      class="hidden size-10 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:grid"
+      aria-label={t("feedback.attachCamera")}
+      data-composer-camera
+    >
+      <CameraIcon class="size-5" aria-hidden="true" />
+    </button>
+
+    <textarea
+      rows="1"
+      maxlength="4000"
+      placeholder={placeholder}
+      class="max-h-40 min-h-10 flex-1 resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none outline-none focus:border-0 focus:ring-0"
+      data-composer-input></textarea>
+
+    <button
+      type="button"
+      class="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
+      aria-label={t("feedback.recordStart")}
+      data-composer-mic
+      hidden
+    >
+      <MicrophoneIcon class="size-5" aria-hidden="true" />
+    </button>
+    <button
+      type="button"
+      class="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+      aria-label={t("feedback.send")}
+      data-composer-send
+    >
+      <SendIcon class="size-5" aria-hidden="true" />
+    </button>
+  </div>
+
+  {/* versteckte Datei-Eingaben */}
+  <input
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    multiple
+    class="sr-only"
+    data-composer-files
+  />
+  <input
+    type="file"
+    accept="image/*"
+    capture="environment"
+    class="sr-only"
+    data-composer-capture
+  />
+</div>
+
+{hint && <p class="mt-2 text-center text-xs text-muted-foreground">{hint}</p>}

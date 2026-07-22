@@ -52,8 +52,9 @@
 		# blob: in img-src fuer die lokale Foto-Vorschau beim Inserieren (URL.createObjectURL).
 		# analytics.heimatplatz.at (21.7.2026): selbstgehostetes Rybbit-Tracking-Snippet,
 		# nur auf Prod eingebunden (Test-Web baut ohne PUBLIC_RYBBIT_SITE_ID, s. BaseLayout.astro).
-		# media-src (22.7.2026): Sprachnachrichten-Wiedergabe (Feedback) laedt Audio von der API.
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; media-src 'self' https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://analytics.heimatplatz.at; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# media-src (22.7.2026): Sprachnachrichten-Wiedergabe (Feedback) laedt Audio von der API;
+		# blob: fuer die Vorschau der im Browser aufgenommenen Sprachnachricht (MediaRecorder).
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://analytics.heimatplatz.at; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI fuer den Edikte-Sync, nur von HOME_IP erreichbar.
@@ -86,8 +87,9 @@ www.{$WEB_DOMAIN} {
 		# gegen die Test-API laeuft. (Der Debug-API-Umschalter auf localhost/LAN
 		# waere auf HTTPS-Seiten ohnehin schon als Mixed Content geblockt.)
 		# blob: in img-src fuer die lokale Foto-Vorschau beim Inserieren (URL.createObjectURL).
-		# media-src (22.7.2026): Sprachnachrichten-Wiedergabe (Feedback) laedt Audio von der API.
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; media-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# media-src (22.7.2026): Sprachnachrichten-Wiedergabe (Feedback) laedt Audio von der API;
+		# blob: fuer die Vorschau der im Browser aufgenommenen Sprachnachricht (MediaRecorder).
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI, nur von HOME_IP erreichbar (wie Prod-Web).
