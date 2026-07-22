@@ -67,12 +67,22 @@ public class GetWkoCompaniesHandler(AppDbContext dbContext)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
+        // Ortsliste fuer das Filter-Dropdown: ueber den gesamten Bestand, nicht die gefilterte
+        // Query (siehe Doku am Response-Feld)
+        var availableCities = await dbContext.Set<WkoCompany>()
+            .Where(c => c.City != null && c.City != "")
+            .Select(c => c.City!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync(cancellationToken);
+
         return new GetWkoCompaniesResponse
         {
             Companies = entities.Select(MapToDto).ToList(),
             TotalCount = totalCount,
             Page = page,
-            PageSize = pageSize
+            PageSize = pageSize,
+            AvailableCities = availableCities
         };
     }
 

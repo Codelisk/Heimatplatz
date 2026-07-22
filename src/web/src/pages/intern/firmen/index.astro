@@ -12,19 +12,23 @@ const PAGE_SIZE = 50;
 
 const search = Astro.url.searchParams.get("q")?.trim() ?? "";
 const status = Astro.url.searchParams.get("status") ?? "";
+const ort = Astro.url.searchParams.get("ort")?.trim() ?? "";
 const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "1", 10) || 1, 1);
 
 const query = new URLSearchParams({ Page: String(page), PageSize: String(PAGE_SIZE) });
 if (search) query.set("SearchText", search);
+if (ort) query.set("City", ort);
 if (status === "active") query.set("IsActive", "true");
 if (status === "inactive") query.set("IsActive", "false");
 
 const data: WkoCompaniesPage | null = await fetchWkoCompanies(query);
 const totalPages = data ? Math.max(Math.ceil(data.TotalCount / data.PageSize), 1) : 1;
+const availableCities = data?.AvailableCities ?? [];
 
 function pageLink(target: number) {
   const params = new URLSearchParams();
   if (search) params.set("q", search);
+  if (ort) params.set("ort", ort);
   if (status) params.set("status", status);
   if (target > 1) params.set("page", String(target));
   const qs = params.toString();
@@ -64,6 +68,17 @@ function formatDate(value: string | null) {
         placeholder={t("intern.wkoSearchPlaceholder")}
         class="min-w-48 flex-1 rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
       />
+      <select
+        name="ort"
+        class="rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+      >
+        <option value="" selected={!ort}>{t("intern.wkoFilterCityAll")}</option>
+        {availableCities.map((city) => (
+          <option value={city} selected={ort === city}>
+            {city}
+          </option>
+        ))}
+      </select>
       <select
         name="status"
         class="rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"

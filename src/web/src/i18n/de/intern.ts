@@ -316,6 +316,7 @@ export const intern = {
   "intern.wkoIntro":
     "Immobilien-Firmen in Oberösterreich, gescraped von firmen.wko.at. Firmenbuch-Spalten (amtliches Gründungsdatum, EUID, Geschäftsführung) sind erst befüllt, sobald ein Firmenbuch-HVD-API-Key konfiguriert ist und der Sync erneut lief.",
   "intern.wkoSearchPlaceholder": "Name oder Branche suchen …",
+  "intern.wkoFilterCityAll": "Alle Orte",
   "intern.wkoFilterStatusAll": "Alle",
   "intern.wkoFilterStatusActive": "Nur aktive",
   "intern.wkoFilterStatusInactive": "Nur nicht mehr gelistete",

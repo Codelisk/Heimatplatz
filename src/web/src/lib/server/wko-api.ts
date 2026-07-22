@@ -58,6 +58,8 @@ export type WkoCompaniesPage = {
   TotalCount: number;
   Page: number;
   PageSize: number;
+  /** Distinct-Ortsliste ueber den gesamten Bestand (fuer das Filter-Dropdown) */
+  AvailableCities?: string[];
 };
 
 async function get<T>(pathWithQuery: string): Promise<T | null> {

@@ -25,6 +25,13 @@ public record GetWkoCompaniesResponse
     public int TotalCount { get; init; }
     public int Page { get; init; }
     public int PageSize { get; init; }
+
+    /// <summary>
+    /// Alle vorkommenden Orte (distinct, sortiert) ueber den GESAMTEN Bestand - bewusst
+    /// unabhaengig von den aktiven Filtern, damit ein Orts-Dropdown nach dem Filtern
+    /// nicht auf den gewaehlten Ort zusammenfaellt.
+    /// </summary>
+    public List<string> AvailableCities { get; init; } = [];
 }
 
 /// <summary>
