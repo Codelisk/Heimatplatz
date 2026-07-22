@@ -59,11 +59,15 @@ public sealed class DeployApiTask : FrostingTask<BuildContext>
             label: "scp (api sources)");
 
         // 3. Quellbaum ersetzen, Image bauen, Container hochfahren
+        // builder prune: Der Docker-Build-Cache waechst pro Deploy und hat am 22.7.2026 die
+        // 38-GB-Platte auf 100% gefuellt (Postgres rejecting connections, Prod-API ~5 Min down).
+        // --keep-storage behaelt genug Cache fuer schnelle Folge-Builds.
         var remoteScript =
             "cd /srv/heimatplatz && " +
             "rm -rf src/api Directory.Build.props Directory.Packages.props nuget.config && " +
             "tar -xzf /tmp/api-deploy.tgz -C /srv/heimatplatz && rm /tmp/api-deploy.tgz && " +
-            "cd deploy/hetzner && docker compose build api api-test && docker compose up -d api api-test";
+            "cd deploy/hetzner && docker compose build api api-test && docker compose up -d api api-test && " +
+            "docker builder prune -f --keep-storage=8GB > /dev/null && docker image prune -f > /dev/null";
 
         context.Information("Baue und starte api + api-test auf dem Server (kann einige Minuten dauern)...");
         AstroWeb.RunProcess(
