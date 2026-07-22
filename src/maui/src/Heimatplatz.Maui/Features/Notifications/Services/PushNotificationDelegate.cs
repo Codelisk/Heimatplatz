@@ -65,7 +65,9 @@ public class PushNotificationDelegate(
         // iOS foreground display is handled via IApplePushDelegate.GetPresentationOptions
         if (!string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(message))
         {
-            await ShowLocalNotificationAsync(title, message);
+            // Deep link travels in the payload so LocalNotificationDelegate can
+            // navigate on tap - the tap never reaches IPushDelegate.OnEntry
+            await ShowLocalNotificationAsync(title, message, ResolveDeepLinkUri(notification.Data));
         }
 #else
         await Task.CompletedTask;
@@ -136,18 +138,34 @@ public class PushNotificationDelegate(
     /// <summary>
     /// Shows a local notification when the app is in foreground using Shiny.Notifications
     /// </summary>
-    private async Task ShowLocalNotificationAsync(string title, string message)
+    private async Task ShowLocalNotificationAsync(string title, string message, Uri? deepLinkUri)
     {
         try
         {
             EnsureDefaultChannelExists();
 
-            var notification = new Shiny.Notifications.Notification
+#if ANDROID
+            // Shiny default is NewTask|ClearTask which tears down the running activity
+            // on tap (app restarts on the home page and the deep link gets lost) -
+            // SingleTop brings the existing instance forward instead
+            var notification = new Shiny.Notifications.AndroidNotification
             {
-                Title = title,
-                Message = message,
-                Channel = Shiny.Notifications.Channel.Default.Identifier
+                LaunchActivityFlags = Android.Content.ActivityFlags.NewTask | Android.Content.ActivityFlags.SingleTop
             };
+#else
+            var notification = new Shiny.Notifications.Notification();
+#endif
+            notification.Title = title;
+            notification.Message = message;
+            notification.Channel = Shiny.Notifications.Channel.Default.Identifier;
+
+            if (deepLinkUri is not null)
+            {
+                notification.Payload = new Dictionary<string, string>
+                {
+                    [LocalNotificationDelegate.DeepLinkPayloadKey] = deepLinkUri.ToString()
+                };
+            }
 
             await shinyNotificationManager.Send(notification);
             logger.LogInformation("Local notification shown via Shiny: {Title}", title);

@@ -33,8 +33,9 @@ public static class ServiceCollectionExtensions
 #if ANDROID || IOS
         // Shiny Push (Android FCM via google-services.json, iOS APNs)
         services.AddPush<PushNotificationDelegate>();
-        // Shiny Notifications fuer lokale Notifications (Android Foreground-Anzeige)
-        services.AddNotifications();
+        // Shiny Notifications fuer lokale Notifications (Android Foreground-Anzeige);
+        // der Delegate navigiert beim Tap ueber den Deep-Link im Notification-Payload
+        services.AddNotifications<LocalNotificationDelegate>();
 #endif
 
         return services;
