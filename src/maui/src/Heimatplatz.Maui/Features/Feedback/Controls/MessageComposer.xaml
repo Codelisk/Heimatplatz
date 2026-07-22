@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!-- Nachrichten-Eingabe im Messenger-Stil: Anhang-Vorschau ueber der Zeile,
      in der Zeile Galerie-/Kamera-Button, Textfeld und rechts Mikrofon (leeres Feld)
-     bzw. Senden-Pfeil. Waehrend der Aufnahme ersetzt eine rote Zeile die Eingabe. -->
+     bzw. Senden-Pfeil. Waehrend der Aufnahme ersetzt eine rote Zeile die Eingabe.
+     Haarlinie oben + Luft unten trennen die Zeile sichtbar von Inhalt und Tastatur. -->
 <ContentView
     x:Class="Heimatplatz.Maui.Features.Feedback.Controls.MessageComposer"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -9,265 +10,275 @@
     xmlns:controls="clr-namespace:Heimatplatz.Maui.Features.Feedback.Controls"
     xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Feedback.Models">
 
-    <VerticalStackLayout x:Name="ComposerRoot"
-                         x:DataType="models:FeedbackComposer"
-                         Spacing="8"
-                         Padding="12,8,12,10">
+    <Grid x:Name="ComposerRoot"
+          x:DataType="models:FeedbackComposer"
+          RowDefinitions="Auto,Auto">
 
-        <!-- Anhang-Vorschau (Bilder + Sprachnachricht) -->
-        <ScrollView Orientation="Horizontal"
-                    HorizontalScrollBarVisibility="Never"
-                    IsVisible="{Binding HasAttachments}">
-            <HorizontalStackLayout Spacing="8">
+        <BoxView Grid.Row="0"
+                 HeightRequest="1"
+                 Color="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
 
-                <!-- Bilder -->
-                <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Photos}" Spacing="8">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="models:FeedbackPhotoItem">
-                            <Grid Margin="0,4,4,0">
-                                <Border StrokeThickness="1"
-                                        Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource Gray600}}"
-                                        StrokeShape="RoundRectangle 8"
-                                        WidthRequest="64"
-                                        HeightRequest="64">
-                                    <Image Source="{Binding Preview}"
-                                           Aspect="AspectFill"
-                                           WidthRequest="64"
-                                           HeightRequest="64" />
-                                </Border>
-                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray600}}"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 10"
-                                        WidthRequest="20"
-                                        HeightRequest="20"
-                                        HorizontalOptions="End"
-                                        VerticalOptions="Start"
-                                        Margin="0,-5,-5,0">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding RemovePhotoCommand, Source={RelativeSource AncestorType={x:Type models:FeedbackComposer}}, x:DataType=models:FeedbackComposer}"
-                                                              CommandParameter="{Binding .}" />
-                                    </Border.GestureRecognizers>
-                                    <Label Text="✕"
-                                           FontSize="10"
-                                           TextColor="{StaticResource White}"
-                                           HorizontalOptions="Center"
-                                           VerticalOptions="Center" />
-                                </Border>
-                            </Grid>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
+        <VerticalStackLayout Grid.Row="1"
+                             Spacing="8"
+                             Padding="12,10,12,14">
+
+            <!-- Anhang-Vorschau (Bilder + Sprachnachricht) -->
+            <ScrollView Orientation="Horizontal"
+                        HorizontalScrollBarVisibility="Never"
+                        IsVisible="{Binding HasAttachments}">
+                <HorizontalStackLayout Spacing="8">
+
+                    <!-- Bilder -->
+                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Photos}" Spacing="8">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:FeedbackPhotoItem">
+                                <Grid Margin="0,6,6,0">
+                                    <Border StrokeThickness="1"
+                                            Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource Gray600}}"
+                                            StrokeShape="RoundRectangle 8"
+                                            WidthRequest="64"
+                                            HeightRequest="64">
+                                        <Image Source="{Binding Preview}"
+                                               Aspect="AspectFill"
+                                               WidthRequest="64"
+                                               HeightRequest="64" />
+                                    </Border>
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray600}}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 10"
+                                            WidthRequest="20"
+                                            HeightRequest="20"
+                                            HorizontalOptions="End"
+                                            VerticalOptions="Start"
+                                            Margin="0,-5,-5,0">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding RemovePhotoCommand, Source={RelativeSource AncestorType={x:Type models:FeedbackComposer}}, x:DataType=models:FeedbackComposer}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="✕"
+                                               FontSize="10"
+                                               TextColor="{StaticResource White}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+
+                    <!-- Sprachnachricht als Chip mit Abspielen/Entfernen -->
+                    <Grid Margin="0,6,6,0" IsVisible="{Binding HasRecording}">
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 8"
+                                HeightRequest="64"
+                                Padding="12,0">
+                            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                                <Image Source="icon_play_small.png"
+                                       WidthRequest="22"
+                                       HeightRequest="22"
+                                       VerticalOptions="Center"
+                                       AutomationId="Feedback_VoicePlay">
+                                    <Image.Triggers>
+                                        <DataTrigger TargetType="Image" Binding="{Binding IsPreviewPlaying}" Value="True">
+                                            <Setter Property="Source" Value="icon_stop_small.png" />
+                                        </DataTrigger>
+                                    </Image.Triggers>
+                                    <Image.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding TogglePreviewPlaybackCommand}" />
+                                    </Image.GestureRecognizers>
+                                </Image>
+                                <Label Text="{Binding VoiceDurationText}"
+                                       Style="{StaticResource Caption}"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </Border>
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray600}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10"
+                                WidthRequest="20"
+                                HeightRequest="20"
+                                HorizontalOptions="End"
+                                VerticalOptions="Start"
+                                Margin="0,-5,-5,0"
+                                AutomationId="Feedback_VoiceDelete">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding DeleteRecordingCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="✕"
+                                   FontSize="10"
+                                   TextColor="{StaticResource White}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <!-- Fehlerhinweis direkt an der Eingabe -->
+            <Label Text="{Binding ErrorMessage}"
+                   Style="{StaticResource Caption}"
+                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
+                   IsVisible="{Binding HasError}" />
+
+            <!-- Versand laeuft -->
+            <HorizontalStackLayout Spacing="8" IsVisible="{Binding IsSending}">
+                <ActivityIndicator IsRunning="{Binding IsSending}" WidthRequest="16" HeightRequest="16" />
+                <Label Text="{Binding Loc.Sending}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Aufnahme laeuft: verwerfen / Timer / uebernehmen -->
+            <Grid ColumnDefinitions="Auto,*,Auto"
+                  ColumnSpacing="10"
+                  IsVisible="{Binding IsRecording}">
+                <Border Grid.Column="0"
+                        BackgroundColor="Transparent"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 22"
+                        WidthRequest="44"
+                        HeightRequest="44"
+                        AutomationId="Feedback_RecordCancel">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding CancelRecordingCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="✕"
+                           FontSize="18"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+
+                <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                    <Ellipse Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
+                             WidthRequest="10"
+                             HeightRequest="10"
+                             VerticalOptions="Center" />
+                    <Label Text="{Binding RecordingText}"
+                           Style="{StaticResource BodyStrong}"
+                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
+                           VerticalOptions="Center" />
                 </HorizontalStackLayout>
 
-                <!-- Sprachnachricht als Chip mit Abspielen/Entfernen -->
-                <Grid Margin="0,4,4,0" IsVisible="{Binding HasRecording}">
-                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 8"
-                            HeightRequest="64"
-                            Padding="10,0">
-                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                            <Image Source="icon_play_small.png"
-                                   WidthRequest="20"
-                                   HeightRequest="20"
-                                   VerticalOptions="Center"
-                                   AutomationId="Feedback_VoicePlay">
-                                <Image.Triggers>
-                                    <DataTrigger TargetType="Image" Binding="{Binding IsPreviewPlaying}" Value="True">
-                                        <Setter Property="Source" Value="icon_stop_small.png" />
-                                    </DataTrigger>
-                                </Image.Triggers>
-                                <Image.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding TogglePreviewPlaybackCommand}" />
-                                </Image.GestureRecognizers>
-                            </Image>
-                            <Label Text="{Binding VoiceDurationText}"
-                                   Style="{StaticResource Caption}"
+                <Border Grid.Column="2"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 22"
+                        WidthRequest="44"
+                        HeightRequest="44"
+                        AutomationId="Feedback_RecordStop">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding StopRecordingCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="✓"
+                           FontSize="20"
+                           TextColor="{StaticResource White}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+            </Grid>
+
+            <!-- Normale Eingabezeile -->
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="8"
+                  IsVisible="{Binding IsIdle}">
+
+                <Border Grid.Column="0"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                        StrokeShape="RoundRectangle 22"
+                        Padding="4,2">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="0">
+                        <!-- Galerie: 40 hoch = Editor-Mindesthoehe -> Icon sitzt bei einer
+                             Zeile mittig; waechst der Text, bleibt es unten (Messenger-Muster) -->
+                        <Border Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                StrokeThickness="0"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                VerticalOptions="End"
+                                AutomationId="Feedback_PickPhotos">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding PickPhotosCommand}" />
+                            </Border.GestureRecognizers>
+                            <Image Source="icon_attach.png"
+                                   WidthRequest="21"
+                                   HeightRequest="21"
+                                   HorizontalOptions="Center"
                                    VerticalOptions="Center" />
-                        </HorizontalStackLayout>
-                    </Border>
-                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray600}}"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 10"
-                            WidthRequest="20"
-                            HeightRequest="20"
-                            HorizontalOptions="End"
-                            VerticalOptions="Start"
-                            Margin="0,-5,-5,0"
-                            AutomationId="Feedback_VoiceDelete">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding DeleteRecordingCommand}" />
-                        </Border.GestureRecognizers>
-                        <Label Text="✕"
-                               FontSize="10"
-                               TextColor="{StaticResource White}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
-                    </Border>
-                </Grid>
-            </HorizontalStackLayout>
-        </ScrollView>
+                        </Border>
 
-        <!-- Fehlerhinweis direkt an der Eingabe -->
-        <Label Text="{Binding ErrorMessage}"
-               Style="{StaticResource Caption}"
-               TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
-               IsVisible="{Binding HasError}" />
+                        <!-- Waechst bis ~Halbbild mit, erst danach scrollt der Text -->
+                        <Editor Grid.Column="1"
+                                Text="{Binding Text}"
+                                Placeholder="{Binding Placeholder, Source={RelativeSource AncestorType={x:Type controls:MessageComposer}}, x:DataType=controls:MessageComposer}"
+                                MaxLength="4000"
+                                AutoSize="TextChanges"
+                                MinimumHeightRequest="40"
+                                MaximumHeightRequest="240"
+                                StyleClass="borderless"
+                                AutomationId="Feedback_MessageEditor" />
 
-        <!-- Versand laeuft -->
-        <HorizontalStackLayout Spacing="8" IsVisible="{Binding IsSending}">
-            <ActivityIndicator IsRunning="{Binding IsSending}" WidthRequest="16" HeightRequest="16" />
-            <Label Text="{Binding Loc.Sending}" Style="{StaticResource Caption}" VerticalOptions="Center" />
-        </HorizontalStackLayout>
+                        <!-- Kamera -->
+                        <Border Grid.Column="2"
+                                BackgroundColor="Transparent"
+                                StrokeThickness="0"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                VerticalOptions="End"
+                                AutomationId="Feedback_TakePhoto">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding TakePhotoCommand}" />
+                            </Border.GestureRecognizers>
+                            <Image Source="icon_camera.png"
+                                   WidthRequest="21"
+                                   HeightRequest="21"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+                </Border>
 
-        <!-- Aufnahme laeuft: verwerfen / Timer / uebernehmen -->
-        <Grid ColumnDefinitions="Auto,*,Auto"
-              ColumnSpacing="10"
-              IsVisible="{Binding IsRecording}">
-            <Border Grid.Column="0"
-                    BackgroundColor="Transparent"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 22"
-                    WidthRequest="44"
-                    HeightRequest="44"
-                    AutomationId="Feedback_RecordCancel">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding CancelRecordingCommand}" />
-                </Border.GestureRecognizers>
-                <Label Text="✕"
-                       FontSize="18"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center" />
-            </Border>
+                <!-- Mikrofon (leeres Feld) -->
+                <Border Grid.Column="1"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 22"
+                        WidthRequest="44"
+                        HeightRequest="44"
+                        VerticalOptions="End"
+                        IsVisible="{Binding ShowMicButton}"
+                        AutomationId="Feedback_RecordStart">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding StartRecordingCommand}" />
+                    </Border.GestureRecognizers>
+                    <Image Source="icon_mic.png"
+                           WidthRequest="21"
+                           HeightRequest="21"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
 
-            <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
-                <Ellipse Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
-                         WidthRequest="10"
-                         HeightRequest="10"
-                         VerticalOptions="Center" />
-                <Label Text="{Binding RecordingText}"
-                       Style="{StaticResource BodyStrong}"
-                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
-                       VerticalOptions="Center" />
-            </HorizontalStackLayout>
-
-            <Border Grid.Column="2"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 22"
-                    WidthRequest="44"
-                    HeightRequest="44"
-                    AutomationId="Feedback_RecordStop">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding StopRecordingCommand}" />
-                </Border.GestureRecognizers>
-                <Label Text="✓"
-                       FontSize="20"
-                       TextColor="{StaticResource White}"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center" />
-            </Border>
-        </Grid>
-
-        <!-- Normale Eingabezeile -->
-        <Grid ColumnDefinitions="*,Auto"
-              ColumnSpacing="8"
-              IsVisible="{Binding IsIdle}">
-
-            <Border Grid.Column="0"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
-                    StrokeShape="RoundRectangle 22"
-                    Padding="6,2">
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="2">
-                    <!-- Galerie -->
-                    <Border Grid.Column="0"
-                            BackgroundColor="Transparent"
-                            StrokeThickness="0"
-                            WidthRequest="36"
-                            HeightRequest="36"
-                            VerticalOptions="End"
-                            AutomationId="Feedback_PickPhotos">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding PickPhotosCommand}" />
-                        </Border.GestureRecognizers>
-                        <Image Source="icon_attach.png"
-                               WidthRequest="21"
-                               HeightRequest="21"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
-                    </Border>
-
-                    <Editor Grid.Column="1"
-                            Text="{Binding Text}"
-                            Placeholder="{Binding Placeholder, Source={RelativeSource AncestorType={x:Type controls:MessageComposer}}, x:DataType=controls:MessageComposer}"
-                            MaxLength="4000"
-                            AutoSize="TextChanges"
-                            MinimumHeightRequest="40"
-                            MaximumHeightRequest="130"
-                            StyleClass="borderless"
-                            AutomationId="Feedback_MessageEditor" />
-
-                    <!-- Kamera -->
-                    <Border Grid.Column="2"
-                            BackgroundColor="Transparent"
-                            StrokeThickness="0"
-                            WidthRequest="36"
-                            HeightRequest="36"
-                            VerticalOptions="End"
-                            AutomationId="Feedback_TakePhoto">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding TakePhotoCommand}" />
-                        </Border.GestureRecognizers>
-                        <Image Source="icon_camera.png"
-                               WidthRequest="21"
-                               HeightRequest="21"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
-                    </Border>
-                </Grid>
-            </Border>
-
-            <!-- Mikrofon (leeres Feld) -->
-            <Border Grid.Column="1"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 22"
-                    WidthRequest="44"
-                    HeightRequest="44"
-                    VerticalOptions="End"
-                    IsVisible="{Binding ShowMicButton}"
-                    AutomationId="Feedback_RecordStart">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding StartRecordingCommand}" />
-                </Border.GestureRecognizers>
-                <Image Source="icon_mic.png"
-                       WidthRequest="21"
-                       HeightRequest="21"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center" />
-            </Border>
-
-            <!-- Senden (Text oder Anhang vorhanden) -->
-            <Border Grid.Column="1"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 22"
-                    WidthRequest="44"
-                    HeightRequest="44"
-                    VerticalOptions="End"
-                    IsVisible="{Binding ShowSendButton}"
-                    AutomationId="Feedback_Send">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding SendCommand, Source={RelativeSource AncestorType={x:Type controls:MessageComposer}}, x:DataType=controls:MessageComposer}" />
-                </Border.GestureRecognizers>
-                <Image Source="icon_send_white.png"
-                       WidthRequest="21"
-                       HeightRequest="21"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center" />
-            </Border>
-        </Grid>
-    </VerticalStackLayout>
+                <!-- Senden (Text oder Anhang vorhanden) -->
+                <Border Grid.Column="1"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 22"
+                        WidthRequest="44"
+                        HeightRequest="44"
+                        VerticalOptions="End"
+                        IsVisible="{Binding ShowSendButton}"
+                        AutomationId="Feedback_Send">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SendCommand, Source={RelativeSource AncestorType={x:Type controls:MessageComposer}}, x:DataType=controls:MessageComposer}" />
+                    </Border.GestureRecognizers>
+                    <Image Source="icon_send_white.png"
+                           WidthRequest="21"
+                           HeightRequest="21"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
 </ContentView>
