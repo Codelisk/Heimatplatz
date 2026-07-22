@@ -33,6 +33,9 @@ export const intern = {
   "intern.navMarketing": "Marketing",
   "intern.navMarketingDescription":
     "E-Mails mit KI-generiertem Text erstellen, prüfen und von info@heimatplatz.at versenden.",
+  "intern.navAnalytics": "Analytics",
+  "intern.navAnalyticsDescription":
+    "Rybbit-Traffic-Dashboard öffnen und Suchperformance-Kennzahlen aus der Google Search Console einsehen.",
 
   // Edikte-Sync (Zwangsversteigerungen)
   "intern.syncTriggered":
@@ -303,4 +306,86 @@ export const intern = {
   "intern.mkInboxMarkUnread": "Als ungelesen markieren",
   "intern.mkInboxShowBody": "Nachricht anzeigen",
   "intern.mkInboxReadOk": "Markierung aktualisiert.",
+
+  // WKO-Firmen-Übersicht (/intern/firmen)
+  "intern.navWkoCompanies": "Firmen (WKO)",
+  "intern.navWkoCompaniesDescription":
+    "Von firmen.wko.at gescrapte Immobilien-Firmen in Oberösterreich einsehen und durchsuchen.",
+  "intern.wkoMetaTitle": "Intern – Firmen (WKO)",
+  "intern.wkoTitle": "Firmen (WKO)",
+  "intern.wkoIntro":
+    "Immobilien-Firmen in Oberösterreich, gescraped von firmen.wko.at. Firmenbuch-Spalten (amtliches Gründungsdatum, EUID, Geschäftsführung) sind erst befüllt, sobald ein Firmenbuch-HVD-API-Key konfiguriert ist und der Sync erneut lief.",
+  "intern.wkoSearchPlaceholder": "Name oder Branche suchen …",
+  "intern.wkoFilterStatusAll": "Alle",
+  "intern.wkoFilterStatusActive": "Nur aktive",
+  "intern.wkoFilterStatusInactive": "Nur nicht mehr gelistete",
+  "intern.wkoLoadFailed": "Firmen konnten nicht geladen werden. Ist die API erreichbar?",
+  "intern.wkoTotal": "{count} Firmen",
+  "intern.wkoEmpty": "Keine Firmen gefunden.",
+  "intern.wkoColFounded": "Gegründet",
+  "intern.wkoFoundedOfficial": "amtlich",
+  "intern.wkoFoundedApprox": "laut Gewerbeberechtigung",
+  "intern.wkoBadgeInactive": "nicht mehr gelistet",
+  "intern.wkoBadgeTrainingCompany": "Lehrbetrieb",
+  "intern.wkoDetailLink": "Details",
+  "intern.wkoWkoLink": "WKO-Eintrag",
+
+  // WKO-Firmen-Detail (/intern/firmen/detail)
+  "intern.wkoDetailMetaTitle": "Intern – Firmendetail",
+  "intern.wkoDetailNotFound": "Firma nicht gefunden.",
+  "intern.wkoDetailBackToList": "Zurück zur Übersicht",
+  "intern.wkoDetailContactHeading": "Kontakt",
+  "intern.wkoDetailCompanyHeading": "Firmendaten",
+  "intern.wkoDetailFirmenbuchHeading": "Amtliche Firmenbuch-Daten",
+  "intern.wkoDetailFirmenbuchNotEnriched":
+    "Noch nicht angereichert (kein Firmenbuch-HVD-API-Key konfiguriert oder Sync steht noch aus).",
+  "intern.wkoDetailPermitsHeading": "Gewerbeberechtigungen",
+  "intern.wkoDetailPermitsEmpty": "Keine Gewerbeberechtigungen erfasst.",
+  "intern.wkoDetailManagingDirectorsHeading": "Geschäftsführung laut Firmenbuch",
+  "intern.wkoDetailScrapingHeading": "Scraping-Daten",
+  "intern.wkoDetailFieldStreet": "Straße",
+  "intern.wkoDetailFieldPostalCode": "PLZ",
+  "intern.wkoDetailFieldCity": "Ort",
+  "intern.wkoDetailFieldPhones": "Telefon",
+  "intern.wkoDetailFieldEmail": "E-Mail",
+  "intern.wkoDetailFieldWebsite": "Website",
+  "intern.wkoDetailFieldOpeningHours": "Öffnungszeiten",
+  "intern.wkoDetailFieldLegalForm": "Rechtsform",
+  "intern.wkoDetailFieldCompanyRegisterNumber": "Firmenbuchnummer",
+  "intern.wkoDetailFieldCompanyCourt": "Firmengericht",
+  "intern.wkoDetailFieldGln": "GLN",
+  "intern.wkoDetailFieldFoundedYear": "Gründungsjahr (Näherung)",
+  "intern.wkoDetailFieldEuid": "EUID",
+  "intern.wkoDetailFieldFirmenbuchFoundedDate": "Amtliches Gründungsdatum",
+  "intern.wkoDetailFieldSourceSearchTerm": "Gefunden über Suchbegriff",
+  "intern.wkoDetailFieldFirstSeenAt": "Erstmals gescraped",
+  "intern.wkoDetailFieldLastScrapedAt": "Zuletzt gescraped",
+  "intern.wkoDetailFieldFirmenbuchEnrichedAt": "Firmenbuch zuletzt angereichert",
+
+  // Analytics-Section (/intern/analytics)
+  "intern.analyticsMetaTitle": "Intern – Analytics",
+  "intern.analyticsTitle": "Analytics",
+  "intern.analyticsIntro":
+    "Traffic-Analytics (Rybbit, selbstgehostet, cookieless) und Suchperformance (Google Search Console) an einer Stelle.",
+  "intern.rybbitHeading": "Rybbit – Traffic-Analytics",
+  "intern.rybbitExplainer":
+    "Echtzeit-Besucherzahlen, Seitenaufrufe und Verhalten. Läuft auf einem eigenen Server (analytics.heimatplatz.at), eigenes Login.",
+  "intern.rybbitOpenButton": "Rybbit-Dashboard öffnen",
+  "intern.searchConsoleHeading": "Google Search Console – Suchperformance",
+  "intern.searchConsoleExplainer": "Klicks, Impressionen und Ranking-Position der letzten 28 Tage aus der echten Google-Suche.",
+  "intern.searchConsoleNotConfigured":
+    "Noch nicht konfiguriert (kein Service-Account-Key hinterlegt). Siehe Features/SearchConsole/README.md für die Einrichtung.",
+  "intern.searchConsoleLoadFailed": "Suchperformance-Daten konnten nicht geladen werden.",
+  "intern.searchConsoleClicks": "Klicks",
+  "intern.searchConsoleImpressions": "Impressionen",
+  "intern.searchConsoleCtr": "CTR",
+  "intern.searchConsolePosition": "Ø Position",
+  "intern.searchConsoleTopQueries": "Top-Suchbegriffe",
+  "intern.searchConsoleTopPages": "Top-Seiten",
+  "intern.searchConsoleColQuery": "Suchbegriff",
+  "intern.searchConsoleColPage": "Seite",
+  "intern.searchConsoleColClicks": "Klicks",
+  "intern.searchConsoleColImpressions": "Impr.",
+  "intern.searchConsoleColCtr": "CTR",
+  "intern.searchConsoleColPosition": "Position",
 } as const;

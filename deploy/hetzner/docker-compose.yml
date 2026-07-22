@@ -63,12 +63,18 @@ services:
       PushNotifications__Apns__PrivateKeyPath: /run/secrets/apns-auth-key.p8
       # FCM (Android): Firebase-Service-Account (Projekt heimatplatz-b77ca) als Secret
       PushNotifications__Firebase__ServiceAccountPath: /run/secrets/firebase-service-account.json
+      # Google Search Console (Intern-Bereich /intern/analytics): Service-Account-Key als
+      # Secret, kein OAuth-Consent-Flow noetig. Nur auf Prod (api) - gilt nur fuer die
+      # echte Domain, nicht fuer api-test. Ohne Key bleibt das Feature fail-soft deaktiviert.
+      SearchConsole__ServiceAccountPath: /run/secrets/search-console-service-account.json
+      SearchConsole__SiteUrl: ${SEARCH_CONSOLE_SITE_URL:-sc-domain:heimatplatz.at}
     volumes:
       # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
       # Container-Rebuilds ueberleben.
       - api_uploads:/app/wwwroot/uploads
       - ./secrets/apns-auth-key.p8:/run/secrets/apns-auth-key.p8:ro
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+      - ./secrets/search-console-service-account.json:/run/secrets/search-console-service-account.json:ro
     # Kein Host-Port-Mapping - nur ueber das interne Docker-Netzwerk via Caddy erreichbar.
     expose:
       - "8080"

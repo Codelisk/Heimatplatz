@@ -14,6 +14,7 @@ using Heimatplatz.Api.Features.PropertyImport.Configuration;
 using Heimatplatz.Api.Features.AiListing.Configuration;
 using Heimatplatz.Api.Features.Marketing.Configuration;
 using Heimatplatz.Api.Features.PropertyDrafts.Configuration;
+using Heimatplatz.Api.Features.SearchConsole.Configuration;
 using Heimatplatz.Api.Features.Telemetry.Configuration;
 using Heimatplatz.Api.Features.WkoCompanies.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,7 @@ using Heimatplatz.Api.Features.Notifications;
 using Heimatplatz.Api.Features.PropertyImport;
 using Heimatplatz.Api.Features.AiListing;
 using Heimatplatz.Api.Features.WkoCompanies;
+using Heimatplatz.Api.Features.SearchConsole;
 
 namespace Heimatplatz.Api.Core.Startup;
 
@@ -90,6 +92,7 @@ public static class ServiceCollectionExtensions
         // OTel-Pipeline + Writer/Retention haengen wie TickerQ am Connection-String-Gate
         services.AddTelemetryFeature(configuration, backgroundJobsEnabled);
         services.AddWkoCompaniesFeature(configuration);
+        services.AddSearchConsoleFeature(configuration);
 
         return services;
     }
@@ -111,6 +114,7 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.PropertyDrafts.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Telemetry.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.WkoCompanies.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
+        Heimatplatz.Api.Features.SearchConsole.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
 
         return app;
     }

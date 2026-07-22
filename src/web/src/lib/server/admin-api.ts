@@ -228,6 +228,26 @@ function adminHeaders(): Record<string, string> {
   };
 }
 
+// SearchConsole-Feature (/api/admin/search-console) - fail-soft: Enabled=false statt Fehler,
+// solange kein Service-Account-Key konfiguriert ist (siehe Features/SearchConsole/README.md)
+export type SearchConsoleRow = {
+  Label: string;
+  Clicks: number;
+  Impressions: number;
+  Ctr: number;
+  Position: number;
+};
+
+export type SearchConsoleSummary = {
+  Enabled: boolean;
+  ClicksTotal: number;
+  ImpressionsTotal: number;
+  AverageCtr: number;
+  AveragePosition: number;
+  TopQueries: SearchConsoleRow[];
+  TopPages: SearchConsoleRow[];
+};
+
 export async function adminApiGet<T>(pathWithQuery: string): Promise<T | null> {
   try {
     const response = await fetch(new URL(pathWithQuery, getServerApiBaseUrl()), {

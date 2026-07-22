@@ -70,6 +70,9 @@
     <!-- E-Mail-Versand (SMTP via Hetzner-Webhosting-Mailbox) -->
     <PackageVersion Include="MailKit" Version="4.17.0" />
 
+    <!-- Google Search Console API (Service-Account-Auth, siehe Features/SearchConsole) -->
+    <PackageVersion Include="Google.Apis.SearchConsole.v1" Version="1.74.0.3847" />
+
     <!-- PDF image extraction (foreclosure appraisal fallback) -->
     <PackageVersion Include="PdfPig" Version="0.1.15" />
 

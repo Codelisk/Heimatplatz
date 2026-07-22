@@ -15,9 +15,11 @@ public static class AstroWeb
     /// npm-Abhaengigkeiten installieren und das SSR-Bundle bauen. Die uebergebene
     /// <paramref name="apiBaseUrl"/> wird als PUBLIC_API_BASE_URL in die Client-Skripte
     /// eingebettet; serverseitige SSR-Fetches nutzen zur Laufzeit API_BASE_URL_SERVER
-    /// (docker-compose).
+    /// (docker-compose). <paramref name="rybbitSiteId"/> aktiviert das Rybbit-Tracking-
+    /// Snippet (BaseLayout.astro) - leer lassen, um ein Bundle ohne Tracking zu bauen
+    /// (Test-Web).
     /// </summary>
-    public static void Build(BuildContext context, string? apiBaseUrl)
+    public static void Build(BuildContext context, string? apiBaseUrl, string? rybbitSiteId = null)
     {
         context.Information("=== Build Astro Web ===");
 
@@ -37,6 +39,11 @@ public static class AstroWeb
         {
             buildEnv["PUBLIC_API_BASE_URL"] = apiBaseUrl;
             context.Information($"Building with PUBLIC_API_BASE_URL={apiBaseUrl}");
+        }
+        if (!string.IsNullOrEmpty(rybbitSiteId))
+        {
+            buildEnv["PUBLIC_RYBBIT_SITE_ID"] = rybbitSiteId;
+            context.Information("Building with PUBLIC_RYBBIT_SITE_ID set (Rybbit-Tracking aktiv)");
         }
 
         context.Information("Validating and building Astro SSR bundle (npm run validate)...");

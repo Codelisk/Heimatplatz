@@ -73,6 +73,9 @@ firebase-service-account.json
 apns-auth-key.p8
 /deploy/hetzner/secrets/
 google-services.json
+
+# Google Search Console Service-Account-Key
+search-console-service-account.json
 GoogleService-Info.plist
 
 # App start scripts and logs

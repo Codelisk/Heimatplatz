@@ -50,7 +50,9 @@
 		# Ressourcen kommen von self bzw. der API-Domain, Formulare posten auf self.
 		# 'unsafe-inline' ist fuer Astros Inline-Scripts/-Styles (Theme-Init, Islands) noetig.
 		# blob: in img-src fuer die lokale Foto-Vorschau beim Inserieren (URL.createObjectURL).
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# analytics.heimatplatz.at (21.7.2026): selbstgehostetes Rybbit-Tracking-Snippet,
+		# nur auf Prod eingebunden (Test-Web baut ohne PUBLIC_RYBBIT_SITE_ID, s. BaseLayout.astro).
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://analytics.heimatplatz.at; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI fuer den Edikte-Sync, nur von HOME_IP erreichbar.

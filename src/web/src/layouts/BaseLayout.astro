@@ -45,6 +45,11 @@ const canonicalUrl = getCanonicalUrl(canonicalPath);
 const imageUrl = getAssetUrl(image);
 const data = Array.isArray(structuredData) ? structuredData : [structuredData];
 const jsonLd = jsonForScriptTag([organizationSchema(), websiteSchema(), realEstateAgentSchema(), ...data]);
+
+// Rybbit-Tracking (selbstgehostet, cookieless): nur gesetzt im Prod-Build (siehe
+// cake/Tasks/AstroWeb.cs) - Test-Web baut ohne PUBLIC_RYBBIT_SITE_ID, damit QA-Traffic
+// die Statistik nicht verfaelscht.
+const rybbitSiteId = import.meta.env.PUBLIC_RYBBIT_SITE_ID;
 ---
 
 <!doctype html>
@@ -128,6 +133,10 @@ const jsonLd = jsonForScriptTag([organizationSchema(), websiteSchema(), realEsta
     <meta name="twitter:image:alt" content={pageTitle} />
 
     <script is:inline type="application/ld+json" set:html={jsonLd}></script>
+
+    {rybbitSiteId && (
+      <script is:inline src="https://analytics.heimatplatz.at/api/script.js" data-site-id={rybbitSiteId} defer></script>
+    )}
   </head>
   <body class:list={["flex min-h-screen flex-col bg-background text-foreground antialiased", bodyClass]}>
     <a
