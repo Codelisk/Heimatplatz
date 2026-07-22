@@ -113,7 +113,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
-  import { formatApiDate, formatApiPrice, getApiLocationLine, getApiStreetLine, getDisplayTitle } from "@/features/properties/format";
+  import { formatApiDate, formatApiPrice, getApiAddressLine, getDisplayTitle } from "@/features/properties/format";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
   import { t } from "@/i18n";
   import {
@@ -536,13 +536,13 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     const titleLink = document.createElement("a");
     titleLink.href = getApiDetailPath(property.Id);
     titleLink.className = "hover:underline";
-    titleLink.textContent = getApiLocationLine(property) || property.City || property.Title;
+    // Titel als Kopfzeile, darunter die Adresse "Strasse, PLZ Ort" (wie ApiPropertyCard.astro)
+    const addressLine = getApiAddressLine(property);
+    titleLink.textContent = getDisplayTitle(property.Title) || addressLine;
     title.append(titleLink);
-    const streetLine = getApiStreetLine(property);
     left.append(
       title,
-      ...(streetLine ? [createText("p", "truncate text-sm text-muted-foreground", streetLine)] : []),
-      createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
+      ...(addressLine ? [createText("p", "truncate text-sm text-muted-foreground", addressLine)] : []),
     );
 
     const facts = document.createElement("dl");

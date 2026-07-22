@@ -72,6 +72,11 @@ export function getApiStreetLine(property: ApiAddressParts) {
   return street;
 }
 
+/** Volle Adresszeile "Strasse, PLZ Ort" - Strasse zuerst, die PLZ gehoert zum Ort. */
+export function getApiAddressLine(property: ApiAddressParts) {
+  return [getApiStreetLine(property), getApiLocationLine(property)].filter(Boolean).join(", ");
+}
+
 export function formatApiDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return "";

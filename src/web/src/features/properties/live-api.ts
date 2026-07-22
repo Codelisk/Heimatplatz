@@ -186,7 +186,7 @@ export function getApiSellerLabel(sellerType: string | number | null) {
 
 // Kanonische Formatierung lebt in format.ts (client-sicher, keine
 // Server-Abhaengigkeiten); hier nur re-exportiert fuer bestehende SSR-Importe.
-export { formatApiDate, formatApiPrice, formatApiPriceLong, getApiLocationLine, getApiStreetLine } from "./format";
+export { formatApiDate, formatApiPrice, formatApiPriceLong, getApiAddressLine, getApiLocationLine, getApiStreetLine } from "./format";
 
 export function getApiAreaValue(property: ApiProperty) {
   return Number(property.PlotAreaM2 ?? property.LivingAreaM2 ?? 0);
