@@ -527,49 +527,39 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     `;
     media.append(link, badge, actions);
 
+    // Volle Zeilen statt zwei Spalten (wie ApiPropertyCard.astro): Titel+Preis,
+    // Adresse, Fakten-Chips
     const body = document.createElement("div");
-    body.className = "grid grid-cols-[1fr_auto] gap-3 p-3";
-    const left = document.createElement("div");
-    left.className = "min-w-0";
+    body.className = "p-3";
+    const head = document.createElement("div");
+    head.className = "flex items-baseline justify-between gap-3";
     const title = document.createElement("h2");
-    title.className = "truncate text-base font-semibold";
+    title.className = "min-w-0 truncate text-base font-semibold";
     const titleLink = document.createElement("a");
     titleLink.href = getApiDetailPath(property.Id);
     titleLink.className = "hover:underline";
-    // Titel als Kopfzeile, darunter die Adresse "Strasse, PLZ Ort" (wie ApiPropertyCard.astro)
     const addressLine = getApiAddressLine(property);
     titleLink.textContent = getDisplayTitle(property.Title) || addressLine;
     title.append(titleLink);
-    left.append(
-      title,
-      ...(addressLine ? [createText("p", "truncate text-sm text-muted-foreground", addressLine)] : []),
-    );
-    // Chips links unter der Adresse (wie ApiPropertyCard.astro)
-    const chips = [
-      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>` : "",
+    const price = document.createElement("p");
+    price.className = "shrink-0 whitespace-nowrap text-xl font-bold leading-none text-price";
+    price.innerHTML = `<span class="sr-only">${t("card.price")}: </span>${formatApiPrice(property.Price)}`;
+    head.append(title, price);
+
+    const chipRow = document.createElement("div");
+    chipRow.className = "mt-3 flex flex-wrap gap-1";
+    chipRow.innerHTML = [
+      property.PlotAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.plotAreaValue", { area: property.PlotAreaM2 })}</span>` : "",
+      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.livingAreaValue", { area: property.LivingAreaM2 })}</span>` : "",
       property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipRooms", { value: property.Rooms })}</span>` : "",
+      !area ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.areaUnknown")}</span>` : "",
     ].filter(Boolean).join("");
-    if (chips) {
-      const chipRow = document.createElement("div");
-      chipRow.className = "mt-3 flex gap-1";
-      chipRow.innerHTML = chips;
-      left.append(chipRow);
-    }
 
-    const facts = document.createElement("dl");
-    facts.className = "text-right";
-    facts.innerHTML = `
-      <div>
-        <dt class="sr-only">${t("card.price")}</dt>
-        <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">${formatApiPrice(property.Price)}</dd>
-      </div>
-      <div class="mt-1.5">
-        <dt class="sr-only">${t("card.area")}</dt>
-        <dd class="text-sm font-semibold text-muted-foreground">${area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
-      </div>
-    `;
-
-    body.append(left, facts);
+    body.append(
+      head,
+      ...(addressLine ? [createText("p", "truncate text-sm text-muted-foreground", addressLine)] : []),
+      chipRow,
+    );
     article.append(media, body, createCardFooter(property));
     return article;
   }

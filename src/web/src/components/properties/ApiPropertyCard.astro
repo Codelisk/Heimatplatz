@@ -116,32 +116,24 @@ const citySlug = slugifyLocation(property.City);
     </div>
   </div>
 
-  <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
-    <div class="min-w-0">
-      <h2 class="truncate text-base font-semibold">
+  {/* Volle Zeilen statt zwei Spalten - Spalten ungleicher Hoehe rissen
+      je nach Datenlage links oder rechts Loecher in die Karte */}
+  <div class="p-3">
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 class="min-w-0 truncate text-base font-semibold">
         <a href={href} class="hover:underline">{displayTitle || addressLine}</a>
       </h2>
-      {addressLine && <p class="truncate text-sm text-muted-foreground">{addressLine}</p>}
-      {/* Chips links unter der Adresse - fuellen die Flaeche unter dem kurzen
-          Textblock, rechts bleiben nur Preis und Flaeche */}
-      {(property.LivingAreaM2 || property.Rooms) && (
-        <div class="mt-3 flex gap-1">
-          {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
-          {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
-        </div>
-      )}
+      <p class="shrink-0 whitespace-nowrap text-xl font-bold leading-none text-price">
+        <span class="sr-only">{t("card.price")}: </span>{formatApiPrice(property.Price)}
+      </p>
     </div>
-
-    <dl class="text-right">
-      <div>
-        <dt class="sr-only">{t("card.price")}</dt>
-        <dd class="whitespace-nowrap text-xl font-bold leading-none text-price">{formatApiPrice(property.Price)}</dd>
-      </div>
-      <div class="mt-1.5">
-        <dt class="sr-only">{t("card.area")}</dt>
-        <dd class="text-sm font-semibold text-muted-foreground">{area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
-      </div>
-    </dl>
+    {addressLine && <p class="truncate text-sm text-muted-foreground">{addressLine}</p>}
+    <div class="mt-3 flex flex-wrap gap-1">
+      {property.PlotAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.plotAreaValue", { area: property.PlotAreaM2 })}</span>}
+      {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.livingAreaValue", { area: property.LivingAreaM2 })}</span>}
+      {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
+      {!area && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.areaUnknown")}</span>}
+    </div>
   </div>
 
   {/* mt-auto pinnt die Fusszeile an den Kartenboden - Karten in einer
