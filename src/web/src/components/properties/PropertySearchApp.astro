@@ -541,10 +541,11 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     titleLink.textContent = getDisplayTitle(property.Title) || locationLine;
     title.append(titleLink);
     const streetLine = getApiStreetLine(property);
+    // Gestaffelte Adresse: Ort kraeftig, Strasse klein und grau (wie ApiPropertyCard.astro)
     left.append(
       title,
-      ...(locationLine ? [createText("p", "truncate text-sm text-muted-foreground", locationLine)] : []),
-      ...(streetLine ? [createText("p", "truncate text-sm text-muted-foreground", streetLine)] : []),
+      ...(locationLine ? [createText("p", "mt-0.5 truncate text-sm font-medium", locationLine)] : []),
+      ...(streetLine ? [createText("p", "mt-0.5 truncate text-xs text-muted-foreground", streetLine)] : []),
     );
 
     const facts = document.createElement("dl");

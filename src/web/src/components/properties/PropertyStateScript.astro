@@ -1784,9 +1784,10 @@
     const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-price", formatApiPrice(property.Price));
     head.append(title, price);
     const streetLine = getApiStreetLine(property);
+    // Gestaffelte Adresse: Ort kraeftig, Strasse klein und grau (wie ApiPropertyCard.astro)
     const address = [
-      ...(locationLine ? [createText("p", "mt-1 text-sm text-muted-foreground", locationLine)] : []),
-      ...(streetLine ? [createText("p", "text-sm text-muted-foreground", streetLine)] : []),
+      ...(locationLine ? [createText("p", "mt-1 text-sm font-medium", locationLine)] : []),
+      ...(streetLine ? [createText("p", "mt-0.5 text-xs text-muted-foreground", streetLine)] : []),
     ];
     const meta = createText(
       "p",

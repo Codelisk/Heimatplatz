@@ -123,8 +123,10 @@ const citySlug = slugifyLocation(property.City);
       <h2 class="truncate text-base font-semibold">
         <a href={href} class="hover:underline">{displayTitle || locationLine}</a>
       </h2>
-      {locationLine && <p class="truncate text-sm text-muted-foreground">{locationLine}</p>}
-      {streetLine && <p class="truncate text-sm text-muted-foreground">{streetLine}</p>}
+      {/* Gestaffelte Adresse: Ort kraeftig, Strasse klein und grau - zwei
+          gleich graue Zeilen wirkten plump */}
+      {locationLine && <p class="mt-0.5 truncate text-sm font-medium">{locationLine}</p>}
+      {streetLine && <p class="mt-0.5 truncate text-xs text-muted-foreground">{streetLine}</p>}
     </div>
 
     <dl class="text-right">
