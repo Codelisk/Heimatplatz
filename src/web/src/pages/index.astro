@@ -54,52 +54,55 @@ const searchResult = await fetchApiPropertySearch(searchQuery);
   description={t("home.metaDescription")}
   canonicalPath="/"
 >
-  {/* Makler-Teaser oben: wegdrückbar, die Entscheidung bleibt (localStorage).
-      Startet hidden - das Inline-Script direkt darunter blendet ihn nur ein,
-      wenn er nicht weggedrückt wurde (kein Aufblitzen bei Wiederkehrern). */}
-  <section class="px-3 pt-4 sm:px-5" aria-label={t("nav.forBrokers")} data-broker-teaser hidden>
-    <div class="broker-teaser-card relative mx-auto flex max-w-7xl flex-col gap-3 rounded-lg bg-card p-4 pr-12 sm:flex-row sm:items-center sm:justify-between sm:p-5 sm:pr-14">
-      <div>
-        <p class="text-base font-bold">{t("broker.homeTeaserTitle")}</p>
-        <p class="mt-0.5 text-sm leading-6 text-muted-foreground">{t("broker.homeTeaserText")}</p>
-      </div>
-      <a
-        href="/makler/"
-        class="inline-flex shrink-0 self-start rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:self-auto"
-      >
-        {t("broker.homeTeaserCta")}
-      </a>
-      <button
-        type="button"
-        class="absolute right-3 top-3 grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-        aria-label={t("broker.teaserDismiss")}
-        data-broker-teaser-dismiss
-      >
-        <XIcon class="size-4" aria-hidden="true" />
-      </button>
-    </div>
-  </section>
-  <script is:inline>
-    // Direkt beim Parsen (vor dem ersten Paint der Sektion) entscheiden -
-    // ein spaeter gebuendeltes Script wuerde den Banner sichtbar aufblitzen lassen
-    (() => {
-      const teaser = document.querySelector("[data-broker-teaser]");
-      if (!teaser) return;
-      try {
-        if (window.localStorage.getItem("heimatplatz:broker-teaser-dismissed") !== "1") teaser.hidden = false;
-      } catch {
-        teaser.hidden = false;
-      }
-    })();
-  </script>
-
   <PropertySearchApp
     apiProperties={searchResult.properties}
     total={searchResult.total}
     page={searchState.page}
     ssrQuery={searchQuery}
     ortSlugMap={ortSlugMap}
-  />
+  >
+    {/* Makler-Teaser unter der Ergebnisleiste (Trefferzahl + Sortierung):
+        wegdrückbar, die Entscheidung bleibt (localStorage). Startet hidden -
+        das Inline-Script direkt darunter blendet ihn nur ein, wenn er nicht
+        weggedrückt wurde (kein Aufblitzen bei Wiederkehrern). */}
+    <Fragment slot="after-toolbar">
+      <section class="px-3 pt-4 sm:px-5" aria-label={t("nav.forBrokers")} data-broker-teaser hidden>
+        <div class="broker-teaser-card relative mx-auto flex max-w-7xl flex-col gap-3 rounded-lg bg-card p-4 pr-12 sm:flex-row sm:items-center sm:justify-between sm:p-5 sm:pr-14">
+          <div>
+            <p class="text-base font-bold">{t("broker.homeTeaserTitle")}</p>
+            <p class="mt-0.5 text-sm leading-6 text-muted-foreground">{t("broker.homeTeaserText")}</p>
+          </div>
+          <a
+            href="/makler/"
+            class="inline-flex shrink-0 self-start rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:self-auto"
+          >
+            {t("broker.homeTeaserCta")}
+          </a>
+          <button
+            type="button"
+            class="absolute right-3 top-3 grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            aria-label={t("broker.teaserDismiss")}
+            data-broker-teaser-dismiss
+          >
+            <XIcon class="size-4" aria-hidden="true" />
+          </button>
+        </div>
+      </section>
+      <script is:inline>
+        // Direkt beim Parsen (vor dem ersten Paint der Sektion) entscheiden -
+        // ein spaeter gebuendeltes Script wuerde den Banner sichtbar aufblitzen lassen
+        (() => {
+          const teaser = document.querySelector("[data-broker-teaser]");
+          if (!teaser) return;
+          try {
+            if (window.localStorage.getItem("heimatplatz:broker-teaser-dismissed") !== "1") teaser.hidden = false;
+          } catch {
+            teaser.hidden = false;
+          }
+        })();
+      </script>
+    </Fragment>
+  </PropertySearchApp>
 </BaseLayout>
 
 <style>
