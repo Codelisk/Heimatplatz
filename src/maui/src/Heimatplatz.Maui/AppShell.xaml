@@ -9,6 +9,7 @@
     xmlns:properties="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
     xmlns:auth="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
     xmlns:notifications="clr-namespace:Heimatplatz.Maui.Features.Notifications.Presentation"
+    xmlns:feedback="clr-namespace:Heimatplatz.Maui.Features.Feedback.Presentation"
     x:DataType="local:AppShell"
     Title="Heimatplatz"
     FlyoutBehavior="Flyout"
@@ -150,6 +151,11 @@
         Icon="icon_bell.png"
         ContentTemplate="{DataTemplate notifications:NotificationSettingsPage}"
         Route="NotificationSettings" />
+    <ShellContent
+        Title="{Binding Loc.FeedbackTitle}"
+        Icon="icon_feedback.png"
+        ContentTemplate="{DataTemplate feedback:FeedbackListPage}"
+        Route="Feedback" />
     <ShellContent
         Title="{Binding Loc.ProfileTitle}"
         Icon="icon_user.png"

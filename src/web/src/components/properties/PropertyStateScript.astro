@@ -2810,6 +2810,418 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Feedback & Wuensche (/feedback, /feedback/anfrage)
+  // ---------------------------------------------------------------------------
+
+  type FeedbackAttachmentDto = {
+    Id: string;
+    Kind: "Image" | "Audio";
+    Url: string;
+    ThumbnailUrl: string | null;
+    ContentType: string;
+    FileSizeBytes: number;
+    DurationSeconds: number | null;
+  };
+
+  type FeedbackMessageDto = {
+    Id: string;
+    Author: "User" | "Team";
+    Body: string;
+    CreatedAt: string;
+    Attachments: FeedbackAttachmentDto[];
+  };
+
+  type FeedbackTicketSummary = {
+    Id: string;
+    Category: string;
+    Subject: string;
+    Status: string;
+    CreatedAt: string;
+    LastMessageAt: string;
+    HasUnread: boolean;
+    MessageCount: number;
+    LastMessagePreview: string;
+  };
+
+  type FeedbackTicketDetail = {
+    Id: string;
+    Category: string;
+    Subject: string;
+    Status: string;
+    CreatedAt: string;
+    Messages: FeedbackMessageDto[];
+  };
+
+  const MAX_FEEDBACK_IMAGES = 5;
+
+  const feedbackDateFormat = new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Vienna",
+  });
+
+  function feedbackCategoryLabelText(category: string) {
+    switch (category) {
+      case "Problem": return t("feedback.categoryProblem");
+      case "Question": return t("feedback.categoryQuestion");
+      case "Praise": return t("feedback.categoryPraise");
+      case "Other": return t("feedback.categoryOther");
+      default: return t("feedback.categoryIdea");
+    }
+  }
+
+  function feedbackStatusLabelText(status: string) {
+    switch (status) {
+      case "InProgress": return t("feedback.statusInProgress");
+      case "Answered": return t("feedback.statusAnswered");
+      case "Closed": return t("feedback.statusClosed");
+      default: return t("feedback.statusOpen");
+    }
+  }
+
+  function feedbackStatusBadgeClasses(status: string) {
+    switch (status) {
+      case "InProgress": return "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
+      case "Answered": return "bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-200";
+      case "Closed": return "bg-muted text-muted-foreground";
+      default: return "bg-red-100 text-red-900 dark:bg-red-900/40 dark:text-red-200";
+    }
+  }
+
+  function formatFeedbackDuration(seconds: number | null) {
+    if (!seconds || seconds <= 0) return "";
+    const total = Math.round(seconds);
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+  }
+
+  /**
+   * Bild-Auswahl fuer Feedback-Formulare: Button oeffnet den versteckten File-Input,
+   * Vorschau-Grid mit Entfernen-Button. Vorschauen via createObjectURL (CSP: blob:).
+   */
+  function setupFeedbackImagePicker(form: HTMLFormElement) {
+    const input = form.querySelector<HTMLInputElement>("[data-feedback-images]");
+    const grid = form.querySelector<HTMLElement>("[data-feedback-image-grid]");
+    const addButton = form.querySelector<HTMLButtonElement>("[data-feedback-images-add]");
+    let files: File[] = [];
+
+    function render() {
+      if (!grid) return;
+      grid.querySelectorAll("img").forEach((img) => URL.revokeObjectURL(img.src));
+      grid.innerHTML = "";
+      grid.hidden = files.length === 0;
+
+      files.forEach((file, index) => {
+        const cell = document.createElement("div");
+        cell.className = "relative";
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.alt = file.name;
+        img.className = "aspect-square w-full rounded-md border border-border object-cover";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className =
+          "absolute -right-2 -top-2 grid size-6 place-items-center rounded-full border border-border bg-background text-xs shadow-sm hover:bg-muted";
+        remove.textContent = "✕";
+        remove.setAttribute("aria-label", t("feedback.photoRemove"));
+        remove.addEventListener("click", () => {
+          files.splice(index, 1);
+          render();
+        });
+        cell.append(img, remove);
+        grid.append(cell);
+      });
+    }
+
+    addButton?.addEventListener("click", () => input?.click());
+    input?.addEventListener("change", () => {
+      const selected = Array.from(input.files ?? []);
+      input.value = "";
+      for (const file of selected) {
+        if (files.length >= MAX_FEEDBACK_IMAGES) {
+          setFormStatus(form, t("feedback.photosMax", { count: MAX_FEEDBACK_IMAGES }), "error");
+          break;
+        }
+        files.push(file);
+      }
+      render();
+    });
+
+    return {
+      getFiles: () => files,
+      clear: () => {
+        files = [];
+        render();
+      },
+    };
+  }
+
+  /** Laedt die Bilder einzeln hoch (grosse Originale) und liefert die Anhang-Referenzen. */
+  async function uploadFeedbackImages(form: HTMLFormElement, files: File[]) {
+    const attachments: { Url: string; DurationSeconds: number | null }[] = [];
+    for (const [index, file] of files.entries()) {
+      setFormStatus(form, t("feedback.uploadingPhotos", { current: index + 1, total: files.length }), "info");
+      const dataUrl = await readFileAsDataUrl(file);
+      const uploaded = await apiRequest<{ Url: string }>("/api/feedback/attachments", {
+        method: "POST",
+        body: {
+          FileName: file.name,
+          ContentType: file.type || "image/jpeg",
+          Base64Data: dataUrl.split(",")[1] ?? "",
+        },
+      });
+      attachments.push({ Url: uploaded.Url, DurationSeconds: null });
+    }
+    return attachments;
+  }
+
+  function createFeedbackBadge(text: string, classes: string) {
+    const badge = document.createElement("span");
+    badge.className = `rounded-full px-2 py-0.5 text-xs font-medium ${classes}`;
+    badge.textContent = text;
+    return badge;
+  }
+
+  async function renderFeedbackTicketList() {
+    const list = document.querySelector<HTMLElement>("[data-feedback-list]");
+    const empty = document.querySelector<HTMLElement>("[data-feedback-list-empty]");
+    const error = document.querySelector<HTMLElement>("[data-feedback-list-error]");
+    if (!list || !readSession()) return;
+
+    try {
+      const response = await apiRequest<{ Tickets: FeedbackTicketSummary[] }>("/api/feedback");
+      list.innerHTML = "";
+      const tickets = response.Tickets ?? [];
+      list.hidden = tickets.length === 0;
+      if (empty) empty.classList.toggle("hidden", tickets.length > 0);
+
+      for (const ticket of tickets) {
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = `/feedback/anfrage/?id=${ticket.Id}`;
+        link.className = "block px-5 py-4 transition-colors hover:bg-muted/60";
+
+        const badges = document.createElement("div");
+        badges.className = "flex flex-wrap items-center gap-2";
+        if (ticket.HasUnread) {
+          badges.append(createFeedbackBadge(t("feedback.listUnread"), "bg-red-600 text-white"));
+        }
+        badges.append(createFeedbackBadge(feedbackStatusLabelText(ticket.Status), feedbackStatusBadgeClasses(ticket.Status)));
+        badges.append(createFeedbackBadge(feedbackCategoryLabelText(ticket.Category), "bg-muted text-muted-foreground"));
+        const date = document.createElement("span");
+        date.className = "text-xs text-muted-foreground";
+        date.textContent = feedbackDateFormat.format(new Date(ticket.LastMessageAt));
+        badges.append(date);
+
+        const subject = createText("p", "mt-1 text-sm font-semibold", ticket.Subject);
+        const preview = createText("p", "mt-0.5 truncate text-sm text-muted-foreground", ticket.LastMessagePreview);
+        const meta = createText("p", "mt-1 text-xs text-muted-foreground", t("feedback.listMessageCount", { count: ticket.MessageCount }));
+
+        link.append(badges, subject, preview, meta);
+        item.append(link);
+        list.append(item);
+      }
+    } catch (cause) {
+      if (error) {
+        error.textContent = t("feedback.listLoadFailed", { error: cause instanceof Error ? cause.message : String(cause) });
+        error.classList.remove("hidden");
+      }
+    }
+  }
+
+  function renderFeedbackMessage(message: FeedbackMessageDto) {
+    const item = document.createElement("li");
+    item.className =
+      message.Author === "User"
+        ? "ml-auto max-w-[85%] rounded-lg border border-primary/30 bg-primary/5 p-4"
+        : "max-w-[85%] rounded-lg border border-border bg-card p-4";
+
+    const header = document.createElement("p");
+    header.className = "flex flex-wrap items-baseline gap-2 text-xs text-muted-foreground";
+    const author = document.createElement("span");
+    author.className = "font-semibold text-foreground";
+    author.textContent = message.Author === "User" ? t("feedback.threadYou") : t("feedback.threadTeam");
+    header.append(author, document.createTextNode(feedbackDateFormat.format(new Date(message.CreatedAt))));
+    item.append(header);
+
+    if (message.Body) {
+      const body = document.createElement("p");
+      body.className = "mt-2 whitespace-pre-wrap text-sm";
+      body.textContent = message.Body;
+      item.append(body);
+    }
+
+    if (message.Attachments.length > 0) {
+      const attachments = document.createElement("div");
+      attachments.className = "mt-3 flex flex-wrap gap-3";
+      message.Attachments.forEach((attachment, index) => {
+        if (attachment.Kind === "Image") {
+          const link = document.createElement("a");
+          link.href = attachment.Url;
+          link.target = "_blank";
+          link.rel = "noopener";
+          const img = document.createElement("img");
+          img.src = attachment.ThumbnailUrl ?? attachment.Url;
+          img.alt = t("feedback.threadImageAlt", { index: index + 1 });
+          img.loading = "lazy";
+          img.className = "h-24 w-24 rounded-md border border-border object-cover";
+          link.append(img);
+          attachments.append(link);
+        } else {
+          const wrapper = document.createElement("div");
+          wrapper.className = "w-full max-w-xs";
+          const duration = formatFeedbackDuration(attachment.DurationSeconds);
+          wrapper.append(createText("p", "mb-1 text-xs text-muted-foreground",
+            duration ? `${t("feedback.threadVoiceMessage")} · ${duration}` : t("feedback.threadVoiceMessage")));
+          const audio = document.createElement("audio");
+          audio.controls = true;
+          audio.preload = "metadata";
+          audio.src = attachment.Url;
+          audio.className = "w-full";
+          wrapper.append(audio);
+          attachments.append(wrapper);
+        }
+      });
+      item.append(attachments);
+    }
+
+    return item;
+  }
+
+  function bindFeedbackPage() {
+    const form = document.querySelector<HTMLFormElement>("[data-feedback-form]");
+    if (!form) return;
+
+    const picker = setupFeedbackImagePicker(form);
+    const submitButton = form.querySelector<HTMLButtonElement>("[data-feedback-submit]");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const body = (formData.get("body")?.toString() ?? "").trim();
+      const files = picker.getFiles();
+
+      if (!body && files.length === 0) {
+        setFormStatus(form, t("feedback.errorEmpty"), "error");
+        return;
+      }
+
+      if (submitButton) submitButton.disabled = true;
+      setFormStatus(form, t("feedback.submitting"), "info");
+      try {
+        const attachments = await uploadFeedbackImages(form, files);
+        await apiRequest("/api/feedback", {
+          method: "POST",
+          body: {
+            Category: formData.get("category")?.toString() ?? "Idea",
+            Subject: formData.get("subject")?.toString().trim() || null,
+            Body: body,
+            Source: "Web",
+            AppVersion: null,
+            Attachments: attachments,
+          },
+        });
+        form.reset();
+        picker.clear();
+        setFormStatus(form, t("feedback.submitSuccess"), "success");
+        void renderFeedbackTicketList();
+      } catch (cause) {
+        setFormStatus(form, t("feedback.errorGeneric", { error: cause instanceof Error ? cause.message : String(cause) }), "error");
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+    });
+
+    void renderFeedbackTicketList();
+  }
+
+  function bindFeedbackThreadPage() {
+    const container = document.querySelector<HTMLElement>("[data-feedback-thread]");
+    if (!container) return;
+
+    const content = container.querySelector<HTMLElement>("[data-thread-content]");
+    const errorBox = container.querySelector<HTMLElement>("[data-thread-error]");
+    const badges = container.querySelector<HTMLElement>("[data-thread-badges]");
+    const subject = container.querySelector<HTMLElement>("[data-thread-subject]");
+    const messages = container.querySelector<HTMLElement>("[data-thread-messages]");
+    const replyForm = container.querySelector<HTMLFormElement>("[data-feedback-reply-form]");
+    const ticketId = new URLSearchParams(window.location.search).get("id") ?? "";
+
+    function showThreadError(message: string) {
+      if (!errorBox) return;
+      errorBox.textContent = message;
+      errorBox.classList.remove("hidden");
+    }
+
+    function renderThread(ticket: FeedbackTicketDetail) {
+      if (!content || !badges || !subject || !messages) return;
+      content.hidden = false;
+      subject.textContent = ticket.Subject;
+      badges.innerHTML = "";
+      badges.append(
+        createFeedbackBadge(feedbackStatusLabelText(ticket.Status), feedbackStatusBadgeClasses(ticket.Status)),
+        createFeedbackBadge(feedbackCategoryLabelText(ticket.Category), "bg-muted text-muted-foreground"),
+      );
+      messages.innerHTML = "";
+      for (const message of ticket.Messages) {
+        messages.append(renderFeedbackMessage(message));
+      }
+    }
+
+    async function loadThread() {
+      if (!ticketId) {
+        showThreadError(t("feedback.threadNotFound"));
+        return;
+      }
+      try {
+        const response = await apiRequest<{ Ticket: FeedbackTicketDetail | null }>(`/api/feedback/${ticketId}`);
+        if (!response.Ticket) {
+          showThreadError(t("feedback.threadNotFound"));
+          return;
+        }
+        renderThread(response.Ticket);
+      } catch (cause) {
+        showThreadError(t("feedback.threadLoadFailed", { error: cause instanceof Error ? cause.message : String(cause) }));
+      }
+    }
+
+    if (replyForm) {
+      const picker = setupFeedbackImagePicker(replyForm);
+      const submitButton = replyForm.querySelector<HTMLButtonElement>("[data-feedback-submit]");
+      replyForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const body = (new FormData(replyForm).get("body")?.toString() ?? "").trim();
+        const files = picker.getFiles();
+        if (!body && files.length === 0) {
+          setFormStatus(replyForm, t("feedback.errorEmpty"), "error");
+          return;
+        }
+
+        if (submitButton) submitButton.disabled = true;
+        setFormStatus(replyForm, t("feedback.submitting"), "info");
+        try {
+          const attachments = await uploadFeedbackImages(replyForm, files);
+          const response = await apiRequest<{ Message: FeedbackMessageDto | null }>("/api/feedback/messages", {
+            method: "POST",
+            body: { TicketId: ticketId, Body: body, Attachments: attachments },
+          });
+          if (response.Message) {
+            messages?.append(renderFeedbackMessage(response.Message));
+          }
+          replyForm.reset();
+          picker.clear();
+          setFormStatus(replyForm, t("feedback.replySuccess"), "success");
+        } catch (cause) {
+          setFormStatus(replyForm, t("feedback.errorGeneric", { error: cause instanceof Error ? cause.message : String(cause) }), "error");
+        } finally {
+          if (submitButton) submitButton.disabled = false;
+        }
+      });
+    }
+
+    void loadThread();
+  }
+
   function bootPropertyState() {
     refreshActionButtons();
     bindFallbackImages();
@@ -2835,6 +3247,8 @@
     bindPreferenceForms();
     initWebPush();
     bindPropertyForm();
+    bindFeedbackPage();
+    bindFeedbackThreadPage();
     bindGlobalActions();
   }
 

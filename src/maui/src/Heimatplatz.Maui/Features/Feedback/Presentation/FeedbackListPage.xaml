@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Heimatplatz.Maui.Features.Feedback.Presentation.FeedbackListPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:presentation="clr-namespace:Heimatplatz.Maui.Features.Feedback.Presentation"
+    xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Feedback.Models"
+    x:DataType="presentation:FeedbackListViewModel"
+    Title="{Binding Loc.PageTitle}">
+
+    <Grid RowDefinitions="Auto,*" Padding="16,16,16,0" RowSpacing="14">
+
+        <!-- Intro + Neues Feedback -->
+        <VerticalStackLayout Grid.Row="0" Spacing="12" IsVisible="{Binding IsLoggedIn}">
+            <Label Text="{Binding Loc.Intro}"
+                   Style="{StaticResource PageSubtitle}"
+                   LineBreakMode="WordWrap" />
+            <Button Text="{Binding Loc.NewFeedback}"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding NewFeedbackCommand}"
+                    AutomationId="Feedback_NewButton" />
+        </VerticalStackLayout>
+
+        <!-- Nicht angemeldet -->
+        <VerticalStackLayout Grid.Row="1"
+                             Spacing="8"
+                             Padding="8,36"
+                             HorizontalOptions="Center"
+                             IsVisible="{Binding IsLoggedOut}">
+            <Label Text="🔒" Style="{StaticResource EmptyStateIcon}" Opacity="0.5" />
+            <Label Text="{Binding Loc.LoggedOutTitle}" Style="{StaticResource EmptyStateTitle}" />
+            <Label Text="{Binding Loc.LoggedOutHint}" Style="{StaticResource EmptyStateHint}" />
+            <Button Text="{Binding Loc.LoginButton}"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding GoToLoginCommand}"
+                    HorizontalOptions="Center"
+                    Margin="0,16,0,0" />
+        </VerticalStackLayout>
+
+        <!-- Anfragen-Liste -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Tickets}"
+                        SelectionMode="None"
+                        IsVisible="{Binding IsLoggedIn}"
+                        AutomationId="Feedback_TicketList">
+            <CollectionView.EmptyView>
+                <Grid>
+                    <VerticalStackLayout Spacing="8"
+                                         Padding="8,36"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Start"
+                                         IsVisible="{Binding ShowEmptyState}">
+                        <Label Text="💬" Style="{StaticResource EmptyStateIcon}" Opacity="0.6" />
+                        <Label Text="{Binding Loc.EmptyTitle}" Style="{StaticResource EmptyStateTitle}" />
+                        <Label Text="{Binding Loc.EmptyHint}" Style="{StaticResource EmptyStateHint}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="12"
+                                         Padding="8,36"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Start"
+                                         IsVisible="{Binding HasLoadError}">
+                        <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
+                        <Button Text="{Binding Loc.Retry}"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding LoadCommand}"
+                                HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Start"
+                                       Margin="0,48,0,0" />
+                </Grid>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:FeedbackTicketListItem">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenTicketCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackListViewModel}}, x:DataType=presentation:FeedbackListViewModel}"
+                                                  CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+
+                        <VerticalStackLayout Spacing="7">
+                            <HorizontalStackLayout Spacing="6">
+                                <!-- Neue Team-Antwort: Marken-rotes Badge -->
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 10"
+                                        Padding="8,3"
+                                        IsVisible="{Binding HasUnread}">
+                                    <Label Text="{Binding Loc.UnreadBadge, Source={RelativeSource AncestorType={x:Type presentation:FeedbackListViewModel}}, x:DataType=presentation:FeedbackListViewModel}"
+                                           FontSize="11"
+                                           FontFamily="SansMedium"
+                                           TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                </Border>
+
+                                <Border Style="{StaticResource PillTag}">
+                                    <Label Text="{Binding StatusLabel}" Style="{StaticResource PillTagText}" />
+                                </Border>
+                                <Border Style="{StaticResource PillTag}">
+                                    <Label Text="{Binding CategoryLabel}" Style="{StaticResource PillTagText}" />
+                                </Border>
+                            </HorizontalStackLayout>
+
+                            <Label Text="{Binding Subject}"
+                                   Style="{StaticResource BodyStrong}"
+                                   LineBreakMode="TailTruncation" />
+
+                            <Label Text="{Binding Preview}"
+                                   Style="{StaticResource Caption}"
+                                   MaxLines="2"
+                                   LineBreakMode="TailTruncation"
+                                   IsVisible="{Binding HasPreview}" />
+
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="{Binding DateText}" Style="{StaticResource Caption}" />
+                                <Label Text="·" Style="{StaticResource Caption}" />
+                                <Label Text="{Binding MessageCountText}" Style="{StaticResource Caption}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

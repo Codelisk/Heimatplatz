@@ -152,6 +152,72 @@ public class PushNotificationService(
         }
     }
 
+    /// <inheritdoc />
+    public async Task SendFeedbackReplyNotificationAsync(
+        Guid ticketId,
+        Guid userId,
+        string subject,
+        string bodyPreview,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var subscriptions = await dbContext.Set<PushSubscription>()
+                .Where(ps => ps.UserId == userId)
+                .ToListAsync(cancellationToken);
+
+            if (subscriptions.Count == 0)
+            {
+                logger.LogInformation("No push subscriptions for user {UserId} - feedback reply for ticket {TicketId} not pushed", userId, ticketId);
+                return;
+            }
+
+            var deepLink = $"heimatplatz://feedback/{ticketId}";
+            var notification = new Shiny.Extensions.Push.PushNotification
+            {
+                Title = string.IsNullOrWhiteSpace(subject)
+                    ? "Antwort auf dein Feedback"
+                    : $"Antwort auf: {subject}",
+                Message = bodyPreview,
+                // Shiny.Push for Android routes notification taps through this intent action.
+                // The actual application URI is carried in Data for both FCM and APNs.
+                DeepLink = ShinyAndroidClickAction,
+                Sound = "default",
+                Data = new Dictionary<string, string>
+                {
+                    ["ticketId"] = ticketId.ToString(),
+                    ["action"] = "openFeedback",
+                    // Keep both spellings while MAUI/legacy clients converge on one payload contract.
+                    ["deepLink"] = deepLink,
+                    ["deeplink"] = deepLink
+                },
+                Apple = new ApplePushOptions
+                {
+                    Category = "openFeedback",
+                    ThreadId = ticketId.ToString()
+                }
+            };
+
+            var result = await pushManager.SendToTokens(
+                subscriptions.Select(x => x.DeviceToken),
+                notification,
+                cancellationToken);
+
+            logger.LogInformation(
+                "Push batch {BatchId} for feedback reply on ticket {TicketId}: {Sent}/{Total} sent, {Failed} failed, {Pruned} pruned",
+                result.BatchId,
+                ticketId,
+                result.Sent,
+                result.Total,
+                result.Failed,
+                result.TokensRemoved);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error sending feedback reply push for ticket {TicketId}", ticketId);
+        }
+    }
+
     /// <summary>
     /// Checks if a property matches the user's search filter (SameAsSearch mode)
     /// </summary>

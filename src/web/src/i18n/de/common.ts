@@ -41,6 +41,7 @@ export const common = {
   "nav.blockedProperties": "Blockierte Immobilien",
   "nav.notifications": "Benachrichtigungen",
   "nav.filterSettings": "Filtereinstellungen",
+  "nav.feedback": "Feedback & Wünsche",
   "nav.myProfile": "Mein Profil",
   "nav.debug": "Debug",
   "nav.notSignedIn": "Nicht angemeldet",

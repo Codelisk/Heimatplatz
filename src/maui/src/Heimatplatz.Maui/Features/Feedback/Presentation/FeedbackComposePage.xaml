@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Heimatplatz.Maui.Features.Feedback.Presentation.FeedbackComposePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:presentation="clr-namespace:Heimatplatz.Maui.Features.Feedback.Presentation"
+    xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Feedback.Models"
+    x:DataType="presentation:FeedbackComposeViewModel"
+    Title="{Binding Loc.ComposeTitle}">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="16,20,16,32"
+            Spacing="20"
+            MaximumWidthRequest="600"
+            HorizontalOptions="Fill">
+
+            <!-- Kategorie -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{Binding Loc.CategoryLegend}" Style="{StaticResource CardTitle}" />
+                    <FlexLayout BindableLayout.ItemsSource="{Binding Categories}"
+                                Wrap="Wrap"
+                                JustifyContent="Start"
+                                AutomationId="Feedback_CategoryChips">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:FeedbackCategoryOption">
+                                <Button Text="{Binding Label}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Margin="0,0,8,8"
+                                        Command="{Binding SelectCategoryCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackComposeViewModel}}, x:DataType=presentation:FeedbackComposeViewModel}"
+                                        CommandParameter="{Binding .}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Betreff + Nachricht -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="{Binding Loc.SubjectLabel}" Style="{StaticResource FieldLabel}" />
+                        <Border StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="12,0">
+                            <Entry Text="{Binding Subject}"
+                                   Placeholder="{Binding Loc.SubjectPlaceholder}"
+                                   MaxLength="200"
+                                   StyleClass="borderless"
+                                   AutomationId="Feedback_SubjectEntry" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="{Binding Loc.BodyLabel}" Style="{StaticResource FieldLabel}" />
+                        <Border StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="12,6">
+                            <Editor Text="{Binding Body}"
+                                    Placeholder="{Binding Loc.BodyPlaceholder}"
+                                    MaxLength="4000"
+                                    AutoSize="TextChanges"
+                                    MinimumHeightRequest="120"
+                                    StyleClass="borderless"
+                                    AutomationId="Feedback_BodyEditor" />
+                        </Border>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Bilder -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding Loc.PhotosLabel}" Style="{StaticResource CardTitle}" />
+                        <Label Text="{Binding Loc.PhotosHint}" Style="{StaticResource Caption}" />
+                    </VerticalStackLayout>
+
+                    <FlexLayout BindableLayout.ItemsSource="{Binding Photos}"
+                                Wrap="Wrap"
+                                JustifyContent="Start">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:FeedbackPhotoItem">
+                                <Grid Margin="0,0,10,10">
+                                    <Border StrokeThickness="1"
+                                            Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource Gray600}}"
+                                            StrokeShape="RoundRectangle 6"
+                                            WidthRequest="84"
+                                            HeightRequest="84">
+                                        <Image Source="{Binding Preview}"
+                                               Aspect="AspectFill"
+                                               WidthRequest="84"
+                                               HeightRequest="84" />
+                                    </Border>
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray600}}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 11"
+                                            WidthRequest="22"
+                                            HeightRequest="22"
+                                            HorizontalOptions="End"
+                                            VerticalOptions="Start"
+                                            Margin="0,-6,-6,0">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding RemovePhotoCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackComposeViewModel}}, x:DataType=presentation:FeedbackComposeViewModel}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="✕"
+                                               FontSize="11"
+                                               TextColor="{StaticResource White}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="{Binding Loc.AddPhoto}"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding PickPhotosCommand}"
+                                AutomationId="Feedback_PickPhotos" />
+                        <Button Text="{Binding Loc.TakePhoto}"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding TakePhotoCommand}"
+                                AutomationId="Feedback_TakePhoto" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Sprachnachricht (nur Android/iOS) -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsVoiceSupported}">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding Loc.VoiceLabel}" Style="{StaticResource CardTitle}" />
+                        <Label Text="{Binding Loc.VoiceHint}" Style="{StaticResource Caption}" />
+                    </VerticalStackLayout>
+
+                    <Button Text="{Binding Loc.RecordStart}"
+                            Style="{StaticResource SecondaryButton}"
+                            Command="{Binding StartRecordingCommand}"
+                            IsVisible="{Binding ShowRecordButton}"
+                            AutomationId="Feedback_RecordStart" />
+
+                    <VerticalStackLayout Spacing="10" IsVisible="{Binding IsRecording}">
+                        <Label Text="{Binding RecordingText}"
+                               Style="{StaticResource BodyStrong}"
+                               TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}" />
+                        <Button Text="{Binding Loc.RecordStop}"
+                                Style="{StaticResource DangerButton}"
+                                Command="{Binding StopRecordingCommand}"
+                                AutomationId="Feedback_RecordStop" />
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*,Auto,Auto"
+                          ColumnSpacing="10"
+                          IsVisible="{Binding HasRecording}">
+                        <Label Grid.Column="0"
+                               Text="{Binding VoiceDurationText}"
+                               Style="{StaticResource BodyStrong}"
+                               VerticalOptions="Center" />
+                        <Button Grid.Column="1"
+                                Text="{Binding Loc.VoicePlay}"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding TogglePreviewPlaybackCommand}"
+                                AutomationId="Feedback_VoicePlay">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsPreviewPlaying}" Value="True">
+                                    <Setter Property="Text" Value="{Binding Loc.VoiceStopPlayback}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="2"
+                                Text="{Binding Loc.VoiceDelete}"
+                                Style="{StaticResource LinkButton}"
+                                Command="{Binding DeleteRecordingCommand}"
+                                AutomationId="Feedback_VoiceDelete" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Fehler -->
+            <Border Style="{StaticResource ErrorBanner}" IsVisible="{Binding HasError}">
+                <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorBannerText}" />
+            </Border>
+
+            <!-- Senden -->
+            <VerticalStackLayout Spacing="8">
+                <HorizontalStackLayout Spacing="8" IsVisible="{Binding IsBusy}">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" WidthRequest="16" HeightRequest="16" />
+                    <Label Text="{Binding BusyMessage}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Button Text="{Binding Loc.Send}"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SendCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        AutomationId="Feedback_Send" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -31,6 +31,8 @@
     <ProjectReference Include="..\..\Features\Legal\Heimatplatz.Api.Features.Legal.Contracts\Heimatplatz.Api.Features.Legal.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Properties\Heimatplatz.Api.Features.Properties\Heimatplatz.Api.Features.Properties.csproj" />
     <ProjectReference Include="..\..\Features\Properties\Heimatplatz.Api.Features.Properties.Contracts\Heimatplatz.Api.Features.Properties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Features\Feedback\Heimatplatz.Api.Features.Feedback\Heimatplatz.Api.Features.Feedback.csproj" />
+    <ProjectReference Include="..\..\Features\Feedback\Heimatplatz.Api.Features.Feedback.Contracts\Heimatplatz.Api.Features.Feedback.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\ForeclosureAuctions\Heimatplatz.Api.Features.ForeclosureAuctions\Heimatplatz.Api.Features.ForeclosureAuctions.csproj" />
     <ProjectReference Include="..\..\Features\ForeclosureAuctions\Heimatplatz.Api.Features.ForeclosureAuctions.Contracts\Heimatplatz.Api.Features.ForeclosureAuctions.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Notifications\Heimatplatz.Api.Features.Notifications\Heimatplatz.Api.Features.Notifications.csproj" />

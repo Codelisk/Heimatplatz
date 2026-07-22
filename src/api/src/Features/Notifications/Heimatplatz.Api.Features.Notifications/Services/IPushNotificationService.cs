@@ -18,4 +18,16 @@ public interface IPushNotificationService
         PropertyType propertyType,
         SellerType sellerType,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Benachrichtigt einen Nutzer ueber die Team-Antwort auf seine Feedback-Anfrage.
+    /// Geht an ALLE Geraete des Nutzers und ignoriert bewusst die Immobilien-Filter-
+    /// Einstellungen (transaktionale Antwort auf eine eigene Anfrage).
+    /// </summary>
+    Task SendFeedbackReplyNotificationAsync(
+        Guid ticketId,
+        Guid userId,
+        string subject,
+        string bodyPreview,
+        CancellationToken cancellationToken = default);
 }

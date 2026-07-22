@@ -1,0 +1,200 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import { adminApiGet, type AdminFeedbackTicketDetailResponse } from "@/lib/server/admin-api";
+import {
+  FEEDBACK_STATUSES,
+  feedbackCategoryLabel,
+  feedbackSourceLabel,
+  feedbackStatusBadgeClass,
+  feedbackStatusLabel,
+} from "@/lib/intern/feedback-labels";
+import { formatInternDate } from "@/lib/intern/marketing-labels";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+// Das Laden der Seite markiert die Anfrage serverseitig als vom Team gelesen.
+
+const id = Astro.url.searchParams.get("id") ?? "";
+const action = Astro.url.searchParams.get("action");
+
+const response = id
+  ? await adminApiGet<AdminFeedbackTicketDetailResponse>(`/api/admin/feedback/${id}`)
+  : null;
+const ticket = response?.Ticket ?? null;
+
+const inputClass =
+  "w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds || seconds <= 0) return "";
+  const total = Math.round(seconds);
+  const min = Math.floor(total / 60);
+  const sec = total % 60;
+  return `${min}:${String(sec).padStart(2, "0")}`;
+}
+---
+
+<BaseLayout
+  title={t("intern.fbDetailMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/feedback/detail/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/intern/feedback/" class="hover:underline">{t("intern.fbTitle")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{ticket?.Subject ?? t("intern.fbDetailMetaTitle")}</span>
+    </nav>
+
+    {action === "replied" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.fbReplyOk")}
+      </div>
+    )}
+    {action === "replyfailed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.fbReplyFailed")}
+      </div>
+    )}
+    {action === "status" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.fbStatusOk")}
+      </div>
+    )}
+    {action === "statusfailed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.fbStatusFailed")}
+      </div>
+    )}
+
+    {!ticket && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.fbDetailNotFound")}
+      </div>
+    )}
+
+    {ticket && (
+      <>
+        <header class="mt-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class={`rounded-full px-2 py-0.5 text-xs font-medium ${feedbackStatusBadgeClass(ticket.Status)}`}>
+              {feedbackStatusLabel(ticket.Status)}
+            </span>
+            <span class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+              {feedbackCategoryLabel(ticket.Category)}
+            </span>
+          </div>
+          <h1 class="mt-2 text-3xl font-bold">{ticket.Subject}</h1>
+          <dl class="mt-3 grid gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+            <div class="flex gap-2">
+              <dt class="text-muted-foreground">{t("intern.fbDetailUser")}:</dt>
+              <dd>
+                {ticket.UserName ?? "?"}
+                {ticket.UserEmail && <span class="text-muted-foreground"> ({ticket.UserEmail})</span>}
+              </dd>
+            </div>
+            <div class="flex gap-2">
+              <dt class="text-muted-foreground">{t("intern.fbDetailCreatedAt")}:</dt>
+              <dd>{formatInternDate(ticket.CreatedAt)}</dd>
+            </div>
+            <div class="flex gap-2">
+              <dt class="text-muted-foreground">{t("intern.fbDetailSource")}:</dt>
+              <dd>{feedbackSourceLabel(ticket.Source)}</dd>
+            </div>
+            {ticket.AppVersion && (
+              <div class="flex gap-2">
+                <dt class="text-muted-foreground">{t("intern.fbDetailAppVersion")}:</dt>
+                <dd>{ticket.AppVersion}</dd>
+              </div>
+            )}
+          </dl>
+        </header>
+
+        <ol class="mt-8 space-y-4">
+          {ticket.Messages.map((message) => (
+            <li
+              class={`max-w-[85%] rounded-lg border p-4 ${
+                message.Author === "Team"
+                  ? "ml-auto border-primary/30 bg-primary/5"
+                  : "border-border bg-card"
+              }`}
+            >
+              <p class="flex flex-wrap items-baseline gap-2 text-xs text-muted-foreground">
+                <span class="font-semibold text-foreground">
+                  {message.Author === "Team"
+                    ? t("intern.fbDetailAuthorTeam")
+                    : (ticket.UserName ?? t("intern.fbDetailUser"))}
+                </span>
+                {formatInternDate(message.CreatedAt)}
+              </p>
+              {message.Body && <p class="mt-2 whitespace-pre-wrap text-sm">{message.Body}</p>}
+              {message.Attachments.length > 0 && (
+                <div class="mt-3 flex flex-wrap gap-3">
+                  {message.Attachments.map((attachment, index) =>
+                    attachment.Kind === "Image" ? (
+                      <a href={attachment.Url} target="_blank" rel="noopener">
+                        <img
+                          src={attachment.ThumbnailUrl ?? attachment.Url}
+                          alt={`${t("intern.fbDetailAttachmentImageAlt")} ${index + 1}`}
+                          class="h-28 w-28 rounded-md border border-border object-cover"
+                          loading="lazy"
+                        />
+                      </a>
+                    ) : (
+                      <div class="w-full max-w-sm">
+                        <p class="mb-1 text-xs text-muted-foreground">
+                          {t("intern.fbDetailVoiceMessage")}
+                          {formatDuration(attachment.DurationSeconds) && (
+                            <span> · {formatDuration(attachment.DurationSeconds)}</span>
+                          )}
+                        </p>
+                        <audio controls preload="metadata" src={attachment.Url} class="w-full"></audio>
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+        </ol>
+
+        <section class="mt-8 rounded-lg border border-border bg-card p-5">
+          <h2 class="text-base font-semibold">{t("intern.fbReplyHeading")}</h2>
+          <p class="mt-1 text-sm text-muted-foreground">{t("intern.fbReplyHint")}</p>
+          <form method="POST" action="/intern/feedback/reply" class="mt-4">
+            <input type="hidden" name="id" value={ticket.Id} />
+            <textarea
+              name="body"
+              rows="5"
+              required
+              maxlength="4000"
+              placeholder={t("intern.fbReplyPlaceholder")}
+              class={inputClass}></textarea>
+            <div class="mt-3">
+              <Button type="submit" variant="default">{t("intern.fbReplySubmit")}</Button>
+            </div>
+          </form>
+        </section>
+
+        <section class="mt-4 rounded-lg border border-border bg-card p-5">
+          <h2 class="text-base font-semibold">{t("intern.fbStatusHeading")}</h2>
+          <form method="POST" action="/intern/feedback/status" class="mt-3 flex flex-wrap items-center gap-3">
+            <input type="hidden" name="id" value={ticket.Id} />
+            <select name="status" class={`${inputClass} w-auto`}>
+              {FEEDBACK_STATUSES.map((value) => (
+                <option value={value} selected={ticket.Status === value}>
+                  {feedbackStatusLabel(value)}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" variant="outline">{t("intern.fbStatusSubmit")}</Button>
+          </form>
+        </section>
+      </>
+    )}
+  </section>
+</BaseLayout>
