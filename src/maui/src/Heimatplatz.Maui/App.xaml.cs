@@ -25,6 +25,11 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
+        // Auf iOS existiert das native UIWindow in diesem Moment bereits im
+        // ActivationState. Theme vor dem Shell-Aufbau anwenden, damit native
+        // Scroll-/Refresh-Flaechen nicht zuerst im Geraete-Theme entstehen.
+        _theme.PrepareWindow(activationState);
+
         var shell = new AppShell(_services.GetRequiredService<AppShellStringsLocalized>());
         ScreenshotMode.TryApply(shell, _services);
         var window = new Window(shell);

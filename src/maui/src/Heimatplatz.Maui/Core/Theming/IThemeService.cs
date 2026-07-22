@@ -18,4 +18,10 @@ public interface IThemeService
 
     /// <summary>Wendet den aktuellen Modus erneut an (z.B. sobald das Window steht).</summary>
     void Apply();
+
+    /// <summary>
+    /// Wendet den aktuellen Modus auf das bereits von der Plattform erzeugte native
+    /// Window an, bevor der visuelle Baum aufgebaut wird.
+    /// </summary>
+    void PrepareWindow(IActivationState? activationState);
 }

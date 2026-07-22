@@ -2,6 +2,9 @@ using System.Collections.ObjectModel;
 using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.DependencyInjection;
 using Shiny.Maui.Controls;
+#if IOS
+using Microsoft.Maui.Platform;
+#endif
 
 namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
@@ -11,6 +14,9 @@ public partial class HomePage : ShinyContentPage
     private double? _chipBarAnimationTarget;
     private ToolbarItem? _filterToolbarItem;
     private HomeViewModel? _viewModel;
+#if IOS
+    private bool _iosThemeChangeSubscribed;
+#endif
 
     /// <summary>
     /// Filter-Symbol rechts oben: erscheint nur, solange die Chip-Zeile weggescrollt
@@ -115,12 +121,113 @@ public partial class HomePage : ShinyContentPage
     {
         base.OnAppearing();
 
+#if IOS
+        if (!_iosThemeChangeSubscribed && Application.Current is { } app)
+        {
+            app.RequestedThemeChanged += OnIosRequestedThemeChanged;
+            _iosThemeChangeSubscribed = true;
+        }
+
+        // Sofort fuer bereits erzeugte Handler und nochmals nach dem aktuellen
+        // Layout-Pass: der MAUI-10-Handler realisiert den Header erst als native
+        // Supplementary View und das UIRefreshControl wird in die CollectionView
+        // eingesetzt. Beide sollen explizit dem APP- statt dem Geraete-Theme folgen.
+        ApplyIosScrollSurfaceTheme();
+        Dispatcher.Dispatch(ApplyIosScrollSurfaceTheme);
+#endif
+
         // Selbstheilung: Wegnavigieren (z.B. Tap auf eine Karte) bricht eine laufende
         // Slide-Animation ab und laesst die Zeile sonst halb verschoben stehen -
         // auf iOS scheint sie dann verschwommen durch die transluzente Navbar und
         // ist nicht mehr klickbar. Beim Zurueckkehren den Sollzustand neu anfahren.
         TransitionChipBar(_chipBarHidden);
     }
+
+    protected override void OnDisappearing()
+    {
+#if IOS
+        if (_iosThemeChangeSubscribed && Application.Current is { } app)
+        {
+            app.RequestedThemeChanged -= OnIosRequestedThemeChanged;
+            _iosThemeChangeSubscribed = false;
+        }
+#endif
+
+        base.OnDisappearing();
+    }
+
+#if IOS
+    private void OnIosRequestedThemeChanged(object? sender, AppThemeChangedEventArgs e) =>
+        Dispatcher.Dispatch(ApplyIosScrollSurfaceTheme);
+
+    private void ApplyIosScrollSurfaceTheme()
+    {
+        if (PropertiesCollection.Handler?.PlatformView is not UIKit.UIView platformView ||
+            FindCollectionView(platformView) is not { } collectionView)
+            return;
+
+        if (Application.Current is not { } app)
+            return;
+
+        // Konkrete Markenfarbe aus demselben ResourceDictionary wie die XAML-
+        // Bindings, aber explizit anhand des effektiven APP-Themes ausgewaehlt.
+        // Dadurch kann weder das Geraete-Theme noch ein beim Start gespeicherter
+        // UIKit-Trait den Bounce-/Pull-to-Refresh-Bereich invertieren.
+        var resourceKey = app.RequestedTheme == AppTheme.Dark ? "OffBlack" : "Paper";
+        if (!app.Resources.TryGetValue(resourceKey, out var resource) || resource is not Color color)
+            return;
+
+        var background = color.ToPlatform();
+
+        collectionView.BackgroundColor = background;
+
+        if (collectionView.RefreshControl is { } refreshControl)
+            refreshControl.BackgroundColor = background;
+
+        // Falls MAUI das UIRefreshControl fuer diese Navbar-Konfiguration per
+        // InsertSubview statt ueber UIScrollView.RefreshControl einsetzt.
+        ApplyRefreshControlBackground(collectionView, background);
+
+        // Der optimierte MAUI-10-CollectionView-Handler rendert den globalen Header
+        // als wiederverwendbare Supplementary View mit transparentem ContentView.
+        // Auch deren native Rueckseite explizit deckend halten; die BoxView im XAML
+        // bleibt zusaetzlich die eigentliche sichtbare Flaeche.
+        foreach (var header in collectionView.GetVisibleSupplementaryViews(
+                     UIKit.UICollectionElementKindSectionKey.Header))
+        {
+            header.BackgroundColor = background;
+            if (header is UIKit.UICollectionViewCell cell)
+                cell.ContentView.BackgroundColor = background;
+        }
+
+        collectionView.SetNeedsDisplay();
+    }
+
+    private static UIKit.UICollectionView? FindCollectionView(UIKit.UIView view)
+    {
+        if (view is UIKit.UICollectionView collectionView)
+            return collectionView;
+
+        foreach (var child in view.Subviews)
+        {
+            if (FindCollectionView(child) is { } found)
+                return found;
+        }
+
+        return null;
+    }
+
+    private static void ApplyRefreshControlBackground(UIKit.UIView view, UIKit.UIColor background)
+    {
+        foreach (var child in view.Subviews)
+        {
+            if (child is UIKit.UIRefreshControl refreshControl)
+                refreshControl.BackgroundColor = background;
+
+            ApplyRefreshControlBackground(child, background);
+        }
+    }
+#endif
 
     private void ShowChipBar() => TransitionChipBar(hide: false);
 

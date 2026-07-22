@@ -55,6 +55,19 @@ public class ThemeService : IThemeService
         ApplySystemBars();
     }
 
+    public void PrepareWindow(IActivationState? activationState)
+    {
+#if IOS || MACCATALYST
+        // MAUI erzeugt das native UIWindow bereits vor Application.CreateWindow und
+        // stellt es im Window-MauiContext bereit. Hier muss der Stil gesetzt werden,
+        // BEVOR AppShell und damit UIRefreshControl/UICollectionView/Header entstehen:
+        // UIKit loest einige Systemfarben beim Erzeugen konkret auf und zieht einen
+        // spaeteren Override dann nicht fuer jede Supplementary View nach.
+        if (activationState?.Context.Services.GetService(typeof(UIKit.UIWindow)) is UIKit.UIWindow nativeWindow)
+            ApplyNativeWindowTheme(nativeWindow);
+#endif
+    }
+
     /// <summary>Effektives Theme (System-Modus aufgeloest auf das Geraete-Theme).</summary>
     private AppTheme EffectiveTheme => Mode switch
     {
@@ -96,20 +109,13 @@ public class ThemeService : IThemeService
         // (Pull-to-Refresh-Control, Navbar-Transluzenz, Tastatur, Alerts) folgen dann
         // weiter dem GERAETE-Theme und erscheinen z.B. hell ueber der dunklen App.
         // Deshalb das erzwungene Theme direkt auf alle nativen Fenster legen.
-        var style = Mode switch
-        {
-            AppThemeMode.Light => UIKit.UIUserInterfaceStyle.Light,
-            AppThemeMode.Dark => UIKit.UIUserInterfaceStyle.Dark,
-            _ => UIKit.UIUserInterfaceStyle.Unspecified
-        };
-
         // Beide Wege setzen: bei window.Created haengt das UIWindow u.U. noch nicht
         // an der Scene (ConnectedScenes leer), dafuer existiert das PlatformView -
         // spaeter (Activated/Theme-Wechsel) ist es garantiert ueber die Scenes da.
         foreach (var mauiWindow in Application.Current?.Windows ?? [])
         {
             if (mauiWindow.Handler?.PlatformView is UIKit.UIWindow platformWindow)
-                platformWindow.OverrideUserInterfaceStyle = style;
+                ApplyNativeWindowTheme(platformWindow);
         }
 
         foreach (var scene in UIKit.UIApplication.SharedApplication.ConnectedScenes)
@@ -117,9 +123,21 @@ public class ThemeService : IThemeService
             if (scene is UIKit.UIWindowScene windowScene)
             {
                 foreach (var nativeWindow in windowScene.Windows)
-                    nativeWindow.OverrideUserInterfaceStyle = style;
+                    ApplyNativeWindowTheme(nativeWindow);
             }
         }
 #endif
     }
+
+#if IOS || MACCATALYST
+    private void ApplyNativeWindowTheme(UIKit.UIWindow nativeWindow)
+    {
+        nativeWindow.OverrideUserInterfaceStyle = Mode switch
+        {
+            AppThemeMode.Light => UIKit.UIUserInterfaceStyle.Light,
+            AppThemeMode.Dark => UIKit.UIUserInterfaceStyle.Dark,
+            _ => UIKit.UIUserInterfaceStyle.Unspecified
+        };
+    }
+#endif
 }
