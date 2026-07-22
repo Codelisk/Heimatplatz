@@ -12,4 +12,4 @@ public record GetContactInfoRequest : IRequest<GetContactInfoResponse>;
 /// <summary>
 /// Response mit den Kontaktdaten. Contact ist null, solange kein Impressum gepflegt ist.
 /// </summary>
-public record GetContactInfoResponse(ContactInfoDto? Contact);
+public record GetContactInfoResponse(LegalContactInfoDto? Contact);

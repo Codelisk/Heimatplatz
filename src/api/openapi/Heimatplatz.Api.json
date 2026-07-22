@@ -4060,41 +4060,39 @@
       },
       "ContactInfoDto": {
         "required": [
-          "CompanyName",
-          "Street",
-          "PostalCode",
-          "City",
-          "Country",
+          "Id",
+          "Type",
+          "Source",
+          "Name",
           "Email",
-          "SupportEmail",
           "Phone",
-          "PhoneLink",
-          "Website",
-          "OfficeHours",
-          "SocialLinks"
+          "OriginalListingUrl",
+          "SourceName",
+          "DisplayOrder"
         ],
         "type": "object",
         "properties": {
-          "CompanyName": {
-            "type": "string"
+          "Id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "Street": {
-            "type": "string"
+          "Type": {
+            "$ref": "#/components/schemas/ContactType"
           },
-          "PostalCode": {
-            "type": "string"
+          "Source": {
+            "$ref": "#/components/schemas/ContactSource"
           },
-          "City": {
-            "type": "string"
-          },
-          "Country": {
-            "type": "string"
+          "Name": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "Email": {
-            "type": "string"
-          },
-          "SupportEmail": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "Phone": {
             "type": [
@@ -4102,29 +4100,25 @@
               "string"
             ]
           },
-          "PhoneLink": {
+          "OriginalListingUrl": {
             "type": [
               "null",
               "string"
             ]
           },
-          "Website": {
+          "SourceName": {
             "type": [
               "null",
               "string"
             ]
           },
-          "OfficeHours": {
+          "DisplayOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
-              "null",
+              "integer",
               "string"
-            ]
-          },
-          "SocialLinks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SocialLinkDto"
-            }
+            ],
+            "format": "int32"
           }
         }
       },
@@ -4147,6 +4141,12 @@
             ]
           }
         }
+      },
+      "ContactSource": {
+        "enum": [
+          "Manual",
+          "Import"
+        ]
       },
       "ContactType": {
         "enum": [
@@ -5579,7 +5579,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/ContactInfoDto"
+                "$ref": "#/components/schemas/LegalContactInfoDto"
               }
             ]
           }
@@ -7389,6 +7389,76 @@
           "None",
           "ContactData"
         ]
+      },
+      "LegalContactInfoDto": {
+        "required": [
+          "CompanyName",
+          "Street",
+          "PostalCode",
+          "City",
+          "Country",
+          "Email",
+          "SupportEmail",
+          "Phone",
+          "PhoneLink",
+          "Website",
+          "OfficeHours",
+          "SocialLinks"
+        ],
+        "type": "object",
+        "properties": {
+          "CompanyName": {
+            "type": "string"
+          },
+          "Street": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "Country": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "SupportEmail": {
+            "type": "string"
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PhoneLink": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Website": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "OfficeHours": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SocialLinks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialLinkDto"
+            }
+          }
+        }
       },
       "LegalSectionDto": {
         "required": [
@@ -9816,7 +9886,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/ContactInfoDto"
+                "$ref": "#/components/schemas/LegalContactInfoDto"
               }
             ]
           }

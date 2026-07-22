@@ -11,7 +11,7 @@ namespace Heimatplatz.Api.Features.Legal.Services;
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class ContactInfoProvider(AppDbContext dbContext) : IContactInfoProvider
 {
-    public async Task<ContactInfoDto?> GetAsync(CancellationToken cancellationToken = default)
+    public async Task<LegalContactInfoDto?> GetAsync(CancellationToken cancellationToken = default)
     {
         // Beide Datensaetze in einem Roundtrip - Contact ist optional und fehlt auf
         // Datenbanken, die vor dem Contact-Seeder aufgesetzt wurden

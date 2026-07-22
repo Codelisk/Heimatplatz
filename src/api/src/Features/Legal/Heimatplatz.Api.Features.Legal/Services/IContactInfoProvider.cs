@@ -11,5 +11,5 @@ public interface IContactInfoProvider
     /// Liefert null, solange kein aktives Impressum existiert - ohne Pflichtangaben gibt es
     /// keine sinnvollen Kontaktdaten.
     /// </summary>
-    Task<ContactInfoDto?> GetAsync(CancellationToken cancellationToken = default);
+    Task<LegalContactInfoDto?> GetAsync(CancellationToken cancellationToken = default);
 }

@@ -11,7 +11,7 @@ namespace Heimatplatz.Api.Features.Legal.Contracts.Models;
 /// Leere/nicht gepflegte Angaben kommen als null bzw. leere Liste - die Frontends blenden
 /// die jeweilige Zeile dann aus, statt Platzhalter anzuzeigen.
 /// </summary>
-public record ContactInfoDto(
+public record LegalContactInfoDto(
     string CompanyName,
     string Street,
     string PostalCode,

@@ -22,5 +22,5 @@ public record UpdateContactSettingsRequest(
 public record UpdateContactSettingsResponse(
     bool Success,
     string? Error,
-    ContactInfoDto? Contact
+    LegalContactInfoDto? Contact
 );

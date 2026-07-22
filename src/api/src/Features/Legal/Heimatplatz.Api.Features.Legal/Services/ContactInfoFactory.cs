@@ -13,12 +13,12 @@ namespace Heimatplatz.Api.Features.Legal.Services;
 /// </summary>
 public static class ContactInfoFactory
 {
-    public static ContactInfoDto Create(ImprintPartyDto imprint, ContactSettingsDto? contact)
+    public static LegalContactInfoDto Create(ImprintPartyDto imprint, ContactSettingsDto? contact)
     {
         var email = Coalesce(contact?.Email, imprint.Email);
         var phone = Coalesce(contact?.Phone, imprint.Phone);
 
-        return new ContactInfoDto(
+        return new LegalContactInfoDto(
             CompanyName: imprint.CompanyName,
             Street: imprint.Street,
             PostalCode: imprint.PostalCode,
