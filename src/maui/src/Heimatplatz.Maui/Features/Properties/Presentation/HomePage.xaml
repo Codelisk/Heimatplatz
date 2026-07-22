@@ -68,8 +68,12 @@
                         <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="16" />
                     </CollectionView.ItemsLayout>
                     <CollectionView.Header>
-                        <!-- Platzhalter fuer die ueberlagernde Chip-Zeile (scrollt mit weg) -->
-                        <BoxView HeightRequest="56" Color="Transparent" />
+                        <!-- Platzhalter fuer die ueberlagernde Chip-Zeile (scrollt mit weg).
+                             Opak statt transparent: die Header-Supplementary-View des iOS-
+                             CollectionView-Handlers kann sonst hell durchscheinen, sobald der
+                             Platzhalter beim Pull-to-Refresh unter der Chip-Zeile hervorwandert. -->
+                        <BoxView HeightRequest="56"
+                                 Color="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
                     </CollectionView.Header>
                     <CollectionView.EmptyView>
                         <Grid Padding="24,60,24,24">
