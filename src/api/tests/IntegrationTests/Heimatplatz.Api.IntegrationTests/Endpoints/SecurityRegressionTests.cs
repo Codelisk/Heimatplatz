@@ -101,6 +101,51 @@ public class SecurityRegressionTests : BaseApiIntegrationTest
     }
 
     [Test]
+    public async Task UpdateContactSettings_WithoutAdminKey_ReturnsUnauthorized()
+    {
+        // Kontakt-Stammdaten sind zur Laufzeit aenderbar - der Schreibweg muss genauso
+        // fail-closed sein wie /api/admin/*, sonst kann jeder das Impressum umschreiben
+        var response = await Client.PostAsJsonAsync("/api/admin/legal/contact", new
+        {
+            Phone = "+43 664 0000000"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task UpdateImprintParty_WithoutAdminKey_ReturnsUnauthorized()
+    {
+        var response = await Client.PostAsJsonAsync("/api/admin/legal/imprint", new
+        {
+            CompanyName = "Fremd",
+            LegalForm = "Einzelunternehmen",
+            Owner = "Fremd",
+            Street = "Weg 1",
+            PostalCode = "4663",
+            City = "Laakirchen",
+            Country = "Österreich",
+            Email = "fremd@example.at",
+            UidNumber = "ATU00000000",
+            TaxNumber = "000000000",
+            Trade = "Handel",
+            TradeAuthority = "BH",
+            ProfessionalLaw = "GewO 1994"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task GetContactInfo_IsPubliclyReadable()
+    {
+        // Gegenstueck: die Leseseite muss ohne Key erreichbar bleiben (Footer, JSON-LD, MAUI)
+        var response = await Client.GetAsync("/api/legal/contact");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Test]
     public async Task CreateProperty_WithoutAuth_ReturnsUnauthorized()
     {
         var response = await Client.PostAsJsonAsync("/api/properties/", new

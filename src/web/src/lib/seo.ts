@@ -1,3 +1,5 @@
+// Nur der Typ - api.ts ist serverseitig (fetch/TTL-Cache), "import type" wird beim Build entfernt
+import type { ContactInfo } from "@/features/legal/api";
 import { SITE } from "@/config/site";
 
 export type StructuredData = Record<string, unknown>;
@@ -26,13 +28,43 @@ export function getRobotsDirective(noindex = false) {
   return noindex ? "noindex,follow" : "index,follow";
 }
 
-export function organizationSchema(): StructuredData {
+/**
+ * Kontaktangaben fuer schema.org aus den gepflegten Daten - nur gesetzte Felder, damit
+ * keine leeren Properties im JSON-LD landen (Google wertet die als Fehler).
+ */
+function contactProperties(contact?: ContactInfo): StructuredData {
+  if (!contact) return {};
+
+  const properties: StructuredData = {};
+
+  if (contact.email) properties.email = contact.email;
+  if (contact.phone) properties.telephone = contact.phone;
+
+  if (contact.street && contact.city) {
+    properties.address = {
+      "@type": "PostalAddress",
+      streetAddress: contact.street,
+      postalCode: contact.postalCode,
+      addressLocality: contact.city,
+      addressCountry: "AT",
+    };
+  }
+
+  if (contact.socialLinks.length > 0) {
+    properties.sameAs = contact.socialLinks.map((link) => link.url);
+  }
+
+  return properties;
+}
+
+export function organizationSchema(contact?: ContactInfo): StructuredData {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE.name,
     url: SITE.url,
     logo: getAssetUrl("/favicon.svg"),
+    ...contactProperties(contact),
   };
 }
 
@@ -80,12 +112,13 @@ export function faqSchema(items: FaqItem[]): StructuredData {
   };
 }
 
-export function realEstateAgentSchema(): StructuredData {
+export function realEstateAgentSchema(contact?: ContactInfo): StructuredData {
   return {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
     name: SITE.name,
     url: SITE.url,
+    ...contactProperties(contact),
     areaServed: {
       "@type": "AdministrativeArea",
       name: "Oberösterreich",

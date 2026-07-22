@@ -6,6 +6,7 @@ import { t } from "@/i18n";
 import SiteFooter from "@/components/layout/SiteFooter.astro";
 import SiteHeader from "@/components/layout/SiteHeader.astro";
 import PropertyStateScript from "@/components/properties/PropertyStateScript.astro";
+import { fetchContactInfo } from "@/features/legal/api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import {
   realEstateAgentSchema,
@@ -44,7 +45,16 @@ const pageTitle = getPageTitle(title);
 const canonicalUrl = getCanonicalUrl(canonicalPath);
 const imageUrl = getAssetUrl(image);
 const data = Array.isArray(structuredData) ? structuredData : [structuredData];
-const jsonLd = jsonForScriptTag([organizationSchema(), websiteSchema(), realEstateAgentSchema(), ...data]);
+
+// Kontaktdaten aus der API (TTL-Cache, 10 Min): speisen das Organization-JSON-LD und den
+// Footer. Eine gepflegte Telefonnummer erscheint dadurch ueberall automatisch.
+const contact = await fetchContactInfo();
+const jsonLd = jsonForScriptTag([
+  organizationSchema(contact),
+  websiteSchema(),
+  realEstateAgentSchema(contact),
+  ...data,
+]);
 
 // Rybbit-Tracking (selbstgehostet, cookieless): nur gesetzt im Prod-Build (siehe
 // cake/Tasks/AstroWeb.cs) - Test-Web baut ohne PUBLIC_RYBBIT_SITE_ID, damit QA-Traffic
@@ -149,7 +159,7 @@ const rybbitSiteId = import.meta.env.PUBLIC_RYBBIT_SITE_ID;
     <main id="hauptinhalt" class="flex-1">
       <slot />
     </main>
-    {chrome && <SiteFooter />}
+    {chrome && <SiteFooter contact={contact} />}
     <PropertyStateScript />
   </body>
 </html>

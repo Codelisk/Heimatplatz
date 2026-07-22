@@ -1,3 +1,4 @@
+import { COMPANY } from "@/config/company";
 import { getServerApiBaseUrl } from "@/lib/server/api-base";
 import { cached, TTL } from "@/lib/server/ttl-cache";
 
@@ -20,6 +21,8 @@ export type ResponsibleParty = {
 };
 
 export type Imprint = ResponsibleParty & {
+  /** phone normalisiert fuer href="tel:..." - kommt fertig aus der API */
+  phoneLink: string;
   legalForm: string;
   owner: string;
   website: string;
@@ -41,40 +44,77 @@ export type Imprint = ResponsibleParty & {
 
 export type PrivacyPolicy = {
   responsibleParty: ResponsibleParty;
+  /** Telefon des Verantwortlichen normalisiert fuer href="tel:..." */
+  phoneLink: string;
   sections: LegalSection[];
   version: string;
   effectiveDate: string;
   lastUpdated: string;
 };
 
+export type SocialLink = {
+  platform: string;
+  url: string;
+};
+
+/**
+ * Kontaktdaten aus GET /api/legal/contact - die Quelle fuer Footer, Makler-Seite und
+ * JSON-LD. Das Backend hat supportEmail bereits aufgeloest und phoneLink normalisiert;
+ * hier wird nichts mehr abgeleitet. Leere Strings heissen "nicht gepflegt" - dann die
+ * jeweilige Zeile ausblenden statt einen Platzhalter zu zeigen.
+ */
+export type ContactInfo = {
+  companyName: string;
+  street: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  email: string;
+  supportEmail: string;
+  phone: string;
+  phoneLink: string;
+  website: string;
+  officeHours: string;
+  socialLinks: SocialLink[];
+};
+
 type RawRecord = Record<string, unknown>;
 
+/**
+ * Nur fuer den Ausfall-Fall: normalerweise liefert die API phoneLink fertig berechnet
+ * (PhoneNumberFormatter). Bewusst konservativ wie dort - keine Vorwahl erraten.
+ */
+const fallbackTelHref = COMPANY.phone.replace(/[^\d+]/g, "");
+
+// Alle Fallback-Stammdaten kommen aus @/config/company - frueher standen sie hier inline
+// und sind gegenueber der Datenbank auseinandergelaufen (Telefon: DB "+43 664 ...", hier "").
 const fallbackResponsibleParty: ResponsibleParty = {
-  companyName: "Ing. Daniel Hufnagl",
-  street: "Stockham 44",
-  postalCode: "4663",
-  city: "Laakirchen",
-  country: "Österreich",
-  email: "info@heimatplatz.at",
-  phone: "",
+  companyName: COMPANY.name,
+  street: COMPANY.street,
+  postalCode: COMPANY.postalCode,
+  city: COMPANY.city,
+  country: COMPANY.country,
+  email: COMPANY.email,
+  phone: COMPANY.phone,
   dataProtectionOfficer: "",
 };
 
 const fallbackImprint: Imprint = {
   ...fallbackResponsibleParty,
-  legalForm: "Einzelunternehmen",
-  owner: "Ing. Daniel Hufnagl",
-  website: "https://www.heimatplatz.at",
-  uidNumber: "ATU75151817",
-  taxNumber: "532163383",
-  dunsNumber: "30-080-8592",
-  gln: "9110026231195",
-  gisaNumber: "31233118",
-  trade: "Dienstleistungen in der automatischen Datenverarbeitung und Informationstechnik",
-  tradeAuthority: "Bezirkshauptmannschaft Gmunden",
-  professionalLaw: "Gewerbeordnung 1994 (GewO)",
-  chamberMembership: "Wirtschaftskammer Oberösterreich",
-  tradeGroup: "Fachgruppe Unternehmensberatung, Buchhaltung und Informationstechnologie",
+  phoneLink: fallbackTelHref,
+  legalForm: COMPANY.legalForm,
+  owner: COMPANY.owner,
+  website: COMPANY.website,
+  uidNumber: COMPANY.uidNumber,
+  taxNumber: COMPANY.taxNumber,
+  dunsNumber: COMPANY.dunsNumber,
+  gln: COMPANY.gln,
+  gisaNumber: COMPANY.gisaNumber,
+  trade: COMPANY.trade,
+  tradeAuthority: COMPANY.tradeAuthority,
+  professionalLaw: COMPANY.professionalLaw,
+  chamberMembership: COMPANY.chamberMembership,
+  tradeGroup: COMPANY.tradeGroup,
   sections: [
     {
       sortOrder: 1,
@@ -105,6 +145,7 @@ const fallbackImprint: Imprint = {
 
 const fallbackPrivacyPolicy: PrivacyPolicy = {
   responsibleParty: fallbackResponsibleParty,
+  phoneLink: fallbackTelHref,
   sections: [
     {
       sortOrder: 1,
@@ -248,6 +289,7 @@ function normalizeResponsibleParty(record: RawRecord): ResponsibleParty {
 function normalizeImprint(record: RawRecord): Imprint {
   return {
     ...normalizeResponsibleParty(record),
+    phoneLink: readString(record, "PhoneLink"),
     legalForm: readString(record, "LegalForm"),
     owner: readString(record, "Owner"),
     website: readString(record, "Website"),
@@ -274,6 +316,7 @@ function normalizePrivacyPolicy(record: RawRecord): PrivacyPolicy {
     responsibleParty: isRecord(responsibleParty)
       ? normalizeResponsibleParty(responsibleParty)
       : fallbackResponsibleParty,
+    phoneLink: readString(record, "PhoneLink"),
     sections: readSections(record),
     version: readString(record, "Version"),
     effectiveDate: readString(record, "EffectiveDate"),
@@ -281,8 +324,45 @@ function normalizePrivacyPolicy(record: RawRecord): PrivacyPolicy {
   };
 }
 
+function readSocialLinks(record: RawRecord): SocialLink[] {
+  const links = getValue(record, "SocialLinks");
+  if (!Array.isArray(links)) return [];
+
+  return links
+    .map((link): SocialLink | null => {
+      if (!isRecord(link)) return null;
+      const platform = readString(link, "Platform");
+      const url = readString(link, "Url");
+      return platform && url ? { platform, url } : null;
+    })
+    .filter((link): link is SocialLink => Boolean(link));
+}
+
+function normalizeContactInfo(record: RawRecord): ContactInfo {
+  const email = readString(record, "Email");
+  return {
+    companyName: readString(record, "CompanyName"),
+    street: readString(record, "Street"),
+    postalCode: readString(record, "PostalCode"),
+    city: readString(record, "City"),
+    country: readString(record, "Country"),
+    email,
+    // Doppelter Boden: das Backend liefert supportEmail nie leer, ein alter API-Stand koennte es aber
+    supportEmail: readString(record, "SupportEmail") || email,
+    phone: readString(record, "Phone"),
+    phoneLink: readString(record, "PhoneLink"),
+    website: readString(record, "Website"),
+    officeHours: readString(record, "OfficeHours"),
+    socialLinks: readSocialLinks(record),
+  };
+}
+
 function hasImprintContent(imprint: Imprint) {
   return Boolean(imprint.companyName && imprint.email);
+}
+
+function hasContactContent(contact: ContactInfo) {
+  return Boolean(contact.companyName && contact.email);
 }
 
 function hasPrivacyPolicyContent(policy: PrivacyPolicy) {
@@ -320,6 +400,42 @@ export function fetchPrivacyPolicy(): Promise<PrivacyPolicy> {
     console.warn("[Heimatplatz] Privacy policy could not be loaded", error);
     return fallbackPrivacyPolicy;
   }
+  });
+}
+
+const fallbackContact: ContactInfo = {
+  companyName: COMPANY.name,
+  street: COMPANY.street,
+  postalCode: COMPANY.postalCode,
+  city: COMPANY.city,
+  country: COMPANY.country,
+  email: COMPANY.email,
+  supportEmail: COMPANY.email,
+  phone: COMPANY.phone,
+  phoneLink: fallbackTelHref,
+  website: COMPANY.website,
+  officeHours: "",
+  socialLinks: [],
+};
+
+/**
+ * Kontaktdaten fuer Footer, Makler-Seite und Organization-JSON-LD. Wird pro Seitenaufruf
+ * im BaseLayout gebraucht - der TTL-Cache (10 Min) haelt das auf einem API-Call.
+ */
+export function fetchContactInfo(): Promise<ContactInfo> {
+  return cached("legal:contact", TTL.legal, async () => {
+    try {
+      const response = await fetch(new URL("/api/legal/contact", getServerApiBaseUrl()), {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new Error(`API ${response.status}`);
+
+      const contact = normalizeContactInfo(extractPayload(await response.json(), "Contact"));
+      return hasContactContent(contact) ? contact : fallbackContact;
+    } catch (error) {
+      console.warn("[Heimatplatz] Contact info could not be loaded", error);
+      return fallbackContact;
+    }
   });
 }
 

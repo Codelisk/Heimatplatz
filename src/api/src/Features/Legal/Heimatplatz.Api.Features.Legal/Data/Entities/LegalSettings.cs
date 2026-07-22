@@ -3,22 +3,24 @@ using Heimatplatz.Api.Core.Data.Entities;
 namespace Heimatplatz.Api.Features.Legal.Data.Entities;
 
 /// <summary>
-/// Entity fuer rechtliche Einstellungen (Datenschutz, Impressum, AGB)
+/// Entity fuer rechtliche Einstellungen und Kontakt-Stammdaten
+/// (Datenschutz, Impressum, Kontaktdaten)
 /// </summary>
 public class LegalSettings : BaseEntity
 {
     /// <summary>
-    /// Typ der Einstellung: PrivacyPolicy, Imprint, Terms
+    /// Typ der Einstellung - siehe <see cref="LegalSettingTypes"/>
     /// </summary>
     public required string SettingType { get; set; }
 
     /// <summary>
-    /// Verantwortlicher als JSON (ResponsiblePartyDto)
+    /// Je nach SettingType als JSON: ResponsiblePartyDto (PrivacyPolicy),
+    /// ImprintPartyDto (Imprint) oder ContactSettingsDto (Contact)
     /// </summary>
     public string? ResponsiblePartyJson { get; set; }
 
     /// <summary>
-    /// Abschnitte als JSON-Array (List of LegalSectionDto)
+    /// Abschnitte als JSON-Array (List of LegalSectionDto). Beim Contact-Datensatz leer.
     /// </summary>
     public string? SectionsJson { get; set; }
 

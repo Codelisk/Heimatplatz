@@ -1,9 +1,9 @@
-using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Legal.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Legal.Contracts.Models;
 using Heimatplatz.Api.Features.Legal.Data.Entities;
+using Heimatplatz.Api.Features.Legal.Services;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
 using Shiny.Mediator;
@@ -17,35 +17,22 @@ namespace Heimatplatz.Api.Features.Legal.Handlers;
 [MediatorHttpGroup("/api/legal")]
 public class GetImprintHandler(AppDbContext dbContext) : IRequestHandler<GetImprintRequest, GetImprintResponse>
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     [MediatorHttpGet("/imprint", OperationId = "GetImprint")]
     public async Task<GetImprintResponse> Handle(GetImprintRequest request, IMediatorContext context, CancellationToken cancellationToken)
     {
         var settings = await dbContext.Set<LegalSettings>()
-            .Where(x => x.SettingType == "Imprint" && x.IsActive)
+            .Where(x => x.SettingType == LegalSettingTypes.Imprint && x.IsActive)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (settings == null)
-        {
             return new GetImprintResponse(null);
-        }
 
-        var party = settings.ResponsiblePartyJson != null
-            ? JsonSerializer.Deserialize<ImprintPartyDto>(settings.ResponsiblePartyJson, JsonOptions)
-            : null;
+        var party = LegalJson.Deserialize<ImprintPartyDto>(settings.ResponsiblePartyJson);
 
         if (party == null)
-        {
             return new GetImprintResponse(null);
-        }
 
-        var sections = settings.SectionsJson != null
-            ? JsonSerializer.Deserialize<List<LegalSectionDto>>(settings.SectionsJson, JsonOptions)
-            : [];
+        var sections = LegalJson.Deserialize<List<LegalSectionDto>>(settings.SectionsJson) ?? [];
 
         var imprint = new ImprintDto(
             party.CompanyName,
@@ -57,6 +44,7 @@ public class GetImprintHandler(AppDbContext dbContext) : IRequestHandler<GetImpr
             party.Country,
             party.Email,
             party.Phone,
+            PhoneNumberFormatter.ToTelLink(party.Phone),
             party.Website,
             party.UidNumber,
             party.TaxNumber,
@@ -68,7 +56,7 @@ public class GetImprintHandler(AppDbContext dbContext) : IRequestHandler<GetImpr
             party.ProfessionalLaw,
             party.ChamberMembership,
             party.TradeGroup,
-            sections ?? [],
+            sections,
             settings.Version,
             settings.EffectiveDate,
             settings.UpdatedAt ?? settings.CreatedAt

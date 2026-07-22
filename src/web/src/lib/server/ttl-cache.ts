@@ -35,6 +35,18 @@ export function cached<T>(key: string, ttlMs: number, factory: () => Promise<T>)
   return value;
 }
 
+/**
+ * Eintraege sofort verwerfen, nachdem der Admin sie ueber /intern geaendert hat - ohne das
+ * zeigt die Seite direkt nach dem Speichern bis zu TTL lang den alten Stand, was wie ein
+ * fehlgeschlagener Speichervorgang aussieht.
+ *
+ * Wirkt nur im eigenen Node-Prozess. Bei mehreren Web-Instanzen laufen die anderen normal
+ * in die TTL - fuer Stammdaten mit 10 Minuten unkritisch.
+ */
+export function invalidateCached(...keys: string[]) {
+  for (const key of keys) store.delete(key);
+}
+
 /** Standard-TTLs: Listen/Detail kurz (Aktualitaet), Bild-Checks/Rechtstexte laenger */
 export const TTL = {
   properties: 60_000,

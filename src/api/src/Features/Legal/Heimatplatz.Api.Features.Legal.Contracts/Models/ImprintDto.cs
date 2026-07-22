@@ -13,6 +13,9 @@ public record ImprintDto(
     string Country,
     string Email,
     string? Phone,
+    // Phone normalisiert fuer href="tel:..." - berechnet, nicht gespeichert. Ohne das baut
+    // das Frontend den Link aus dem Anzeigestring und erzeugt "tel:+43 664 99999999".
+    string? PhoneLink,
     string? Website,
     string UidNumber,
     string TaxNumber,

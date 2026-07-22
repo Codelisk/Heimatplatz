@@ -337,6 +337,13 @@ export type SearchConsoleSummary = {
   TopPages: SearchConsoleRow[];
 };
 
+// Kontakt-Stammdaten (/api/admin/legal/*) - beide Endpoints liefern auch bei fachlichen
+// Fehlern 200 mit Success=false + Error-Text, damit /intern/kontakt konkret melden kann
+export type LegalUpdateResponse = {
+  Success: boolean;
+  Error: string | null;
+};
+
 export async function adminApiGet<T>(pathWithQuery: string): Promise<T | null> {
   try {
     const response = await fetch(new URL(pathWithQuery, getServerApiBaseUrl()), {

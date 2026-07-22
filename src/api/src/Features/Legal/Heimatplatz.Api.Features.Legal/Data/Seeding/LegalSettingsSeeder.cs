@@ -1,20 +1,22 @@
-using System.Text.Json;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Data.Seeding;
 using Heimatplatz.Api.Features.Legal.Contracts.Models;
 using Heimatplatz.Api.Features.Legal.Data.Entities;
+using Heimatplatz.Api.Features.Legal.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Heimatplatz.Api.Features.Legal.Data.Seeding;
 
+/// <summary>
+/// Legt Datenschutz, Impressum und Kontaktdaten an, wenn sie fehlen.
+///
+/// Alle Firmenwerte kommen aus <see cref="CompanyMasterData"/> - die Kopien im
+/// GetPrivacyPolicyHandler (On-Demand-Seed) sind bewusst entfernt, weil sie
+/// auseinandergelaufen waren. Aendern tut man Stammdaten zur Laufzeit ueber
+/// /intern/kontakt, nicht hier.
+/// </summary>
 public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
-
     public int Order => 5; // Früh ausführen, da keine Abhängigkeiten
 
     /// <summary>
@@ -26,20 +28,21 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
     {
         await SeedPrivacyPolicyAsync(cancellationToken);
         await SeedImprintAsync(cancellationToken);
+        await SeedContactAsync(cancellationToken);
     }
 
     private async Task SeedPrivacyPolicyAsync(CancellationToken cancellationToken)
     {
-        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "PrivacyPolicy" && x.IsActive, cancellationToken))
+        if (await ExistsAsync(LegalSettingTypes.PrivacyPolicy, cancellationToken))
             return;
 
         var responsibleParty = new ResponsiblePartyDto(
-            CompanyName: "Ing. Daniel Hufnagl",
-            Street: "Stockham 44",
-            PostalCode: "4663",
-            City: "Laakirchen",
-            Country: "Österreich",
-            Email: "info@heimatplatz.at",
+            CompanyName: CompanyMasterData.CompanyName,
+            Street: CompanyMasterData.Street,
+            PostalCode: CompanyMasterData.PostalCode,
+            City: CompanyMasterData.City,
+            Country: CompanyMasterData.Country,
+            Email: CompanyMasterData.Email,
             Phone: null,
             DataProtectionOfficer: null
         );
@@ -102,46 +105,35 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
                 "Bei Fragen zum Datenschutz wenden Sie sich bitte an die oben genannte E-Mail-Adresse.")
         };
 
-        var privacyPolicy = new LegalSettings
-        {
-            SettingType = "PrivacyPolicy",
-            ResponsiblePartyJson = JsonSerializer.Serialize(responsibleParty, JsonOptions),
-            SectionsJson = JsonSerializer.Serialize(sections, JsonOptions),
-            Version = "1.0",
-            EffectiveDate = DateTimeOffset.UtcNow,
-            IsActive = true
-        };
-
-        dbContext.Set<LegalSettings>().Add(privacyPolicy);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await AddAsync(LegalSettingTypes.PrivacyPolicy, responsibleParty, sections, cancellationToken);
     }
 
     private async Task SeedImprintAsync(CancellationToken cancellationToken)
     {
-        if (await dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == "Imprint" && x.IsActive, cancellationToken))
+        if (await ExistsAsync(LegalSettingTypes.Imprint, cancellationToken))
             return;
 
         var party = new ImprintPartyDto(
-            CompanyName: "Ing. Daniel Hufnagl",
-            LegalForm: "Einzelunternehmen",
-            Owner: "Ing. Daniel Hufnagl",
-            Street: "Stockham 44",
-            PostalCode: "4663",
-            City: "Laakirchen",
-            Country: "Österreich",
-            Email: "info@heimatplatz.at",
-            Phone: "+43 664 73221804",
-            Website: "https://www.heimatplatz.at",
-            UidNumber: "ATU75151817",
-            TaxNumber: "532163383",
-            DunsNumber: "30-080-8592",
-            Gln: "9110026231195",
-            GisaNumber: "31233118",
-            Trade: "Dienstleistungen in der automatischen Datenverarbeitung und Informationstechnik",
-            TradeAuthority: "Bezirkshauptmannschaft Gmunden",
-            ProfessionalLaw: "Gewerbeordnung 1994 (GewO)",
-            ChamberMembership: "Wirtschaftskammer Oberösterreich",
-            TradeGroup: "Fachgruppe Unternehmensberatung, Buchhaltung und Informationstechnologie"
+            CompanyName: CompanyMasterData.CompanyName,
+            LegalForm: CompanyMasterData.LegalForm,
+            Owner: CompanyMasterData.Owner,
+            Street: CompanyMasterData.Street,
+            PostalCode: CompanyMasterData.PostalCode,
+            City: CompanyMasterData.City,
+            Country: CompanyMasterData.Country,
+            Email: CompanyMasterData.Email,
+            Phone: CompanyMasterData.Phone,
+            Website: CompanyMasterData.Website,
+            UidNumber: CompanyMasterData.UidNumber,
+            TaxNumber: CompanyMasterData.TaxNumber,
+            DunsNumber: CompanyMasterData.DunsNumber,
+            Gln: CompanyMasterData.Gln,
+            GisaNumber: CompanyMasterData.GisaNumber,
+            Trade: CompanyMasterData.Trade,
+            TradeAuthority: CompanyMasterData.TradeAuthority,
+            ProfessionalLaw: CompanyMasterData.ProfessionalLaw,
+            ChamberMembership: CompanyMasterData.ChamberMembership,
+            TradeGroup: CompanyMasterData.TradeGroup
         );
 
         var sections = new List<LegalSectionDto>
@@ -164,17 +156,37 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
                 "vor einer Verbraucherschlichtungsstelle teilzunehmen.")
         };
 
-        var imprintSettings = new LegalSettings
+        await AddAsync(LegalSettingTypes.Imprint, party, sections, cancellationToken);
+    }
+
+    /// <summary>
+    /// Der Contact-Datensatz startet bewusst LEER: alles faellt damit auf das Impressum
+    /// zurueck. Support-Adresse, Erreichbarkeit und Social-Profile werden ueber
+    /// /intern/kontakt gepflegt, sobald es sie gibt.
+    /// </summary>
+    private async Task SeedContactAsync(CancellationToken cancellationToken)
+    {
+        if (await ExistsAsync(LegalSettingTypes.Contact, cancellationToken))
+            return;
+
+        await AddAsync(LegalSettingTypes.Contact, new ContactSettingsDto(), sections: null, cancellationToken);
+    }
+
+    private Task<bool> ExistsAsync(string settingType, CancellationToken cancellationToken)
+        => dbContext.Set<LegalSettings>().AnyAsync(x => x.SettingType == settingType && x.IsActive, cancellationToken);
+
+    private async Task AddAsync<TParty>(string settingType, TParty party, List<LegalSectionDto>? sections, CancellationToken cancellationToken)
+    {
+        dbContext.Set<LegalSettings>().Add(new LegalSettings
         {
-            SettingType = "Imprint",
-            ResponsiblePartyJson = JsonSerializer.Serialize(party, JsonOptions),
-            SectionsJson = JsonSerializer.Serialize(sections, JsonOptions),
+            SettingType = settingType,
+            ResponsiblePartyJson = LegalJson.Serialize(party),
+            SectionsJson = sections == null ? null : LegalJson.Serialize(sections),
             Version = "1.0",
             EffectiveDate = DateTimeOffset.UtcNow,
             IsActive = true
-        };
+        });
 
-        dbContext.Set<LegalSettings>().Add(imprintSettings);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

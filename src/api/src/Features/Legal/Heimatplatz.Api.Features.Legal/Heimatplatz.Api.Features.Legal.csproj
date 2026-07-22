@@ -17,6 +17,8 @@
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
     <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
     <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
+    <!-- AdminAccessGuard (X-Admin-Key) fuer die Schreib-Endpoints unter /api/admin/legal -->
+    <ProjectReference Include="..\..\Admin\Heimatplatz.Api.Features.Admin\Heimatplatz.Api.Features.Admin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,11 +9,14 @@ import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
 import { Textarea } from "@/components/starwind/textarea";
+import { fetchContactInfo } from "@/features/legal/api";
 import { t } from "@/i18n";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { breadcrumbSchema } from "@/lib/seo";
 
-const contactEmail = "info@heimatplatz.at";
+// Aus der API statt hartcodiert (stand vorher zweimal in dieser Datei). Das Client-Script
+// unten kann diese Konstante nicht sehen und liest sie deshalb aus dem data-Attribut.
+const { supportEmail: contactEmail } = await fetchContactInfo();
 const pageUrl = new URL("/makler/", Astro.site).toString();
 
 const steps = [
@@ -139,7 +142,7 @@ const structuredData = [
 
         {/* method="post" ohne action: Submit läuft über JS gegen die API,
             ohne JS sollen die Eingaben nicht als GET-Query in der URL landen */}
-        <form class="mt-6 space-y-5" method="post" data-broker-lead-form>
+        <form class="mt-6 space-y-5" method="post" data-broker-lead-form data-contact-email={contactEmail}>
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
               <Label for="company">{t("broker.companyLabel")}</Label>
@@ -342,7 +345,6 @@ const structuredData = [
   import { t } from "@/i18n";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
 
-  const CONTACT_EMAIL = "info@heimatplatz.at";
   // Gleiche Endpunkt-Aufloesung wie PropertyStateScript: Debug-Override vor Build-Konfiguration
   const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
 
@@ -367,6 +369,8 @@ const structuredData = [
   }
 
   const form = document.querySelector<HTMLFormElement>("[data-broker-lead-form]");
+  // SSR hat die gepflegte Adresse ins data-Attribut geschrieben - kein zweiter Hardcode hier
+  const CONTACT_EMAIL = form?.dataset.contactEmail ?? "";
 
   function setStatus(message: string, tone: "info" | "error") {
     const status = form?.querySelector<HTMLElement>("[data-form-status]");

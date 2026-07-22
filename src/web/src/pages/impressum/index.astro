@@ -37,7 +37,7 @@ const rawDetailGroups: Array<{ title: string; items: DetailItem[] }> = [
     title: t("legal.contact"),
     items: [
       { label: t("legal.labelEmail"), value: imprint.email, href: `mailto:${imprint.email}` },
-      { label: t("legal.labelPhone"), value: imprint.phone, href: imprint.phone ? `tel:${imprint.phone}` : undefined },
+      { label: t("legal.labelPhone"), value: imprint.phone, href: imprint.phoneLink ? `tel:${imprint.phoneLink}` : undefined },
       { label: t("legal.labelWebsite"), value: imprint.website, href: imprint.website, external: true },
     ],
   },

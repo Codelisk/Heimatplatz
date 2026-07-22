@@ -574,6 +574,26 @@
         }
       }
     },
+    "/api/legal/contact": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetContactInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetContactInfoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/legal/imprint": {
       "get": {
         "tags": [
@@ -607,6 +627,66 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetPrivacyPolicyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/legal/contact": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UpdateContactSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContactSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateContactSettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/legal/imprint": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UpdateImprintParty",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateImprintPartyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateImprintPartyResponse"
                 }
               }
             }
@@ -3283,6 +3363,132 @@
         }
       }
     },
+    "/api/firmenbuch/catalog/status": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetFirmenbuchCatalogStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetFirmenbuchCatalogStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/firmenbuch/companies": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetFirmenbuchCompanies",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
+            "name": "SearchText",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Sitz",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "RechtsformCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetFirmenbuchCompaniesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/firmenbuch/catalog/sync": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "TriggerFirmenbuchCatalogSync",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerFirmenbuchCatalogSyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerFirmenbuchCatalogSyncResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/search-console/summary": {
       "get": {
         "tags": [
@@ -3854,39 +4060,41 @@
       },
       "ContactInfoDto": {
         "required": [
-          "Id",
-          "Type",
-          "Source",
-          "Name",
+          "CompanyName",
+          "Street",
+          "PostalCode",
+          "City",
+          "Country",
           "Email",
+          "SupportEmail",
           "Phone",
-          "OriginalListingUrl",
-          "SourceName",
-          "DisplayOrder"
+          "PhoneLink",
+          "Website",
+          "OfficeHours",
+          "SocialLinks"
         ],
         "type": "object",
         "properties": {
-          "Id": {
-            "type": "string",
-            "format": "uuid"
+          "CompanyName": {
+            "type": "string"
           },
-          "Type": {
-            "$ref": "#/components/schemas/ContactType"
+          "Street": {
+            "type": "string"
           },
-          "Source": {
-            "$ref": "#/components/schemas/ContactSource"
+          "PostalCode": {
+            "type": "string"
           },
-          "Name": {
-            "type": [
-              "null",
-              "string"
-            ]
+          "City": {
+            "type": "string"
+          },
+          "Country": {
+            "type": "string"
           },
           "Email": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": "string"
+          },
+          "SupportEmail": {
+            "type": "string"
           },
           "Phone": {
             "type": [
@@ -3894,25 +4102,29 @@
               "string"
             ]
           },
-          "OriginalListingUrl": {
+          "PhoneLink": {
             "type": [
               "null",
               "string"
             ]
           },
-          "SourceName": {
+          "Website": {
             "type": [
               "null",
               "string"
             ]
           },
-          "DisplayOrder": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "OfficeHours": {
             "type": [
-              "integer",
+              "null",
               "string"
-            ],
-            "format": "int32"
+            ]
+          },
+          "SocialLinks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialLinkDto"
+            }
           }
         }
       },
@@ -3935,12 +4147,6 @@
             ]
           }
         }
-      },
-      "ContactSource": {
-        "enum": [
-          "Manual",
-          "Import"
-        ]
       },
       "ContactType": {
         "enum": [
@@ -4588,6 +4794,82 @@
           },
           "LastMessagePreview": {
             "type": "string"
+          }
+        }
+      },
+      "FirmenbuchCompanyDto": {
+        "required": [
+          "Id",
+          "Fnr",
+          "Name"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Fnr": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Sitz": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RechtsformCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RechtsformText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Rechtseigenschaft": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "GerichtCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "GerichtText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SourceOrtNr": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "FirstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "LastSeenAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -5285,6 +5567,24 @@
           }
         }
       },
+      "GetContactInfoResponse": {
+        "required": [
+          "Contact"
+        ],
+        "type": "object",
+        "properties": {
+          "Contact": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContactInfoDto"
+              }
+            ]
+          }
+        }
+      },
       "GetDraftDescriptionResponse": {
         "required": [
           "Status",
@@ -5350,6 +5650,83 @@
                 "$ref": "#/components/schemas/FeedbackTicketDetailDto"
               }
             ]
+          }
+        }
+      },
+      "GetFirmenbuchCatalogStatusResponse": {
+        "type": "object",
+        "properties": {
+          "TotalCompanies": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ActiveCompanies": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ByStatus": {
+            "type": "object",
+            "additionalProperties": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          "LastSyncAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "GetFirmenbuchCompaniesResponse": {
+        "required": [
+          "Companies"
+        ],
+        "type": "object",
+        "properties": {
+          "Companies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirmenbuchCompanyDto"
+            }
+          },
+          "TotalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -6492,6 +6869,12 @@
               "string"
             ],
             "format": "int32"
+          },
+          "AvailableCities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6828,6 +7211,7 @@
           "Country",
           "Email",
           "Phone",
+          "PhoneLink",
           "Website",
           "UidNumber",
           "TaxNumber",
@@ -6871,6 +7255,12 @@
             "type": "string"
           },
           "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PhoneLink": {
             "type": [
               "null",
               "string"
@@ -7435,6 +7825,7 @@
       "PrivacyPolicyDto": {
         "required": [
           "ResponsibleParty",
+          "PhoneLink",
           "Sections",
           "Version",
           "EffectiveDate",
@@ -7444,6 +7835,12 @@
         "properties": {
           "ResponsibleParty": {
             "$ref": "#/components/schemas/ResponsiblePartyDto"
+          },
+          "PhoneLink": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "Sections": {
             "type": "array",
@@ -8868,6 +9265,21 @@
           }
         }
       },
+      "SocialLinkDto": {
+        "required": [
+          "Platform",
+          "Url"
+        ],
+        "type": "object",
+        "properties": {
+          "Platform": {
+            "type": "string"
+          },
+          "Url": {
+            "type": "string"
+          }
+        }
+      },
       "SubmitBrokerLeadRequest": {
         "required": [
           "Email",
@@ -9175,6 +9587,26 @@
           }
         }
       },
+      "TriggerFirmenbuchCatalogSyncRequest": {
+        "type": "object",
+        "properties": {
+          "OrtNr": {
+            "type": "string",
+            "default": "4"
+          }
+        }
+      },
+      "TriggerFirmenbuchCatalogSyncResponse": {
+        "type": "object",
+        "properties": {
+          "Messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "TriggerForeclosureAuctionSyncRequest": {
         "type": "object"
       },
@@ -9306,6 +9738,224 @@
         "properties": {
           "Success": {
             "type": "boolean"
+          }
+        }
+      },
+      "UpdateContactSettingsRequest": {
+        "required": [
+          "Email",
+          "SupportEmail",
+          "Phone",
+          "Website",
+          "OfficeHours",
+          "SocialLinks"
+        ],
+        "type": "object",
+        "properties": {
+          "Email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SupportEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Website": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "OfficeHours": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SocialLinks": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SocialLinkDto"
+            }
+          }
+        }
+      },
+      "UpdateContactSettingsResponse": {
+        "required": [
+          "Success",
+          "Error",
+          "Contact"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Contact": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContactInfoDto"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateImprintPartyRequest": {
+        "required": [
+          "CompanyName",
+          "LegalForm",
+          "Owner",
+          "Street",
+          "PostalCode",
+          "City",
+          "Country",
+          "Email",
+          "Phone",
+          "Website",
+          "UidNumber",
+          "TaxNumber",
+          "DunsNumber",
+          "Gln",
+          "GisaNumber",
+          "Trade",
+          "TradeAuthority",
+          "ProfessionalLaw",
+          "ChamberMembership",
+          "TradeGroup"
+        ],
+        "type": "object",
+        "properties": {
+          "CompanyName": {
+            "type": "string"
+          },
+          "LegalForm": {
+            "type": "string"
+          },
+          "Owner": {
+            "type": "string"
+          },
+          "Street": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "Country": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Website": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "UidNumber": {
+            "type": "string"
+          },
+          "TaxNumber": {
+            "type": "string"
+          },
+          "DunsNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Gln": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "GisaNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Trade": {
+            "type": "string"
+          },
+          "TradeAuthority": {
+            "type": "string"
+          },
+          "ProfessionalLaw": {
+            "type": "string"
+          },
+          "ChamberMembership": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "TradeGroup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "UpdateImprintPartyResponse": {
+        "required": [
+          "Success",
+          "Error",
+          "Imprint"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Imprint": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ImprintDto"
+              }
+            ]
           }
         }
       },

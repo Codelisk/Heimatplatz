@@ -28,7 +28,7 @@ const responsibleItems = [
   { label: t("legal.responsibleParty"), value: party.companyName },
   { label: t("legal.labelAddress"), value: [party.street, place, party.country].filter(Boolean).join("\n") },
   { label: t("legal.labelEmail"), value: party.email, href: `mailto:${party.email}` },
-  { label: t("legal.labelPhone"), value: party.phone, href: party.phone ? `tel:${party.phone}` : undefined },
+  { label: t("legal.labelPhone"), value: party.phone, href: policy.phoneLink ? `tel:${policy.phoneLink}` : undefined },
   { label: t("legal.labelDataProtectionOfficer"), value: party.dataProtectionOfficer },
 ].filter((item): item is DetailItem => Boolean(item.value));
 

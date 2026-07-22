@@ -31,8 +31,10 @@ export const intern = {
   "intern.navPropertiesDescription":
     "Inserate von Nutzern und Zwangsversteigerungen verwalten: ausblenden, einblenden, löschen.",
   "intern.navMarketing": "Marketing",
+  // Absenderadresse hier bewusst nicht benannt: sie kommt aus der SMTP-Konfiguration
+  // (Email:FromAddress / EMAIL_SMTP_USERNAME), nicht aus den Kontakt-Stammdaten.
   "intern.navMarketingDescription":
-    "E-Mails mit KI-generiertem Text erstellen, prüfen und von info@heimatplatz.at versenden.",
+    "E-Mails mit KI-generiertem Text erstellen, prüfen und aus dem hinterlegten Absender-Postfach versenden.",
   "intern.navAnalytics": "Analytics",
   "intern.navAnalyticsDescription":
     "Rybbit-Traffic-Dashboard öffnen und Suchperformance-Kennzahlen aus der Google Search Console einsehen.",
@@ -131,7 +133,7 @@ export const intern = {
   "intern.marketingMetaTitle": "Intern – Marketing",
   "intern.marketingTitle": "Marketing",
   "intern.marketingIntro":
-    "E-Mail an einen Kontakt: Text selbst schreiben oder per KI aus Stichwörtern generieren lassen, prüfen und anpassen, dann von info@heimatplatz.at versenden. Die Signatur mit den Impressum-Kontaktdaten wird beim Versand automatisch angehängt.",
+    "E-Mail an einen Kontakt: Text selbst schreiben oder per KI aus Stichwörtern generieren lassen, prüfen und anpassen, dann aus dem hinterlegten Absender-Postfach versenden. Die Signatur mit den Impressum-Kontaktdaten wird beim Versand automatisch angehängt.",
   "intern.marketingEmailHeading": "Empfänger",
   "intern.marketingRecipientLabel": "Empfänger-E-Mail",
   "intern.marketingRecipientPlaceholder": "kontakt@beispiel.at",
@@ -195,7 +197,7 @@ export const intern = {
   "intern.marketingStatsReplyRate": "Antwortquote",
   "intern.marketingNavCompose": "E-Mail schreiben",
   "intern.marketingNavComposeDescription":
-    "Stichwörter eingeben, Text per KI generieren, prüfen und von info@heimatplatz.at versenden.",
+    "Stichwörter eingeben, Text per KI generieren, prüfen und aus dem hinterlegten Absender-Postfach versenden.",
   "intern.marketingNavInbox": "Posteingang",
   "intern.marketingNavInboxDescription":
     "Rückmeldungen auf Marketing-Mails und Nachrichten bekannter Kontakte.",
@@ -287,7 +289,7 @@ export const intern = {
   "intern.mkInboxMetaTitle": "Intern – Posteingang",
   "intern.mkInboxTitle": "Posteingang",
   "intern.mkInboxIntro":
-    "Rückmeldungen auf Marketing-Mails und Nachrichten bekannter Kontakte aus info@heimatplatz.at. Beim Öffnen wird das Postfach automatisch abgerufen (max. alle 5 Minuten).",
+    "Rückmeldungen auf Marketing-Mails und Nachrichten bekannter Kontakte aus dem hinterlegten Postfach. Beim Öffnen wird es automatisch abgerufen (max. alle 5 Minuten).",
   "intern.mkInboxEmpty": "Keine Rückmeldungen vorhanden.",
   "intern.mkInboxLoadFailed":
     "Posteingang konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
@@ -448,4 +450,66 @@ export const intern = {
   "intern.fbSourceIos": "iOS",
   "intern.fbSourceWindows": "Windows",
   "intern.fbSourceUnknown": "Unbekannt",
+
+  // Kontaktdaten (/intern/kontakt)
+  "intern.navContact": "Kontaktdaten",
+  "intern.navContactDescription":
+    "Telefonnummer, Kontakt-E-Mail, Erreichbarkeit und Social-Profile pflegen - wirkt sofort auf Website, App und Impressum.",
+  "intern.contactMetaTitle": "Intern – Kontaktdaten",
+  "intern.contactTitle": "Kontaktdaten",
+  "intern.contactIntro":
+    "Zentrale Stammdaten für Website, App und Impressum. Änderungen wirken sofort - kein Deploy nötig. Leere Felder werden überall ausgeblendet statt als Platzhalter angezeigt.",
+  "intern.contactLoadFailed":
+    "Kontaktdaten konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  "intern.contactSaved": "Kontaktdaten gespeichert.",
+  "intern.contactSaveFailed": "Speichern fehlgeschlagen: {error}",
+
+  "intern.contactSectionHeading": "Kontakt & Erreichbarkeit",
+  "intern.contactSectionHint":
+    "Diese Angaben erscheinen im Footer, auf der Makler-Seite und im strukturierten Datensatz für Suchmaschinen. Leer lassen heißt: Wert aus dem Impressum verwenden.",
+  "intern.contactEmailLabel": "Allgemeine E-Mail (leer = Impressum-Adresse)",
+  "intern.contactSupportEmailLabel": "Kontakt-E-Mail für Nutzer (leer = allgemeine Adresse)",
+  "intern.contactPhoneLabel": "Telefonnummer (leer = Impressum-Telefon)",
+  "intern.contactPhoneHint":
+    "International schreiben, z. B. +43 664 1234567 - daraus wird der Wähl-Link gebaut. Bei führender 0 ohne Ländervorwahl wählt der Link im Ausland falsch.",
+  "intern.contactWebsiteLabel": "Website (leer = Impressum-Website)",
+  "intern.contactOfficeHoursLabel": "Erreichbarkeit (optional)",
+  "intern.contactOfficeHoursPlaceholder": "z. B. Mo-Fr 9-17 Uhr",
+
+  "intern.contactSocialHeading": "Social-Profile",
+  "intern.contactSocialHint":
+    "Erscheinen im Footer und als sameAs im Organization-JSON-LD. Zeilen ohne Link werden verworfen.",
+  "intern.contactSocialPlatformLabel": "Plattform {index}",
+  "intern.contactSocialUrlLabel": "Link {index}",
+
+  "intern.contactImprintHeading": "Impressum-Stammdaten",
+  "intern.contactImprintHint":
+    "Pflichtangaben nach ECG §5 / UGB §14. Die Rechtstexte (Haftungsausschluss, Urheberrecht, Streitschlichtung) bleiben davon unberührt.",
+  "intern.contactImprintSaved": "Impressum gespeichert.",
+  "intern.contactImprintSaveFailed": "Impressum konnte nicht gespeichert werden: {error}",
+  "intern.contactFieldCompanyName": "Firmenname",
+  "intern.contactFieldLegalForm": "Rechtsform",
+  "intern.contactFieldOwner": "Inhaber",
+  "intern.contactFieldStreet": "Straße",
+  "intern.contactFieldPostalCode": "PLZ",
+  "intern.contactFieldCity": "Ort",
+  "intern.contactFieldCountry": "Land",
+  "intern.contactFieldEmail": "E-Mail",
+  "intern.contactFieldPhone": "Telefon",
+  "intern.contactFieldWebsite": "Website",
+  "intern.contactFieldUid": "UID-Nummer",
+  "intern.contactFieldTaxNumber": "Steuernummer",
+  "intern.contactFieldDuns": "DUNS-Nummer",
+  "intern.contactFieldGln": "GLN",
+  "intern.contactFieldGisa": "GISA-Nummer",
+  "intern.contactFieldTrade": "Gewerbe",
+  "intern.contactFieldTradeAuthority": "Gewerbebehörde",
+  "intern.contactFieldProfessionalLaw": "Berufsrecht",
+  "intern.contactFieldChamber": "Kammerzugehörigkeit",
+  "intern.contactFieldTradeGroup": "Fachgruppe",
+
+  "intern.contactSave": "Speichern",
+  "intern.contactPreviewHeading": "So wird es ausgeliefert",
+  "intern.contactPreviewEmpty": "nicht gepflegt",
+  "intern.contactPreviewPhoneLink": "Wähl-Link",
 } as const;
