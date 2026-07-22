@@ -14,19 +14,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Heimatplatz.Api.Features.WkoCompanies.Contracts\Heimatplatz.Api.Features.WkoCompanies.Contracts.csproj" />
-    <ProjectReference Include="..\..\Firmenbuch\Heimatplatz.Api.Features.Firmenbuch\Heimatplatz.Api.Features.Firmenbuch.csproj" />
-    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
-    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data.Seeding\Heimatplatz.Api.Core.Data.Seeding.csproj" />
-    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <InternalsVisibleTo Include="Heimatplatz.Api.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" />
+    <ProjectReference Include="..\Heimatplatz.Api.Features.Firmenbuch.Contracts\Heimatplatz.Api.Features.Firmenbuch.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Core\Heimatplatz.Api.Core.Data\Heimatplatz.Api.Core.Data.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Heimatplatz.Api.Shared\Heimatplatz.Api.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
     <PackageReference Include="Shiny.Mediator" />
     <PackageReference Include="Shiny.Mediator.AspNet" />

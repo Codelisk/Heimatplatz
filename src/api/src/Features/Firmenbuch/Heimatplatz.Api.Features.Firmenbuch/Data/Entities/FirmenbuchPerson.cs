@@ -1,4 +1,4 @@
-namespace Heimatplatz.Api.Features.WkoCompanies.Data.Entities;
+namespace Heimatplatz.Api.Features.Firmenbuch.Data.Entities;
 
 /// <summary>
 /// Person aus dem amtlichen Firmenbuch-Auszug (Geschaeftsfuehrung o.ae.), ueber die

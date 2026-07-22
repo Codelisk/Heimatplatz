@@ -17,6 +17,7 @@ using Heimatplatz.Api.Features.Marketing.Configuration;
 using Heimatplatz.Api.Features.PropertyDrafts.Configuration;
 using Heimatplatz.Api.Features.SearchConsole.Configuration;
 using Heimatplatz.Api.Features.Telemetry.Configuration;
+using Heimatplatz.Api.Features.Firmenbuch.Configuration;
 using Heimatplatz.Api.Features.WkoCompanies.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -94,6 +95,8 @@ public static class ServiceCollectionExtensions
         services.AddPropertyDraftsFeature(backgroundJobsEnabled);
         // OTel-Pipeline + Writer/Retention haengen wie TickerQ am Connection-String-Gate
         services.AddTelemetryFeature(configuration, backgroundJobsEnabled);
+        // Vor WkoCompanies registrieren: liefert den IFirmenbuchHvdClient fuer dessen Anreicherung
+        services.AddFirmenbuchFeature(configuration);
         services.AddWkoCompaniesFeature(configuration);
         services.AddSearchConsoleFeature(configuration);
 
@@ -118,6 +121,7 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.PropertyDrafts.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Telemetry.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.WkoCompanies.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
+        Heimatplatz.Api.Features.Firmenbuch.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.SearchConsole.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
 
         return app;
