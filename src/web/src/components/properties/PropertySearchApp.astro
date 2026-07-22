@@ -441,12 +441,23 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     calendar: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12"></path><path d="M16 3v4"></path><path d="M8 3v4"></path><path d="M4 11h16"></path><path d="M11 15h1"></path><path d="M12 15v3"></path></svg>',
   };
 
-  function createMetaLine(icon: string, text: string, extraClass = "mt-1") {
-    const line = document.createElement("p");
-    line.className = `${extraClass} flex items-center gap-1 text-xs text-muted-foreground`;
-    line.innerHTML = icon;
-    line.append(document.createTextNode(` ${text}`));
-    return line;
+  // Fusszeile der Karte (Verkaeufer links, Datum rechts) - 1:1 zu ApiPropertyCard.astro
+  function createCardFooter(property: ApiProperty) {
+    const footer = document.createElement("div");
+    footer.className = "flex items-center justify-between gap-3 border-t border-border/70 bg-muted/40 px-3 py-2 text-xs text-muted-foreground";
+
+    const seller = document.createElement("span");
+    seller.className = "flex min-w-0 items-center gap-1.5";
+    seller.innerHTML = ICONS.user.replace('class="size-3"', 'class="size-3.5 shrink-0"');
+    seller.append(createText("span", "truncate", `${mapSellerLabel(property)} · ${property.SellerName}`));
+
+    const date = document.createElement("span");
+    date.className = "flex shrink-0 items-center gap-1.5";
+    date.innerHTML = ICONS.calendar.replace('class="size-3"', 'class="size-3.5 shrink-0"');
+    date.append(document.createTextNode(formatApiDate(property.CreatedAt) || t("card.liveOffer")));
+
+    footer.append(seller, date);
+    return footer;
   }
 
   function loadVerifiedImageMap() {
@@ -540,8 +551,6 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
       title,
       createText("p", "truncate text-sm text-muted-foreground", formatAddressLine(property)),
       createText("p", "mt-1 truncate text-xs text-muted-foreground", getDisplayTitle(property.Title)),
-      createMetaLine(ICONS.user, `${mapSellerLabel(property)} · ${property.SellerName}`, "mt-2"),
-      createMetaLine(ICONS.calendar, formatApiDate(property.CreatedAt) || t("card.liveOffer")),
     );
 
     const facts = document.createElement("dl");
@@ -563,7 +572,7 @@ const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
     `;
 
     body.append(left, facts);
-    article.append(media, body);
+    article.append(media, body, createCardFooter(property));
     return article;
   }
 

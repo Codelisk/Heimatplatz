@@ -117,14 +117,6 @@ const citySlug = slugifyLocation(property.City);
       </h2>
       <p class="truncate text-sm text-muted-foreground">{getApiAddressLine(property)}</p>
       <p class="mt-1 truncate text-xs text-muted-foreground">{getDisplayTitle(property.Title)}</p>
-      <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-        <UserIcon class="size-3" aria-hidden="true" />
-        {sellerLabel} · {property.SellerName}
-      </p>
-      <p class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-        <CalendarIcon class="size-3" aria-hidden="true" />
-        {formatApiDate(property.CreatedAt) || t("card.liveOffer")}
-      </p>
     </div>
 
     <dl class="text-right">
@@ -141,6 +133,17 @@ const citySlug = slugifyLocation(property.City);
         {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
       </div>
     </dl>
+  </div>
+
+  <div class="flex items-center justify-between gap-3 border-t border-border/70 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+    <span class="flex min-w-0 items-center gap-1.5">
+      <UserIcon class="size-3.5 shrink-0" aria-hidden="true" />
+      <span class="truncate">{sellerLabel} · {property.SellerName}</span>
+    </span>
+    <span class="flex shrink-0 items-center gap-1.5">
+      <CalendarIcon class="size-3.5 shrink-0" aria-hidden="true" />
+      {formatApiDate(property.CreatedAt) || t("card.liveOffer")}
+    </span>
   </div>
   <p class="sr-only">{getApiAreaLabel(property)}</p>
 </article>
