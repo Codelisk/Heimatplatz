@@ -9,12 +9,6 @@
              Shell.FlyoutBehavior="Disabled"
              Title="{Binding PageTitle}">
 
-    <!-- Shell-/iOS-Zurueck-Pfeil auf den Abbruch-Prompt umleiten
-         (Hardware-Back laeuft ueber OnBackButtonPressed im Code-Behind) -->
-    <Shell.BackButtonBehavior>
-        <BackButtonBehavior Command="{Binding CancelCommand}" />
-    </Shell.BackButtonBehavior>
-
     <ContentPage.Resources>
         <!-- "Hier ausfuellen"-Feld im Zettel-Look: opakes Papier + gestrichelte Kante
              (Pendant zur .wys-Klasse des Web-Editors, bewusst neutral/ohne Rot) -->

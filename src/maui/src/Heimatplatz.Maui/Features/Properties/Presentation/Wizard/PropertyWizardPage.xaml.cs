@@ -8,8 +8,8 @@ public partial class PropertyWizardPage : ContentPage
     }
 
     /// <summary>
-    /// Android-Hardware-Back und WinUI-Titelleisten-Back auf den Abbruch-Prompt
-    /// umleiten (der iOS-Nav-Bar-Pfeil laeuft ueber Shell.BackButtonBehavior im XAML).
+    /// Plattform-Zurueck auf den Abbruch-Prompt umleiten. Seit MAUI 10.0.90
+    /// laeuft auch der iOS-Nav-Bar-Pfeil zuverlaessig ueber diesen Hook.
     /// </summary>
     protected override bool OnBackButtonPressed()
     {
