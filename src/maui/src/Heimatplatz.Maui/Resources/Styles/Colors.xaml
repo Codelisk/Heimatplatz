@@ -51,6 +51,15 @@
     <Color x:Key="TypeLand">#33854A</Color>
     <Color x:Key="TypeHouse">#2F6E9E</Color>
 
+    <!-- Feedback-Kategorie-Kacheln (weisses Icon auf Farbflaeche): Mitteltoene, die
+         wie die Typ-Badges auf Manila UND Fast-Schwarz funktionieren - Werte auch in
+         FeedbackDisplay.CategoryColor gespiegelt (Items kommen aus Code) -->
+    <Color x:Key="FeedbackIdea">#BE8A26</Color>
+    <Color x:Key="FeedbackProblem">#C25048</Color>
+    <Color x:Key="FeedbackQuestion">#2F6E9E</Color>
+    <Color x:Key="FeedbackPraise">#33854A</Color>
+    <Color x:Key="FeedbackOther">#7C7268</Color>
+
 
     <!-- Foto-Overlays (immersive Karten/Detail-Hero) -->
     <Color x:Key="GlassPillBackground">#66171310</Color>

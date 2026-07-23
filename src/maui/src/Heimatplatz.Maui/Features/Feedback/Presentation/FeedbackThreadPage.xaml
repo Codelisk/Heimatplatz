@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!-- Verlauf einer Anfrage: Ticket-Kopf als Zettel (Kategorie-Icon, Titel, Status-Ampel,
+     Umbenennen), darunter die Korrespondenz - Team links auf Karte, eigene Nachrichten
+     rechts auf Rot-Tint - und unten die angedockte Messenger-Eingabezeile. -->
 <ContentPage
     x:Class="Heimatplatz.Maui.Features.Feedback.Presentation.FeedbackThreadPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -40,107 +43,187 @@
                         ItemsUpdatingScrollMode="KeepLastItemInView"
                         AutomationId="Feedback_ThreadMessages">
             <CollectionView.Header>
-                <VerticalStackLayout Padding="16,16,16,10" Spacing="8">
-                    <Label Text="{Binding Subject}" Style="{StaticResource PageTitle}" />
-                    <HorizontalStackLayout Spacing="6">
-                        <Border Style="{StaticResource PillTag}">
-                            <Label Text="{Binding StatusLabel}" Style="{StaticResource PillTagText}" />
+                <!-- Ticket-Kopf als Zettel -->
+                <Border Margin="16,16,16,18"
+                        Padding="14,12"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                        Stroke="Transparent"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 10">
+                    <Border.Shadow>
+                        <Shadow />
+                    </Border.Shadow>
+
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border Grid.Column="0"
+                                BackgroundColor="{Binding CategoryColor}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 8"
+                                WidthRequest="42"
+                                HeightRequest="42"
+                                VerticalOptions="Start">
+                            <Image Source="{Binding CategoryIcon}"
+                                   WidthRequest="21"
+                                   HeightRequest="21"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
                         </Border>
-                        <Border Style="{StaticResource PillTag}">
-                            <Label Text="{Binding CategoryLabel}" Style="{StaticResource PillTagText}" />
-                        </Border>
-                    </HorizontalStackLayout>
-                </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="{Binding Subject}"
+                                   Style="{StaticResource PageTitle}"
+                                   FontSize="20"
+                                   LineBreakMode="WordWrap" />
+
+                            <HorizontalStackLayout Spacing="6">
+                                <Ellipse Fill="{Binding StatusColor}"
+                                         WidthRequest="7"
+                                         HeightRequest="7"
+                                         VerticalOptions="Center" />
+                                <Label Text="{Binding StatusLabel}"
+                                       FontFamily="SansSemibold"
+                                       FontSize="12"
+                                       TextColor="{Binding StatusColor}"
+                                       VerticalOptions="Center" />
+                                <Label Text="·" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                <Label Text="{Binding CategoryLabel}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Label Grid.Column="0"
+                                       Text="{Binding CreatedText}"
+                                       Style="{StaticResource Caption}"
+                                       VerticalOptions="Center" />
+                                <Button Grid.Column="1"
+                                        Text="{Binding Loc.RenameTitle}"
+                                        Style="{StaticResource LinkButton}"
+                                        FontSize="12"
+                                        Command="{Binding RenameCommand}"
+                                        AutomationId="Feedback_RenameButton" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
             </CollectionView.Header>
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:FeedbackMessageItem">
                     <!-- Grid als Template-Root: LayoutOptions am Root-Element ignoriert der
-                         Item-Container (WinUI streckt es) - die Blase richtet sich IM Grid aus -->
+                         Item-Container (WinUI streckt es) - die Karte richtet sich IM Grid aus -->
                     <Grid>
-                    <!-- Chat-Blase: eigene Nachrichten rechts mit Rot-Tint, Team links auf Karte -->
-                    <Border Margin="16,0,16,12"
-                            Padding="14,10"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 10"
-                            MaximumWidthRequest="480"
-                            HorizontalOptions="Start"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
-                        <Border.Triggers>
-                            <DataTrigger TargetType="Border" Binding="{Binding IsUser}" Value="True">
-                                <Setter Property="HorizontalOptions" Value="End" />
-                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource RedTintDark}}" />
-                            </DataTrigger>
-                        </Border.Triggers>
+                        <!-- Team links auf Karte (Haarlinie), eigene Nachrichten rechts auf
+                             Rot-Tint; der kleine Eckradius zeigt zur Absender-Seite -->
+                        <Border Margin="16,0,52,12"
+                                Padding="13,10"
+                                StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}"
+                                StrokeShape="RoundRectangle 3,10,10,10"
+                                MaximumWidthRequest="480"
+                                HorizontalOptions="Start"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsUser}" Value="True">
+                                    <Setter Property="Margin" Value="52,0,16,12" />
+                                    <Setter Property="HorizontalOptions" Value="End" />
+                                    <Setter Property="StrokeThickness" Value="0" />
+                                    <Setter Property="Stroke" Value="Transparent" />
+                                    <Setter Property="StrokeShape" Value="RoundRectangle 10,3,10,10" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource RedTintDark}}" />
+                                </DataTrigger>
+                            </Border.Triggers>
 
-                        <VerticalStackLayout Spacing="6">
-                            <HorizontalStackLayout Spacing="8">
-                                <Label Text="{Binding AuthorLabel}"
-                                       Style="{StaticResource Caption}"
-                                       FontFamily="SansSemibold" />
-                                <Label Text="{Binding DateText}" Style="{StaticResource Caption}" />
-                            </HorizontalStackLayout>
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <!-- Absender: Team im Markenrot, eigene Nachrichten neutral -->
+                                    <Label Grid.Column="0"
+                                           Text="{Binding AuthorLabel}"
+                                           FontFamily="SansSemibold"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
+                                           VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsUser}" Value="True">
+                                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding DateText}"
+                                           FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                           VerticalOptions="Center" />
+                                </Grid>
 
-                            <Label Text="{Binding Body}"
-                                   FontSize="14.5"
-                                   LineBreakMode="WordWrap"
-                                   IsVisible="{Binding HasBody}" />
+                                <Label Text="{Binding Body}"
+                                       FontSize="14.5"
+                                       LineBreakMode="WordWrap"
+                                       IsVisible="{Binding HasBody}" />
 
-                            <!-- Bild-Anhaenge -->
-                            <FlexLayout BindableLayout.ItemsSource="{Binding Images}"
-                                        Wrap="Wrap"
-                                        JustifyContent="Start"
-                                        IsVisible="{Binding HasImages}">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="models:FeedbackImageItem">
-                                        <Border StrokeThickness="1"
-                                                Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource Gray600}}"
-                                                StrokeShape="RoundRectangle 6"
-                                                WidthRequest="96"
-                                                HeightRequest="96"
-                                                Margin="0,4,8,4">
-                                            <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding OpenImageCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackThreadViewModel}}, x:DataType=presentation:FeedbackThreadViewModel}"
-                                                                      CommandParameter="{Binding .}" />
-                                            </Border.GestureRecognizers>
-                                            <Image Source="{Binding ThumbnailUrl}"
-                                                   Aspect="AspectFill"
-                                                   WidthRequest="96"
-                                                   HeightRequest="96" />
-                                        </Border>
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
-                            </FlexLayout>
+                                <!-- Bild-Anhaenge -->
+                                <FlexLayout BindableLayout.ItemsSource="{Binding Images}"
+                                            Wrap="Wrap"
+                                            JustifyContent="Start"
+                                            IsVisible="{Binding HasImages}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:FeedbackImageItem">
+                                            <Border StrokeThickness="1"
+                                                    Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource Gray600}}"
+                                                    StrokeShape="RoundRectangle 6"
+                                                    WidthRequest="100"
+                                                    HeightRequest="100"
+                                                    Margin="0,4,8,4">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding OpenImageCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackThreadViewModel}}, x:DataType=presentation:FeedbackThreadViewModel}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                                <Image Source="{Binding ThumbnailUrl}"
+                                                       Aspect="AspectFill"
+                                                       WidthRequest="100"
+                                                       HeightRequest="100" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </FlexLayout>
 
-                            <!-- Sprachnachrichten -->
-                            <VerticalStackLayout Spacing="6"
-                                                 IsVisible="{Binding HasAudios}"
-                                                 BindableLayout.ItemsSource="{Binding Audios}">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="models:FeedbackAudioItem">
-                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="0,2">
-                                            <Button Grid.Column="0"
-                                                    Text="▶"
-                                                    Style="{StaticResource SecondaryButton}"
-                                                    Padding="14,6"
-                                                    Command="{Binding ToggleAudioCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackThreadViewModel}}, x:DataType=presentation:FeedbackThreadViewModel}"
-                                                    CommandParameter="{Binding .}">
-                                                <Button.Triggers>
-                                                    <DataTrigger TargetType="Button" Binding="{Binding IsPlaying}" Value="True">
-                                                        <Setter Property="Text" Value="■" />
-                                                    </DataTrigger>
-                                                </Button.Triggers>
-                                            </Button>
-                                            <Label Grid.Column="1"
-                                                   Text="{Binding Label}"
-                                                   Style="{StaticResource Caption}"
-                                                   VerticalOptions="Center" />
-                                        </Grid>
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
+                                <!-- Sprachnachrichten: runder Abspiel-Knopf im Markenrot -->
+                                <VerticalStackLayout Spacing="6"
+                                                     IsVisible="{Binding HasAudios}"
+                                                     BindableLayout.ItemsSource="{Binding Audios}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:FeedbackAudioItem">
+                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="0,2">
+                                                <Border Grid.Column="0"
+                                                        BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                                        StrokeThickness="0"
+                                                        StrokeShape="RoundRectangle 17"
+                                                        WidthRequest="34"
+                                                        HeightRequest="34">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding ToggleAudioCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackThreadViewModel}}, x:DataType=presentation:FeedbackThreadViewModel}"
+                                                                              CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                    <Image Source="icon_play_white.png"
+                                                           WidthRequest="16"
+                                                           HeightRequest="16"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center">
+                                                        <Image.Triggers>
+                                                            <DataTrigger TargetType="Image" Binding="{Binding IsPlaying}" Value="True">
+                                                                <Setter Property="Source" Value="icon_stop_white.png" />
+                                                            </DataTrigger>
+                                                        </Image.Triggers>
+                                                    </Image>
+                                                </Border>
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding Label}"
+                                                       Style="{StaticResource Caption}"
+                                                       VerticalOptions="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
                             </VerticalStackLayout>
-                        </VerticalStackLayout>
-                    </Border>
+                        </Border>
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

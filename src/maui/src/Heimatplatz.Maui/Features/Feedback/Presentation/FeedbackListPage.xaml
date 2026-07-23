@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!-- "Anschlagtafel fuer Anliegen": oben Schnellstart-Kacheln (1 Tap = Kategorie gewaehlt
+     und direkt zur Nachricht), darunter die eigenen Anfragen als Zettel mit Kategorie-
+     Icon und Status-Ampel. Alles scrollt gemeinsam (Header der CollectionView). -->
 <ContentPage
     x:Class="Heimatplatz.Maui.Features.Feedback.Presentation.FeedbackListPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -8,24 +11,45 @@
     x:DataType="presentation:FeedbackListViewModel"
     Title="{Binding Loc.PageTitle}">
 
-    <Grid RowDefinitions="Auto,*" Padding="16,16,16,0" RowSpacing="14">
+    <ContentPage.Resources>
+        <!-- Schnellstart-Kachel: kleiner Zettel mit Farb-Icon links -->
+        <Style x:Key="QuickTile" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+            <Setter Property="Stroke" Value="Transparent" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
 
-        <!-- Intro + Neues Feedback -->
-        <VerticalStackLayout Grid.Row="0" Spacing="12" IsVisible="{Binding IsLoggedIn}">
-            <Label Text="{Binding Loc.Intro}"
-                   Style="{StaticResource PageSubtitle}"
-                   LineBreakMode="WordWrap" />
-            <Button Text="{Binding Loc.NewFeedback}"
-                    Style="{StaticResource PrimaryButton}"
-                    Command="{Binding NewFeedbackCommand}"
-                    AutomationId="Feedback_NewButton" />
-        </VerticalStackLayout>
+        <Style x:Key="QuickTileIconBox" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="WidthRequest" Value="38" />
+            <Setter Property="HeightRequest" Value="38" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <Style x:Key="QuickTileTitle" TargetType="Label">
+            <Setter Property="FontFamily" Value="SansSemibold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="LineBreakMode" Value="TailTruncation" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+        </Style>
+
+        <Style x:Key="QuickTileHint" TargetType="Label">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="LineBreakMode" Value="TailTruncation" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid>
 
         <!-- Nicht angemeldet -->
-        <VerticalStackLayout Grid.Row="1"
-                             Spacing="8"
-                             Padding="8,36"
+        <VerticalStackLayout Spacing="8"
+                             Padding="24,48"
                              HorizontalOptions="Center"
+                             VerticalOptions="Start"
                              IsVisible="{Binding IsLoggedOut}">
             <Label Text="🔒" Style="{StaticResource EmptyStateIcon}" Opacity="0.5" />
             <Label Text="{Binding Loc.LoggedOutTitle}" Style="{StaticResource EmptyStateTitle}" />
@@ -37,93 +61,244 @@
                     Margin="0,16,0,0" />
         </VerticalStackLayout>
 
-        <!-- Anfragen-Liste -->
-        <CollectionView Grid.Row="1"
-                        ItemsSource="{Binding Tickets}"
-                        SelectionMode="None"
-                        IsVisible="{Binding IsLoggedIn}"
-                        AutomationId="Feedback_TicketList">
-            <CollectionView.EmptyView>
-                <Grid>
-                    <VerticalStackLayout Spacing="8"
-                                         Padding="8,36"
-                                         HorizontalOptions="Center"
-                                         VerticalOptions="Start"
-                                         IsVisible="{Binding ShowEmptyState}">
-                        <Label Text="💬" Style="{StaticResource EmptyStateIcon}" Opacity="0.6" />
-                        <Label Text="{Binding Loc.EmptyTitle}" Style="{StaticResource EmptyStateTitle}" />
-                        <Label Text="{Binding Loc.EmptyHint}" Style="{StaticResource EmptyStateHint}" />
+        <RefreshView IsVisible="{Binding IsLoggedIn}"
+                     IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}"
+                     Command="{Binding LoadCommand}">
+            <CollectionView ItemsSource="{Binding Tickets}"
+                            SelectionMode="None"
+                            AutomationId="Feedback_TicketList">
+
+                <CollectionView.Header>
+                    <VerticalStackLayout Padding="16,18,16,4" Spacing="0">
+
+                        <Label Text="{Binding Loc.QuickStartTitle}"
+                               Style="{StaticResource PageTitle}"
+                               FontSize="24" />
+                        <Label Text="{Binding Loc.Intro}"
+                               Style="{StaticResource PageSubtitle}"
+                               Margin="0,6,0,16"
+                               LineBreakMode="WordWrap" />
+
+                        <!-- Schnellstart: 1 Tap -> Kategorie gewaehlt, direkt zur Nachricht -->
+                        <Grid ColumnDefinitions="*,*"
+                              RowDefinitions="Auto,Auto,Auto"
+                              ColumnSpacing="10"
+                              RowSpacing="10"
+                              AutomationId="Feedback_QuickStart">
+
+                            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource QuickTile}" AutomationId="Feedback_TileIdea">
+                                <Border.Shadow>
+                                    <Shadow Radius="14" Offset="0,5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding StartFeedbackCommand}" CommandParameter="Idea" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Border Grid.Column="0" Style="{StaticResource QuickTileIconBox}" BackgroundColor="{StaticResource FeedbackIdea}">
+                                        <Image Source="icon_bulb_white.png" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Loc.TileIdea}" Style="{StaticResource QuickTileTitle}" />
+                                        <Label Text="{Binding Loc.TileIdeaHint}" Style="{StaticResource QuickTileHint}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource QuickTile}" AutomationId="Feedback_TileProblem">
+                                <Border.Shadow>
+                                    <Shadow Radius="14" Offset="0,5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding StartFeedbackCommand}" CommandParameter="Problem" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Border Grid.Column="0" Style="{StaticResource QuickTileIconBox}" BackgroundColor="{StaticResource FeedbackProblem}">
+                                        <Image Source="icon_alert_white.png" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Loc.TileProblem}" Style="{StaticResource QuickTileTitle}" />
+                                        <Label Text="{Binding Loc.TileProblemHint}" Style="{StaticResource QuickTileHint}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource QuickTile}" AutomationId="Feedback_TileQuestion">
+                                <Border.Shadow>
+                                    <Shadow Radius="14" Offset="0,5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding StartFeedbackCommand}" CommandParameter="Question" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Border Grid.Column="0" Style="{StaticResource QuickTileIconBox}" BackgroundColor="{StaticResource FeedbackQuestion}">
+                                        <Image Source="icon_question_white.png" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Loc.TileQuestion}" Style="{StaticResource QuickTileTitle}" />
+                                        <Label Text="{Binding Loc.TileQuestionHint}" Style="{StaticResource QuickTileHint}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource QuickTile}" AutomationId="Feedback_TilePraise">
+                                <Border.Shadow>
+                                    <Shadow Radius="14" Offset="0,5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding StartFeedbackCommand}" CommandParameter="Praise" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Border Grid.Column="0" Style="{StaticResource QuickTileIconBox}" BackgroundColor="{StaticResource FeedbackPraise}">
+                                        <Image Source="icon_thumbsup_white.png" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Loc.TilePraise}" Style="{StaticResource QuickTileTitle}" />
+                                        <Label Text="{Binding Loc.TilePraiseHint}" Style="{StaticResource QuickTileHint}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource QuickTile}" Padding="12,8" AutomationId="Feedback_TileOther">
+                                <Border.Shadow>
+                                    <Shadow Radius="14" Offset="0,5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding StartFeedbackCommand}" CommandParameter="Other" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                    <Border Grid.Column="0" Style="{StaticResource QuickTileIconBox}" WidthRequest="30" HeightRequest="30" BackgroundColor="{StaticResource FeedbackOther}">
+                                        <Image Source="icon_dots_white.png" WidthRequest="17" HeightRequest="17" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <Label Grid.Column="1" Text="{Binding Loc.TileOther}" Style="{StaticResource QuickTileTitle}" VerticalOptions="Center" />
+                                    <Label Grid.Column="2" Text="{Binding Loc.TileOtherHint}" Style="{StaticResource QuickTileHint}" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- Abschnitt "Ihre Anfragen" erst, wenn es welche gibt -->
+                        <Label Text="{Binding Loc.SectionRequests}"
+                               Style="{StaticResource SectionHeader}"
+                               TextTransform="Uppercase"
+                               Margin="2,26,0,12"
+                               IsVisible="{Binding HasTickets}" />
                     </VerticalStackLayout>
+                </CollectionView.Header>
 
-                    <VerticalStackLayout Spacing="12"
-                                         Padding="8,36"
-                                         HorizontalOptions="Center"
-                                         VerticalOptions="Start"
-                                         IsVisible="{Binding HasLoadError}">
-                        <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
-                        <Button Text="{Binding Loc.Retry}"
-                                Style="{StaticResource SecondaryButton}"
-                                Command="{Binding LoadCommand}"
-                                HorizontalOptions="Center" />
-                    </VerticalStackLayout>
-
-                    <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                       IsVisible="{Binding IsBusy}"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Start"
-                                       Margin="0,48,0,0" />
-                </Grid>
-            </CollectionView.EmptyView>
-
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:FeedbackTicketListItem">
-                    <Border Style="{StaticResource Card}" Margin="0,0,0,10">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenTicketCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackListViewModel}}, x:DataType=presentation:FeedbackListViewModel}"
-                                                  CommandParameter="{Binding .}" />
-                        </Border.GestureRecognizers>
-
-                        <VerticalStackLayout Spacing="7">
-                            <HorizontalStackLayout Spacing="6">
-                                <!-- Neue Team-Antwort: Marken-rotes Badge -->
-                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 10"
-                                        Padding="8,3"
-                                        IsVisible="{Binding HasUnread}">
-                                    <Label Text="{Binding Loc.UnreadBadge, Source={RelativeSource AncestorType={x:Type presentation:FeedbackListViewModel}}, x:DataType=presentation:FeedbackListViewModel}"
-                                           FontSize="11"
-                                           FontFamily="SansMedium"
-                                           TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                                </Border>
-
-                                <Border Style="{StaticResource PillTag}">
-                                    <Label Text="{Binding StatusLabel}" Style="{StaticResource PillTagText}" />
-                                </Border>
-                                <Border Style="{StaticResource PillTag}">
-                                    <Label Text="{Binding CategoryLabel}" Style="{StaticResource PillTagText}" />
-                                </Border>
-                            </HorizontalStackLayout>
-
-                            <Label Text="{Binding Subject}"
-                                   Style="{StaticResource BodyStrong}"
-                                   LineBreakMode="TailTruncation" />
-
-                            <Label Text="{Binding Preview}"
-                                   Style="{StaticResource Caption}"
-                                   MaxLines="2"
-                                   LineBreakMode="TailTruncation"
-                                   IsVisible="{Binding HasPreview}" />
-
-                            <HorizontalStackLayout Spacing="6">
-                                <Label Text="{Binding DateText}" Style="{StaticResource Caption}" />
-                                <Label Text="·" Style="{StaticResource Caption}" />
-                                <Label Text="{Binding MessageCountText}" Style="{StaticResource Caption}" />
-                            </HorizontalStackLayout>
+                <CollectionView.EmptyView>
+                    <Grid>
+                        <VerticalStackLayout Spacing="6"
+                                             Padding="24,28"
+                                             HorizontalOptions="Center"
+                                             VerticalOptions="Start"
+                                             IsVisible="{Binding ShowEmptyState}">
+                            <Label Text="{Binding Loc.EmptyTitle}" Style="{StaticResource EmptyStateTitle}" />
+                            <Label Text="{Binding Loc.EmptyHint}" Style="{StaticResource EmptyStateHint}" MaximumWidthRequest="320" />
                         </VerticalStackLayout>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+
+                        <VerticalStackLayout Spacing="12"
+                                             Padding="24,28"
+                                             HorizontalOptions="Center"
+                                             VerticalOptions="Start"
+                                             IsVisible="{Binding HasLoadError}">
+                            <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
+                            <Button Text="{Binding Loc.Retry}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding LoadCommand}"
+                                    HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+
+                        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                           IsVisible="{Binding IsBusy}"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Start"
+                                           Margin="0,36,0,0" />
+                    </Grid>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:FeedbackTicketListItem">
+                        <!-- Anfrage als Zettel: Kategorie-Icon links, Status-Ampel unten -->
+                        <Border Margin="16,0,16,12"
+                                Padding="14,12"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                                Stroke="Transparent"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10">
+                            <Border.Shadow>
+                                <Shadow />
+                            </Border.Shadow>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenTicketCommand, Source={RelativeSource AncestorType={x:Type presentation:FeedbackListViewModel}}, x:DataType=presentation:FeedbackListViewModel}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Border Grid.Column="0"
+                                        BackgroundColor="{Binding CategoryColor}"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        WidthRequest="42"
+                                        HeightRequest="42"
+                                        VerticalOptions="Start">
+                                    <Image Source="{Binding CategoryIcon}"
+                                           WidthRequest="21"
+                                           HeightRequest="21"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                                </Border>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Subject}"
+                                               FontFamily="SansSemibold"
+                                               FontSize="15"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               LineBreakMode="TailTruncation"
+                                               VerticalOptions="Center" />
+
+                                        <!-- Neue Team-Antwort -->
+                                        <Border Grid.Column="1"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 5"
+                                                Padding="7,3"
+                                                VerticalOptions="Center"
+                                                IsVisible="{Binding HasUnread}">
+                                            <Label Text="{Binding Loc.UnreadBadge, Source={RelativeSource AncestorType={x:Type presentation:FeedbackListViewModel}}, x:DataType=presentation:FeedbackListViewModel}"
+                                                   FontSize="10.5"
+                                                   FontFamily="SansSemibold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                        </Border>
+                                    </Grid>
+
+                                    <Label Text="{Binding Preview}"
+                                           Style="{StaticResource Caption}"
+                                           MaxLines="2"
+                                           LineBreakMode="TailTruncation"
+                                           IsVisible="{Binding HasPreview}" />
+
+                                    <HorizontalStackLayout Spacing="6" Margin="0,2,0,0">
+                                        <Ellipse Fill="{Binding StatusColor}"
+                                                 WidthRequest="7"
+                                                 HeightRequest="7"
+                                                 VerticalOptions="Center" />
+                                        <Label Text="{Binding StatusLabel}"
+                                               FontFamily="SansSemibold"
+                                               FontSize="12"
+                                               TextColor="{Binding StatusColor}"
+                                               VerticalOptions="Center" />
+                                        <Label Text="·" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                        <Label Text="{Binding DateText}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                        <Label Text="·" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                        <Label Text="{Binding MessageCountText}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
     </Grid>
 </ContentPage>

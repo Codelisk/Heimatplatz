@@ -3,9 +3,15 @@ using Heimatplatz.Maui.Features.Feedback.Models;
 namespace Heimatplatz.Maui.Features.Feedback.Controls;
 
 /// <summary>
-/// Eingabezeile im Messenger-Stil. Der <see cref="Composer"/> haelt Text, Bilder und
-/// Sprachnachricht; <see cref="SendCommand"/> kommt von der jeweiligen Seite
-/// (neue Anfrage bzw. Antwort im Verlauf).
+/// Eingabezeile im Messenger-Stil, unten an der Seite angedockt. Der <see cref="Composer"/>
+/// haelt Text, Bilder und Sprachnachricht; <see cref="SendCommand"/> kommt von der
+/// jeweiligen Seite (neue Anfrage bzw. Antwort im Verlauf).
+///
+/// Tastatur (Android): das Fenster steht auf AdjustNothing (ComposerSoftInput), damit
+/// weder System-Pan noch MAUI-Resize die Zeile bewegen. Stattdessen faehrt ein
+/// WindowInsetsAnimation-Callback die Zeile per TranslationY Bild fuer Bild mit der
+/// Tastatur mit - reine Render-Transformation ohne Layout-Durchlauf, dadurch fluessig
+/// (AdjustResize/MAUI-SafeArea bewegten sie erst am Animationsende in einem Ruck).
 /// </summary>
 public partial class MessageComposer : ContentView
 {
@@ -26,35 +32,10 @@ public partial class MessageComposer : ContentView
         typeof(MessageComposer),
         string.Empty);
 
-    /// <summary>
-    /// true = unten angedockte Chat-Zeile (Haarlinie, hebt sich ueber die Tastatur -
-    /// Verlaufsseite). false = normales Formularfeld im Scroll-Inhalt (Compose-Seite):
-    /// keine Anhebe-Logik, die Tastatur schiebt die Seite wie ueberall per Pan.
-    /// </summary>
-    public static readonly BindableProperty DockedProperty = BindableProperty.Create(
-        nameof(Docked),
-        typeof(bool),
-        typeof(MessageComposer),
-        true,
-        propertyChanged: (bindable, _, _) => ((MessageComposer)bindable).ApplyDockedLayout());
-
     public MessageComposer()
     {
         InitializeComponent();
-
-        // Die Zeile hebt sich NUR ueber die Tastatur, wenn das eigene Nachrichtenfeld
-        // den Fokus hat - beim Tippen in anderen Feldern (z.B. Betreff) bleibt sie
-        // unten, sonst springt das Layout bei jedem Fokuswechsel hin und her.
-        MessageEditor.Focused += (_, _) =>
-        {
-            EditorFocused?.Invoke(this, EventArgs.Empty);
-            OnEditorFocusChanged(true);
-        };
-        MessageEditor.Unfocused += (_, _) => OnEditorFocusChanged(false);
     }
-
-    /// <summary>Feuert, wenn das Nachrichtenfeld den Fokus bekommt (Seiten scrollen dann passend).</summary>
-    public event EventHandler? EditorFocused;
 
     public FeedbackComposer? Composer
     {
@@ -74,18 +55,6 @@ public partial class MessageComposer : ContentView
         set => SetValue(PlaceholderProperty, value);
     }
 
-    public bool Docked
-    {
-        get => (bool)GetValue(DockedProperty);
-        set => SetValue(DockedProperty, value);
-    }
-
-    private void ApplyDockedLayout()
-    {
-        DividerLine.IsVisible = Docked;
-        InnerStack.Padding = Docked ? new Thickness(12, 10, 12, 14) : new Thickness(0);
-    }
-
     // Der innere Baum bindet direkt gegen den Composer (x:DataType), damit die
     // Vorlagen ohne RelativeSource-Umwege auskommen
     private static void OnComposerChanged(BindableObject bindable, object oldValue, object newValue)
@@ -95,97 +64,53 @@ public partial class MessageComposer : ContentView
     }
 
 #if ANDROID
-    private KeyboardWatcher? _keyboardWatcher;
-    private bool _editorFocused;
+    private Android.Views.View? _decorView;
 
-    private void OnEditorFocusChanged(bool focused)
-    {
-        _editorFocused = focused;
-        ApplyKeyboardMargin();
-    }
-
+    // Der Callback MUSS an der DecorView haengen, nicht an der Composer-View selbst:
+    // MAUI faengt die WindowInsets weiter oben ab, sodass ein Callback auf der
+    // Composer-View gar nicht mehr feuert. Die DecorView ist die Wurzel - dort laeuft
+    // die IME-Animation immer durch. Uebersetzt wird trotzdem nur die Composer-View.
     protected override void OnHandlerChanged()
     {
         base.OnHandlerChanged();
 
-        // Ab Android 15 (API 35, Edge-to-Edge erzwungen) ignoriert das System
-        // adjustResize - die Tastatur wuerde die Zeile verdecken. Wir lesen die
-        // IME-Insets deshalb selbst von den Root-Insets des Fensters (GlobalLayout
-        // feuert bei jedem Tastatur-Ein/Ausblenden) und heben die Zeile per Margin.
-        // Nur fuer die angedockte Chat-Zeile - als Formularfeld uebernimmt Pan.
-        if (!Docked || !OperatingSystem.IsAndroidVersionAtLeast(35))
-            return;
-
         var decor = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Window?.DecorView;
-        if (decor == null)
-            return;
 
-        if (Handler != null && _keyboardWatcher == null)
+        if (Handler?.PlatformView is Android.Views.View composerView && decor != null)
         {
-            _keyboardWatcher = new KeyboardWatcher(this, decor);
-            decor.ViewTreeObserver?.AddOnGlobalLayoutListener(_keyboardWatcher);
+            _decorView = decor;
+            AndroidX.Core.View.ViewCompat.SetWindowInsetsAnimationCallback(
+                decor, new ImeFollowCallback(composerView));
         }
-        else if (Handler == null && _keyboardWatcher != null)
+        else if (_decorView != null)
         {
-            decor.ViewTreeObserver?.RemoveOnGlobalLayoutListener(_keyboardWatcher);
-            _keyboardWatcher = null;
-        }
-    }
-
-    /// <summary>Aktuellen IME-Inset lesen und die Zeile heben/senken (nur bei eigenem Fokus).</summary>
-    private void ApplyKeyboardMargin()
-    {
-        if (!Docked || !OperatingSystem.IsAndroidVersionAtLeast(35))
-            return;
-
-        var decor = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Window?.DecorView;
-        if (decor == null)
-            return;
-
-        SetKeyboardMargin(ReadImeDp(decor));
-    }
-
-    private static double ReadImeDp(Android.Views.View decor)
-    {
-        var insets = AndroidX.Core.View.ViewCompat.GetRootWindowInsets(decor);
-        if (insets == null)
-            return 0;
-
-        // Voller IME-Inset: die Zeile soll direkt auf der Tastatur-Oberkante sitzen
-        var ime = insets.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.Ime())?.Bottom ?? 0;
-        var density = decor.Resources?.DisplayMetrics?.Density ?? 1f;
-        return Math.Max(0, ime) / density;
-    }
-
-    private void SetKeyboardMargin(double imeDp)
-    {
-        var bottomDp = _editorFocused ? imeDp : 0;
-        if (Math.Abs(Margin.Bottom - bottomDp) > 0.5)
-            Margin = new Thickness(0, 0, 0, bottomDp);
-    }
-
-    private sealed class KeyboardWatcher(MessageComposer owner, Android.Views.View decor)
-        : Java.Lang.Object, Android.Views.ViewTreeObserver.IOnGlobalLayoutListener
-    {
-        private double _lastImeDp = -1;
-
-        public void OnGlobalLayout()
-        {
-            // GlobalLayout feuert bei JEDEM Layout-Durchlauf (auch pro Tastendruck durch
-            // das mitwachsende Textfeld) - nur bei echter Tastatur-Aenderung reagieren,
-            // sonst ruckelt das Tippen durch die staendigen Main-Thread-Posts
-            var imeDp = ReadImeDp(decor);
-            if (Math.Abs(imeDp - _lastImeDp) < 0.5)
-                return;
-
-            _lastImeDp = imeDp;
-            MainThread.BeginInvokeOnMainThread(() => owner.SetKeyboardMargin(imeDp));
+            AndroidX.Core.View.ViewCompat.SetWindowInsetsAnimationCallback(_decorView, null);
+            _decorView = null;
         }
     }
-#else
-    private static void OnEditorFocusChanged(bool focused)
+
+    /// <summary>
+    /// Bewegt die Eingabezeile per TranslationY synchron zur Tastatur-Animation.
+    /// Der IME-Inset laeuft beim Ein-/Ausblenden weich von 0 auf volle Hoehe (bzw.
+    /// zurueck), das spiegeln wir direkt in die Verschiebung - Bild fuer Bild, ohne
+    /// Layout-Durchlauf. Verschoben wird um den vollen IME-Inset (nicht abzueglich
+    /// Navigationsleiste): die Composer-View reicht bis zum Fensterrand, ihr Unterrand
+    /// landet damit exakt auf der Tastatur-Oberkante. DispatchModeContinueOnSubtree,
+    /// damit andere Inset-Verbraucher (MAUI) unberuehrt bleiben.
+    /// </summary>
+    private sealed class ImeFollowCallback(Android.Views.View composerView)
+        : AndroidX.Core.View.WindowInsetsAnimationCompat.Callback(DispatchModeContinueOnSubtree)
     {
-        // iOS/Windows verschieben Eingaben selbst ueber die Tastatur - nichts zu tun
+        public override AndroidX.Core.View.WindowInsetsCompat OnProgress(
+            AndroidX.Core.View.WindowInsetsCompat? insets,
+            System.Collections.Generic.IList<AndroidX.Core.View.WindowInsetsAnimationCompat>? runningAnimations)
+        {
+            var ime = insets?.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.Ime());
+            if (ime != null)
+                composerView.TranslationY = -ime.Bottom;
+
+            return insets ?? AndroidX.Core.View.WindowInsetsCompat.Consumed!;
+        }
     }
 #endif
 }

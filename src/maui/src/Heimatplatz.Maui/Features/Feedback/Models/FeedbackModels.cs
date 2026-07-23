@@ -1,30 +1,21 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Heimatplatz.Maui.ApiClient.Generated;
 
 namespace Heimatplatz.Maui.Features.Feedback.Models;
 
-/// <summary>Zeile in "Meine Anfragen" (fertig aufbereitete Anzeige-Texte).</summary>
+/// <summary>Zeile in "Meine Anfragen" (fertig aufbereitete Anzeige-Texte und -Farben).</summary>
 public class FeedbackTicketListItem
 {
     public required Guid Id { get; init; }
     public required string Subject { get; init; }
     public required string Preview { get; init; }
     public required string StatusLabel { get; init; }
-    public required string CategoryLabel { get; init; }
+    public required Color StatusColor { get; init; }
+    public required string CategoryIcon { get; init; }
+    public required Color CategoryColor { get; init; }
     public required string DateText { get; init; }
     public required string MessageCountText { get; init; }
     public bool HasUnread { get; init; }
     public bool HasPreview => Preview.Length > 0;
-}
-
-/// <summary>Auswahlkarte im Compose (Kategorie-Chip).</summary>
-public partial class FeedbackCategoryOption : ObservableObject
-{
-    public required FeedbackCategory Value { get; init; }
-    public required string Label { get; init; }
-
-    [ObservableProperty]
-    public partial bool IsSelected { get; set; }
 }
 
 /// <summary>

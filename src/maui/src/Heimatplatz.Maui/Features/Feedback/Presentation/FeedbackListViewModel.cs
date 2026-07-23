@@ -11,8 +11,10 @@ using Shiny;
 namespace Heimatplatz.Maui.Features.Feedback.Presentation;
 
 /// <summary>
-/// "Meine Anfragen": Liste der eigenen Feedback-Tickets mit Status/Unread-Badges,
-/// Einstieg in Compose und Verlauf. Shell-Root (Flyout-Eintrag "Feedback").
+/// "Anschlagtafel fuer Anliegen": Schnellstart-Kacheln (Kategorie antippen -> direkt
+/// zur Nachrichten-Seite, kein Zwischenschritt) und darunter die eigenen Anfragen als
+/// Zettel mit Kategorie-Icon und Status-Ampel. Shell-Root (Flyout-Eintrag "Feedback").
+/// Umbenennen des Auto-Titels lebt im Verlauf (<see cref="FeedbackThreadViewModel"/>).
 /// </summary>
 [ShellMap<FeedbackListPage>("Feedback", registerRoute: false)]
 public partial class FeedbackListViewModel(
@@ -31,6 +33,9 @@ public partial class FeedbackListViewModel(
     public partial bool IsBusy { get; set; }
 
     [ObservableProperty]
+    public partial bool IsRefreshing { get; set; }
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
     public partial bool IsLoggedOut { get; set; }
 
@@ -41,6 +46,9 @@ public partial class FeedbackListViewModel(
 
     [ObservableProperty]
     public partial bool ShowEmptyState { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasTickets { get; set; }
 
     public void OnAppearing()
     {
@@ -57,7 +65,10 @@ public partial class FeedbackListViewModel(
     private async Task LoadAsync()
     {
         if (IsBusy)
+        {
+            IsRefreshing = false;
             return;
+        }
 
         try
         {
@@ -76,13 +87,18 @@ public partial class FeedbackListViewModel(
                     Subject = ticket.Subject,
                     Preview = ticket.LastMessagePreview ?? string.Empty,
                     StatusLabel = FeedbackDisplay.StatusLabel(ticket.Status, Loc),
-                    CategoryLabel = FeedbackDisplay.CategoryLabel(ticket.Category, Loc),
-                    DateText = FeedbackDisplay.FormatDate(ticket.LastMessageAt),
-                    MessageCountText = Loc.MessageCountFormat(ticket.MessageCount),
+                    StatusColor = FeedbackDisplay.StatusColor(ticket.Status),
+                    CategoryIcon = FeedbackDisplay.CategoryIcon(ticket.Category),
+                    CategoryColor = FeedbackDisplay.CategoryColor(ticket.Category),
+                    DateText = FeedbackDisplay.FormatRelativeDate(ticket.LastMessageAt, Loc),
+                    MessageCountText = ticket.MessageCount == 1
+                        ? Loc.MessageCountOne
+                        : Loc.MessageCountFormat(ticket.MessageCount),
                     HasUnread = ticket.HasUnread
                 });
             }
 
+            HasTickets = Tickets.Count > 0;
             ShowEmptyState = Tickets.Count == 0;
         }
         catch (Exception ex)
@@ -93,12 +109,14 @@ public partial class FeedbackListViewModel(
         finally
         {
             IsBusy = false;
+            IsRefreshing = false;
         }
     }
 
+    /// <summary>Schnellstart-Kachel: Kategorie (Enum-Name) -> direkt zur Nachrichten-Seite.</summary>
     [RelayCommand]
-    private Task NewFeedbackAsync()
-        => navigator.NavigateTo<FeedbackComposeViewModel>();
+    private Task StartFeedbackAsync(string category)
+        => navigator.NavigateTo<FeedbackNewMessageViewModel>(vm => vm.Category = category);
 
     [RelayCommand]
     private Task OpenTicketAsync(FeedbackTicketListItem item)

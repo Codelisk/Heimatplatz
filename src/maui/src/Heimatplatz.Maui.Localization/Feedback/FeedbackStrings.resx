@@ -16,16 +16,58 @@
     <value>Feedback &amp; Wünsche</value>
   </data>
   <data name="Intro" xml:space="preserve">
-    <value>Was fehlt Ihnen, was stört Sie, was gefällt Ihnen? Wir lesen jede Nachricht und antworten direkt hier.</value>
+    <value>Wir lesen jede Nachricht und antworten direkt hier in der App.</value>
   </data>
-  <data name="NewFeedback" xml:space="preserve">
-    <value>Neues Feedback</value>
+  <data name="QuickStartTitle" xml:space="preserve">
+    <value>Was möchten Sie uns sagen?</value>
+  </data>
+  <data name="TileIdea" xml:space="preserve">
+    <value>Idee</value>
+  </data>
+  <data name="TileIdeaHint" xml:space="preserve">
+    <value>Was fehlt Ihnen?</value>
+  </data>
+  <data name="TileProblem" xml:space="preserve">
+    <value>Problem</value>
+  </data>
+  <data name="TileProblemHint" xml:space="preserve">
+    <value>Etwas geht nicht?</value>
+  </data>
+  <data name="TileQuestion" xml:space="preserve">
+    <value>Frage</value>
+  </data>
+  <data name="TileQuestionHint" xml:space="preserve">
+    <value>Wir helfen weiter</value>
+  </data>
+  <data name="TilePraise" xml:space="preserve">
+    <value>Lob</value>
+  </data>
+  <data name="TilePraiseHint" xml:space="preserve">
+    <value>Das freut uns!</value>
+  </data>
+  <data name="TileOther" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
+  <data name="TileOtherHint" xml:space="preserve">
+    <value>Alles andere</value>
+  </data>
+  <data name="SectionRequests" xml:space="preserve">
+    <value>Ihre Anfragen</value>
+  </data>
+  <data name="TodayFormat" xml:space="preserve">
+    <value>Heute, {0}</value>
+  </data>
+  <data name="YesterdayFormat" xml:space="preserve">
+    <value>Gestern, {0}</value>
+  </data>
+  <data name="CreatedFormat" xml:space="preserve">
+    <value>Erstellt am {0}</value>
   </data>
   <data name="EmptyTitle" xml:space="preserve">
     <value>Noch keine Anfragen</value>
   </data>
   <data name="EmptyHint" xml:space="preserve">
-    <value>Ihr erstes Feedback landet hier – inklusive unserer Antwort.</value>
+    <value>Tippen Sie oben an, was Sie loswerden möchten – Ihre Nachrichten und unsere Antworten landen hier.</value>
   </data>
   <data name="LoadFailedTitle" xml:space="preserve">
     <value>Anfragen konnten nicht geladen werden</value>
@@ -47,6 +89,9 @@
   </data>
   <data name="MessageCountFormat" xml:space="preserve">
     <value>{0} Nachrichten</value>
+  </data>
+  <data name="MessageCountOne" xml:space="preserve">
+    <value>1 Nachricht</value>
   </data>
   <data name="StatusOpen" xml:space="preserve">
     <value>Offen</value>
@@ -78,17 +123,17 @@
   <data name="ComposeTitle" xml:space="preserve">
     <value>Neues Feedback</value>
   </data>
-  <data name="CategoryLegend" xml:space="preserve">
-    <value>Worum geht es?</value>
+  <data name="RenameAction" xml:space="preserve">
+    <value>Umbenennen</value>
   </data>
-  <data name="SubjectLabel" xml:space="preserve">
-    <value>Betreff (optional)</value>
+  <data name="RenameTitle" xml:space="preserve">
+    <value>Titel ändern</value>
   </data>
-  <data name="SubjectPlaceholder" xml:space="preserve">
-    <value>Kurz zusammengefasst …</value>
+  <data name="RenameMessage" xml:space="preserve">
+    <value>Neuer Titel für diese Anfrage</value>
   </data>
-  <data name="BodyLabel" xml:space="preserve">
-    <value>Ihre Nachricht</value>
+  <data name="RenameFailed" xml:space="preserve">
+    <value>Umbenennen fehlgeschlagen. Bitte versuchen Sie es erneut.</value>
   </data>
   <data name="BodyPlaceholder" xml:space="preserve">
     <value>Beschreiben Sie Ihr Anliegen – je konkreter, desto besser können wir helfen.</value>

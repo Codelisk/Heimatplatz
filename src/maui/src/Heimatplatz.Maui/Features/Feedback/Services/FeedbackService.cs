@@ -42,7 +42,6 @@ public class FeedbackService(IMediator mediator) : IFeedbackService
 
     public async Task<CreateFeedbackTicketResponse> CreateTicketAsync(
         FeedbackCategory category,
-        string? subject,
         string body,
         List<FeedbackAttachmentInput> attachments,
         CancellationToken ct = default)
@@ -52,7 +51,6 @@ public class FeedbackService(IMediator mediator) : IFeedbackService
             Body = new CreateFeedbackTicketRequest
             {
                 Category = category,
-                Subject = subject,
                 Body = body,
                 Source = GetSource(),
                 AppVersion = AppInfo.Current.VersionString,
@@ -75,6 +73,15 @@ public class FeedbackService(IMediator mediator) : IFeedbackService
             }
         }, ct);
         return response?.Message;
+    }
+
+    public async Task<bool> RenameTicketAsync(Guid ticketId, string subject, CancellationToken ct = default)
+    {
+        var (_, response) = await mediator.Request(new RenameFeedbackTicketHttpRequest
+        {
+            Body = new RenameFeedbackTicketRequest { TicketId = ticketId, Subject = subject }
+        }, ct);
+        return response.Success;
     }
 
     private static FeedbackSource GetSource()

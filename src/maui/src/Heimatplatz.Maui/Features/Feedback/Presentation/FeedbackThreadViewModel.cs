@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.Features.Feedback.Models;
 using Heimatplatz.Maui.Features.Feedback.Services;
+using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Feedback;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -10,7 +11,8 @@ using Shiny;
 namespace Heimatplatz.Maui.Features.Feedback.Presentation;
 
 /// <summary>
-/// Verlauf einer Anfrage als Chat (eigene Nachrichten rechts, Team links) mit
+/// Verlauf einer Anfrage: Ticket-Kopf (Kategorie-Icon, Status-Ampel, Umbenennen des
+/// Auto-Titels) und die Korrespondenz (eigene Nachrichten rechts, Team links) mit
 /// Bild-/Sprachnachricht-Anhaengen und Messenger-Eingabezeile. Ziel des
 /// Push-Deep-Links heimatplatz://feedback/{ticketId}; das Laden markiert
 /// Team-Antworten als gelesen.
@@ -26,7 +28,9 @@ public partial class FeedbackThreadViewModel : ObservableObject, IPageLifecycleA
     private readonly IFeedbackService _feedbackService;
     private readonly IAudioPlaybackService _playback;
     private readonly INavigator _navigator;
+    private readonly IDialogs _dialogs;
     private readonly ILogger<FeedbackThreadViewModel> _logger;
+    private readonly CommonStringsLocalized _commonLoc;
 
     private bool _loadedOnce;
     private bool _playbackHooked;
@@ -36,13 +40,17 @@ public partial class FeedbackThreadViewModel : ObservableObject, IPageLifecycleA
         IAudioPlaybackService playback,
         FeedbackComposer composer,
         INavigator navigator,
+        IDialogs dialogs,
         ILogger<FeedbackThreadViewModel> logger,
-        FeedbackStringsLocalized loc)
+        FeedbackStringsLocalized loc,
+        CommonStringsLocalized commonLoc)
     {
         _feedbackService = feedbackService;
         _playback = playback;
         _navigator = navigator;
+        _dialogs = dialogs;
         _logger = logger;
+        _commonLoc = commonLoc;
         Loc = loc;
         Composer = composer.Initialize();
     }
@@ -64,7 +72,19 @@ public partial class FeedbackThreadViewModel : ObservableObject, IPageLifecycleA
     public partial string StatusLabel { get; set; } = string.Empty;
 
     [ObservableProperty]
+    public partial Color StatusColor { get; set; } = Colors.Transparent;
+
+    [ObservableProperty]
     public partial string CategoryLabel { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string CategoryIcon { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial Color CategoryColor { get; set; } = Colors.Transparent;
+
+    [ObservableProperty]
+    public partial string CreatedText { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
@@ -123,8 +143,11 @@ public partial class FeedbackThreadViewModel : ObservableObject, IPageLifecycleA
 
             _loadedOnce = true;
             Subject = ticket.Subject;
-            StatusLabel = FeedbackDisplay.StatusLabel(ticket.Status, Loc);
+            SetStatus(ticket.Status);
             CategoryLabel = FeedbackDisplay.CategoryLabel(ticket.Category, Loc);
+            CategoryIcon = FeedbackDisplay.CategoryIcon(ticket.Category);
+            CategoryColor = FeedbackDisplay.CategoryColor(ticket.Category);
+            CreatedText = Loc.CreatedFormat(ticket.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"));
 
             Messages.Clear();
             foreach (var message in ticket.Messages ?? [])
@@ -174,7 +197,7 @@ public partial class FeedbackThreadViewModel : ObservableObject, IPageLifecycleA
             Composer.Reset();
 
             // Nutzer-Antwort oeffnet die Anfrage serverseitig wieder
-            StatusLabel = FeedbackDisplay.StatusLabel(ApiClient.Generated.FeedbackTicketStatus.Open, Loc);
+            SetStatus(ApiClient.Generated.FeedbackTicketStatus.Open);
         }
         catch (Exception ex)
         {
@@ -219,8 +242,48 @@ public partial class FeedbackThreadViewModel : ObservableObject, IPageLifecycleA
     private Task OpenImageAsync(FeedbackImageItem item)
         => Launcher.Default.OpenAsync(item.FullUrl);
 
+    /// <summary>Auto-Titel ("Lob 1" etc.) der Anfrage umbenennen.</summary>
+    [RelayCommand]
+    private async Task RenameAsync()
+    {
+        if (!Guid.TryParse(TicketId, out var ticketId))
+            return;
+
+        var result = await _dialogs.Prompt(
+            Loc.RenameTitle,
+            Loc.RenameMessage,
+            _commonLoc.Save,
+            _commonLoc.Cancel,
+            initialValue: Subject,
+            maxLength: 200);
+
+        var newSubject = result?.Trim();
+        if (string.IsNullOrEmpty(newSubject) || newSubject == Subject)
+            return;
+
+        try
+        {
+            var success = await _feedbackService.RenameTicketAsync(ticketId, newSubject);
+            if (success)
+                Subject = newSubject;
+            else
+                await _dialogs.Alert(_commonLoc.Error, Loc.RenameFailed, _commonLoc.Ok);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[Feedback] Umbenennen fehlgeschlagen: {TicketId}", TicketId);
+            await _dialogs.Alert(_commonLoc.Error, Loc.RenameFailed, _commonLoc.Ok);
+        }
+    }
+
     [RelayCommand]
     private Task GoBackAsync() => _navigator.GoBack();
+
+    private void SetStatus(ApiClient.Generated.FeedbackTicketStatus status)
+    {
+        StatusLabel = FeedbackDisplay.StatusLabel(status, Loc);
+        StatusColor = FeedbackDisplay.StatusColor(status);
+    }
 
     /// <summary>Laedt eine remote Sprachnachricht einmalig in den Cache (Dateiname = GUID aus der URL).</summary>
     private static async Task<string> EnsureLocalAudioAsync(string url)

@@ -19,7 +19,6 @@ public interface IFeedbackService
 
     Task<CreateFeedbackTicketResponse> CreateTicketAsync(
         FeedbackCategory category,
-        string? subject,
         string body,
         List<FeedbackAttachmentInput> attachments,
         CancellationToken ct = default);
@@ -27,4 +26,7 @@ public interface IFeedbackService
     /// <summary>Liefert null, wenn das Ticket nicht existiert oder nicht dem Nutzer gehoert.</summary>
     Task<FeedbackMessageDto?> AddMessageAsync(
         Guid ticketId, string body, List<FeedbackAttachmentInput> attachments, CancellationToken ct = default);
+
+    /// <summary>Benennt den Auto-Titel einer eigenen Anfrage um. Liefert false bei Fehler (z.B. leerer Titel).</summary>
+    Task<bool> RenameTicketAsync(Guid ticketId, string subject, CancellationToken ct = default);
 }

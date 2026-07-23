@@ -2,9 +2,9 @@ using Heimatplatz.Maui.Features.Feedback.Controls;
 
 namespace Heimatplatz.Maui.Features.Feedback.Presentation;
 
-public partial class FeedbackThreadPage : ContentPage
+public partial class FeedbackNewMessagePage : ContentPage
 {
-    public FeedbackThreadPage()
+    public FeedbackNewMessagePage()
     {
         InitializeComponent();
     }
