@@ -86,12 +86,20 @@
     </Shell.FlyoutContent>
 
     <Shell.FlyoutHeader>
-        <!-- Galerie-Header: in beiden Themes dunkel (warmes Fast-Schwarz), weisse Signet-Kachel,
-             Wordmark + rot-weiss-rotes Fahnenband als Markenzeichen -->
+        <!-- Galerie-Header: Light als warme Papierflaeche mit sanftem Markenrot-Tint,
+             Dark weiterhin als warme dunkle Karte. So fuegt sich der Header ins jeweilige
+             Theme ein, ohne die klare Markenwirkung zu verlieren. -->
         <Grid Padding="20,44,20,22"
-              BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource CardBackgroundDark}}"
               ColumnDefinitions="Auto,*"
               ColumnSpacing="14">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                                  Offset="0" />
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource CardBackgroundDark}}"
+                                  Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
 
             <!-- Rundes Abzeichen mittig auf weisser Karte. -->
             <Border Grid.Column="0"
@@ -115,10 +123,10 @@
                        FontFamily="SansBold"
                        FontSize="16"
                        CharacterSpacing="4"
-                       TextColor="{StaticResource White}" />
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                 <Label Text="{Binding Loc.Tagline}"
                        FontSize="12"
-                       TextColor="{StaticResource Gray300}" />
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                 <controls:FlagBand Margin="0,3,0,0" />
             </VerticalStackLayout>
         </Grid>
