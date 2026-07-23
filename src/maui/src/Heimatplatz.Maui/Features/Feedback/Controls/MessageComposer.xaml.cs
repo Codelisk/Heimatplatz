@@ -93,10 +93,11 @@ public partial class MessageComposer : ContentView
     /// Bewegt die Eingabezeile per TranslationY synchron zur Tastatur-Animation.
     /// Der IME-Inset laeuft beim Ein-/Ausblenden weich von 0 auf volle Hoehe (bzw.
     /// zurueck), das spiegeln wir direkt in die Verschiebung - Bild fuer Bild, ohne
-    /// Layout-Durchlauf. Verschoben wird um den vollen IME-Inset (nicht abzueglich
-    /// Navigationsleiste): die Composer-View reicht bis zum Fensterrand, ihr Unterrand
-    /// landet damit exakt auf der Tastatur-Oberkante. DispatchModeContinueOnSubtree,
-    /// damit andere Inset-Verbraucher (MAUI) unberuehrt bleiben.
+    /// Layout-Durchlauf. Die ContentPage respektiert mit SafeAreaEdges="Container"
+    /// bereits Navigationsleiste und Display-Cutout. Dieser Container-Inset wird daher
+    /// vom IME-Inset abgezogen; andernfalls entstuende unter der Eingabe genau dieser
+    /// Abstand ein zweites Mal. DispatchModeContinueOnSubtree laesst andere
+    /// Inset-Verbraucher (MAUI) unberuehrt.
     /// </summary>
     private sealed class ImeFollowCallback(Android.Views.View composerView)
         : AndroidX.Core.View.WindowInsetsAnimationCompat.Callback(DispatchModeContinueOnSubtree)
@@ -105,9 +106,16 @@ public partial class MessageComposer : ContentView
             AndroidX.Core.View.WindowInsetsCompat? insets,
             System.Collections.Generic.IList<AndroidX.Core.View.WindowInsetsAnimationCompat>? runningAnimations)
         {
-            var ime = insets?.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.Ime());
-            if (ime != null)
-                composerView.TranslationY = -ime.Bottom;
+            if (insets != null)
+            {
+                var imeBottom = insets
+                    .GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.Ime())?.Bottom ?? 0;
+                var containerBottom = insets.GetInsets(
+                    AndroidX.Core.View.WindowInsetsCompat.Type.SystemBars()
+                    | AndroidX.Core.View.WindowInsetsCompat.Type.DisplayCutout())?.Bottom ?? 0;
+                var keyboardOffset = Math.Max(0, imeBottom - containerBottom);
+                composerView.TranslationY = -keyboardOffset;
+            }
 
             return insets ?? AndroidX.Core.View.WindowInsetsCompat.Consumed!;
         }

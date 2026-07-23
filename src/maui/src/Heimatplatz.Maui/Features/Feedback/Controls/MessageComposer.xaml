@@ -2,7 +2,8 @@
 <!-- Nachrichten-Eingabe im Messenger-Stil: Anhang-Vorschau ueber der Zeile,
      in der Zeile Galerie-/Kamera-Button, Textfeld und rechts Mikrofon (leeres Feld)
      bzw. Senden-Pfeil. Waehrend der Aufnahme ersetzt eine rote Zeile die Eingabe.
-     Haarlinie oben + Luft unten trennen die Zeile sichtbar von Inhalt und Tastatur. -->
+     Haarlinie oben + ein kleiner Abstand unten trennen die Zeile sichtbar von Inhalt
+     und Tastatur. -->
 <ContentView
     x:Class="Heimatplatz.Maui.Features.Feedback.Controls.MessageComposer"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -22,7 +23,7 @@
         <VerticalStackLayout Grid.Row="1"
                              x:Name="InnerStack"
                              Spacing="8"
-                             Padding="12,10,12,14">
+                             Padding="12,10,12,6">
 
             <!-- Anhang-Vorschau (Bilder + Sprachnachricht) -->
             <ScrollView Orientation="Horizontal"
