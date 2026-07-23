@@ -1219,6 +1219,37 @@
         }
       }
     },
+    "/api/properties/{Id}/edit": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetEditableProperty",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertyByIdResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/properties/changes": {
       "get": {
         "tags": [

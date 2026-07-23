@@ -175,6 +175,7 @@ export const editor = {
   "editor.statusNotFound": "Immobilie nicht gefunden.",
   "editor.statusLoadFailedDetail": "Immobilie konnte nicht geladen werden: {message}",
   "editor.statusLoadFailed": "Immobilie konnte nicht geladen werden.",
+  "editor.statusEditUnavailable": "Dieses Inserat ist nicht zum Bearbeiten freigegeben.",
 
   // Speicher-/Upload-Status
   "editor.statusSavingChanges": "Änderungen werden gespeichert...",
@@ -183,6 +184,8 @@ export const editor = {
   "editor.statusUploadingImages": "Bilder werden hochgeladen...",
   "editor.statusUpdateFailedDetail": "Online-Aktualisierung fehlgeschlagen, Entwurf lokal gesichert: {message}",
   "editor.statusUpdateFailed": "Online-Aktualisierung fehlgeschlagen, Entwurf lokal gesichert.",
+  "editor.statusUpdateRejectedDetail": "Änderungen wurden nicht gespeichert: {message}",
+  "editor.statusUpdateRejected": "Änderungen wurden nicht gespeichert.",
   "editor.statusSaveFailedDetail": "Online-Speichern fehlgeschlagen, Entwurf lokal gesichert: {message}",
   "editor.statusSaveFailed": "Online-Speichern fehlgeschlagen, Entwurf lokal gesichert.",
 } as const;

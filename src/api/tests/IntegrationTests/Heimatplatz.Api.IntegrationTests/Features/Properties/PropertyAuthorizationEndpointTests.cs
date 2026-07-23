@@ -23,7 +23,7 @@ public class PropertyAuthorizationEndpointTests : BaseApiIntegrationTest
         => new SqliteWebApplicationFactory<Program>();
 
     [Test]
-    public async Task UpdateAndDeleteForeignProperty_ReturnForbiddenInsteadOfUnauthorized()
+    public async Task ReadForEditUpdateAndDeleteForeignProperty_ReturnForbidden()
     {
         var ownerAccessToken = await RegisterSellerAsync("owner");
         var intruderAccessToken = await RegisterSellerAsync("intruder");
@@ -56,6 +56,25 @@ public class PropertyAuthorizationEndpointTests : BaseApiIntegrationTest
         createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         using var createJson = JsonDocument.Parse(await createResponse.Content.ReadAsStringAsync());
         var propertyId = createJson.RootElement.GetProperty("PropertyId").GetGuid();
+
+        Client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", intruderAccessToken);
+        var foreignEditResponse = await Client.GetAsync($"/api/properties/{propertyId}/edit");
+
+        foreignEditResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        Client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", ownerAccessToken);
+        var ownerEditResponse = await Client.GetAsync($"/api/properties/{propertyId}/edit");
+
+        ownerEditResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var ownerEditJson = JsonDocument.Parse(await ownerEditResponse.Content.ReadAsStringAsync());
+        ownerEditJson.RootElement
+            .GetProperty("Property")
+            .GetProperty("Id")
+            .GetGuid()
+            .Should()
+            .Be(propertyId);
 
         Client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", intruderAccessToken);

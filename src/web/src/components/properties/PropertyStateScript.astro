@@ -55,6 +55,16 @@
     skipAuth?: boolean;
   };
 
+  class ApiRequestError extends Error {
+    readonly status: number;
+
+    constructor(status: number, message: string) {
+      super(message);
+      this.name = "ApiRequestError";
+      this.status = status;
+    }
+  }
+
 
   type Municipality = {
     Id: string;
@@ -403,9 +413,12 @@
       if (response.status === 401 && !options.skipAuth && !readSession()) {
         // Sitzung endgueltig abgelaufen: Anmelde-Dialog statt kryptischem 401
         showLoginPrompt();
-        throw new Error(t("auth.errorSessionExpired"));
+        throw new ApiRequestError(response.status, t("auth.errorSessionExpired"));
       }
-      throw new Error(extractErrorMessage(payload) || t("auth.requestFailedStatus", { status: response.status }));
+      throw new ApiRequestError(
+        response.status,
+        extractErrorMessage(payload) || t("auth.requestFailedStatus", { status: response.status }),
+      );
     }
 
     return payload as TResponse;
@@ -2334,10 +2347,28 @@
     } satisfies Draft;
   }
 
+  type PropertyEditState = "loading" | "ready" | "error";
+
+  function setPropertyEditState(form: HTMLFormElement, state: PropertyEditState) {
+    const fields = form.querySelector<HTMLFieldSetElement>("[data-property-form-fields]");
+    if (fields) {
+      fields.disabled = state !== "ready";
+      fields.hidden = state !== "ready";
+    }
+
+    form.dataset.editState = state;
+    if (state === "loading") {
+      form.setAttribute("aria-busy", "true");
+    } else {
+      form.removeAttribute("aria-busy");
+    }
+  }
+
   async function hydratePropertyEditForm() {
     const form = document.querySelector<HTMLFormElement>("[data-edit-property-form]");
     if (!form) return;
 
+    setPropertyEditState(form, "loading");
     const params = new URLSearchParams(window.location.search);
     const draftId = params.get("draft");
     const remoteId = params.get("id");
@@ -2346,23 +2377,34 @@
       const draft = readArray<Draft>(STORAGE_KEYS.drafts).find((item) => item.id === draftId);
       if (draft) {
         fillPropertyForm(form, draft);
+        setPropertyEditState(form, "ready");
         setFormStatus(form, t("editor.statusDraftLoaded"));
+      } else {
+        setPropertyEditState(form, "error");
+        setFormStatus(form, t("editor.statusNotFound"), "error");
       }
       return;
     }
 
-    if (!remoteId || !UUID_PATTERN.test(remoteId)) return;
+    if (!remoteId || !UUID_PATTERN.test(remoteId)) {
+      setPropertyEditState(form, "error");
+      setFormStatus(form, t("editor.statusNotFound"), "error");
+      return;
+    }
 
     setFormStatus(form, t("editor.statusLoading"));
     try {
-      const response = await apiRequest<{ Property: ApiProperty | null }>(`/api/properties/${remoteId}`);
+      const response = await apiRequest<{ Property: ApiProperty | null }>(`/api/properties/${remoteId}/edit`);
       if (response.Property) {
         fillPropertyForm(form, apiPropertyToDraft(response.Property));
+        setPropertyEditState(form, "ready");
         setFormStatus(form, t("editor.statusLoaded"), "success");
       } else {
+        setPropertyEditState(form, "error");
         setFormStatus(form, t("editor.statusNotFound"), "error");
       }
     } catch (error) {
+      setPropertyEditState(form, "error");
       setFormStatus(
         form,
         error instanceof Error ? t("editor.statusLoadFailedDetail", { message: error.message }) : t("editor.statusLoadFailed"),
@@ -2511,8 +2553,17 @@
 
         const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
         const params = new URLSearchParams(window.location.search);
-        const editId = params.get("id") ?? params.get("draft");
         const isEditForm = form.hasAttribute("data-edit-property-form");
+        const remoteEditId = params.get("id");
+        const localDraftId = params.get("draft");
+        const editId = remoteEditId ?? localDraftId;
+        const isRemoteEdit = !!remoteEditId && UUID_PATTERN.test(remoteEditId);
+
+        if (isEditForm && form.dataset.editState !== "ready") {
+          setFormStatus(form, t("editor.statusEditUnavailable"), "error");
+          return;
+        }
+
         const formData = new FormData(form);
         const draft: Draft = {};
         formData.forEach((value, key) => {
@@ -2537,11 +2588,11 @@
         setFormStatus(form, editId ? t("editor.statusSavingChanges") : readSession() ? t("editor.statusSavingListing") : t("editor.statusSavingDraftLocal"));
 
         try {
-          if (editId && UUID_PATTERN.test(editId) && readSession()) {
+          if (isRemoteEdit && readSession()) {
             setFormStatus(form, t("editor.statusUploadingImages"));
             const imageUrls = await uploadImages(form, false);
             draft.imageUrls = imageUrls;
-            const updated = await updateRemoteProperty(editId, draft, imageUrls);
+            const updated = await updateRemoteProperty(remoteEditId, draft, imageUrls);
             if (updated) {
               window.location.href = "/meine-immobilien/?bearbeitet=api";
               return;
@@ -2566,14 +2617,28 @@
           saveLocalDraft(draft, editId);
           window.location.href = editId ? "/meine-immobilien/?bearbeitet=1" : "/meine-immobilien/?gespeichert=1";
         } catch (error) {
-          draft.imageUrls = await getLocalImageUrls(form);
-          saveLocalDraft(draft, editId);
+          const remoteEditRejected =
+            isRemoteEdit &&
+            error instanceof ApiRequestError &&
+            [401, 403, 404].includes(error.status);
+
+          if (remoteEditRejected) {
+            setPropertyEditState(form, "error");
+          } else {
+            draft.imageUrls = await getLocalImageUrls(form);
+            saveLocalDraft(draft, editId);
+          }
+
           if (editId) {
             setFormStatus(
               form,
-              error instanceof Error
-                ? t("editor.statusUpdateFailedDetail", { message: error.message })
-                : t("editor.statusUpdateFailed"),
+              remoteEditRejected
+                ? error instanceof Error
+                  ? t("editor.statusUpdateRejectedDetail", { message: error.message })
+                  : t("editor.statusUpdateRejected")
+                : error instanceof Error
+                  ? t("editor.statusUpdateFailedDetail", { message: error.message })
+                  : t("editor.statusUpdateFailed"),
               "error",
             );
           } else {
