@@ -1,16 +1,74 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
+import OrtPicker from "@/components/properties/OrtPicker.astro";
+import { upperAustriaRegions } from "@/data/upper-austria-regions";
+import { fetchOrtRegions } from "@/features/locations/live-api";
+import { slugifyLocation } from "@/features/locations/region-match";
 import { t } from "@/i18n";
 import { adminApiGet, type MarketingLeadPoolPage } from "@/lib/server/admin-api";
 import { contactStatusBadgeClass, contactStatusLabel } from "@/lib/intern/marketing-labels";
+import { jsonForScriptTag } from "@/lib/utils/json";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
 
 const PAGE_SIZE = 50;
 
 const search = Astro.url.searchParams.get("q")?.trim() ?? "";
-const sitz = Astro.url.searchParams.get("ort")?.trim() ?? "";
+
+// Identische Bezirks-/Gemeinde-Hierarchie wie im OrtPicker der Startseite.
+// Bei lokaler API-Nichterreichbarkeit gilt derselbe statische Fallback wie im
+// Picker selbst, damit Anzeige und serverseitige Filterwerte zusammenpassen.
+const apiOrtRegions = await fetchOrtRegions();
+const fallbackOrtRegions = upperAustriaRegions.map((region) => {
+  const seen = new Set<string>();
+  const localities = region.districts.flatMap((name) => {
+    const baseSlug = slugifyLocation(name);
+    if (!baseSlug) return [];
+    const slug = `${region.slug}-${baseSlug}`;
+    if (seen.has(slug)) return [];
+    seen.add(slug);
+    return [{ name, slug, baseSlug }];
+  });
+  return { name: region.name, slug: region.slug, localities };
+});
+const ortRegions = apiOrtRegions.length > 0 ? apiOrtRegions : fallbackOrtRegions;
+const localityBySlug = new Map(
+  ortRegions.flatMap((region) =>
+    region.localities.map((locality) => [locality.slug, locality.name] as const),
+  ),
+);
+const slugByLegacyValue = new Map<string, string>();
+for (const [slug, name] of localityBySlug) {
+  slugByLegacyValue.set(slug.toLocaleLowerCase("de-AT"), slug);
+  slugByLegacyValue.set(name.toLocaleLowerCase("de-AT"), slug);
+  slugByLegacyValue.set(slugifyLocation(name), slug);
+}
+
+const rawOrtSelection = (Astro.url.searchParams.get("ort") ?? "")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
+const ortSelection = [
+  ...new Set(
+    rawOrtSelection
+      .map(
+        (value) =>
+          localityBySlug.has(value)
+            ? value
+            : slugByLegacyValue.get(value.toLocaleLowerCase("de-AT")),
+      )
+      .filter((value): value is string => Boolean(value)),
+  ),
+];
+const sitze = [
+  ...new Set(
+    ortSelection
+      .map((slug) => localityBySlug.get(slug))
+      .filter((value): value is string => Boolean(value)),
+  ),
+];
+
 // Default an: der Pool ist eine Abarbeitungsliste, nicht ein Katalog
 const onlyOpen = Astro.url.searchParams.get("alle") !== "1";
 const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "0", 10) || 0, 0);
@@ -25,19 +83,20 @@ const query = new URLSearchParams({
   onlyOpen: String(onlyOpen),
 });
 if (search) query.set("search", search);
-if (sitz) query.set("sitz", sitz);
+if (sitze.length > 0) query.set("sitz", sitze.join(","));
 
 const data = await adminApiGet<MarketingLeadPoolPage>(`/api/admin/marketing/lead-pool?${query}`);
 const totalPages = data ? Math.max(Math.ceil(data.Total / data.PageSize), 1) : 1;
+const openLeadsOnPage = data?.Leads.filter((lead) => lead.ContactId === null).length ?? 0;
 
 const inputClass =
-  "rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
+  "h-9 rounded-md border border-input bg-muted px-3 text-sm outline-none transition-colors focus:border-foreground/40 focus:ring-2 focus:ring-primary/20";
 
 /** Filter-erhaltende Links - der Pool wird seitenweise abgearbeitet */
 function buildQuery(overrides: Record<string, string | null> = {}) {
   const params = new URLSearchParams();
   if (search) params.set("q", search);
-  if (sitz) params.set("ort", sitz);
+  if (ortSelection.length > 0) params.set("ort", ortSelection.join(","));
   if (!onlyOpen) params.set("alle", "1");
   if (page > 0) params.set("page", String(page));
   for (const [key, value] of Object.entries(overrides)) {
@@ -51,6 +110,15 @@ function pageLink(target: number) {
   const qs = buildQuery({ page: target > 0 ? String(target) : null });
   return qs ? `/intern/marketing/firmenpool/?${qs}` : "/intern/marketing/firmenpool/";
 }
+
+function detailLink(fnr: string) {
+  const params = new URLSearchParams({ fnr });
+  const back = buildQuery();
+  if (back) params.set("back", back);
+  return `/intern/marketing/firmenpool/detail/?${params}`;
+}
+
+const hasActiveFilters = Boolean(search || ortSelection.length > 0 || !onlyOpen);
 ---
 
 <BaseLayout
@@ -59,55 +127,102 @@ function pageLink(target: number) {
   canonicalPath="/intern/marketing/firmenpool/"
   noindex
 >
-  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+  <section class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
     <nav class="text-sm text-muted-foreground">
-      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <a href="/intern/" class="hover:text-foreground hover:underline">{t("intern.title")}</a>
       <span aria-hidden="true"> / </span>
-      <a href="/intern/marketing/" class="hover:underline">{t("intern.marketingTitle")}</a>
+      <a href="/intern/marketing/" class="hover:text-foreground hover:underline">
+        {t("intern.marketingTitle")}
+      </a>
       <span aria-hidden="true"> / </span>
       <span>{t("intern.mkPoolTitle")}</span>
     </nav>
 
-    <h1 class="mt-2 text-3xl font-bold">{t("intern.mkPoolTitle")}</h1>
-    <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("intern.mkPoolIntro")}</p>
+    <div class="mt-2 flex flex-wrap items-center gap-3">
+      <h1 class="text-3xl font-bold tracking-tight">{t("intern.mkPoolTitle")}</h1>
+      {data && (
+        <span class="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+          {t("intern.mkPoolTotal", { count: data.Total })}
+        </span>
+      )}
+    </div>
+    <p class="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{t("intern.mkPoolIntro")}</p>
 
     {action === "added" && (
-      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+      <div class="mt-5 rounded-xl border border-success/40 bg-success/10 p-4 text-sm text-success-foreground">
         {skippedCount === "0"
           ? t("intern.mkPoolAddedOk", { count: addedCount })
           : t("intern.mkPoolAddedWithSkipped", { count: addedCount, skipped: skippedCount })}
       </div>
     )}
     {action === "failed" && (
-      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+      <div class="mt-5 rounded-xl border border-error/40 bg-error/10 p-4 text-sm text-error">
         {t("intern.mkPoolAddFailed", { error: actionError ?? "?" })}
       </div>
     )}
 
-    <form method="GET" action="/intern/marketing/firmenpool/" class="mt-6 flex flex-wrap gap-2">
-      <input
-        type="search"
-        name="q"
-        value={search}
-        placeholder={t("intern.mkPoolSearchPlaceholder")}
-        class={`min-w-48 flex-1 ${inputClass}`}
-      />
-      <input
-        type="search"
-        name="ort"
-        value={sitz}
-        placeholder={t("intern.mkPoolSitzPlaceholder")}
-        class={`w-40 ${inputClass}`}
-      />
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="alle" value="1" checked={!onlyOpen} class="size-4" />
-        <span>{t("intern.mkPoolShowTaken")}</span>
-      </label>
-      <Button type="submit" variant="default">{t("intern.filterButton")}</Button>
+    <form
+      method="GET"
+      action="/intern/marketing/firmenpool/"
+      class="mt-5 rounded-xl border border-border bg-card p-4 shadow-sm"
+    >
+      <div class="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(17rem,1fr)_minmax(15rem,0.7fr)_auto_auto]">
+        <label class="min-w-0">
+          <span class="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            {t("intern.mkPoolSearchLabel")}
+          </span>
+          <input
+            type="search"
+            name="q"
+            value={search}
+            placeholder={t("intern.mkPoolSearchPlaceholder")}
+            class={`w-full ${inputClass}`}
+          />
+        </label>
+        <div class="min-w-0">
+          <span class="mb-1.5 block text-xs font-semibold text-muted-foreground">
+            {t("intern.mkPoolLocationLabel")}
+          </span>
+          <OrtPicker
+            name="ort"
+            placeholder={t("filter.locationPlaceholder")}
+            regions={ortRegions}
+          />
+        </div>
+        <label
+          class="flex h-9 cursor-pointer items-center gap-2 rounded-md border border-input bg-muted px-3 text-sm transition-colors hover:bg-accent"
+        >
+          <input
+            type="checkbox"
+            name="alle"
+            value="1"
+            checked={!onlyOpen}
+            class="size-4 rounded border-input accent-primary"
+          />
+          <span class="whitespace-nowrap">{t("intern.mkPoolShowTaken")}</span>
+        </label>
+        <Button type="submit" variant="default" size="sm">{t("intern.filterButton")}</Button>
+      </div>
+      {hasActiveFilters && (
+        <div class="mt-3 border-t border-border pt-3 text-right">
+          <a
+            href="/intern/marketing/firmenpool/"
+            class="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
+          >
+            {t("intern.filterReset")}
+          </a>
+        </div>
+      )}
     </form>
+    <script
+      is:inline
+      type="application/json"
+      data-pool-ort-values
+      set:html={jsonForScriptTag(ortSelection)}
+    />
 
     {!data && (
-      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+      <div class="mt-6 rounded-xl border border-error/40 bg-error/10 p-4 text-sm text-error">
         {t("intern.mkPoolLoadFailed")}
       </div>
     )}
@@ -116,45 +231,101 @@ function pageLink(target: number) {
       <form method="POST" action="/intern/marketing/firmenpool/uebernehmen" data-hook="pool-form">
         <input type="hidden" name="back" value={buildQuery()} />
 
-        <section class="mt-6 rounded-lg border border-border bg-card">
+        {data.Leads.length > 0 && (
           <div
-            class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3 text-sm text-muted-foreground"
+            class="sticky top-14 z-30 mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-background/95 px-3 py-2.5 shadow-lg backdrop-blur-md sm:px-4"
+            data-hook="selection-toolbar"
           >
-            <span>
-              {t("intern.mkPoolTotal", { count: data.Total })}
-              <span data-hook="selection-count" class="ml-2 hidden font-medium text-foreground"></span>
-            </span>
-            {data.Leads.length > 0 && (
-              <label class="flex items-center gap-2">
-                <input type="checkbox" data-hook="select-all" class="size-4" />
-                <span>{t("intern.mkPoolSelectAll")}</span>
-              </label>
-            )}
+            <div class="min-w-0">
+              <p class="text-xs text-muted-foreground">
+                {t("intern.mkPoolPageOpenCount", {
+                  count: openLeadsOnPage,
+                  total: data.Leads.length,
+                })}
+              </p>
+              <p
+                data-hook="selection-count"
+                class="hidden truncate text-sm font-semibold text-foreground"
+                aria-live="polite"
+              >
+              </p>
+            </div>
+            <div class="ml-auto flex items-center gap-2 sm:gap-3">
+              {openLeadsOnPage > 0 && (
+                <label class="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+                  <input
+                    type="checkbox"
+                    data-hook="select-all"
+                    class="size-4 rounded border-input accent-primary"
+                  />
+                  <span class="hidden sm:inline">{t("intern.mkPoolSelectAll")}</span>
+                  <span class="sm:hidden">{t("intern.mkPoolSelectAllShort")}</span>
+                </label>
+              )}
+              <Button
+                type="submit"
+                variant="default"
+                size="sm"
+                data-hook="take-selected"
+                aria-disabled="true"
+              >
+                <span data-hook="take-selected-label">{t("intern.mkPoolTakeSelectedShort")}</span>
+              </Button>
+            </div>
           </div>
+        )}
 
+        <section class="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           {data.Leads.length === 0 ? (
-            <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.mkPoolEmpty")}</p>
+            <div class="px-5 py-12 text-center">
+              <p class="text-sm font-medium">{t("intern.mkPoolEmpty")}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{t("intern.mkPoolEmptyHint")}</p>
+            </div>
           ) : (
             <ul class="divide-y divide-border">
               {data.Leads.map((lead) => (
-                <li class="flex items-start gap-3 px-5 py-4">
+                <li class="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/45 sm:px-4">
                   <input
                     type="checkbox"
                     name="ids"
                     value={lead.Id}
                     disabled={lead.ContactId !== null}
-                    class="mt-1 size-4 shrink-0 disabled:opacity-40"
+                    aria-label={t("intern.mkPoolSelectCompany", { company: lead.Name })}
+                    class="size-4 shrink-0 rounded border-input accent-primary disabled:opacity-35"
                   />
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate font-medium">{lead.Name}</p>
-                    <p class="mt-0.5 truncate text-sm text-muted-foreground">
-                      {[lead.Sitz, lead.RechtsformText, lead.Fnr].filter(Boolean).join(" · ")}
-                    </p>
-                  </div>
+                  <a
+                    href={detailLink(lead.Fnr)}
+                    class="grid min-w-0 flex-1 items-center gap-x-4 sm:grid-cols-[minmax(0,1fr)_10rem_9rem_1.25rem]"
+                    aria-label={t("intern.mkPoolOpenCompany", { company: lead.Name })}
+                  >
+                    <span class="min-w-0">
+                      <span class="block truncate text-sm font-semibold transition-colors group-hover:text-primary">
+                        {lead.Name}
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-muted-foreground sm:hidden">
+                        {[lead.Sitz, lead.RechtsformText, lead.Fnr].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                    <span class="hidden truncate text-sm text-muted-foreground sm:block">
+                      {lead.Sitz ?? "–"}
+                    </span>
+                    <span class="hidden min-w-0 sm:block">
+                      <span class="block truncate text-xs text-muted-foreground">
+                        {lead.RechtsformText ?? t("intern.mkPoolDetailNotAvailable")}
+                      </span>
+                      <span class="block truncate text-xs font-medium">{lead.Fnr}</span>
+                    </span>
+                    <span
+                      class="hidden text-right text-lg text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary sm:block"
+                      aria-hidden="true"
+                    >
+                      →
+                    </span>
+                  </a>
                   {lead.ContactId && lead.ContactStatus && (
                     <a
                       href={`/intern/marketing/kontakte/detail/?id=${lead.ContactId}`}
-                      class={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${contactStatusBadgeClass(lead.ContactStatus)}`}
+                      class={`relative z-10 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${contactStatusBadgeClass(lead.ContactStatus)}`}
                       title={t("intern.mkPoolAlreadyTaken")}
                     >
                       {contactStatusLabel(lead.ContactStatus)}
@@ -165,20 +336,14 @@ function pageLink(target: number) {
             </ul>
           )}
         </section>
-
-        {data.Leads.length > 0 && (
-          <div class="mt-4 flex justify-end">
-            <Button type="submit" variant="default">{t("intern.mkPoolTakeSelected")}</Button>
-          </div>
-        )}
       </form>
     )}
 
     {data && totalPages > 1 && (
-      <nav class="mt-6 flex items-center justify-between text-sm">
+      <nav class="mt-5 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-sm">
         {page > 0 ? (
-          <a href={pageLink(page - 1)} class="underline hover:no-underline">
-            {t("intern.pagePrev")}
+          <a href={pageLink(page - 1)} class="font-medium hover:text-primary hover:underline">
+            ← {t("intern.pagePrev")}
           </a>
         ) : (
           <span />
@@ -187,8 +352,8 @@ function pageLink(target: number) {
           {t("intern.pageInfo", { page: page + 1, pages: totalPages })}
         </span>
         {data.HasMore ? (
-          <a href={pageLink(page + 1)} class="underline hover:no-underline">
-            {t("intern.pageNext")}
+          <a href={pageLink(page + 1)} class="font-medium hover:text-primary hover:underline">
+            {t("intern.pageNext")} →
           </a>
         ) : (
           <span />
@@ -201,6 +366,34 @@ function pageLink(target: number) {
 <script>
   import { t } from "@/i18n";
 
+  // SSR-Filterauswahl in dieselbe OrtPicker-Instanz zurueckspielen. Der kurze
+  // Retry deckt beide Script-Reihenfolgen ab (Picker-Bundle vor/nach Seitenscript).
+  const ortState = document.querySelector<HTMLScriptElement>("[data-pool-ort-values]");
+  let initialOrts: string[] = [];
+  try {
+    const parsed = JSON.parse(ortState?.textContent || "[]") as unknown;
+    if (Array.isArray(parsed)) {
+      initialOrts = parsed.filter((value): value is string => typeof value === "string");
+    }
+  } catch {
+    initialOrts = [];
+  }
+
+  function restoreOrtSelection(attempt = 0) {
+    const setter = (
+      window as typeof window & {
+        setOrtPickerValues?: (name: string, values: string[]) => void;
+      }
+    ).setOrtPickerValues;
+    if (setter) {
+      setter("ort", initialOrts);
+      return;
+    }
+    if (attempt < 12) window.setTimeout(() => restoreOrtSelection(attempt + 1), 25);
+  }
+
+  restoreOrtSelection();
+
   // Auswahl seitenuebergreifend halten: die Firmenpool-Liste ist serverseitig paginiert,
   // ein reines Formular pro Seite wuerde beim Blaettern die vorher angehakten Firmen
   // stillschweigend verlieren. Die IDs liegen daher in sessionStorage; beim Absenden
@@ -210,7 +403,12 @@ function pageLink(target: number) {
   function loadSelection(): Set<string> {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+      const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+      return new Set(
+        Array.isArray(parsed)
+          ? parsed.filter((value): value is string => typeof value === "string")
+          : [],
+      );
     } catch {
       return new Set();
     }
@@ -233,27 +431,45 @@ function pageLink(target: number) {
   const boxes = [...document.querySelectorAll<HTMLInputElement>('input[name="ids"]')];
   const countEl = document.querySelector<HTMLElement>('[data-hook="selection-count"]');
   const selectAll = document.querySelector<HTMLInputElement>('[data-hook="select-all"]');
+  const submitButton = document.querySelector<HTMLButtonElement>('[data-hook="take-selected"]');
+  const submitLabel = document.querySelector<HTMLElement>('[data-hook="take-selected-label"]');
 
-  function refreshCount() {
-    if (!countEl) return;
-    if (selection.size === 0) {
-      countEl.classList.add("hidden");
-    } else {
-      countEl.textContent = t("intern.mkPoolSelectedCount", { count: selection.size });
-      countEl.classList.remove("hidden");
+  function refreshToolbar() {
+    if (countEl) {
+      if (selection.size === 0) {
+        countEl.classList.add("hidden");
+      } else {
+        countEl.textContent = t("intern.mkPoolSelectedCount", { count: selection.size });
+        countEl.classList.remove("hidden");
+      }
+    }
+
+    if (submitButton) {
+      submitButton.disabled = selection.size === 0;
+      submitButton.setAttribute("aria-disabled", String(selection.size === 0));
+    }
+
+    if (selectAll) {
+      const available = boxes.filter((box) => !box.disabled);
+      const checked = available.filter((box) => box.checked).length;
+      selectAll.checked = available.length > 0 && checked === available.length;
+      selectAll.indeterminate = checked > 0 && checked < available.length;
     }
   }
 
   // Gespeicherte Auswahl auf die aktuell sichtbaren Zeilen anwenden
   for (const box of boxes) {
-    if (!box.disabled && selection.has(box.value)) box.checked = true;
+    if (box.disabled) selection.delete(box.value);
+    else if (selection.has(box.value)) box.checked = true;
+
     box.addEventListener("change", () => {
       if (box.checked) selection.add(box.value);
       else selection.delete(box.value);
       saveSelection(selection);
-      refreshCount();
+      refreshToolbar();
     });
   }
+  saveSelection(selection);
 
   // Kopf-Checkbox schaltet nur die noch uebernehmbaren Zeilen der aktuellen Seite
   selectAll?.addEventListener("change", () => {
@@ -264,12 +480,17 @@ function pageLink(target: number) {
       else selection.delete(box.value);
     }
     saveSelection(selection);
-    refreshCount();
+    refreshToolbar();
   });
 
   // Beim Absenden die auf dieser Seite nicht sichtbaren Auswahl-IDs nachreichen
   const form = document.querySelector<HTMLFormElement>('[data-hook="pool-form"]');
-  form?.addEventListener("submit", () => {
+  form?.addEventListener("submit", (event) => {
+    if (selection.size === 0) {
+      event.preventDefault();
+      return;
+    }
+
     const onPage = new Set(boxes.map((b) => b.value));
     for (const id of selection) {
       if (onPage.has(id)) continue;
@@ -279,7 +500,10 @@ function pageLink(target: number) {
       hidden.value = id;
       form.append(hidden);
     }
+
+    if (submitButton) submitButton.disabled = true;
+    if (submitLabel) submitLabel.textContent = t("intern.mkPoolTakingSelected");
   });
 
-  refreshCount();
+  refreshToolbar();
 </script>

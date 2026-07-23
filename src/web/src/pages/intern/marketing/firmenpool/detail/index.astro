@@ -1,0 +1,282 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import {
+  adminApiGet,
+  type MarketingLeadPoolPage,
+} from "@/lib/server/admin-api";
+import {
+  fetchFirmenbuchCompanyByFnr,
+  type FirmenbuchCompany,
+} from "@/lib/server/firmenbuch-api";
+import {
+  contactStatusBadgeClass,
+  contactStatusLabel,
+} from "@/lib/intern/marketing-labels";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+
+const ALLOWED_BACK_PARAMS = ["q", "ort", "alle", "page"] as const;
+
+function safeBackQuery(value: string | null) {
+  const raw = new URLSearchParams(value ?? "");
+  const safe = new URLSearchParams();
+  for (const key of ALLOWED_BACK_PARAMS) {
+    const item = raw.get(key);
+    if (item) safe.set(key, item);
+  }
+  return safe.toString();
+}
+
+function formatDateTime(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return value;
+  return new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Vienna",
+  }).format(date);
+}
+
+const fnr = Astro.url.searchParams.get("fnr")?.trim() ?? "";
+const backQuery = safeBackQuery(Astro.url.searchParams.get("back"));
+const backHref = backQuery
+  ? `/intern/marketing/firmenpool/?${backQuery}`
+  : "/intern/marketing/firmenpool/";
+
+const leadQuery = new URLSearchParams({
+  search: fnr,
+  onlyOpen: "false",
+  page: "0",
+  pageSize: "10",
+});
+
+let company: FirmenbuchCompany | null = null;
+let leadPage: MarketingLeadPoolPage | null = null;
+if (fnr) {
+  [company, leadPage] = await Promise.all([
+    fetchFirmenbuchCompanyByFnr(fnr),
+    adminApiGet<MarketingLeadPoolPage>(
+      `/api/admin/marketing/lead-pool?${leadQuery}`,
+    ),
+  ]);
+}
+
+const lead = leadPage?.Leads.find(
+  (item) => item.Fnr.toLocaleLowerCase("de-AT") === fnr.toLocaleLowerCase("de-AT"),
+);
+
+type DetailField = {
+  label: string;
+  value: string | null;
+};
+
+const registerFields: DetailField[] = company
+  ? [
+      {
+        label: t("intern.mkPoolDetailFieldFnr"),
+        value: company.Fnr,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldStatus"),
+        value: company.Status ?? t("intern.mkPoolDetailStatusActive"),
+      },
+      {
+        label: t("intern.mkPoolDetailFieldSitz"),
+        value: company.Sitz,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldLegalForm"),
+        value: company.RechtsformText,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldLegalFormCode"),
+        value: company.RechtsformCode,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldLegalCapacity"),
+        value: company.Rechtseigenschaft,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldCourt"),
+        value: company.GerichtText,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldCourtCode"),
+        value: company.GerichtCode,
+      },
+    ]
+  : [];
+
+const sourceFields: DetailField[] = company
+  ? [
+      {
+        label: t("intern.mkPoolDetailFieldInternalId"),
+        value: company.Id,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldSourceRegion"),
+        value: company.SourceOrtNr,
+      },
+      {
+        label: t("intern.mkPoolDetailFieldFirstSeen"),
+        value: formatDateTime(company.FirstSeenAt),
+      },
+      {
+        label: t("intern.mkPoolDetailFieldLastSeen"),
+        value: formatDateTime(company.LastSeenAt),
+      },
+    ]
+  : [];
+
+function fieldValue(field: DetailField) {
+  return field.value || t("intern.mkPoolDetailNotAvailable");
+}
+---
+
+<BaseLayout
+  title={company
+    ? t("intern.mkPoolDetailMetaTitleCompany", { company: company.Name })
+    : t("intern.mkPoolDetailMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/marketing/firmenpool/detail/"
+  noindex
+>
+  <section class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:text-foreground hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/intern/marketing/" class="hover:text-foreground hover:underline">
+        {t("intern.marketingTitle")}
+      </a>
+      <span aria-hidden="true"> / </span>
+      <a href={backHref} class="hover:text-foreground hover:underline">
+        {t("intern.mkPoolTitle")}
+      </a>
+      <span aria-hidden="true"> / </span>
+      <span>{company?.Name ?? t("intern.mkPoolDetailTitle")}</span>
+    </nav>
+
+    {!company ? (
+      <div class="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h1 class="text-2xl font-bold">{t("intern.mkPoolDetailNotFound")}</h1>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          {t("intern.mkPoolDetailNotFoundHint")}
+        </p>
+        <Button href={backHref} variant="outline" size="sm" class="mt-5">
+          ← {t("intern.mkPoolDetailBack")}
+        </Button>
+      </div>
+    ) : (
+      <>
+        <header class="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div class="flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+            <div class="flex min-w-0 items-start gap-4">
+              <div
+                class="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary"
+                aria-hidden="true"
+              >
+                FB
+              </div>
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{company.Name}</h1>
+                  <span
+                    class:list={[
+                      "rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                      company.Status
+                        ? "border-warning/40 bg-warning/10 text-warning-foreground"
+                        : "border-success/40 bg-success/10 text-success-foreground",
+                    ]}
+                  >
+                    {company.Status ?? t("intern.mkPoolDetailStatusActive")}
+                  </span>
+                  {lead?.ContactId && lead.ContactStatus && (
+                    <a
+                      href={`/intern/marketing/kontakte/detail/?id=${lead.ContactId}`}
+                      class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${contactStatusBadgeClass(lead.ContactStatus)}`}
+                    >
+                      {contactStatusLabel(lead.ContactStatus)}
+                    </a>
+                  )}
+                </div>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  {[company.Sitz, company.RechtsformText, company.Fnr]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex shrink-0 flex-wrap gap-2">
+              <Button href={backHref} variant="outline" size="sm">
+                ← {t("intern.mkPoolDetailBack")}
+              </Button>
+              {lead?.ContactId ? (
+                <Button
+                  href={`/intern/marketing/kontakte/detail/?id=${lead.ContactId}`}
+                  variant="default"
+                  size="sm"
+                >
+                  {t("intern.mkPoolDetailOpenContact")}
+                </Button>
+              ) : (
+                <form method="POST" action="/intern/marketing/firmenpool/uebernehmen">
+                  <input type="hidden" name="ids" value={company.Id} />
+                  <input type="hidden" name="back" value={backQuery} />
+                  <Button type="submit" variant="default" size="sm">
+                    {t("intern.mkPoolDetailTakeContact")}
+                  </Button>
+                </form>
+              )}
+            </div>
+          </div>
+
+          <div class="border-t border-border bg-muted/35 px-5 py-3 text-sm text-muted-foreground sm:px-6">
+            {t("intern.mkPoolDetailContactDataHint")}
+          </div>
+        </header>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(17rem,0.8fr)]">
+          <section class="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-primary">
+                {t("intern.mkPoolDetailOfficialEyebrow")}
+              </p>
+              <h2 class="mt-1 text-lg font-semibold">{t("intern.mkPoolDetailRegisterHeading")}</h2>
+            </div>
+            <dl class="mt-5 grid gap-3 sm:grid-cols-2">
+              {registerFields.map((field) => (
+                <div class="rounded-lg border border-border/70 bg-muted/30 px-4 py-3">
+                  <dt class="text-xs font-medium text-muted-foreground">{field.label}</dt>
+                  <dd class:list={["mt-1 break-words text-sm font-medium", !field.value && "text-muted-foreground"]}>
+                    {fieldValue(field)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          <section class="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            <p class="text-xs font-semibold uppercase tracking-wider text-primary">
+              {t("intern.mkPoolDetailSourceEyebrow")}
+            </p>
+            <h2 class="mt-1 text-lg font-semibold">{t("intern.mkPoolDetailSourceHeading")}</h2>
+            <dl class="mt-5 space-y-4">
+              {sourceFields.map((field) => (
+                <div>
+                  <dt class="text-xs font-medium text-muted-foreground">{field.label}</dt>
+                  <dd class:list={["mt-1 break-all text-sm font-medium", !field.value && "text-muted-foreground"]}>
+                    {fieldValue(field)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </div>
+      </>
+    )}
+  </section>
+</BaseLayout>

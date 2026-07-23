@@ -46,8 +46,7 @@ public class GetMarketingLeadPoolHandler(
 
         if (!string.IsNullOrWhiteSpace(request.Sitz))
         {
-            var sitz = request.Sitz.Trim().ToLowerInvariant();
-            query = query.Where(c => c.Sitz != null && c.Sitz.ToLower().Contains(sitz));
+            query = query.Where(SitzFilter(request.Sitz));
         }
 
         // Uebernommene Firmen haengen ueber die Firmenbuchnummer am Kontakt
@@ -124,5 +123,38 @@ public class GetMarketingLeadPoolHandler(
             .Aggregate(Expression.OrElse);
 
         return Expression.Lambda<Func<FirmenbuchCompany, bool>>(body, company);
+    }
+
+    /// <summary>
+    /// Der Astro-OrtPicker kann wie auf der Startseite mehrere Gemeinden liefern.
+    /// Die Werte kommen kommasepariert an und werden als ODER-Filter auf den
+    /// Firmenbuch-Sitz angewendet. Ein einzelner Wert bleibt abwaertskompatibel.
+    /// </summary>
+    private static Expression<Func<FirmenbuchCompany, bool>> SitzFilter(string rawSitz)
+    {
+        var sitze = rawSitz
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(x => x.ToLowerInvariant())
+            .Distinct()
+            .ToList();
+
+        if (sitze.Count == 0)
+            return _ => true;
+
+        var company = Expression.Parameter(typeof(FirmenbuchCompany), "c");
+        var sitzProperty = Expression.Property(company, nameof(FirmenbuchCompany.Sitz));
+        var hasSitz = Expression.NotEqual(sitzProperty, Expression.Constant(null, typeof(string)));
+        var lowerSitz = Expression.Call(
+            sitzProperty,
+            typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!);
+        var contains = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
+
+        var matchesAnySitz = sitze
+            .Select(sitz => (Expression)Expression.Call(lowerSitz, contains, Expression.Constant(sitz)))
+            .Aggregate(Expression.OrElse);
+
+        return Expression.Lambda<Func<FirmenbuchCompany, bool>>(
+            Expression.AndAlso(hasSitz, matchesAnySitz),
+            company);
     }
 }
