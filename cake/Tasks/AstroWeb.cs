@@ -16,8 +16,8 @@ public static class AstroWeb
     /// <paramref name="apiBaseUrl"/> wird als PUBLIC_API_BASE_URL in die Client-Skripte
     /// eingebettet; serverseitige SSR-Fetches nutzen zur Laufzeit API_BASE_URL_SERVER
     /// (docker-compose). <paramref name="rybbitSiteId"/> aktiviert das Rybbit-Tracking-
-    /// Snippet (BaseLayout.astro) - leer lassen, um ein Bundle ohne Tracking zu bauen
-    /// (Test-Web).
+    /// Snippet (BaseLayout.astro) - Prod und Test-Web uebergeben je eine eigene Site-Id;
+    /// leer lassen (z.B. lokal) baut ein Bundle ohne Tracking.
     /// </summary>
     public static void Build(BuildContext context, string? apiBaseUrl, string? rybbitSiteId = null)
     {

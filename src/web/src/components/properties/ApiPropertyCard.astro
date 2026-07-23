@@ -6,7 +6,6 @@ import UserIcon from "@tabler/icons/outline/user.svg";
 import {
   formatApiDate,
   formatApiPrice,
-  getApiAddressLine,
   getApiAreaLabel,
   getApiAreaValue,
   getApiPropertyPath,
@@ -15,6 +14,8 @@ import {
   getApiSellerLabel,
   getApiSellerSearchValue,
   getApiPropertyImage,
+  getApiLocationLine,
+  getApiStreetLine,
   type ApiProperty,
 } from "@/features/properties/live-api";
 import { slugifyLocation } from "@/features/locations/region-match";
@@ -33,14 +34,21 @@ const sellerSearchValue = getApiSellerSearchValue(property.SellerType);
 // Zwangsversteigerungen tragen den SellerType des ZV-Syncs (Broker) - hier
 // aussagekraeftiger wie auf der Detailseite: "Gericht".
 const sellerLabel = typeSearchValue === "foreclosure" ? t("card.sellerCourt") : getApiSellerLabel(property.SellerType);
+// Fusszeile vertraegt fehlende Namen (kein haengender Trennpunkt)
+const sellerLine = [sellerLabel, property.SellerName?.trim()].filter(Boolean).join(" · ");
 const area = getApiAreaValue(property);
+// Titel als Kopfzeile, darunter "PLZ Ort" und dann die Strasse - die PLZ
+// gehoert zum Ort, nie vor die Strasse ("4742 Bahnhofstrasse 3" liest sich falsch)
+const displayTitle = getDisplayTitle(property.Title);
+const locationLine = getApiLocationLine(property) || property.City;
+const streetLine = getApiStreetLine(property);
 const imageUrl = getApiPropertyImage(property);
 const responsiveImage = getResponsiveImage(imageUrl);
 const citySlug = slugifyLocation(property.City);
 ---
 
 <article
-  class="property-card group overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
+  class="property-card group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
   data-property-card
   data-live-property="true"
   data-slug={property.Id}
@@ -113,18 +121,12 @@ const citySlug = slugifyLocation(property.City);
   <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
     <div class="min-w-0">
       <h2 class="truncate text-base font-semibold">
-        <a href={href} class="hover:underline">{property.City || property.Title}</a>
+        <a href={href} class="hover:underline">{displayTitle || locationLine}</a>
       </h2>
-      <p class="truncate text-sm text-muted-foreground">{getApiAddressLine(property)}</p>
-      <p class="mt-1 truncate text-xs text-muted-foreground">{getDisplayTitle(property.Title)}</p>
-      <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-        <UserIcon class="size-3" aria-hidden="true" />
-        {sellerLabel} · {property.SellerName}
-      </p>
-      <p class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-        <CalendarIcon class="size-3" aria-hidden="true" />
-        {formatApiDate(property.CreatedAt) || t("card.liveOffer")}
-      </p>
+      {/* Gestaffelte Adresse: Ort kraeftig, Strasse klein und grau - zwei
+          gleich graue Zeilen wirkten plump */}
+      {locationLine && <p class="mt-0.5 truncate text-sm font-medium">{locationLine}</p>}
+      {streetLine && <p class="mt-0.5 truncate text-xs text-muted-foreground">{streetLine}</p>}
     </div>
 
     <dl class="text-right">
@@ -136,11 +138,26 @@ const citySlug = slugifyLocation(property.City);
         <dt class="sr-only">{t("card.area")}</dt>
         <dd class="text-sm font-semibold text-muted-foreground">{area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
       </div>
-      <div class="mt-3 flex justify-end gap-1">
-        {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
-        {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
-      </div>
+      {(property.LivingAreaM2 || property.Rooms) && (
+        <div class="mt-3 flex justify-end gap-1">
+          {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
+          {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
+        </div>
+      )}
     </dl>
+  </div>
+
+  {/* mt-auto pinnt die Fusszeile an den Kartenboden - Karten in einer
+      Grid-Zeile sind gleich hoch, auch wenn z.B. die Chips-Zeile fehlt */}
+  <div class="mt-auto flex items-center justify-between gap-3 border-t border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+    <span class="flex min-w-0 items-center gap-1.5">
+      <UserIcon class="size-3.5 shrink-0" aria-hidden="true" />
+      <span class="truncate">{sellerLine}</span>
+    </span>
+    <span class="flex shrink-0 items-center gap-1.5">
+      <CalendarIcon class="size-3.5 shrink-0" aria-hidden="true" />
+      {formatApiDate(property.CreatedAt) || t("card.liveOffer")}
+    </span>
   </div>
   <p class="sr-only">{getApiAreaLabel(property)}</p>
 </article>

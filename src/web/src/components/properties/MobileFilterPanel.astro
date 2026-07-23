@@ -21,16 +21,17 @@ const ortRegions = await fetchOrtRegions();
       <FilterIcon class="size-4" aria-hidden="true" />
       {t("search.filterToggle")}
     </span>
-    <span class="flex items-center gap-2 text-sm text-muted-foreground">
-      <span data-mobile-result-count>{t("search.resultCountMany", { count: 0 })}</span>
-      <ChevronDownIcon class="size-4 transition-transform duration-200 group-aria-expanded:rotate-180" aria-hidden="true" />
-    </span>
+    {/* Die Trefferzahl steht direkt darunter als Stempel in der Suchleiste -
+        hier bleibt nur der Aufklapp-Indikator */}
+    <ChevronDownIcon class="size-4 text-muted-foreground transition-transform duration-200 group-aria-expanded:rotate-180" aria-hidden="true" />
   </button>
 
   <form action="/" method="get" class="hidden px-3 pb-3" data-mobile-filter-body>
     <div class="grid grid-cols-2 gap-2">
       <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
-      <NativeSelect name="age" data-filter-age>
+      {/* size="sm" (h-9): gleiche Hoehe wie der OrtPicker-Trigger daneben;
+          text-base bleibt - <select> unter 16px loest auf iOS Auto-Zoom aus */}
+      <NativeSelect name="age" size="sm" class="text-base" data-filter-age>
         <option value="">{t("filter.period")}</option>
         <option value="day">{t("filter.period24h")}</option>
         <option value="week">{t("filter.period7d")}</option>
@@ -41,15 +42,16 @@ const ortRegions = await fetchOrtRegions();
 
     <div class="mt-3 flex flex-wrap gap-2">
       {/* Kein eigener "Wohnung"-Chip: die API kennt nur House/Land/Foreclosure,
-          Desktop-Header bietet ihn ebenfalls nicht - Filterung laeuft komplett serverseitig. */}
-      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="house" aria-pressed="true">{t("filter.typeHouse")}</button>
-      <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-type="land" aria-pressed="true">{t("filter.typeLand")}</button>
-      {/* Zwangsversteigerungen standardmaessig deaktiviert (wie Desktop-Header) */}
-      <button type="button" class="rounded-md border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors" data-filter-type="foreclosure" aria-pressed="false">{t("filter.typeForeclosure")}</button>
-      <span class="basis-full"></span>
-      <div class="flex flex-wrap gap-2" data-seller-filter-group>
-        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
-        <button type="button" class="rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
+          die Desktop-Suchleiste bietet ihn ebenfalls nicht - Filterung laeuft
+          komplett serverseitig. Zwangsversteigerungen standardmaessig deaktiviert. */}
+      <div class="filter-chip-group" role="group" aria-label={t("search.settingsTypeTitle")}>
+        <button type="button" class="filter-chip" data-filter-type="house" aria-pressed="true">{t("filter.typeHouse")}</button>
+        <button type="button" class="filter-chip" data-filter-type="land" aria-pressed="true">{t("filter.typeLand")}</button>
+        <button type="button" class="filter-chip" data-filter-type="foreclosure" aria-pressed="false">{t("filter.typeForeclosure")}</button>
+      </div>
+      <div class="filter-chip-group" role="group" aria-label={t("search.settingsSellerTitle")} data-seller-filter-group>
+        <button type="button" class="filter-chip" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
+        <button type="button" class="filter-chip" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
       </div>
     </div>
 

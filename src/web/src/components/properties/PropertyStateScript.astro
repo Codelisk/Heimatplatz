@@ -1,7 +1,7 @@
 <script>
   import { getResponsiveImage } from "@/lib/images";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
-  import { formatApiPrice, getDisplayTitle } from "@/features/properties/format";
+  import { formatApiPrice, getApiLocationLine, getApiStreetLine, getDisplayTitle } from "@/features/properties/format";
   import { t } from "@/i18n";
   // Nur Typ-Import aus live-api (wird beim Build geloescht) - Wert-Importe wuerden
   // die Server-Abhaengigkeiten (ttl-cache, api-base) ins Client-Bundle ziehen
@@ -1777,15 +1777,18 @@
     const titleLink = document.createElement("a");
     titleLink.href = `/immobilien/angebote/${encodeURIComponent(property.Id)}/`;
     titleLink.className = "hover:underline";
-    titleLink.textContent = property.City || property.Title;
+    // Titel als Kopfzeile, darunter "PLZ Ort" und Strasse (wie ApiPropertyCard.astro)
+    const locationLine = getApiLocationLine(property) || property.City;
+    titleLink.textContent = getDisplayTitle(property.Title) || locationLine;
     title.append(titleLink);
     const price = createText("p", "shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-price", formatApiPrice(property.Price));
     head.append(title, price);
-    const place = [property.PostalCode, property.City].filter(Boolean).join(" ");
-    const addressText = (property.Address ?? "").trim();
-    // Adressen aus Importen enthalten oft schon "PLZ Ort" - nicht doppelt anzeigen
-    const address = createText("p", "mt-1 text-sm text-muted-foreground", addressText && addressText !== place ? `${place} · ${addressText}` : place);
-    const subtitle = createText("p", "mt-1 text-xs text-muted-foreground", getDisplayTitle(property.Title));
+    const streetLine = getApiStreetLine(property);
+    // Gestaffelte Adresse: Ort kraeftig, Strasse klein und grau (wie ApiPropertyCard.astro)
+    const address = [
+      ...(locationLine ? [createText("p", "mt-1 text-sm font-medium", locationLine)] : []),
+      ...(streetLine ? [createText("p", "mt-0.5 text-xs text-muted-foreground", streetLine)] : []),
+    ];
     const meta = createText(
       "p",
       "mt-4 text-sm font-semibold",
@@ -1805,9 +1808,9 @@
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">${t("common.edit")}</a>
         <button type="button" class="inline-flex h-9 items-center rounded-md bg-error px-3 text-sm font-medium text-error-foreground" data-remote-delete="${property.Id}">${t("common.delete")}</button>
       `;
-      body.append(head, address, subtitle, meta, actions);
+      body.append(head, ...address, meta, actions);
     } else {
-      body.append(head, address, subtitle, meta);
+      body.append(head, ...address, meta);
     }
     card.append(imageWrap, body);
     return card;

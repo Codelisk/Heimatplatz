@@ -31,9 +31,11 @@ public class BuildContext : FrostingContext
     // Web-Deploy settings (Hetzner, Astro-Web-SSR via rsync)
     public string ApiBaseUrl { get; }
     public string ApiBaseUrlTest { get; }
-    // Rybbit-Tracking-Snippet (siehe AstroWeb.Build): nur im Prod-Bundle gesetzt,
-    // Test-Web bleibt bewusst ohne Tracking (QA-Traffic soll die Statistik nicht verfaelschen).
+    // Rybbit-Tracking-Snippet (siehe AstroWeb.Build): Prod- und Test-Bundle bekommen je eine
+    // EIGENE Rybbit-Site-Id, damit QA-Traffic in einer getrennten Statistik landet und die
+    // Prod-Zahlen nicht verfaelscht (Test-Site: test.heimatplatz.at).
     public string RybbitSiteId { get; }
+    public string RybbitSiteIdTest { get; }
     public string HetznerHost { get; }
     public string HetznerUser { get; }
     public string HetznerSshKeyPath { get; }
@@ -86,6 +88,7 @@ public class BuildContext : FrostingContext
         ApiBaseUrl = GetConfigValue("Web:ApiBaseUrl", "API_BASE_URL");
         ApiBaseUrlTest = GetConfigValue("Web:ApiBaseUrlTest", "API_BASE_URL_TEST");
         RybbitSiteId = GetConfigValue("Web:RybbitSiteId", "RYBBIT_SITE_ID");
+        RybbitSiteIdTest = GetConfigValue("Web:RybbitSiteIdTest", "RYBBIT_SITE_ID_TEST");
         HetznerHost = GetConfigValue("Hetzner:Host", "HETZNER_HOST");
         HetznerUser = GetConfigValue("Hetzner:User", "HETZNER_USER");
         var hetznerKeyPath = GetConfigValue("Hetzner:SshKeyPath", "HETZNER_SSH_KEY_PATH");

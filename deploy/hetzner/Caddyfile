@@ -50,8 +50,8 @@
 		# Ressourcen kommen von self bzw. der API-Domain, Formulare posten auf self.
 		# 'unsafe-inline' ist fuer Astros Inline-Scripts/-Styles (Theme-Init, Islands) noetig.
 		# blob: in img-src fuer die lokale Foto-Vorschau beim Inserieren (URL.createObjectURL).
-		# analytics.heimatplatz.at (21.7.2026): selbstgehostetes Rybbit-Tracking-Snippet,
-		# nur auf Prod eingebunden (Test-Web baut ohne PUBLIC_RYBBIT_SITE_ID, s. BaseLayout.astro).
+		# analytics.heimatplatz.at (21.7.2026): selbstgehostetes Rybbit-Tracking-Snippet
+		# (BaseLayout.astro). Prod und Test-Web tracken je in eine eigene Rybbit-Site-Id.
 		# media-src (22.7.2026): Sprachnachrichten-Wiedergabe (Feedback) laedt Audio von der API;
 		# blob: fuer die Vorschau der im Browser aufgenommenen Sprachnachricht (MediaRecorder).
 		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://analytics.heimatplatz.at; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
@@ -89,7 +89,9 @@ www.{$WEB_DOMAIN} {
 		# blob: in img-src fuer die lokale Foto-Vorschau beim Inserieren (URL.createObjectURL).
 		# media-src (22.7.2026): Sprachnachrichten-Wiedergabe (Feedback) laedt Audio von der API;
 		# blob: fuer die Vorschau der im Browser aufgenommenen Sprachnachricht (MediaRecorder).
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# analytics.heimatplatz.at (23.7.2026): selbstgehostetes Rybbit-Tracking-Snippet, das
+		# Test-Web hat eine eigene Rybbit-Site-Id (s. BaseLayout.astro / DeployAstroTest).
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN} https://analytics.heimatplatz.at; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI, nur von HOME_IP erreichbar (wie Prod-Web).

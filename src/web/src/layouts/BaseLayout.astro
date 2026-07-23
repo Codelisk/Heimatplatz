@@ -56,9 +56,10 @@ const jsonLd = jsonForScriptTag([
   ...data,
 ]);
 
-// Rybbit-Tracking (selbstgehostet, cookieless): nur gesetzt im Prod-Build (siehe
-// cake/Tasks/AstroWeb.cs) - Test-Web baut ohne PUBLIC_RYBBIT_SITE_ID, damit QA-Traffic
-// die Statistik nicht verfaelscht.
+// Rybbit-Tracking (selbstgehostet, cookieless): der Build bettet PUBLIC_RYBBIT_SITE_ID
+// pro Umgebung ein (siehe cake/Tasks/AstroWeb.cs) - Prod und Test-Web nutzen je eine
+// eigene Site-Id, damit QA-Traffic in einer getrennten Statistik landet. Lokale Builds
+// ohne die Variable rendern das Snippet gar nicht.
 const rybbitSiteId = import.meta.env.PUBLIC_RYBBIT_SITE_ID;
 ---
 

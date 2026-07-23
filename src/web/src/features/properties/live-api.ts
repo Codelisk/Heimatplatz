@@ -186,16 +186,7 @@ export function getApiSellerLabel(sellerType: string | number | null) {
 
 // Kanonische Formatierung lebt in format.ts (client-sicher, keine
 // Server-Abhaengigkeiten); hier nur re-exportiert fuer bestehende SSR-Importe.
-export { formatApiDate, formatApiPrice, formatApiPriceLong } from "./format";
-
-export function getApiAddressLine(property: ApiProperty) {
-  const address = (property.Address ?? "").trim();
-  const postalCode = (property.PostalCode ?? "").trim();
-  if (!address) return [postalCode, property.City].filter(Boolean).join(" ");
-  // Adressen aus Importen enthalten oft schon die PLZ ("4742 Pram")
-  if (!postalCode || address.startsWith(postalCode)) return address;
-  return `${postalCode} ${address}`;
-}
+export { formatApiDate, formatApiPrice, formatApiPriceLong, getApiLocationLine, getApiStreetLine } from "./format";
 
 export function getApiAreaValue(property: ApiProperty) {
   return Number(property.PlotAreaM2 ?? property.LivingAreaM2 ?? 0);
