@@ -1475,6 +1475,36 @@
         }
       }
     },
+    "/api/feedback/subject": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RenameFeedbackTicket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameFeedbackTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenameFeedbackTicketResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/feedback/attachments": {
       "post": {
         "tags": [
@@ -2165,6 +2195,36 @@
         }
       }
     },
+    "/api/admin/marketing/lead-pool/add": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "AddMarketingLeads",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMarketingLeadsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddMarketingLeadsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/contacts/{Id}": {
       "delete": {
         "tags": [
@@ -2189,6 +2249,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DeleteMarketingContactResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/templates/{Id}": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "DeleteMarketingTemplate",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteMarketingTemplateResponse"
                 }
               }
             }
@@ -2283,6 +2374,14 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "DueOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           },
           {
@@ -2458,6 +2557,76 @@
         }
       }
     },
+    "/api/admin/marketing/lead-pool": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingLeadPool",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Sitz",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "OnlyOpen",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingLeadPoolResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/stats": {
       "get": {
         "tags": [
@@ -2471,6 +2640,96 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetMarketingStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/templates": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingTemplates",
+        "parameters": [
+          {
+            "name": "IncludeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingTemplatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/contacts/activity": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "LogMarketingActivity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogMarketingActivityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogMarketingActivityResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/templates/render": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RenderMarketingTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenderMarketingTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenderMarketingTemplateResponse"
                 }
               }
             }
@@ -2501,6 +2760,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SaveMarketingContactResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/templates/save": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SaveMarketingTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMarketingTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveMarketingTemplateResponse"
                 }
               }
             }
@@ -3620,6 +3909,57 @@
           }
         }
       },
+      "AddMarketingLeadsRequest": {
+        "required": [
+          "FirmenbuchCompanyIds"
+        ],
+        "type": "object",
+        "properties": {
+          "FirmenbuchCompanyIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "AddMarketingLeadsResponse": {
+        "required": [
+          "Success",
+          "Added",
+          "Skipped",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Added": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Skipped": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "AdminDeletePropertyResponse": {
         "required": [
           "Success",
@@ -4158,7 +4498,6 @@
       "CreateFeedbackTicketRequest": {
         "required": [
           "Category",
-          "Subject",
           "Body",
           "Source",
           "AppVersion",
@@ -4168,12 +4507,6 @@
         "properties": {
           "Category": {
             "$ref": "#/components/schemas/FeedbackCategory"
-          },
-          "Subject": {
-            "type": [
-              "null",
-              "string"
-            ]
           },
           "Body": {
             "type": "string"
@@ -4393,6 +4726,17 @@
         }
       },
       "DeleteMarketingContactResponse": {
+        "required": [
+          "Success"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DeleteMarketingTemplateResponse": {
         "required": [
           "Success"
         ],
@@ -5841,7 +6185,8 @@
         "required": [
           "Contact",
           "Emails",
-          "Replies"
+          "Replies",
+          "Activities"
         ],
         "type": "object",
         "properties": {
@@ -5865,6 +6210,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MarketingInboundEmailDto"
+            }
+          },
+          "Activities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingActivityDto"
             }
           }
         }
@@ -6026,10 +6377,57 @@
           }
         }
       },
+      "GetMarketingLeadPoolResponse": {
+        "required": [
+          "Leads",
+          "Total",
+          "PageSize",
+          "CurrentPage",
+          "HasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "Leads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingLeadDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "PageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CurrentPage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "HasMore": {
+            "type": "boolean"
+          }
+        }
+      },
       "GetMarketingStatsResponse": {
         "required": [
           "TotalContacts",
           "Leads",
+          "ToContact",
+          "FollowUpDue",
           "Contacted",
           "Replied",
           "Interested",
@@ -6053,6 +6451,22 @@
             "format": "int32"
           },
           "Leads": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ToContact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "FollowUpDue": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -6148,6 +6562,20 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "GetMarketingTemplatesResponse": {
+        "required": [
+          "Templates"
+        ],
+        "type": "object",
+        "properties": {
+          "Templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingTemplateDto"
+            }
           }
         }
       },
@@ -7577,6 +8005,151 @@
           }
         }
       },
+      "LogMarketingActivityRequest": {
+        "required": [
+          "ContactId",
+          "Type",
+          "Notes"
+        ],
+        "type": "object",
+        "properties": {
+          "ContactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/MarketingActivityType"
+          },
+          "Notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "OccurredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "FollowUpAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "NewStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
+            ]
+          }
+        }
+      },
+      "LogMarketingActivityResponse": {
+        "required": [
+          "Success",
+          "Id",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MarketingActivityDto": {
+        "required": [
+          "Id",
+          "ContactId",
+          "Type",
+          "Notes",
+          "StatusFrom",
+          "StatusTo",
+          "FollowUpAt",
+          "OccurredAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ContactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/MarketingActivityType"
+          },
+          "Notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "StatusFrom": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
+            ]
+          },
+          "StatusTo": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
+            ]
+          },
+          "FollowUpAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "OccurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MarketingActivityType": {
+        "enum": [
+          "Note",
+          "Call",
+          "StatusChange",
+          "FollowUp",
+          "Meeting"
+        ]
+      },
       "MarketingContactDto": {
         "required": [
           "Id",
@@ -7584,15 +8157,19 @@
           "Name",
           "Company",
           "Phone",
+          "City",
           "ContactType",
           "Status",
           "Notes",
           "Source",
+          "FirmenbuchFnr",
+          "NextFollowUpAt",
           "LastContactedAt",
           "LastReplyAt",
           "CreatedAt",
           "EmailCount",
-          "ReplyCount"
+          "ReplyCount",
+          "ActivityCount"
         ],
         "type": "object",
         "properties": {
@@ -7601,7 +8178,10 @@
             "format": "uuid"
           },
           "Email": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "Name": {
             "type": [
@@ -7616,6 +8196,12 @@
             ]
           },
           "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "City": {
             "type": [
               "null",
               "string"
@@ -7638,6 +8224,19 @@
               "null",
               "string"
             ]
+          },
+          "FirmenbuchFnr": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "NextFollowUpAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           },
           "LastContactedAt": {
             "type": [
@@ -7672,6 +8271,14 @@
               "string"
             ],
             "format": "int32"
+          },
+          "ActivityCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -7683,7 +8290,9 @@
           "Interested",
           "Customer",
           "NotInterested",
-          "DoNotContact"
+          "DoNotContact",
+          "ToContact",
+          "FollowUp"
         ]
       },
       "MarketingContactType": {
@@ -7721,7 +8330,10 @@
             "format": "uuid"
           },
           "ContactEmail": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "ContactName": {
             "type": [
@@ -7842,6 +8454,108 @@
           },
           "IsBounce": {
             "type": "boolean"
+          }
+        }
+      },
+      "MarketingLeadDto": {
+        "required": [
+          "Id",
+          "Fnr",
+          "Name",
+          "Sitz",
+          "RechtsformText",
+          "ContactId",
+          "ContactStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Fnr": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Sitz": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RechtsformText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ContactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "ContactStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
+            ]
+          }
+        }
+      },
+      "MarketingTemplateDto": {
+        "required": [
+          "Id",
+          "Name",
+          "Description",
+          "Subject",
+          "Body",
+          "IsActive",
+          "DisplayOrder",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Body": {
+            "type": "string"
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "DisplayOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -8687,6 +9401,91 @@
           }
         }
       },
+      "RenameFeedbackTicketRequest": {
+        "required": [
+          "TicketId",
+          "Subject"
+        ],
+        "type": "object",
+        "properties": {
+          "TicketId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Subject": {
+            "type": "string"
+          }
+        }
+      },
+      "RenameFeedbackTicketResponse": {
+        "required": [
+          "Success",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RenderMarketingTemplateRequest": {
+        "required": [
+          "TemplateId"
+        ],
+        "type": "object",
+        "properties": {
+          "TemplateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ContactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "RenderMarketingTemplateResponse": {
+        "required": [
+          "Success",
+          "Subject",
+          "Body",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ReplyToFeedbackTicketRequest": {
         "required": [
           "TicketId",
@@ -8817,6 +9616,7 @@
           "Name",
           "Company",
           "Phone",
+          "City",
           "ContactType",
           "Status",
           "Notes"
@@ -8831,7 +9631,10 @@
             "format": "uuid"
           },
           "Email": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "Name": {
             "type": [
@@ -8846,6 +9649,12 @@
             ]
           },
           "Phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "City": {
             "type": [
               "null",
               "string"
@@ -8866,6 +9675,79 @@
         }
       },
       "SaveMarketingContactResponse": {
+        "required": [
+          "Success",
+          "Id",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SaveMarketingTemplateRequest": {
+        "required": [
+          "Id",
+          "Name",
+          "Description",
+          "Subject",
+          "Body"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Body": {
+            "type": "string"
+          },
+          "IsActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "DisplayOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 0
+          }
+        }
+      },
+      "SaveMarketingTemplateResponse": {
         "required": [
           "Success",
           "Id",
@@ -9144,6 +10026,13 @@
               "null",
               "string"
             ]
+          },
+          "ContactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },

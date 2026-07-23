@@ -47,21 +47,14 @@ internal static class FeedbackMapping
             .Select(a => ToDto(a, baseUrl))
             .ToList());
 
-    /// <summary>Betreff aus der ersten Textzeile ableiten, Fallback auf die Kategorie.</summary>
-    public static string DeriveSubject(string? subject, string body, FeedbackCategory category)
+    /// <summary>
+    /// Auto-Titel aus Kategorie + fortlaufender Nummer (z.B. "Lob 1"). Der Nutzer waehlt
+    /// beim Erstellen nur die Kategorie - <paramref name="sequenceNumber"/> ist die Anzahl
+    /// bisheriger eigener Anfragen dieser Kategorie + 1. Umbenennen erfolgt spaeter separat.
+    /// </summary>
+    public static string BuildAutoSubject(FeedbackCategory category, int sequenceNumber)
     {
-        var trimmed = subject?.Trim();
-        if (!string.IsNullOrEmpty(trimmed))
-            return Truncate(trimmed, 200);
-
-        var firstLine = body.Trim()
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .FirstOrDefault();
-
-        if (!string.IsNullOrEmpty(firstLine))
-            return Truncate(firstLine, 80);
-
-        return category switch
+        var label = category switch
         {
             FeedbackCategory.Idea => "Wunsch / Idee",
             FeedbackCategory.Problem => "Problem-Meldung",
@@ -69,6 +62,7 @@ internal static class FeedbackMapping
             FeedbackCategory.Praise => "Lob",
             _ => "Feedback"
         };
+        return $"{label} {sequenceNumber}";
     }
 
     /// <summary>Einzeilige Kurzfassung einer Nachricht fuer Listenzeilen und Push-Texte.</summary>
