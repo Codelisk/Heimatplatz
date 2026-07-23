@@ -68,7 +68,8 @@ public class AuthEmailService(
             UserTokenPurpose.PasswordReset,
             UserActionTokens.PasswordResetValidity,
             "passwort-zuruecksetzen",
-            cancellationToken);
+            cancellationToken,
+            user.Email);
 
         var name = WebUtility.HtmlEncode(user.FirstName);
         var html = $"""
@@ -111,7 +112,8 @@ public class AuthEmailService(
         UserTokenPurpose purpose,
         TimeSpan validity,
         string frontendPage,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? passwordManagerUsername = null)
     {
         var staleTokens = await dbContext.Set<UserActionToken>()
             .Where(t => t.UserId == userId && t.Purpose == purpose && t.UsedAt == null)
@@ -134,6 +136,13 @@ public class AuthEmailService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var baseUrl = emailOptions.Value.FrontendBaseUrl.TrimEnd('/');
-        return $"{baseUrl}/{frontendPage}/?token={token}";
+        var link = $"{baseUrl}/{frontendPage}/?token={token}";
+
+        // Passwortmanager brauchen beim Setzen eines neuen Passworts den
+        // zugehoerigen Benutzernamen. Das URL-Fragment erreicht nur den Browser:
+        // E-Mail-Adresse weder an den Webserver noch ueber den Referrer senden.
+        return string.IsNullOrWhiteSpace(passwordManagerUsername)
+            ? link
+            : $"{link}#email={Uri.EscapeDataString(passwordManagerUsername.Trim())}";
     }
 }

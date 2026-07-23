@@ -13,6 +13,16 @@ import { t } from "@/i18n";
 >
   {/* Der Reset-Token kommt als ?token= aus dem Mail-Link (PropertyStateScript liest ihn aus) */}
   <form class="mt-10 space-y-5" method="post" data-reset-password-form>
+    {/* Der Passwortmanager-Benutzername steckt datensparsam im URL-Fragment
+        und wird vom Script eingesetzt, ohne an die API gesendet zu werden. */}
+    <input
+      id="resetPasswordUsername"
+      class="hidden"
+      type="email"
+      name="username"
+      autocomplete="username"
+      data-password-username
+    />
     <div class="space-y-2">
       <Label for="newPassword">{t("auth.newPasswordLabel")}</Label>
       <Input id="newPassword" type="password" name="newPassword" placeholder={t("auth.passwordMinHint")} minlength="8" autocomplete="new-password" required />

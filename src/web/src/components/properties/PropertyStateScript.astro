@@ -632,6 +632,17 @@
     Phone: string | null;
   };
 
+  function setPasswordManagerUsername(form: HTMLFormElement, email: string) {
+    const username = form.querySelector<HTMLInputElement>("[data-password-username]");
+    if (!username) return;
+
+    const normalizedEmail = email.trim();
+    username.value = normalizedEmail;
+    // form.reset() soll den Kontobezug nach erfolgreicher Passwortaenderung
+    // nicht entfernen.
+    username.defaultValue = normalizedEmail;
+  }
+
   // Profil-Formular: laedt die aktuellen Daten und speichert Aenderungen
   // (Verkaeufer werden/Anbietertyp wechseln/Anbieten deaktivieren) via PUT /api/auth/profile
   function bindProfileForms() {
@@ -695,6 +706,11 @@
     });
 
     document.querySelectorAll<HTMLFormElement>("[data-change-password-form]").forEach((form) => {
+      const currentSession = readSession();
+      if (currentSession) {
+        setPasswordManagerUsername(form, currentSession.Email);
+      }
+
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const session = readSession();
@@ -766,7 +782,10 @@
     });
 
     document.querySelectorAll<HTMLFormElement>("[data-reset-password-form]").forEach((form) => {
-      const token = new URLSearchParams(window.location.search).get("token") ?? "";
+      const query = new URLSearchParams(window.location.search);
+      const fragment = new URLSearchParams(window.location.hash.slice(1));
+      const token = query.get("token") ?? "";
+      setPasswordManagerUsername(form, fragment.get("email") ?? query.get("email") ?? "");
       const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
 
       if (!token) {

@@ -296,6 +296,17 @@ const quickLinks = [
               </div>
             </div>
             <form class="space-y-4 px-5 py-5 sm:px-6" method="post" data-change-password-form>
+              {/* Chrome und andere Passwortmanager ordnen die Aenderung ueber
+                  autocomplete=username dem richtigen Konto zu. Das Script
+                  befuellt den Wert aus der aktuellen Sitzung. */}
+              <input
+                id="changePasswordUsername"
+                class="hidden"
+                type="email"
+                name="username"
+                autocomplete="username"
+                data-password-username
+              />
               <div class="grid gap-4 sm:grid-cols-2">
                 <div class="space-y-2">
                   <div class="flex items-baseline justify-between gap-2">
