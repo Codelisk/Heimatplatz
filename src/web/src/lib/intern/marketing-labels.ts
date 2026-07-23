@@ -4,7 +4,11 @@
  * i18n-Key-Konstruktion, damit t() typsicher bleibt.
  */
 import { t } from "@/i18n";
-import type { MarketingContactStatus, MarketingContactType } from "@/lib/server/admin-api";
+import type {
+  MarketingActivityType,
+  MarketingContactStatus,
+  MarketingContactType,
+} from "@/lib/server/admin-api";
 
 export const CONTACT_TYPES: MarketingContactType[] = [
   "Unknown",
@@ -16,15 +20,21 @@ export const CONTACT_TYPES: MarketingContactType[] = [
   "Other",
 ];
 
+// Reihenfolge = Funnel-Reihenfolge, nicht Enum-Reihenfolge: "Zu kontaktieren" steht am
+// Anfang der Arbeit, "Wiedervorlage" direkt hinter "Kontaktiert".
 export const CONTACT_STATUSES: MarketingContactStatus[] = [
-  "Lead",
+  "ToContact",
   "Contacted",
+  "FollowUp",
   "Replied",
   "Interested",
   "Customer",
   "NotInterested",
   "DoNotContact",
+  "Lead",
 ];
+
+export const ACTIVITY_TYPES: MarketingActivityType[] = ["Call", "Note", "Meeting"];
 
 export function contactTypeLabel(type: MarketingContactType | string): string {
   switch (type) {
@@ -47,8 +57,12 @@ export function contactTypeLabel(type: MarketingContactType | string): string {
 
 export function contactStatusLabel(status: MarketingContactStatus | string): string {
   switch (status) {
+    case "ToContact":
+      return t("intern.mkStatusToContact");
     case "Contacted":
       return t("intern.mkStatusContacted");
+    case "FollowUp":
+      return t("intern.mkStatusFollowUp");
     case "Replied":
       return t("intern.mkStatusReplied");
     case "Interested":
@@ -67,6 +81,9 @@ export function contactStatusLabel(status: MarketingContactStatus | string): str
 /** Dezente Badge-Faerbung je Status (Tailwind-Klassen, Light/Dark ueber Tokens) */
 export function contactStatusBadgeClass(status: MarketingContactStatus | string): string {
   switch (status) {
+    case "ToContact":
+    case "FollowUp":
+      return "bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200";
     case "Replied":
     case "Interested":
       return "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
@@ -80,6 +97,21 @@ export function contactStatusBadgeClass(status: MarketingContactStatus | string)
   }
 }
 
+export function activityTypeLabel(type: MarketingActivityType | string): string {
+  switch (type) {
+    case "Call":
+      return t("intern.mkActivityCall");
+    case "Meeting":
+      return t("intern.mkActivityMeeting");
+    case "StatusChange":
+      return t("intern.mkActivityStatusChange");
+    case "FollowUp":
+      return t("intern.mkActivityFollowUp");
+    default:
+      return t("intern.mkActivityNote");
+  }
+}
+
 export function formatInternDate(value: string | null | undefined): string {
   if (!value) return "–";
   return new Intl.DateTimeFormat("de-AT", {
@@ -87,4 +119,34 @@ export function formatInternDate(value: string | null | undefined): string {
     timeStyle: "short",
     timeZone: "Europe/Vienna",
   }).format(new Date(value));
+}
+
+/** Nur Datum - fuer Wiedervorlage-Termine, bei denen die Uhrzeit nichts aussagt */
+export function formatInternDay(value: string | null | undefined): string {
+  if (!value) return "–";
+  return new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeZone: "Europe/Vienna",
+  }).format(new Date(value));
+}
+
+/** true, wenn der Wiedervorlage-Termin erreicht oder ueberschritten ist */
+export function isFollowUpDue(value: string | null | undefined): boolean {
+  if (!value) return false;
+  return new Date(value).getTime() <= Date.now();
+}
+
+/**
+ * Wert fuer <input type="date"> (YYYY-MM-DD) in Wiener Zeit - toISOString() waere UTC
+ * und wuerde abends auf den Folgetag springen.
+ */
+export function toDateInputValue(value: string | null | undefined): string {
+  if (!value) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Vienna",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(value));
+  return parts;
 }

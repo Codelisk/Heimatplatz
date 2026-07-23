@@ -86,8 +86,15 @@ public class SendMarketingEmailHandler(
 
     /// <summary>
     /// Kontakt-Upsert + Historien-Zeile. Automatische Status-Uebergaenge beschraenken
-    /// sich auf Lead->Contacted; manuell gesetzte Status (Interested, Customer, ...)
+    /// sich auf Lead/ToContact->Contacted; manuell gesetzte Status (Interested, Customer, ...)
     /// bleiben unangetastet.
+    ///
+    /// Zuordnung des Kontakts in dieser Reihenfolge:
+    /// 1. request.ContactId - der Versand kam aus einem offenen Kontakt heraus. Noetig fuer
+    ///    Firmenpool-Kontakte, die noch keine Adresse haben und sonst als Dublette neben
+    ///    dem bestehenden Kontakt landen wuerden; die Adresse wird dabei nachgetragen.
+    /// 2. Treffer ueber die normalisierte Adresse
+    /// 3. Neuanlage (Source "Versand")
     /// </summary>
     private async Task<Guid> RecordSendAsync(
         string recipientAddress,
@@ -98,7 +105,11 @@ public class SendMarketingEmailHandler(
         var normalizedEmail = recipientAddress.Trim().ToLowerInvariant();
         var now = DateTimeOffset.UtcNow;
 
-        var contact = await dbContext.Set<MarketingContact>()
+        var contact = request.ContactId is { } contactId
+            ? await dbContext.Set<MarketingContact>().FirstOrDefaultAsync(c => c.Id == contactId, cancellationToken)
+            : null;
+
+        contact ??= await dbContext.Set<MarketingContact>()
             .FirstOrDefaultAsync(c => c.Email == normalizedEmail, cancellationToken);
 
         if (contact is null)
@@ -115,9 +126,14 @@ public class SendMarketingEmailHandler(
         }
         else
         {
+            // Firmenpool-Kontakt: die beim Telefonat erfahrene Adresse festhalten.
+            // Eine bereits hinterlegte Adresse bleibt unangetastet - sonst wuerde ein
+            // Versand an eine abweichende Adresse den Stammdatensatz stillschweigend umbiegen.
+            contact.Email ??= normalizedEmail;
+
             if (string.IsNullOrWhiteSpace(contact.Name) && !string.IsNullOrWhiteSpace(request.RecipientName))
                 contact.Name = request.RecipientName.Trim();
-            if (contact.Status == MarketingContactStatus.Lead)
+            if (contact.Status is MarketingContactStatus.Lead or MarketingContactStatus.ToContact)
                 contact.Status = MarketingContactStatus.Contacted;
         }
 

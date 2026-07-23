@@ -18,10 +18,12 @@ export const POST: APIRoute = async ({ request }) => {
     "/api/admin/marketing/contacts/save",
     {
       Id: id,
-      Email: form.get("email")?.toString() ?? "",
+      // Adresse ist optional - Firmenpool-Kontakte haben zunaechst keine
+      Email: form.get("email")?.toString() || null,
       Name: form.get("name")?.toString() || null,
       Company: form.get("company")?.toString() || null,
       Phone: form.get("phone")?.toString() || null,
+      City: form.get("city")?.toString() || null,
       ContactType: form.get("contactType")?.toString() || "Unknown",
       Status: form.get("status")?.toString() || "Lead",
       Notes: form.get("notes")?.toString() || null,

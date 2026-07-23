@@ -4,11 +4,15 @@ import MarketingContactForm from "@/components/intern/MarketingContactForm.astro
 import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import { adminApiGet, type MarketingContactDetail } from "@/lib/server/admin-api";
+import MarketingActivityForm from "@/components/intern/MarketingActivityForm.astro";
 import {
+  activityTypeLabel,
   contactStatusBadgeClass,
   contactStatusLabel,
   contactTypeLabel,
   formatInternDate,
+  formatInternDay,
+  isFollowUpDue,
 } from "@/lib/intern/marketing-labels";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
@@ -32,7 +36,7 @@ const errorBadgeClass =
   "ml-2 rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-900 dark:bg-red-900/40 dark:text-red-200";
 
 type TimelineEntry = {
-  kind: "sent" | "reply";
+  kind: "sent" | "reply" | "activity";
   date: string;
   subject: string;
   body: string;
@@ -61,10 +65,30 @@ const timeline: TimelineEntry[] = [
     badge: reply.IsBounce ? t("intern.mkInboxBadgeBounce") : undefined,
     badgeClass: errorBadgeClass,
   })),
+  // Anrufe, Notizen, Statuswechsel und Termine - die Kopfzeile traegt die Aussage,
+  // der Text darunter ist die Gespraechsnotiz
+  ...(detail?.Activities ?? []).map((activity) => ({
+    kind: "activity" as const,
+    date: activity.OccurredAt,
+    subject:
+      activity.Type === "StatusChange"
+        ? t("intern.mkActivityStatusLine", {
+            from: activity.StatusFrom ? contactStatusLabel(activity.StatusFrom) : "–",
+            to: activity.StatusTo ? contactStatusLabel(activity.StatusTo) : "–",
+          })
+        : activity.FollowUpAt
+          ? t("intern.mkActivityFollowUpLine", { date: formatInternDay(activity.FollowUpAt) })
+          : activityTypeLabel(activity.Type),
+    body: activity.Notes ?? "",
+    badge: activityTypeLabel(activity.Type),
+    badgeClass:
+      "ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground",
+  })),
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-function composeLink(email: string, name: string | null) {
-  const params = new URLSearchParams({ email });
+function composeLink(email: string | null, name: string | null, contactId: string) {
+  const params = new URLSearchParams({ contactId });
+  if (email) params.set("email", email);
   if (name) params.set("name", name);
   return `/intern/marketing/schreiben/?${params}`;
 }
@@ -92,6 +116,16 @@ function composeLink(email: string, name: string | null) {
         {t("intern.mkContactSavedOk")}
       </div>
     )}
+    {action === "activity" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkActivitySavedOk")}
+      </div>
+    )}
+    {action === "activityfailed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkActivityFailed", { error: actionError ?? "?" })}
+      </div>
+    )}
     {action === "failed" && (
       <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
         {t("intern.mkContactActionFailed", { error: actionError ?? "?" })}
@@ -115,13 +149,29 @@ function composeLink(email: string, name: string | null) {
           </span>
         </div>
         <p class="mt-2 text-sm text-muted-foreground">
-          {contact.Email} · {contactTypeLabel(contact.ContactType)}
+          {[
+            contact.Email,
+            contact.Phone,
+            contact.City,
+            contactTypeLabel(contact.ContactType),
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+          {contact.FirmenbuchFnr && ` · ${t("intern.mkDetailFirmenbuch")}: ${contact.FirmenbuchFnr}`}
           {contact.Source && ` · ${t("intern.mkDetailSource")}: ${contact.Source}`}
           {` · ${t("intern.mkDetailCreated")}: ${formatInternDate(contact.CreatedAt)}`}
         </p>
 
+        {contact.NextFollowUpAt && (
+          <p
+            class={`mt-2 text-sm font-medium ${isFollowUpDue(contact.NextFollowUpAt) ? "text-red-700 dark:text-red-300" : "text-muted-foreground"}`}
+          >
+            {t("intern.mkDetailNextFollowUp")}: {formatInternDay(contact.NextFollowUpAt)}
+          </p>
+        )}
+
         <div class="mt-4 flex flex-wrap gap-2">
-          <a href={composeLink(contact.Email, contact.Name)}>
+          <a href={composeLink(contact.Email, contact.Name, contact.Id)}>
             <Button type="button" variant="default">{t("intern.mkContactWrite")}</Button>
           </a>
           <form
@@ -133,6 +183,14 @@ function composeLink(email: string, name: string | null) {
             <Button type="submit" variant="outline">{t("intern.mkDelete")}</Button>
           </form>
         </div>
+
+        <section class="mt-8 rounded-lg border border-border bg-card p-5">
+          <h2 class="text-base font-semibold">{t("intern.mkActivityHeading")}</h2>
+          <p class="mt-1 text-sm text-muted-foreground">{t("intern.mkActivityIntro")}</p>
+          <div class="mt-4">
+            <MarketingActivityForm contact={contact} />
+          </div>
+        </section>
 
         <section class="mt-8 rounded-lg border border-border bg-card p-5">
           <h2 class="text-base font-semibold">{t("intern.mkContactsTitle")}</h2>
@@ -155,14 +213,16 @@ function composeLink(email: string, name: string | null) {
               {timeline.map((entry) => (
                 <li class="px-5 py-4">
                   <p class="text-xs text-muted-foreground">
-                    {entry.kind === "sent"
-                      ? t("intern.mkDetailSentPrefix")
-                      : t("intern.mkDetailReplyPrefix")}{" "}
+                    {entry.kind === "sent" && t("intern.mkDetailSentPrefix")}
+                    {entry.kind === "reply" && t("intern.mkDetailReplyPrefix")}{" "}
                     {formatInternDate(entry.date)}
                     {entry.badge && <span class={entry.badgeClass}>{entry.badge}</span>}
                   </p>
                   <p class="mt-1 font-medium">{entry.subject}</p>
-                  {entry.body && (
+                  {entry.body && entry.kind === "activity" && (
+                    <p class="mt-1 whitespace-pre-wrap text-sm">{entry.body}</p>
+                  )}
+                  {entry.body && entry.kind !== "activity" && (
                     <details class="mt-1">
                       <summary class="cursor-pointer text-sm text-muted-foreground">
                         {entry.kind === "sent"

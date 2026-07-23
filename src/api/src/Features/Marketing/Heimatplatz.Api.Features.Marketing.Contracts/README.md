@@ -15,17 +15,27 @@ Posteingang und Auswertung.
 | `GetMarketingContactsRequest` | Kontaktliste (Suche/Filter/Paging) |
 | `SaveMarketingContactRequest` | Kontakt anlegen/bearbeiten (Upsert) |
 | `DeleteMarketingContactRequest` | Kontakt samt Historie loeschen (DSGVO) |
-| `GetMarketingContactDetailRequest` | Kontakt-Detail + Timeline |
+| `GetMarketingContactDetailRequest` | Kontakt-Detail + Timeline (inkl. Aktivitaeten) |
+| `LogMarketingActivityRequest` | Anruf/Notiz/Termin festhalten (+ Status + Wiedervorlage) |
+| `GetMarketingLeadPoolRequest` | Firmenpool: Immobilienfirmen aus dem Firmenbuch-Katalog |
+| `AddMarketingLeadsRequest` | Firmenbuch-Firmen als Kontakte (`ToContact`) uebernehmen |
+| `GetMarketingTemplatesRequest` | E-Mail-Vorlagen (aktive fuer die Auswahl, alle fuer die Verwaltung) |
+| `SaveMarketingTemplateRequest` | Vorlage anlegen/bearbeiten (Upsert, Name unique) |
+| `DeleteMarketingTemplateRequest` | Vorlage loeschen |
+| `RenderMarketingTemplateRequest` | Vorlagen-Platzhalter aus einem Kontakt fuellen |
 | `GetMarketingEmailsRequest` | Versand-Historie |
 | `GetMarketingInboxRequest` | Posteingang (mit gedrosseltem Auto-Sync) |
 | `SyncMarketingInboxRequest` | Manueller Postfach-Abruf |
 | `SetMarketingInboundReadRequest` | Gelesen-Markierung |
 | `SubmitBrokerLeadRequest` | OEFFENTLICHE Makler-Anfrage der `/makler/`-Seite (Concierge-Onboarding); `Fax` ist ein Honeypot-Feld |
 
-DTOs: `MarketingContactDto`, `MarketingEmailDto`, `MarketingInboundEmailDto`.
-Enums (`MarketingEnums.cs`): `MarketingContactType`, `MarketingContactStatus`,
-`MarketingEmailStatus` - serialisiert per globalem JsonStringEnumConverter als
-Enum-NAMEN-Strings; das Web vergleicht Strings, nie Zahlen.
+DTOs: `MarketingContactDto` (E-Mail optional, `City`/`FirmenbuchFnr`/`NextFollowUpAt`),
+`MarketingEmailDto`, `MarketingInboundEmailDto`, `MarketingActivityDto`,
+`MarketingTemplateDto` (+ `MarketingTemplatePlaceholders`), `MarketingLeadDto`.
+Enums (`MarketingEnums.cs`): `MarketingContactType`, `MarketingContactStatus`
+(inkl. `ToContact`/`FollowUp`), `MarketingActivityType`, `MarketingEmailStatus` -
+serialisiert per globalem JsonStringEnumConverter als Enum-NAMEN-Strings;
+das Web vergleicht Strings, nie Zahlen.
 
 ## Design-Hinweise
 

@@ -82,8 +82,11 @@ public class MarketingInboxSyncService(
             .Select(e => new { MessageId = e.MessageId!, e.Id, e.ContactId })
             .ToDictionaryAsync(e => e.MessageId, e => (e.Id, e.ContactId), StringComparer.OrdinalIgnoreCase, ct);
 
+        // Kontakte ohne Adresse (aus dem Firmenpool) koennen per Absender nicht zugeordnet
+        // werden und bleiben hier bewusst aussen vor
         var contactsByEmail = await dbContext.Set<MarketingContact>()
-            .Select(c => new { c.Email, c.Id })
+            .Where(c => c.Email != null)
+            .Select(c => new { Email = c.Email!, c.Id })
             .ToDictionaryAsync(c => c.Email, c => c.Id, StringComparer.OrdinalIgnoreCase, ct);
 
         var knownMessageIds = new HashSet<string>(

@@ -17,6 +17,38 @@ public class MarketingOptions
 
     /// <summary>Einstellungen fuer den "AiConnector"-Provider</summary>
     public MarketingAiConnectorOptions AiConnector { get; set; } = new();
+
+    /// <summary>Einstellungen des Firmenpools (Lead-Quelle Firmenbuch)</summary>
+    public MarketingLeadPoolOptions LeadPool { get; set; } = new();
+}
+
+/// <summary>
+/// Firmenpool: welche Firmenbuch-Eintraege als moegliche Immobilien-Kontakte gelten.
+/// Der Firmenbuch-Katalog fuehrt weder Branche noch Kontaktdaten - der Firmenname ist
+/// die einzige verfuegbare Eingrenzung.
+/// </summary>
+public class MarketingLeadPoolOptions
+{
+    /// <summary>
+    /// Schlagworte, die im Firmennamen auf die Immobilienbranche hindeuten. Vergleich
+    /// case-insensitiv als Teilstring; ein Treffer genuegt. Konfigurierbar, damit die
+    /// Trefferliste ohne Deploy nachgeschaerft werden kann.
+    /// "immo" deckt Immobilien/Immobilien-Marken mit ab, ist aber bewusst breit -
+    /// nicht passende Firmen werden im Pool einfach nicht ausgewaehlt.
+    /// </summary>
+    public List<string> NameKeywords { get; set; } =
+    [
+        "immo",
+        "liegenschaft",
+        "hausverwalt",
+        "bauträger",
+        "bautraeger",
+        "realität",
+        "realitaet",
+        "wohnbau",
+        "makler",
+        "wohnungseigentum"
+    ];
 }
 
 /// <summary>

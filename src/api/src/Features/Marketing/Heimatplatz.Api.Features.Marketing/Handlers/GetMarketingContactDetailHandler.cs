@@ -11,7 +11,7 @@ namespace Heimatplatz.Api.Features.Marketing.Handlers;
 
 /// <summary>
 /// Kontakt-Detail fuer die Detailseite: Stammdaten + komplette Timeline
-/// (gesendete Mails und Rueckmeldungen, jeweils neueste zuerst).
+/// (gesendete Mails, Rueckmeldungen und Historien-Eintraege, jeweils neueste zuerst).
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/admin/marketing")]
@@ -29,13 +29,14 @@ public class GetMarketingContactDetailHandler(
             .AsNoTracking()
             .Where(c => c.Id == request.Id)
             .Select(c => new MarketingContactDto(
-                c.Id, c.Email, c.Name, c.Company, c.Phone, c.ContactType, c.Status,
-                c.Notes, c.Source, c.LastContactedAt, c.LastReplyAt, c.CreatedAt,
-                c.Emails.Count, c.InboundEmails.Count))
+                c.Id, c.Email, c.Name, c.Company, c.Phone, c.City, c.ContactType, c.Status,
+                c.Notes, c.Source, c.FirmenbuchFnr, c.NextFollowUpAt,
+                c.LastContactedAt, c.LastReplyAt, c.CreatedAt,
+                c.Emails.Count, c.InboundEmails.Count, c.Activities.Count))
             .FirstOrDefaultAsync(cancellationToken);
 
         if (contact is null)
-            return new GetMarketingContactDetailResponse(null, [], []);
+            return new GetMarketingContactDetailResponse(null, [], [], []);
 
         var emails = await dbContext.Set<MarketingEmail>()
             .AsNoTracking()
@@ -57,6 +58,15 @@ public class GetMarketingContactDetailHandler(
                 i.IsBounce))
             .ToListAsync(cancellationToken);
 
-        return new GetMarketingContactDetailResponse(contact, emails, replies);
+        var activities = await dbContext.Set<MarketingActivity>()
+            .AsNoTracking()
+            .Where(a => a.ContactId == request.Id)
+            .OrderByDescending(a => a.OccurredAt)
+            .Select(a => new MarketingActivityDto(
+                a.Id, a.ContactId, a.Type, a.Notes,
+                a.StatusFrom, a.StatusTo, a.FollowUpAt, a.OccurredAt))
+            .ToListAsync(cancellationToken);
+
+        return new GetMarketingContactDetailResponse(contact, emails, replies, activities);
     }
 }

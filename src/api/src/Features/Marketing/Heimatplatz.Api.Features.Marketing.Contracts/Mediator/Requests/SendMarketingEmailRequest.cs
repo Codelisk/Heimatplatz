@@ -13,6 +13,9 @@ namespace Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
 /// Kopie (Bcc-Header geht nicht auf die Leitung, nur die Gesendet-Kopie behaelt ihn).
 /// Beide Adressen werden bewusst NICHT als Kontakt angelegt und nicht in der
 /// Historie gespeichert (die Gesendet-Kopie im Postfach enthaelt die Header).
+/// ContactId (optional) schreibt den Versand auf einen bestehenden Kontakt und traegt
+/// die Adresse dort nach - noetig fuer Firmenpool-Kontakte, die noch keine E-Mail haben
+/// und sonst als Dublette neu angelegt wuerden.
 /// Bewusst komplett im Body (kein Route-Parameter).
 /// </summary>
 public record SendMarketingEmailRequest(
@@ -22,7 +25,8 @@ public record SendMarketingEmailRequest(
     string? RecipientName = null,
     string? Keywords = null,
     string? CcEmail = null,
-    string? BccEmail = null
+    string? BccEmail = null,
+    Guid? ContactId = null
 ) : IRequest<SendMarketingEmailResponse>;
 
 /// <summary>

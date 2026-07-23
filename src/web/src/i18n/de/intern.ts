@@ -143,6 +143,18 @@ export const intern = {
   "intern.marketingCcPlaceholder": "kopie@beispiel.at",
   "intern.marketingBccLabel": "BCC (optional, erhält eine verdeckte Kopie – für andere Empfänger unsichtbar)",
   "intern.marketingBccPlaceholder": "verdeckte-kopie@beispiel.at",
+  "intern.marketingTemplateHeading": "Vorlage verwenden (optional)",
+  "intern.marketingTemplateHint":
+    "Die Platzhalter werden aus dem Kontakt befüllt. Der eingesetzte Text bleibt unten frei änderbar.",
+  "intern.marketingTemplateLabel": "Vorlage",
+  "intern.marketingTemplateNone": "– keine –",
+  "intern.marketingTemplateApply": "Vorlage einsetzen",
+  "intern.marketingTemplateApplying": "Vorlage wird eingesetzt …",
+  "intern.marketingTemplateFailed": "Vorlage konnte nicht eingesetzt werden: {error}",
+  "intern.marketingTemplateValidation": "Bitte eine Vorlage auswählen.",
+  "intern.marketingTemplateEmpty":
+    "Noch keine Vorlage angelegt – unter „Vorlagen“ im Marketing-Bereich anlegen.",
+  "intern.marketingTemplateManage": "Vorlagen verwalten",
   "intern.marketingAiHeading": "Text per KI generieren (optional)",
   "intern.marketingAiHint":
     "Wer den Text lieber selbst schreibt, überspringt diesen Schritt und tippt unten direkt in den Entwurf.",
@@ -206,7 +218,62 @@ export const intern = {
     "Kontaktdatenbank potentieller Kunden: Makler, Hausverwaltungen, Gemeinden, Partner.",
   "intern.marketingNavSent": "Gesendet",
   "intern.marketingNavSentDescription": "Versand-Historie aller Marketing-E-Mails.",
+  "intern.marketingNavPool": "Firmenpool",
+  "intern.marketingNavPoolDescription":
+    "Immobilienfirmen aus dem Firmenbuch-Katalog auswählen und als Kontakte zur Bearbeitung übernehmen.",
+  "intern.marketingNavTemplates": "Vorlagen",
+  "intern.marketingNavTemplatesDescription":
+    "Textbausteine für Erstkontakt und Follow-up mit Platzhaltern, ohne Deploy änderbar.",
   "intern.marketingUnreadBadge": "{count} neu",
+  "intern.marketingDueBadge": "{count} fällig",
+  "intern.marketingStatsToContact": "Zu kontaktieren",
+  "intern.marketingStatsFollowUpDue": "Wiedervorlage fällig",
+
+  // Firmenpool (/intern/marketing/firmenpool)
+  "intern.mkPoolMetaTitle": "Intern – Firmenpool",
+  "intern.mkPoolTitle": "Firmenpool",
+  "intern.mkPoolIntro":
+    "Aufrechte Firmen aus dem oberösterreichischen Firmenbuch-Katalog, deren Name auf die Immobilienbranche hindeutet. Das Firmenbuch führt keine Kontaktdaten – E-Mail und Telefon trägst du nach dem Anruf am Kontakt nach.",
+  "intern.mkPoolSearchPlaceholder": "Firmenname oder Firmenbuchnummer …",
+  "intern.mkPoolSitzPlaceholder": "Ort …",
+  "intern.mkPoolShowTaken": "Auch bereits übernommene",
+  "intern.mkPoolTotal": "{count} Firmen",
+  "intern.mkPoolEmpty": "Keine Firmen gefunden.",
+  "intern.mkPoolLoadFailed":
+    "Der Firmenpool konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  "intern.mkPoolTakeSelected": "Auswahl als „Zu kontaktieren“ übernehmen",
+  "intern.mkPoolSelectAll": "Alle auf dieser Seite",
+  "intern.mkPoolAlreadyTaken": "Bereits übernommen",
+  "intern.mkPoolAddedOk": "{count} Firmen als „Zu kontaktieren“ übernommen.",
+  "intern.mkPoolAddedWithSkipped":
+    "{count} Firmen übernommen, {skipped} waren bereits im CRM.",
+  "intern.mkPoolAddFailed": "Übernahme fehlgeschlagen: {error}",
+  "intern.mkPoolNoSelection": "Bitte mindestens eine Firma auswählen.",
+
+  // Vorlagen (/intern/marketing/vorlagen)
+  "intern.mkTplMetaTitle": "Intern – E-Mail-Vorlagen",
+  "intern.mkTplTitle": "E-Mail-Vorlagen",
+  "intern.mkTplIntro":
+    "Textbausteine für den Versand. Die Platzhalter werden beim Schreiben aus dem Kontakt befüllt und bleiben danach änderbar. Die Signatur kommt wie immer aus den Kontakt-Stammdaten und gehört nicht in die Vorlage.",
+  "intern.mkTplPlaceholderHint": "Platzhalter: {list}",
+  "intern.mkTplEmpty": "Noch keine Vorlagen angelegt.",
+  "intern.mkTplLoadFailed":
+    "Vorlagen konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  "intern.mkTplNewHeading": "Neue Vorlage anlegen",
+  "intern.mkTplEditHeading": "Vorlage bearbeiten",
+  "intern.mkTplFieldName": "Name",
+  "intern.mkTplFieldDescription": "Beschreibung",
+  "intern.mkTplFieldSubject": "Betreff",
+  "intern.mkTplFieldBody": "Text",
+  "intern.mkTplFieldOrder": "Reihenfolge",
+  "intern.mkTplFieldActive": "Aktiv (erscheint in der Auswahl)",
+  "intern.mkTplInactiveBadge": "Inaktiv",
+  "intern.mkTplEdit": "Bearbeiten",
+  "intern.mkTplSavedOk": "Vorlage wurde gespeichert.",
+  "intern.mkTplDeletedOk": "Vorlage wurde gelöscht.",
+  "intern.mkTplActionFailed": "Aktion fehlgeschlagen: {error}",
+  "intern.mkTplConfirmDelete": "Diese Vorlage endgültig löschen?",
+  "intern.mkTplCancel": "Abbrechen",
 
   // Kontakte (/intern/marketing/kontakte)
   "intern.mkContactsMetaTitle": "Intern – Marketing-Kontakte",
@@ -216,6 +283,9 @@ export const intern = {
   "intern.mkContactsSearchPlaceholder": "E-Mail, Name oder Firma suchen …",
   "intern.mkContactsFilterStatusAll": "Alle Status",
   "intern.mkContactsFilterTypeAll": "Alle Typen",
+  "intern.mkContactsFilterDue": "Nur fällige Wiedervorlagen",
+  "intern.mkContactsDueBadge": "fällig",
+  "intern.mkContactsNoEmail": "keine E-Mail",
   "intern.mkContactsEmpty": "Keine Kontakte gefunden.",
   "intern.mkContactsLoadFailed":
     "Kontakte konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
@@ -235,24 +305,51 @@ export const intern = {
 
   // Kontakt-Formular
   "intern.mkFieldEmail": "E-Mail",
-  "intern.mkFieldName": "Name",
+  "intern.mkFieldEmailOptional": "E-Mail (optional)",
+  "intern.mkFieldName": "Ansprechpartner",
   "intern.mkFieldCompany": "Firma",
   "intern.mkFieldPhone": "Telefon",
+  "intern.mkFieldCity": "Ort",
   "intern.mkFieldType": "Typ",
   "intern.mkFieldStatus": "Status",
   "intern.mkFieldNotes": "Notizen",
   "intern.mkSave": "Speichern",
   "intern.mkDelete": "Löschen",
+  "intern.mkNoEmailHint":
+    "Ohne E-Mail-Adresse ist nur der Anruf möglich. Trage die Adresse nach dem Gespräch hier ein, dann kannst du die Vorlage verschicken.",
 
   // Kontakt-Detail (/intern/marketing/kontakte/detail)
   "intern.mkDetailMetaTitle": "Intern – Kontakt",
   "intern.mkDetailNotFound": "Kontakt wurde nicht gefunden.",
   "intern.mkDetailTimelineHeading": "Verlauf",
-  "intern.mkDetailTimelineEmpty": "Noch keine E-Mails oder Rückmeldungen.",
+  "intern.mkDetailTimelineEmpty": "Noch keine Einträge.",
   "intern.mkDetailSentPrefix": "Gesendet:",
   "intern.mkDetailReplyPrefix": "Antwort:",
   "intern.mkDetailSource": "Quelle",
   "intern.mkDetailCreated": "Angelegt",
+  "intern.mkDetailFirmenbuch": "Firmenbuch",
+  "intern.mkDetailNextFollowUp": "Wiedervorlage",
+
+  // Aktivitäts-Erfassung am Kontakt
+  "intern.mkActivityHeading": "Schritt festhalten",
+  "intern.mkActivityIntro":
+    "Anruf oder Notiz festhalten, Wiedervorlage setzen und den Status weiterschieben – alles in einem Schritt.",
+  "intern.mkActivityFieldType": "Art",
+  "intern.mkActivityFieldNotes": "Notiz",
+  "intern.mkActivityFieldNotesPlaceholder": "Was wurde besprochen?",
+  "intern.mkActivityFieldFollowUp": "Wiedervorlage am",
+  "intern.mkActivityFieldStatus": "Neuer Status",
+  "intern.mkActivityStatusKeep": "Status unverändert",
+  "intern.mkActivitySubmit": "Festhalten",
+  "intern.mkActivitySavedOk": "Der Schritt wurde festgehalten.",
+  "intern.mkActivityFailed": "Konnte nicht gespeichert werden: {error}",
+  "intern.mkActivityCall": "Anruf",
+  "intern.mkActivityNote": "Notiz",
+  "intern.mkActivityMeeting": "Termin",
+  "intern.mkActivityStatusChange": "Status",
+  "intern.mkActivityFollowUp": "Wiedervorlage",
+  "intern.mkActivityStatusLine": "Status: {from} → {to}",
+  "intern.mkActivityFollowUpLine": "Wiedervorlage: {date}",
 
   // Kontakt-Typen (MarketingContactType, API liefert Enum-Namen als Text)
   "intern.mkTypeUnknown": "Unbekannt",
@@ -265,6 +362,8 @@ export const intern = {
 
   // Kontakt-Status (MarketingContactStatus)
   "intern.mkStatusLead": "Lead",
+  "intern.mkStatusToContact": "Zu kontaktieren",
+  "intern.mkStatusFollowUp": "Wiedervorlage",
   "intern.mkStatusContacted": "Kontaktiert",
   "intern.mkStatusReplied": "Antwort erhalten",
   "intern.mkStatusInterested": "Interessiert",

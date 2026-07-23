@@ -4,7 +4,7 @@ namespace Heimatplatz.Api.Features.Marketing.Contracts.Models;
 public record MarketingEmailDto(
     Guid Id,
     Guid ContactId,
-    string ContactEmail,
+    string? ContactEmail,
     string? ContactName,
     string Subject,
     string Body,

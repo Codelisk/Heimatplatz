@@ -33,7 +33,7 @@ public class GetMarketingContactsHandler(
             // waere sonst case-sensitiv (E-Mail ist bereits normalisiert gespeichert)
             var search = request.Search.Trim().ToLowerInvariant();
             query = query.Where(c =>
-                c.Email.Contains(search) ||
+                (c.Email != null && c.Email.Contains(search)) ||
                 (c.Name != null && c.Name.ToLower().Contains(search)) ||
                 (c.Company != null && c.Company.ToLower().Contains(search)));
         }
@@ -44,19 +44,31 @@ public class GetMarketingContactsHandler(
         if (Enum.TryParse<MarketingContactType>(request.ContactType, ignoreCase: true, out var type))
             query = query.Where(c => c.ContactType == type);
 
+        if (request.DueOnly)
+        {
+            var now = DateTimeOffset.UtcNow;
+            query = query.Where(c => c.NextFollowUpAt != null && c.NextFollowUpAt <= now);
+        }
+
         var total = await query.CountAsync(cancellationToken);
 
         var page = Math.Max(request.Page, 0);
         var pageSize = Math.Clamp(request.PageSize, 1, 200);
 
-        var contacts = await query
-            .OrderByDescending(c => c.CreatedAt)
+        // Faellige Wiedervorlagen nach Termin (aelteste zuerst - das ist die Arbeitsreihenfolge),
+        // sonst neueste Kontakte zuerst
+        var ordered = request.DueOnly
+            ? query.OrderBy(c => c.NextFollowUpAt)
+            : query.OrderByDescending(c => c.CreatedAt);
+
+        var contacts = await ordered
             .Skip(page * pageSize)
             .Take(pageSize)
             .Select(c => new MarketingContactDto(
-                c.Id, c.Email, c.Name, c.Company, c.Phone, c.ContactType, c.Status,
-                c.Notes, c.Source, c.LastContactedAt, c.LastReplyAt, c.CreatedAt,
-                c.Emails.Count, c.InboundEmails.Count))
+                c.Id, c.Email, c.Name, c.Company, c.Phone, c.City, c.ContactType, c.Status,
+                c.Notes, c.Source, c.FirmenbuchFnr, c.NextFollowUpAt,
+                c.LastContactedAt, c.LastReplyAt, c.CreatedAt,
+                c.Emails.Count, c.InboundEmails.Count, c.Activities.Count))
             .ToListAsync(cancellationToken);
 
         return new GetMarketingContactsResponse(

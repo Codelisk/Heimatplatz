@@ -828,10 +828,55 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("Municipalities", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("FollowUpAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("OccurredAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("StatusFrom")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("StatusTo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactId", "OccurredAt");
+
+                    b.ToTable("MarketingActivities", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Company")
@@ -845,8 +890,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(320)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirmenbuchFnr")
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<long?>("LastContactedAt")
@@ -858,6 +906,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<string>("Name")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
+
+                    b.Property<long?>("NextFollowUpAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(8000)
@@ -882,7 +933,14 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.HasIndex("ContactType");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"Email\" IS NOT NULL");
+
+                    b.HasIndex("FirmenbuchFnr")
+                        .IsUnique()
+                        .HasFilter("\"FirmenbuchFnr\" IS NOT NULL");
+
+                    b.HasIndex("NextFollowUpAt");
 
                     b.HasIndex("Status");
 
@@ -936,6 +994,52 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.HasIndex("SentAt");
 
                     b.ToTable("MarketingEmails", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmailTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("MarketingEmailTemplates", (string)null);
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingInboundEmail", b =>
@@ -2161,6 +2265,17 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Navigation("District");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingActivity", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
+                        .WithMany("Activities")
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contact");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
@@ -2334,6 +2449,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", b =>
                 {
+                    b.Navigation("Activities");
+
                     b.Navigation("Emails");
 
                     b.Navigation("InboundEmails");

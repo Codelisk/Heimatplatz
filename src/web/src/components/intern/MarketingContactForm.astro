@@ -31,8 +31,8 @@ const inputClass =
 
   <div class="grid gap-4 sm:grid-cols-2">
     <label class="flex flex-col gap-1 text-sm">
-      <span class="font-medium">{t("intern.mkFieldEmail")}</span>
-      <input type="email" name="email" required value={contact?.Email ?? ""} class={inputClass} />
+      <span class="font-medium">{t("intern.mkFieldEmailOptional")}</span>
+      <input type="email" name="email" value={contact?.Email ?? ""} class={inputClass} />
     </label>
     <label class="flex flex-col gap-1 text-sm">
       <span class="font-medium">{t("intern.mkFieldName")}</span>
@@ -45,6 +45,10 @@ const inputClass =
     <label class="flex flex-col gap-1 text-sm">
       <span class="font-medium">{t("intern.mkFieldPhone")}</span>
       <input type="text" name="phone" value={contact?.Phone ?? ""} class={inputClass} />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="font-medium">{t("intern.mkFieldCity")}</span>
+      <input type="text" name="city" value={contact?.City ?? ""} class={inputClass} />
     </label>
     <label class="flex flex-col gap-1 text-sm">
       <span class="font-medium">{t("intern.mkFieldType")}</span>
@@ -72,6 +76,10 @@ const inputClass =
     <span class="font-medium">{t("intern.mkFieldNotes")}</span>
     <textarea name="notes" rows="4" class={inputClass}>{contact?.Notes ?? ""}</textarea>
   </label>
+
+  {contact && !contact.Email && (
+    <p class="text-xs leading-5 text-muted-foreground">{t("intern.mkNoEmailHint")}</p>
+  )}
 
   <div>
     <Button type="submit" variant="default">{t("intern.mkSave")}</Button>

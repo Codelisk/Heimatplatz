@@ -11,6 +11,8 @@ import {
   contactStatusLabel,
   contactTypeLabel,
   formatInternDate,
+  formatInternDay,
+  isFollowUpDue,
 } from "@/lib/intern/marketing-labels";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
@@ -20,6 +22,7 @@ const PAGE_SIZE = 50;
 const search = Astro.url.searchParams.get("q")?.trim() ?? "";
 const statusFilter = Astro.url.searchParams.get("status") ?? "";
 const typeFilter = Astro.url.searchParams.get("type") ?? "";
+const dueOnly = Astro.url.searchParams.get("faellig") === "1";
 const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "0", 10) || 0, 0);
 const action = Astro.url.searchParams.get("action");
 const actionError = Astro.url.searchParams.get("error");
@@ -28,6 +31,7 @@ const query = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SI
 if (search) query.set("search", search);
 if (statusFilter) query.set("status", statusFilter);
 if (typeFilter) query.set("contactType", typeFilter);
+if (dueOnly) query.set("dueOnly", "true");
 
 const data = await adminApiGet<MarketingContactsPage>(`/api/admin/marketing/contacts?${query}`);
 const totalPages = data ? Math.max(Math.ceil(data.Total / data.PageSize), 1) : 1;
@@ -40,13 +44,15 @@ function pageLink(target: number) {
   if (search) params.set("q", search);
   if (statusFilter) params.set("status", statusFilter);
   if (typeFilter) params.set("type", typeFilter);
+  if (dueOnly) params.set("faellig", "1");
   if (target > 0) params.set("page", String(target));
   const qs = params.toString();
   return qs ? `/intern/marketing/kontakte/?${qs}` : "/intern/marketing/kontakte/";
 }
 
-function composeLink(email: string, name: string | null) {
-  const params = new URLSearchParams({ email });
+function composeLink(email: string | null, name: string | null, contactId: string) {
+  const params = new URLSearchParams({ contactId });
+  if (email) params.set("email", email);
   if (name) params.set("name", name);
   return `/intern/marketing/schreiben/?${params}`;
 }
@@ -108,6 +114,10 @@ function composeLink(email: string, name: string | null) {
           <option value={type} selected={typeFilter === type}>{contactTypeLabel(type)}</option>
         ))}
       </select>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="faellig" value="1" checked={dueOnly} class="size-4" />
+        <span>{t("intern.mkContactsFilterDue")}</span>
+      </label>
       <Button type="submit" variant="default">{t("intern.filterButton")}</Button>
     </form>
 
@@ -131,18 +141,37 @@ function composeLink(email: string, name: string | null) {
               <li class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="min-w-0">
                   <p class="truncate font-medium">
-                    {contact.Name ?? contact.Email}
-                    {contact.Company && (
-                      <span class="text-muted-foreground"> · {contact.Company}</span>
+                    {contact.Company ?? contact.Name ?? contact.Email}
+                    {contact.Company && contact.Name && (
+                      <span class="text-muted-foreground"> · {contact.Name}</span>
                     )}
                   </p>
                   <p class="mt-0.5 truncate text-sm text-muted-foreground">
-                    {contact.Email} · {contactTypeLabel(contact.ContactType)}
+                    {[
+                      contact.Email ?? t("intern.mkContactsNoEmail"),
+                      contact.Phone,
+                      contact.City,
+                      contactTypeLabel(contact.ContactType),
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </p>
                   <p class="mt-1 text-xs text-muted-foreground">
                     {t("intern.mkContactColLastContact")}: {formatInternDate(contact.LastContactedAt)}
                     {" · "}
                     {t("intern.mkContactColActivity")}: {contact.EmailCount} / {contact.ReplyCount}
+                    {contact.NextFollowUpAt && (
+                      <span
+                        class={isFollowUpDue(contact.NextFollowUpAt)
+                          ? "font-medium text-red-700 dark:text-red-300"
+                          : ""}
+                      >
+                        {" · "}
+                        {t("intern.mkDetailNextFollowUp")}: {formatInternDay(contact.NextFollowUpAt)}
+                        {isFollowUpDue(contact.NextFollowUpAt) &&
+                          ` (${t("intern.mkContactsDueBadge")})`}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
@@ -158,7 +187,7 @@ function composeLink(email: string, name: string | null) {
                     {t("intern.mkContactDetail")}
                   </a>
                   <a
-                    href={composeLink(contact.Email, contact.Name)}
+                    href={composeLink(contact.Email, contact.Name, contact.Id)}
                     class="text-sm underline hover:no-underline"
                   >
                     {t("intern.mkContactWrite")}

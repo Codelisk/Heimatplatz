@@ -1,9 +1,25 @@
 # Heimatplatz.Api.Features.Marketing
 
 Ganzheitliches Marketing-System fuer den Intern-Bereich des Astro-Webs
-(`/intern/marketing`): KI-gestuetzte Marketing-E-Mails, Kontaktdatenbank
-potentieller Kunden (CRM), Versand-Historie, Posteingang mit
-Rueckmeldungs-Zuordnung und Auswertungs-Kennzahlen.
+(`/intern/marketing`): Firmenpool (Lead-Akquise aus dem Firmenbuch-Katalog),
+KI- oder vorlagengestuetzte Marketing-E-Mails, Kontaktdatenbank potentieller
+Kunden (CRM) mit Aktivitaeten-Historie und Wiedervorlagen, Versand-Historie,
+Posteingang mit Rueckmeldungs-Zuordnung und Auswertungs-Kennzahlen.
+
+## Akquise-Ablauf (Firmenpool -> Kontakt -> Versand)
+
+1. **Firmenpool** (`/lead-pool`): aufrechte Firmen aus dem Firmenbuch-Katalog
+   (`Heimatplatz.Api.Features.Firmenbuch`), deren Name auf die Immobilienbranche
+   hindeutet (Schlagwortliste `Marketing:LeadPool:NameKeywords`, ohne Deploy
+   nachschaerfbar - das Firmenbuch fuehrt keine Branche). Auswahl -> `/lead-pool/add`
+   legt Kontakte mit Status `ToContact` an (idempotent ueber `FirmenbuchFnr`).
+2. **Telefonat**: Der Kontakt hat zunaechst KEINE E-Mail (Firmenbuch fuehrt keine
+   Kontaktdaten). Ueber `/contacts/activity` werden Anruf, Notiz, Wiedervorlage
+   und Statuswechsel in einem Schritt festgehalten.
+3. **E-Mail** nach dem Gespraech: Adresse am Kontakt eintragen, per Vorlage
+   (`/templates/render`, Platzhalter aus dem Kontakt) oder KI einen Entwurf
+   erstellen und mit `ContactId` versenden - so wird der bestehende Kontakt
+   fortgeschrieben statt eine Dublette anzulegen.
 
 ## Endpoints
 
@@ -25,10 +41,17 @@ enges Rate-Limit (5/min pro IP, Program.cs).
 | GET | `/email/signature` | `GetMarketingEmailSignatureHandler` |
 | POST | `/email/send` | `SendMarketingEmailHandler` |
 | GET | `/stats` | `GetMarketingStatsHandler` |
-| GET | `/contacts` | `GetMarketingContactsHandler` |
+| GET | `/contacts` | `GetMarketingContactsHandler` (Filter `dueOnly` = faellige Wiedervorlagen) |
 | POST | `/contacts/save` | `SaveMarketingContactHandler` |
 | DELETE | `/contacts/{Id}` | `DeleteMarketingContactHandler` |
-| GET | `/contacts/detail` | `GetMarketingContactDetailHandler` |
+| GET | `/contacts/detail` | `GetMarketingContactDetailHandler` (inkl. Aktivitaeten-Timeline) |
+| POST | `/contacts/activity` | `LogMarketingActivityHandler` (Anruf/Notiz/Termin + Status + Wiedervorlage) |
+| GET | `/lead-pool` | `GetMarketingLeadPoolHandler` (Firmenbuch-Immobilienfirmen) |
+| POST | `/lead-pool/add` | `AddMarketingLeadsHandler` (uebernehmen als `ToContact`) |
+| GET | `/templates` | `GetMarketingTemplatesHandler` |
+| POST | `/templates/save` | `SaveMarketingTemplateHandler` |
+| POST | `/templates/render` | `RenderMarketingTemplateHandler` (Platzhalter aus Kontakt) |
+| DELETE | `/templates/{Id}` | `DeleteMarketingTemplateHandler` |
 | GET | `/emails` | `GetMarketingEmailsHandler` |
 | GET | `/inbox` | `GetMarketingInboxHandler` |
 | POST | `/inbox/sync` | `SyncMarketingInboxHandler` |
@@ -36,8 +59,18 @@ enges Rate-Limit (5/min pro IP, Program.cs).
 
 ## Datenmodell (EF, Auto-Discovery)
 
-- `MarketingContact` - Kontaktdatenbank (E-Mail unique/normalisiert, Typ/Status-Funnel,
-  Notizen, LastContactedAt/LastReplyAt). Wird beim Versand automatisch angelegt.
+- `MarketingContact` - Kontaktdatenbank. **E-Mail optional** (Firmenpool-Kontakte
+  entstehen ohne Adresse), aber unique/normalisiert sofern gesetzt (partieller Index
+  `"Email" IS NOT NULL`). Typ/Status-Funnel (Status inkl. `ToContact`/`FollowUp`),
+  `City`, `FirmenbuchFnr` (unique/partiell, Idempotenz der Uebernahme), `Notes`,
+  `NextFollowUpAt` (treibt Faellig-Liste), `LastContactedAt`/`LastReplyAt`.
+- `MarketingActivity` - Historie eines Kontakts (Anruf/Notiz/Statuswechsel/
+  Wiedervorlage/Termin), FK auf Kontakt (Cascade). Wird zusammen mit gesendeten
+  und eingegangenen Mails zur Timeline zusammengefuehrt; Mailversand erzeugt bewusst
+  KEINE Aktivitaet (die Mail ist bereits ein eigener Eintrag).
+- `MarketingEmailTemplate` - E-Mail-Vorlagen (Name unique, Betreff/Text mit
+  Platzhaltern, aktiv/inaktiv, Reihenfolge). Ueber `/intern/marketing/vorlagen`
+  ohne Deploy pflegbar; `MarketingTemplateSeeder` (Referenzdaten) legt Start-Vorlagen an.
 - `MarketingEmail` - Versand-Historie mit SMTP-`MessageId` (Reply-Threading),
   Generierungs-Stichwoertern (Auswertung) und Status `Sent`/`LoggedOnly`.
 - `MarketingInboundEmail` - Rueckmeldungen aus dem Postfach; `MessageId` unique
@@ -45,6 +78,14 @@ enges Rate-Limit (5/min pro IP, Program.cs).
 
 Migrations liegen in BEIDEN Provider-Sets (`Core.Data/Migrations` SQLite,
 `Core.Data.Migrations.Postgres`), Demo-Kontakte im `MarketingSeeder` (IsDemoData).
+
+## Vorlagen-Platzhalter
+
+`MarketingTemplateRenderer` ersetzt aus dem Kontakt: `{anrede}` (mit Ansprechpartner
+"Guten Tag {Name}", sonst "Sehr geehrte Damen und Herren" - das Geschlecht ist im
+Firmenbuch nicht bekannt), `{firma}`, `{name}`, `{ort}`. Ersetzung passiert
+serverseitig (Backend-First); der eingesetzte Text bleibt im Editor aenderbar.
+Die Signatur ist NICHT Teil der Vorlage (kommt beim Versand aus dem Impressum).
 
 ## Ablauf
 
@@ -105,6 +146,7 @@ Der Posteingang nutzt die `Email:*`-Konfiguration (Core.Email) - kein eigenes En
 - `Heimatplatz.Api.Features.Marketing.Contracts` (Requests/DTOs/Enums)
 - `Heimatplatz.Api.Features.Admin` (`IAdminAccessGuard`)
 - `Heimatplatz.Api.Features.Legal.Contracts` (`GetImprintRequest` fuer die Signatur)
+- `Heimatplatz.Api.Features.Firmenbuch` (`FirmenbuchCompany` als Lead-Quelle des Firmenpools)
 - `Heimatplatz.Api.Core.Data` (+Seeding) (AppDbContext, Entities, Seeder)
 - `Heimatplatz.Api.Core.Email` (`IEmailSender`, `EmailOptions`, MailKit/IMAP)
 - `Heimatplatz.Api.Core.AiConnectorClient` (generierter `RunPromptHttpRequest`-Client)

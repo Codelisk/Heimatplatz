@@ -833,11 +833,56 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.ToTable("Municipalities", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("FollowUpAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("StatusFrom")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("StatusTo")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactId", "OccurredAt");
+
+                    b.ToTable("MarketingActivities", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Company")
                         .HasMaxLength(200)
@@ -850,9 +895,12 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(320)
                         .HasColumnType("character varying(320)");
+
+                    b.Property<string>("FirmenbuchFnr")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTimeOffset?>("LastContactedAt")
                         .HasColumnType("timestamp with time zone");
@@ -863,6 +911,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.Property<string>("Name")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset?>("NextFollowUpAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(8000)
@@ -887,7 +938,14 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.HasIndex("ContactType");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"Email\" IS NOT NULL");
+
+                    b.HasIndex("FirmenbuchFnr")
+                        .IsUnique()
+                        .HasFilter("\"FirmenbuchFnr\" IS NOT NULL");
+
+                    b.HasIndex("NextFollowUpAt");
 
                     b.HasIndex("Status");
 
@@ -941,6 +999,52 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.HasIndex("SentAt");
 
                     b.ToTable("MarketingEmails", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmailTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("MarketingEmailTemplates", (string)null);
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingInboundEmail", b =>
@@ -2166,6 +2270,17 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.Navigation("District");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingActivity", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
+                        .WithMany("Activities")
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contact");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
@@ -2339,6 +2454,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", b =>
                 {
+                    b.Navigation("Activities");
+
                     b.Navigation("Emails");
 
                     b.Navigation("InboundEmails");

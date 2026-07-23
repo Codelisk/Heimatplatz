@@ -2,6 +2,7 @@ using System.Net.Mail;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Admin.Services;
 using Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
+using Heimatplatz.Api.Features.Marketing.Contracts.Models;
 using Heimatplatz.Api.Features.Marketing.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
@@ -12,6 +13,8 @@ namespace Heimatplatz.Api.Features.Marketing.Handlers;
 /// <summary>
 /// Kontakt anlegen (Id=null) oder bearbeiten. E-Mail wird normalisiert (lowercase/trim);
 /// der Unique-Index verhindert Dubletten - hier zusaetzlich mit sprechender Fehlermeldung.
+/// Die Adresse ist optional: Kontakte aus dem Firmenpool haben zunaechst nur Firma und Ort.
+/// Ein Statuswechsel landet als Eintrag in der Kontakt-Historie.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/admin/marketing")]
@@ -25,17 +28,24 @@ public class SaveMarketingContactHandler(
     {
         accessGuard.EnsureAuthorized();
 
-        if (!MailAddress.TryCreate(request.Email?.Trim(), out var address))
-            return new SaveMarketingContactResponse(false, null, "Die E-Mail-Adresse ist ungültig.");
+        // Adresse ist optional - nur wenn eine angegeben ist, muss sie gueltig und frei sein
+        string? normalizedEmail = null;
+        var rawEmail = NullIfEmpty(request.Email);
+        if (rawEmail is not null)
+        {
+            if (!MailAddress.TryCreate(rawEmail, out var address))
+                return new SaveMarketingContactResponse(false, null, "Die E-Mail-Adresse ist ungültig.");
 
-        var normalizedEmail = address.Address.Trim().ToLowerInvariant();
+            normalizedEmail = address.Address.Trim().ToLowerInvariant();
 
-        var duplicate = await dbContext.Set<MarketingContact>()
-            .AnyAsync(c => c.Email == normalizedEmail && c.Id != request.Id, cancellationToken);
-        if (duplicate)
-            return new SaveMarketingContactResponse(false, null, "Ein Kontakt mit dieser E-Mail-Adresse existiert bereits.");
+            var duplicate = await dbContext.Set<MarketingContact>()
+                .AnyAsync(c => c.Email == normalizedEmail && c.Id != request.Id, cancellationToken);
+            if (duplicate)
+                return new SaveMarketingContactResponse(false, null, "Ein Kontakt mit dieser E-Mail-Adresse existiert bereits.");
+        }
 
         MarketingContact contact;
+        MarketingContactStatus? previousStatus = null;
         if (request.Id is { } id)
         {
             var existing = await dbContext.Set<MarketingContact>()
@@ -43,13 +53,13 @@ public class SaveMarketingContactHandler(
             if (existing is null)
                 return new SaveMarketingContactResponse(false, null, "Kontakt wurde nicht gefunden.");
             contact = existing;
+            previousStatus = existing.Status;
         }
         else
         {
             contact = new MarketingContact
             {
                 Id = Guid.NewGuid(),
-                Email = normalizedEmail,
                 Source = "Manuell"
             };
             dbContext.Set<MarketingContact>().Add(contact);
@@ -59,9 +69,24 @@ public class SaveMarketingContactHandler(
         contact.Name = NullIfEmpty(request.Name);
         contact.Company = NullIfEmpty(request.Company);
         contact.Phone = NullIfEmpty(request.Phone);
+        contact.City = NullIfEmpty(request.City);
         contact.ContactType = request.ContactType;
         contact.Status = request.Status;
         contact.Notes = NullIfEmpty(request.Notes);
+
+        // Statuswechsel ueber das Formular gehoert genauso in die Historie wie einer
+        // ueber die Aktivitaets-Erfassung
+        if (previousStatus is { } from && from != request.Status)
+        {
+            dbContext.Set<MarketingActivity>().Add(new MarketingActivity
+            {
+                ContactId = contact.Id,
+                Type = MarketingActivityType.StatusChange,
+                StatusFrom = from,
+                StatusTo = request.Status,
+                OccurredAt = DateTimeOffset.UtcNow
+            });
+        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return new SaveMarketingContactResponse(true, contact.Id, null);

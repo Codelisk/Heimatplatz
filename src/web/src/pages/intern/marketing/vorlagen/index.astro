@@ -1,0 +1,213 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import { adminApiGet, type MarketingTemplatesResponse } from "@/lib/server/admin-api";
+import { formatInternDate } from "@/lib/intern/marketing-labels";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+
+// Die Platzhalter-Liste stammt aus MarketingTemplatePlaceholders (API) - hier gespiegelt,
+// weil sie nur als Hilfetext dient und die Ersetzung serverseitig passiert.
+const PLACEHOLDERS = ["{anrede}", "{firma}", "{name}", "{ort}"];
+
+const editId = Astro.url.searchParams.get("id") ?? "";
+const action = Astro.url.searchParams.get("action");
+const actionError = Astro.url.searchParams.get("error");
+
+const data = await adminApiGet<MarketingTemplatesResponse>(
+  "/api/admin/marketing/templates?includeInactive=true",
+);
+const templates = data?.Templates ?? [];
+const editing = editId ? (templates.find((tpl) => tpl.Id === editId) ?? null) : null;
+
+const inputClass =
+  "w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
+---
+
+<BaseLayout
+  title={t("intern.mkTplMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/marketing/vorlagen/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/intern/marketing/" class="hover:underline">{t("intern.marketingTitle")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{t("intern.mkTplTitle")}</span>
+    </nav>
+
+    <h1 class="mt-2 text-3xl font-bold">{t("intern.mkTplTitle")}</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("intern.mkTplIntro")}</p>
+
+    {action === "saved" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkTplSavedOk")}
+      </div>
+    )}
+    {action === "deleted" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkTplDeletedOk")}
+      </div>
+    )}
+    {action === "failed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkTplActionFailed", { error: actionError ?? "?" })}
+      </div>
+    )}
+
+    {!data && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkTplLoadFailed")}
+      </div>
+    )}
+
+    {data && (
+      <section class="mt-6 rounded-lg border border-border bg-card">
+        {templates.length === 0 ? (
+          <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.mkTplEmpty")}</p>
+        ) : (
+          <ul class="divide-y divide-border">
+            {templates.map((tpl) => (
+              <li class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+                <div class="min-w-0">
+                  <p class="font-medium">
+                    {tpl.Name}
+                    {!tpl.IsActive && (
+                      <span class="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                        {t("intern.mkTplInactiveBadge")}
+                      </span>
+                    )}
+                  </p>
+                  <p class="mt-0.5 text-sm text-muted-foreground">{tpl.Subject}</p>
+                  {tpl.Description && (
+                    <p class="mt-1 text-xs text-muted-foreground">{tpl.Description}</p>
+                  )}
+                  <p class="mt-1 text-xs text-muted-foreground">
+                    {t("intern.mkDetailCreated")}: {formatInternDate(tpl.CreatedAt)}
+                  </p>
+                </div>
+                <div class="flex shrink-0 items-center gap-3">
+                  <a
+                    href={`/intern/marketing/vorlagen/?id=${tpl.Id}#formular`}
+                    class="text-sm underline hover:no-underline"
+                  >
+                    {t("intern.mkTplEdit")}
+                  </a>
+                  <form
+                    method="POST"
+                    action="/intern/marketing/vorlagen/loeschen"
+                    data-confirm={t("intern.mkTplConfirmDelete")}
+                  >
+                    <input type="hidden" name="id" value={tpl.Id} />
+                    <button type="submit" class="text-sm underline hover:no-underline">
+                      {t("intern.mkDelete")}
+                    </button>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    )}
+
+    <section id="formular" class="mt-8 rounded-lg border border-border bg-card p-5">
+      <h2 class="text-base font-semibold">
+        {editing ? t("intern.mkTplEditHeading") : t("intern.mkTplNewHeading")}
+      </h2>
+      <p class="mt-1 text-sm text-muted-foreground">
+        {t("intern.mkTplPlaceholderHint", { list: PLACEHOLDERS.join("  ") })}
+      </p>
+
+      <form
+        method="POST"
+        action="/intern/marketing/vorlagen/speichern"
+        class="mt-4 flex flex-col gap-4"
+      >
+        {editing && <input type="hidden" name="id" value={editing.Id} />}
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="font-medium">{t("intern.mkTplFieldName")}</span>
+            <input
+              type="text"
+              name="name"
+              required
+              value={editing?.Name ?? ""}
+              class={inputClass}
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="font-medium">{t("intern.mkTplFieldDescription")}</span>
+            <input
+              type="text"
+              name="description"
+              value={editing?.Description ?? ""}
+              class={inputClass}
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="font-medium">{t("intern.mkTplFieldSubject")}</span>
+          <input
+            type="text"
+            name="subject"
+            required
+            value={editing?.Subject ?? ""}
+            class={inputClass}
+          />
+        </label>
+
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="font-medium">{t("intern.mkTplFieldBody")}</span>
+          <textarea name="body" rows="12" required class={inputClass}>{editing?.Body ?? ""}</textarea>
+        </label>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="font-medium">{t("intern.mkTplFieldOrder")}</span>
+            <input
+              type="number"
+              name="displayOrder"
+              value={String(editing?.DisplayOrder ?? 0)}
+              class={inputClass}
+            />
+          </label>
+          <label class="flex items-center gap-2 self-end text-sm">
+            <input
+              type="checkbox"
+              name="isActive"
+              value="1"
+              checked={editing ? editing.IsActive : true}
+              class="size-4"
+            />
+            <span>{t("intern.mkTplFieldActive")}</span>
+          </label>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <Button type="submit" variant="default">{t("intern.mkSave")}</Button>
+          {editing && (
+            <a href="/intern/marketing/vorlagen/">
+              <Button type="button" variant="outline">{t("intern.mkTplCancel")}</Button>
+            </a>
+          )}
+        </div>
+      </form>
+    </section>
+  </section>
+</BaseLayout>
+
+<script>
+  // Loeschen nur nach Rueckfrage - der Text kommt aus data-confirm (i18n, SSR-gerendert)
+  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-confirm]")) {
+    form.addEventListener("submit", (event) => {
+      if (!window.confirm(form.dataset.confirm ?? "")) event.preventDefault();
+    });
+  }
+</script>

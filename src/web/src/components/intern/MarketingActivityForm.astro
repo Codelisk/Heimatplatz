@@ -1,0 +1,75 @@
+---
+/**
+ * Erfassung eines Bearbeitungsschritts am Kontakt: Anruf/Notiz/Termin, dazu optional
+ * Wiedervorlage und neuer Status - in einem Formular, weil das im Ablauf ein Schritt ist
+ * ("angerufen, Notiz dazu, naechste Woche nochmal, Status auf Wiedervorlage").
+ * PRG-Muster: POST an kontakte/aktivitaet.ts, das den ADMIN_API_KEY serverseitig anhaengt.
+ */
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import type { MarketingContact } from "@/lib/server/admin-api";
+import {
+  ACTIVITY_TYPES,
+  CONTACT_STATUSES,
+  activityTypeLabel,
+  contactStatusLabel,
+  toDateInputValue,
+} from "@/lib/intern/marketing-labels";
+
+interface Props {
+  contact: MarketingContact;
+}
+
+const { contact } = Astro.props;
+
+const inputClass =
+  "w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
+---
+
+<form method="POST" action="/intern/marketing/kontakte/aktivitaet" class="flex flex-col gap-4">
+  <input type="hidden" name="contactId" value={contact.Id} />
+
+  <div class="grid gap-4 sm:grid-cols-3">
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="font-medium">{t("intern.mkActivityFieldType")}</span>
+      <select name="type" class={inputClass}>
+        {ACTIVITY_TYPES.map((type) => (
+          <option value={type}>{activityTypeLabel(type)}</option>
+        ))}
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="font-medium">{t("intern.mkActivityFieldFollowUp")}</span>
+      <input
+        type="date"
+        name="followUp"
+        value={toDateInputValue(contact.NextFollowUpAt)}
+        class={inputClass}
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="font-medium">{t("intern.mkActivityFieldStatus")}</span>
+      <select name="status" class={inputClass}>
+        <option value="">{t("intern.mkActivityStatusKeep")}</option>
+        {CONTACT_STATUSES.map((status) => (
+          <option value={status} selected={contact.Status === status}>
+            {contactStatusLabel(status)}
+          </option>
+        ))}
+      </select>
+    </label>
+  </div>
+
+  <label class="flex flex-col gap-1 text-sm">
+    <span class="font-medium">{t("intern.mkActivityFieldNotes")}</span>
+    <textarea
+      name="notes"
+      rows="3"
+      placeholder={t("intern.mkActivityFieldNotesPlaceholder")}
+      class={inputClass}></textarea>
+  </label>
+
+  <div>
+    <Button type="submit" variant="default">{t("intern.mkActivitySubmit")}</Button>
+  </div>
+</form>

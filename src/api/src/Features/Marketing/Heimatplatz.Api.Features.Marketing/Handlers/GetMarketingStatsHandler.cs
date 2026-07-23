@@ -42,9 +42,17 @@ public class GetMarketingStatsHandler(
         // Bounces sind keine Antworten - weder fuer die Quote noch fuer die Zaehler
         var emailsWithReply = await emails.CountAsync(e => e.Replies.Any(r => !r.IsBounce), cancellationToken);
 
+        var now = DateTimeOffset.UtcNow;
+
         return new GetMarketingStatsResponse(
             TotalContacts: byStatus.Sum(x => x.Count),
             Leads: CountOf(MarketingContactStatus.Lead),
+            ToContact: CountOf(MarketingContactStatus.ToContact),
+            // Faellig heisst: Termin erreicht - unabhaengig vom Status, damit auch ein
+            // Kontakt mit Status "Interessiert" und offenem Termin auftaucht
+            FollowUpDue: await contacts.CountAsync(
+                c => c.NextFollowUpAt != null && c.NextFollowUpAt <= now,
+                cancellationToken),
             Contacted: CountOf(MarketingContactStatus.Contacted),
             Replied: CountOf(MarketingContactStatus.Replied),
             Interested: CountOf(MarketingContactStatus.Interested),

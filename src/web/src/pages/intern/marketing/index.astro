@@ -11,6 +11,8 @@ const stats = await adminApiGet<MarketingStats>("/api/admin/marketing/stats");
 const statEntries = stats
   ? [
       { label: t("intern.marketingStatsContacts"), value: String(stats.TotalContacts) },
+      { label: t("intern.marketingStatsToContact"), value: String(stats.ToContact) },
+      { label: t("intern.marketingStatsFollowUpDue"), value: String(stats.FollowUpDue) },
       { label: t("intern.marketingStatsLeads"), value: String(stats.Leads) },
       { label: t("intern.marketingStatsContacted"), value: String(stats.Contacted) },
       { label: t("intern.marketingStatsReplied"), value: String(stats.Replied) },
@@ -29,10 +31,16 @@ const statEntries = stats
 
 const navCards = [
   {
+    href: "/intern/marketing/firmenpool/",
+    title: t("intern.marketingNavPool"),
+    description: t("intern.marketingNavPoolDescription"),
+    badge: null as string | null,
+  },
+  {
     href: "/intern/marketing/schreiben/",
     title: t("intern.marketingNavCompose"),
     description: t("intern.marketingNavComposeDescription"),
-    badge: null as string | null,
+    badge: null,
   },
   {
     href: "/intern/marketing/eingang/",
@@ -47,6 +55,15 @@ const navCards = [
     href: "/intern/marketing/kontakte/",
     title: t("intern.marketingNavContacts"),
     description: t("intern.marketingNavContactsDescription"),
+    badge:
+      stats && stats.FollowUpDue > 0
+        ? t("intern.marketingDueBadge", { count: stats.FollowUpDue })
+        : null,
+  },
+  {
+    href: "/intern/marketing/vorlagen/",
+    title: t("intern.marketingNavTemplates"),
+    description: t("intern.marketingNavTemplatesDescription"),
     badge: null,
   },
   {

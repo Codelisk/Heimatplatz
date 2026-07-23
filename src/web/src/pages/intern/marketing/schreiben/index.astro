@@ -1,16 +1,27 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
-import { adminApiGet, type MarketingSignatureResponse } from "@/lib/server/admin-api";
+import {
+  adminApiGet,
+  type MarketingSignatureResponse,
+  type MarketingTemplatesResponse,
+} from "@/lib/server/admin-api";
 import { t } from "@/i18n";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
-// Die Generate-/Send-Aufrufe laufen ueber die Server-Routes generate.ts/send.ts,
+// Die Generate-/Send-/Vorlagen-Aufrufe laufen ueber die Server-Routes im selben Ordner,
 // die den ADMIN_API_KEY serverseitig anhaengen - der Key bleibt aus dem Browser raus.
 // ?email=&name= (z.B. aus der Kontaktliste) fuellen Empfaenger vor.
+// ?contactId= verknuepft den Versand mit einem bestehenden Kontakt - noetig fuer
+// Firmenpool-Kontakte, die noch keine Adresse haben und sonst als Dublette entstuenden.
 
 const prefillEmail = Astro.url.searchParams.get("email")?.trim() ?? "";
 const prefillName = Astro.url.searchParams.get("name")?.trim() ?? "";
+const contactId = Astro.url.searchParams.get("contactId")?.trim() ?? "";
+
+const templates =
+  (await adminApiGet<MarketingTemplatesResponse>("/api/admin/marketing/templates"))?.Templates ??
+  [];
 
 // Signatur-Vorschau schon beim Laden, damit auch selbst geschriebene E-Mails
 // (ohne KI-Generierung) sehen, was beim Versand angehaengt wird. Bei nicht
@@ -30,7 +41,7 @@ const inputClass =
   canonicalPath="/intern/marketing/schreiben/"
   noindex
 >
-  <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
+  <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8" data-contact-id={contactId}>
     <nav class="text-sm text-muted-foreground">
       <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
       <span aria-hidden="true"> / </span>
@@ -88,6 +99,47 @@ const inputClass =
           />
         </label>
       </div>
+    </section>
+
+    <section class="mt-6 rounded-lg border border-border bg-card p-5">
+      <h2 class="text-base font-semibold">{t("intern.marketingTemplateHeading")}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{t("intern.marketingTemplateHint")}</p>
+
+      {templates.length === 0 ? (
+        <p class="mt-4 text-sm text-muted-foreground">
+          {t("intern.marketingTemplateEmpty")}{" "}
+          <a href="/intern/marketing/vorlagen/" class="underline hover:no-underline">
+            {t("intern.marketingTemplateManage")}
+          </a>
+        </p>
+      ) : (
+        <div class="mt-4 flex flex-col gap-4">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="font-medium">{t("intern.marketingTemplateLabel")}</span>
+            <select data-hook="template" class={inputClass}>
+              <option value="">{t("intern.marketingTemplateNone")}</option>
+              {templates.map((tpl) => (
+                <option value={tpl.Id}>{tpl.Name}</option>
+              ))}
+            </select>
+          </label>
+
+          <div class="flex items-center gap-3">
+            <Button type="button" variant="outline" data-hook="apply-template">
+              {t("intern.marketingTemplateApply")}
+            </Button>
+            <span class="hidden text-sm text-muted-foreground" data-hook="template-status">
+              {t("intern.marketingTemplateApplying")}
+            </span>
+            <a
+              href="/intern/marketing/vorlagen/"
+              class="text-sm text-muted-foreground underline hover:no-underline"
+            >
+              {t("intern.marketingTemplateManage")}
+            </a>
+          </div>
+        </div>
+      )}
     </section>
 
     <section class="mt-6 rounded-lg border border-border bg-card p-5">
@@ -169,11 +221,23 @@ const inputClass =
     return el;
   }
 
+  /** Die Vorlagen-Auswahl fehlt im Markup, solange keine Vorlage angelegt ist */
+  function optionalHook<T extends HTMLElement>(name: string): T | null {
+    return document.querySelector<T>(`[data-hook="${name}"]`);
+  }
+
+  // Verknuepfung mit einem bestehenden Kontakt (aus der Kontaktliste/Detailseite heraus)
+  const contactId =
+    document.querySelector<HTMLElement>("[data-contact-id]")?.dataset.contactId ?? "";
+
   const recipientEmail = hook<HTMLInputElement>("recipient-email");
   const recipientName = hook<HTMLInputElement>("recipient-name");
   const ccEmail = hook<HTMLInputElement>("cc-email");
   const bccEmail = hook<HTMLInputElement>("bcc-email");
   const keywords = hook<HTMLTextAreaElement>("keywords");
+  const templateSelect = optionalHook<HTMLSelectElement>("template");
+  const applyTemplateButton = optionalHook<HTMLButtonElement>("apply-template");
+  const templateStatus = optionalHook<HTMLSpanElement>("template-status");
   const generateButton = hook<HTMLButtonElement>("generate");
   const generateStatus = hook<HTMLSpanElement>("generate-status");
   const draftSection = hook<HTMLElement>("draft-section");
@@ -217,6 +281,52 @@ const inputClass =
       return null;
     }
   }
+
+  applyTemplateButton?.addEventListener("click", async () => {
+    hideBanners();
+
+    const templateId = templateSelect?.value ?? "";
+    if (!templateId) {
+      showBanner(bannerError, bannerOk, t("intern.marketingTemplateValidation"));
+      return;
+    }
+    // Gleiche Rueckfrage wie bei der KI-Generierung - ein vorhandener Entwurf soll
+    // nicht kommentarlos verloren gehen.
+    if (
+      (subject.value.trim() || body.value.trim()) &&
+      !window.confirm(t("intern.marketingConfirmOverwrite"))
+    )
+      return;
+
+    applyTemplateButton.disabled = true;
+    templateStatus?.classList.remove("hidden");
+    try {
+      const result = await postJson("/intern/marketing/schreiben/vorlage", {
+        templateId,
+        contactId,
+      });
+
+      if (!result) {
+        showBanner(bannerError, bannerOk, t("intern.marketingApiUnreachable"));
+        return;
+      }
+      if (!result.ok) {
+        showBanner(
+          bannerError,
+          bannerOk,
+          t("intern.marketingTemplateFailed", { error: result.error ?? "?" }),
+        );
+        return;
+      }
+
+      subject.value = result.subject ?? "";
+      body.value = result.body ?? "";
+      draftSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    } finally {
+      applyTemplateButton.disabled = false;
+      templateStatus?.classList.add("hidden");
+    }
+  });
 
   generateButton.addEventListener("click", async () => {
     hideBanners();
@@ -302,6 +412,7 @@ const inputClass =
         keywords: keywords.value.trim(),
         subject: subject.value.trim(),
         body: body.value.trim(),
+        contactId,
       });
 
       if (!result) {

@@ -24,6 +24,8 @@
     <ProjectReference Include="..\..\Admin\Heimatplatz.Api.Features.Admin\Heimatplatz.Api.Features.Admin.csproj" />
     <!-- Impressum-Daten als Quelle der E-Mail-Signatur (GetImprintRequest) -->
     <ProjectReference Include="..\..\Legal\Heimatplatz.Api.Features.Legal.Contracts\Heimatplatz.Api.Features.Legal.Contracts.csproj" />
+    <!-- Firmenbuch-Katalog als Lead-Quelle des Firmenpools (FirmenbuchCompany-Entitaet) -->
+    <ProjectReference Include="..\..\Firmenbuch\Heimatplatz.Api.Features.Firmenbuch\Heimatplatz.Api.Features.Firmenbuch.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,10 +8,14 @@ public record GetMarketingStatsRequest : IRequest<GetMarketingStatsResponse>;
 /// <summary>
 /// ReplyRatePercent = Anteil versendeter Mails mit mindestens einer zugeordneten
 /// Antwort (0-100, gerundet); null solange noch nichts versendet wurde.
+/// ToContact/FollowUpDue treiben die Arbeitsliste: offene Kontaktaufnahmen und
+/// erreichte Wiedervorlage-Termine.
 /// </summary>
 public record GetMarketingStatsResponse(
     int TotalContacts,
     int Leads,
+    int ToContact,
+    int FollowUpDue,
     int Contacted,
     int Replied,
     int Interested,

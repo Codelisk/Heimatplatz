@@ -23,6 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
   const keywords = typeof payload?.keywords === "string" ? payload.keywords.trim() : "";
   const subject = typeof payload?.subject === "string" ? payload.subject.trim() : "";
   const body = typeof payload?.body === "string" ? payload.body.trim() : "";
+  const contactId = typeof payload?.contactId === "string" ? payload.contactId.trim() : "";
 
   if (!recipientEmail) {
     return json({ ok: false, error: t("intern.marketingValidationRecipient") });
@@ -39,6 +40,9 @@ export const POST: APIRoute = async ({ request }) => {
     Keywords: keywords || null,
     CcEmail: ccEmail || null,
     BccEmail: bccEmail || null,
+    // Schreibt den Versand auf einen bestehenden Kontakt statt eine Dublette anzulegen -
+    // greift bei Firmenpool-Kontakten, die vorher noch keine Adresse hatten
+    ContactId: contactId || null,
   });
 
   if (!result) {

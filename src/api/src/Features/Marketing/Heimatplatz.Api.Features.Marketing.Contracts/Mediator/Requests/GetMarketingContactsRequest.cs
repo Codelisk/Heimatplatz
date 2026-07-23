@@ -8,11 +8,13 @@ namespace Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
 /// Status/ContactType kommen als Enum-Namen-Strings aus den Query-Parametern
 /// (leer = kein Filter) - bewusst string statt Enum, damit das Query-Binding des
 /// generierten Endpoints robust bleibt.
+/// DueOnly=true liefert nur faellige Wiedervorlagen (NextFollowUpAt &lt;= jetzt).
 /// </summary>
 public record GetMarketingContactsRequest(
     string? Search,
     string? Status,
     string? ContactType,
+    bool DueOnly = false,
     int Page = 0,
     int PageSize = 50
 ) : IRequest<GetMarketingContactsResponse>;

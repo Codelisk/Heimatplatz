@@ -111,13 +111,19 @@ export type MarketingContactStatus =
   | "Interested"
   | "Customer"
   | "NotInterested"
-  | "DoNotContact";
+  | "DoNotContact"
+  | "ToContact"
+  | "FollowUp";
+
+export type MarketingActivityType = "Note" | "Call" | "StatusChange" | "FollowUp" | "Meeting";
 
 export type MarketingEmailStatus = "Sent" | "LoggedOnly" | "DeliveryFailed";
 
 export type MarketingStats = {
   TotalContacts: number;
   Leads: number;
+  ToContact: number;
+  FollowUpDue: number;
   Contacted: number;
   Replied: number;
   Interested: number;
@@ -131,21 +137,27 @@ export type MarketingStats = {
   ReplyRatePercent: number | null;
 };
 
+// Email ist optional: Kontakte aus dem Firmenpool entstehen ohne Adresse (das Firmenbuch
+// fuehrt keine Kontaktdaten) und bekommen sie erst beim Telefonat.
 export type MarketingContact = {
   Id: string;
-  Email: string;
+  Email: string | null;
   Name: string | null;
   Company: string | null;
   Phone: string | null;
+  City: string | null;
   ContactType: MarketingContactType;
   Status: MarketingContactStatus;
   Notes: string | null;
   Source: string | null;
+  FirmenbuchFnr: string | null;
+  NextFollowUpAt: string | null;
   LastContactedAt: string | null;
   LastReplyAt: string | null;
   CreatedAt: string;
   EmailCount: number;
   ReplyCount: number;
+  ActivityCount: number;
 };
 
 export type MarketingContactsPage = {
@@ -159,7 +171,7 @@ export type MarketingContactsPage = {
 export type MarketingEmail = {
   Id: string;
   ContactId: string;
-  ContactEmail: string;
+  ContactEmail: string | null;
   ContactName: string | null;
   Subject: string;
   Body: string;
@@ -203,10 +215,22 @@ export type MarketingInboxPage = {
   SyncError: string | null;
 };
 
+export type MarketingActivity = {
+  Id: string;
+  ContactId: string;
+  Type: MarketingActivityType;
+  Notes: string | null;
+  StatusFrom: MarketingContactStatus | null;
+  StatusTo: MarketingContactStatus | null;
+  FollowUpAt: string | null;
+  OccurredAt: string;
+};
+
 export type MarketingContactDetail = {
   Contact: MarketingContact | null;
   Emails: MarketingEmail[];
   Replies: MarketingInboundEmail[];
+  Activities: MarketingActivity[];
 };
 
 export type MarketingSaveContactResponse = {
@@ -218,6 +242,61 @@ export type MarketingSaveContactResponse = {
 export type MarketingSyncResponse = {
   Success: boolean;
   Added: number;
+  Error: string | null;
+};
+
+// Firmenpool: aufrechte Firmenbuch-Firmen mit Immobilien-Namensbezug.
+// ContactId gesetzt = bereits als Kontakt uebernommen.
+export type MarketingLead = {
+  Id: string;
+  Fnr: string;
+  Name: string;
+  Sitz: string | null;
+  RechtsformText: string | null;
+  ContactId: string | null;
+  ContactStatus: MarketingContactStatus | null;
+};
+
+export type MarketingLeadPoolPage = {
+  Leads: MarketingLead[];
+  Total: number;
+  PageSize: number;
+  CurrentPage: number;
+  HasMore: boolean;
+};
+
+export type MarketingAddLeadsResponse = {
+  Success: boolean;
+  Added: number;
+  Skipped: number;
+  Error: string | null;
+};
+
+export type MarketingTemplate = {
+  Id: string;
+  Name: string;
+  Description: string | null;
+  Subject: string;
+  Body: string;
+  IsActive: boolean;
+  DisplayOrder: number;
+  CreatedAt: string;
+};
+
+export type MarketingTemplatesResponse = {
+  Templates: MarketingTemplate[];
+};
+
+export type MarketingRenderTemplateResponse = {
+  Success: boolean;
+  Subject: string | null;
+  Body: string | null;
+  Error: string | null;
+};
+
+export type MarketingActivityResponse = {
+  Success: boolean;
+  Id: string | null;
   Error: string | null;
 };
 

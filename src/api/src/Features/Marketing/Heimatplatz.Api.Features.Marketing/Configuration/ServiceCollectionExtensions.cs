@@ -21,6 +21,8 @@ public static class ServiceCollectionExtensions
         services.Configure<MarketingOptions>(configuration.GetSection(MarketingOptions.SectionName));
         services.AddGeneratedServices();
         services.AddSeeder<MarketingSeeder>();
+        // Referenzdaten - laeuft auch in Produktion, sonst waere die Vorlagen-Auswahl leer
+        services.AddSeeder<MarketingTemplateSeeder>();
 
         // E-Mail-Text-Provider je nach Konfiguration
         // (Mock = Dev-Platzhalter ohne KI, AiConnector = externer KI-Backend-Service)

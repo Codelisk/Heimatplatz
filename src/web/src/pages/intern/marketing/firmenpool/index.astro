@@ -1,0 +1,208 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import { adminApiGet, type MarketingLeadPoolPage } from "@/lib/server/admin-api";
+import { contactStatusBadgeClass, contactStatusLabel } from "@/lib/intern/marketing-labels";
+
+// Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+
+const PAGE_SIZE = 50;
+
+const search = Astro.url.searchParams.get("q")?.trim() ?? "";
+const sitz = Astro.url.searchParams.get("ort")?.trim() ?? "";
+// Default an: der Pool ist eine Abarbeitungsliste, nicht ein Katalog
+const onlyOpen = Astro.url.searchParams.get("alle") !== "1";
+const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "0", 10) || 0, 0);
+const action = Astro.url.searchParams.get("action");
+const actionError = Astro.url.searchParams.get("error");
+const addedCount = Astro.url.searchParams.get("added") ?? "0";
+const skippedCount = Astro.url.searchParams.get("skipped") ?? "0";
+
+const query = new URLSearchParams({
+  page: String(page),
+  pageSize: String(PAGE_SIZE),
+  onlyOpen: String(onlyOpen),
+});
+if (search) query.set("search", search);
+if (sitz) query.set("sitz", sitz);
+
+const data = await adminApiGet<MarketingLeadPoolPage>(`/api/admin/marketing/lead-pool?${query}`);
+const totalPages = data ? Math.max(Math.ceil(data.Total / data.PageSize), 1) : 1;
+
+const inputClass =
+  "rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
+
+/** Filter-erhaltende Links - der Pool wird seitenweise abgearbeitet */
+function buildQuery(overrides: Record<string, string | null> = {}) {
+  const params = new URLSearchParams();
+  if (search) params.set("q", search);
+  if (sitz) params.set("ort", sitz);
+  if (!onlyOpen) params.set("alle", "1");
+  if (page > 0) params.set("page", String(page));
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value === null) params.delete(key);
+    else params.set(key, value);
+  }
+  return params.toString();
+}
+
+function pageLink(target: number) {
+  const qs = buildQuery({ page: target > 0 ? String(target) : null });
+  return qs ? `/intern/marketing/firmenpool/?${qs}` : "/intern/marketing/firmenpool/";
+}
+---
+
+<BaseLayout
+  title={t("intern.mkPoolMetaTitle")}
+  description={t("intern.metaDescription")}
+  canonicalPath="/intern/marketing/firmenpool/"
+  noindex
+>
+  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav class="text-sm text-muted-foreground">
+      <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/intern/marketing/" class="hover:underline">{t("intern.marketingTitle")}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{t("intern.mkPoolTitle")}</span>
+    </nav>
+
+    <h1 class="mt-2 text-3xl font-bold">{t("intern.mkPoolTitle")}</h1>
+    <p class="mt-3 text-sm leading-6 text-muted-foreground">{t("intern.mkPoolIntro")}</p>
+
+    {action === "added" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {skippedCount === "0"
+          ? t("intern.mkPoolAddedOk", { count: addedCount })
+          : t("intern.mkPoolAddedWithSkipped", { count: addedCount, skipped: skippedCount })}
+      </div>
+    )}
+    {action === "failed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkPoolAddFailed", { error: actionError ?? "?" })}
+      </div>
+    )}
+
+    <form method="GET" action="/intern/marketing/firmenpool/" class="mt-6 flex flex-wrap gap-2">
+      <input
+        type="search"
+        name="q"
+        value={search}
+        placeholder={t("intern.mkPoolSearchPlaceholder")}
+        class={`min-w-48 flex-1 ${inputClass}`}
+      />
+      <input
+        type="search"
+        name="ort"
+        value={sitz}
+        placeholder={t("intern.mkPoolSitzPlaceholder")}
+        class={`w-40 ${inputClass}`}
+      />
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="alle" value="1" checked={!onlyOpen} class="size-4" />
+        <span>{t("intern.mkPoolShowTaken")}</span>
+      </label>
+      <Button type="submit" variant="default">{t("intern.filterButton")}</Button>
+    </form>
+
+    {!data && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkPoolLoadFailed")}
+      </div>
+    )}
+
+    {data && (
+      <form method="POST" action="/intern/marketing/firmenpool/uebernehmen">
+        <input type="hidden" name="back" value={buildQuery()} />
+
+        <section class="mt-6 rounded-lg border border-border bg-card">
+          <div
+            class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3 text-sm text-muted-foreground"
+          >
+            <span>{t("intern.mkPoolTotal", { count: data.Total })}</span>
+            {data.Leads.length > 0 && (
+              <label class="flex items-center gap-2">
+                <input type="checkbox" data-hook="select-all" class="size-4" />
+                <span>{t("intern.mkPoolSelectAll")}</span>
+              </label>
+            )}
+          </div>
+
+          {data.Leads.length === 0 ? (
+            <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.mkPoolEmpty")}</p>
+          ) : (
+            <ul class="divide-y divide-border">
+              {data.Leads.map((lead) => (
+                <li class="flex items-start gap-3 px-5 py-4">
+                  <input
+                    type="checkbox"
+                    name="ids"
+                    value={lead.Id}
+                    disabled={lead.ContactId !== null}
+                    class="mt-1 size-4 shrink-0 disabled:opacity-40"
+                  />
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate font-medium">{lead.Name}</p>
+                    <p class="mt-0.5 truncate text-sm text-muted-foreground">
+                      {[lead.Sitz, lead.RechtsformText, lead.Fnr].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  {lead.ContactId && lead.ContactStatus && (
+                    <a
+                      href={`/intern/marketing/kontakte/detail/?id=${lead.ContactId}`}
+                      class={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${contactStatusBadgeClass(lead.ContactStatus)}`}
+                      title={t("intern.mkPoolAlreadyTaken")}
+                    >
+                      {contactStatusLabel(lead.ContactStatus)}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {data.Leads.length > 0 && (
+          <div class="mt-4 flex justify-end">
+            <Button type="submit" variant="default">{t("intern.mkPoolTakeSelected")}</Button>
+          </div>
+        )}
+      </form>
+    )}
+
+    {data && totalPages > 1 && (
+      <nav class="mt-6 flex items-center justify-between text-sm">
+        {page > 0 ? (
+          <a href={pageLink(page - 1)} class="underline hover:no-underline">
+            {t("intern.pagePrev")}
+          </a>
+        ) : (
+          <span />
+        )}
+        <span class="text-muted-foreground">
+          {t("intern.pageInfo", { page: page + 1, pages: totalPages })}
+        </span>
+        {data.HasMore ? (
+          <a href={pageLink(page + 1)} class="underline hover:no-underline">
+            {t("intern.pageNext")}
+          </a>
+        ) : (
+          <span />
+        )}
+      </nav>
+    )}
+  </section>
+</BaseLayout>
+
+<script>
+  // Kopf-Checkbox schaltet nur die noch uebernehmbaren Zeilen der aktuellen Seite
+  const selectAll = document.querySelector<HTMLInputElement>('[data-hook="select-all"]');
+  selectAll?.addEventListener("change", () => {
+    document
+      .querySelectorAll<HTMLInputElement>('input[name="ids"]:not([disabled])')
+      .forEach((box) => {
+        box.checked = selectAll.checked;
+      });
+  });
+</script>

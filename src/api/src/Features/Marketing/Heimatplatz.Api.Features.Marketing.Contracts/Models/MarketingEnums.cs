@@ -17,8 +17,8 @@ public enum MarketingContactType
 
 /// <summary>
 /// Bearbeitungsstatus eines Kontakts im Marketing-Funnel.
-/// Automatische Uebergaenge: Versand setzt Lead->Contacted, eingehende Antwort setzt
-/// Lead/Contacted->Replied; alles Weitere pflegt der Nutzer manuell.
+/// Automatische Uebergaenge: Versand setzt Lead/ToContact->Contacted, eingehende Antwort
+/// setzt Lead/ToContact/Contacted/FollowUp->Replied; alles Weitere pflegt der Nutzer manuell.
 /// </summary>
 public enum MarketingContactStatus
 {
@@ -28,7 +28,36 @@ public enum MarketingContactStatus
     Interested = 3,
     Customer = 4,
     NotInterested = 5,
-    DoNotContact = 6
+    DoNotContact = 6,
+
+    /// <summary>Aus dem Firmenpool zur Kontaktaufnahme vorgemerkt - die Arbeitsliste</summary>
+    ToContact = 7,
+
+    /// <summary>Kontaktiert, mit vereinbartem Wiedervorlage-Termin (NextFollowUpAt)</summary>
+    FollowUp = 8
+}
+
+/// <summary>
+/// Art eines Eintrags in der Kontakt-Historie. Der Versand von Marketing-Mails erzeugt
+/// KEINE Aktivitaet - E-Mails haengen als eigene Entitaet am Kontakt und werden in der
+/// Timeline zusammengefuehrt.
+/// </summary>
+public enum MarketingActivityType
+{
+    /// <summary>Freie Notiz ohne Kontaktaufnahme</summary>
+    Note = 0,
+
+    /// <summary>Telefonat</summary>
+    Call = 1,
+
+    /// <summary>Statuswechsel (StatusFrom -> StatusTo)</summary>
+    StatusChange = 2,
+
+    /// <summary>Wiedervorlage-Termin gesetzt oder verschoben</summary>
+    FollowUp = 3,
+
+    /// <summary>Persoenlicher Termin</summary>
+    Meeting = 4
 }
 
 /// <summary>Versand-Ergebnis einer Marketing-E-Mail.</summary>
