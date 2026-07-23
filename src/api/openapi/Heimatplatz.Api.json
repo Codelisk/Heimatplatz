@@ -8040,6 +8040,10 @@
             ],
             "format": "date-time"
           },
+          "ClearFollowUp": {
+            "type": "boolean",
+            "default": false
+          },
           "NewStatus": {
             "oneOf": [
               {
@@ -8168,8 +8172,7 @@
           "LastReplyAt",
           "CreatedAt",
           "EmailCount",
-          "ReplyCount",
-          "ActivityCount"
+          "ReplyCount"
         ],
         "type": "object",
         "properties": {
@@ -8265,14 +8268,6 @@
             "format": "int32"
           },
           "ReplyCount": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "ActivityCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
