@@ -1,14 +1,14 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftVersion>10.0.9</MicrosoftVersion>
+    <MicrosoftVersion>10.0.10</MicrosoftVersion>
     <MicrosoftExtensionsVersion>10.7.0</MicrosoftExtensionsVersion>
     <AspireVersion>13.4.6</AspireVersion>
     <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
-    <ShinyDocumentDbVersion>11.1.1</ShinyDocumentDbVersion>
-    <ShinyPushVersion>5.2.3</ShinyPushVersion>
+    <ShinyDocumentDbVersion>11.2.1</ShinyDocumentDbVersion>
+    <ShinyPushVersion>5.2.4</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
 
@@ -31,7 +31,7 @@
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 
     <!-- MAUI App -->
-    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.80" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.90" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Shiny.Maui.Shell" Version="6.3.2" />
     <PackageVersion Include="Shiny.Maui.Controls" Version="1.0.1-beta-0146" />
@@ -42,7 +42,7 @@
     <PackageVersion Include="Shiny.Push.FirebaseMessaging" Version="5.0.2" />
     <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0014" />
     <PackageVersion Include="CommunityToolkit.Maui" Version="14.2.0" />
-    <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.11.26317.2" />
+    <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.12.26368.2" />
     <!-- Localization (rein deutsch, Strings aus .resx via Shiny-Generator) -->
     <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Shiny.Extensions.Localization.Generator" Version="2.0.1" />
@@ -104,7 +104,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
 
     <!-- CLI Tools -->
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
