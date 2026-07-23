@@ -13,7 +13,7 @@ public sealed class DeployAstroTestTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        AstroWeb.Build(context, context.ApiBaseUrlTest);
+        AstroWeb.Build(context, context.ApiBaseUrlTest, context.RybbitSiteIdTest);
         AstroWeb.Deploy(context, context.HetznerWebRootTest, "web-test");
         DeployHealth.WaitFor(context, context.Configuration["Hetzner:WebTestHealthUrl"]);
     }
