@@ -93,9 +93,16 @@ public class RefreshTokenHandler(
         // vorbei ist, loeschen - sonst waechst die Tabelle mit jeder Rotation
         // unbegrenzt. Widerrufene Tokens bleiben bis zu ihrem urspruenglichen
         // Ablauf erhalten, damit die Reuse-Detection oben greifen kann.
-        var expiredTokens = await dbContext.Set<RefreshToken>()
-            .Where(rt => rt.UserId == storedToken.UserId && rt.ExpiresAt <= DateTimeOffset.UtcNow)
-            .ToListAsync(cancellationToken);
+        var cleanupCutoff = DateTimeOffset.UtcNow;
+        var userTokens = dbContext.Set<RefreshToken>()
+            .Where(rt => rt.UserId == storedToken.UserId);
+        var expiredTokens = dbContext.Database.IsSqlite()
+            ? (await userTokens.ToListAsync(cancellationToken))
+                .Where(rt => rt.ExpiresAt <= cleanupCutoff)
+                .ToList()
+            : await userTokens
+                .Where(rt => rt.ExpiresAt <= cleanupCutoff)
+                .ToListAsync(cancellationToken);
         dbContext.Set<RefreshToken>().RemoveRange(expiredTokens);
 
         await dbContext.SaveChangesAsync(cancellationToken);

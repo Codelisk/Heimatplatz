@@ -3,6 +3,7 @@ using System.Text.Json;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Exceptions;
 using Heimatplatz.Api.Features.Auth.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Enums;
@@ -57,7 +58,7 @@ public class UpdatePropertyHandler(
         // Validate ownership
         if (property.UserId != userId)
         {
-            throw new UnauthorizedAccessException("Sie haben keine Berechtigung, diese Immobilie zu bearbeiten");
+            throw new ForbiddenException("Sie haben keine Berechtigung, diese Immobilie zu bearbeiten");
         }
 
         // Validation

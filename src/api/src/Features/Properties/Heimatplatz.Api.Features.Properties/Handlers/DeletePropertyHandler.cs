@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Exceptions;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Services;
@@ -46,7 +47,7 @@ public class DeletePropertyHandler(
         // Validate ownership
         if (property.UserId != userId)
         {
-            throw new UnauthorizedAccessException("Sie haben keine Berechtigung, diese Immobilie zu loeschen");
+            throw new ForbiddenException("Sie haben keine Berechtigung, diese Immobilie zu loeschen");
         }
 
         // Delete property (hard delete)
