@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
              xmlns:shiny="http://shiny.net/maui/controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
@@ -12,7 +13,55 @@
     <!-- Single-Cell-Grid: Der Kontakt-Footer liegt als Bottom-Sheet UEBER dem Inhalt.
          Bewusst kein Auto-Row-Resize: dynamisches Zeilenwachstum beim Aufklappen
          loest auf Android keinen Relayout des ScrollViews aus (stale Bounds). -->
-    <Grid>
+    <Grid x:Name="DetailRoot"
+          appcontrols:ResponsiveLayout.IsEnabled="True">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="WindowWidthStates">
+                    <VisualState x:Name="Compact" />
+                    <VisualState x:Name="Medium">
+                        <VisualState.Setters>
+                            <Setter TargetName="DetailLeadGrid" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="DetailLeadGrid" Property="Margin" Value="24,24,24,0" />
+                            <Setter TargetName="DetailLeadGrid" Property="RowDefinitions" Value="420" />
+                            <Setter TargetName="DetailLeadGrid" Property="ColumnDefinitions" Value="3*,2*" />
+                            <Setter TargetName="DetailLeadGrid" Property="ColumnSpacing" Value="20" />
+                            <Setter TargetName="DetailHero" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="DetailHero" Property="Grid.Column" Value="0" />
+                            <Setter TargetName="DetailHero" Property="HeightRequest" Value="420" />
+                            <Setter TargetName="DetailSummary" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="DetailSummary" Property="Grid.Column" Value="1" />
+                            <Setter TargetName="DetailSummary" Property="Margin" Value="0" />
+                            <Setter TargetName="DetailSummary" Property="Padding" Value="4,24" />
+                            <Setter TargetName="DetailBody" Property="MaximumWidthRequest" Value="1100" />
+                            <Setter TargetName="ContactFooter" Property="MaximumWidthRequest" Value="440" />
+                            <Setter TargetName="ContactFooter" Property="HorizontalOptions" Value="End" />
+                            <Setter TargetName="ContactFooter" Property="Margin" Value="0,0,24,24" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Expanded">
+                        <VisualState.Setters>
+                            <Setter TargetName="DetailLeadGrid" Property="MaximumWidthRequest" Value="1200" />
+                            <Setter TargetName="DetailLeadGrid" Property="Margin" Value="32,28,32,0" />
+                            <Setter TargetName="DetailLeadGrid" Property="RowDefinitions" Value="460" />
+                            <Setter TargetName="DetailLeadGrid" Property="ColumnDefinitions" Value="3*,2*" />
+                            <Setter TargetName="DetailLeadGrid" Property="ColumnSpacing" Value="24" />
+                            <Setter TargetName="DetailHero" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="DetailHero" Property="Grid.Column" Value="0" />
+                            <Setter TargetName="DetailHero" Property="HeightRequest" Value="460" />
+                            <Setter TargetName="DetailSummary" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="DetailSummary" Property="Grid.Column" Value="1" />
+                            <Setter TargetName="DetailSummary" Property="Margin" Value="0" />
+                            <Setter TargetName="DetailSummary" Property="Padding" Value="8,28" />
+                            <Setter TargetName="DetailBody" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="ContactFooter" Property="MaximumWidthRequest" Value="460" />
+                            <Setter TargetName="ContactFooter" Property="HorizontalOptions" Value="End" />
+                            <Setter TargetName="ContactFooter" Property="Margin" Value="0,0,32,24" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </VisualStateManager.VisualStateGroups>
 
         <!-- Fehler-/Offline-Zustand: ersetzt den Inhalt vollflaechig
              (Offline mit Retry bzw. "nicht mehr verfuegbar" bei geloeschten Inseraten) -->
@@ -44,8 +93,15 @@
             <!-- Bottom-Padding reserviert Platz fuer die eingeklappte Kontakt-Leiste -->
             <VerticalStackLayout Spacing="0" Padding="0,0,0,96">
 
+                <Grid x:Name="DetailLeadGrid"
+                      RowDefinitions="300,Auto"
+                      ColumnDefinitions="*"
+                      HorizontalOptions="Fill">
+
                 <!-- Hero: Bilder-Carousel, Content-Sheet gleitet darueber -->
-                <Grid HeightRequest="300">
+                <Grid x:Name="DetailHero"
+                      Grid.Row="0"
+                      HeightRequest="300">
                     <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
                             StrokeThickness="0">
                         <Image Source="logo.png"
@@ -236,12 +292,33 @@
                 </Grid>
 
                 <!-- Content-Sheet: rundet ueber das Foto (edler Ueberlapp) -->
-                <Border Margin="0,-26,0,0"
+                <Border x:Name="DetailSummary"
+                        Grid.Row="1"
+                        Margin="0,-26,0,0"
                         Padding="0,20,0,0"
                         StrokeThickness="0"
                         Stroke="Transparent"
                         BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
-                        StrokeShape="RoundRectangle 14,14,0,0">
+                        StrokeShape="RoundRectangle 14,14,0,0"
+                        appcontrols:ResponsiveLayout.IsEnabled="True"
+                        appcontrols:ResponsiveLayout.UseWindowWidth="True">
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="SummaryCornerStates">
+                                <VisualState x:Name="Compact" />
+                                <VisualState x:Name="Medium">
+                                    <VisualState.Setters>
+                                        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Expanded">
+                                    <VisualState.Setters>
+                                        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
                     <VerticalStackLayout Spacing="16">
 
                         <!-- Kopf: Preis (Serif, Markenrot), Titel, Adresse, Merken -->
@@ -307,12 +384,21 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+                </Grid>
+
+                <VerticalStackLayout x:Name="DetailBody"
+                                     Spacing="16"
+                                     Padding="0,16,0,0"
+                                     MaximumWidthRequest="800"
+                                     HorizontalOptions="Fill">
 
                         <!-- Quellenkarte: klar getrennt von Objekt- und Kontaktaktionen -->
                         <Border Style="{StaticResource Card}"
                                 Padding="14"
                                 Margin="16,2"
-                                MaximumWidthRequest="768"
+                                MaximumWidthRequest="900"
                                 HorizontalOptions="Fill"
                                 IsVisible="{Binding HasOriginalListingUrl}">
                             <Grid ColumnDefinitions="44,*,Auto"
@@ -365,7 +451,7 @@
                         <!-- Beschreibung -->
                         <VerticalStackLayout Spacing="6"
                                              Padding="16,0"
-                                             MaximumWidthRequest="800"
+                                             MaximumWidthRequest="900"
                                              HorizontalOptions="Fill"
                                              IsVisible="{Binding HasDescription}">
                             <Label Text="{Binding Loc.DescriptionHeader}"
@@ -379,7 +465,7 @@
                         <!-- Datentabelle: gruppierte Sektionen als Karten -->
                         <VerticalStackLayout Spacing="12"
                                              Padding="16,0"
-                                             MaximumWidthRequest="800"
+                                             MaximumWidthRequest="1100"
                                              HorizontalOptions="Fill"
                                              BindableLayout.ItemsSource="{Binding DetailSections}">
                             <BindableLayout.ItemTemplate>
@@ -415,8 +501,7 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                    </VerticalStackLayout>
-                </Border>
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
 

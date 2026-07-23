@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Auth.Presentation"
              x:Class="Heimatplatz.Maui.Features.Auth.Presentation.UserProfilePage"
              x:DataType="vm:UserProfileViewModel"
@@ -48,7 +49,8 @@
     </Shell.TitleView>
 
     <ScrollView>
-        <VerticalStackLayout Spacing="0">
+        <VerticalStackLayout x:Name="ProfilePageLayout"
+                             Spacing="0">
 
             <!-- Hero: Markenverlauf wie Web-Profil - Light wird zur Sonne hin heller
                  (tiefes Rot -> sonniges Koralle), Dark im Rot-Schwarz-Verlauf -->
@@ -119,10 +121,52 @@
                 </VerticalStackLayout>
             </Border>
 
-            <VerticalStackLayout Padding="16,20,16,0"
-                                 Spacing="14"
-                                 MaximumWidthRequest="600"
-                                 HorizontalOptions="Fill">
+            <Grid x:Name="ProfileContent"
+                  Padding="16,20,16,0"
+                  RowDefinitions="Auto,Auto"
+                  RowSpacing="14"
+                  ColumnDefinitions="*"
+                  MaximumWidthRequest="600"
+                  HorizontalOptions="Fill"
+                  appcontrols:ResponsiveLayout.IsEnabled="True"
+                  appcontrols:ResponsiveLayout.UseWindowWidth="True">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="WindowWidthStates">
+                            <VisualState x:Name="Compact" />
+                            <VisualState x:Name="Medium">
+                                <VisualState.Setters>
+                                    <Setter TargetName="ProfileContent" Property="MaximumWidthRequest" Value="1100" />
+                                    <Setter TargetName="ProfileContent" Property="Padding" Value="24,24,24,36" />
+                                    <Setter TargetName="ProfileContent" Property="RowDefinitions" Value="Auto" />
+                                    <Setter TargetName="ProfileContent" Property="ColumnDefinitions" Value="2*,3*" />
+                                    <Setter TargetName="ProfileContent" Property="ColumnSpacing" Value="20" />
+                                    <Setter TargetName="ProfileOverviewColumn" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="ProfileOverviewColumn" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="ProfileAccountColumn" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="ProfileAccountColumn" Property="Grid.Column" Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Expanded">
+                                <VisualState.Setters>
+                                    <Setter TargetName="ProfileContent" Property="MaximumWidthRequest" Value="1200" />
+                                    <Setter TargetName="ProfileContent" Property="Padding" Value="32,28,32,40" />
+                                    <Setter TargetName="ProfileContent" Property="RowDefinitions" Value="Auto" />
+                                    <Setter TargetName="ProfileContent" Property="ColumnDefinitions" Value="2*,3*" />
+                                    <Setter TargetName="ProfileContent" Property="ColumnSpacing" Value="24" />
+                                    <Setter TargetName="ProfileOverviewColumn" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="ProfileOverviewColumn" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="ProfileAccountColumn" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="ProfileAccountColumn" Property="Grid.Column" Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+
+                <VerticalStackLayout x:Name="ProfileOverviewColumn"
+                                     Grid.Row="0"
+                                     Spacing="14">
 
                 <!-- Hinweis-Banner: nur solange die E-Mail-Adresse unbestaetigt ist -->
                 <Border BackgroundColor="{AppThemeBinding Light={StaticResource WarningBannerBackground}, Dark={StaticResource WarningBannerBackgroundDark}}"
@@ -252,7 +296,11 @@
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
+                </VerticalStackLayout>
 
+                <VerticalStackLayout x:Name="ProfileAccountColumn"
+                                     Grid.Row="1"
+                                     Spacing="14">
                 <!-- Profil & Verkaeufer-Einstellungen (nachtraeglich aenderbar) -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="12">
@@ -406,7 +454,8 @@
                     </VerticalStackLayout>
                 </Border>
 
-            </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Grid>
 
         </VerticalStackLayout>
     </ScrollView>

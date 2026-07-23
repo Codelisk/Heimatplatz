@@ -6,6 +6,7 @@ namespace Heimatplatz.Maui;
 public partial class AppShell : ShinyShell
 {
     readonly List<FlyoutMenuEntry> flyoutEntries = [];
+    Window? observedWindow;
 
     public AppShellStringsLocalized Loc { get; }
 
@@ -30,6 +31,58 @@ public partial class AppShell : ShinyShell
         BuildFlyoutEntries();
 
         VersionLabel.Text = Loc.VersionFormat(AppInfo.Current.VersionString);
+
+        // Tablet bleibt beim ueberlagernden Drawer. Erst auf wirklich breiten
+        // Desktop-Fenstern wird die Navigation dauerhaft sichtbar; Phones bleiben
+        // unabhaengig von ihrer Ausrichtung beim bisherigen Flyout.
+        SizeChanged += OnShellSizeChanged;
+        Loaded += OnShellLoaded;
+        Unloaded += OnShellUnloaded;
+    }
+
+    private void OnShellLoaded(object? sender, EventArgs e)
+    {
+        if (observedWindow == Window)
+        {
+            ApplyFlyoutBehavior();
+            return;
+        }
+
+        if (observedWindow != null)
+            observedWindow.PropertyChanged -= OnWindowPropertyChanged;
+
+        observedWindow = Window;
+        if (observedWindow != null)
+            observedWindow.PropertyChanged += OnWindowPropertyChanged;
+
+        ApplyFlyoutBehavior();
+    }
+
+    private void OnShellUnloaded(object? sender, EventArgs e)
+    {
+        if (observedWindow != null)
+            observedWindow.PropertyChanged -= OnWindowPropertyChanged;
+
+        observedWindow = null;
+    }
+
+    private void OnWindowPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Window.Width))
+            ApplyFlyoutBehavior();
+    }
+
+    private void OnShellSizeChanged(object? sender, EventArgs e) => ApplyFlyoutBehavior();
+
+    private void ApplyFlyoutBehavior()
+    {
+        var availableWidth = observedWindow?.Width > 0 ? observedWindow.Width : Width;
+        var desiredBehavior = DeviceInfo.Current.Idiom != DeviceIdiom.Phone && availableWidth >= 1360
+            ? FlyoutBehavior.Locked
+            : FlyoutBehavior.Flyout;
+
+        if (FlyoutBehavior != desiredBehavior)
+            FlyoutBehavior = desiredBehavior;
     }
 
     /// <summary>

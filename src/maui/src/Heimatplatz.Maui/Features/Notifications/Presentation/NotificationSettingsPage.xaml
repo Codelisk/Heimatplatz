@@ -3,17 +3,40 @@
     x:Class="Heimatplatz.Maui.Features.Notifications.Presentation.NotificationSettingsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
     xmlns:presentation="clr-namespace:Heimatplatz.Maui.Features.Notifications.Presentation"
     xmlns:locations="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
     x:DataType="presentation:NotificationSettingsViewModel"
     Title="{Binding Loc.PageTitle}">
 
     <ScrollView>
-        <VerticalStackLayout
-            Padding="16,24"
-            Spacing="24"
-            MaximumWidthRequest="600"
-            HorizontalOptions="Fill">
+        <Grid x:Name="NotificationRoot"
+              appcontrols:ResponsiveLayout.IsEnabled="True">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="WindowWidthStates">
+                        <VisualState x:Name="Compact" />
+                        <VisualState x:Name="Medium">
+                            <VisualState.Setters>
+                                <Setter TargetName="NotificationContent" Property="MaximumWidthRequest" Value="1100" />
+                                <Setter TargetName="NotificationContent" Property="Padding" Value="24,28" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Expanded">
+                            <VisualState.Setters>
+                                <Setter TargetName="NotificationContent" Property="MaximumWidthRequest" Value="1200" />
+                                <Setter TargetName="NotificationContent" Property="Padding" Value="32,32" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </VisualStateManager.VisualStateGroups>
+
+            <VerticalStackLayout x:Name="NotificationContent"
+                                 Padding="16,24"
+                                 Spacing="24"
+                                 MaximumWidthRequest="600"
+                                 HorizontalOptions="Fill">
 
             <!-- Nicht angemeldet: Einstellungen sind ohne Login wirkungslos -->
             <VerticalStackLayout Spacing="8"
@@ -81,10 +104,69 @@
             </Border>
 
             <!-- Filter & Info (nur sichtbar wenn angemeldet UND Benachrichtigungen aktiviert) -->
-            <VerticalStackLayout Spacing="24" IsVisible="{Binding IsFilterSectionVisible}">
+            <Grid x:Name="NotificationFilterLayout"
+                  RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                  RowSpacing="0"
+                  ColumnDefinitions="*"
+                  IsVisible="{Binding IsFilterSectionVisible}"
+                  appcontrols:ResponsiveLayout.IsEnabled="True">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="FilterWidthStates">
+                            <VisualState x:Name="Compact" />
+                            <VisualState x:Name="Medium">
+                                <VisualState.Setters>
+                                    <Setter Property="RowDefinitions" Value="Auto,Auto,Auto" />
+                                    <Setter Property="ColumnDefinitions" Value="*,*" />
+                                    <Setter Property="ColumnSpacing" Value="20" />
+                                    <Setter TargetName="FilterModeCard" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="FilterModeCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="PropertyTypeCard" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="PropertyTypeCard" Property="Grid.Column" Value="1" />
+                                    <Setter TargetName="SellerTypeCard" Property="Grid.Row" Value="1" />
+                                    <Setter TargetName="SellerTypeCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="LocationCard" Property="Grid.Row" Value="1" />
+                                    <Setter TargetName="LocationCard" Property="Grid.Column" Value="1" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Row" Value="2" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.ColumnSpan" Value="2" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Expanded">
+                                <VisualState.Setters>
+                                    <Setter Property="RowDefinitions" Value="Auto,Auto,Auto" />
+                                    <Setter Property="ColumnDefinitions" Value="*,*" />
+                                    <Setter Property="ColumnSpacing" Value="24" />
+                                    <Setter TargetName="FilterModeCard" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="FilterModeCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="PropertyTypeCard" Property="Grid.Row" Value="0" />
+                                    <Setter TargetName="PropertyTypeCard" Property="Grid.Column" Value="1" />
+                                    <Setter TargetName="SellerTypeCard" Property="Grid.Row" Value="1" />
+                                    <Setter TargetName="SellerTypeCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="LocationCard" Property="Grid.Row" Value="1" />
+                                    <Setter TargetName="LocationCard" Property="Grid.Column" Value="1" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Row" Value="2" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.ColumnSpan" Value="2" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
 
                 <!-- Filter Mode Selection -->
-                <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_FilterModeCard">
+                <Border x:Name="FilterModeCard"
+                        Grid.Row="0"
+                        Margin="0,0,0,24"
+                        Style="{StaticResource Card}"
+                        AutomationId="NotificationSettings_FilterModeCard">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border"
+                                     Binding="{Binding IsCustomFilterVisible}"
+                                     Value="False">
+                            <Setter Property="Grid.ColumnSpan" Value="2" />
+                        </DataTrigger>
+                    </Border.Triggers>
                     <VerticalStackLayout Spacing="16" RadioButtonGroup.GroupName="FilterMode">
                         <VerticalStackLayout Spacing="4">
                             <Label
@@ -150,11 +232,13 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Custom Filter Section (only visible when Custom mode is selected) -->
-                <VerticalStackLayout Spacing="24" IsVisible="{Binding IsCustomFilterVisible}">
-
                     <!-- Immobilientyp Filter -->
-                    <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_PropertyTypeCard">
+                    <Border x:Name="PropertyTypeCard"
+                            Grid.Row="1"
+                            Margin="0,0,0,24"
+                            Style="{StaticResource Card}"
+                            IsVisible="{Binding IsCustomFilterVisible}"
+                            AutomationId="NotificationSettings_PropertyTypeCard">
                         <VerticalStackLayout Spacing="16">
                             <VerticalStackLayout Spacing="4">
                                 <Label
@@ -192,7 +276,12 @@
                     </Border>
 
                     <!-- Anbietertyp Filter -->
-                    <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_SellerTypeCard">
+                    <Border x:Name="SellerTypeCard"
+                            Grid.Row="2"
+                            Margin="0,0,0,24"
+                            Style="{StaticResource Card}"
+                            IsVisible="{Binding IsCustomFilterVisible}"
+                            AutomationId="NotificationSettings_SellerTypeCard">
                         <VerticalStackLayout Spacing="16">
                             <VerticalStackLayout Spacing="4">
                                 <Label
@@ -223,7 +312,12 @@
                     </Border>
 
                     <!-- Location Filters -->
-                    <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_LocationCard">
+                    <Border x:Name="LocationCard"
+                            Grid.Row="3"
+                            Margin="0,0,0,24"
+                            Style="{StaticResource Card}"
+                            IsVisible="{Binding IsCustomFilterVisible}"
+                            AutomationId="NotificationSettings_LocationCard">
                         <VerticalStackLayout Spacing="16">
                             <VerticalStackLayout Spacing="4">
                                 <Label
@@ -317,17 +411,20 @@
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </Border>
-                </VerticalStackLayout>
 
                 <!-- Info Card -->
-                <Border Style="{StaticResource Card}" AutomationId="NotificationSettings_InfoCard">
+                <Border x:Name="NotificationInfoCard"
+                        Grid.Row="4"
+                        Style="{StaticResource Card}"
+                        AutomationId="NotificationSettings_InfoCard">
                     <Label
                         Text="{Binding Loc.InfoText}"
                         Style="{StaticResource Caption}" />
                 </Border>
 
-            </VerticalStackLayout>
+            </Grid>
 
-        </VerticalStackLayout>
+            </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 </ContentPage>

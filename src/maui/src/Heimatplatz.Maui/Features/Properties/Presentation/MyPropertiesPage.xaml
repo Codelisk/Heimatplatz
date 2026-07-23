@@ -102,9 +102,14 @@
             <CollectionView ItemsSource="{Binding Properties}"
                             RemainingItemsThreshold="4"
                             RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
-                            controls:ResponsiveGrid.MinItemWidth="320">
+                            controls:ResponsiveGrid.MinItemWidth="320"
+                            controls:ResponsiveGrid.ItemHorizontalPadding="24"
+                            controls:ResponsiveGrid.HorizontalItemSpacing="12"
+                            controls:ResponsiveGrid.MaxColumns="4">
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="20" />
+                    <GridItemsLayout Orientation="Vertical"
+                                     Span="1"
+                                     VerticalItemSpacing="20" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <Grid Padding="24,60,24,24">

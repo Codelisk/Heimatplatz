@@ -46,6 +46,20 @@ public partial class PropertyCard : ContentView
         // Wasserzeichen-Placeholder nach erfolgreichem Foto-Load ausblenden -
         // er wuerde sonst unter jedem Foto weiter mitgezeichnet (Overdraw)
         MainImage.PropertyChanged += OnMainImagePropertyChanged;
+
+        // Breite Tablet-Karten bekommen ein proportionaleres Foto. Phones behalten
+        // unabhaengig von ihrer Ausrichtung exakt die bisherige 190-DIP-Bildzeile.
+        SizeChanged += OnCardSizeChanged;
+    }
+
+    private void OnCardSizeChanged(object? sender, EventArgs e)
+    {
+        var imageHeight = DeviceInfo.Current.Idiom == DeviceIdiom.Phone || Width <= 420
+            ? 190
+            : Math.Clamp(Math.Round(Width * 0.48), 190, 230);
+
+        if (CardLayout.RowDefinitions[0].Height.Value != imageHeight)
+            CardLayout.RowDefinitions[0].Height = new GridLength(imageHeight);
     }
 
     private void OnMainImagePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

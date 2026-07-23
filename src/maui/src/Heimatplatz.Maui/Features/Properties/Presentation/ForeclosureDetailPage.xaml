@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
              xmlns:shiny="http://shiny.net/maui/controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
@@ -9,7 +10,62 @@
              Shell.FlyoutBehavior="Disabled"
              Title="{Binding Loc.PageTitle}">
 
-    <Grid RowDefinitions="*,Auto">
+    <Grid x:Name="ForeclosureRoot"
+          RowDefinitions="*,Auto"
+          appcontrols:ResponsiveLayout.IsEnabled="True">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="WindowWidthStates">
+                    <VisualState x:Name="Compact" />
+                    <VisualState x:Name="Medium">
+                        <VisualState.Setters>
+                            <Setter TargetName="ForeclosureLeadGrid" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="Margin" Value="24,24,24,0" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="RowDefinitions" Value="420" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnDefinitions" Value="3*,2*" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnSpacing" Value="20" />
+                            <Setter TargetName="ForeclosureHero" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="ForeclosureHero" Property="Grid.Column" Value="0" />
+                            <Setter TargetName="ForeclosureHero" Property="HeightRequest" Value="420" />
+                            <Setter TargetName="ForeclosureSummary" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="ForeclosureSummary" Property="Grid.Column" Value="1" />
+                            <Setter TargetName="ForeclosureSummary" Property="Margin" Value="0" />
+                            <Setter TargetName="ForeclosureSummary" Property="Padding" Value="4,24" />
+                            <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="1100" />
+                            <Setter TargetName="ForeclosureScrollContent" Property="Padding" Value="0,0,0,96" />
+                            <Setter TargetName="CourtFooter" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="CourtFooter" Property="MaximumWidthRequest" Value="440" />
+                            <Setter TargetName="CourtFooter" Property="HorizontalOptions" Value="End" />
+                            <Setter TargetName="CourtFooter" Property="VerticalOptions" Value="End" />
+                            <Setter TargetName="CourtFooter" Property="Margin" Value="0,0,24,24" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Expanded">
+                        <VisualState.Setters>
+                            <Setter TargetName="ForeclosureLeadGrid" Property="MaximumWidthRequest" Value="1200" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="Margin" Value="32,28,32,0" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="RowDefinitions" Value="460" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnDefinitions" Value="3*,2*" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnSpacing" Value="24" />
+                            <Setter TargetName="ForeclosureHero" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="ForeclosureHero" Property="Grid.Column" Value="0" />
+                            <Setter TargetName="ForeclosureHero" Property="HeightRequest" Value="460" />
+                            <Setter TargetName="ForeclosureSummary" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="ForeclosureSummary" Property="Grid.Column" Value="1" />
+                            <Setter TargetName="ForeclosureSummary" Property="Margin" Value="0" />
+                            <Setter TargetName="ForeclosureSummary" Property="Padding" Value="8,28" />
+                            <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="ForeclosureScrollContent" Property="Padding" Value="0,0,0,96" />
+                            <Setter TargetName="CourtFooter" Property="Grid.Row" Value="0" />
+                            <Setter TargetName="CourtFooter" Property="MaximumWidthRequest" Value="460" />
+                            <Setter TargetName="CourtFooter" Property="HorizontalOptions" Value="End" />
+                            <Setter TargetName="CourtFooter" Property="VerticalOptions" Value="End" />
+                            <Setter TargetName="CourtFooter" Property="Margin" Value="0,0,32,24" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </VisualStateManager.VisualStateGroups>
 
         <!-- Fehler-/Offline-Zustand: ersetzt den Inhalt vollflaechig
              (Offline mit Retry bzw. "nicht mehr verfuegbar" bei entfernten Versteigerungen) -->
@@ -40,10 +96,19 @@
 
         <ScrollView Grid.Row="0"
                     IsVisible="{Binding ShowContent}">
-            <VerticalStackLayout Spacing="0" Padding="0,0,0,16">
+            <VerticalStackLayout x:Name="ForeclosureScrollContent"
+                                 Spacing="0"
+                                 Padding="0,0,0,16">
+
+                <Grid x:Name="ForeclosureLeadGrid"
+                      RowDefinitions="300,Auto"
+                      ColumnDefinitions="*"
+                      HorizontalOptions="Fill">
 
                 <!-- Hero: Bilder-Carousel, Content-Sheet gleitet darueber -->
-                <Grid HeightRequest="300">
+                <Grid x:Name="ForeclosureHero"
+                      Grid.Row="0"
+                      HeightRequest="300">
                     <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
                             StrokeThickness="0">
                         <Image Source="logo.png"
@@ -234,12 +299,33 @@
                 </Grid>
 
                 <!-- Content-Sheet: rundet ueber das Foto (edler Ueberlapp) -->
-                <Border Margin="0,-26,0,0"
+                <Border x:Name="ForeclosureSummary"
+                        Grid.Row="1"
+                        Margin="0,-26,0,0"
                         Padding="0,20,0,0"
                         StrokeThickness="0"
                         Stroke="Transparent"
                         BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
-                        StrokeShape="RoundRectangle 14,14,0,0">
+                        StrokeShape="RoundRectangle 14,14,0,0"
+                        appcontrols:ResponsiveLayout.IsEnabled="True"
+                        appcontrols:ResponsiveLayout.UseWindowWidth="True">
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="SummaryCornerStates">
+                                <VisualState x:Name="Compact" />
+                                <VisualState x:Name="Medium">
+                                    <VisualState.Setters>
+                                        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Expanded">
+                                    <VisualState.Setters>
+                                        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
                     <VerticalStackLayout Spacing="16">
 
                         <!-- Kopf: Mindestgebot/Schaetzwert (Serif, Markenrot), Titel, Adresse, Merken -->
@@ -312,12 +398,21 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+                </Grid>
+
+                <VerticalStackLayout x:Name="ForeclosureBody"
+                                     Spacing="16"
+                                     Padding="0,16,0,0"
+                                     MaximumWidthRequest="800"
+                                     HorizontalOptions="Fill">
 
                         <!-- Quellenkarte: klar getrennt von Objekt- und Dokumentaktionen -->
                         <Border Style="{StaticResource Card}"
                                 Padding="14"
                                 Margin="16,2"
-                                MaximumWidthRequest="768"
+                                MaximumWidthRequest="900"
                                 HorizontalOptions="Fill"
                                 IsVisible="{Binding HasEdictUrl}">
                             <Grid ColumnDefinitions="44,*,Auto"
@@ -370,7 +465,7 @@
                         <!-- Beschreibung -->
                         <VerticalStackLayout Spacing="6"
                                              Padding="16,0"
-                                             MaximumWidthRequest="800"
+                                             MaximumWidthRequest="900"
                                              HorizontalOptions="Fill"
                                              IsVisible="{Binding HasDescription}">
                             <Label Text="{Binding Loc.DescriptionHeader}"
@@ -384,7 +479,7 @@
                         <!-- Dokumente -->
                         <VerticalStackLayout Spacing="6"
                                              Padding="16,0"
-                                             MaximumWidthRequest="800"
+                                             MaximumWidthRequest="900"
                                              HorizontalOptions="Fill"
                                              IsVisible="{Binding HasDocuments}">
                             <Label Text="{Binding Loc.DocumentsHeader}"
@@ -416,7 +511,7 @@
                         <!-- Datentabelle: gruppierte Sektionen als Karten -->
                         <VerticalStackLayout Spacing="12"
                                              Padding="16,0"
-                                             MaximumWidthRequest="800"
+                                             MaximumWidthRequest="1100"
                                              HorizontalOptions="Fill"
                                              BindableLayout.ItemsSource="{Binding DetailSections}">
                             <BindableLayout.ItemTemplate>
@@ -452,18 +547,37 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                    </VerticalStackLayout>
-                </Border>
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
 
         <!-- Gericht-Footer: gleiche Bottom-Sheet-Optik wie der Kontakt-Footer bei Immobilien -->
-        <Border Grid.Row="1"
+        <Border x:Name="CourtFooter"
+                Grid.Row="1"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
                 StrokeThickness="0"
                 StrokeShape="RoundRectangle 24,24,0,0"
                 Padding="0"
-                IsVisible="{Binding ShowCourtFooter}">
+                IsVisible="{Binding ShowCourtFooter}"
+                appcontrols:ResponsiveLayout.IsEnabled="True"
+                appcontrols:ResponsiveLayout.UseWindowWidth="True">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CourtCornerStates">
+                        <VisualState x:Name="Compact" />
+                        <VisualState x:Name="Medium">
+                            <VisualState.Setters>
+                                <Setter Property="StrokeShape" Value="RoundRectangle 24" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Expanded">
+                            <VisualState.Setters>
+                                <Setter Property="StrokeShape" Value="RoundRectangle 24" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </VisualStateManager.VisualStateGroups>
             <Border.Shadow>
                 <Shadow Brush="{StaticResource Black}"
                         Opacity="0.3"

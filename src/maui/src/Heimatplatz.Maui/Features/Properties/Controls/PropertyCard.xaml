@@ -24,7 +24,8 @@
             <TapGestureRecognizer Tapped="OnCardTapped" />
         </Border.GestureRecognizers>
 
-        <Grid RowDefinitions="190,*,Auto">
+        <Grid x:Name="CardLayout"
+              RowDefinitions="190,*,Auto">
 
             <!-- Bild-Bereich: als Foto-Abzug mit Papierrand in den Zettel eingefasst -->
             <Border Grid.Row="0"

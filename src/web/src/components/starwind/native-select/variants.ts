@@ -20,7 +20,7 @@ export const nativeSelect = tv({
   ],
   variants: {
     size: {
-      sm: "h-9 pr-8 pl-2 text-sm",
+      sm: "h-9 py-1.5 pr-8 pl-2 text-sm leading-5",
       md: "h-11 pr-9 pl-3 text-base",
       lg: "h-12 pr-10 pl-4 text-lg",
     },

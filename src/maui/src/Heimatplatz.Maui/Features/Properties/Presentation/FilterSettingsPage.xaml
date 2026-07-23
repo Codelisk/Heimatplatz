@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
              xmlns:shiny="http://shiny.net/maui/controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
@@ -9,9 +10,31 @@
              Shell.FlyoutBehavior="Disabled"
              Title="{Binding Loc.PageTitle}">
 
-    <Grid>
+    <Grid x:Name="FilterSettingsRoot"
+          appcontrols:ResponsiveLayout.IsEnabled="True">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="WindowWidthStates">
+                    <VisualState x:Name="Compact" />
+                    <VisualState x:Name="Medium">
+                        <VisualState.Setters>
+                            <Setter TargetName="FilterSettingsContent" Property="MaximumWidthRequest" Value="1000" />
+                            <Setter TargetName="FilterSettingsContent" Property="Padding" Value="24,24,24,40" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Expanded">
+                        <VisualState.Setters>
+                            <Setter TargetName="FilterSettingsContent" Property="MaximumWidthRequest" Value="1100" />
+                            <Setter TargetName="FilterSettingsContent" Property="Padding" Value="32,28,32,44" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </VisualStateManager.VisualStateGroups>
+
         <ScrollView>
-            <VerticalStackLayout Padding="16,16,16,32"
+            <VerticalStackLayout x:Name="FilterSettingsContent"
+                                 Padding="16,16,16,32"
                                  Spacing="12"
                                  MaximumWidthRequest="600"
                                  HorizontalOptions="Fill">
@@ -30,7 +53,46 @@
 
                 <!-- Alle Filtergruppen kompakt in einer Karte -->
                 <Border Style="{StaticResource Card}" AutomationId="FilterSettings_FilterCard">
-                    <VerticalStackLayout Spacing="10">
+                    <Grid x:Name="FilterColumns"
+                          RowDefinitions="Auto,Auto"
+                          RowSpacing="10"
+                          ColumnDefinitions="*"
+                          appcontrols:ResponsiveLayout.IsEnabled="True">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="FilterColumnWidthStates">
+                                    <VisualState x:Name="Compact" />
+                                    <VisualState x:Name="Medium">
+                                        <VisualState.Setters>
+                                            <Setter Property="RowDefinitions" Value="Auto" />
+                                            <Setter Property="ColumnDefinitions" Value="*,*" />
+                                            <Setter Property="ColumnSpacing" Value="24" />
+                                            <Setter TargetName="TypeSellerColumn" Property="Grid.Row" Value="0" />
+                                            <Setter TargetName="TypeSellerColumn" Property="Grid.Column" Value="0" />
+                                            <Setter TargetName="AgeLocationColumn" Property="Grid.Row" Value="0" />
+                                            <Setter TargetName="AgeLocationColumn" Property="Grid.Column" Value="1" />
+                                            <Setter TargetName="BetweenFilterColumnsDivider" Property="IsVisible" Value="False" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Expanded">
+                                        <VisualState.Setters>
+                                            <Setter Property="RowDefinitions" Value="Auto" />
+                                            <Setter Property="ColumnDefinitions" Value="*,*" />
+                                            <Setter Property="ColumnSpacing" Value="28" />
+                                            <Setter TargetName="TypeSellerColumn" Property="Grid.Row" Value="0" />
+                                            <Setter TargetName="TypeSellerColumn" Property="Grid.Column" Value="0" />
+                                            <Setter TargetName="AgeLocationColumn" Property="Grid.Row" Value="0" />
+                                            <Setter TargetName="AgeLocationColumn" Property="Grid.Column" Value="1" />
+                                            <Setter TargetName="BetweenFilterColumnsDivider" Property="IsVisible" Value="False" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <VerticalStackLayout x:Name="TypeSellerColumn"
+                                             Grid.Row="0"
+                                             Spacing="10">
 
                         <!-- Immobilientyp -->
                         <Label Text="{Binding Loc.TypeSectionTitle}"
@@ -113,8 +175,13 @@
                                 </Button>
                             </FlexLayout>
                         </VerticalStackLayout>
+                        </VerticalStackLayout>
 
-                        <BoxView Style="{StaticResource Divider}" />
+                        <VerticalStackLayout x:Name="AgeLocationColumn"
+                                             Grid.Row="1"
+                                             Spacing="10">
+                        <BoxView x:Name="BetweenFilterColumnsDivider"
+                                 Style="{StaticResource Divider}" />
 
                         <!-- Eingestellt seit -->
                         <Label Text="{Binding Loc.AgeSectionTitle}"
@@ -271,7 +338,8 @@
                                         AutomationId="FilterSettings_OrtFieldButton" />
                             </Grid>
                         </Border>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
                 </Border>
 
                 <!-- Darstellung (Anzeige-Einstellung, kein Filter) -->
@@ -308,6 +376,8 @@
             <shiny:FloatingPanel x:Name="OrtPanel"
                                  IsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
                                  IsContentScrollEnabled="False"
+                                 MaximumWidthRequest="640"
+                                 HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
                                  PanelCornerRadius="14"
                                  PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
                 <Grid RowDefinitions="Auto,Auto,*,Auto"
