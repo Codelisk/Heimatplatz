@@ -1,11 +1,10 @@
 import type { APIRoute } from "astro";
-import { adminApiPost, type MarketingSaveContactResponse } from "@/lib/server/admin-api";
+import { adminApiPost, type MarketingSaveTemplateResponse } from "@/lib/server/admin-api";
 import { rejectCrossSite } from "@/lib/server/csrf";
 
 /**
  * PRG-Action: E-Mail-Vorlage anlegen/bearbeiten. Formular-POST -> API-Upsert ->
  * 303-Redirect zurueck auf die Vorlagen-Seite.
- * Die Antwort hat dieselbe Form wie beim Kontakt-Upsert (Success/Id/Error).
  */
 export const POST: APIRoute = async ({ request }) => {
   const blocked = rejectCrossSite(request);
@@ -14,7 +13,7 @@ export const POST: APIRoute = async ({ request }) => {
   const form = await request.formData();
   const id = form.get("id")?.toString() || null;
 
-  const result = await adminApiPost<MarketingSaveContactResponse>(
+  const result = await adminApiPost<MarketingSaveTemplateResponse>(
     "/api/admin/marketing/templates/save",
     {
       Id: id,

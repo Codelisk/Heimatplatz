@@ -157,7 +157,6 @@ export type MarketingContact = {
   CreatedAt: string;
   EmailCount: number;
   ReplyCount: number;
-  ActivityCount: number;
 };
 
 export type MarketingContactsPage = {
@@ -285,6 +284,14 @@ export type MarketingTemplate = {
 
 export type MarketingTemplatesResponse = {
   Templates: MarketingTemplate[];
+};
+
+// Antwort von /templates/save (eigener Typ statt Kontakt-Save wiederzuverwenden -
+// gleiche Form, aber anderer Endpunkt, damit die Kopplung nicht implizit ist)
+export type MarketingSaveTemplateResponse = {
+  Success: boolean;
+  Id: string | null;
+  Error: string | null;
 };
 
 export type MarketingRenderTemplateResponse = {

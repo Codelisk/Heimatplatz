@@ -68,7 +68,7 @@ public class GetMarketingContactsHandler(
                 c.Id, c.Email, c.Name, c.Company, c.Phone, c.City, c.ContactType, c.Status,
                 c.Notes, c.Source, c.FirmenbuchFnr, c.NextFollowUpAt,
                 c.LastContactedAt, c.LastReplyAt, c.CreatedAt,
-                c.Emails.Count, c.InboundEmails.Count, c.Activities.Count))
+                c.Emails.Count, c.InboundEmails.Count))
             .ToListAsync(cancellationToken);
 
         return new GetMarketingContactsResponse(

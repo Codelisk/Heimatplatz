@@ -63,6 +63,7 @@ public class AddMarketingLeadsHandler(
 
             var contact = new MarketingContact
             {
+                Id = Guid.NewGuid(),
                 // Firmenname ist im Firmenbuch bis 500 Zeichen lang, das Kontaktfeld
                 // fasst 200 - abschneiden statt den Insert scheitern zu lassen
                 Company = Truncate(company.Name, 200),
@@ -74,20 +75,29 @@ public class AddMarketingLeadsHandler(
                 Notes = BuildNote(company)
             };
 
-            contact.Activities.Add(new MarketingActivity
-            {
-                Type = MarketingActivityType.StatusChange,
-                StatusTo = MarketingContactStatus.ToContact,
-                Notes = "Aus dem Firmenpool uebernommen",
-                OccurredAt = now
-            });
+            contact.Activities.Add(MarketingActivity.StatusChange(
+                contact.Id, null, MarketingContactStatus.ToContact, now, "Aus dem Firmenpool uebernommen"));
 
             dbContext.Set<MarketingContact>().Add(contact);
             added++;
         }
 
-        if (added > 0)
+        if (added == 0)
+            return new AddMarketingLeadsResponse(true, 0, companies.Count, null);
+
+        try
+        {
             await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Race: eine parallele Uebernahme (oder ein Doppel-Klick) hat eine der Firmen
+            // zwischen Existenz-Pruefung und Insert bereits angelegt - der partielle
+            // Unique-Index auf FirmenbuchFnr schlaegt zu. Statt 500 eine sprechende Meldung;
+            // der Pool zeigt nach dem Neuladen den aktuellen Stand.
+            return new AddMarketingLeadsResponse(false, 0, 0,
+                "Einige Firmen wurden gerade zeitgleich uebernommen. Bitte die Seite neu laden.");
+        }
 
         return new AddMarketingLeadsResponse(true, added, companies.Count - added, null);
     }

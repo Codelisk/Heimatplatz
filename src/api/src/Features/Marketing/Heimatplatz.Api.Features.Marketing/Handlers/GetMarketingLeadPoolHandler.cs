@@ -63,20 +63,33 @@ public class GetMarketingLeadPoolHandler(
         var page = Math.Max(request.Page, 0);
         var pageSize = Math.Clamp(request.PageSize, 1, 200);
 
-        var leads = await query
+        // Die Uebernahme-Info (Kontakt-Id + Status) in EINER korrelierten Unterabfrage holen,
+        // nicht je Feld eine eigene
+        var rows = await query
             .OrderBy(c => c.Name)
             .ThenBy(c => c.Id)
             .Skip(page * pageSize)
             .Take(pageSize)
-            .Select(c => new MarketingLeadDto(
+            .Select(c => new
+            {
                 c.Id,
                 c.Fnr,
                 c.Name,
                 c.Sitz,
                 c.RechtsformText,
-                taken.Where(x => x.FirmenbuchFnr == c.Fnr).Select(x => (Guid?)x.Id).FirstOrDefault(),
-                taken.Where(x => x.FirmenbuchFnr == c.Fnr).Select(x => (MarketingContactStatus?)x.Status).FirstOrDefault()))
+                Taken = taken
+                    .Where(x => x.FirmenbuchFnr == c.Fnr)
+                    .Select(x => new { x.Id, x.Status })
+                    .FirstOrDefault()
+            })
             .ToListAsync(cancellationToken);
+
+        var leads = rows
+            .Select(r => new MarketingLeadDto(
+                r.Id, r.Fnr, r.Name, r.Sitz, r.RechtsformText,
+                r.Taken?.Id,
+                r.Taken is null ? null : r.Taken.Status))
+            .ToList();
 
         return new GetMarketingLeadPoolResponse(
             leads, total, pageSize, page, HasMore: (page + 1) * pageSize < total);

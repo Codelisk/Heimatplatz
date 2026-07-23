@@ -35,4 +35,25 @@ public class MarketingActivity : BaseEntity
     /// Telefonate nachgetragen werden koennen.
     /// </summary>
     public DateTimeOffset OccurredAt { get; set; }
+
+    /// <summary>
+    /// Baut einen Statuswechsel-Eintrag. Einzige Stelle, an der diese Aktivitaet erzeugt
+    /// wird - egal ob ausgeloest durch Aktivitaets-Erfassung, Kontaktformular oder
+    /// Firmenpool-Uebernahme. <paramref name="from"/> ist null bei der Erstanlage.
+    /// </summary>
+    public static MarketingActivity StatusChange(
+        Guid contactId,
+        MarketingContactStatus? from,
+        MarketingContactStatus to,
+        DateTimeOffset occurredAt,
+        string? notes = null) =>
+        new()
+        {
+            ContactId = contactId,
+            Type = MarketingActivityType.StatusChange,
+            StatusFrom = from,
+            StatusTo = to,
+            Notes = notes,
+            OccurredAt = occurredAt
+        };
 }

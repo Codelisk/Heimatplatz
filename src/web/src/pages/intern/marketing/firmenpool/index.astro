@@ -113,14 +113,17 @@ function pageLink(target: number) {
     )}
 
     {data && (
-      <form method="POST" action="/intern/marketing/firmenpool/uebernehmen">
+      <form method="POST" action="/intern/marketing/firmenpool/uebernehmen" data-hook="pool-form">
         <input type="hidden" name="back" value={buildQuery()} />
 
         <section class="mt-6 rounded-lg border border-border bg-card">
           <div
             class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3 text-sm text-muted-foreground"
           >
-            <span>{t("intern.mkPoolTotal", { count: data.Total })}</span>
+            <span>
+              {t("intern.mkPoolTotal", { count: data.Total })}
+              <span data-hook="selection-count" class="ml-2 hidden font-medium text-foreground"></span>
+            </span>
             {data.Leads.length > 0 && (
               <label class="flex items-center gap-2">
                 <input type="checkbox" data-hook="select-all" class="size-4" />
@@ -196,13 +199,87 @@ function pageLink(target: number) {
 </BaseLayout>
 
 <script>
-  // Kopf-Checkbox schaltet nur die noch uebernehmbaren Zeilen der aktuellen Seite
+  import { t } from "@/i18n";
+
+  // Auswahl seitenuebergreifend halten: die Firmenpool-Liste ist serverseitig paginiert,
+  // ein reines Formular pro Seite wuerde beim Blaettern die vorher angehakten Firmen
+  // stillschweigend verlieren. Die IDs liegen daher in sessionStorage; beim Absenden
+  // werden die auf der aktuellen Seite nicht sichtbaren als Hidden-Inputs nachgereicht.
+  const STORAGE_KEY = "mkPoolSelection";
+
+  function loadSelection(): Set<string> {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveSelection(set: Set<string>) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+    } catch {
+      /* sessionStorage nicht verfuegbar - dann nur Ein-Seiten-Auswahl, kein Crash */
+    }
+  }
+
+  // Nach erfolgreicher Uebernahme ist die Auswahl verbraucht
+  if (new URLSearchParams(location.search).get("action") === "added") {
+    sessionStorage.removeItem(STORAGE_KEY);
+  }
+
+  const selection = loadSelection();
+  const boxes = [...document.querySelectorAll<HTMLInputElement>('input[name="ids"]')];
+  const countEl = document.querySelector<HTMLElement>('[data-hook="selection-count"]');
   const selectAll = document.querySelector<HTMLInputElement>('[data-hook="select-all"]');
+
+  function refreshCount() {
+    if (!countEl) return;
+    if (selection.size === 0) {
+      countEl.classList.add("hidden");
+    } else {
+      countEl.textContent = t("intern.mkPoolSelectedCount", { count: selection.size });
+      countEl.classList.remove("hidden");
+    }
+  }
+
+  // Gespeicherte Auswahl auf die aktuell sichtbaren Zeilen anwenden
+  for (const box of boxes) {
+    if (!box.disabled && selection.has(box.value)) box.checked = true;
+    box.addEventListener("change", () => {
+      if (box.checked) selection.add(box.value);
+      else selection.delete(box.value);
+      saveSelection(selection);
+      refreshCount();
+    });
+  }
+
+  // Kopf-Checkbox schaltet nur die noch uebernehmbaren Zeilen der aktuellen Seite
   selectAll?.addEventListener("change", () => {
-    document
-      .querySelectorAll<HTMLInputElement>('input[name="ids"]:not([disabled])')
-      .forEach((box) => {
-        box.checked = selectAll.checked;
-      });
+    for (const box of boxes) {
+      if (box.disabled) continue;
+      box.checked = selectAll.checked;
+      if (box.checked) selection.add(box.value);
+      else selection.delete(box.value);
+    }
+    saveSelection(selection);
+    refreshCount();
   });
+
+  // Beim Absenden die auf dieser Seite nicht sichtbaren Auswahl-IDs nachreichen
+  const form = document.querySelector<HTMLFormElement>('[data-hook="pool-form"]');
+  form?.addEventListener("submit", () => {
+    const onPage = new Set(boxes.map((b) => b.value));
+    for (const id of selection) {
+      if (onPage.has(id)) continue;
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "ids";
+      hidden.value = id;
+      form.append(hidden);
+    }
+  });
+
+  refreshCount();
 </script>

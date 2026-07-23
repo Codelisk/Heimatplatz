@@ -15,6 +15,13 @@ namespace Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
 /// - Type Call/Meeting                 -> LastContactedAt wird auf OccurredAt gesetzt
 ///
 /// OccurredAt leer = jetzt (erlaubt das Nachtragen zurueckliegender Telefonate).
+///
+/// FollowUpAt/ClearFollowUp steuern die Wiedervorlage:
+/// - FollowUpAt gesetzt        -> Termin wird gesetzt/verschoben
+/// - FollowUpAt leer + ClearFollowUp=true -> vorhandene Wiedervorlage wird entfernt
+///   ("erledigt, kein neuer Termin noetig"); sonst bleibt ein bestehender Termin stehen.
+/// Ein Wechsel in einen Endstatus (Kunde/Kein Interesse/Nicht kontaktieren) leert die
+/// Wiedervorlage ohnehin automatisch.
 /// </summary>
 public record LogMarketingActivityRequest(
     Guid ContactId,
@@ -22,6 +29,7 @@ public record LogMarketingActivityRequest(
     string? Notes,
     DateTimeOffset? OccurredAt = null,
     DateTimeOffset? FollowUpAt = null,
+    bool ClearFollowUp = false,
     MarketingContactStatus? NewStatus = null
 ) : IRequest<LogMarketingActivityResponse>;
 

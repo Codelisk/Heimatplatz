@@ -22,6 +22,5 @@ public record MarketingContactDto(
     DateTimeOffset? LastReplyAt,
     DateTimeOffset CreatedAt,
     int EmailCount,
-    int ReplyCount,
-    int ActivityCount
+    int ReplyCount
 );

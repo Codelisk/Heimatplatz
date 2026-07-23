@@ -126,10 +126,17 @@ public class SendMarketingEmailHandler(
         }
         else
         {
-            // Firmenpool-Kontakt: die beim Telefonat erfahrene Adresse festhalten.
-            // Eine bereits hinterlegte Adresse bleibt unangetastet - sonst wuerde ein
-            // Versand an eine abweichende Adresse den Stammdatensatz stillschweigend umbiegen.
-            contact.Email ??= normalizedEmail;
+            // Firmenpool-Kontakt: die beim Telefonat erfahrene Adresse festhalten - aber nur,
+            // wenn sie noch keinem anderen Kontakt gehoert. Sonst wuerde das Nachtragen den
+            // partiellen Unique-Index verletzen und die Mail zwar rausgehen, der Versand aber
+            // als Fehler enden. Eine bereits hinterlegte Adresse bleibt ohnehin unangetastet.
+            if (contact.Email is null)
+            {
+                var emailTaken = await dbContext.Set<MarketingContact>()
+                    .AnyAsync(c => c.Email == normalizedEmail && c.Id != contact.Id, cancellationToken);
+                if (!emailTaken)
+                    contact.Email = normalizedEmail;
+            }
 
             if (string.IsNullOrWhiteSpace(contact.Name) && !string.IsNullOrWhiteSpace(request.RecipientName))
                 contact.Name = request.RecipientName.Trim();

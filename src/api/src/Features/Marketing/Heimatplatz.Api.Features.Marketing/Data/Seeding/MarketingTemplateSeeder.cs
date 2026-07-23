@@ -7,9 +7,11 @@ namespace Heimatplatz.Api.Features.Marketing.Data.Seeding;
 
 /// <summary>
 /// Start-Vorlagen fuer den E-Mail-Versand. Referenzdaten (IsDemoData=false): ohne mindestens
-/// eine Vorlage waere die Auswahl auf der Schreiben-Seite leer.
-/// Idempotent pro Name - eigene Vorlagen und Aenderungen an den Start-Vorlagen bleiben
-/// bei jedem Start erhalten, fehlende werden ergaenzt.
+/// eine Vorlage waere die Auswahl auf der Schreiben-Seite anfangs leer.
+/// Laeuft nur einmal (solange die Tabelle leer ist) - danach sind die Vorlagen
+/// nutzergepflegt: eine bewusst geloeschte Start-Vorlage bleibt geloescht und wird beim
+/// naechsten Start NICHT wieder angelegt. Auf einer komplett geleerten Tabelle werden die
+/// Start-Vorlagen bewusst neu angeboten.
 /// </summary>
 public class MarketingTemplateSeeder(AppDbContext dbContext) : ISeeder
 {
@@ -20,18 +22,10 @@ public class MarketingTemplateSeeder(AppDbContext dbContext) : ISeeder
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         var set = dbContext.Set<MarketingEmailTemplate>();
-        var existingNames = await set
-            .Select(x => x.Name)
-            .ToListAsync(cancellationToken);
-
-        var missing = Defaults()
-            .Where(x => !existingNames.Contains(x.Name))
-            .ToList();
-
-        if (missing.Count == 0)
+        if (await set.AnyAsync(cancellationToken))
             return;
 
-        set.AddRange(missing);
+        set.AddRange(Defaults());
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 

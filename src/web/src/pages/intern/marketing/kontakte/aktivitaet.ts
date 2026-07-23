@@ -47,6 +47,8 @@ export const POST: APIRoute = async ({ request }) => {
       // angezeigt und ab dem fruehen Morgen als faellig gefuehrt. Ein fester Offset
       // (+02:00) waere im Winter falsch.
       FollowUpAt: followUp ? `${followUp}T00:00:00Z` : null,
+      // Ohne neuen Termin die bestehende Wiedervorlage auf Wunsch entfernen
+      ClearFollowUp: !followUp && form.get("clearFollowUp") !== null,
       NewStatus: ALLOWED_STATUSES.has(status) ? status : null,
     },
   );

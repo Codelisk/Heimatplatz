@@ -46,6 +46,12 @@ const inputClass =
         value={toDateInputValue(contact.NextFollowUpAt)}
         class={inputClass}
       />
+      {contact.NextFollowUpAt && (
+        <label class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+          <input type="checkbox" name="clearFollowUp" value="1" class="size-3.5" />
+          <span>{t("intern.mkActivityClearFollowUp")}</span>
+        </label>
+      )}
     </label>
     <label class="flex flex-col gap-1 text-sm">
       <span class="font-medium">{t("intern.mkActivityFieldStatus")}</span>

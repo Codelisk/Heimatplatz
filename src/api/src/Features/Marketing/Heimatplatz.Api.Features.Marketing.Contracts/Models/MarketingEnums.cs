@@ -60,6 +60,22 @@ public enum MarketingActivityType
     Meeting = 4
 }
 
+/// <summary>Helfer rund um <see cref="MarketingContactStatus"/>.</summary>
+public static class MarketingContactStatusExtensions
+{
+    /// <summary>
+    /// Endzustaende des Funnels - hier ist keine weitere Bearbeitung und keine offene
+    /// Wiedervorlage mehr zu erwarten. Beim Uebergang in einen dieser Status wird eine
+    /// gesetzte Wiedervorlage geleert, damit der Kontakt nicht dauerhaft als "faellig" gilt.
+    /// EF kann diese Methode nicht uebersetzen - in Queries die Bedingung inline halten
+    /// (Customer/NotInterested/DoNotContact) und hier als einzige Quelle der Wahrheit fuehren.
+    /// </summary>
+    public static bool IsClosed(this MarketingContactStatus status) =>
+        status is MarketingContactStatus.Customer
+            or MarketingContactStatus.NotInterested
+            or MarketingContactStatus.DoNotContact;
+}
+
 /// <summary>Versand-Ergebnis einer Marketing-E-Mail.</summary>
 public enum MarketingEmailStatus
 {

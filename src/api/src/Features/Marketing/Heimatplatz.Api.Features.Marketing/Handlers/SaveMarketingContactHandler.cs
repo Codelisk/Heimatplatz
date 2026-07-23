@@ -78,14 +78,12 @@ public class SaveMarketingContactHandler(
         // ueber die Aktivitaets-Erfassung
         if (previousStatus is { } from && from != request.Status)
         {
-            dbContext.Set<MarketingActivity>().Add(new MarketingActivity
-            {
-                ContactId = contact.Id,
-                Type = MarketingActivityType.StatusChange,
-                StatusFrom = from,
-                StatusTo = request.Status,
-                OccurredAt = DateTimeOffset.UtcNow
-            });
+            dbContext.Set<MarketingActivity>().Add(
+                MarketingActivity.StatusChange(contact.Id, from, request.Status, DateTimeOffset.UtcNow));
+
+            // Endstatus leert eine offene Wiedervorlage (vgl. LogMarketingActivityHandler)
+            if (request.Status.IsClosed())
+                contact.NextFollowUpAt = null;
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

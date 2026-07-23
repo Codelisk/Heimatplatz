@@ -243,6 +243,7 @@ export const intern = {
     "Der Firmenpool konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
   "intern.mkPoolTakeSelected": "Auswahl als „Zu kontaktieren“ übernehmen",
   "intern.mkPoolSelectAll": "Alle auf dieser Seite",
+  "intern.mkPoolSelectedCount": "{count} ausgewählt (auch auf anderen Seiten)",
   "intern.mkPoolAlreadyTaken": "Bereits übernommen",
   "intern.mkPoolAddedOk": "{count} Firmen als „Zu kontaktieren“ übernommen.",
   "intern.mkPoolAddedWithSkipped":
@@ -338,6 +339,7 @@ export const intern = {
   "intern.mkActivityFieldNotes": "Notiz",
   "intern.mkActivityFieldNotesPlaceholder": "Was wurde besprochen?",
   "intern.mkActivityFieldFollowUp": "Wiedervorlage am",
+  "intern.mkActivityClearFollowUp": "Wiedervorlage entfernen (erledigt)",
   "intern.mkActivityFieldStatus": "Neuer Status",
   "intern.mkActivityStatusKeep": "Status unverändert",
   "intern.mkActivitySubmit": "Festhalten",

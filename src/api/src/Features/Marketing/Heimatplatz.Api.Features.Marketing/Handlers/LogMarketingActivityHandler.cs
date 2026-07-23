@@ -40,7 +40,7 @@ public class LogMarketingActivityHandler(
             notes = notes[..MaxNotesLength];
 
         // Eine Notiz ohne Text und ohne Wirkung waere ein leerer Timeline-Eintrag
-        if (notes is null && request.FollowUpAt is null && request.NewStatus is null)
+        if (notes is null && request.FollowUpAt is null && !request.ClearFollowUp && request.NewStatus is null)
             return new LogMarketingActivityResponse(false, null, "Bitte eine Notiz, einen Termin oder einen Status angeben.");
 
         var occurredAt = request.OccurredAt ?? DateTimeOffset.UtcNow;
@@ -59,21 +59,24 @@ public class LogMarketingActivityHandler(
         if (request.Type is MarketingActivityType.Call or MarketingActivityType.Meeting)
             contact.LastContactedAt = occurredAt;
 
+        // Wiedervorlage setzen/verschieben oder (ohne neuen Termin) auf Wunsch entfernen -
+        // sonst bliebe eine erledigte Wiedervorlage dauerhaft "faellig"
         if (request.FollowUpAt is not null)
             contact.NextFollowUpAt = request.FollowUpAt;
+        else if (request.ClearFollowUp)
+            contact.NextFollowUpAt = null;
 
         if (request.NewStatus is { } newStatus && newStatus != contact.Status)
         {
-            dbContext.Set<MarketingActivity>().Add(new MarketingActivity
-            {
-                ContactId = contact.Id,
-                Type = MarketingActivityType.StatusChange,
-                StatusFrom = contact.Status,
-                StatusTo = newStatus,
-                OccurredAt = occurredAt
-            });
+            dbContext.Set<MarketingActivity>().Add(
+                MarketingActivity.StatusChange(contact.Id, contact.Status, newStatus, occurredAt));
 
             contact.Status = newStatus;
+
+            // Endstatus (Kunde/Kein Interesse/Nicht kontaktieren) -> offene Wiedervorlage
+            // ist damit erledigt und wird geleert
+            if (newStatus.IsClosed())
+                contact.NextFollowUpAt = null;
         }
 
         contact.UpdatedAt = DateTimeOffset.UtcNow;
