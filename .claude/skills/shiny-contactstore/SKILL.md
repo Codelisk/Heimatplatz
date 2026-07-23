@@ -1,63 +1,49 @@
 ---
 name: shiny-contactstore
-description: Generate code using Shiny.Maui.ContactStore for cross-platform device contact access with CRUD, LINQ queries, and MAUI permissions
+description: Generate code using Shiny.Contacts for cross-platform device contact access with CRUD, LINQ queries, and Shiny.Core permissions
 auto_invoke: true
 triggers:
-- "contact store"
-- "contacts"
-- "IContactStore"
-- "ContactStore"
-- "AddContactStore"
-- "ContactPermission"
-- "ContactReadPermission"
-- "ContactWritePermission"
-- "Shiny.Maui.ContactStore"
-- "device contacts"
-- "read contacts"
-- "write contacts"
-- "contact query"
-- "contact LINQ"
+  - contact store
+  - contacts
+  - IContactStore
+  - ContactStore
+  - AddContactStore
+  - Shiny.Contacts
+  - device contacts
+  - read contacts
+  - write contacts
+  - contact query
+  - contact LINQ
+  - contacts AI tools
+  - Shiny.Contacts.Extensions.AI
+  - AddContactsAITools
+  - ContactAITools
+  - ContactAICapabilities
 ---
 
-# Shiny.Maui.ContactStore Skill
+# Shiny.Contacts Skill
 
-## Triggers
-- contact store
-- contacts
-- IContactStore
-- ContactStore
-- AddContactStore
-- ContactPermission
-- ContactReadPermission
-- ContactWritePermission
-- Shiny.Maui.ContactStore
-- device contacts
-- read contacts
-- write contacts
-- contact query
-- contact LINQ
-
-You are an expert in Shiny.Maui.ContactStore, a cross-platform .NET MAUI library for accessing device contacts on Android and iOS.
+You are an expert in Shiny.Contacts, a cross-platform library for accessing device contacts on Android and iOS.
 
 ## When to Use This Skill
 
 Invoke this skill when the user wants to:
 - Access device contacts (read, create, update, delete)
 - Query contacts with LINQ
-- Set up contact permissions using MAUI permissions
+- Request contact permissions using Shiny's AccessState model
 - Register the contact store in DI
 - Work with contact models (phones, emails, addresses, etc.)
 
 ## Library Overview
 
-**GitHub**: https://github.com/shinyorg/contactstore
-**NuGet**: `Shiny.Maui.ContactStore`
-**Namespace**: `Shiny.Maui.ContactStore`
+**GitHub**: https://github.com/shinyorg/shiny
+**NuGet**: `Shiny.Contacts`
+**Namespace**: `Shiny.Contacts`
 
-Shiny.Maui.ContactStore provides:
+Shiny.Contacts provides:
 - Full CRUD operations on device contacts
 - LINQ query support with native translation (Android content provider queries, iOS CNContact predicates)
-- MAUI permission classes for requesting contact access
+- Permission handling via Shiny.Core's `AccessState` model
 - Dependency injection integration
 - AOT and trimmer compatible
 
@@ -65,13 +51,15 @@ Shiny.Maui.ContactStore provides:
 
 ### 1. Install NuGet Package
 ```bash
-dotnet add package Shiny.Maui.ContactStore
+dotnet add package Shiny.Contacts
 ```
 
 ### 2. Register in MauiProgram.cs
+The app must call `.UseShiny()` (from Shiny.Hosting.Maui) so platform services like permissions are wired up.
 ```csharp
-using Shiny.Maui.ContactStore;
+using Shiny;
 
+builder.UseShiny();
 builder.Services.AddContactStore();
 ```
 
@@ -91,32 +79,31 @@ builder.Services.AddContactStore();
 
 ## Permissions
 
-The library provides a MAUI permission class `ContactPermission` that wraps both read and write contact permissions.
-
-Use the extension methods on `IContactStore`:
+Permissions use Shiny.Core's `Shiny.AccessState` model. `IContactStore` exposes two members:
 
 ```csharp
-// Request permissions (triggers OS prompt if needed)
-var status = await contactStore.RequestPermssionsAsync();
-if (status != PermissionStatus.Granted)
+// Request access (triggers OS prompt if needed)
+var access = await contactStore.RequestAccess();
+if (access != AccessState.Available)
 {
-    // Handle denied
+    // Handle denied / restricted
     return;
 }
 
-// Check current status without prompting
-var status = await contactStore.CheckPermissionStatusAsync();
+// Check current state without prompting
+var current = contactStore.GetCurrentAccess();
 ```
 
-### Android Permission Results
-- `PermissionStatus.Granted` — both read and write access granted
-- `PermissionStatus.Limited` — only read or only write granted (not both)
-- `PermissionStatus.Denied` — neither read nor write granted
+### Android Access Results
+- `AccessState.Available` — both read and write access granted
+- `AccessState.Restricted` — only read or only write granted (not both)
+- `AccessState.Denied` — neither read nor write granted
 
-### iOS Permission Results
-- `PermissionStatus.Granted` — contacts access authorized
-- `PermissionStatus.Denied` — contacts access denied
-- `PermissionStatus.Restricted` — contacts access restricted
+### iOS Access Results
+- `AccessState.Available` — contacts access authorized
+- `AccessState.Denied` — contacts access denied
+- `AccessState.Restricted` — contacts access restricted or limited
+- `AccessState.Unknown` — not yet determined
 
 ## API Reference
 
@@ -125,6 +112,8 @@ var status = await contactStore.CheckPermissionStatusAsync();
 ```csharp
 public interface IContactStore
 {
+    AccessState GetCurrentAccess();
+    Task<AccessState> RequestAccess(CancellationToken ct = default);
     Task<IReadOnlyList<Contact>> GetAll(CancellationToken ct = default);
     Task<Contact?> GetById(string contactId, CancellationToken ct = default);
     IQueryable<Contact> Query();
@@ -137,10 +126,6 @@ public interface IContactStore
 ### Extension Methods
 
 ```csharp
-// Permission extensions
-Task<PermissionStatus> contactStore.RequestPermssionsAsync();
-Task<PermissionStatus> contactStore.CheckPermissionStatusAsync();
-
 // Query extensions
 Task<IReadOnlyList<char>> contactStore.GetFamilyNameFirstLetters(CancellationToken ct = default);
 ```
@@ -229,7 +214,7 @@ await contactStore.Delete(contactId);
 | DisplayName    | `string`                    |
 | Note           | `string?`                   |
 | Organization   | `ContactOrganization?`      |
-| Photo          | `byte[]?`                   |
+| Photo          | `byte[]?` (see note below)  |
 | Thumbnail      | `byte[]?`                   |
 | Phones         | `List<ContactPhone>`        |
 | Emails         | `List<ContactEmail>`        |
@@ -250,14 +235,50 @@ await contactStore.Delete(contactId);
 
 **RelationshipType:** Father, Mother, Parent, Brother, Sister, Child, Friend, Spouse, Partner, Assistant, Manager, Other, Custom
 
+## Photo vs Thumbnail (bulk reads)
+
+`GetAll()` and `Query()` populate **`Thumbnail`** only; **`Photo` (the full-resolution image) is `null`** on these bulk reads. Decoding every contact's full photo into a `byte[]` at once spikes memory and can get the app OOM/jetsam-killed on a real device with many photo contacts. To get the full `Photo`, fetch the single contact with **`GetById(id)`** (which populates both `Thumbnail` and `Photo`). Bind list rows to `Thumbnail` and load `Photo` on a detail screen.
+
 ## iOS Notes & Relations Entitlement
 
 Reading `Note` and `Relationships` on iOS requires the `com.apple.developer.contacts.notes` entitlement. The library auto-detects this at runtime. If absent, `Note` returns `null` and `Relationships` is empty.
 
 ## Best Practices
 
-1. **Always request permissions first** — use `contactStore.RequestPermssionsAsync()` before any CRUD operation
+1. **Always request access first** — use `await contactStore.RequestAccess()` and check for `AccessState.Available` before any CRUD operation
 2. **Use LINQ queries for filtering** — prefer `Query().Where(...)` over `GetAll()` when filtering, as it uses native queries
-3. **Check for Limited on Android** — `PermissionStatus.Limited` means partial access (read-only or write-only)
+3. **Check for Restricted on Android** — `AccessState.Restricted` means partial access (read-only or write-only)
 4. **Handle iOS entitlements gracefully** — Notes and Relations silently return empty without the entitlement
-5. **Use primary constructors** — inject `IContactStore` via primary constructor
+5. **Bind lists to `Thumbnail`, not `Photo`** — bulk reads (`GetAll`/`Query`) only load `Thumbnail`; get the full `Photo` from `GetById` on a detail screen
+6. **Use primary constructors** — inject `IContactStore` via primary constructor
+
+## AI Tool Integration (Shiny.Contacts.Extensions.AI)
+
+The optional `Shiny.Contacts.Extensions.AI` package exposes `IContactStore` as `Microsoft.Extensions.AI` tool functions (`AIFunction`s) for LLM agents. You opt-in exactly which operations the model can see — a read/write allow-list you control on behalf of the agent (**not** an OS permission prompt; the platform contact permission must already be granted). Read-only by default; write is opt-in. AOT-compatible (hand-built schemas, `JsonNode` results — no reflection).
+
+```csharp
+using Shiny.Contacts;
+using Shiny.Contacts.Extensions.AI;
+
+builder.Services.AddContactStore();                          // registers IContactStore
+builder.Services.AddContactsAITools(tools => tools
+    .AddContacts(ContactAICapabilities.ReadWrite)            // Read is the default; ReadWrite adds create/update/delete
+);
+
+// resolve the bundle and pass the tools to any IChatClient
+var tools = sp.GetRequiredService<ContactAITools>().Tools;
+var response = await chatClient.GetResponseAsync(
+    messages,
+    new ChatOptions { Tools = [.. tools] }
+);
+```
+
+Key types:
+- `AddContactsAITools(Action<IContactAIToolBuilder>)` — DI extension; throws if nothing is added.
+- `IContactAIToolBuilder` — `AddContacts(ContactAICapabilities)`.
+- `ContactAICapabilities` `[Flags]` — `None`, `Read` (default), `Write`, `ReadWrite`.
+- `ContactAITools` — resolve from DI; `.Tools` is `IReadOnlyList<AITool>`.
+
+Generated tools (only for opted-in capabilities): `search_contacts` (free-text over name/phone/email), `get_contact` (by id), `create_contact`, `update_contact`, `delete_contact`.
+
+> The AI tools assume permissions are already granted — they do **not** trigger the platform permission UI (needs a foreground activity). Call `IContactStore.RequestAccess(...)` from the app before invoking the agent. `delete_contact` is irreversible — instruct the model to confirm with the user first.

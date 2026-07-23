@@ -1,6 +1,6 @@
---
+---
 name: shiny-documentdb
-description: Generate code using Shiny.DocumentDb, a schema-free multi-provider JSON document store for .NET supporting SQLite, LiteDB, CosmosDB, MongoDB, Azure Table Storage, Amazon DynamoDB, DuckDB, IndexedDB (Blazor WASM), MySQL, SQL Server, PostgreSQL, and Oracle with LINQ queries, spatial/geo queries, and AOT support
+description: Generate code using Shiny.DocumentDb, a schema-free multi-provider JSON document store for .NET supporting SQLite, LiteDB, CosmosDB, MongoDB, Azure Table Storage, Amazon DynamoDB, Amazon DocumentDB, Redis, RavenDB, Google Firestore, DuckDB, IndexedDB (Blazor WASM), MySQL, MariaDB, SQL Server, PostgreSQL, CockroachDB, and Oracle with LINQ queries, spatial/geo queries, and AOT support
 auto_invoke: true
 triggers:
   - document store
@@ -23,12 +23,19 @@ triggers:
   - vector search
   - NearestVectors
   - MapVectorProperty
+  - AutoEmbedOnInsert
+  - auto-embed
+  - IEmbeddingGenerator
+  - OnBeforeWrite
   - full-text search
   - FullTextSearch
   - FullTextMatch
   - MapFullTextProperty
   - FullTextResult
   - FullTextLanguage
+  - LuceneMatch
+  - LuceneScore
+  - lucene
   - FTS5
   - tsvector
   - computed property
@@ -36,6 +43,14 @@ triggers:
   - MapComputedProperty
   - derived property
   - generated column
+  - blob
+  - DocumentBlob
+  - DocumentBlobCollection
+  - MapBlob
+  - MapBlobCollection
+  - attachment
+  - binary payload
+  - IBlobDocumentStore
   - DocumentContext
   - DocumentSet
   - Document attribute
@@ -76,8 +91,10 @@ triggers:
   - sqlcipher
   - encrypted sqlite
   - MySqlDatabaseProvider
+  - MariaDbDatabaseProvider
   - SqlServerDatabaseProvider
   - PostgreSqlDatabaseProvider
+  - CockroachDbDatabaseProvider
   - OracleDatabaseProvider
   - Shiny.DocumentDb.Oracle
   - oracle
@@ -88,25 +105,48 @@ triggers:
   - PageResult
   - PagedResults
   - paged results
+  - ToCursorPage
+  - CursorPage
+  - ToCursorStream
+  - cursor pagination
+  - keyset pagination
+  - seek pagination
+  - infinite scroll
   - dynamic sort
   - sort by string
   - OrderBy string
   - Where string
   - dynamic filter
+  - GroupBy
+  - grouped aggregation
+  - IGroupedDocumentQuery
+  - IDocumentGroup
+  - Having
+  - Sql.Count
+  - Sql.Sum
+  - Sql.Avg
   - interpolated filter
   - FilterInterpolatedStringHandler
   - MapTypeToTable
   - table per type
   - GetDiff
   - JsonPatchDocument
-  - UnitOfWork
-  - CreateUnitOfWork
+  - IDocumentSession
+  - OpenSession
+  - IDocumentSessionFactory
+  - AddScopedDocumentSession
+  - IDocumentTransaction
+  - BeginTransaction
+  - LockMode
   - SaveChanges
   - unit of work
   - transaction
   - atomic writes
   - IDocumentInterceptor
   - IDocumentBulkInterceptor
+  - ctx.Services
+  - ctx.Store
+  - ctx.Session
   - OnBeforeWrite
   - OnAfterWrite
   - interceptor
@@ -150,6 +190,30 @@ triggers:
   - DynamoDb
   - DynamoDB
   - AWS
+  - DocumentDbDocumentStore
+  - DocumentDbDocumentStoreOptions
+  - Shiny.DocumentDb.DocumentDb
+  - AddDocumentDbDocumentStore
+  - Amazon DocumentDB
+  - RedisDocumentStore
+  - RedisDocumentStoreOptions
+  - Shiny.DocumentDb.Redis
+  - AddRedisDocumentStore
+  - Redis
+  - Redis Stack
+  - RedisJSON
+  - RediSearch
+  - RavenDbDocumentStore
+  - RavenDbDocumentStoreOptions
+  - Shiny.DocumentDb.RavenDb
+  - AddRavenDbDocumentStore
+  - RavenDB
+  - FirestoreDocumentStore
+  - FirestoreDocumentStoreOptions
+  - Shiny.DocumentDb.Firestore
+  - AddFirestoreDocumentStore
+  - Firestore
+  - Google Firestore
   - DynamoDB Streams
   - MapIndexedProperty
   - promoted column
@@ -170,6 +234,32 @@ triggers:
   - spatial query
   - geo query
   - geolocation
+  - reference geo data
+  - GeoRegion
+  - GeoCity
+  - GeoDataSets
+  - AddGeoReferenceSeeder
+  - Shiny.DocumentDb.Geo
+  - cities states provinces
+  - Geometry
+  - GeoLineString
+  - GeoPolygon
+  - GeoMultiPoint
+  - GeoMultiLineString
+  - GeoMultiPolygon
+  - GeoGeometryCollection
+  - GeoIntersects
+  - GeoContainedBy
+  - GeoContains
+  - GeoDisjoint
+  - GeoTouches
+  - GeoCrosses
+  - GeoOverlaps
+  - GeoEquals
+  - GeoCovers
+  - GeoCoveredBy
+  - GeoWithinDistance
+  - DocumentFunctions
   - ClearAllAsync
   - ClearAll
   - IDocumentMaintenance
@@ -210,7 +300,7 @@ triggers:
   - row versioning
   - version property
   - AddDocumentStore
-  - IDocumentStoreProvider
+  - IDocumentSessionFactory
   - FromKeyedServices
   - keyed service
   - named store
@@ -327,12 +417,41 @@ triggers:
   - AddSqliteDocumentStore
   - AsDocumentStore
   - UseAspireDocumentDb
+  - AddDocumentContextProvider
   - CreateAITools
 ---
 
 # Shiny DocumentDb Skill
 
-You are an expert in Shiny.DocumentDb, a lightweight multi-provider document store for .NET that turns relational databases into a schema-free JSON document database with LINQ querying, spatial/geo queries, and full AOT/trimming support. Supports **SQLite**, **SQLCipher** (encrypted SQLite), **LiteDB**, **CosmosDB**, **MongoDB**, **Azure Table Storage** (and Cosmos DB Table API), **Amazon DynamoDB**, **DuckDB**, **IndexedDB** (Blazor WebAssembly), **MySQL**, **SQL Server**, **PostgreSQL**, and **Oracle**.
+You are an expert in Shiny.DocumentDb, a lightweight multi-provider document store for .NET that turns relational databases into a schema-free JSON document database with LINQ querying, spatial/geo queries, and full AOT/trimming support. Supports **SQLite**, **SQLCipher** (encrypted SQLite), **LiteDB**, **CosmosDB**, **MongoDB**, **Amazon DocumentDB** (MongoDB-compatible), **Redis** (Redis Stack), **RavenDB**, **Google Firestore**, **Azure Table Storage** (and Cosmos DB Table API), **Amazon DynamoDB**, **DuckDB**, **IndexedDB** (Blazor WebAssembly), **MySQL**, **MariaDB**, **SQL Server**, **PostgreSQL**, **CockroachDB**, and **Oracle**.
+
+## Upgrading from v10 → v11
+
+**Only relevant when a codebase is on v10** — do this migration when the user asks to upgrade, or when you see
+v10-only signals in the code: `CreateUnitOfWork(`, the public `UnitOfWork` type in a signature,
+`IDocumentStoreProvider`, `AddDocumentStoreInstrumentation(` / `o.Instrumentation = true`, or a `PackageReference`
+to `Shiny.DocumentDb.Extensions.DependencyInjection` / `Shiny.DocumentDb.Diagnostics`. (Do **not** treat normal
+v11 API — `IDocumentSession`, `OpenSession`, `AddScopedDocumentSession` — as a migration signal.)
+
+v11 is a clean break (no `[Obsolete]` shims). Apply these mechanical transforms:
+
+| v10 | v11 |
+|---|---|
+| `PackageReference` to `…Extensions.DependencyInjection` / `…Diagnostics` | **remove both** — folded into core `Shiny.DocumentDb`, namespaces unchanged |
+| `var uow = store.CreateUnitOfWork();` | `await using var session = store.OpenSession();` (buffered `Add`/`Update`/`Upsert`/`Remove` + `SaveChanges` identical) |
+| `uow.Clear()` | `session.ClearPending()` |
+| `UnitOfWork` in a signature (`Action<UnitOfWork,…>`, `void F(UnitOfWork uow)`) | `IDocumentSession` (the public type is now internal) |
+| `IDocumentStoreProvider` | `IDocumentSessionFactory` (`GetStore(name)` unchanged; `OpenSession(name)` added) |
+| `new AppContext(store)` (generated `DocumentContext`) | `new AppContext(store.OpenSession())`; the context is now `IAsyncDisposable` — `await using` it; `context.CreateUnitOfWork()` → `context.Add`/`SaveChanges` |
+| `services.AddDocumentStoreInstrumentation();` / `o.Instrumentation = true` | remove — telemetry is embedded/always-on; subscribe OTel to `.AddSource("Shiny.DocumentDb")` / `.AddMeter("Shiny.DocumentDb")` |
+
+**Session registration by host:** ASP.NET Core → add `.AddScopedDocumentSession()` and inject scoped
+`IDocumentSession`; MAUI/desktop/background/Orleans → inject the singleton `IDocumentSessionFactory` and
+`OpenSession()` per unit of work (`await using`); immediate one-offs → keep injecting `IDocumentStore`. Ask the
+user which host if it isn't obvious. Interceptors don't break (v11 adds `ctx.Services`/`ctx.Session` + scoped
+support). **After migrating, build (expect 0 errors) and run the FULL test suite** (needs Docker for non-SQLite
+providers; if Docker is off, tell the user to start it). Full guide + before/after code:
+[`/documentdb/migrate-v10-to-v11`](https://shinylib.net/documentdb/migrate-v10-to-v11).
 
 ## When to Use This Skill
 
@@ -345,7 +464,7 @@ Invoke this skill when the user wants to:
 - Create JSON property indexes for faster queries
 - Project query results into DTOs at the SQL level
 - Compute aggregates (Max, Min, Sum, Average) across documents
-- Use aggregate projections with GROUP BY via `Sql.*` markers
+- Roll up one row per key with `GroupBy(keySelector).Having(…).Select(g => …)` (`g.Key`, `g.Count()`, `g.Sum`)
 - Sort query results with expression-based OrderBy/OrderByDescending
 - Sort query results by a property name (string) — AOT-safe via `JsonTypeInfo<T>`, supports dotted paths, for dynamic UIs / REST `?sort=` query strings
 - Paginate query results with LIMIT/OFFSET
@@ -392,27 +511,35 @@ Invoke this skill when the user wants to:
   - `Shiny.DocumentDb.Sqlite` — SQLite provider + DI extensions
   - `Shiny.DocumentDb.Sqlite.SqlCipher` — SQLCipher (encrypted SQLite) provider + DI extensions
   - `Shiny.DocumentDb.MySql` — MySQL provider + DI extensions
+  - `Shiny.DocumentDb.MariaDb` — MariaDB provider (extends the MySQL provider; portable spatial tier, no full-text proximity; **no array-unnest queries** — `Any`/`All` over a collection, collection aggregates, and `GroupBy` over an array element throw `NotSupportedException` because MariaDB has no `JSON_TABLE`)
   - `Shiny.DocumentDb.SqlServer` — SQL Server provider + DI extensions
   - `Shiny.DocumentDb.PostgreSql` — PostgreSQL provider + DI extensions
+  - `Shiny.DocumentDb.CockroachDb` — CockroachDB provider (extends the PostgreSQL provider; native spatial, full-text, and pgvector-compatible vector search — brute-force; no change-feed/bulk-copy/soundex)
   - `Shiny.DocumentDb.Oracle` — Oracle (23ai+) provider + DI extensions
   - `Shiny.DocumentDb.LiteDb` — LiteDB provider + DI extensions
   - `Shiny.DocumentDb.CosmosDb` — Azure Cosmos DB provider + DI extensions
   - `Shiny.DocumentDb.MongoDb` — MongoDB provider + DI extensions
   - `Shiny.DocumentDb.AzureTable` — Azure Table Storage (and Cosmos DB Table API) provider + `AddAzureTableDocumentStore(...)`
   - `Shiny.DocumentDb.DynamoDb` — Amazon DynamoDB provider + `AddDynamoDbDocumentStore(...)`
+  - `Shiny.DocumentDb.DocumentDb` — Amazon DocumentDB provider (thin MongoDB-provider subclass; TLS + `retryWrites=false` defaults; no `$text` full-text / no vector) + `AddDocumentDbDocumentStore(...)`
+  - `Shiny.DocumentDb.Redis` — Redis Stack (RedisJSON + RediSearch) provider — server-side full-text/vector(KNN)/geo, `MapIndexedProperty` push-down to `FT.SEARCH`, `INCR`-based Int/Long Id auto-gen, keyspace-notification change feed + `AddRedisDocumentStore(...)`
+  - `Shiny.DocumentDb.RavenDb` — RavenDB provider (opaque STJ envelope, client-side LINQ over id-prefix streams, RQL `ToQueryString`) + `AddRavenDbDocumentStore(...)`
+  - `Shiny.DocumentDb.Firestore` — Google Firestore provider (native-map storage, single-field push-down + full-scan fallback, native cursor paging, snapshot-listener change feed) + `AddFirestoreDocumentStore(...)`
   - `Shiny.DocumentDb.DuckDb` — DuckDB (embedded analytical) provider + DI extensions
   - `Shiny.DocumentDb.IndexedDb` — IndexedDB provider for Blazor WebAssembly + DI extensions
-  - `Shiny.DocumentDb.Extensions.DependencyInjection` — generic (provider-agnostic) DI extensions
   - `Shiny.DocumentDb.Extensions.AI` — Microsoft.Extensions.AI tool surface (AIFunction tools for LLM agents)
-  - `Shiny.DocumentDb.Diagnostics` — OpenTelemetry metrics + tracing (instrumentation decorator over any provider)
+  - `Shiny.DocumentDb.Geo` — embedded reference geography (US states, Canadian provinces, US & Canadian cities) as `GeoRegion`/`GeoCity` documents; provider-agnostic seeder (`AddGeoReferenceSeeder()` + `opts.MapGeoReferenceData()`) or in-memory `GeoDataSets.Regions`/`GeoDataSets.Cities`
+  - **DI registration** (`AddDocumentStore`, `AddDocumentContext`, seeding) and **OpenTelemetry instrumentation** (`AddDocumentStoreInstrumentation`, metrics + tracing) ship **in the core `Shiny.DocumentDb` package** — no separate DI-extensions or Diagnostics package (folded into core in 11.0)
   - `Shiny.DocumentDb.Orleans` — Microsoft Orleans grain storage (`IGrainStorage` + `PubSubStore`) over any `IDocumentStore` backend
   - `Shiny.DocumentDb.Orleans.MongoDb` / `Shiny.DocumentDb.Orleans.CosmosDb` — first-class Orleans grain-storage registration for MongoDB / Cosmos DB
 - **Provider dependencies**:
   - SQLite: `Microsoft.Data.Sqlite`
   - SQLCipher: `Microsoft.Data.Sqlite.Core` + `SQLitePCLRaw.bundle_e_sqlcipher`
   - MySQL: `MySqlConnector`
+  - MariaDB: `MySqlConnector` (via the MySQL provider)
   - SQL Server: `Microsoft.Data.SqlClient`
   - PostgreSQL: `Npgsql`
+  - CockroachDB: `Npgsql` (via the PostgreSQL provider)
   - Oracle: `Oracle.ManagedDataAccess.Core` (requires Oracle Database 23ai+)
   - LiteDB: `LiteDB`
   - CosmosDB: `Microsoft.Azure.Cosmos`
@@ -522,7 +649,7 @@ var store = new DocumentStore(new DocumentStoreOptions
 
 ### Dependency Injection
 
-Install `Shiny.DocumentDb.Extensions.DependencyInjection` and use `AddDocumentStore` to register `IDocumentStore` as a singleton:
+`AddDocumentStore` (in the core `Shiny.DocumentDb` package — DI registration is built in) registers `IDocumentStore` as a singleton:
 
 ```csharp
 using Shiny.DocumentDb;
@@ -616,7 +743,7 @@ services.AddDynamoDbDocumentStore(o =>
 - **Optimistic concurrency:** `MapVersionProperty<T>` uses the Table `ETag` (If-Match) or a DynamoDB conditional write on a top-level `Version` attribute → `ConcurrencyException` on conflict. Blind (unversioned) upsert is last-write-wins.
 - **Not supported:** spatial, vector, full-text, temporal (`SupportsSpatial`/`SupportsVector`/`SupportsFullText` stay `false`; no `ITemporalDocumentStore`). `IDocumentMaintenance.ClearAll` **is** supported.
 - **Size limits:** Azure Table caps the JSON body at ~64 KB (per-property) and DynamoDB caps an item at 400 KB — an oversized document throws a clear `NotSupportedException`, not a raw storage error.
-- **Native batch:** `BatchInsert`/`BatchRemove` use native transactions/bulk writes in bounded waves (≤100 per PartitionKey on Table, ≤25 per request on DynamoDB). `CreateUnitOfWork()` is a compensating tracker (no cross-partition atomicity), matching Cosmos.
+- **Native batch:** `BatchInsert`/`BatchRemove` use native transactions/bulk writes in bounded waves (≤100 per PartitionKey on Table, ≤25 per request on DynamoDB). `store.OpenSession()` is a compensating tracker (no cross-partition atomicity), matching Cosmos.
 
 #### Named stores (multiple databases)
 
@@ -633,7 +760,7 @@ services.AddDocumentStore("analytics", opts =>
 });
 ```
 
-Inject via `[FromKeyedServices("name")]` attribute or resolve dynamically via `IDocumentStoreProvider`:
+Inject via `[FromKeyedServices("name")]` attribute or resolve dynamically via `IDocumentSessionFactory`:
 
 ```csharp
 // Attribute injection
@@ -642,7 +769,7 @@ public class MyService(
     [FromKeyedServices("analytics")] IDocumentStore analyticsStore) { }
 
 // Dynamic resolution
-public class MyService(IDocumentStoreProvider stores)
+public class MyService(IDocumentSessionFactory stores)
 {
     void DoWork() => stores.GetStore("users").Insert(...);
 }
@@ -650,7 +777,7 @@ public class MyService(IDocumentStoreProvider stores)
 
 ### Multi-Tenancy
 
-Two isolation strategies are supported via `Shiny.DocumentDb.Extensions.DependencyInjection`. Both use a user-implemented `ITenantResolver` to identify the current tenant.
+Two isolation strategies are supported. Both use a user-implemented `ITenantResolver` to identify the current tenant. **Scope-aware (11.0):** register `ITenantResolver` **scoped** (`services.AddScoped<ITenantResolver, …>()`) and it resolves from the caller's **session DI scope** when writing/reading through a scoped `IDocumentSession`/`DocumentContext` — the request's own tenant, no ambient `IHttpContextAccessor` needed. The immediate path (`store.Insert`, no scope) falls back to the root.
 
 #### ITenantResolver Interface
 
@@ -882,9 +1009,12 @@ All overloads return the options instance for fluent chaining. Duplicate table n
 
 ## Strongly-Typed Context (DocumentContext)
 
-Optional EF-Core-style typed front-end over `IDocumentStore`. Requires the **`Shiny.DocumentDb.Generators`**
-analyzer package (`DocumentContext`/`DocumentSet<T>` are in core). Declare aggregates once on a `partial`
-context; the generator emits a `DocumentSet<T>` per type, a `ConfigureModel` lowering, and two DI extensions:
+Optional EF-Core-style typed front-end over `IDocumentStore`. Everything ships in the core
+**`Shiny.DocumentDb`** package — `DocumentContext`/`DocumentSet<T>` are runtime types and the source
+generator is bundled as an analyzer inside the same package (under `analyzers/dotnet/cs` — there is no
+separate `Shiny.DocumentDb.Generators` package to install). Declare
+aggregates once on a `partial` context; the generator emits a `DocumentSet<T>` per type, a `ConfigureModel`
+lowering, and two DI extensions:
 `Add<Context>` (scoped context) and `Add<Context>Factory` (singleton `IDocumentContextFactory<Context>`).
 `JsonTypeInfo<T>` is threaded automatically — never pass it from a set call.
 
@@ -940,9 +1070,16 @@ Rules / guidance:
   non-AOT opt-out), `Generated` (the generator emits the metadata-mode `JsonTypeInfo` itself — AOT-safe, no
   `JsonSerializerContext`; supports POCOs with a parameterless ctor + settable props of primitives, enums,
   nullable value types, nested objects, `List<T>`, arrays — anything else raises `DDB005`, use `JsonContext`).
+  - Under `Generated`, a property whose **type** has a type-level `[JsonConverter]` is emitted as a value built
+    from that converter, so converter-backed types work even when immutable or abstract — this is how
+    `GeoPoint`, `GeoPoint?`, and `Geometry` serialize as GeoJSON. The converter must be **public**,
+    non-abstract, have a public parameterless ctor, and be `JsonConverter<T>` for exactly the declared member
+    type (type a spatial property as `Geometry`, **not** a derived `GeoPolygon`). **Member-level**
+    `[JsonConverter]`, converter factories, and a document type carrying its own converter all raise `DDB005`.
 - **Sets are immediate** (`Insert`/`Update`/`Upsert`/`Remove(id)`/`BatchInsert`/…) and queries return the
-  store's `IDocumentQuery<T>` as-is (`Query()`/`Where(...)` → full query surface). Transactions via
-  `db.CreateUnitOfWork()`. **No** change tracking, identity map, or navigation/`Include`.
+  store's `IDocumentQuery<T>` as-is (`Query()`/`Where(...)` → full query surface). The context **is** a unit of
+  work (`context.Add(x)` + `await context.SaveChanges()`, or `context.BeginTransaction()`); reach the raw session
+  via `context.Session`. **No** change tracking, identity map, or navigation/`Include`.
 - Works over **any** provider (only needs `IDocumentStore`). The generated `ConfigureModel`/`Add<Context>`
   target the relational `DocumentStoreOptions`; for LiteDB/MongoDB/Cosmos build that store yourself and pass
   it: `new AppContext(liteDbStore)`.
@@ -1005,6 +1142,7 @@ The relational providers (SQLite, SQLCipher, DuckDB, MySQL, SQL Server, PostgreS
 - **String**: `s.ToLower()`/`ToUpper()`, `s.Length`, `s.Trim()`/`TrimStart()`/`TrimEnd()`, `s.Substring(start[, len])`, `s.Replace(a, b)`, `s.IndexOf(x)`, `string.IsNullOrEmpty(s)`, `a + b`, plus the existing `Contains`/`StartsWith`/`EndsWith`.
 - **Math**: `Math.Abs/Round/Ceiling/Floor/Sqrt/Pow/Sign`. (`Ceiling`/`Floor`/`Sqrt`/`Pow` need the SQLite math extension; `Abs`/`Round` are always available.)
 - **Flag enums** (stored numerically — the default): `x.Permissions.HasFlag(Permissions.Write)` or `(x.Permissions & Permissions.Write) == Permissions.Write`. Both lower to the same bitwise test (`BITAND` on Oracle) on the relational providers and Cosmos; MongoDB translates `HasFlag` to `$bitsAllSet`. Do **not** enable `JsonStringEnumConverter` if you need to query flags — bitwise tests require the numeric representation.
+- **String-stored (non-flag) enums**: plain enum `==`/`!=`/`in` comparisons work whether the enum is stored numerically (default) or as a string via `JsonStringEnumConverter` — the query layer binds the exact member name the converter persisted, on both the LINQ and string surfaces (`Where(x => x.Level == Priority.High)` and `Where("Level == 'High'")`). Only flag enums require numeric storage.
 - **Phonetic**: `DocumentFunctions.Soundex(x.Name)` → native `SOUNDEX()` (SQL Server/MySQL/Oracle) or a registered connection UDF (SQLite). Not translatable on Cosmos/Mongo — compute a stored Soundex field there instead.
 
 ```csharp
@@ -1089,7 +1227,13 @@ await store.Insert(user);
 
 // Explicit ID
 await store.Insert(new User { Id = "user-1", Name = "Alice", Age = 25 });
+
+// Update = full replace; Upsert = RFC 7396 merge-or-insert. Pick the mode explicitly with a flag:
+await store.Update(doc, patch: true);          // merge into the existing doc (update-only; throws if absent)
+await store.Upsert(doc, patchIfUpdate: false); // replace the body wholesale on update; insert if absent
 ```
+
+**Merge vs replace flags** (`Update(patch)`, `Upsert(patchIfUpdate)`): merge modes strip null properties (unset fields are left unchanged, never deleted). A typed object serializes *every* property, so `patch: true` on it only skips `null` fields — a non-nullable default (`int Count = 0`) is still written. For a precise "change only these keys" update, make the patch type's fields nullable **or** use the JSON lane: `store.Update(typeof(User), new JsonObject { ["id"]="u1", ["name"]="Bob" }, patch: true)`. The two defaults (`Update` replace, `Upsert` merge) work on every provider; the non-default modes (`Update(patch: true)`, `Upsert(patchIfUpdate: false)`) are relational-provider + JSON-lane only (document-native/key-partitioned stores throw `NotSupportedException`).
 
 ### Batch insert
 
@@ -1120,7 +1264,7 @@ await store.BatchUpdate(users);                                  // full replace
 int removed = await store.BatchRemove<User>(new object[] { 1, 2, 3 });
 ```
 
-### Unit of work (grouping writes)
+### Unit of work — `IDocumentSession` (`store.OpenSession()`)
 
 To group several writes into one transaction, create a `UnitOfWork` from the store, queue
 `Add`/`AddRange`/`Update`/`Upsert`/`Remove`, then call `SaveChanges`. All commit or all roll back.
@@ -1129,7 +1273,7 @@ matching batch method. There is no `RunInTransaction` — `UnitOfWork` is the on
 transaction.
 
 ```csharp
-var uow = store.CreateUnitOfWork();
+await using var uow = store.OpenSession();   // IDocumentSession is the unit of work
 uow.Add(order)
    .AddRange(orderLines)   // coalesced into one batch insert
    .Update(customer)
@@ -1191,7 +1335,7 @@ await store.Upsert(new User { Id = "user-1", Name = "Alice", Age = 30 });
 
 ### Late-bound JSON lane (Type + JsonNode)
 
-For dynamic ingestion where you hold a registered document `Type` but not a CLR `T` (generic HTTP intake, ETL, gateways). Writes store the JSON **as-is**; reads return raw `JsonNode`. Relational providers only (SQLite, SQLCipher, MySQL, SQL Server, PostgreSQL, Oracle, DuckDB); document-native and key-partitioned providers throw `NotSupportedException`, and it is unavailable inside `CreateUnitOfWork()`.
+For dynamic ingestion where you hold a registered document `Type` but not a CLR `T` (generic HTTP intake, ETL, gateways). Writes store the JSON **as-is**; reads return raw `JsonNode`. Relational providers only (SQLite, SQLCipher, MySQL, SQL Server, PostgreSQL, Oracle, DuckDB); document-native and key-partitioned providers throw `NotSupportedException`, and it is unavailable inside a session transaction.
 
 ```csharp
 using System.Text.Json.Nodes;
@@ -1280,14 +1424,16 @@ var count = await store.Count<User>(
     new { minAge = 30 });
 ```
 
-### Transactions (UnitOfWork)
+### Transactions (IDocumentSession)
 
 ```csharp
-var uow = store.CreateUnitOfWork();
+await using var uow = store.OpenSession();   // IDocumentSession is the unit of work
 uow.Add(new User { Id = "u1", Name = "Alice", Age = 25 })
    .Add(new User { Id = "u2", Name = "Bob", Age = 30 });
 await uow.SaveChanges(); // commits on success, rolls back on exception
 ```
+
+**Explicit transactions + consistent reads (11.0, relational):** `await using var tx = await session.BeginTransaction();` (one active at a time) for locking reads (`session.Get(id, LockMode.Update)`) and grouping multiple `ExecuteUpdate`/`ExecuteDelete`; `SaveChanges` joins the active tx. Pass an isolation level for a **consistent-read session** — `await session.BeginTransaction(IsolationLevel.Snapshot)` — so every read sees one snapshot. **Telemetry:** a session emits a `<system>.unit_of_work` parent span (tag `db.session.id`) so its ops nest into one correlated trace, and `SaveChanges` records the `db.client.unit_of_work.operations` histogram (buffered writes per commit). Zero-cost when unobserved.
 
 ### Rekeying (SQLCipher only)
 
@@ -1341,7 +1487,7 @@ if (store is IDocumentMaintenance maintenance)
 Three methods:
 - `ExportAsync(Stream, BackupExportOptions?)` — writes the store out as a v1 backup document (a JSON array of `{ id, docType, data }` records, body emitted as-is). `BackupExportOptions { IReadOnlyCollection<string>? DocTypes; bool Indented }`.
 - `RestoreAsync(Stream, BulkRestoreOptions?)` — streams a backup back in with a forward-only reader; returns `BulkRestoreResult`.
-- `BulkImportAsync(IAsyncEnumerable<RawDocument>, BulkRestoreOptions?)` — lower-level primitive over `RawDocument(string Id, string DocType, ReadOnlyMemory<byte> Data)` (raw UTF-8 JSON body). `RestoreAsync` is the JSON adapter on top of it.
+- `BulkImportAsync(IAsyncEnumerable<RawDocument>, BulkRestoreOptions?)` — lower-level primitive over `RawDocument(string Id, string DocType, ReadOnlyMemory<byte> Data, DateTimeOffset? CreatedAt = null, DateTimeOffset? UpdatedAt = null)` (raw UTF-8 JSON body; optional timestamps preserved on Insert, else stamped now). `RestoreAsync` is the JSON adapter on top of it and round-trips `CreatedAt`/`UpdatedAt` (v2 envelope; older v1 backups without timestamps still import).
 
 ```csharp
 // Export the whole store
@@ -1414,6 +1560,89 @@ await DocumentSeedRunner.RunAsync(store, new IDocumentSeeder[] { new CountrySeed
 
 Under Native AOT, pass the marker's `JsonTypeInfo` via the `markerTypeInfo` parameter of `DocumentSeedRunner.RunAsync`.
 
+### Reference geo data (`Shiny.DocumentDb.Geo`)
+
+The `Shiny.DocumentDb.Geo` package ships an embedded reference dataset — **US states, Canadian provinces, and US & Canadian cities** — as ordinary `GeoRegion` (state/province, `Geometry Boundary` = a simplified `GeoPolygon`) and `GeoCity` (`GeoPoint Location`) documents keyed on a deterministic string `Id` (e.g. `US-CA`, `US-CA-los-angeles`). It reuses the standard seeding + spatial machinery, so it works on any provider that supports them.
+
+```csharp
+services.AddDocumentStore(opts =>
+{
+    opts.DatabaseProvider = new SqliteDatabaseProvider("Data Source=app.db");
+    opts.MapGeoReferenceData();     // maps GeoRegion.Boundary + GeoCity.Location for spatial queries
+});
+services.AddGeoReferenceSeeder();   // idempotent GeoReferenceSeeder (pass a store name for a keyed store)
+
+// point-in-region containment
+var region = (await store.GeoIntersects<GeoRegion>(new GeoPoint(39.7392, -104.9903))).FirstOrDefault();
+
+// no host? seed directly, or read the in-memory dataset (plain LINQ)
+await new GeoReferenceSeeder().SeedAsync(store, ct);
+var texas = GeoDataSets.Cities.Where(c => c.RegionCode == "TX");
+```
+
+Region boundaries are intentionally low-resolution (coarse containment, not cartography). The embedded city lists are regenerated from US Census / Statistics Canada by the dev-only `tools/Shiny.DocumentDb.Geo.DataSeeder` (not part of CI).
+
+## Blobs (MapBlob / MapBlobCollection)
+
+Binary payloads (PDF, image, signature) attached to a document. The bytes go to a `{table}_blobs` **sidecar table**, not the document JSON; only metadata (length, content type, file name) rides along in the body. **Use `DocumentBlob` instead of a raw `byte[]` property** — a `byte[]` is base64'd into the document body and materialized on every read.
+
+**Supported on every server-side provider** — relational (SQLite, PostgreSQL/CockroachDB, SQL Server, MySQL/MariaDB, Oracle, DuckDB) and document/NoSQL (LiteDB, MongoDB/Amazon DocumentDB, Redis, Azure Table, DynamoDB, Cosmos, Firestore, RavenDB-native-attachments). **Only IndexedDB (Blazor WASM) is unsupported** — it reports `store.MaxBlobSize == 0` and **throws `NotSupportedException`**. Per-provider caps vary (Azure Table 64KB, DynamoDB 390KB, Cosmos 1.4MB, Firestore/LiteDB 1-16MB, relational/Redis/Raven ≥512MB) — check `store.MaxBlobSize`.
+
+```csharp
+public class Invoice
+{
+    public string Id { get; set; } = "";
+    public DocumentBlob? Pdf { get; set; }                 // single
+    public DocumentBlobCollection Attachments { get; set; } = new();   // many — NOT List<DocumentBlob>
+}
+
+services.AddDocumentStore(opts =>
+{
+    opts.DatabaseProvider = new SqliteDatabaseProvider("Data Source=app.db");
+    opts.MapBlob<Invoice>(i => i.Pdf);
+    opts.MapBlobCollection<Invoice>(i => i.Attachments);
+    // options: o => { o.Key = "sig"; o.ComputeHash = true; o.MaxSize = 256*1024; }  (ComputeHash OFF by default)
+});
+```
+
+**Write** — assign the member and save the document; there is NO `SetBlob`. Metadata can never disagree with the bytes because every mutation goes through the document.
+
+```csharp
+inv.Pdf = DocumentBlob.FromBytes(pdfBytes, "application/pdf", "acme.pdf");
+inv.Attachments.Add(scanBytes, "image/png");           // collection.Add(bytes,…) assigns the key up front
+await store.Insert(inv);
+inv.Pdf = null; await store.Upsert(inv);               // null drops the row; RemoveAt prunes a collection item
+```
+
+**Read** — metadata is populated, bytes are NOT. `Bytes` throws until loaded.
+
+```csharp
+var inv = await store.Get<Invoice>(id);
+inv.Pdf!.Length;      // from the body — free
+inv.Pdf.IsLoaded;     // false
+inv.Pdf.Bytes;        // throws until loaded
+
+// metadata is queryable (json_extract), payload never touched:
+store.Query<Invoice>().Where(x => x.Pdf!.Length > 1_000_000);
+// x.Pdf.Bytes in a query throws at translation time
+```
+
+**Load on demand** — blobs self-load (the store stamped a loader during hydration):
+
+```csharp
+await inv.Pdf!.LoadAsync();               // one blob
+var raw = await inv.Pdf.GetBytesAsync();  // load + read
+await inv.Attachments[0].LoadAsync();     // one item of a collection
+await inv.Attachments.LoadAllAsync();     // whole collection, ONE round trip
+
+// page of results — avoid N+1 with the store batch load:
+await ((IBlobDocumentStore)store).BatchLoadBlobs(page);
+// no document in hand (download endpoint):
+var bytes = await ((IBlobDocumentStore)store).GetBlob<Invoice>(id, "Pdf");
+```
+
+Deleting a document cascades to its blob rows. `store.MaxBlobSize` (bytes) reports the provider ceiling; `0` = unsupported. Backup includes payloads by default (`ExportAsync(stream, new BackupExportOptions { IncludeBlobs = false })` to skip). Blobs are **not** temporally versioned — `Restore` keeps current blobs. `IDocumentMaintenance.SweepOrphanedBlobs<T>()` reclaims rows whose document is gone.
+
 ## Temporal History (System-Time Versioning)
 
 Opt-in append-only versioning per type. Enable with `MapTemporal<T>` on the options; every `Insert`/`Update`/`Upsert`/`Remove`/`SetProperty`/`RemoveProperty`/`BatchInsert` (including writes inside a `UnitOfWork`) records a versioned snapshot to a per-type history sidecar. Only mapped types incur the extra write.
@@ -1424,6 +1653,9 @@ options.MapTemporal<Order>(o =>
     o.Retention    = TimeSpan.FromDays(90);   // prune expired (closed) versions older than this
     o.MaxVersions  = 50;                      // …or keep only the newest N versions per document
     o.CaptureActor = () => currentUser.Id;    // optional "who" recorded per version
+    // Scope-aware (11.0): resolve the actor from the write's session DI scope (a request-scoped ICurrentUser);
+    // takes precedence over CaptureActor. Ideal for ASP.NET where the user is per-request.
+    o.ResolveActor = sp => sp.GetService<ICurrentUser>()?.Id;
 });
 ```
 
@@ -1456,25 +1688,30 @@ IReadOnlyList<DocumentVersion<Order>> log    = await store.ChangesBetween<Order>
 
 - `Remove` records a null-body tombstone, so `AsOf`/`AsOfAll` correctly exclude deleted documents.
 - For merge/partial writes (`Upsert`/`SetProperty`/`RemoveProperty`) the resulting document is read back so history stores the true post-image — incurred only for temporal-mapped types.
-- `Restore` writes a **new** current version (re-inserts if removed); it does not rewrite history. Aligns the version token when optimistic concurrency is mapped.
+- `Restore` writes a **new** current version (re-inserts if removed); it does not rewrite history. Aligns the version token when optimistic concurrency is mapped. Restoring a **removed** document re-creates it as a fresh live lifecycle (new `CreatedAt`, mapped version restarts at 1); history is preserved. Uniform across all temporal providers.
 - `Clear<T>` is a bulk delete and is **not** history-tracked — use `Remove<T>` per document when deletions must be tracked.
 - Retention (`Retention` by age, `MaxVersions` by count) prunes on every write; the current version is never pruned. Set at least one on SQLite/mobile.
 - On the relational providers the sidecar PK is `(Id, TypeName, Version)` with `(TypeName, ValidFrom, ValidTo)` and `(TypeName, Actor)` secondary indexes backing the fleet-wide queries; the document stores model the same versions natively and compute the selection in the provider.
 
 ## Telemetry & Diagnostics
 
-`Shiny.DocumentDb.Diagnostics` adds OpenTelemetry-native metrics + tracing to any provider via a drop-in decorator. Register a store, then call `AddDocumentStoreInstrumentation()` **after** it, and subscribe from OTel with the meter/source name `Shiny.DocumentDb`:
+The core `Shiny.DocumentDb` package emits OpenTelemetry-native metrics + tracing for every operation — **embedded and always-on** on every provider and construction path (no decorator, no opt-in, no separate package; zero-cost when unobserved). Just subscribe your OTel pipeline to the meter/source `Shiny.DocumentDb`:
 
 ```csharp
 services.AddDocumentStore(o => o.DatabaseProvider = new SqliteDatabaseProvider("Data Source=app.db"));
-services.AddDocumentStoreInstrumentation();
 
 services.AddOpenTelemetry()
     .WithMetrics(m => m.AddMeter("Shiny.DocumentDb"))
     .WithTracing(t => t.AddSource("Shiny.DocumentDb"));
 ```
 
-Built on `System.Diagnostics.Metrics.Meter` (via `IMeterFactory`) and `ActivitySource`. Emits, per the OTel database client semantic conventions: a `db.client.operation.duration` histogram (plus a `db.client.operations` counter and a `db.client.response.returned_rows` histogram), tagged `db.system.name` / `db.operation.name` / `db.collection.name` / `outcome` / `error.type`; and a `{system}.{operation}` `ActivityKind.Client` span per call with error status + exception capture. `db.system.name` is derived from the wrapped store, so one decorator covers all providers.
+**REMOVED in 11.0** (do not generate): `AddDocumentStoreInstrumentation()`, `InstrumentedDocumentStore`, and `DocumentStoreOptions.Instrumentation`. Instrumentation is embedded; there is nothing to call. A `UnitOfWork` emits one `transaction` span (inner writes span-free).
+
+**Structured `ILogger` logging:** when a store is created from the container (any provider's `Add…DocumentStore` or `IServiceProvider` ctor) with an `ILoggerFactory` registered, every SQL / operation statement is logged at `Debug` under the `Shiny.DocumentDb` category (control via `Logging:LogLevel:Shiny.DocumentDb`), composed with the `options.Logging` string callback — on the relational core and all six non-relational providers. Container-free `new …DocumentStore(options)` is callback-only, unchanged.
+
+**Keyed/named stores:** a store registered with `AddDocumentStore("orders", …)` automatically tags its signals with `db.namespace = "orders"` so multiple stores are distinguishable. The non-keyed path omits `db.namespace`.
+
+Built on `System.Diagnostics.Metrics.Meter` (via `IMeterFactory`) and `ActivitySource`. Emits, per the OTel database client semantic conventions: a `db.client.operation.duration` histogram (plus a `db.client.operations` counter and a `db.client.response.returned_rows` histogram), tagged `db.system.name` / `db.operation.name` / `db.collection.name` / `outcome` / `error.type` (plus `db.namespace` on named stores); and a `{system}.{operation}` `ActivityKind.Client` span per call with error status + exception capture. `db.system.name` is derived from the wrapped store, so one decorator covers all providers.
 
 - **Decorator type**: `InstrumentedDocumentStore` implements `IDocumentStore` + `ITemporalDocumentStore` + `IObservableDocumentStore` + `IChangeFeedDocumentStore` (faithful — casts/pattern-matches keep working); wrapped store is on `.Inner`. Construct directly (`new InstrumentedDocumentStore(inner, new DocumentStoreMetrics(meterFactory))`) when not using DI.
 - **Coverage**: CRUD, string `Query`/`QueryStream`, the fluent-query terminals (`ToList`/`ToAsyncEnumerable`/`Count`/`Any`/`ExecuteDelete`/`ExecuteUpdate`/`Max`/`Min`/`Sum`/`Average`/`NearestVectors`), spatial/vector, all `ITemporalDocumentStore` ops, and `UnitOfWork.SaveChanges` (inner ops become child spans of the transaction span).
@@ -1490,7 +1727,7 @@ The `Shiny.DocumentDb.MongoDb` provider implements `IDocumentStore` natively ove
 - **`Upsert` deep-merges in C#** — null properties are stripped recursively (RFC 7396 semantics).
 - **`UnitOfWork` uses a compensating model** — single-node MongoDB cannot use ACID multi-document transactions without a replica set. The provider tracks inserts and deletes them on failure (matches the CosmosDB provider).
 - **`MapTypeToCollection<T>(...)`** — fluent options API with overloads for auto-derived collection names, explicit names, and custom Id expressions.
-- **No spatial** — MongoDB supports native geospatial indexing but the provider does not currently expose `WithinRadius`/`WithinBoundingBox`/`NearestNeighbors`.
+- **Spatial supported** — MongoDB implements the full spatial surface via a `2dsphere` index: point queries (`WithinRadius`/`WithinBoundingBox`/`NearestNeighbors`) and the full geometry predicate family (`GeoIntersects`/`GeoContainedBy`/… via native `$geoIntersects`/`$geoWithin`/`$near`, with finer predicates refined in-process).
 - **Pre-configured client** — set `MongoDbDocumentStoreOptions.MongoClient` to share an existing `IMongoClient` (pooled, process-wide). When null, the provider creates one from `ConnectionString`.
 
 ```csharp
@@ -1517,7 +1754,7 @@ The `Shiny.DocumentDb.DuckDb` provider uses [DuckDB](https://duckdb.org/) — an
 - **`SetProperty`/`RemoveProperty`** — implemented via `json_merge_patch` because DuckDB has no `json_set`/`json_remove`. Path parts are folded into a merge-patch document on the server.
 - **JSON extension auto-loaded** — `InitializeConnectionAsync` runs `INSTALL json; LOAD json;` on every connection.
 - **Raw SQL supported** — use `json_extract_string(Data, '$.path')` in `Query<T>("...", parameters)` calls.
-- **No spatial** — the DuckDB `spatial` extension exists but the provider does not currently wire it into `WithinRadius`/`WithinBoundingBox`/`NearestNeighbors`.
+- **Spatial supported** — via the dependency-free envelope-sidecar path (bbox prune + C# refine), not the DuckDB `spatial` extension. Full point + geometry surface.
 - **Best fit** — analytical workloads, on-device aggregates, embedded reporting, file-based collaboration with Parquet/CSV import via DuckDB's native ingestion (outside the document API).
 
 ```csharp
@@ -1627,7 +1864,36 @@ All other features (LINQ queries, JSON indexes, table-per-type mapping, transact
 
 ## Spatial / Geo Queries
 
-Spatial queries are supported on **SQLite** (via R*Tree virtual tables) and **CosmosDB** (via native GeoJSON + `ST_DISTANCE`/`ST_WITHIN`). Other providers throw `NotSupportedException`.
+Spatial queries are supported on **SQLite** (R*Tree bbox), **PostgreSQL / MySQL / SQL Server / Oracle / DuckDB** (dependency-free envelope-sidecar bbox), all with in-process relate/refine — plus **CosmosDB** (native GeoJSON `ST_INTERSECTS`/`ST_WITHIN`/`ST_DISTANCE`) and **MongoDB** (`2dsphere` + `$geoIntersects`/`$geoWithin`/`$near`). The fallback stores (LiteDB, IndexedDB, Azure Table, DynamoDB) throw `NotSupportedException`. Both **point** queries and **full OGC geometry** are supported.
+
+### Full geometry (v11+)
+
+Map a `Geometry?` property (not just `GeoPoint`) and query with the `Geo`-prefixed predicate family. The geometry model — `GeoLineString`, `GeoPolygon` (exterior ring + optional holes), `GeoMultiPoint`, `GeoMultiLineString`, `GeoMultiPolygon`, `GeoGeometryCollection` — serializes as GeoJSON; `GeoPoint` implicitly converts to a point geometry so you can pass a bare point.
+
+```csharp
+public class Zone { public string Id { get; set; } = ""; public Geometry? Area { get; set; } }
+
+options.MapSpatialProperty<Zone>(z => z.Area);        // or ("Area", z => z.Area) for AOT
+
+// stored-geometry <predicate> query-geometry; optional orderByDistanceFrom + filter; returns SpatialResult<T>
+var containing = await store.GeoIntersects<Zone>(new GeoPoint(45.5, -122.6));   // "which zones contain this point?"
+var inside     = await store.GeoContainedBy<Zone>(searchPolygon, orderByDistanceFrom: origin);
+var near       = await store.GeoWithinDistance<Zone>(routeLine, meters: 500);
+```
+
+Predicate methods: `GeoIntersects`, `GeoContainedBy`, `GeoContains`, `GeoDisjoint`, `GeoTouches`, `GeoCrosses`, `GeoOverlaps`, `GeoEquals`, `GeoCovers`, `GeoCoveredBy`, `GeoWithinDistance(geometry, meters)`. Each takes `(Geometry, Geometry? orderByDistanceFrom = null, Expression<Func<T,bool>>? filter = null)` and returns `IReadOnlyList<SpatialResult<T>>` (`DistanceMeters` populated when `orderByDistanceFrom` is given). `NearestNeighbors` works over geometry-mapped types too.
+
+- **Measurement/validity:** `Geometry` exposes **in-memory** `Area` (m²), `Length`/`Perimeter`, `Centroid`, `NumPoints`, `NumGeometries`, `IsValid`, `IsSimple`, `MakeValid()`. These are C# accessors — they do **not** translate to SQL and do **not** compose with `MapComputedProperty` (computed properties are lowered to SQL). To filter/sort by a measurement server-side, compute the scalar in your app, store it as a normal property, and query that field. Use `MakeValid()` as a pre-insert guard so native Mongo/Cosmos indexes don't reject a shape.
+- **LINQ composition (`DocumentFunctions`, v11+):** to compose a spatial predicate with other `Where` clauses / `OrderBy` / `Count` / paging server-side, use `DocumentFunctions` inside `Query<T>().Where(...)`:
+  ```csharp
+  store.Query<Zone>()
+       .Where(z => DocumentFunctions.Intersects(z.Area!, area) && z.Active)
+       .OrderBy(z => DocumentFunctions.Distance(z.Area!, origin));
+  ```
+  Family: `Intersects`/`Disjoint`/`Contains`/`Within`/`Covers`/`CoveredBy`/`Touches`/`Crosses`/`Overlaps`/`GeoEquals`/`WithinDistance` (in `Where`) + `Distance` (in `OrderBy`). Read as `field <predicate> query`. Lowers to native per provider: **SQLite** (R\*Tree + `docdb_st_*` UDF — all predicates), **MySQL/PostgreSQL** (native `ST_*`; PostgreSQL needs PostGIS — all predicates), **DuckDB** (native `ST_*`, auto-loads `spatial` — all except `WithinDistance`), **SQL Server** (native planar `geometry` column + `.ST*` — all except `Covers`/`CoveredBy` and `WithinDistance`), **Oracle** (native `SDO_GEOMETRY` column + MDSYS spatial index + `SDO_RELATE` operators, needs Oracle Spatial — all except `Crosses`), **CosmosDB** (`ST_INTERSECTS`/`ST_WITHIN`/`ST_DISTANCE` — intersects/within/disjoint/withindistance), **MongoDB** (`$geoIntersects`/`$geoWithin` — intersects/within/point-withindistance). `WithinDistance` in a `Where` needs a geodesic distance function, which SQL Server (planar `geometry`) and DuckDB (no polygon geodesic) lack — they **throw** rather than approximate wrongly; use `store.GeoWithinDistance(...)` (exact Haversine, every provider). `Distance`-in-`OrderBy` is native on SQLite/PostgreSQL/MySQL/DuckDB/SQL Server (SQL Server sorts by planar `STDistance` over the indexed column); on MongoDB use `store.NearestNeighbors`/`orderByDistanceFrom`. Where a predicate isn't native, the `DocumentFunctions` call in a `Where` **throws** — use the dedicated `store.Geo*` method (all predicates, every spatial provider). `PortableSpatial = true` on a relational provider forces the dependency-free envelope tier.
+  **String-expression parity:** the same geo functions work in the string surface — `Where("…")`, interpolated `Where($"…")`, `OrderBy("…")`, `Project("…")` — using the same names (`intersects`/`within`/`withindistance`/`distance`/…). Supply the query geometry as an **interpolated `{value}`** (a `Geometry`/`GeoPoint`, bound as a parameter — only where the string carries args, i.e. `Where($"…")`) or an inline **GeoJSON string literal** (works everywhere incl. `OrderBy`/`Project`). E.g. `store.Query<Zone>().Where($"intersects(area, {poly}) and active == true")`, `.OrderBy("distance(area, '<geojson>')")`. `contains(field, …)` is geo when `field` is a `Geometry` property, else the string `Contains`.
+- **`GeoDisjoint`** is anti-selective — it scans the type (O(n)) on SQLite/refine paths. Use sparingly on large corpora.
+- **Fidelity:** SQLite / refine-path distances are Haversine/planar approximations; native `ST_DISTANCE` is geodesic. Ordering can differ on near-ties across providers.
 
 ### Spatial Types
 
@@ -1673,6 +1939,22 @@ var store = new DocumentStore(new DocumentStoreOptions
 .MapSpatialProperty<Restaurant>("Location", r => r.Location)
 ```
 
+The mapped property may be nullable (`GeoPoint?`). A document whose location is `null` is skipped by the
+spatial index — it does not throw on insert/update and never appears in spatial query results; setting a
+previously-populated location back to `null` on update purges its stale index entry. Use this for optional
+coordinates (e.g. an event that may not have a place):
+
+```csharp
+public class CalendarEvent
+{
+    public string Id { get; set; } = "";
+    public string Title { get; set; } = "";
+    public GeoPoint? Location { get; set; }   // optional — null docs are simply not indexed
+}
+
+options.MapSpatialProperty<CalendarEvent>(e => e.Location);
+```
+
 ### Querying
 
 ```csharp
@@ -1713,12 +1995,38 @@ Spatial sidecar data is automatically maintained — no manual steps needed:
 
 ## Vector / Similarity Search
 
-Embedding-similarity search via `store.NearestVectors<T>(query, k)`. Supported on PostgreSQL (`pgvector`), SQL Server 2025, Oracle 23ai, CosmosDB (DiskANN), MongoDB (Atlas `$vectorSearch`), DuckDB (`vss`), and **SQLite** (`sqlite-vec`). LiteDB, IndexedDB, and MySQL throw `NotSupportedException`.
+Embedding-similarity search via `store.NearestVectors<T>(query, k)` — also on `IDocumentSession` (`session.NearestVectors<T>(...)`), where inside `BeginTransaction` it reads the transaction's consistent snapshot. Capability is a store property: check `session.Store.SupportsVector` (not duplicated on the session). Supported on PostgreSQL (`pgvector`), SQL Server 2025, Oracle 23ai, CosmosDB (DiskANN), MongoDB (Atlas `$vectorSearch`), DuckDB (`vss`), and **SQLite** (`sqlite-vec`). LiteDB, IndexedDB, and MySQL throw `NotSupportedException`.
 
 ```csharp
 options.MapVectorProperty<Doc>(d => d.Embedding, dimensions: 1536, metric: VectorDistance.Cosine);
 var hits = await store.NearestVectors<Doc>(queryEmbedding, k: 5);
 ```
+
+`VectorResult<T>.Score` semantics are **provider-specific by design** (no lossless canonical scale): for Cosine/Euclidean the relational providers return a *distance* (lower = closer) while MongoDB/CosmosDB return a normalized *similarity* (higher = closer). Results are always ordered **nearest-first regardless of provider**, so rely on the ordering — not the raw `Score` value — for portable ranking, and don't compare scores or apply a fixed threshold across providers.
+
+### Auto-embed on insert (`Shiny.DocumentDb.Extensions.AI`)
+
+Populate the vector automatically from a text property. `AutoEmbedOnInsert<T>` is a **write interceptor**, so it runs on **every** provider (relational and document-native — Cosmos/Mongo/Redis/…), inside the write's transaction, on `Insert`/`BatchInsert`/`Upsert`. Two overloads:
+
+```csharp
+using Shiny.DocumentDb.Extensions.AI;
+
+// DI overload (recommended): resolves IEmbeddingGenerator per-write from the caller's scope (ctx.Services),
+// so a scoped session picks the caller's own generator. Register the generator in DI.
+services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(/* ... */);
+services.AddDocumentStore(o =>
+    o.MapVectorProperty<Doc>(d => d.Embedding, dimensions: 1536)
+     .AutoEmbedOnInsert<Doc>(
+         sourceSelector: d => d.Content,
+         targetSetter:   (d, v) => d.Embedding = v,
+         targetGetter:   d => d.Embedding));   // optional: skip when already set
+
+// Explicit-generator overload: a fixed instance, for the container-free `new DocumentStore(options)` path.
+opts.MapVectorProperty<Doc>(d => d.Embedding, dimensions: 1536)
+    .AutoEmbedOnInsert<Doc>(generator, d => d.Content, (d, v) => d.Embedding = v, d => d.Embedding);
+```
+
+Skips when the source text is null/empty or the target vector is already set. With the DI overload, a missing generator throws `InvalidOperationException` (register one, or use the explicit overload). There is **no** `OnBeforeInsert` hook anymore — for non-embedding "compute a derived field" needs use `OnBeforeWrite<T>` (an `IDocumentInterceptor` lambda over `ctx.Document`).
 
 ### SQLite — loading `sqlite-vec`
 
@@ -1765,6 +2073,39 @@ var hits2 = await store.Query<Article>()
 
 `FullTextResult<T>` carries `Document` and a normalized `double Score` (higher = more relevant; absolute scale is provider-specific — compare only within one result set). `MapFullTextProperty` also has an AOT-safe overload taking `propertyNames` + a `Func<T, IEnumerable<string?>>` selector (for combining fields or indexing a string collection), and an optional `FullTextLanguage` (controls stemming where the backend supports it). The index is engine-maintained, so `Insert`/`Update`/`Remove`/`Clear` keep it in sync automatically. Notes: engines with one full-text index per table (SQL Server, MongoDB) support a single mapped type per table/collection; **Oracle Text** and **SQL Server Full-Text Search** are optional server components that must be installed; Cosmos full-text needs `Microsoft.Azure.Cosmos` 3.61.0+.
 
+### Composable full-text with Lucene syntax (`DocumentFunctions.LuceneMatch` / `LuceneScore`)
+
+For full-text as a **composable predicate** (not a separate ranked call), use `DocumentFunctions.LuceneMatch(field, luceneQuery)` inside a `Where`, and `DocumentFunctions.LuceneScore(field, luceneQuery)` inside an `OrderBy`/projection. They translate to the provider's native full-text engine over the **same `MapFullTextProperty` index** — so the type must still be mapped first. The `field` argument identifies the mapping (pass a mapped property); the search spans the whole combined index for the type.
+
+```csharp
+// AND with an ordinary predicate, page, and sort by relevance — one query
+var hits = await store.Query<Article>()
+    .Where(a => a.Category == "tech" && DocumentFunctions.LuceneMatch(a.Body, "orleans AND grain NOT deprecated"))
+    .OrderByDescending(a => DocumentFunctions.LuceneScore(a.Body, "orleans grain"))
+    .Skip(0).Take(20)
+    .ToList();
+
+// String-expression grammar (AOT-safe) — same IR:
+store.Query<Article>().Where("lucenematch(body, 'title:quick AND brown~')");
+store.Query<Article>().Where($"lucenematch(body, {userQuery})").OrderBy("lucenescore(body, 'orleans') desc");
+```
+
+**Lucene grammar:** terms, `"phrases"`, `AND`/`OR`/`NOT` (also `&&`/`||`/`!` and `+`/`-`), `(` grouping `)`, prefix `foo*`, fuzzy `foo~`/`foo~1`, proximity `"a b"~5`, boost `foo^2`. Ranges (`[a TO b]`) and non-trailing wildcards are rejected.
+
+**Provider support (v1)** — operators a backend can't express throw `NotSupportedException` (they never silently degrade):
+
+| Provider | LuceneMatch | LuceneScore | Advanced operators |
+|---|---|---|---|
+| SQLite (FTS5) | ✅ | ✅ | prefix, proximity |
+| PostgreSQL | ✅ | ✅ | prefix |
+| MySQL | ✅ | ✅ | prefix, proximity |
+| SQL Server | ✅ | ✅ | prefix, proximity |
+| Oracle Text | ✅ | ❌ (use `FullTextSearch`) | prefix, fuzzy, proximity |
+| LiteDB / IndexedDB (in-memory) | ✅ | ✅ | **all** (incl. fuzzy) |
+| DuckDB, CosmosDB, MongoDB | ❌ — use `store.FullTextSearch(...)` | ❌ | — |
+
+Baseline (terms, phrases, AND/OR/NOT, grouping) works on every supported provider. Field-scoped terms (`title:foo`) are **not** supported in v1 on any provider (the index is a single combined field) and throw. Use `store.FullTextSearch<T>(...)` for ranking on the providers that don't support composable queries.
+
 ## Fluent Query Builder (IDocumentQuery<T>)
 
 The fluent query builder is the primary way to query documents. Start with `store.Query<T>()` and chain builder methods, then terminate with a materialization method.
@@ -1779,7 +2120,7 @@ The fluent query builder is the primary way to query documents. Start with `stor
 | `.OrderBy(selector)` / `.OrderByDescending(selector)` | Sort by property (expression). |
 | `.OrderBy(name[, jsonTypeInfo])` / `.OrderByDescending(name[, jsonTypeInfo])` | Sort by property name (string) — AOT-safe via `JsonTypeInfo<T>`. Supports dotted paths. |
 | `.OrderBy(name, direction[, jsonTypeInfo])` | Sort by property name with a runtime direction string (`asc`/`ascending`/`desc`/`descending`, case-insensitive; empty → ascending). |
-| `.GroupBy(selector)` | Group by property (for aggregate projections). |
+| `.GroupBy(keySelector)` | Group into one row per key for an aggregate projection (`.Select(g => …)` with `g.Key` + `g.Count()`/`g.Sum(x => x.P)`). |
 | `.Paginate(offset, take)` | Limit results with SQL LIMIT/OFFSET. |
 | `.Select(selector, resultTypeInfo?)` | Project into a different shape via `json_object`. |
 | `.Project(fields[, jsonTypeInfo])` | Project a runtime-chosen field list (e.g. `"name,email"`) into `IDocumentQuery<JsonObject>` — AOT-safe. For REST sparse fieldsets; no DTO required. Supports scalar functions with an alias (`"lower(email) as email"`) on every provider. |
@@ -1799,6 +2140,8 @@ The fluent query builder is the primary way to query documents. Start with `stor
 | `.Sum(selector)` | `Task<TValue>` | Sum of a property. |
 | `.Average(selector)` | `Task<double>` | Average of a property. |
 | `.PageResult(page, pageSize, zeroBased?)` | `Task<PagedResults<T>>` | Run the query and return records + total count in one envelope. 1-based by default. |
+| `.ToCursorPage(cursor, take)` | `Task<CursorPage<T>>` | One forward seek/keyset page. `null` cursor = first page; `NextCursor` null = last page. See Pagination. |
+| `.ToCursorStream(pageSize?)` | `IAsyncEnumerable<T>` | Walk every cursor page automatically — resumable full scan, no deep-offset cost. |
 | `.ToQueryString()` | `DocumentQueryString` | Build the query the configuration **would** run **without executing it** — for debugging/logging. See below. |
 
 ### Inspecting the generated query — `.ToQueryString()`
@@ -1958,6 +2301,34 @@ var result = await store.Query<User>()
 - `TotalCount` reflects the current `Where` predicates (and any global query filters) — pagination state is ignored when counting.
 - Overrides any prior `.Paginate(...)` call on the query.
 - `pageSize` must be > 0; `page` must be `>= 1` (or `>= 0` when `zeroBased: true`). Otherwise throws `ArgumentOutOfRangeException`.
+
+### `ToCursorPage` — cursor / keyset (seek) pagination
+
+For **infinite scroll, deep paging, or large exports**, prefer cursor paging over offset paging: it stays O(log n) per page (with an index on the sort key) and doesn't skip/duplicate rows when documents change between fetches. Pass `null` for the first page; hand the previous page's `NextCursor` back for each subsequent one; a `null` `NextCursor` marks the end. The keyset is derived from the query's `OrderBy` (an `Id` tiebreaker is appended automatically).
+
+```csharp
+string? cursor = null;
+do
+{
+    var page = await store.Query<Order>()
+        .Where(o => o.Status == "open")
+        .OrderByDescending(o => o.CreatedAt)   // keyset derived from THIS OrderBy
+        .ToCursorPage(cursor, take: 50);       // CursorPage<T> { Items, NextCursor, HasMore }
+
+    Render(page.Items);
+    cursor = page.NextCursor;                  // null ⇒ last page
+}
+while (cursor != null);
+
+// Or walk every page automatically (resumable full scan, no deep-offset cost):
+await foreach (var o in store.Query<Order>().OrderByDescending(x => x.CreatedAt).ToCursorStream(pageSize: 200))
+    Export(o);
+```
+
+- **Choose offset (`PageResult`) when you need a page number or a total count**; choose cursor when you only move forward, page deep, or forever-scroll.
+- A cursor is valid only for the **exact same `OrderBy` + filters** that produced it — reusing it under a different sort throws `InvalidOperationException` (a shape hash catches it). Not valid after `Select`/`Project`/`GroupBy` (throws `NotSupportedException`). `take` must be `> 0` and `≤ 10,000`.
+- Index the sort key (`MapIndexedProperty`) for hot cursor paths, and order by a **non-nullable** column (a `NULL` sort value at a page boundary can skip rows).
+- **Provider tier:** relational providers seek server-side; LiteDB/IndexedDB/MongoDB page the keyset client-side; Cosmos/DynamoDB/Azure Table throw `NotSupportedException` (not yet supported).
 
 ### Dynamic sort columns (string-based OrderBy)
 
@@ -2273,33 +2644,47 @@ var maxAge = await store.Query<User>()
     .Max(u => u.Age);
 ```
 
-## Aggregate Projections (GROUP BY)
+## Grouped Aggregation (GROUP BY)
 
-Use `Sql` marker class for aggregate projections with automatic GROUP BY via `.Select()`.
+Use the explicit `GroupBy(keySelector).Select(g => …)` surface for a roll-up of one row per key.
+Use `g.Key` for the group value and the `Sql` group aggregates — `g.Count()`, `g.Sum(x => x.Prop)`,
+`g.Avg`, `g.Min`, `g.Max` — over the group's members. (For a single total over the **whole** filtered
+set, prefer the scalar terminals `.Count()` / `.Sum()` / `.Average()` instead.) Aggregates are typed by the
+selected member: `g.Sum`/`g.Avg` of a `decimal` keep full scale (exact on providers with a native decimal
+type; SQLite aggregates as `REAL`), and `g.Min`/`g.Max` work over **dates and strings**, not just numbers.
 
 ```csharp
-var results = await store.Query<Order>()
-    .Select(o => new OrderStats
+var rollup = await store.Query<Order>()
+    .Where(o => o.CreatedAt >= since)
+    .GroupBy(o => o.Status)                              // group key = a JSON property
+    .Having(g => g.Sum(o => o.Total) > 10_000)          // optional: filter groups by an aggregate
+    .Select(g => new StatusRollup
     {
-        Status = o.Status,            // GROUP BY column
-        OrderCount = Sql.Count(),     // COUNT(*)
+        Status  = g.Key,                                // the group key
+        Count   = g.Count(),
+        Revenue = g.Sum(o => o.Total),
+        AvgLine = g.Avg(o => o.Total)
     })
+    .OrderByDescending(r => r.Revenue)                  // order the grouped rows (by an output column)
+    .Paginate(0, 10)
     .ToList();
 
-// All Sql markers: Sql.Count(), Sql.Max(x.Prop), Sql.Min(x.Prop), Sql.Sum(x.Prop), Sql.Avg(x.Prop)
+// Nested key:   .GroupBy(o => o.ShippingAddress.Country)
+// Derived key:  .GroupBy(o => o.CreatedAt.Month)          // "revenue by month" — no stored column
+// Multi-key:    .GroupBy(o => new { o.Status, o.Region }) // g.Key.Status / g.Key.Region
 
-// With predicate filter
-var results = await store.Query<Order>()
-    .Where(o => o.Status == "Shipped")
-    .Select(o => new OrderStats { Status = o.Status, OrderCount = Sql.Count() })
-    .ToList();
-
-// Explicit GroupBy
-var results = await store.Query<Order>()
-    .GroupBy(o => o.Status)
-    .Select(o => new OrderStats { Status = o.Status, OrderCount = Sql.Count() })
+// String grammar (relational only): count()/sum(x)/avg(x)/min(x)/max(x) each need an alias.
+var rows = await store.Query<Order>()
+    .GroupBy("status")
+    .Having("sum(total) > 10000")
+    .Project("status, count() as orders, sum(total) as revenue")   // → JsonObject rows
     .ToList();
 ```
+
+**Provider tier:** push-down on the relational providers (SQLite, SQLCipher, PostgreSQL, MySQL, SQL
+Server, Oracle, DuckDB — `GROUP BY` + `HAVING` + grouped `ORDER BY` + multi/derived keys). MongoDB,
+Cosmos, LiteDB and IndexedDB group **client-side** (typed surface only — no string grammar). Azure Table
+and DynamoDB **throw** `NotSupportedException` (key-partitioned).
 
 ## Streaming
 
@@ -2375,13 +2760,13 @@ await store.DropAllIndexesAsync<User>();
 
 Index names are deterministic (`idx_json_{typeName}_{jsonPath}`). `CreateIndexAsync` uses `IF NOT EXISTS`, so calling it multiple times is safe.
 
-## Transactions (UnitOfWork)
+## Transactions (IDocumentSession)
 
 Grouping writes into one transaction is done through a `UnitOfWork` created from the store — there is
 no `RunInTransaction`. Queue `Add`/`AddRange`/`Update`/`Upsert`/`Remove`, then `SaveChanges`.
 
 ```csharp
-var uow = store.CreateUnitOfWork();
+await using var uow = store.OpenSession();   // IDocumentSession is the unit of work
 uow.Add(new User { Id = "u1", Name = "Alice", Age = 25 })
    .Add(new User { Id = "u2", Name = "Bob", Age = 30 });
 await uow.SaveChanges(); // commits on success, rolls back on exception
@@ -2411,7 +2796,7 @@ opts.OnBeforeWrite<Order>((ctx, ct) => { /* mutate ctx.Document or throw to abor
 opts.OnAfterWrite<Order>((ctx, ct) => outbox.Enqueue(ctx.Id, ctx.Operation, ct));
 ```
 
-Interceptors can also be **registered in DI** to get constructor-injected dependencies. `AddDocumentStore` resolves every `IDocumentInterceptor` / `IDocumentBulkInterceptor` from the container and runs them after the options-registered ones (deterministic order). Resolved once from the store's provider — register as singletons (use `IServiceScopeFactory` inside the hook for scoped services).
+Interceptors can also be **registered in DI** to get constructor-injected dependencies. `AddDocumentStore` resolves every `IDocumentInterceptor` / `IDocumentBulkInterceptor` from the container and runs them after the options-registered ones. Since 11.0 this fires on **every** provider (previously DI interceptors silently never ran on the non-relational providers or in Orleans grain storage).
 
 ```csharp
 public sealed class OutboxInterceptor(IOutbox outbox) : IDocumentInterceptor
@@ -2423,6 +2808,36 @@ public sealed class OutboxInterceptor(IOutbox outbox) : IDocumentInterceptor
 services.AddSingleton<IDocumentInterceptor, OutboxInterceptor>();
 services.AddDocumentStore(opts => opts.DatabaseProvider = new SqliteDatabaseProvider("Data Source=app.db"));
 ```
+
+Register DI interceptors as **Singleton** (recommended) or **Transient** — the store is a singleton and resolves them once from the root provider. A **Scoped** `IDocumentInterceptor`/`IDocumentBulkInterceptor` registration makes `AddDocumentStore` throw a clear error at startup.
+
+**Scoped services in a write — `ctx.Services` (11.0):** resolve scoped services from `ctx.Services` **inside the hook** (never the constructor). **No marker interface** — any DI-registered interceptor gets a scope, and `ctx.Services` is never null; interceptors are resolved fresh from the flowing scope per write, so **scoped interceptors are allowed** (`services.AddScoped<IDocumentInterceptor, X>()`). Through a scoped `IDocumentSession`/`DocumentContext` it's the caller's own request scope; through a raw singleton-store immediate write (MAUI/Orleans/background) the unit-of-work engine opens a fresh child scope per unit when DI interceptors are registered. **Do NOT** ship a `CreatedBy`/`UpdatedBy` audit interceptor on this — temporal (`CaptureActor` + `ChangesByActor`) already owns audit.
+
+```csharp
+public sealed class OrderValidationInterceptor : IDocumentInterceptor   // no marker; scoped registration also fine
+{
+    public int Order => 0;                                   // lower runs first
+    public async Task BeforeWrite(DocumentWriteContext ctx, CancellationToken ct)
+    {
+        if (ctx.DocumentType != typeof(Order)) return;
+        var validator = ctx.Services.GetRequiredService<IOrderValidator>();   // scoped; ctx.Services never null
+        await validator.EnsureCanPlace((Order)ctx.Document!, ct);
+    }
+    public Task AfterWrite(DocumentWriteContext ctx, CancellationToken ct) => Task.CompletedTask;
+}
+```
+
+**Transaction-visible store — `ctx.Store` (11.0):** a single write with per-doc interceptors runs as an implicit one-op unit of work, so `ctx.Store` is bound to that transaction. Read this unit's uncommitted rows and write side effects (an outbox row) that commit **atomically** with the triggering write. Use `ctx.Store`, NOT a DI-resolved `IDocumentStore` (that opens its own connection → not atomic + shared-connection deadlock). Wrap re-entrant side-effect writes in `ctx.Store.SuppressInterceptors()`. Full read-your-writes visibility is relational + LiteDB; other backends are committed-state. `ctx.Store` is never null; valid only within the hook.
+
+```csharp
+public async Task AfterWrite(DocumentWriteContext ctx, CancellationToken ct)
+{
+    using (ctx.Store.SuppressInterceptors())
+        await ctx.Store.Insert(new OutboxEntry(ctx.Id!, "OrderPlaced"), ct);
+}
+```
+
+**Ordering:** both interceptor interfaces expose `int Order => 0` — lower runs first; ties keep registration order (options before DI).
 
 **The serialized JSON on the context:** inside `BeforeWrite`, `ctx.GetJson()` returns the exact JSON
 about to be persisted (serialized with the store's own options/`JsonTypeInfo`, cached, and invalidated
@@ -2571,13 +2986,23 @@ builder.AddDocumentStore("orders", settings => settings.MultiTenant = true);
 // Orleans-on-DocumentDb silo
 builder.AddDocumentStore("orleans");
 builder.UseOrleans(silo => silo.UseAspireDocumentDb("orleans")); // grain storage + reminders + clustering + directory
+
+// Typed DocumentContext on an Aspire resource — AddDocumentContextProvider resolves the injected conn string
+// + provider, wires health + OTel, and returns the Action you pass to the generated Add{Context}[Factory].
+// The generated method extends IServiceCollection, so call it on builder.Services:
+builder.Services.AddOrdersContext(builder.AddDocumentContextProvider("orders"));            // scoped (ASP.NET Core)
+builder.Services.AddOrdersContextFactory(builder.AddDocumentContextProvider("orders"));      // factory (MAUI/Blazor/desktop)
+// Same optional configureSettings / configureOptions as AddDocumentStore; call once per context (own Aspire
+// name) — each store is keyed by the context type, so multiple contexts coexist without shadowing.
 ```
 
 The AppHost injects the connection string + a provider discriminator (`Shiny:DocumentDb:<name>:Provider`);
 the client selects the matching provider. Resolve the store keyed: `[FromKeyedServices("orders")] IDocumentStore`.
 Use `configureOptions: o => …` for plain option setup and `configureServiceOptions: (sp, o) => …` when an
 option needs another DI service; set `DocumentStoreSettings.MultiTenant` for the common shared-table tenancy
-case. Non-Aspire callers get the same primitive via `AddDocumentStore(services, name, (sp, o) => …)`.
+case. Non-Aspire callers get the same primitive via `AddDocumentStore(services, name, (sp, o) => …)`. To back
+a source-generated typed `DocumentContext` with an Aspire resource, use `AddDocumentContextProvider("name")`
+(relational + SQLite only — same provider family as `AddDocumentStore`).
 
 ## Concurrency Model
 
@@ -2654,7 +3079,7 @@ await foreach (var change in pending.NotifyOnChange(ct))
 Changes performed in a `UnitOfWork` are buffered and emitted *after* `SaveChanges` commits. A rollback discards the buffered events.
 
 ```csharp
-var uow = store.CreateUnitOfWork();
+await using var uow = store.OpenSession();   // IDocumentSession is the unit of work
 uow.Add(new User { Id = "u1", Name = "Alice" })
    .Add(new User { Id = "u2", Name = "Bob" });
 // Subscribers see nothing yet.
@@ -2876,7 +3301,7 @@ Supported operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`, `startsWi
 22. **Distinguish in-process vs native change feeds** — `IObservableDocumentStore.NotifyOnChange<T>` only sees writes through this store instance. To observe other writers, use `IChangeFeedDocumentStore.SubscribeChanges<T>` (Postgres / SQL Server / Cosmos only).
 12. **DI registration uses the extensions package** — install `Shiny.DocumentDb.Extensions.DependencyInjection` and call `services.AddDocumentStore(opts => { opts.DatabaseProvider = ...; })`. There are no provider-specific DI methods.
 13. **Raw SQL is provider-specific** — LINQ expressions work identically across all providers, but raw SQL queries (`store.Query<T>("sql")`) use provider-specific JSON functions. Prefer the fluent query builder for portable code. MongoDB, LiteDB, and IndexedDB do not accept raw SQL at all.
-14. **Spatial queries require `MapSpatialProperty`** — call `options.MapSpatialProperty<T>(x => x.Location)` at setup to register which `GeoPoint` property drives spatial indexing. Only SQLite and CosmosDB support spatial; other providers throw `NotSupportedException`.
+14. **Spatial queries require `MapSpatialProperty`** — call `options.MapSpatialProperty<T>(x => x.Location)` (a `GeoPoint?`) or `MapSpatialProperty<T>(x => x.Area)` (a `Geometry?`) at setup to register which property drives spatial indexing. The property may be nullable; documents with a `null` location are skipped by the index (no throw on write, never returned by spatial queries). All SQL providers (**SQLite, PostgreSQL, MySQL, SQL Server, Oracle, DuckDB**) plus **CosmosDB** and **MongoDB** support spatial; the fallback stores (LiteDB, IndexedDB, Azure Table, DynamoDB) throw `NotSupportedException`. Full geometry (lines/polygons + the `Geo*` predicate family) requires v11+.
 15. **Backup is on concrete types, not `IDocumentStore`** — use `SqliteDocumentStore.Backup()`, `SqlCipherDocumentStore.Backup()`, or `LiteDbDocumentStore.Backup()` directly. Cast or store the concrete type.
 16. **`ClearAllAsync` is SQLite-only** — available on `SqliteDocumentStore` only, deletes all documents across all tables including spatial sidecar data.
 17. **Multi-tenancy uses the DI extensions package** — `AddDocumentStore(configure, multiTenant: true)` for shared-table, `AddMultiTenantDocumentStore(factory)` for tenant-per-database. Both require `ITenantResolver` to be registered.
