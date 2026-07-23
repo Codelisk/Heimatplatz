@@ -75,8 +75,10 @@ export const broker = {
   "broker.heroSecondaryCta": "So funktioniert's",
   "broker.successStamp": "Eingelangt",
 
-  "broker.registerHintTitle": "Sie sind Makler?",
+  "broker.registerMobileLink": "Für Makler",
+  "broker.registerKicker": "Für Makler & Bauträger",
+  "broker.registerHintTitle": "Sie bringen die Objekte, wir kümmern uns um den Rest.",
   "broker.registerHintText":
-    "Wir übernehmen Einrichtung und Inserate kostenlos für Sie.",
-  "broker.registerHintLink": "Zum Makler-Service",
+    "Wir richten Ihren Zugang ein und übernehmen Ihre Inserate kostenlos.",
+  "broker.registerHintLink": "Makler-Service entdecken",
 } as const;

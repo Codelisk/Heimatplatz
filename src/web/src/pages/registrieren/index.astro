@@ -1,4 +1,8 @@
 ---
+import ArrowRightIcon from "@tabler/icons/outline/arrow-right.svg";
+import BuildingStoreIcon from "@tabler/icons/outline/building-store.svg";
+import CheckIcon from "@tabler/icons/outline/check.svg";
+import HomePlusIcon from "@tabler/icons/outline/home-plus.svg";
 import AuthShell from "@/components/auth/AuthShell.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
@@ -9,69 +13,137 @@ import { t } from "@/i18n";
 <AuthShell
   title={t("auth.createAccount")}
   description={t("auth.registerDescription")}
+  eyebrow={t("auth.registerEyebrow")}
   mode="register"
 >
+  {/* Auf kleinen Screens sitzt der Profi-Weg dort, wo er als alternative
+      Navigation verstanden wird – nicht als weitere Card nach dem Formular. */}
+  <a
+    slot="mobile-action"
+    href="/makler/"
+    class="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground underline-offset-4 hover:underline"
+  >
+    <BuildingStoreIcon class="size-4 text-primary" aria-hidden="true" />
+    {t("broker.registerMobileLink")}
+  </a>
+
+  <ul slot="panel-content" class="space-y-3 text-sm text-white/82">
+    <li class="flex items-center gap-3">
+      <span class="grid size-6 shrink-0 place-items-center rounded-full bg-white/12 text-white">
+        <CheckIcon class="size-3.5" aria-hidden="true" />
+      </span>
+      {t("auth.registerBenefitFavorites")}
+    </li>
+    <li class="flex items-center gap-3">
+      <span class="grid size-6 shrink-0 place-items-center rounded-full bg-white/12 text-white">
+        <CheckIcon class="size-3.5" aria-hidden="true" />
+      </span>
+      {t("auth.registerBenefitListings")}
+    </li>
+    <li class="flex items-center gap-3">
+      <span class="grid size-6 shrink-0 place-items-center rounded-full bg-white/12 text-white">
+        <CheckIcon class="size-3.5" aria-hidden="true" />
+      </span>
+      {t("auth.registerBenefitRegional")}
+    </li>
+  </ul>
+
+  {/* Kein Karten-Look: Der Makler-Service ist als ruhiger, abgetrennter
+      Sekundaerpfad direkt im Markenpanel verankert. */}
+  <div slot="panel-footer" class="flex items-start gap-4">
+    <span class="grid size-11 shrink-0 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/15">
+      <BuildingStoreIcon class="size-5" aria-hidden="true" />
+    </span>
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.14em] text-white/65">{t("broker.registerKicker")}</p>
+      <h2 class="mt-1 text-lg font-bold leading-snug">{t("broker.registerHintTitle")}</h2>
+      <p class="mt-1.5 text-sm leading-6 text-white/72">{t("broker.registerHintText")}</p>
+      <a class="group mt-3 inline-flex items-center gap-2 text-sm font-bold text-white underline-offset-4 hover:underline" href="/makler/">
+        {t("broker.registerHintLink")}
+        <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+      </a>
+    </div>
+  </div>
+
   {/* method="post" ohne action: verhindert, dass ohne JS Zugangsdaten als
       GET-Query in URL/History/Server-Logs landen. Der Submit läuft über JS. */}
-  <form class="mt-10 space-y-5" method="post" data-auth-form="register" data-success-redirect-seller="/meine-immobilien/" data-success-redirect="/">
-    <div class="grid gap-4 sm:grid-cols-2">
-      <div class="space-y-2">
-        <Label for="firstName">{t("auth.firstNameLabel")}</Label>
-        <Input id="firstName" name="firstName" placeholder={t("auth.firstNamePlaceholder")} autocomplete="given-name" required />
+  <form class="mt-8 space-y-6" method="post" data-auth-form="register" data-success-redirect-seller="/meine-immobilien/" data-success-redirect="/">
+    <fieldset class="space-y-4">
+      <legend class="sr-only">{t("auth.personalDetailsLegend")}</legend>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-2">
+          <Label for="firstName" size="sm">{t("auth.firstNameLabel")}</Label>
+          <Input id="firstName" name="firstName" placeholder={t("auth.firstNamePlaceholder")} autocomplete="given-name" required class="bg-card" />
+        </div>
+        <div class="space-y-2">
+          <Label for="lastName" size="sm">{t("auth.lastNameLabel")}</Label>
+          <Input id="lastName" name="lastName" placeholder={t("auth.lastNamePlaceholder")} autocomplete="family-name" required class="bg-card" />
+        </div>
       </div>
       <div class="space-y-2">
-        <Label for="lastName">{t("auth.lastNameLabel")}</Label>
-        <Input id="lastName" name="lastName" placeholder={t("auth.lastNamePlaceholder")} autocomplete="family-name" required />
+        <Label for="email" size="sm">{t("auth.emailLabel")}</Label>
+        <Input id="email" type="email" name="email" placeholder={t("auth.emailPlaceholder")} autocomplete="email" required class="bg-card" />
       </div>
-    </div>
-    <div class="space-y-2">
-      <Label for="email">{t("auth.emailLabel")}</Label>
-      <Input id="email" type="email" name="email" placeholder={t("auth.emailPlaceholder")} autocomplete="email" required />
-    </div>
-    <div class="space-y-2">
-      <Label for="password">{t("auth.passwordLabel")}</Label>
-      <Input id="password" type="password" name="password" placeholder={t("auth.passwordMinHint")} autocomplete="new-password" minlength="8" required />
-    </div>
-    <div class="space-y-2">
-      <Label for="passwordConfirm">{t("auth.passwordConfirmLabel")}</Label>
-      <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder={t("auth.passwordConfirmPlaceholder")} autocomplete="new-password" minlength="8" required />
-    </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-2">
+          <Label for="password" size="sm">{t("auth.passwordLabel")}</Label>
+          <Input id="password" type="password" name="password" placeholder={t("auth.passwordMinHint")} autocomplete="new-password" minlength="8" required class="bg-card" />
+        </div>
+        <div class="space-y-2">
+          <Label for="passwordConfirm" size="sm">{t("auth.passwordConfirmLabel")}</Label>
+          <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder={t("auth.passwordConfirmPlaceholder")} autocomplete="new-password" minlength="8" required class="bg-card" />
+        </div>
+      </div>
+    </fieldset>
+
     {/* Suchen & Favorisieren kann jedes Konto - nur das Anbieten ist eine Zusatzoption */}
-    <fieldset class="space-y-3">
-      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
-        <input type="checkbox" name="wantsToSell" value="yes" />
-        <span><strong>{t("auth.wantsToSellTitle")}</strong><br /><span class="text-muted-foreground">{t("auth.wantsToSellHint")}</span></span>
+    <div class="overflow-hidden rounded-xl border border-border bg-card/45 shadow-xs">
+      <label class="group flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-muted/45 has-[:checked]:bg-primary/5 sm:p-5">
+        <span class="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+          <HomePlusIcon class="size-5" aria-hidden="true" />
+        </span>
+        <span class="min-w-0 flex-1 text-sm">
+          <span class="flex flex-wrap items-center gap-2">
+            <strong class="font-semibold">{t("auth.wantsToSellTitle")}</strong>
+            <span class="rounded-full bg-muted px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">{t("auth.optional")}</span>
+          </span>
+          <span class="mt-0.5 block leading-5 text-muted-foreground">{t("auth.wantsToSellHint")}</span>
+        </span>
+        <input class="size-5 shrink-0 rounded" type="checkbox" name="wantsToSell" value="yes" aria-controls="seller-fields" aria-expanded="false" />
       </label>
-    </fieldset>
-    <fieldset class="space-y-3" data-seller-fields hidden>
-      <legend class="text-sm font-semibold">{t("auth.sellerTypeLegend")}</legend>
-      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
-        <input type="radio" name="sellerType" value="Private" checked disabled />
-        <span><strong>{t("auth.sellerTypePrivate")}</strong><br /><span class="text-muted-foreground">{t("auth.sellerTypePrivateHint")}</span></span>
-      </label>
-      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
-        <input type="radio" name="sellerType" value="Broker" disabled />
-        <span><strong>{t("auth.sellerTypeBroker")}</strong><br /><span class="text-muted-foreground">{t("auth.sellerTypeBrokerHint")}</span></span>
-      </label>
-      <label class="flex gap-3 rounded-md border border-border p-3 text-sm">
-        <input type="radio" name="sellerType" value="PropertyManager" disabled />
-        <span><strong>{t("auth.sellerTypeManager")}</strong><br /><span class="text-muted-foreground">{t("auth.sellerTypeManagerHint")}</span></span>
-      </label>
-      <div class="space-y-2" data-company-field hidden>
-        <Label for="companyName">{t("auth.companyNameLabel")}</Label>
-        <Input id="companyName" name="companyName" placeholder={t("auth.companyNamePlaceholder")} autocomplete="organization" disabled />
+
+      <div id="seller-fields" class="border-t border-border px-4 pb-4 pt-4 sm:px-5 sm:pb-5" data-seller-fields hidden>
+        <fieldset class="space-y-4">
+          <legend class="text-sm font-semibold">{t("auth.sellerTypeLegend")}</legend>
+          <div class="mt-3 grid gap-2 sm:grid-cols-3">
+            <label class="flex cursor-pointer gap-2.5 rounded-lg border border-border bg-background/45 p-3 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-outline has-[:disabled]:cursor-default has-[:disabled]:opacity-60">
+              <input class="mt-0.5 size-4 shrink-0" type="radio" name="sellerType" value="Private" checked disabled />
+              <span><strong class="font-semibold">{t("auth.sellerTypePrivate")}</strong><span class="mt-0.5 block text-xs leading-4 text-muted-foreground">{t("auth.sellerTypePrivateHint")}</span></span>
+            </label>
+            <label class="flex cursor-pointer gap-2.5 rounded-lg border border-border bg-background/45 p-3 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-outline has-[:disabled]:cursor-default has-[:disabled]:opacity-60">
+              <input class="mt-0.5 size-4 shrink-0" type="radio" name="sellerType" value="Broker" disabled />
+              <span><strong class="font-semibold">{t("auth.sellerTypeBroker")}</strong><span class="mt-0.5 block text-xs leading-4 text-muted-foreground">{t("auth.sellerTypeBrokerHint")}</span></span>
+            </label>
+            <label class="flex cursor-pointer gap-2.5 rounded-lg border border-border bg-background/45 p-3 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-outline has-[:disabled]:cursor-default has-[:disabled]:opacity-60">
+              <input class="mt-0.5 size-4 shrink-0" type="radio" name="sellerType" value="PropertyManager" disabled />
+              <span><strong class="font-semibold">{t("auth.sellerTypeManager")}</strong><span class="mt-0.5 block text-xs leading-4 text-muted-foreground">{t("auth.sellerTypeManagerHint")}</span></span>
+            </label>
+          </div>
+          <div class="space-y-2" data-company-field hidden>
+            <Label for="companyName" size="sm">{t("auth.companyNameLabel")}</Label>
+            <Input id="companyName" name="companyName" placeholder={t("auth.companyNamePlaceholder")} autocomplete="organization" disabled class="bg-background" />
+          </div>
+        </fieldset>
       </div>
-    </fieldset>
-    <p class="hidden text-sm" data-form-status></p>
-    <Button type="submit" class="w-full">{t("auth.createAccount")}</Button>
+    </div>
+
+    <p class="hidden text-sm" role="status" aria-live="polite" data-form-status></p>
+    <Button type="submit" class="h-12 w-full">
+      {t("auth.createAccount")}
+      <ArrowRightIcon class="size-4" aria-hidden="true" />
+    </Button>
   </form>
-  <p class="mt-8 text-center text-sm text-muted-foreground">
+  <p class="mt-6 text-center text-sm text-muted-foreground">
     {t("auth.haveAccountPrompt")} <a class="font-semibold text-foreground" href="/anmelden/">{t("auth.login")}</a>
   </p>
-  {/* Makler-Concierge: wer als Makler hier landet, muss sich nicht selbst durchklicken */}
-  <div class="mt-6 rounded-md border border-border bg-card p-4 text-sm">
-    <strong>{t("broker.registerHintTitle")}</strong>
-    <span class="text-muted-foreground"> {t("broker.registerHintText")}</span>
-    <a class="mt-1 block font-semibold text-foreground underline-offset-4 hover:underline" href="/makler/">{t("broker.registerHintLink")} →</a>
-  </div>
 </AuthShell>

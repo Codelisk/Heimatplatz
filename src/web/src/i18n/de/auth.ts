@@ -5,7 +5,7 @@
  */
 export const auth = {
   // Gemeinsame Formularfelder
-  "auth.emailLabel": "E-Mail Adresse",
+  "auth.emailLabel": "E-Mail-Adresse",
   "auth.emailPlaceholder": "max@beispiel.at",
   "auth.passwordLabel": "Passwort",
   "auth.passwordPlaceholder": "Ihr Passwort",
@@ -35,12 +35,15 @@ export const auth = {
 
   // Registrieren
   "auth.createAccount": "Konto erstellen",
+  "auth.registerEyebrow": "Kostenloses Heimatplatz-Konto",
   "auth.registerDescription":
-    "Registrieren Sie sich für Immobilien-Angebote, Favoriten und Inserate in Oberösterreich.",
+    "Speichern Sie Favoriten und Suchprofile oder verwalten Sie eigene Inserate – kostenlos und an einem Ort.",
+  "auth.personalDetailsLegend": "Persönliche Daten und Zugangsdaten",
   "auth.passwordConfirmLabel": "Passwort bestätigen",
   "auth.passwordConfirmPlaceholder": "Passwort erneut eingeben",
-  "auth.wantsToSellTitle": "Ich möchte auch Immobilien anbieten",
-  "auth.wantsToSellHint": "Suchen und Favorisieren ist in jedem Konto enthalten",
+  "auth.optional": "Optional",
+  "auth.wantsToSellTitle": "Ich möchte Immobilien anbieten",
+  "auth.wantsToSellHint": "Aktivieren, wenn Sie eigene Objekte inserieren möchten.",
   "auth.sellerTypeLegend": "Anbietertyp",
   "auth.sellerTypePrivate": "Privatperson",
   "auth.sellerTypePrivateHint": "Eigene Immobilie privat anbieten",
@@ -51,6 +54,9 @@ export const auth = {
   "auth.companyNameLabel": "Firmenname",
   "auth.companyNamePlaceholder": "Immobilienunternehmen",
   "auth.haveAccountPrompt": "Bereits ein Konto?",
+  "auth.registerBenefitFavorites": "Favoriten und Suchprofile speichern",
+  "auth.registerBenefitListings": "Eigene Immobilien zentral verwalten",
+  "auth.registerBenefitRegional": "Regional in Oberösterreich suchen",
 
   // Passwort vergessen
   "auth.forgotPassword": "Passwort vergessen?",

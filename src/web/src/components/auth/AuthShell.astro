@@ -6,27 +6,59 @@ import { t } from "@/i18n";
 interface Props {
   title: string;
   description: string;
+  eyebrow?: string;
   mode?: "login" | "register";
   /* Fuer Seiten ausserhalb von Login/Registrieren (z.B. Passwort-Reset) direkt angebbar */
   canonicalPath?: string;
 }
 
-const { title, description, mode, canonicalPath = mode === "register" ? "/registrieren/" : "/anmelden/" } = Astro.props;
+const {
+  title,
+  description,
+  eyebrow,
+  mode,
+  canonicalPath = mode === "register" ? "/registrieren/" : "/anmelden/",
+} = Astro.props;
+
+const isRegister = mode === "register";
+const hasMobileAction = Astro.slots.has("mobile-action");
+const hasPanelContent = Astro.slots.has("panel-content");
+const hasPanelFooter = Astro.slots.has("panel-footer");
 ---
 
 <BaseLayout title={title} description={description} canonicalPath={canonicalPath} chrome={false} noindex>
-  <div class="grid min-h-screen lg:grid-cols-[minmax(420px,560px)_1fr]">
-    <section class="bg-background px-6 py-8 sm:px-12">
-      <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">← {t("common.back")}</a>
-      <div class="mt-12 max-w-md">
-        <h1 class="text-3xl font-bold">{title}</h1>
-        <p class="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
+  <div
+    class:list={[
+      "grid min-h-screen",
+      isRegister
+        ? "lg:grid-cols-[minmax(540px,620px)_minmax(0,1fr)]"
+        : "lg:grid-cols-[minmax(420px,560px)_minmax(0,1fr)]",
+    ]}
+  >
+    <section class="bg-background px-6 py-7 sm:px-10 sm:py-8 xl:px-12">
+      <div class:list={["mx-auto w-full", isRegister ? "max-w-lg" : "max-w-md"]}>
+        <div class="flex min-h-9 items-center justify-between gap-4">
+          <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">← {t("common.back")}</a>
+          {hasMobileAction && (
+            <div class="lg:hidden">
+              <slot name="mobile-action" />
+            </div>
+          )}
+        </div>
+        <header class:list={[isRegister ? "mt-9 sm:mt-12" : "mt-12"]}>
+          {eyebrow && (
+            <p class="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-primary">{eyebrow}</p>
+          )}
+          <h1 class="text-3xl font-bold sm:text-[2rem]">{title}</h1>
+          <p class="mt-3 max-w-lg text-sm leading-6 text-muted-foreground">{description}</p>
+        </header>
         <slot />
       </div>
     </section>
-    {/* Markenpanel: Light hellt zur Sonne hin auf (tiefes Rot -> Koralle, der Text
-        liegt auf der satten Rot-Seite), Dark im kraeftigen Rot-Schwarz */}
-    <aside class="relative hidden overflow-hidden bg-[linear-gradient(160deg,#c9161c,#ee6a50)] text-white lg:grid lg:place-items-center dark:bg-[linear-gradient(160deg,#bb0916,#1a0508)]">
+    {/* Das Markenpanel bleibt beim Scrollen stehen. Der optionale Panel-Footer
+        gibt kontextuelle Nebenwege (z.B. Makler-Service) bewusst aus dem
+        primaeren Formular-Flow heraus. */}
+    <aside class="sticky top-0 hidden h-screen overflow-hidden bg-[linear-gradient(155deg,#c9161c_0%,#a70812_62%,#5c0208_100%)] text-white lg:flex dark:bg-[linear-gradient(155deg,#b90d17_0%,#72040b_58%,#170305_100%)]">
       <svg
         viewBox="0 0 24 24"
         fill="none"
@@ -34,23 +66,37 @@ const { title, description, mode, canonicalPath = mode === "register" ? "/regist
         stroke-width="0.6"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="pointer-events-none absolute -right-24 -top-16 size-[34rem] text-white/10"
+        class="pointer-events-none absolute -right-24 -top-16 size-[34rem] text-white/10 xl:size-[40rem]"
         aria-hidden="true"
       >
         <path d="M3.5 12.5 12 5l8.5 7.5" />
         <path d="M6.5 11.5V19h11v-7.5" />
         <path d="M12 19v-4" />
       </svg>
-      <div class="relative max-w-md px-10">
-        {/* Wappen-Lockup: zweizeilige Wortmarke an der Wortfuge Heimat|platz,
-            daneben das Abzeichen als leicht gedrehtes Siegel ("Stempel") */}
-        <div class="flex items-center gap-7">
-          <p class="text-5xl font-extrabold uppercase leading-[0.95] tracking-tight"><span class="block">Heimat</span><span class="block">platz</span></p>
-          <BrandMark tile class="brand-seal h-28 drop-shadow-[0_10px_24px_rgba(0,0,0,0.3)]" />
+      <div class="relative flex w-full flex-col px-10 py-9 xl:px-16 xl:py-12">
+        <div class="grid min-h-0 flex-1 place-items-center">
+          <div class="w-full max-w-md">
+            {/* Wappen-Lockup: zweizeilige Wortmarke an der Wortfuge Heimat|platz,
+                daneben das Abzeichen als leicht gedrehtes Siegel ("Stempel") */}
+            <div class="flex items-center gap-5 xl:gap-7">
+              <p class="text-4xl font-extrabold uppercase leading-[0.95] tracking-tight xl:text-5xl"><span class="block">Heimat</span><span class="block">platz</span></p>
+              <BrandMark tile class="brand-seal h-24 drop-shadow-[0_10px_24px_rgba(0,0,0,0.3)] xl:h-28" />
+            </div>
+            <p class="mt-7 max-w-sm text-base leading-7 text-white/78 xl:text-lg xl:leading-8">
+              {t("auth.brandTagline")}
+            </p>
+            {hasPanelContent && (
+              <div class="mt-7">
+                <slot name="panel-content" />
+              </div>
+            )}
+          </div>
         </div>
-        <p class="mt-7 text-lg leading-8 text-white/80">
-          {t("auth.brandTagline")}
-        </p>
+        {hasPanelFooter && (
+          <div class="mx-auto w-full max-w-md border-t border-white/20 pt-6">
+            <slot name="panel-footer" />
+          </div>
+        )}
       </div>
     </aside>
   </div>
