@@ -386,6 +386,7 @@ const ortRegions = await fetchOrtRegions();
   };
   const selectedTypes = new Set(initial.types);
   const selectedSellers = new Set(initial.sellers);
+  let filtersTouched = false;
 
   // Multi-Select Orte: aus URL (?region=linz,steyr), Preset oder gespeicherten Praeferenzen
   function parseSlugList(value: string | null | undefined) {
@@ -513,6 +514,14 @@ const ortRegions = await fetchOrtRegions();
     return "/favicon.svg";
   }
 
+  function applyImageFallback(image: HTMLImageElement) {
+    if (image.dataset.fallbackApplied === "true") return;
+    image.dataset.fallbackApplied = "true";
+    image.removeAttribute("srcset");
+    image.removeAttribute("sizes");
+    image.src = image.dataset.fallbackImage || "/favicon.svg";
+  }
+
   function createApiCard(property: ApiProperty, verifiedImages: VerifiedImageMap) {
     const article = document.createElement("article");
     const type = mapType(property);
@@ -531,18 +540,16 @@ const ortRegions = await fetchOrtRegions();
     link.className = "block h-full";
     const image = document.createElement("img");
     const responsiveImage = getResponsiveImage(getSafeImageUrl(property, verifiedImages));
-    image.src = responsiveImage.src;
-    if (responsiveImage.srcset) image.srcset = responsiveImage.srcset;
-    image.sizes = "(min-width: 1280px) 416px, (min-width: 640px) calc(50vw - 2rem), calc(100vw - 1.5rem)";
     image.alt = property.Title;
     image.loading = "lazy";
     image.decoding = "async";
     image.className = "h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]";
     image.dataset.fallbackImage = "/favicon.svg";
     image.dataset.smartImage = "";
-    image.addEventListener("error", () => {
-      image.src = "/favicon.svg";
-    }, { once: true });
+    image.addEventListener("error", () => applyImageFallback(image));
+    image.src = responsiveImage.src;
+    if (responsiveImage.srcset) image.srcset = responsiveImage.srcset;
+    image.sizes = "(min-width: 1280px) 416px, (min-width: 640px) calc(50vw - 2rem), calc(100vw - 1.5rem)";
     link.append(image);
 
     // Typ-Farben: ZV = Markenrot, Grund = Gruen, Haus = Blau, Rest neutral (wie ApiPropertyCard.astro)
@@ -756,11 +763,60 @@ const ortRegions = await fetchOrtRegions();
     }
   }
 
-  input?.addEventListener("input", () => scheduleRefresh(true));
+  function applyRemoteFilterPreferences(preferences: StoredFilterPreferences) {
+    if (filtersTouched) return;
+
+    if (!params.has("type") && !preset.type) {
+      const types = splitSelection(getSelectedTypes(preferences), TYPE_VALUES);
+      selectedTypes.clear();
+      (types.length > 0 ? types : DEFAULT_TYPE_VALUES).forEach((value) => selectedTypes.add(value));
+    }
+
+    if (!params.has("seller") && !preset.seller) {
+      const sellers = [
+        preferences.IsPrivateSelected !== false ? "private" : "",
+        preferences.IsBrokerSelected !== false ? "agent" : "",
+      ].filter((value): value is string => Boolean(value));
+      selectedSellers.clear();
+      (sellers.length > 0 ? sellers : SELLER_VALUES).forEach((value) => selectedSellers.add(value));
+    }
+
+    if (!params.has("age") && !preset.age) {
+      setSelectValue(ageControls, getStoredAge(preferences));
+    }
+
+    if (!params.has("sort") && sort) {
+      sort.value = getStoredSort(preferences);
+    }
+
+    if (!params.has("region") && !preset.region) {
+      selectedOrtSlugs.clear();
+      getStoredLocations(preferences)
+        .map((location) => normalize(location))
+        .filter(Boolean)
+        .forEach((value) => selectedOrtSlugs.add(value));
+      const api = (window as any).setOrtPickerValues;
+      if (typeof api === "function") api("region", Array.from(selectedOrtSlugs));
+    }
+
+    updateFilterChips();
+    scheduleRefresh(true);
+  }
+
+  document.addEventListener("filter-preferences-loaded", (event) => {
+    const preferences = (event as CustomEvent<StoredFilterPreferences>).detail;
+    if (preferences) applyRemoteFilterPreferences(preferences);
+  });
+
+  input?.addEventListener("input", () => {
+    filtersTouched = true;
+    scheduleRefresh(true);
+  });
   // OrtPicker (Multi-Select): aktualisiert das gemeinsame Set und synct alle Instanzen
   document.addEventListener("ort-picker-change", (event) => {
     const detail = (event as CustomEvent<{ name: string; values: string[] }>).detail;
     if (!detail || detail.name !== "region") return;
+    filtersTouched = true;
     selectedOrtSlugs.clear();
     detail.values.forEach((value) => selectedOrtSlugs.add(value));
     // Andere OrtPicker (z.B. Mobile vs Desktop) synchronisieren - setOrtPickerValues
@@ -771,6 +827,7 @@ const ortRegions = await fetchOrtRegions();
   });
   ageControls.forEach((control) => {
     control.addEventListener("change", () => {
+      filtersTouched = true;
       setSelectValue(ageControls, control.value);
       scheduleRefresh(true);
     });
@@ -779,6 +836,7 @@ const ortRegions = await fetchOrtRegions();
     button.addEventListener("click", () => {
       const value = button.dataset.filterType;
       if (!value) return;
+      filtersTouched = true;
       if (selectedTypes.has(value) && selectedTypes.size > 1) {
         selectedTypes.delete(value);
       } else {
@@ -792,6 +850,7 @@ const ortRegions = await fetchOrtRegions();
     button.addEventListener("click", () => {
       const value = button.dataset.filterSellerChip;
       if (!value) return;
+      filtersTouched = true;
       if (selectedSellers.has(value) && selectedSellers.size > 1) {
         selectedSellers.delete(value);
       } else {
@@ -801,7 +860,10 @@ const ortRegions = await fetchOrtRegions();
       scheduleRefresh(true);
     });
   });
-  sort?.addEventListener("change", () => scheduleRefresh(true));
+  sort?.addEventListener("change", () => {
+    filtersTouched = true;
+    scheduleRefresh(true);
+  });
   prevPage?.addEventListener("click", () => {
     if (currentPage <= 0) return;
     currentPage -= 1;
@@ -818,6 +880,7 @@ const ortRegions = await fetchOrtRegions();
   });
   document.querySelectorAll<HTMLButtonElement>("[data-filter-reset]").forEach((button) => {
     button.addEventListener("click", () => {
+      filtersTouched = true;
       if (input) input.value = "";
       selectedOrtSlugs.clear();
       const api = (window as any).setOrtPickerValues;

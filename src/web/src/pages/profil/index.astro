@@ -19,6 +19,7 @@ import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
 import { t } from "@/i18n";
+import { buildLoginHref, getCurrentReturnTo } from "@/lib/navigation";
 
 // Schnellzugriff: Ziele ohne eigene Zaehler-Kachel (Favoriten/Blockiert/Inserate
 // haben oben bereits verlinkte Kacheln - hier nur der Rest, sonst doppelt)
@@ -27,6 +28,7 @@ const quickLinks = [
   { label: t("profile.quickNotificationsLabel"), description: t("profile.quickNotificationsDescription"), href: "/benachrichtigungen/", icon: BellIcon },
   { label: t("profile.quickFiltersLabel"), description: t("profile.quickFiltersDescription"), href: "/filter-einstellungen/", icon: FilterIcon },
 ];
+const loginHref = buildLoginHref(getCurrentReturnTo(Astro.url));
 ---
 
 <BaseLayout title={t("profile.title")} description={t("profile.metaDescription")} canonicalPath="/profil/" noindex>
@@ -63,7 +65,7 @@ const quickLinks = [
             </li>
           </ul>
           <div class="mt-8 flex flex-wrap gap-3">
-            <Button href="/anmelden/">
+            <Button href={loginHref}>
               <LoginIcon class="size-4" aria-hidden="true" />
               {t("auth.login")}
             </Button>

@@ -3,6 +3,7 @@ import LoginIcon from "@tabler/icons/outline/login.svg";
 import UserPlusIcon from "@tabler/icons/outline/user-plus.svg";
 import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
+import { buildLoginHref, getCurrentReturnTo } from "@/lib/navigation";
 
 /**
  * Blendet den Slot-Inhalt nur fuer angemeldete Nutzer ein und zeigt Gaesten
@@ -17,6 +18,7 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const loginHref = buildLoginHref(getCurrentReturnTo(Astro.url));
 ---
 
 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-guest-only>
@@ -27,7 +29,7 @@ const { title, description } = Astro.props;
     <h2 class="mt-4 text-xl font-bold sm:text-2xl">{title}</h2>
     <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
     <div class="mt-6 flex flex-wrap justify-center gap-3">
-      <Button href="/anmelden/">
+      <Button href={loginHref}>
         <LoginIcon class="size-4" aria-hidden="true" />
         {t("auth.login")}
       </Button>

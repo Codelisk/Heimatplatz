@@ -1,5 +1,6 @@
 <script>
   import { getResponsiveImage } from "@/lib/images";
+  import { buildLoginHref } from "@/lib/navigation";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
   import { formatApiPrice, getApiLocationLine, getApiStreetLine, getDisplayTitle } from "@/features/properties/format";
   import { t } from "@/i18n";
@@ -107,6 +108,8 @@
   const MAX_PROPERTY_IMAGES = 20;
   const imageFormState = new WeakMap<HTMLFormElement, PropertyImageItem[]>();
   let municipalityPromise: Promise<Municipality[]> | null = null;
+  let propertyActionRevision = 0;
+  let preferenceLoadRevision = 0;
 
   function readArray<T = string>(key: string): T[] {
     try {
@@ -166,6 +169,7 @@
     // ExpiresAt = Ablauf des Refresh Tokens; danach ist die Sitzung endgueltig vorbei
     if (session.ExpiresAt && new Date(session.ExpiresAt).getTime() <= Date.now()) {
       window.localStorage.removeItem(STORAGE_KEYS.session);
+      clearUserStateCache();
       return null;
     }
 
@@ -174,6 +178,7 @@
       const accessExpiryMs = getJwtExpiryMs(session.AccessToken);
       if (accessExpiryMs !== null && accessExpiryMs <= Date.now()) {
         window.localStorage.removeItem(STORAGE_KEYS.session);
+        clearUserStateCache();
         return null;
       }
     }
@@ -225,9 +230,23 @@
     renderAuthState();
   }
 
+  function clearUserStateCache() {
+    [
+      STORAGE_KEYS.favorites,
+      STORAGE_KEYS.blocked,
+      STORAGE_KEYS.notificationPreferences,
+      STORAGE_KEYS.filterPreferences,
+    ].forEach((key) => window.localStorage.removeItem(key));
+    propertyActionRevision += 1;
+    preferenceLoadRevision += 1;
+  }
+
   function clearSession() {
     window.localStorage.removeItem(STORAGE_KEYS.session);
+    clearUserStateCache();
     renderAuthState();
+    refreshActionButtons();
+    syncUserLists();
   }
 
   function setDeleteAccountStatus(message: string, tone: "info" | "error") {
@@ -279,7 +298,7 @@
   async function handleDeleteAccount(button: HTMLButtonElement) {
     const session = readSession();
     if (!session) {
-      window.location.href = "/anmelden/";
+      window.location.href = getLoginHrefForCurrentPage();
       return;
     }
 
@@ -595,6 +614,9 @@
             { method: "POST", body: payload, skipAuth: true },
           );
 
+          // Kontogebundene Browser-Caches duerfen nicht vom vorherigen Benutzer
+          // in die neue Sitzung uebernommen werden; die Zielseite hydratisiert sie neu.
+          clearUserStateCache();
           saveSession(session);
           setFormStatus(form, t("auth.statusLoggedIn"), "success");
           if (mode === "register") {
@@ -641,6 +663,10 @@
     // form.reset() soll den Kontobezug nach erfolgreicher Passwortaenderung
     // nicht entfernen.
     username.defaultValue = normalizedEmail;
+  }
+
+  function getLoginHrefForCurrentPage() {
+    return buildLoginHref(`${window.location.pathname}${window.location.search}`);
   }
 
   // Profil-Formular: laedt die aktuellen Daten und speichert Aenderungen
@@ -1042,47 +1068,104 @@
     }
   }
 
+  type PreferenceMode = "notifications" | "filters";
+
+  function applyPreferencesToForm(
+    form: HTMLFormElement,
+    mode: PreferenceMode,
+    preferences: Record<string, unknown>,
+  ) {
+    if (mode === "notifications") {
+      setCheckbox(form, "isEnabled", preferences.IsEnabled as boolean);
+      setCheckbox(form, "house", preferences.IsHausSelected as boolean);
+      setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
+      setCheckbox(form, "foreclosure", preferences.IsZwangsversteigerungSelected as boolean);
+      setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
+      setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
+      setCheckboxValues(form, "locations", preferences.Locations);
+      applyOrtPickerSelection("locations", preferences.Locations);
+      if (typeof preferences.FilterMode === "string") {
+        const filterMode = form.querySelector<HTMLInputElement>(`input[name='filterMode'][value='${preferences.FilterMode}']`);
+        if (filterMode) filterMode.checked = true;
+      }
+      updateNotificationPreferenceVisibility(form);
+      return;
+    }
+
+    setCheckbox(form, "house", preferences.IsHausSelected as boolean);
+    setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
+    setCheckbox(form, "foreclosure", preferences.IsZwangsversteigerungSelected as boolean);
+    setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
+    setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
+    const age = form.querySelector<HTMLSelectElement>("[name='ageFilter']");
+    const sort = form.querySelector<HTMLSelectElement>("[name='sort']");
+    const location = form.querySelector<HTMLSelectElement>("[name='locations']");
+    if (age && preferences.SelectedAgeFilter !== undefined) age.value = normalizeAgeFilterValue(preferences.SelectedAgeFilter);
+    if (sort && preferences.SelectedSort !== undefined) sort.value = normalizeSortValue(preferences.SelectedSort);
+    setCheckboxValues(form, "locations", preferences.SelectedOrtes);
+    // Nur echte <select>-Fallbacks direkt setzen - der OrtPicker-Hidden-Input
+    // wird ueber applyOrtPickerSelection befuellt (sonst ginge Mehrfachauswahl verloren)
+    if (location instanceof HTMLSelectElement && Array.isArray(preferences.SelectedOrtes) && preferences.SelectedOrtes[0]) {
+      location.value = String(preferences.SelectedOrtes[0]);
+    }
+    applyOrtPickerSelection("locations", preferences.SelectedOrtes);
+  }
+
   function applySavedPreferences() {
     document.querySelectorAll<HTMLFormElement>("[data-preferences-form]").forEach((form) => {
-      const mode = form.getAttribute("data-preferences-form");
+      const mode = form.getAttribute("data-preferences-form") as PreferenceMode | null;
+      if (!mode) return;
       const preferences = mode === "notifications"
         ? readJson<Record<string, unknown>>(STORAGE_KEYS.notificationPreferences)
         : readJson<Record<string, unknown>>(STORAGE_KEYS.filterPreferences);
-      if (!preferences) return;
-
-      if (mode === "notifications") {
-        setCheckbox(form, "isEnabled", preferences.IsEnabled as boolean);
-        setCheckbox(form, "house", preferences.IsHausSelected as boolean);
-        setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
-        setCheckbox(form, "foreclosure", preferences.IsZwangsversteigerungSelected as boolean);
-        setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
-        setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
-        setCheckboxValues(form, "locations", preferences.Locations);
-        applyOrtPickerSelection("locations", preferences.Locations);
-        if (typeof preferences.FilterMode === "string") {
-          const filterMode = form.querySelector<HTMLInputElement>(`input[name='filterMode'][value='${preferences.FilterMode}']`);
-          if (filterMode) filterMode.checked = true;
-        }
-      } else {
-        setCheckbox(form, "house", preferences.IsHausSelected as boolean);
-        setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
-        setCheckbox(form, "foreclosure", preferences.IsZwangsversteigerungSelected as boolean);
-        setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
-        setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
-        const age = form.querySelector<HTMLSelectElement>("[name='ageFilter']");
-        const sort = form.querySelector<HTMLSelectElement>("[name='sort']");
-        const location = form.querySelector<HTMLSelectElement>("[name='locations']");
-        if (age && preferences.SelectedAgeFilter !== undefined) age.value = normalizeAgeFilterValue(preferences.SelectedAgeFilter);
-        if (sort && preferences.SelectedSort !== undefined) sort.value = normalizeSortValue(preferences.SelectedSort);
-        setCheckboxValues(form, "locations", preferences.SelectedOrtes);
-        // Nur echte <select>-Fallbacks direkt setzen - der OrtPicker-Hidden-Input
-        // wird ueber applyOrtPickerSelection befuellt (sonst ginge Mehrfachauswahl verloren)
-        if (location instanceof HTMLSelectElement && Array.isArray(preferences.SelectedOrtes) && preferences.SelectedOrtes[0]) {
-          location.value = String(preferences.SelectedOrtes[0]);
-        }
-        applyOrtPickerSelection("locations", preferences.SelectedOrtes);
-      }
+      if (preferences) applyPreferencesToForm(form, mode, preferences);
     });
+  }
+
+  async function loadRemotePreference(
+    mode: PreferenceMode,
+    endpoint: string,
+    storageKey: string,
+  ) {
+    const form = document.querySelector<HTMLFormElement>(`[data-preferences-form="${mode}"]`);
+    const revision = preferenceLoadRevision;
+    form?.setAttribute("aria-busy", "true");
+
+    try {
+      const preferences = await apiRequest<Record<string, unknown>>(endpoint);
+      if (revision !== preferenceLoadRevision || !readSession()) return;
+      writeJson(storageKey, preferences);
+      if (form && form.dataset.preferencesDirty !== "true") {
+        applyPreferencesToForm(form, mode, preferences);
+      }
+      if (mode === "filters") {
+        document.dispatchEvent(new CustomEvent("filter-preferences-loaded", { detail: preferences }));
+      }
+    } catch (error) {
+      // Lokale Einstellungen bleiben als Offline-Fallback aktiv.
+      console.warn(`[Heimatplatz] ${mode} preferences load failed`, error);
+    } finally {
+      form?.removeAttribute("aria-busy");
+    }
+  }
+
+  function loadRemotePreferences() {
+    if (!readSession()) return;
+
+    if (document.querySelector("[data-preferences-form='notifications']")) {
+      void loadRemotePreference(
+        "notifications",
+        "/api/notifications/preferences",
+        STORAGE_KEYS.notificationPreferences,
+      );
+    }
+    if (document.querySelector("[data-preferences-form='filters'], [data-search-config]")) {
+      void loadRemotePreference(
+        "filters",
+        "/api/auth/filter-preferences",
+        STORAGE_KEYS.filterPreferences,
+      );
+    }
   }
 
   function updateNotificationPreferenceVisibility(form: HTMLFormElement) {
@@ -1217,7 +1300,7 @@
 
   async function enableWebPush(button: HTMLButtonElement) {
     if (!readSession()) {
-      window.location.href = "/anmelden/";
+      window.location.href = getLoginHrefForCurrentPage();
       return;
     }
 
@@ -1314,7 +1397,7 @@
       const action = button.getAttribute("data-web-push-action");
       if (action === "enable") void enableWebPush(button);
       else if (action === "disable") void disableWebPush(button);
-      else if (action === "login") window.location.href = "/anmelden/";
+      else if (action === "login") window.location.href = getLoginHrefForCurrentPage();
     });
 
     void renderWebPushSection();
@@ -1323,6 +1406,11 @@
 
   function bindPreferenceForms() {
     document.querySelectorAll<HTMLFormElement>("[data-preferences-form]").forEach((form) => {
+      const markDirty = () => {
+        form.dataset.preferencesDirty = "true";
+      };
+      form.addEventListener("input", markDirty);
+      form.addEventListener("change", markDirty);
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const mode = form.getAttribute("data-preferences-form");
@@ -1351,6 +1439,7 @@
           } else {
             setFormStatus(form, t("search.prefsSavedLocalLoginHint"), "success");
           }
+          form.dataset.preferencesDirty = "false";
         } catch (error) {
           setFormStatus(
             form,
@@ -1391,6 +1480,55 @@
           : button.getAttribute("data-inactive-text") ?? label.textContent;
       }
     });
+  }
+
+  type PropertyActionListResponse = {
+    Properties?: Array<{ Id?: string }>;
+    HasMore?: boolean;
+  };
+
+  async function loadAllRemotePropertyIds(endpoint: string) {
+    const ids: string[] = [];
+
+    for (let page = 0; page < 100; page += 1) {
+      const separator = endpoint.includes("?") ? "&" : "?";
+      const response = await apiRequest<PropertyActionListResponse>(
+        `${endpoint}${separator}Page=${page}&PageSize=100`,
+      );
+      (response.Properties ?? []).forEach((property) => {
+        if (property.Id) ids.push(property.Id);
+      });
+      if (!response.HasMore) break;
+    }
+
+    return ids;
+  }
+
+  async function hydrateRemotePropertyActions() {
+    if (!readSession() || !document.querySelector("[data-property-action], [data-search-config]")) return;
+
+    const revision = propertyActionRevision;
+    const [favorites, blocked] = await Promise.allSettled([
+      loadAllRemotePropertyIds("/api/favorites"),
+      loadAllRemotePropertyIds("/api/blocked"),
+    ]);
+
+    // Eine inzwischen erfolgte Benutzeraktion hat Vorrang vor einem aelteren GET.
+    if (revision !== propertyActionRevision) return;
+
+    if (favorites.status === "fulfilled") {
+      writeArray(STORAGE_KEYS.favorites, favorites.value);
+    } else {
+      console.warn("[Heimatplatz] Favorite state load failed", favorites.reason);
+    }
+    if (blocked.status === "fulfilled") {
+      writeArray(STORAGE_KEYS.blocked, blocked.value);
+    } else {
+      console.warn("[Heimatplatz] Blocked state load failed", blocked.reason);
+    }
+
+    refreshActionButtons();
+    syncUserLists();
   }
 
   function closeCardMenus(except?: HTMLElement | null) {
@@ -1723,13 +1861,14 @@
     document.querySelector<HTMLDialogElement>("[data-login-prompt]")?.remove();
 
     const dialog = document.createElement("dialog");
+    const loginHref = getLoginHrefForCurrentPage();
     dialog.setAttribute("data-login-prompt", "");
     dialog.className = "m-auto w-[min(92vw,26rem)] rounded-lg border border-border bg-card p-6 text-foreground shadow-lg backdrop:bg-black/55";
     dialog.innerHTML = `
       <h2 class="text-lg font-semibold">${t("card.loginRequiredTitle")}</h2>
       <p class="mt-2 text-sm text-muted-foreground">${t("card.loginRequiredText")}</p>
       <div class="mt-5 flex flex-wrap items-center gap-2">
-        <a class="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-brand-foreground" href="/anmelden/">${t("auth.login")}</a>
+        <a class="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-brand-foreground" href="${loginHref}">${t("auth.login")}</a>
         <a class="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium" href="/registrieren/">${t("common.register")}</a>
         <button type="button" class="ml-auto inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-muted-foreground" data-login-prompt-close>${t("common.close")}</button>
       </div>
@@ -1759,13 +1898,12 @@
     image.alt = property.Title;
     image.loading = "lazy";
     const responsiveImage = getResponsiveImage(property.ImageUrls?.[0] || "/favicon.svg");
+    image.dataset.fallbackImage = "/favicon.svg";
+    image.dataset.smartImage = "";
+    image.addEventListener("error", () => applyFallbackImage(image));
     image.src = responsiveImage.src;
     if (responsiveImage.srcset) image.srcset = responsiveImage.srcset;
     image.sizes = "(min-width: 1280px) 400px, (min-width: 640px) 50vw, 100vw";
-    image.dataset.smartImage = "";
-    image.addEventListener("error", () => {
-      image.src = "/favicon.svg";
-    }, { once: true });
     const typeBadgeClasses =
       property.Type === "Foreclosure"
         ? "bg-brand text-brand-foreground"
@@ -2463,11 +2601,21 @@
     status.classList.toggle("hidden", !message);
   }
 
+  function applyFallbackImage(image: HTMLImageElement) {
+    if (image.dataset.fallbackApplied === "true") return;
+    image.dataset.fallbackApplied = "true";
+    image.removeAttribute("srcset");
+    image.removeAttribute("sizes");
+    image.src = image.dataset.fallbackImage || "/favicon.svg";
+  }
+
   function bindFallbackImages() {
     document.querySelectorAll<HTMLImageElement>("[data-fallback-image]").forEach((image) => {
-      image.addEventListener("error", () => {
-        image.src = image.dataset.fallbackImage || "/favicon.svg";
-      }, { once: true });
+      if (image.dataset.fallbackBound) return;
+      image.dataset.fallbackBound = "true";
+      image.addEventListener("error", () => applyFallbackImage(image));
+      // Bei SSR-Bildern kann das Fehlerereignis vor dem Modul-Script eintreten.
+      if (image.complete && image.naturalWidth === 0) applyFallbackImage(image);
     });
   }
 
@@ -2516,7 +2664,10 @@
   function observeSmartImages() {
     bindSmartImages();
     // Suchergebnis- und Favoritenkarten entstehen client-seitig nach dem Boot
-    new MutationObserver(() => bindSmartImages()).observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(() => {
+      bindFallbackImages();
+      bindSmartImages();
+    }).observe(document.body, { childList: true, subtree: true });
   }
 
   async function renderRemoteUserLists() {
@@ -2779,6 +2930,7 @@
         const propertyId = listRemove.getAttribute("data-property-id");
         if (!slug || (action !== "favorite" && action !== "block")) return;
 
+        propertyActionRevision += 1;
         removeValue(action === "favorite" ? STORAGE_KEYS.favorites : STORAGE_KEYS.blocked, slug);
         refreshActionButtons();
         syncUserLists();
@@ -2807,6 +2959,7 @@
           return;
         }
 
+        propertyActionRevision += 1;
         let active = false;
 
         if (action === "favorite") {
@@ -2864,7 +3017,7 @@
       if (logout instanceof HTMLButtonElement) {
         clearSession();
         if (window.location.pathname === "/profil/") {
-          window.location.href = "/anmelden/";
+          window.location.href = getLoginHrefForCurrentPage();
         }
       }
 
@@ -3563,16 +3716,19 @@
   }
 
   function bootPropertyState() {
+    renderAuthState();
     refreshActionButtons();
     bindFallbackImages();
     observeSmartImages();
-    renderAuthState();
     syncUserLists();
+    void hydrateRemotePropertyActions();
     renderMineStatus();
     renderDrafts();
     void renderRemoteUserLists();
     applySavedPreferences();
     bindNotificationPreferenceVisibility();
+    bindPreferenceForms();
+    loadRemotePreferences();
     bindRegisterRoleFields();
     bindImagePickers();
     bindLocationPickers();
@@ -3584,7 +3740,6 @@
     bindEmailVerification();
     bindProfileStats();
     bindProfileForms();
-    bindPreferenceForms();
     initWebPush();
     bindPropertyForm();
     bindFeedbackPage();

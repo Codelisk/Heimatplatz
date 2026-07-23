@@ -16,8 +16,10 @@ import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import BrandMark from "@/components/layout/BrandMark.astro";
 import ThemeToggle from "@/components/layout/ThemeToggle.astro";
+import { buildLoginHref, getCurrentReturnTo } from "@/lib/navigation";
 
 const pathname = Astro.url.pathname;
+const loginHref = buildLoginHref(getCurrentReturnTo(Astro.url));
 const titleByPath = [
   { test: (path: string) => path === "/", title: "HEIMATPLATZ" },
   { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: t("nav.property") },
@@ -90,7 +92,7 @@ function isActive(href: string) {
     <div class="flex shrink-0 items-center gap-1.5">
       <ThemeToggle />
       <div class="hidden items-center gap-2 sm:flex">
-        <Button href="/anmelden/" variant="ghost" size="sm" data-guest-only>
+        <Button href={loginHref} variant="ghost" size="sm" data-guest-only>
           {t("common.login")}
         </Button>
         <Button href="/registrieren/" variant="default" size="sm" data-guest-only>
@@ -118,6 +120,9 @@ function isActive(href: string) {
     class="fixed inset-y-0 left-0 z-50 flex w-[min(20rem,calc(100vw-2rem))] -translate-x-full flex-col border-r border-border bg-background shadow-xl transition-transform duration-200"
     aria-label={t("nav.drawerAriaLabel")}
     aria-hidden="true"
+    aria-modal="true"
+    role="dialog"
+    tabindex="-1"
     inert
     data-site-nav-panel
   >
@@ -165,7 +170,7 @@ function isActive(href: string) {
       </div>
 
       <div class="mt-6 space-y-2 px-3" data-guest-only>
-        <Button href="/anmelden/" variant="outline" class="w-full justify-start">
+        <Button href={loginHref} variant="outline" class="w-full justify-start">
           <LoginIcon class="size-4" aria-hidden="true" />
           {t("common.login")}
         </Button>
@@ -231,20 +236,87 @@ function isActive(href: string) {
   const close = document.querySelector<HTMLButtonElement>("[data-site-nav-close]");
   const panel = document.querySelector<HTMLElement>("[data-site-nav-panel]");
   const overlay = document.querySelector<HTMLElement>("[data-site-nav-overlay]");
+  const focusableSelector = [
+    "a[href]",
+    "button:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])",
+  ].join(",");
+  let returnFocusTo: HTMLElement | null = null;
+  let previousOverflow = "";
+
+  function isOpen() {
+    return panel?.getAttribute("aria-hidden") === "false";
+  }
+
+  function getFocusableElements() {
+    if (!panel) return [];
+    return Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector)).filter((element) => {
+      const style = window.getComputedStyle(element);
+      return !element.hidden
+        && element.getAttribute("aria-hidden") !== "true"
+        && style.display !== "none"
+        && style.visibility !== "hidden"
+        && element.getClientRects().length > 0;
+    });
+  }
 
   function setOpen(open: boolean) {
-    toggle?.setAttribute("aria-expanded", String(open));
-    panel?.classList.toggle("-translate-x-full", !open);
-    panel?.setAttribute("aria-hidden", String(!open));
-    panel?.toggleAttribute("inert", !open);
-    overlay?.toggleAttribute("hidden", !open);
-    document.documentElement.style.overflow = open ? "hidden" : "";
+    if (!panel || !toggle || !overlay || open === isOpen()) return;
+
+    if (open) {
+      returnFocusTo = document.activeElement instanceof HTMLElement ? document.activeElement : toggle;
+      previousOverflow = document.documentElement.style.overflow;
+    }
+
+    toggle.setAttribute("aria-expanded", String(open));
+    panel.classList.toggle("-translate-x-full", !open);
+    panel.setAttribute("aria-hidden", String(!open));
+    panel.toggleAttribute("inert", !open);
+    overlay.toggleAttribute("hidden", !open);
+    document.documentElement.style.overflow = open ? "hidden" : previousOverflow;
+
+    if (open) {
+      window.requestAnimationFrame(() => (close ?? getFocusableElements()[0] ?? panel).focus());
+      return;
+    }
+
+    const focusTarget = returnFocusTo ?? toggle;
+    returnFocusTo = null;
+    window.requestAnimationFrame(() => focusTarget.focus());
   }
 
   toggle?.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
   close?.addEventListener("click", () => setOpen(false));
   overlay?.addEventListener("click", () => setOpen(false));
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setOpen(false);
+    if (!isOpen()) return;
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+    const focusableElements = getFocusableElements();
+    if (focusableElements.length === 0) {
+      event.preventDefault();
+      panel?.focus();
+      return;
+    }
+
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !panel?.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 </script>

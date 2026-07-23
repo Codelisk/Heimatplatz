@@ -276,6 +276,10 @@ const remainingCount = items.length - 3;
     image.addEventListener("error", () => {
       spinner?.setAttribute("hidden", "");
       image.classList.remove("opacity-0");
+      if (image.dataset.fallbackApplied === "true") return;
+      image.dataset.fallbackApplied = "true";
+      image.removeAttribute("srcset");
+      image.removeAttribute("sizes");
       if (image.src !== new URL(FALLBACK_IMAGE, location.href).href) image.src = FALLBACK_IMAGE;
     });
 
