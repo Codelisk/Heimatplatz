@@ -65,7 +65,7 @@
                                 AutomationId="Home_Properties"
                                 controls:ResponsiveGrid.MinItemWidth="320">
                     <CollectionView.ItemsLayout>
-                        <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="16" />
+                        <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="20" />
                     </CollectionView.ItemsLayout>
                     <CollectionView.Header>
                         <!-- Platzhalter fuer die ueberlagernde Chip-Zeile (scrollt mit weg).

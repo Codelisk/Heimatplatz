@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Localization.Properties;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,55 @@ public static class PropertyDisplay
 
     /// <summary>"1.234"</summary>
     public static string Number(decimal value) => string.Format(Culture, "{0:N0}", value);
+
+    /// <summary>
+    /// Sichtbarer Anzeigetitel: Aus Zwangsversteigerungen synchronisierte Inserate
+    /// tragen den Titel "Zwangsversteigerung: Mehrfamilienhaus ..." - das Praefix
+    /// ist neben dem ZV-Badge redundant (Web: getDisplayTitle in format.ts).
+    /// </summary>
+    public static string DisplayTitle(string? title)
+    {
+        var trimmed = (title ?? "").Trim();
+        var stripped = Regex.Replace(trimmed, @"^\s*Zwangsversteigerung\s*[:\-–—]\s*", "", RegexOptions.IgnoreCase).Trim();
+        return stripped.Length > 0 ? stripped : trimmed;
+    }
+
+    /// <summary>"4742 Pram" - die PLZ gehoert vor den Ort, nie vor die Strasse.</summary>
+    public static string LocationLine(string? postalCode, string? city) =>
+        string.Join(" ", new[] { postalCode?.Trim(), city?.Trim() }.Where(part => !string.IsNullOrEmpty(part)));
+
+    /// <summary>
+    /// Strassenzeile ohne die Ortsteile, die Importe oft mitliefern ("4742 Pram",
+    /// "Pram Bahnhofstrasse 3", "Bahnhofstrasse 3, 4742 Pram"). Liefert "" wenn
+    /// die Adresse nichts ueber PLZ+Ort hinaus enthaelt (Web: getApiStreetLine).
+    /// </summary>
+    public static string StreetLine(string? address, string? postalCode, string? city)
+    {
+        var street = (address ?? "").Trim();
+        if (street.Length == 0)
+            return "";
+
+        var pc = Regex.Escape((postalCode ?? "").Trim());
+        var ct = Regex.Escape((city ?? "").Trim());
+
+        if (pc.Length > 0)
+            street = Regex.Replace(street, $@"^{pc}(?:[\s,]+|$)", "", RegexOptions.IgnoreCase).Trim();
+
+        if (ct.Length > 0)
+        {
+            // Nachgestelltes ", (PLZ) Ort" abschneiden
+            var trailing = pc.Length > 0 ? $@"[\s,]+(?:{pc}\s+)?{ct}$" : $@"[\s,]+{ct}$";
+            street = Regex.Replace(street, trailing, "", RegexOptions.IgnoreCase).Trim();
+
+            // Fuehrenden Ortsnamen nur strippen, wenn danach keine blosse Hausnummer
+            // folgt - "Pram 44" IST die Strassenangabe in Doerfern ohne Strassennamen
+            var rest = Regex.Replace(street, $@"^{ct}(?:[\s,]+|$)", "", RegexOptions.IgnoreCase).Trim();
+            if (rest != street && (rest.Length == 0 || !char.IsDigit(rest[0])))
+                street = rest;
+        }
+
+        return street;
+    }
 
     // Localized Status-Texte per Service-Locator - PropertyDisplay ist statisch
     // (Aufrufer erwarten die statische API), lazy aufgeloest und gecacht wie in

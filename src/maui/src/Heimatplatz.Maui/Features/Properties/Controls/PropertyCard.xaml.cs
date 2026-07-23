@@ -212,27 +212,20 @@ public partial class PropertyCard : ContentView
 
     private void UpdateDisplay(PropertyListItemDto property)
     {
-        // Preis (kompakt) - ausblenden wenn 0
+        // Preis - immer sichtbar als Anker der rechten Spalte ("Preis offen" statt 0)
         var price = (decimal)property.Price;
-        if (price > 0)
-        {
-            PriceOverlay.IsVisible = true;
-            PriceText.Text = FormatPrice(price);
-        }
-        else
-        {
-            PriceOverlay.IsVisible = false;
-        }
+        PriceText.Text = price > 0 ? FormatPrice(price) : Loc.PriceOnRequest;
 
-        // Ort und Adresse (eine Zeile; Trenner nur wenn beides vorhanden)
-        OrtText.Text = property.City;
-        AddressText.Text = property.Address;
-        var hasAddress = !string.IsNullOrWhiteSpace(property.Address);
-        AddressText.IsVisible = hasAddress;
-        OrtAddressSeparator.IsVisible = hasAddress && !string.IsNullOrWhiteSpace(property.City);
-
-        // Titel
-        TitleText.Text = property.Title;
+        // Kopf gestaffelt wie am Web-Zettel: Titel (ohne redundantes ZV-Praefix),
+        // darunter "PLZ Ort" und die Strasse ohne mitgelieferte Ortsteile
+        var locationLine = PropertyDisplay.LocationLine(property.PostalCode, property.City);
+        var displayTitle = PropertyDisplay.DisplayTitle(property.Title);
+        TitleText.Text = displayTitle.Length > 0 ? displayTitle : locationLine;
+        LocationText.Text = locationLine;
+        LocationText.IsVisible = locationLine.Length > 0;
+        var streetLine = PropertyDisplay.StreetLine(property.Address, property.PostalCode, property.City);
+        StreetText.Text = streetLine;
+        StreetText.IsVisible = streetLine.Length > 0;
 
         // Typ-Badge Text und Farbe
         TypeBadgeText.Text = property.Type switch
@@ -255,29 +248,24 @@ public partial class PropertyCard : ContentView
 
         TypeBadge.IsVisible = property.Type is PropertyType.House or PropertyType.Land or PropertyType.Foreclosure;
 
-        // Grundstuecksflaeche - ausblenden wenn nicht vorhanden
-        if (property.PlotAreaM2.HasValue)
-        {
-            GrundstueckPanel.IsVisible = true;
-            GrundstueckText.Text = Loc.PlotAreaFormat(PropertyDisplay.Number(property.PlotAreaM2.Value));
-        }
-        else
-        {
-            GrundstueckPanel.IsVisible = false;
-        }
+        // Flaechenzeile unter dem Preis: Grund vor Wohnflaeche (wie Web getApiAreaValue)
+        AreaText.Text = property.PlotAreaM2.HasValue
+            ? Loc.PlotAreaFormat(PropertyDisplay.Number(property.PlotAreaM2.Value))
+            : property.LivingAreaM2.HasValue
+                ? Loc.LivingAreaFormat(PropertyDisplay.Number(property.LivingAreaM2.Value))
+                : Loc.AreaUnknown;
 
-        // Wohnflaeche
+        // Fakten-Chips (nur Wohnflaeche + Zimmer; leere Zeile komplett weg)
         if (property.LivingAreaM2.HasValue)
         {
             WohnflaechePanel.IsVisible = true;
-            WohnflaecheText.Text = Loc.LivingAreaFormat(PropertyDisplay.Number(property.LivingAreaM2.Value));
+            WohnflaecheText.Text = Loc.ChipLivingAreaFormat(PropertyDisplay.Number(property.LivingAreaM2.Value));
         }
         else
         {
             WohnflaechePanel.IsVisible = false;
         }
 
-        // Zimmer
         if (property.Rooms.HasValue)
         {
             RoomsPanel.IsVisible = true;
@@ -288,12 +276,21 @@ public partial class PropertyCard : ContentView
             RoomsPanel.IsVisible = false;
         }
 
-        // Anbieter (kompakt)
-        SellerBadgeText.Text = property.SellerType switch
-        {
-            SellerType.Private => Loc.SellerPrivate,
-            _ => property.SellerName
-        };
+        ChipsRow.IsVisible = property.LivingAreaM2.HasValue || property.Rooms.HasValue;
+
+        // Fusszeile: Anbieter-Label + Name (vertraegt fehlende Namen, kein haengender
+        // Trennpunkt); ZV zeigt wie die Detailseite "Gericht" statt des SellerTypes
+        // des ZV-Syncs
+        var sellerLabel = property.Type == PropertyType.Foreclosure
+            ? Loc.SellerCourt
+            : property.SellerType switch
+            {
+                SellerType.PropertyManager => Loc.SellerManager,
+                SellerType.Broker => Loc.SellerAgent,
+                _ => Loc.SellerPrivate
+            };
+        var sellerName = property.SellerName?.Trim();
+        SellerLineText.Text = string.IsNullOrEmpty(sellerName) ? sellerLabel : $"{sellerLabel} · {sellerName}";
 
         // Eingestellt am
         CreatedAtText.Text = property.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy");

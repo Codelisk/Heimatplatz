@@ -5,25 +5,26 @@
 
     <!--
     PropertyCard - Zettel auf der Anschlagtafel (Split-Design, Lesbarkeit vor Optik):
-    Papier-Karte mit Schlagschatten statt Rahmen, Foto mit Papierrand eingefasst
-    (nur Badges/Aktionen als Glas-Pills), darunter ein strukturierter Info-Block -
-    Preis (Serif, Rot), Ort/Adresse, Titel, Fakten-Pills und Meta-Zeile.
+    Ruhige Papier-Karte mit feiner Kontur statt umlaufendem Schlagschatten,
+    Foto mit Papierrand eingefasst
+    (nur Badges/Aktionen als Glas-Pills). Info-Block zweispaltig wie am Web-Zettel:
+    links Titel (Kopfzeile), "PLZ Ort" kraeftig und Strasse klein, rechts Preis
+    (Serif, Rot), Flaeche und Fakten-Chips. Fusszeile mit Anbieter/Datum ist an
+    den Kartenboden gepinnt (Sternzeile dazwischen) - Karten in einer Zeile sind
+    gleich hoch, auch wenn z.B. die Chips fehlen.
     Struktur/Deko in beiden Themes identisch, nur Farbtokens wechseln.
     -->
 
-    <Border StrokeThickness="0"
-            Stroke="Transparent"
+    <Border StrokeThickness="1"
+            Stroke="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}"
             BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
             StrokeShape="RoundRectangle 6"
             Padding="0">
-        <Border.Shadow>
-            <Shadow />
-        </Border.Shadow>
         <Border.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnCardTapped" />
         </Border.GestureRecognizers>
 
-        <Grid RowDefinitions="190,Auto">
+        <Grid RowDefinitions="190,*,Auto">
 
             <!-- Bild-Bereich: als Foto-Abzug mit Papierrand in den Zettel eingefasst -->
             <Border Grid.Row="0"
@@ -142,87 +143,117 @@
             </Grid>
             </Border>
 
-            <!-- Info-Block: alle Texte auf fester Flaeche -->
-            <VerticalStackLayout Grid.Row="1"
-                                 Padding="14,10,14,12"
-                                 Spacing="3">
+            <!-- Info-Block zweispaltig: links Kopf (Titel/Ort/Strasse), rechts Preisspalte -->
+            <Grid Grid.Row="1"
+                  ColumnDefinitions="*,Auto"
+                  ColumnSpacing="12"
+                  VerticalOptions="Start"
+                  Padding="14,10,14,14">
 
-                <!-- Preis im Serif-Schnitt; Dark = aufgehelltes Preis-Rot (Web-Token price) -->
-                <HorizontalStackLayout x:Name="PriceOverlay" IsVisible="False">
-                    <Label x:Name="PriceText"
-                           FontFamily="Display"
-                           FontSize="23"
-                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}" />
-                </HorizontalStackLayout>
-
-                <!-- Ort · Adresse in einer Zeile -->
-                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="5">
-                    <Label x:Name="OrtText"
-                           Grid.Column="0"
+                <!-- Gestaffelte Adresse: Titel als Kopfzeile, "PLZ Ort" kraeftig,
+                     Strasse klein und grau - zwei gleich graue Zeilen wirkten plump -->
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label x:Name="TitleText"
                            FontFamily="SansBold"
                            FontSize="15"
                            LineBreakMode="TailTruncation"
                            MaxLines="1"
                            TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                    <Label x:Name="OrtAddressSeparator"
-                           Grid.Column="1"
-                           Text="·"
-                           FontSize="14"
-                           VerticalOptions="Center"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                    <Label x:Name="AddressText"
-                           Grid.Column="2"
+                    <Label x:Name="LocationText"
+                           FontFamily="SansMedium"
                            FontSize="13"
-                           VerticalOptions="Center"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="1"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                    <Label x:Name="StreetText"
+                           FontSize="12"
                            LineBreakMode="TailTruncation"
                            MaxLines="1"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+
+                <!-- Preisspalte rechtsbuendig: Preis (Serif, Rot; Dark = aufgehelltes
+                     Preis-Rot, Web-Token price), darunter Flaeche und Fakten-Chips -->
+                <VerticalStackLayout Grid.Column="1">
+                    <Label x:Name="PriceText"
+                           FontFamily="Display"
+                           FontSize="20"
+                           HorizontalTextAlignment="End"
+                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}" />
+                    <Label x:Name="AreaText"
+                           FontFamily="SansSemibold"
+                           FontSize="12.5"
+                           Margin="0,3,0,0"
+                           HorizontalTextAlignment="End"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    <HorizontalStackLayout x:Name="ChipsRow"
+                                           Spacing="5"
+                                           Margin="0,6,0,0"
+                                           HorizontalOptions="End">
+                        <Border x:Name="WohnflaechePanel"
+                                Style="{StaticResource PillTag}"
+                                IsVisible="False">
+                            <Label x:Name="WohnflaecheText"
+                                   Style="{StaticResource PillTagText}" />
+                        </Border>
+
+                        <Border x:Name="RoomsPanel"
+                                Style="{StaticResource PillTag}"
+                                IsVisible="False">
+                            <Label x:Name="RoomsText"
+                                   Style="{StaticResource PillTagText}" />
+                        </Border>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Fusszeile am Kartenboden: Die Kartenflaeche laeuft bis unten
+                 durch; nur die Haarlinie trennt Metadaten vom Inhalt. Dadurch
+                 entstehen zwischen aufeinanderfolgenden Karten keine harten
+                 Farbbalken. Anbieter links (truncat), Datum rechts. -->
+            <Grid Grid.Row="2" RowDefinitions="Auto,Auto">
+                <BoxView Grid.Row="0"
+                         HeightRequest="1"
+                         Color="{AppThemeBinding Light={StaticResource DividerColor}, Dark={StaticResource DividerColorDark}}" />
+                <Grid Grid.Row="1"
+                      BackgroundColor="Transparent"
+                      ColumnDefinitions="*,Auto"
+                      Padding="14,8">
+                    <HorizontalStackLayout Grid.Column="0"
+                                           Spacing="6"
+                                           VerticalOptions="Center">
+                        <Image Source="icon_user.png"
+                               WidthRequest="14"
+                               HeightRequest="14"
+                               Margin="0,1,0,0"
+                               VerticalOptions="Center" />
+                        <Label x:Name="SellerLineText"
+                               FontSize="11"
+                               LineBreakMode="TailTruncation"
+                               MaxLines="1"
+                               VerticalOptions="Center"
+                               VerticalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout Grid.Column="1"
+                                           Spacing="6"
+                                           Margin="12,0,0,0"
+                                           HorizontalOptions="End"
+                                           VerticalOptions="Center">
+                        <Image Source="icon_calendar.png"
+                               WidthRequest="14"
+                               HeightRequest="14"
+                               Margin="0,1,0,0"
+                               VerticalOptions="Center" />
+                        <Label x:Name="CreatedAtText"
+                               FontSize="11"
+                               VerticalOptions="Center"
+                               VerticalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    </HorizontalStackLayout>
                 </Grid>
-
-                <Label x:Name="TitleText"
-                       FontSize="12"
-                       LineBreakMode="TailTruncation"
-                       MaxLines="1"
-                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-
-                <!-- Fakten-Pills -->
-                <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
-                    <Border x:Name="GrundstueckPanel"
-                            Style="{StaticResource PillTag}"
-                            IsVisible="False">
-                        <Label x:Name="GrundstueckText"
-                               Style="{StaticResource PillTagText}" />
-                    </Border>
-
-                    <Border x:Name="WohnflaechePanel"
-                            Style="{StaticResource PillTag}"
-                            IsVisible="False">
-                        <Label x:Name="WohnflaecheText"
-                               Style="{StaticResource PillTagText}" />
-                    </Border>
-
-                    <Border x:Name="RoomsPanel"
-                            Style="{StaticResource PillTag}"
-                            IsVisible="False">
-                        <Label x:Name="RoomsText"
-                               Style="{StaticResource PillTagText}" />
-                    </Border>
-                </HorizontalStackLayout>
-
-                <!-- Anbieter und Datum dezent -->
-                <HorizontalStackLayout Spacing="5" Margin="0,5,0,0">
-                    <Label x:Name="SellerBadgeText"
-                           FontSize="11"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-                    <Label x:Name="SellerDateSeparator"
-                           Text="·"
-                           FontSize="11"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-                    <Label x:Name="CreatedAtText"
-                           FontSize="11"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray400}}" />
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
+            </Grid>
         </Grid>
     </Border>
 </ContentView>

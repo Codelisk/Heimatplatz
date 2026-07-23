@@ -104,7 +104,7 @@
                             RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
                             controls:ResponsiveGrid.MinItemWidth="320">
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="16" />
+                    <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="20" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <Grid Padding="24,60,24,24">

@@ -33,8 +33,26 @@
   <data name="Rooms" xml:space="preserve">
     <value>{0} Zi</value>
   </data>
+  <data name="ChipLivingArea" xml:space="preserve">
+    <value>{0} Wfl</value>
+  </data>
+  <data name="AreaUnknown" xml:space="preserve">
+    <value>Fläche k.A.</value>
+  </data>
+  <data name="PriceOnRequest" xml:space="preserve">
+    <value>Preis offen</value>
+  </data>
   <data name="SellerPrivate" xml:space="preserve">
     <value>Privat</value>
+  </data>
+  <data name="SellerAgent" xml:space="preserve">
+    <value>Makler</value>
+  </data>
+  <data name="SellerManager" xml:space="preserve">
+    <value>Verwaltung</value>
+  </data>
+  <data name="SellerCourt" xml:space="preserve">
+    <value>Gericht</value>
   </data>
   <data name="FavoriteActionDescription" xml:space="preserve">
     <value>Immobilie merken</value>
