@@ -18,8 +18,6 @@ export const feedback = {
 
   // Formular
   "feedback.categoryLegend": "Worum geht es?",
-  "feedback.subjectLabel": "Betreff (optional)",
-  "feedback.subjectPlaceholder": "Kurz zusammengefasst …",
   "feedback.bodyLabel": "Deine Nachricht",
   "feedback.bodyPlaceholder":
     "Beschreib dein Anliegen - je konkreter, desto besser können wir helfen.",
@@ -60,6 +58,9 @@ export const feedback = {
   "feedback.listLoadFailed": "Anfragen konnten nicht geladen werden: {error}",
   "feedback.listUnread": "Neue Antwort",
   "feedback.listMessageCount": "{count} Nachrichten",
+  "feedback.renameAction": "Umbenennen",
+  "feedback.renamePrompt": "Neuer Titel für diese Anfrage",
+  "feedback.renameFailed": "Umbenennen fehlgeschlagen: {error}",
 
   // Verlauf (/feedback/anfrage)
   "feedback.threadMetaTitle": "Anfrage",

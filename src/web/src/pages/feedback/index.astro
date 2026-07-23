@@ -20,9 +20,6 @@ const categories = [
   { value: "Praise", icon: HeartIcon, label: t("feedback.categoryPraise"), hint: t("feedback.categoryPraiseHint") },
   { value: "Other", icon: DotsIcon, label: t("feedback.categoryOther"), hint: t("feedback.categoryOtherHint") },
 ];
-
-const inputClass =
-  "w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
 ---
 
 <BaseLayout
@@ -60,17 +57,6 @@ const inputClass =
             ))}
           </div>
         </fieldset>
-
-        <label class="mt-4 block">
-          <span class="mb-1 block text-sm font-medium">{t("feedback.subjectLabel")}</span>
-          <input
-            type="text"
-            name="subject"
-            maxlength="200"
-            placeholder={t("feedback.subjectPlaceholder")}
-            class={inputClass}
-          />
-        </label>
 
         <div class="mt-4">
           <MessageComposer placeholder={t("feedback.messagePlaceholder")} hint={t("feedback.composeHint")} />

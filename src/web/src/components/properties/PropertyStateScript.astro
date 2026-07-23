@@ -507,6 +507,7 @@
       const update = () => {
         const sellerSelected = Boolean(wantsToSell?.checked);
         if (sellerFields) sellerFields.hidden = !sellerSelected;
+        wantsToSell?.setAttribute("aria-expanded", String(sellerSelected));
         sellerTypes.forEach((input) => {
           input.disabled = !sellerSelected;
         });
@@ -3232,9 +3233,34 @@
 
       for (const ticket of tickets) {
         const item = document.createElement("li");
+        item.className = "relative";
+
+        // Eigener Button ausserhalb des <a> (kein interaktives Element im Link verschachteln) -
+        // der Auto-Titel ("Lob 1" etc.) laesst sich hier umbenennen, siehe categoryLegend-Flow.
+        const renameButton = document.createElement("button");
+        renameButton.type = "button";
+        renameButton.className = "absolute right-5 top-4 text-xs font-medium text-primary hover:underline";
+        renameButton.textContent = t("feedback.renameAction");
+        renameButton.addEventListener("click", async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const next = window.prompt(t("feedback.renamePrompt"), ticket.Subject)?.trim();
+          if (!next || next === ticket.Subject) return;
+
+          try {
+            await apiRequest("/api/feedback/subject", {
+              method: "POST",
+              body: { TicketId: ticket.Id, Subject: next },
+            });
+            void renderFeedbackTicketList();
+          } catch (cause) {
+            window.alert(t("feedback.renameFailed", { error: cause instanceof Error ? cause.message : String(cause) }));
+          }
+        });
+
         const link = document.createElement("a");
         link.href = `/feedback/anfrage/?id=${ticket.Id}`;
-        link.className = "block px-5 py-4 transition-colors hover:bg-muted/60";
+        link.className = "block px-5 py-4 pr-20 transition-colors hover:bg-muted/60";
 
         const badges = document.createElement("div");
         badges.className = "flex flex-wrap items-center gap-2";
@@ -3253,7 +3279,7 @@
         const meta = createText("p", "mt-1 text-xs text-muted-foreground", t("feedback.listMessageCount", { count: ticket.MessageCount }));
 
         link.append(badges, subject, preview, meta);
-        item.append(link);
+        item.append(link, renameButton);
         list.append(item);
       }
     } catch (cause) {
@@ -3346,7 +3372,6 @@
           method: "POST",
           body: {
             Category: formData.get("category")?.toString() ?? "Idea",
-            Subject: formData.get("subject")?.toString().trim() || null,
             Body: composer.text,
             Source: "Web",
             AppVersion: null,
@@ -3355,8 +3380,6 @@
         });
 
         composer.reset();
-        const subjectField = form!.querySelector<HTMLInputElement>("input[name='subject']");
-        if (subjectField) subjectField.value = "";
         void renderFeedbackTicketList();
       } catch (cause) {
         composer.setError(
