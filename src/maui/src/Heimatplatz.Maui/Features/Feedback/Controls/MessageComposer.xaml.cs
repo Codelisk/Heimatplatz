@@ -80,7 +80,7 @@ public partial class MessageComposer : ContentView
         {
             _decorView = decor;
             AndroidX.Core.View.ViewCompat.SetWindowInsetsAnimationCallback(
-                decor, new ImeFollowCallback(composerView));
+                decor, new ImeFollowCallback(composerView, decor));
         }
         else if (_decorView != null)
         {
@@ -94,30 +94,74 @@ public partial class MessageComposer : ContentView
     /// Der IME-Inset laeuft beim Ein-/Ausblenden weich von 0 auf volle Hoehe (bzw.
     /// zurueck), das spiegeln wir direkt in die Verschiebung - Bild fuer Bild, ohne
     /// Layout-Durchlauf. Die ContentPage respektiert mit SafeAreaEdges="Container"
-    /// bereits Navigationsleiste und Display-Cutout. Dieser Container-Inset wird daher
-    /// vom IME-Inset abgezogen; andernfalls entstuende unter der Eingabe genau dieser
-    /// Abstand ein zweites Mal. DispatchModeContinueOnSubtree laesst andere
-    /// Inset-Verbraucher (MAUI) unberuehrt.
+    /// bereits Navigationsleiste und Display-Cutout. Android liefert diesen bereits von
+    /// MAUI verbrauchten Container-Inset waehrend der IME-Animation auf manchen Samsung-
+    /// Geraeten als 0. Deshalb messen wir vor Animationsbeginn den realen Abstand zwischen
+    /// Composer und Fensterrand und ziehen ihn vom IME-Inset ab; andernfalls entstuende
+    /// unter der Eingabe genau dieser Abstand ein zweites Mal.
+    /// DispatchModeContinueOnSubtree laesst andere Inset-Verbraucher (MAUI) unberuehrt.
     /// </summary>
-    private sealed class ImeFollowCallback(Android.Views.View composerView)
-        : AndroidX.Core.View.WindowInsetsAnimationCompat.Callback(DispatchModeContinueOnSubtree)
+    private sealed class ImeFollowCallback
+        : AndroidX.Core.View.WindowInsetsAnimationCompat.Callback
     {
+        private readonly Android.Views.View _composerView;
+        private readonly Android.Views.View _decorView;
+        private int _containerBottom;
+        private bool _hasContainerBottom;
+
+        public ImeFollowCallback(
+            Android.Views.View composerView,
+            Android.Views.View decorView)
+            : base(DispatchModeContinueOnSubtree)
+        {
+            _composerView = composerView;
+            _decorView = decorView;
+            CaptureContainerBottom();
+        }
+
+        public override void OnPrepare(
+            AndroidX.Core.View.WindowInsetsAnimationCompat? animation)
+        {
+            if (animation != null
+                && (animation.TypeMask
+                    & AndroidX.Core.View.WindowInsetsCompat.Type.Ime()) != 0
+                && Math.Abs(_composerView.TranslationY) < 0.5f)
+            {
+                CaptureContainerBottom();
+            }
+
+            base.OnPrepare(animation);
+        }
+
         public override AndroidX.Core.View.WindowInsetsCompat OnProgress(
             AndroidX.Core.View.WindowInsetsCompat? insets,
             System.Collections.Generic.IList<AndroidX.Core.View.WindowInsetsAnimationCompat>? runningAnimations)
         {
             if (insets != null)
             {
+                if (!_hasContainerBottom && Math.Abs(_composerView.TranslationY) < 0.5f)
+                    CaptureContainerBottom();
+
                 var imeBottom = insets
                     .GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.Ime())?.Bottom ?? 0;
-                var containerBottom = insets.GetInsets(
-                    AndroidX.Core.View.WindowInsetsCompat.Type.SystemBars()
-                    | AndroidX.Core.View.WindowInsetsCompat.Type.DisplayCutout())?.Bottom ?? 0;
-                var keyboardOffset = Math.Max(0, imeBottom - containerBottom);
-                composerView.TranslationY = -keyboardOffset;
+                var keyboardOffset = Math.Max(0, imeBottom - _containerBottom);
+                _composerView.TranslationY = -keyboardOffset;
             }
 
             return insets ?? AndroidX.Core.View.WindowInsetsCompat.Consumed!;
+        }
+
+        private void CaptureContainerBottom()
+        {
+            if (_decorView.Height <= 0 || _composerView.Height <= 0)
+                return;
+
+            var location = new int[2];
+            _composerView.GetLocationInWindow(location);
+
+            var composerBottom = location[1] + _composerView.Height;
+            _containerBottom = Math.Max(0, _decorView.Height - composerBottom);
+            _hasContainerBottom = true;
         }
     }
 #endif
