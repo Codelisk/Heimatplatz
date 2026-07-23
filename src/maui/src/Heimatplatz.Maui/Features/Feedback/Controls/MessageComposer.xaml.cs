@@ -96,9 +96,9 @@ public partial class MessageComposer : ContentView
     /// Layout-Durchlauf. Die ContentPage respektiert mit SafeAreaEdges="Container"
     /// bereits Navigationsleiste und Display-Cutout. Android liefert diesen bereits von
     /// MAUI verbrauchten Container-Inset waehrend der IME-Animation auf manchen Samsung-
-    /// Geraeten als 0. Deshalb messen wir vor Animationsbeginn den realen Abstand zwischen
-    /// Composer und Fensterrand und ziehen ihn vom IME-Inset ab; andernfalls entstuende
-    /// unter der Eingabe genau dieser Abstand ein zweites Mal.
+    /// Geraeten als 0. Deshalb lesen wir den stabilen Navigationsleisten-Inset direkt
+    /// von den unbeschnittenen RootWindowInsets und ziehen ihn vom IME-Inset ab;
+    /// andernfalls entstuende unter der Eingabe genau dieser Abstand ein zweites Mal.
     /// DispatchModeContinueOnSubtree laesst andere Inset-Verbraucher (MAUI) unberuehrt.
     /// </summary>
     private sealed class ImeFollowCallback
@@ -153,14 +153,13 @@ public partial class MessageComposer : ContentView
 
         private void CaptureContainerBottom()
         {
-            if (_decorView.Height <= 0 || _composerView.Height <= 0)
+            var rootInsets = AndroidX.Core.View.ViewCompat.GetRootWindowInsets(_decorView);
+            if (rootInsets == null)
                 return;
 
-            var location = new int[2];
-            _composerView.GetLocationInWindow(location);
-
-            var composerBottom = location[1] + _composerView.Height;
-            _containerBottom = Math.Max(0, _decorView.Height - composerBottom);
+            _containerBottom = rootInsets.GetInsetsIgnoringVisibility(
+                AndroidX.Core.View.WindowInsetsCompat.Type.NavigationBars()
+                | AndroidX.Core.View.WindowInsetsCompat.Type.DisplayCutout())?.Bottom ?? 0;
             _hasContainerBottom = true;
         }
     }
