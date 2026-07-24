@@ -6,8 +6,11 @@ namespace Heimatplatz.Api.IntegrationTests.Infrastructure;
 /// <summary>
 /// API-Testhost mit einer eigenen temporaeren SQLite-Datei.
 /// Damit lassen sich Provider-spezifische Fehler testen, die EF InMemory nicht abbildet.
+/// Ueber <paramref name="extraSettings"/> koennen Tests zusaetzliche Konfiguration
+/// setzen (z.B. Admin:ApiKey fuer die /api/admin-Endpoints).
 /// </summary>
-public sealed class SqliteWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram>
+public sealed class SqliteWebApplicationFactory<TProgram>(IDictionary<string, string>? extraSettings = null)
+    : WebApplicationFactory<TProgram>
     where TProgram : class
 {
     private readonly string databasePath = Path.Combine(
@@ -24,6 +27,14 @@ public sealed class SqliteWebApplicationFactory<TProgram> : WebApplicationFactor
         builder.UseSetting("Database:AutoMigrate", "true");
         builder.UseSetting("Database:EnableSeeding", "false");
         builder.UseSetting("Database:ForceRecreate", "false");
+
+        if (extraSettings != null)
+        {
+            foreach (var (key, value) in extraSettings)
+            {
+                builder.UseSetting(key, value);
+            }
+        }
     }
 
     protected override void Dispose(bool disposing)

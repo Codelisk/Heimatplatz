@@ -119,6 +119,39 @@ public class PropertyListDataEndpointTests : BaseApiIntegrationTest
         item.GetProperty("Price").GetDecimal().Should().Be(minimumBid);
     }
 
+    [Test]
+    public async Task CreateForeclosureWithPastAuctionDate_IsRejected()
+    {
+        var accessToken = await RegisterSellerAsync("zvpast");
+        var (municipalityId, _) = await GetFirstMunicipalityAsync();
+
+        Client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", accessToken);
+        var createResponse = await Client.PostAsJsonAsync("/api/properties", new
+        {
+            Title = "Zwangsversteigerung mit vergangenem Termin",
+            Address = "Teststrasse 12",
+            MunicipalityId = municipalityId,
+            Price = 150_000,
+            Type = "Foreclosure",
+            Description = "Ausfuehrliche Beschreibung dieser unzulaessigen Test-Zwangsversteigerung mit mehr als fuenfzig Zeichen.",
+            Features = Array.Empty<string>(),
+            ImageUrls = new[] { "/uploads/zv.jpg" },
+            TypeSpecificData = new Dictionary<string, object>
+            {
+                ["CourtName"] = "BG Testgericht",
+                ["AuctionDate"] = DateTime.UtcNow.AddDays(-5).ToString("O"),
+                ["MinimumBid"] = 150_000m,
+                ["Encumbrances"] = Array.Empty<object>(),
+                ["Status"] = "Scheduled",
+                ["FileNumber"] = "1 E 24/26y"
+            }
+        });
+
+        // WEB-017: vergangene Versteigerungstermine sind beim Erstellen unzulaessig
+        createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
     private async Task<(Guid Id, string PostalCode)> GetFirstMunicipalityAsync()
     {
         var locationsResponse = await Client.GetAsync("/api/locations");
