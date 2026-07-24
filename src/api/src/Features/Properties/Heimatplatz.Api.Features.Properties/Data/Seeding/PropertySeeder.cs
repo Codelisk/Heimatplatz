@@ -382,6 +382,10 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                     // Der allgemeine Price-Wert ist bei Zwangsversteigerungen das
                     // Mindestgebot (gleiche Invariante wie beim EDIKTE-Sync).
                     property.Price = minimumBid;
+                    // Seed-ZVs simulieren Gerichts-Importe: ohne die Sync-Quelle wuerde
+                    // das Web die SellerType-Rolle ("Makler") statt "Gericht" anzeigen.
+                    // Keine SourceId -> kein Konflikt mit dem Dedup des Edikte-Syncs.
+                    property.SourceName = "edikte.justiz.gv.at";
                     break;
             }
         }

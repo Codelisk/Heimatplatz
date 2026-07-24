@@ -100,12 +100,13 @@ const { placeholder, hint } = Astro.props;
     </button>
   </div>
 
-  {/* versteckte Datei-Eingaben */}
+  {/* versteckte Datei-Eingaben - deutsche Namen statt Browser-"Choose File" (WEB-038) */}
   <input
     type="file"
     accept="image/jpeg,image/png,image/webp"
     multiple
     class="sr-only"
+    aria-label={t("feedback.attachImages")}
     data-composer-files
   />
   <input
@@ -113,6 +114,7 @@ const { placeholder, hint } = Astro.props;
     accept="image/*"
     capture="environment"
     class="sr-only"
+    aria-label={t("feedback.attachCamera")}
     data-composer-capture
   />
 </div>

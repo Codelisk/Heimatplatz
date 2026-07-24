@@ -9,8 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace Heimatplatz.Api.Features.Properties.Data.Seeding;
 
 /// <summary>
-/// Korrigiert bestehende Demo-Zwangsversteigerungen, bei denen Price noch den
-/// ursprünglichen Marktwert statt des Mindestgebots enthielt. Nur bekannte
+/// Korrigiert bestehende Demo-Zwangsversteigerungen: Price noch als Marktwert
+/// statt Mindestgebot sowie fehlender SourceName (ohne die Sync-Quelle zeigt das
+/// Web die SellerType-Rolle "Makler" statt "Gericht"). Nur bekannte
 /// Seed-Inserate werden verändert; echte Inserate und Produktionsdaten bleiben
 /// unberührt, weil dieser Seeder Demo-Daten behandelt.
 /// </summary>
@@ -31,14 +32,24 @@ public class PropertyForeclosurePriceFixSeeder(
         foreach (var property in properties)
         {
             var data = property.GetTypedData<ForeclosurePropertyData>();
-            if (data is not { MinimumBid: > 0 } || property.Price == data.MinimumBid)
-                continue;
+            if (data is { MinimumBid: > 0 } && property.Price != data.MinimumBid)
+            {
+                logger.LogInformation(
+                    "[PropertyForeclosurePriceFix] '{Title}': Price von {OldPrice} auf Mindestgebot {MinimumBid} korrigiert",
+                    property.Title, property.Price, data.MinimumBid);
+                property.Price = data.MinimumBid;
+                hasChanges = true;
+            }
 
-            logger.LogInformation(
-                "[PropertyForeclosurePriceFix] '{Title}': Price von {OldPrice} auf Mindestgebot {MinimumBid} korrigiert",
-                property.Title, property.Price, data.MinimumBid);
-            property.Price = data.MinimumBid;
-            hasChanges = true;
+            // Seed-ZVs simulieren Gerichts-Importe (siehe PropertySeeder)
+            if (string.IsNullOrEmpty(property.SourceName))
+            {
+                logger.LogInformation(
+                    "[PropertyForeclosurePriceFix] '{Title}': SourceName auf Edikte-Sync-Quelle gesetzt",
+                    property.Title);
+                property.SourceName = "edikte.justiz.gv.at";
+                hasChanges = true;
+            }
         }
 
         if (hasChanges)
