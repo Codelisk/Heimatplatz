@@ -16,8 +16,8 @@ namespace Heimatplatz.Api.Features.Firmenbuch.Services;
 /// Praefix exakt das Limit, wird er verfeinert ("aa*", "ab*", ...) bis unter dem Deckel.
 /// Die (moeglicherweise abgeschnittenen) Treffer eines gedeckelten Praefixes werden trotzdem
 /// gespeichert - die Verfeinerungen liefern sie erneut, der Upsert ist idempotent.
-/// Speichert nach JEDER Suchanfrage (Teilfortschritt sichtbar, Abbruch verliert nichts -
-/// gleiches Muster wie der WKO-Sync seit 22.7.2026).
+/// Speichert nach JEDER Suchanfrage, damit Teilfortschritt sichtbar bleibt und ein Abbruch
+/// bereits geladene Daten nicht verliert.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class FirmenbuchCatalogSyncService(

@@ -54,17 +54,6 @@ export const intern = {
   "intern.syncExplainer":
     "Holt die aktuelle Ediktsliste (Oberösterreich) von edikte.justiz.gv.at, aktualisiert die Zwangsversteigerungen und leitet daraus Immobilien-Inserate ab. Läuft nicht automatisch - nur bei manuellem Auslösen hier.",
 
-  // WKO-Firmen-Sync
-  "intern.wkoSyncHeading": "WKO-Firmen-Sync (Immobilienbranche OÖ)",
-  "intern.wkoSyncTriggered":
-    "WKO-Sync wurde gestartet und läuft im Hintergrund (mehrere Suchbegriffe mit Verzögerung pro Request - beim ersten Lauf mit allen Detailseiten kann das 30-60 Minuten dauern, danach nur noch wenige Minuten). Lade diese Seite später neu, um das Ergebnis zu sehen.",
-  "intern.wkoSyncFailed": "WKO-Sync konnte nicht gestartet werden. Ist die API erreichbar?",
-  "intern.wkoActiveCompanies": "Aktive Firmen",
-  "intern.wkoRemovedCompanies": "Nicht mehr gelistet",
-  "intern.wkoStartSync": "WKO-Sync jetzt starten",
-  "intern.wkoSyncExplainer":
-    "Durchsucht firmen.wko.at nach Immobilien-Firmen in Oberösterreich (Makler, Treuhänder, Verwaltung, Büro) und speichert Kontaktdaten, Firmendaten und Gewerbeberechtigungen. Bereits bekannte Firmen werden beim erneuten Lauf übersprungen - nur neue Firmen werden voll gescraped. Läuft nicht automatisch - nur bei manuellem Auslösen hier.",
-
   // Nutzerverwaltung (/intern/nutzer)
   "intern.usersMetaTitle": "Intern – Nutzer",
   "intern.usersTitle": "Nutzer",
@@ -448,62 +437,6 @@ export const intern = {
   "intern.mkInboxMarkUnread": "Als ungelesen markieren",
   "intern.mkInboxShowBody": "Nachricht anzeigen",
   "intern.mkInboxReadOk": "Markierung aktualisiert.",
-
-  // WKO-Firmen-Übersicht (/intern/firmen)
-  "intern.navWkoCompanies": "Firmen (WKO)",
-  "intern.navWkoCompaniesDescription":
-    "Von firmen.wko.at gescrapte Immobilien-Firmen in Oberösterreich einsehen und durchsuchen.",
-  "intern.wkoMetaTitle": "Intern – Firmen (WKO)",
-  "intern.wkoTitle": "Firmen (WKO)",
-  "intern.wkoIntro":
-    "Immobilien-Firmen in Oberösterreich, gescraped von firmen.wko.at. Firmenbuch-Spalten (amtliches Gründungsdatum, EUID, Geschäftsführung) sind erst befüllt, sobald ein Firmenbuch-HVD-API-Key konfiguriert ist und der Sync erneut lief.",
-  "intern.wkoSearchPlaceholder": "Name oder Branche suchen …",
-  "intern.wkoFilterCityAll": "Alle Orte",
-  "intern.wkoFilterStatusAll": "Alle",
-  "intern.wkoFilterStatusActive": "Nur aktive",
-  "intern.wkoFilterStatusInactive": "Nur nicht mehr gelistete",
-  "intern.wkoLoadFailed": "Firmen konnten nicht geladen werden. Ist die API erreichbar?",
-  "intern.wkoTotal": "{count} Firmen",
-  "intern.wkoEmpty": "Keine Firmen gefunden.",
-  "intern.wkoColFounded": "Gegründet",
-  "intern.wkoFoundedOfficial": "amtlich",
-  "intern.wkoFoundedApprox": "laut Gewerbeberechtigung",
-  "intern.wkoBadgeInactive": "nicht mehr gelistet",
-  "intern.wkoBadgeTrainingCompany": "Lehrbetrieb",
-  "intern.wkoDetailLink": "Details",
-  "intern.wkoWkoLink": "WKO-Eintrag",
-
-  // WKO-Firmen-Detail (/intern/firmen/detail)
-  "intern.wkoDetailMetaTitle": "Intern – Firmendetail",
-  "intern.wkoDetailNotFound": "Firma nicht gefunden.",
-  "intern.wkoDetailBackToList": "Zurück zur Übersicht",
-  "intern.wkoDetailContactHeading": "Kontakt",
-  "intern.wkoDetailCompanyHeading": "Firmendaten",
-  "intern.wkoDetailFirmenbuchHeading": "Amtliche Firmenbuch-Daten",
-  "intern.wkoDetailFirmenbuchNotEnriched":
-    "Noch nicht angereichert (kein Firmenbuch-HVD-API-Key konfiguriert oder Sync steht noch aus).",
-  "intern.wkoDetailPermitsHeading": "Gewerbeberechtigungen",
-  "intern.wkoDetailPermitsEmpty": "Keine Gewerbeberechtigungen erfasst.",
-  "intern.wkoDetailManagingDirectorsHeading": "Geschäftsführung laut Firmenbuch",
-  "intern.wkoDetailScrapingHeading": "Scraping-Daten",
-  "intern.wkoDetailFieldStreet": "Straße",
-  "intern.wkoDetailFieldPostalCode": "PLZ",
-  "intern.wkoDetailFieldCity": "Ort",
-  "intern.wkoDetailFieldPhones": "Telefon",
-  "intern.wkoDetailFieldEmail": "E-Mail",
-  "intern.wkoDetailFieldWebsite": "Website",
-  "intern.wkoDetailFieldOpeningHours": "Öffnungszeiten",
-  "intern.wkoDetailFieldLegalForm": "Rechtsform",
-  "intern.wkoDetailFieldCompanyRegisterNumber": "Firmenbuchnummer",
-  "intern.wkoDetailFieldCompanyCourt": "Firmengericht",
-  "intern.wkoDetailFieldGln": "GLN",
-  "intern.wkoDetailFieldFoundedYear": "Gründungsjahr (Näherung)",
-  "intern.wkoDetailFieldEuid": "EUID",
-  "intern.wkoDetailFieldFirmenbuchFoundedDate": "Amtliches Gründungsdatum",
-  "intern.wkoDetailFieldSourceSearchTerm": "Gefunden über Suchbegriff",
-  "intern.wkoDetailFieldFirstSeenAt": "Erstmals gescraped",
-  "intern.wkoDetailFieldLastScrapedAt": "Zuletzt gescraped",
-  "intern.wkoDetailFieldFirmenbuchEnrichedAt": "Firmenbuch zuletzt angereichert",
 
   // Analytics-Section (/intern/analytics)
   "intern.analyticsMetaTitle": "Intern – Analytics",

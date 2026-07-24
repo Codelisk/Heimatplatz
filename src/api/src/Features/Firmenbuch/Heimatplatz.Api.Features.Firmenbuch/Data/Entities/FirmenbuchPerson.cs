@@ -2,8 +2,7 @@ namespace Heimatplatz.Api.Features.Firmenbuch.Data.Entities;
 
 /// <summary>
 /// Person aus dem amtlichen Firmenbuch-Auszug (Geschaeftsfuehrung o.ae.), ueber die
-/// FBW-WebServices (HVD)-Schnittstelle angereichert. Wird wie WkoCompanyPermit als
-/// JSON-Liste auf der Entity gespeichert - kein eigenes Kind-Entity noetig.
+/// FBW-WebServices (HVD)-Schnittstelle geladen.
 /// </summary>
 public record FirmenbuchPerson
 {

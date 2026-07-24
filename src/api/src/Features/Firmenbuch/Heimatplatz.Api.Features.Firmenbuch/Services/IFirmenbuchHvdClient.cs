@@ -49,7 +49,7 @@ public record FirmenbuchSearchResult
     public string? GerichtText { get; init; }
 }
 
-/// <summary>Amtlicher Firmenbuch-Kurzauszug, reduziert auf die fuer WkoCompany relevanten Felder.</summary>
+/// <summary>Amtlicher Firmenbuch-Kurzauszug mit den für Detailansichten relevanten Feldern.</summary>
 public record FirmenbuchAuszug
 {
     /// <summary>European Unique Identifier (EUID)</summary>

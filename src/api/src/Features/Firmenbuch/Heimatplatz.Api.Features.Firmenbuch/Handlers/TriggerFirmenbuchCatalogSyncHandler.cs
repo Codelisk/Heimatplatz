@@ -48,7 +48,7 @@ public class TriggerFirmenbuchCatalogSyncHandler(
 
         var ortNr = request.OrtNr?.Trim() ?? string.Empty;
 
-        // Fire-and-forget wie beim WKO-/Edikte-Sync: HTTP-Request kehrt sofort zurueck,
+        // Fire-and-forget wie beim Edikte-Sync: HTTP-Request kehrt sofort zurueck,
         // Fortschritt ist dank inkrementellem Speichern laufend ueber /catalog/status sichtbar.
         _ = Task.Run(async () =>
         {

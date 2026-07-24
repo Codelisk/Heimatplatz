@@ -15,8 +15,8 @@ namespace Heimatplatz.Api.Features.SearchConsole.Services;
 /// Server-zu-Server-Client fuer die Google Search Console API (searchanalytics.query).
 /// Auth ueber einen Service-Account-JSON-Key (kein OAuth-Consent-Flow - der Service-Account
 /// wird als "Eingeschraenkter" Nutzer in Search Console zur Property hinzugefuegt, siehe
-/// README). Fail-soft wie die Firebase/APNs-Konfiguration im Notifications-Feature UND wie
-/// FirmenbuchHvdClient im WkoCompanies-Feature: fehlender/ungueltiger Key oder ein API-Fehler
+/// README). Fail-soft wie die Firebase/APNs-Konfiguration im Notifications-Feature:
+/// Ein fehlender/ungueltiger Key oder ein API-Fehler
 /// werfen keine Exception, sondern liefern Enabled=false - die Intern-Seite zeigt dann nur
 /// einen Hinweis statt eines 500ers.
 /// </summary>

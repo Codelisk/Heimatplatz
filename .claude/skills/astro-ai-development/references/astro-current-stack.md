@@ -29,7 +29,7 @@ Treat `package.json` and `package-lock.json` as authoritative if these versions 
 - `src/config/site.ts`: canonical site URL, API URL, locale, default metadata, and branding
 - `src/layouts/BaseLayout.astro`: page chrome, metadata, Open Graph, JSON-LD, analytics, header, footer, and shared browser state
 - `src/features/{domain}`: typed domain API access, search/query state, formatters, and presentation helpers
-- `src/lib/server`: server-only API base URL, TTL cache, admin API, CSRF guard, WKO, and Firmenbuch helpers
+- `src/lib/server`: server-only API base URL, TTL cache, admin API, CSRF guard, and Firmenbuch helpers
 - `src/lib/seo.ts` and `src/lib/llms.ts`: structured data, canonical URLs, and LLM endpoint formatting
 - `src/components/starwind`: installed Starwind source components
 - `src/i18n/de`: German user-facing strings

@@ -5,8 +5,8 @@ namespace Heimatplatz.Api.Features.Firmenbuch.Configuration;
 /// Bundesministeriums fuer Justiz (High Value Dataset nach DVO (EU) 2023/138 - im Gegensatz
 /// zu openfirmenbuch.at, deren Nutzungsbedingungen automatisiertes Scraping explizit
 /// untersagen, ist dieser Weg fuer maschinelle Nutzung vorgesehen). Ohne konfigurierten
-/// ApiKey bleibt der Client deaktiviert (kein HTTP-Request) - Aufrufer wie die
-/// WkoCompanies-Anreicherung oder der Katalog-Sync laufen dann leer.
+/// ApiKey bleibt der Client deaktiviert (kein HTTP-Request); der Katalog-Sync laeuft
+/// dann leer.
 /// </summary>
 public class FirmenbuchHvdOptions
 {

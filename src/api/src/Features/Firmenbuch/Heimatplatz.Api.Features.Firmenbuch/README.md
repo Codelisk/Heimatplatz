@@ -9,8 +9,7 @@ gespeicherter **Firmenbuch-Katalog** (Firmenstammdaten, unabhaengig von einer Br
 - **`FirmenbuchHvdClient`** (`IFirmenbuchHvdClient`): SOAP-1.2-Client fuer die FBW-WebServices
   (`X-API-KEY`-Header = JustizOnline-IWG-Zugriffstoken). Operationen:
   - `GetAuszugAsync(fnr)`: amtlicher Kurzauszug (EUID, Ersteintragungsdatum/DATERST,
-    Geschaeftsfuehrung samt Geburtsdatum). Wird u.a. vom WkoCompanies-Feature fuer die
-    Anreicherung genutzt.
+    Geschaeftsfuehrung samt Geburtsdatum).
   - `SearchAsync(wortlaut, ortNr)`: `SUCHEFIRMA` mit Wildcards (`*muster*`) und
     Orts-/Bezirks-/Bundesland-Einschraenkung (ORTNR 5-/3-/1-stellig, z.B. `4` = OOe).
     Antwort ist auf 1000 Treffer gedeckelt (kein Flag - exakt 1000 = vermutlich abgeschnitten).
@@ -40,7 +39,7 @@ Abschnitt `Firmenbuch:Hvd` (`FirmenbuchHvdOptions`):
 | `ApiKey` | `JustizOnline:IwgApiKey` | X-API-KEY; Default ist der zentrale JustizOnline-IWG-Token (PostConfigure-Fallback), hier setzbar als Override; ganz ohne Wert = Client deaktiviert |
 | `TimeoutSeconds` | `30` | |
 | `DelayBetweenRequestsMs` | `300` | Rate-Limit zwischen Requests (Gateway liefert bei Ueberlast HTTP 429, Resilience-Handler retryt) |
-| `SyncTriggerKey` | - | Shared-Key fuer `POST /api/firmenbuch/catalog/sync` (Header `X-Sync-Key`), fail-closed ausserhalb Development. In Prod auf denselben `SYNC_TRIGGER_KEY` gemappt wie Edikte/WKO. |
+| `SyncTriggerKey` | - | Shared-Key fuer `POST /api/firmenbuch/catalog/sync` (Header `X-Sync-Key`), fail-closed ausserhalb Development. In Prod auf denselben `SYNC_TRIGGER_KEY` gemappt wie der Edikte-Sync. |
 
 ## Abhaengigkeiten
 
@@ -48,9 +47,6 @@ Abschnitt `Firmenbuch:Hvd` (`FirmenbuchHvdOptions`):
 - `Heimatplatz.Api.Core.Data` (BaseEntity, AppDbContext)
 - `Heimatplatz.Api.Shared` (DI-Konstanten, SharedKeyAuthorization)
 - `Shiny.Mediator`
-
-Das WkoCompanies-Feature referenziert dieses Projekt fuer die Firmenbuch-Anreicherung
-(`IFirmenbuchHvdClient`, `FirmenbuchPerson`).
 
 ## Verwendung
 

@@ -10,10 +10,9 @@ namespace Heimatplatz.Api.Features.Firmenbuch.Services;
 
 /// <summary>
 /// Client fuer die amtliche "FBW-WebServices (HVD)"-Schnittstelle des Bundesministeriums fuer
-/// Justiz (SOAP 1.2, X-API-KEY-Header = JustizOnline-IWG-Zugriffstoken). Reichert
-/// WkoCompany-Datensaetze ueber die Firmenbuchnummer (FNR) mit amtlichen Daten an: praezises
-/// Gruendungsdatum (DATERST, Fallback fruehestes Vollzugsdatum), EUID und Geschaeftsfuehrung
-/// samt Geburtsdatum. Kein WSDL/SOAP-Toolchain
+/// Justiz (SOAP 1.2, X-API-KEY-Header = JustizOnline-IWG-Zugriffstoken). Liefert zu einer
+/// Firmenbuchnummer (FNR) amtliche Daten: praezises Gruendungsdatum (DATERST, Fallback
+/// fruehestes Vollzugsdatum), EUID und Geschaeftsfuehrung samt Geburtsdatum. Kein WSDL/SOAP-Toolchain
 /// im Einsatz - Request/Response werden direkt per XDocument gebaut/geparst (Antwort-Elemente
 /// werden ueber LocalName statt exakter Namespace-Praefixe gesucht, da die Schnittstelle in
 /// jeder Antwort alle bekannten Namespaces deklariert, unabhaengig von der aufgerufenen
@@ -263,7 +262,7 @@ public class FirmenbuchHvdClient(
     }
 
     /// <summary>
-    /// WKO liefert die Firmenbuchnummer teils mit "FN"-Praefix oder Leerzeichen vor dem
+    /// Firmenbuchnummern kommen teils mit "FN"-Praefix oder Leerzeichen vor dem
     /// Pruefzeichen ("FN 120121 z") - die Schnittstelle erwartet nur Ziffern+Pruefzeichen
     /// und lehnt alles andere mit einem SOAP-Fault ab.
     /// </summary>
