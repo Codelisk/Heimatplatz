@@ -86,9 +86,9 @@
     </Shell.FlyoutContent>
 
     <Shell.FlyoutHeader>
-        <!-- Galerie-Header: Light als warme Papierflaeche mit sanftem Markenrot-Tint,
-             Dark weiterhin als warme dunkle Karte. So fuegt sich der Header ins jeweilige
-             Theme ein, ohne die klare Markenwirkung zu verlieren. -->
+        <!-- Galerie-Header: Light als ruhiger Ton-in-Ton-Verlauf aus den warmen
+             Papierflaechen der App, Dark weiterhin als warme dunkle Karte. Das
+             Markenrot bleibt Logo und Flaggenband vorbehalten. -->
         <Grid Padding="20,44,20,22"
               ColumnDefinitions="Auto,*"
               ColumnSpacing="14">
@@ -96,7 +96,7 @@
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
                                   Offset="0" />
-                    <GradientStop Color="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource CardBackgroundDark}}"
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource CardBackgroundDark}}"
                                   Offset="1" />
                 </LinearGradientBrush>
             </Grid.Background>
