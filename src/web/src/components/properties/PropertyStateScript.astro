@@ -1,6 +1,6 @@
 <script>
   import { getResponsiveImage } from "@/lib/images";
-  import { buildLoginHref } from "@/lib/navigation";
+  import { buildLoginHref, buildRegisterHref } from "@/lib/navigation";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
   import { formatApiPrice, getApiLocationLine, getApiStreetLine, getDisplayTitle } from "@/features/properties/format";
   import { t } from "@/i18n";
@@ -99,6 +99,8 @@
     drafts: "heimatplatz:property-drafts",
     notificationPreferences: "heimatplatz:notification-preferences",
     filterPreferences: "heimatplatz:filter-preferences",
+    pendingNotificationPreferences: "heimatplatz:pending-notification-preferences",
+    pendingFilterPreferences: "heimatplatz:pending-filter-preferences",
     webPushDeviceId: "heimatplatz:web-push-device-id",
   };
 
@@ -110,6 +112,7 @@
   let municipalityPromise: Promise<Municipality[]> | null = null;
   let propertyActionRevision = 0;
   let preferenceLoadRevision = 0;
+  let propertyActionStatusTimer: number | null = null;
 
   function readArray<T = string>(key: string): T[] {
     try {
@@ -230,13 +233,19 @@
     renderAuthState();
   }
 
-  function clearUserStateCache() {
+  function clearUserStateCache(options: { preservePendingPreferences?: boolean } = {}) {
     [
       STORAGE_KEYS.favorites,
       STORAGE_KEYS.blocked,
       STORAGE_KEYS.notificationPreferences,
       STORAGE_KEYS.filterPreferences,
     ].forEach((key) => window.localStorage.removeItem(key));
+    if (!options.preservePendingPreferences) {
+      [
+        STORAGE_KEYS.pendingNotificationPreferences,
+        STORAGE_KEYS.pendingFilterPreferences,
+      ].forEach((key) => window.localStorage.removeItem(key));
+    }
     propertyActionRevision += 1;
     preferenceLoadRevision += 1;
   }
@@ -511,6 +520,9 @@
     document.querySelectorAll<HTMLElement>("[data-auth-role-buyer]").forEach((element) => {
       element.hidden = !isBuyer;
     });
+    document.querySelectorAll<HTMLElement>("[data-auth-role-buyer-only]").forEach((element) => {
+      element.hidden = !isBuyer || isSeller;
+    });
     document.querySelectorAll<HTMLElement>("[data-auth-role-seller]").forEach((element) => {
       element.hidden = !isSeller;
     });
@@ -616,8 +628,12 @@
 
           // Kontogebundene Browser-Caches duerfen nicht vom vorherigen Benutzer
           // in die neue Sitzung uebernommen werden; die Zielseite hydratisiert sie neu.
-          clearUserStateCache();
+          clearUserStateCache({ preservePendingPreferences: true });
           saveSession(session);
+          // Gast-Einstellungen gehoeren bewusst zur neuen Sitzung. Der Sync
+          // wird vor der Weiterleitung versucht und bei Netzfehlern auf der
+          // Zielseite automatisch wiederholt.
+          await syncPendingPreferences();
           setFormStatus(form, t("auth.statusLoggedIn"), "success");
           if (mode === "register") {
             window.rybbit?.event("registration_completed", { seller: String(wantsSeller) });
@@ -667,6 +683,10 @@
 
   function getLoginHrefForCurrentPage() {
     return buildLoginHref(`${window.location.pathname}${window.location.search}`);
+  }
+
+  function getRegisterHrefForCurrentPage() {
+    return buildRegisterHref(`${window.location.pathname}${window.location.search}`);
   }
 
   // Profil-Formular: laedt die aktuellen Daten und speichert Aenderungen
@@ -1070,6 +1090,51 @@
 
   type PreferenceMode = "notifications" | "filters";
 
+  type PendingPreferenceSyncResult = "none" | "synced" | "failed";
+
+  function getPreferenceConfig(mode: PreferenceMode) {
+    return mode === "notifications"
+      ? {
+          endpoint: "/api/notifications/preferences",
+          method: "PUT",
+          storageKey: STORAGE_KEYS.notificationPreferences,
+          pendingKey: STORAGE_KEYS.pendingNotificationPreferences,
+        }
+      : {
+          endpoint: "/api/auth/filter-preferences",
+          method: "POST",
+          storageKey: STORAGE_KEYS.filterPreferences,
+          pendingKey: STORAGE_KEYS.pendingFilterPreferences,
+        };
+  }
+
+  async function syncPendingPreference(mode: PreferenceMode): Promise<PendingPreferenceSyncResult> {
+    if (!readSession()) return "none";
+
+    const config = getPreferenceConfig(mode);
+    const pending = readJson<Record<string, unknown>>(config.pendingKey);
+    if (!pending) return "none";
+
+    try {
+      await apiRequest(config.endpoint, { method: config.method, body: pending });
+      writeJson(config.storageKey, pending);
+      window.localStorage.removeItem(config.pendingKey);
+      return "synced";
+    } catch (error) {
+      // Pending-Daten bleiben erhalten und werden beim naechsten Seitenaufruf
+      // erneut versucht. Ein nachfolgendes GET darf sie nicht ueberschreiben.
+      console.warn(`[Heimatplatz] ${mode} preferences pending sync failed`, error);
+      return "failed";
+    }
+  }
+
+  async function syncPendingPreferences() {
+    await Promise.all([
+      syncPendingPreference("notifications"),
+      syncPendingPreference("filters"),
+    ]);
+  }
+
   function applyPreferencesToForm(
     form: HTMLFormElement,
     mode: PreferenceMode,
@@ -1132,6 +1197,9 @@
     form?.setAttribute("aria-busy", "true");
 
     try {
+      const pendingResult = await syncPendingPreference(mode);
+      if (pendingResult === "failed") return;
+
       const preferences = await apiRequest<Record<string, unknown>>(endpoint);
       if (revision !== preferenceLoadRevision || !readSession()) return;
       writeJson(storageKey, preferences);
@@ -1152,19 +1220,26 @@
   function loadRemotePreferences() {
     if (!readSession()) return;
 
-    if (document.querySelector("[data-preferences-form='notifications']")) {
+    const needsNotifications = Boolean(document.querySelector("[data-preferences-form='notifications']"));
+    const needsFilters = Boolean(document.querySelector("[data-preferences-form='filters'], [data-search-config]"));
+
+    if (needsNotifications) {
       void loadRemotePreference(
         "notifications",
         "/api/notifications/preferences",
         STORAGE_KEYS.notificationPreferences,
       );
+    } else {
+      void syncPendingPreference("notifications");
     }
-    if (document.querySelector("[data-preferences-form='filters'], [data-search-config]")) {
+    if (needsFilters) {
       void loadRemotePreference(
         "filters",
         "/api/auth/filter-preferences",
         STORAGE_KEYS.filterPreferences,
       );
+    } else {
+      void syncPendingPreference("filters");
     }
   }
 
@@ -1420,21 +1495,23 @@
           ? buildNotificationPreferences(formData)
           : buildFilterPreferences(formData);
 
-        const storageKey = mode === "notifications"
-          ? STORAGE_KEYS.notificationPreferences
-          : STORAGE_KEYS.filterPreferences;
-        const endpoint = mode === "notifications"
-          ? "/api/notifications/preferences"
-          : "/api/auth/filter-preferences";
-        const method = mode === "notifications" ? "PUT" : "POST";
+        const preferenceMode: PreferenceMode = mode === "notifications" ? "notifications" : "filters";
+        const config = getPreferenceConfig(preferenceMode);
 
-        writeJson(storageKey, preferences);
+        const session = readSession();
+        writeJson(config.storageKey, preferences);
+        if (session) {
+          // Ein etwaiger Gast-Stand ist durch diese neuere Eingabe ersetzt.
+          window.localStorage.removeItem(config.pendingKey);
+        } else {
+          writeJson(config.pendingKey, preferences);
+        }
         submit?.setAttribute("disabled", "true");
-        setFormStatus(form, readSession() ? t("search.prefsSyncing") : t("search.prefsSavedLocal"));
+        setFormStatus(form, session ? t("search.prefsSyncing") : t("search.prefsSavedLocal"));
 
         try {
-          if (readSession()) {
-            await apiRequest(endpoint, { method, body: preferences });
+          if (session) {
+            await apiRequest(config.endpoint, { method: config.method, body: preferences });
             setFormStatus(form, t("search.prefsSavedSynced"), "success");
           } else {
             setFormStatus(form, t("search.prefsSavedLocalLoginHint"), "success");
@@ -1540,27 +1617,140 @@
     });
   }
 
-  async function syncRemotePropertyAction(action: string | null, propertyId: string | null, active: boolean) {
-    const session = readSession();
-    if (!session || !propertyId || !UUID_PATTERN.test(propertyId)) return;
+  type PropertyActionMutationResponse = {
+    Success?: boolean;
+    Message?: string | null;
+  };
 
+  async function assertPropertyActionSucceeded(
+    response: PropertyActionMutationResponse,
+    action: "favorite" | "block",
+    propertyId: string,
+  ) {
+    if (response?.Success !== false) return;
+
+    // POSTs sind fachlich idempotent: wenn ein aelterer lokaler Stand noch
+    // "inaktiv" sagte, der Server den Eintrag aber bereits kennt, ist der
+    // gewuenschte Zielzustand trotzdem erreicht.
+    const endpoint = action === "favorite" ? "/api/favorites" : "/api/blocked";
     try {
-      if (action === "favorite") {
-        await apiRequest(
-          active ? "/api/favorites" : `/api/favorites/${propertyId}`,
-          active ? { method: "POST", body: { PropertyId: propertyId } } : { method: "DELETE" },
+      const remoteIds = await loadAllRemotePropertyIds(endpoint);
+      if (remoteIds.includes(propertyId)) return;
+    } catch {
+      // Die urspruengliche fachliche Fehlermeldung bleibt aussagekraeftiger.
+    }
+
+    throw new Error(response.Message || t("card.actionSyncFailed"));
+  }
+
+  function setPropertyActionBusy(slug: string, busy: boolean) {
+    document.querySelectorAll<HTMLButtonElement>("[data-property-action], [data-list-remove]").forEach((button) => {
+      if (button.getAttribute("data-property-slug") !== slug) return;
+      button.disabled = busy;
+      button.toggleAttribute("aria-busy", busy);
+      button.classList.toggle("opacity-60", busy);
+    });
+  }
+
+  function showPropertyActionError(error: unknown) {
+    let status = document.querySelector<HTMLElement>("[data-property-action-status]");
+    if (!status) {
+      status = document.createElement("div");
+      status.dataset.propertyActionStatus = "";
+      status.setAttribute("role", "alert");
+      status.className = "fixed bottom-4 left-1/2 z-[70] w-[min(92vw,32rem)] -translate-x-1/2 rounded-lg border border-error/45 bg-card px-4 py-3 text-sm font-medium text-error shadow-xl";
+      document.body.append(status);
+    }
+
+    const message = error instanceof Error ? error.message.trim() : "";
+    status.textContent = message
+      ? t("card.actionSyncFailedDetail", { message })
+      : t("card.actionSyncFailed");
+    status.hidden = false;
+
+    if (propertyActionStatusTimer !== null) {
+      window.clearTimeout(propertyActionStatusTimer);
+    }
+    propertyActionStatusTimer = window.setTimeout(() => {
+      status?.remove();
+      propertyActionStatusTimer = null;
+    }, 6000);
+  }
+
+  async function syncRemotePropertyAction(
+    action: string | null,
+    propertyId: string | null,
+    active: boolean,
+    oppositeWasActive = false,
+  ) {
+    const session = readSession();
+    if (!session) throw new Error(t("auth.errorSessionExpired"));
+    if (!propertyId || !UUID_PATTERN.test(propertyId)) throw new Error(t("card.actionSyncFailed"));
+
+    if (action === "favorite") {
+      if (!active) {
+        // "Nicht gefunden" bedeutet beim Entfernen ebenfalls: Zielzustand erreicht.
+        await apiRequest<PropertyActionMutationResponse>(
+          `/api/favorites/${propertyId}`,
+          { method: "DELETE" },
         );
+        return;
       }
 
-      if (action === "block") {
-        await apiRequest(
-          active ? "/api/blocked" : `/api/blocked/${propertyId}`,
-          active ? { method: "POST", body: { PropertyId: propertyId } } : { method: "DELETE" },
+      let blockWasRemoved = false;
+      try {
+        // Das Backend lehnt Favoriten ab, solange das Objekt blockiert ist.
+        // Deshalb die Blockierung zuerst serverseitig aufheben.
+        if (oppositeWasActive) {
+          await apiRequest<PropertyActionMutationResponse>(
+            `/api/blocked/${propertyId}`,
+            { method: "DELETE" },
+          );
+          blockWasRemoved = true;
+        }
+
+        const response = await apiRequest<PropertyActionMutationResponse>(
+          "/api/favorites",
+          { method: "POST", body: { PropertyId: propertyId } },
         );
+        await assertPropertyActionSucceeded(response, "favorite", propertyId);
+      } catch (error) {
+        // Falls Schritt zwei scheitert, den vorherigen Serverzustand bestmoeglich
+        // wiederherstellen. AddBlocked entfernt einen eventuell angelegten Favoriten.
+        if (blockWasRemoved) {
+          try {
+            const rollback = await apiRequest<PropertyActionMutationResponse>(
+              "/api/blocked",
+              { method: "POST", body: { PropertyId: propertyId } },
+            );
+            await assertPropertyActionSucceeded(rollback, "block", propertyId);
+          } catch (rollbackError) {
+            console.warn("[Heimatplatz] Property status rollback failed", rollbackError);
+          }
+        }
+        throw error;
       }
-    } catch (error) {
-      console.warn("[Heimatplatz] API sync for property status failed", error);
+      return;
     }
+
+    if (action === "block") {
+      if (!active) {
+        await apiRequest<PropertyActionMutationResponse>(
+          `/api/blocked/${propertyId}`,
+          { method: "DELETE" },
+        );
+        return;
+      }
+
+      const response = await apiRequest<PropertyActionMutationResponse>(
+        "/api/blocked",
+        { method: "POST", body: { PropertyId: propertyId } },
+      );
+      await assertPropertyActionSucceeded(response, "block", propertyId);
+      return;
+    }
+
+    throw new Error(t("card.actionSyncFailed"));
   }
 
   function syncUserLists() {
@@ -1862,6 +2052,7 @@
 
     const dialog = document.createElement("dialog");
     const loginHref = getLoginHrefForCurrentPage();
+    const registerHref = getRegisterHrefForCurrentPage();
     dialog.setAttribute("data-login-prompt", "");
     dialog.className = "m-auto w-[min(92vw,26rem)] rounded-lg border border-border bg-card p-6 text-foreground shadow-lg backdrop:bg-black/55";
     dialog.innerHTML = `
@@ -1869,7 +2060,7 @@
       <p class="mt-2 text-sm text-muted-foreground">${t("card.loginRequiredText")}</p>
       <div class="mt-5 flex flex-wrap items-center gap-2">
         <a class="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-semibold text-brand-foreground" href="${loginHref}">${t("auth.login")}</a>
-        <a class="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium" href="/registrieren/">${t("common.register")}</a>
+        <a class="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium" href="${registerHref}">${t("common.register")}</a>
         <button type="button" class="ml-auto inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-muted-foreground" data-login-prompt-close>${t("common.close")}</button>
       </div>
     `;
@@ -2904,7 +3095,7 @@
   }
 
   function bindGlobalActions() {
-    document.addEventListener("click", (event) => {
+    document.addEventListener("click", async (event) => {
       const target = event.target instanceof Element ? event.target : null;
       const menuButton = target?.closest("[data-card-action]");
       if (menuButton instanceof HTMLButtonElement) {
@@ -2930,19 +3121,27 @@
         const propertyId = listRemove.getAttribute("data-property-id");
         if (!slug || (action !== "favorite" && action !== "block")) return;
 
-        propertyActionRevision += 1;
-        removeValue(action === "favorite" ? STORAGE_KEYS.favorites : STORAGE_KEYS.blocked, slug);
-        refreshActionButtons();
-        syncUserLists();
-        void syncRemotePropertyAction(action, propertyId, false);
+        setPropertyActionBusy(slug, true);
+        try {
+          await syncRemotePropertyAction(action, propertyId, false);
+          propertyActionRevision += 1;
+          removeValue(action === "favorite" ? STORAGE_KEYS.favorites : STORAGE_KEYS.blocked, slug);
+          refreshActionButtons();
+          syncUserLists();
 
-        const container = listRemove.closest<HTMLElement>("[data-remote-properties]");
-        listRemove.closest("[data-property-card]")?.remove();
-        if (container) {
-          const hasCards = container.querySelectorAll("[data-property-card]").length > 0;
-          container.classList.toggle("hidden", !hasCards);
-          const empty = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
-          empty?.classList.toggle("hidden", hasCards);
+          const container = listRemove.closest<HTMLElement>("[data-remote-properties]");
+          listRemove.closest("[data-property-card]")?.remove();
+          if (container) {
+            const hasCards = container.querySelectorAll("[data-property-card]").length > 0;
+            container.classList.toggle("hidden", !hasCards);
+            const empty = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+            empty?.classList.toggle("hidden", hasCards);
+          }
+        } catch (error) {
+          console.warn("[Heimatplatz] API sync for property status failed", error);
+          showPropertyActionError(error);
+        } finally {
+          setPropertyActionBusy(slug, false);
         }
         return;
       }
@@ -2952,13 +3151,18 @@
         const action = actionButton.getAttribute("data-property-action");
         const slug = actionButton.getAttribute("data-property-slug");
         const propertyId = actionButton.getAttribute("data-property-id");
-        if (!slug) return;
+        if (!slug || (action !== "favorite" && action !== "block")) return;
 
         if (!readSession()) {
           showLoginPrompt();
           return;
         }
 
+        const previousFavorites = readArray<string>(STORAGE_KEYS.favorites);
+        const previousBlocked = readArray<string>(STORAGE_KEYS.blocked);
+        const oppositeWasActive = action === "favorite"
+          ? previousBlocked.includes(slug)
+          : previousFavorites.includes(slug);
         propertyActionRevision += 1;
         let active = false;
 
@@ -2974,11 +3178,24 @@
         refreshActionButtons();
         syncUserLists();
         closeCardMenus();
-        const sync = syncRemotePropertyAction(action, propertyId, active);
-        if (action === "block") {
-          // Erst nach dem Server-Sync melden: PropertySearchApp refetcht dann
-          // authentifiziert und die blockierte Karte verschwindet aus der Liste.
-          void sync.then(() => document.dispatchEvent(new CustomEvent("property-block-changed")));
+        setPropertyActionBusy(slug, true);
+        try {
+          await syncRemotePropertyAction(action, propertyId, active, oppositeWasActive);
+          if (action === "block") {
+            // Erst nach bestaetigtem Server-Sync melden: PropertySearchApp
+            // refetcht dann und die blockierte Karte verschwindet aus der Liste.
+            document.dispatchEvent(new CustomEvent("property-block-changed"));
+          }
+        } catch (error) {
+          propertyActionRevision += 1;
+          writeArray(STORAGE_KEYS.favorites, previousFavorites);
+          writeArray(STORAGE_KEYS.blocked, previousBlocked);
+          refreshActionButtons();
+          syncUserLists();
+          console.warn("[Heimatplatz] API sync for property status failed", error);
+          showPropertyActionError(error);
+        } finally {
+          setPropertyActionBusy(slug, false);
         }
         return;
       }

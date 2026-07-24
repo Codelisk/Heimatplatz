@@ -79,6 +79,9 @@ export const account = {
   "favorites.emptyTitle": "Noch keine Favoriten",
   "favorites.emptyText":
     "Markieren Sie Immobilien als Favoriten, um sie hier zu sehen.",
+  "favorites.authTitle": "Ihre Favoriten warten nach der Anmeldung",
+  "favorites.authText":
+    "Melden Sie sich an, um Ihre gespeicherten Immobilien auf diesem und anderen Geräten zu sehen.",
 
   // Blockiert (/blockiert/)
   "blocked.metaTitle": "Blockierte Immobilien",
@@ -86,6 +89,9 @@ export const account = {
   "blocked.emptyTitle": "Keine blockierten Immobilien",
   "blocked.emptyText":
     "Blockierte Immobilien werden hier angezeigt und in der Suche ausgeblendet.",
+  "blocked.authTitle": "Blockierte Immobilien nach der Anmeldung verwalten",
+  "blocked.authText":
+    "Melden Sie sich an, um ausgeblendete Immobilien anzusehen oder wieder freizugeben.",
 
   // Meine Immobilien (/meine-immobilien/)
   "myProperties.metaTitle": "Meine Immobilien",
@@ -93,6 +99,9 @@ export const account = {
     "Eigene Inserate verwalten, bearbeiten und löschen.",
   "myProperties.emptyTitle": "Noch keine eigenen Inserate",
   "myProperties.emptyText": "Legen Sie Ihr erstes Inserat an – Fotos, Eckdaten und Beschreibung in einem Formular.",
+  "myProperties.authTitle": "Eigene Inserate nach der Anmeldung verwalten",
+  "myProperties.authText":
+    "Melden Sie sich an, um Ihre Immobilien zu erstellen, zu bearbeiten und zu verwalten.",
   "myProperties.createCta": "Neue Immobilie hinzufügen",
   "myProperties.enableSellerCta": "Anbieten im Profil aktivieren",
   "myProperties.statusEdited": "Änderungen gespeichert.",

@@ -1,0 +1,25 @@
+---
+import UserIcon from "@tabler/icons/outline/user-cog.svg";
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+---
+
+{/* AuthGate stellt bereits sicher, dass dieser Bereich nur angemeldeten
+    Benutzern gezeigt wird. Hier wird zusaetzlich die Seller-Rolle ausgewertet. */}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-auth-role-buyer-only hidden>
+  <div class="mx-auto max-w-xl rounded-xl border border-border bg-card p-8 text-center shadow-sm sm:p-10">
+    <span class="mx-auto grid size-12 place-items-center rounded-full bg-primary/10 text-primary">
+      <UserIcon class="size-6" aria-hidden="true" />
+    </span>
+    <h2 class="mt-4 text-xl font-bold sm:text-2xl">{t("myProperties.sellerNotEnabledTitle")}</h2>
+    <p class="mt-2 text-sm leading-6 text-muted-foreground">{t("myProperties.sellerNotEnabledText")}</p>
+    <Button href="/profil/" variant="outline" class="mt-6">
+      <UserIcon class="size-4" aria-hidden="true" />
+      {t("myProperties.enableSellerCta")}
+    </Button>
+  </div>
+</div>
+
+<div data-auth-role-seller hidden>
+  <slot />
+</div>

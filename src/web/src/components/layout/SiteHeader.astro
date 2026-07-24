@@ -16,10 +16,12 @@ import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import BrandMark from "@/components/layout/BrandMark.astro";
 import ThemeToggle from "@/components/layout/ThemeToggle.astro";
-import { buildLoginHref, getCurrentReturnTo } from "@/lib/navigation";
+import { buildLoginHref, buildRegisterHref, getCurrentReturnTo } from "@/lib/navigation";
 
 const pathname = Astro.url.pathname;
-const loginHref = buildLoginHref(getCurrentReturnTo(Astro.url));
+const returnTo = getCurrentReturnTo(Astro.url);
+const loginHref = buildLoginHref(returnTo);
+const registerHref = buildRegisterHref(returnTo);
 const titleByPath = [
   { test: (path: string) => path === "/", title: "HEIMATPLATZ" },
   { test: (path: string) => path.startsWith("/immobilien/angebote/"), title: t("nav.property") },
@@ -44,8 +46,9 @@ const navItems = [
   { label: t("nav.myProperties"), href: "/meine-immobilien/", icon: HomeIcon },
   { label: t("nav.myFavorites"), href: "/favoriten/", icon: HeartIcon },
   { label: t("nav.blockedProperties"), href: "/blockiert/", icon: ShieldOffIcon },
-  // Inserieren erfordert ein Konto - Gaeste sehen den Eintrag nicht (PropertyStateScript blendet ein)
-  { label: t("nav.addProperty"), href: "/inserieren/", icon: PlusIcon, separator: true, authOnly: true },
+  // Inserieren erfordert die Seller-Rolle - PropertyStateScript blendet den
+  // Eintrag fuer Gaeste und reine Kaeufer aus.
+  { label: t("nav.addProperty"), href: "/inserieren/", icon: PlusIcon, separator: true, sellerOnly: true },
   // Feedback ebenso konto-gebunden (Antworten landen im eigenen Verlauf)
   { label: t("nav.feedback"), href: "/feedback/", icon: MessageIcon, authOnly: true },
 ];
@@ -95,7 +98,7 @@ function isActive(href: string) {
         <Button href={loginHref} variant="ghost" size="sm" data-guest-only>
           {t("common.login")}
         </Button>
-        <Button href="/registrieren/" variant="default" size="sm" data-guest-only>
+        <Button href={registerHref} variant="default" size="sm" data-guest-only>
           {t("common.register")}
         </Button>
       </div>
@@ -148,7 +151,8 @@ function isActive(href: string) {
                   class="my-2 border-t border-border"
                   aria-hidden="true"
                   data-auth-only={item.authOnly ? "" : undefined}
-                  hidden={item.authOnly ? true : undefined}
+                  data-auth-role-seller={item.sellerOnly ? "" : undefined}
+                  hidden={item.authOnly || item.sellerOnly ? true : undefined}
                 />
               )}
               <a
@@ -159,7 +163,8 @@ function isActive(href: string) {
                 ]}
                 aria-current={active ? "page" : undefined}
                 data-auth-only={item.authOnly ? "" : undefined}
-                hidden={item.authOnly ? true : undefined}
+                data-auth-role-seller={item.sellerOnly ? "" : undefined}
+                hidden={item.authOnly || item.sellerOnly ? true : undefined}
               >
                 <Icon class="size-4" aria-hidden="true" />
                 <span>{item.label}</span>
@@ -174,7 +179,7 @@ function isActive(href: string) {
           <LoginIcon class="size-4" aria-hidden="true" />
           {t("common.login")}
         </Button>
-        <Button href="/registrieren/" class="w-full justify-start">
+        <Button href={registerHref} class="w-full justify-start">
           <UserPlusIcon class="size-4" aria-hidden="true" />
           {t("common.register")}
         </Button>

@@ -2,6 +2,7 @@
 import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import AuthGate from "@/components/app/AuthGate.astro";
+import SellerGate from "@/components/app/SellerGate.astro";
 import PropertyWysiwygForm from "@/components/properties/PropertyWysiwygForm.astro";
 import { t } from "@/i18n";
 ---
@@ -23,7 +24,9 @@ import { t } from "@/i18n";
       title={t("editor.createAuthTitle")}
       description={t("editor.createAuthDescription")}
     >
-      <PropertyWysiwygForm />
+      <SellerGate>
+        <PropertyWysiwygForm />
+      </SellerGate>
     </AuthGate>
   </article>
 </BaseLayout>

@@ -4,9 +4,11 @@ import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
 import { t } from "@/i18n";
-import { getSafeLoginRedirect } from "@/lib/navigation";
+import { buildRegisterHref, getSafeLoginRedirect } from "@/lib/navigation";
 
-const successRedirect = getSafeLoginRedirect(Astro.url.searchParams.get("returnTo"), Astro.url);
+const requestedReturnTo = Astro.url.searchParams.get("returnTo");
+const successRedirect = getSafeLoginRedirect(requestedReturnTo, Astro.url);
+const registerHref = requestedReturnTo ? buildRegisterHref(successRedirect) : "/registrieren/";
 ---
 
 <AuthShell
@@ -32,6 +34,6 @@ const successRedirect = getSafeLoginRedirect(Astro.url.searchParams.get("returnT
     <Button type="submit" class="w-full">{t("auth.login")}</Button>
   </form>
   <p class="mt-8 text-center text-sm text-muted-foreground">
-    {t("auth.noAccountPrompt")} <a class="font-semibold text-foreground" href="/registrieren/">{t("auth.registerLink")}</a>
+    {t("auth.noAccountPrompt")} <a class="font-semibold text-foreground" href={registerHref}>{t("auth.registerLink")}</a>
   </p>
 </AuthShell>

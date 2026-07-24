@@ -105,6 +105,8 @@ export const home = {
   "card.blockRemove": "Blockierung entfernen",
   "card.blockRelease": "Blockierung aufheben",
   "card.deleteConfirm": "Immobilie wirklich löschen?",
+  "card.actionSyncFailed": "Die Änderung konnte nicht gespeichert werden.",
+  "card.actionSyncFailedDetail": "Die Änderung konnte nicht gespeichert werden: {message}",
 
   // Login-Dialog (Gast tippt Favorit/Blockieren an) — CTAs nutzen
   // auth.login bzw. common.register
