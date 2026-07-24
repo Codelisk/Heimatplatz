@@ -1,6 +1,7 @@
 ---
 import CalendarIcon from "@tabler/icons/outline/calendar.svg";
 import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import GavelIcon from "@tabler/icons/outline/gavel.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import UserIcon from "@tabler/icons/outline/user.svg";
 import {
@@ -20,7 +21,7 @@ import {
   type ApiProperty,
 } from "@/features/properties/live-api";
 import { slugifyLocation } from "@/features/locations/region-match";
-import { getDisplayTitle } from "@/features/properties/format";
+import { getAuctionCountdownLabel, getDisplayTitle } from "@/features/properties/format";
 import { getResponsiveImage } from "@/lib/images";
 import { t } from "@/i18n";
 
@@ -42,6 +43,9 @@ const sellerLabel = isForeclosure && isCourtForeclosure(property)
 const auctionDateLabel = isForeclosure && property.AuctionDate
   ? t("card.auctionDate", { date: formatApiDate(property.AuctionDate) })
   : null;
+// ZV: Countdown-Zeile unter dem Foto ("heute/morgen/in X Tagen") - nur fuer
+// kuenftige Termine, das absolute Datum steht weiter in der Fusszeile
+const auctionCountdown = isForeclosure ? getAuctionCountdownLabel(property.AuctionDate) : null;
 // Fusszeile vertraegt fehlende Namen (kein haengender Trennpunkt)
 const sellerLine = [sellerLabel, property.SellerName?.trim()].filter(Boolean).join(" · ");
 const area = getApiAreaValue(property);
@@ -125,6 +129,13 @@ const citySlug = slugifyLocation(property.City);
       </button>
     </div>
   </div>
+
+  {auctionCountdown && (
+    <p class="flex items-center gap-1.5 border-b border-brand/15 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand dark:text-price">
+      <GavelIcon class="size-3.5 shrink-0" aria-hidden="true" />
+      <span class="truncate">{auctionCountdown}</span>
+    </p>
+  )}
 
   <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
     <div class="min-w-0">

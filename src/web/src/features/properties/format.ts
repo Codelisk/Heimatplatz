@@ -82,3 +82,33 @@ export function formatApiDate(value: string) {
     year: "numeric",
   }).format(date);
 }
+
+// "en-CA" liefert ISO "JJJJ-MM-TT"; als UTC-Mitternacht geparst ergibt die
+// Differenz zweier Werte exakte Kalendertage, unabhaengig von Uhrzeit und DST.
+function viennaDayValue(date: Date) {
+  return Date.parse(new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Vienna",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date));
+}
+
+/**
+ * Countdown-Zeile fuer ZV-Karten: "Versteigerung heute/morgen/in X Tagen".
+ * Kalendertage werden in Wiener Ortszeit verglichen - eine reine
+ * Millisekunden-Differenz zaehlt je nach Uhrzeit einen Tag zu viel/zu wenig.
+ * Liefert null fuer fehlende, unplausible (Jahr <= 1900, wie
+ * isValidAuctionDate) oder vergangene Termine - die Karte zeigt dann wie
+ * bisher nur den beschrifteten Termin in der Fusszeile.
+ */
+export function getAuctionCountdownLabel(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (!Number.isFinite(date.valueOf()) || date.getFullYear() <= 1900) return null;
+  const days = Math.round((viennaDayValue(date) - viennaDayValue(new Date())) / 86_400_000);
+  if (days < 0) return null;
+  if (days === 0) return t("card.auctionToday");
+  if (days === 1) return t("card.auctionTomorrow");
+  return t("card.auctionInDays", { days });
+}
