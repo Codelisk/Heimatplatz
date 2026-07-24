@@ -83,6 +83,18 @@ public partial class AppShell : ShinyShell
 
         if (FlyoutBehavior != desiredBehavior)
             FlyoutBehavior = desiredBehavior;
+
+        // Ein geschlossenes Flyout bleibt unter WinUI beim Wechsel auf "Locked"
+        // ansonsten mit seiner schmalen Hamburger-Restbreite stehen. Locked ist
+        // dauerhaft sichtbar und muss deshalb auch explizit präsentiert werden.
+        if (desiredBehavior == FlyoutBehavior.Locked && !FlyoutIsPresented)
+            FlyoutIsPresented = true;
+    }
+
+    private void CloseTransientFlyout()
+    {
+        if (FlyoutBehavior != FlyoutBehavior.Locked)
+            FlyoutIsPresented = false;
     }
 
     /// <summary>
@@ -130,7 +142,7 @@ public partial class AppShell : ShinyShell
         if ((sender as BindableObject)?.BindingContext is not FlyoutMenuEntry entry)
             return;
 
-        FlyoutIsPresented = false;
+        CloseTransientFlyout();
         await GoToAsync(entry.IsRoot ? $"//{entry.Route}" : entry.Route);
     }
 
@@ -154,7 +166,7 @@ public partial class AppShell : ShinyShell
     /// </summary>
     private async void OnImprintTapped(object? sender, TappedEventArgs e)
     {
-        FlyoutIsPresented = false;
+        CloseTransientFlyout();
         await GoToAsync("Imprint");
     }
 
@@ -163,7 +175,7 @@ public partial class AppShell : ShinyShell
     /// </summary>
     private async void OnPrivacyPolicyTapped(object? sender, TappedEventArgs e)
     {
-        FlyoutIsPresented = false;
+        CloseTransientFlyout();
         await GoToAsync("PrivacyPolicy");
     }
 }

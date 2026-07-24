@@ -19,7 +19,7 @@ public class PushNotificationInitializer(
     ILogger<PushNotificationInitializer> logger) : IPushNotificationInitializer
 {
     private readonly object initializationGate = new();
-    private Task? activeInitialization;
+    private Task<PushInitializationResult>? activeInitialization;
 
     /// <summary>
     /// Maximale Wartezeit fuer plattformabhaengige Aufrufe (iOS APNs-Registrierung, API-Call).
@@ -29,9 +29,9 @@ public class PushNotificationInitializer(
     private static readonly TimeSpan InitTimeout = TimeSpan.FromSeconds(15);
 
     /// <summary>
-    /// Initializes push notifications after user login.
+    /// Initialisiert Push nach einer ausdruecklichen Nutzeraktion in den Einstellungen.
     /// </summary>
-    public Task InitializeAsync()
+    public Task<PushInitializationResult> InitializeAsync()
     {
         lock (initializationGate)
         {
@@ -46,7 +46,7 @@ public class PushNotificationInitializer(
         }
     }
 
-    private async Task InitializeCoreAsync()
+    private async Task<PushInitializationResult> InitializeCoreAsync()
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -65,45 +65,47 @@ public class PushNotificationInitializer(
                         MaskToken(result.RegistrationToken));
 
                     // Register token with API (OnNewToken is only called on token change, not on every RequestAccess)
-                    if (!string.IsNullOrEmpty(result.RegistrationToken))
+                    if (string.IsNullOrEmpty(result.RegistrationToken))
                     {
-                        var platform = GetCurrentPlatform();
-                        var success = await notificationService.RegisterDeviceAsync(result.RegistrationToken, platform)
-                            .WaitAsync(InitTimeout);
-                        if (success)
-                        {
-                            logger.LogInformation("[PushNotificationInitializer] Device registered successfully with API");
-                        }
-                        else
-                        {
-                            logger.LogWarning("[PushNotificationInitializer] Failed to register device with API");
-                        }
+                        logger.LogWarning("[PushNotificationInitializer] No registration token was returned");
+                        return new(PushInitializationStatus.Failed);
                     }
-                    break;
+
+                    var platform = GetCurrentPlatform();
+                    var success = await notificationService.RegisterDeviceAsync(result.RegistrationToken, platform)
+                        .WaitAsync(InitTimeout);
+                    if (!success)
+                    {
+                        logger.LogWarning("[PushNotificationInitializer] Failed to register device with API");
+                        return new(PushInitializationStatus.Failed);
+                    }
+
+                    logger.LogInformation("[PushNotificationInitializer] Device registered successfully with API");
+                    return new(PushInitializationStatus.Available);
 
                 case AccessState.Denied:
                     logger.LogWarning("[PushNotificationInitializer] Push notification permission denied by user");
-                    break;
+                    return new(PushInitializationStatus.Denied);
 
                 case AccessState.Disabled:
                     logger.LogWarning("[PushNotificationInitializer] Push notifications are disabled on this device");
-                    break;
+                    return new(PushInitializationStatus.Disabled);
 
                 case AccessState.NotSetup:
                     logger.LogWarning("[PushNotificationInitializer] Push notifications are not properly configured");
-                    break;
+                    return new(PushInitializationStatus.NotConfigured);
 
                 case AccessState.NotSupported:
                     logger.LogWarning("[PushNotificationInitializer] Push notifications are not supported on this platform");
-                    break;
+                    return new(PushInitializationStatus.NotSupported);
 
                 case AccessState.Restricted:
                     logger.LogWarning("[PushNotificationInitializer] Push notifications are restricted (parental controls?)");
-                    break;
+                    return new(PushInitializationStatus.Restricted);
 
                 default:
                     logger.LogWarning("[PushNotificationInitializer] Unknown push notification status: {Status}", result.Status);
-                    break;
+                    return new(PushInitializationStatus.Failed);
             }
         }
         catch (TimeoutException)
@@ -112,6 +114,7 @@ public class PushNotificationInitializer(
             logger.LogWarning(
                 "[PushNotificationInitializer] Push initialization timed out after {ElapsedMs}ms and was skipped",
                 stopwatch.ElapsedMilliseconds);
+            return new(PushInitializationStatus.Failed);
         }
         catch (OperationCanceledException)
         {
@@ -120,10 +123,12 @@ public class PushNotificationInitializer(
             logger.LogWarning(
                 "[PushNotificationInitializer] Push initialization was canceled after {ElapsedMs}ms and was skipped",
                 stopwatch.ElapsedMilliseconds);
+            return new(PushInitializationStatus.Failed);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "[PushNotificationInitializer] Failed to initialize push notifications");
+            return new(PushInitializationStatus.Failed);
         }
     }
 
@@ -153,10 +158,10 @@ public class PushNotificationInitializer(ILogger<PushNotificationInitializer> lo
     /// <summary>
     /// No-op on platforms that don't support push notifications
     /// </summary>
-    public Task InitializeAsync()
+    public Task<PushInitializationResult> InitializeAsync()
     {
         logger.LogInformation("[PushNotificationInitializer] Push notifications are not supported on this platform");
-        return Task.CompletedTask;
+        return Task.FromResult(new PushInitializationResult(PushInitializationStatus.NotSupported));
     }
 }
 #endif

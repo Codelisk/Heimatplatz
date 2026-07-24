@@ -47,6 +47,14 @@ public partial class FeedbackComposer(
     /// <summary>Sprachaufnahme ist nur auf Android/iOS verfuegbar.</summary>
     public bool IsVoiceSupported => voiceRecorder.IsSupported;
 
+    /// <summary>
+    /// Kamera-Aktion nur anzeigen, wenn der Plattformhandler sie zuverlässig
+    /// unterstützt. Der Windows-MediaPicker meldet Capture-Support, obwohl er
+    /// in der Desktop-App keine sichtbare Aufnahmeaktion startet.
+    /// </summary>
+    public bool IsCameraSupported =>
+        !OperatingSystem.IsWindows() && MediaPicker.Default.IsCaptureSupported;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanSend))]
     [NotifyPropertyChangedFor(nameof(ShowMicButton))]
@@ -161,6 +169,12 @@ public partial class FeedbackComposer(
         {
             if (!EnsurePhotoCapacity())
                 return;
+
+            if (!IsCameraSupported)
+            {
+                ErrorMessage = Loc.CameraUnavailable;
+                return;
+            }
 
             var cameraStatus = await MauiPermissions.RequestAsync<MauiPermissions.Camera>();
             if (cameraStatus != PermissionStatus.Granted)

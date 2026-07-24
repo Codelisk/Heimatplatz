@@ -1,4 +1,3 @@
-using Heimatplatz.Features.Notifications.Contracts.Mediator.Commands;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Sync;
@@ -12,7 +11,7 @@ namespace Heimatplatz.Maui.Services;
 
 /// <summary>
 /// App-Startlogik (ersetzt das ShellViewModel der Uno-App):
-/// Session-Restore + Push-Initialisierung beim Start, Logout-Handling via Mediator-Event.
+/// Session-Restore, Synchronisierung und Logout-Handling via Mediator-Event.
 /// </summary>
 [Singleton(AsSelf = true)]
 public class AppStartupService(
@@ -29,16 +28,21 @@ public class AppStartupService(
     /// </summary>
     public async Task StartAsync()
     {
+#if !ANDROID
+        // Diese Abhaengigkeiten werden nur vom Android-In-App-Updatepfad benoetigt.
+        _ = mediator;
+        _ = logger;
+#endif
+
         // Crash-Reports des letzten Laufs melden (fire-and-forget, fail-open)
         _ = telemetrySender.SendPendingCrashReportsAsync();
 
         // Immobilien-Delta-Sync: haelt die lokalen Caches aktuell, solange die App laeuft
         propertySync.Start();
 
-        var sessionRestored = await authService.TryRestoreSessionAsync();
-
-        if (sessionRestored)
-            _ = InitializePushNotificationsSafeAsync();
+        // Ein Session-Restore darf keinen Betriebssystem-Prompt ausloesen.
+        // Push wird ausschliesslich ueber den Schalter in den Einstellungen aktiviert.
+        await authService.TryRestoreSessionAsync();
 
 #if ANDROID
         // In-App-Update-Check (fire-and-forget wie in der Uno-App)
@@ -51,20 +55,6 @@ public class AppStartupService(
             logger.LogDebug(ex, "App-Update-Check fehlgeschlagen");
         }
 #endif
-    }
-
-    private async Task InitializePushNotificationsSafeAsync()
-    {
-        try
-        {
-            await mediator.Send(new InitializePushNotificationsCommand(), CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            // Push nicht verfuegbar auf dieser Plattform - ignorieren. Die Aufgabe
-            // laeuft bewusst im Hintergrund und darf den App-Start nicht blockieren.
-            logger.LogDebug(ex, "Push-Initialisierung beim Start uebersprungen");
-        }
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using PropertyCondition = Heimatplatz.Maui.Features.Properties.Models.PropertyCondition;
@@ -30,6 +31,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     private readonly IAuthService _authService;
     private readonly IPropertyStatusService _propertyStatusService;
     private readonly IInternetService _internet;
+    private readonly OfflineReadState _offlineReadState;
+    private readonly PropertyImageCache _imageCache;
     private readonly ILogger<PropertyDetailViewModel> _logger;
     private readonly PropertyDetailStringsLocalized _loc;
     private readonly CommonStringsLocalized _commonLoc;
@@ -53,6 +56,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     [ObservableProperty]
     public partial string? BusyMessage { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsShowingCachedData { get; set; }
 
     [ObservableProperty]
     public partial PropertyDto? Property { get; set; }
@@ -231,6 +237,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
         IInternetService internet,
+        OfflineReadState offlineReadState,
+        PropertyImageCache imageCache,
         ILogger<PropertyDetailViewModel> logger,
         PropertyDetailStringsLocalized loc,
         CommonStringsLocalized commonLoc)
@@ -241,6 +249,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         _authService = authService;
         _propertyStatusService = propertyStatusService;
         _internet = internet;
+        _offlineReadState = offlineReadState;
+        _imageCache = imageCache;
         _logger = logger;
         _loc = loc;
         _commonLoc = commonLoc;
@@ -316,6 +326,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             _logger.LogInformation("[PropertyDetail] Loading property {PropertyId} from API", propertyId);
 
             var (_, response) = await _mediator.Request(new GetPropertyByIdHttpRequest { Id = propertyId });
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
 
             if (response?.Property != null)
             {
@@ -348,6 +359,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             }
 
             UpdateDisplayProperties();
+            if (Property != null)
+                _ = CachePropertyImagesAsync(propertyId, Property.ImageUrls);
             IsFavorite = isFavorite;
         }
         catch (Exception ex) when (ex is OfflineDataUnavailableException || !_internet.IsAvailable)
@@ -356,6 +369,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             // existiert weiterhin, sie kann nur gerade nicht geladen werden
             _logger.LogInformation("[PropertyDetail] Offline ohne lokale Daten fuer {PropertyId}", propertyId);
             Property = null;
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
             UpdateDisplayProperties();
             SetOfflineError(propertyId);
         }
@@ -363,6 +377,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         {
             _logger.LogError(ex, "[PropertyDetail] Error loading property {PropertyId}", propertyId);
             Property = null;
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
             UpdateDisplayProperties();
             SetLoadError(
                 "📡",
@@ -505,7 +520,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         HasOriginalListingUrl = !string.IsNullOrWhiteSpace(OriginalListingUrl);
 
         // Bilder
-        ImageUrls = Property.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList() ?? [];
+        ImageUrls = Property.ImageUrls?
+            .Where(url => !string.IsNullOrEmpty(url))
+            .Select(_imageCache.GetCachedOrOriginal)
+            .ToList() ?? [];
         HasImages = ImageUrls.Count > 0;
         CurrentImagePosition = 0;
         OnPropertyChanged(nameof(ImageCounterText));
@@ -541,6 +559,33 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
         // Strukturierte Datentabelle aufbauen
         BuildDetailSections();
+    }
+
+    private async Task CachePropertyImagesAsync(Guid propertyId, IEnumerable<string>? urls)
+    {
+        try
+        {
+            var sourceUrls = urls?.Where(url => !string.IsNullOrWhiteSpace(url)).ToList() ?? [];
+            if (sourceUrls.Count == 0)
+                return;
+
+            var resolved = await Task.WhenAll(
+                sourceUrls.Select(url => _imageCache.GetOrDownloadAsync(url)));
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                if (Property?.Id != propertyId)
+                    return;
+
+                ImageUrls = resolved.ToList();
+                HasImages = ImageUrls.Count > 0;
+                OnPropertyChanged(nameof(ImageCounterText));
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "[PropertyDetail] Bilder konnten nicht vorab gespeichert werden");
+        }
     }
 
     private void BuildDetailSections()

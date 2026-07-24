@@ -164,11 +164,19 @@ export function getApiPriceFact(property: ApiProperty): DetailItem {
   if (property.Type !== "Foreclosure") {
     return { label: t("detail.labelPurchasePrice"), value: formatApiPriceLong(property.Price) };
   }
+
   const data = readTypeSpecificData(property);
-  const label = !numberValue(data.MinimumBid) && numberValue(data.EstimatedValue)
-    ? t("detail.labelEstimatedValue")
-    : t("detail.labelMinimumBid");
-  const price = numberValue(property.Price);
+  const minimumBid = numberValue(data.MinimumBid);
+  const estimatedValue = numberValue(data.EstimatedValue);
+  // TypeSpecificData ist bei Zwangsversteigerungen die fachliche Quelle. Alte
+  // Seed-Datensätze konnten in Price noch den Marktwert tragen und zeigten
+  // dadurch oben einen anderen Betrag als im Versteigerungsabschnitt.
+  const price = minimumBid ?? estimatedValue ?? numberValue(property.Price);
+  const label = minimumBid
+    ? t("detail.labelMinimumBid")
+    : estimatedValue
+      ? t("detail.labelEstimatedValue")
+      : t("detail.labelMinimumBid");
   return { label, value: price ? formatMoney(price) : t("property.priceOpen") };
 }
 

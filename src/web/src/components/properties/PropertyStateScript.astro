@@ -1069,7 +1069,7 @@
 
   function normalizeSortValue(value: unknown) {
     const numeric = Number(value ?? 0);
-    return [0, 1, 2, 3, 4, 5, 6].includes(numeric) ? String(numeric) : "0";
+    return [0, 1, 2, 3, 4, 5, 6, 7].includes(numeric) ? String(numeric) : "0";
   }
 
   // Der OrtPicker haelt seine Auswahl in unbenannten Checkboxen + einem Hidden-Input;
@@ -1491,6 +1491,25 @@
         const mode = form.getAttribute("data-preferences-form");
         const submit = form.querySelector<HTMLButtonElement>("[type='submit']");
         const formData = new FormData(form);
+
+        if (mode === "filters") {
+          const hasHouse = hasCheckbox(formData, "house");
+          const hasLand = hasCheckbox(formData, "land");
+          const hasForeclosure = hasCheckbox(formData, "foreclosure");
+          if (!hasHouse && !hasLand && !hasForeclosure) {
+            setFormStatus(form, t("search.settingsTypeRequired"), "error");
+            form.querySelector<HTMLInputElement>("[name='house']")?.focus();
+            return;
+          }
+          // Bei reiner Zwangsversteigerungs-Auswahl gibt es keinen Anbietertyp.
+          // Sobald Haus oder Grund aktiv sind, muss mindestens einer gewählt sein.
+          if ((hasHouse || hasLand) && !["private", "broker"].some((name) => hasCheckbox(formData, name))) {
+            setFormStatus(form, t("search.settingsSellerRequired"), "error");
+            form.querySelector<HTMLInputElement>("[name='private']")?.focus();
+            return;
+          }
+        }
+
         const preferences = mode === "notifications"
           ? buildNotificationPreferences(formData)
           : buildFilterPreferences(formData);

@@ -1,5 +1,6 @@
 using ICommand = System.Windows.Input.ICommand;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Localization.Properties;
@@ -31,10 +32,7 @@ public partial class PropertyCard : ContentView
     {
         InitializeComponent();
 
-        // Statische Texte aus den Ressourcen (SemanticProperties sind nicht bindbar
-        // ohne BindingContext-Verrenkungen - Code-Behind ist hier robuster)
-        SemanticProperties.SetDescription(FavoriteButton, Loc.FavoriteActionDescription);
-        SemanticProperties.SetDescription(BlockButton, Loc.BlockActionDescription);
+        UpdateActionSemantics();
 
         // Favoriten-Status kommt zentral aus dem PropertyStatusService (das Herz
         // aktualisiert sich damit sofort nach jedem Toggle). Abo nur solange die
@@ -70,12 +68,15 @@ public partial class PropertyCard : ContentView
 
     // Zuletzt gesetzte Bild-URL, um beim Card-Recycling unnoetige Reloads zu vermeiden
     private string? _currentImageUrl;
+    private CancellationTokenSource? _imageLoadCts;
+    private PropertyImageCache? _imageCache;
 
     private IPropertyStatusService? _statusService;
 
     private void OnCardLoaded(object? sender, EventArgs e)
     {
         _statusService ??= IPlatformApplication.Current?.Services.GetService<IPropertyStatusService>();
+        _imageCache ??= IPlatformApplication.Current?.Services.GetService<PropertyImageCache>();
         if (_statusService != null)
         {
             // Erst ab-, dann anmelden: Loaded kann ohne dazwischenliegendes Unloaded
@@ -85,10 +86,14 @@ public partial class PropertyCard : ContentView
         }
 
         SyncFavoriteState();
+
+        if (_currentImageUrl != null && MainImage.Source == null)
+            BeginImageLoad(_currentImageUrl);
     }
 
     private void OnCardUnloaded(object? sender, EventArgs e)
     {
+        _imageLoadCts?.Cancel();
         if (_statusService != null)
             _statusService.StatusChanged -= OnStatusChanged;
     }
@@ -323,7 +328,7 @@ public partial class PropertyCard : ContentView
             // weiter, bis das neue geladen ist (falsches Bild auf falscher Immobilie)
             MainImage.Source = null;
             if (newImageUrl != null)
-                MainImage.Source = ImageSource.FromUri(new Uri(newImageUrl));
+                BeginImageLoad(newImageUrl);
         }
         MainImage.IsVisible = newImageUrl != null;
 
@@ -370,12 +375,56 @@ public partial class PropertyCard : ContentView
         UpdateFavoriteGlyph();
     }
 
+    private void BeginImageLoad(string url)
+    {
+        _imageLoadCts?.Cancel();
+        _imageLoadCts?.Dispose();
+        _imageLoadCts = new CancellationTokenSource();
+        _ = SetMainImageSourceAsync(url, _imageLoadCts.Token);
+    }
+
+    private async Task SetMainImageSourceAsync(string url, CancellationToken cancellationToken)
+    {
+        _imageCache ??= IPlatformApplication.Current?.Services.GetService<PropertyImageCache>();
+        var resolved = _imageCache == null
+            ? url
+            : await _imageCache.GetOrDownloadAsync(url, cancellationToken);
+
+        if (cancellationToken.IsCancellationRequested ||
+            !string.Equals(_currentImageUrl, url, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        MainImage.Source = Uri.TryCreate(resolved, UriKind.Absolute, out var uri) &&
+                           (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            ? ImageSource.FromUri(uri)
+            : ImageSource.FromFile(resolved);
+    }
+
     private void UpdateFavoriteGlyph()
     {
         // Gemerkt = das Herz selbst fuellt sich rot, der Glas-Chip bleibt unveraendert.
         // Auf der Favoriten-Seite ist der Eintrag immer aktiv, also immer gefuellt.
         var filled = Mode == CardMode.Favorite || IsFavorite;
         FavoriteIcon.Source = filled ? HeartFilledIcon : HeartOutlineIcon;
+        UpdateActionSemantics();
+    }
+
+    private void UpdateActionSemantics()
+    {
+        var removesFavorite = Mode == CardMode.Favorite || IsFavorite;
+        SemanticProperties.SetDescription(
+            FavoriteButton,
+            removesFavorite ? Loc.RemoveFavoriteActionDescription : Loc.FavoriteActionDescription);
+
+        var blockAction = Mode switch
+        {
+            CardMode.Blocked => Loc.UnblockActionDescription,
+            CardMode.Owner => Loc.DeleteActionDescription,
+            _ => Loc.BlockActionDescription
+        };
+        SemanticProperties.SetDescription(BlockButton, blockAction);
     }
 
     private static string FormatPrice(decimal price)

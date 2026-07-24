@@ -159,6 +159,9 @@
   <data name="CameraPermissionDenied" xml:space="preserve">
     <value>Kein Kamera-Zugriff – bitte in den Einstellungen erlauben.</value>
   </data>
+  <data name="CameraUnavailable" xml:space="preserve">
+    <value>Auf diesem Gerät ist keine Kameraaufnahme verfügbar.</value>
+  </data>
   <data name="VoiceLabel" xml:space="preserve">
     <value>Sprachnachricht (optional)</value>
   </data>

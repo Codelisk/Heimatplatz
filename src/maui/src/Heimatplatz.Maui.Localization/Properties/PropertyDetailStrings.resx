@@ -300,4 +300,7 @@
   <data name="EmailSubjectFormat" xml:space="preserve">
     <value>Anfrage: {0}</value>
   </data>
+  <data name="CachedDataNotice" xml:space="preserve">
+    <value>Offline – angezeigt wird der zuletzt gespeicherte Stand.</value>
+  </data>
 </root>

@@ -21,6 +21,7 @@ internal sealed class LocalFirstRequestMiddleware<TRequest, TResult>(
     TimeProvider timeProvider,
     LocalFirstRefreshCoordinator refreshCoordinator,
     CacheStalenessRegistry stalenessRegistry,
+    OfflineReadState offlineReadState,
     ILogger<LocalFirstRequestMiddleware<TRequest, TResult>> logger
 ) : IRequestMiddleware<TRequest, TResult>
     where TRequest : IRequest<TResult>
@@ -34,7 +35,17 @@ internal sealed class LocalFirstRequestMiddleware<TRequest, TResult>(
     {
         if (context.TryGetValue<bool>(BackgroundRefreshHeader) == true)
         {
-            return await next().ConfigureAwait(false);
+            try
+            {
+                var result = await next().ConfigureAwait(false);
+                offlineReadState.MarkAvailable();
+                return result;
+            }
+            catch (Exception ex) when (IsTransientServerFailure(ex, cancellationToken))
+            {
+                offlineReadState.MarkUnavailable();
+                throw;
+            }
         }
 
         var section = configuration.GetHandlerSection(
@@ -63,24 +74,30 @@ internal sealed class LocalFirstRequestMiddleware<TRequest, TResult>(
         if (context.HasForceCacheRefresh())
         {
             if (entry is null)
-                return await next().ConfigureAwait(false);
+                return await FetchAndTrackAvailabilityAsync(next, cancellationToken).ConfigureAwait(false);
 
             if (!internet.IsAvailable)
+            {
+                offlineReadState.MarkUnavailable();
                 return entry.Value;
+            }
 
             try
             {
-                return await next().ConfigureAwait(false);
+                var result = await next().ConfigureAwait(false);
+                offlineReadState.MarkAvailable();
+                return result;
             }
             catch (Exception ex) when (IsTransientServerFailure(ex, cancellationToken))
             {
+                offlineReadState.MarkUnavailable();
                 logger.LogWarning(ex, "Server nicht erreichbar; lokaler Stand fuer {RequestType} bleibt aktiv", typeof(TRequest).Name);
                 return entry.Value;
             }
         }
 
         if (entry is null)
-            return await next().ConfigureAwait(false);
+            return await FetchAndTrackAvailabilityAsync(next, cancellationToken).ConfigureAwait(false);
 
         var refreshAfterSeconds = section.GetValue("RefreshAfterSeconds", 60);
         var refreshDue = refreshAfterSeconds <= 0 ||
@@ -95,8 +112,28 @@ internal sealed class LocalFirstRequestMiddleware<TRequest, TResult>(
             Task.Run(() => RefreshAsync(request, key)).RunInBackground(logger);
         }
 
+        if (!internet.IsAvailable)
+            offlineReadState.MarkUnavailable();
+
         logger.LogDebug("Local-first Cache-Hit fuer {RequestType}", typeof(TRequest).Name);
         return entry.Value;
+    }
+
+    private async Task<TResult> FetchAndTrackAvailabilityAsync(
+        RequestHandlerDelegate<TResult> next,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await next().ConfigureAwait(false);
+            offlineReadState.MarkAvailable();
+            return result;
+        }
+        catch (Exception ex) when (IsTransientServerFailure(ex, cancellationToken))
+        {
+            offlineReadState.MarkUnavailable();
+            throw;
+        }
     }
 
     private async Task RefreshAsync(TRequest request, string key)

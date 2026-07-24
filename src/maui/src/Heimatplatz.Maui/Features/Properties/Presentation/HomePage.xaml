@@ -73,12 +73,28 @@
                                          VerticalItemSpacing="20" />
                     </CollectionView.ItemsLayout>
                     <CollectionView.Header>
-                        <!-- Platzhalter fuer die ueberlagernde Chip-Zeile (scrollt mit weg).
-                             Opak statt transparent: die Header-Supplementary-View des iOS-
-                             CollectionView-Handlers kann sonst hell durchscheinen, sobald der
-                             Platzhalter beim Pull-to-Refresh unter der Chip-Zeile hervorwandert. -->
-                        <BoxView HeightRequest="56"
-                                 Color="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
+                        <VerticalStackLayout Spacing="0"
+                                             BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
+                            <!-- Platzhalter fuer die ueberlagernde Chip-Zeile (scrollt mit weg).
+                                 Opak statt transparent: die Header-Supplementary-View des iOS-
+                                 CollectionView-Handlers kann sonst hell durchscheinen, sobald der
+                                 Platzhalter beim Pull-to-Refresh unter der Chip-Zeile hervorwandert. -->
+                            <BoxView HeightRequest="56"
+                                     Color="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
+                            <Border Margin="12,4,12,12"
+                                    Padding="12,9"
+                                    StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light=#D98200, Dark=#F2A93B}"
+                                    BackgroundColor="{AppThemeBinding Light=#FFF4E5, Dark=#352A1D}"
+                                    StrokeShape="RoundRectangle 8"
+                                    IsVisible="{Binding IsShowingCachedData}"
+                                    AutomationId="Home_CachedDataNotice">
+                                <Label Text="{Binding Loc.CachedDataNotice}"
+                                       FontSize="12.5"
+                                       LineBreakMode="WordWrap"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            </Border>
+                        </VerticalStackLayout>
                     </CollectionView.Header>
                     <CollectionView.EmptyView>
                         <Grid Padding="24,60,24,24">
@@ -165,64 +181,91 @@
                   VerticalOptions="Start"
                   HeightRequest="56"
                   IsClippedToBounds="True">
-                <ScrollView x:Name="FilterChipBar"
-                            Orientation="Horizontal"
-                            HorizontalScrollBarVisibility="Never"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
-                    <HorizontalStackLayout Spacing="8"
-                                           Padding="12,8,12,10"
-                                           HorizontalOptions="{OnIdiom Phone=Start, Default=Center}">
+                <Grid x:Name="FilterChipBarSurface">
+                    <ScrollView x:Name="FilterChipBar"
+                                Orientation="Horizontal"
+                                HorizontalScrollBarVisibility="Never"
+                                Scrolled="OnFilterChipBarScrolled"
+                                SizeChanged="OnFilterChipBarMetricsChanged"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
+                        <HorizontalStackLayout x:Name="FilterChipContent"
+                                               Spacing="8"
+                                               Padding="12,8,12,10"
+                                               SizeChanged="OnFilterChipBarMetricsChanged"
+                                               HorizontalOptions="{OnIdiom Phone=Start, Default=Center}">
 
-                        <Button Text="{Binding SortChipLabel, StringFormat='↕ {0}'}"
-                                Style="{StaticResource FilterChipStyle}"
-                                Command="{Binding OpenSortSheetCommand}"
-                                AutomationId="Home_Chip_Sort" />
+                            <Button Text="{Binding SortChipLabel, StringFormat='↕ {0}'}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Command="{Binding OpenSortSheetCommand}"
+                                    AutomationId="Home_Chip_Sort" />
 
-                        <Button Text="{Binding TypeChipLabel}"
-                                Style="{StaticResource FilterChipStyle}"
-                                Command="{Binding OpenTypeSheetCommand}"
-                                AutomationId="Home_Chip_Typ">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsTypeFilterActive}" Value="True">
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                                    <Setter Property="BorderColor" Value="Transparent" />
-                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
+                            <Button Text="{Binding TypeChipLabel}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Command="{Binding OpenTypeSheetCommand}"
+                                    AutomationId="Home_Chip_Typ">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsTypeFilterActive}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="Transparent" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
 
-                        <Button Text="{Binding OrtChipLabel}"
-                                Style="{StaticResource FilterChipStyle}"
-                                Command="{Binding OpenOrtPanelCommand}"
-                                AutomationId="Home_Chip_Ort">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsOrtFilterActive}" Value="True">
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                                    <Setter Property="BorderColor" Value="Transparent" />
-                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
+                            <Button Text="{Binding OrtChipLabel}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Command="{Binding OpenOrtPanelCommand}"
+                                    AutomationId="Home_Chip_Ort">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsOrtFilterActive}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="Transparent" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
 
-                        <Button Text="{Binding AgeChipLabel}"
-                                Style="{StaticResource FilterChipStyle}"
-                                Command="{Binding OpenAgeSheetCommand}"
-                                AutomationId="Home_Chip_Zeitraum">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding IsAgeFilterActive}" Value="True">
-                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                                    <Setter Property="BorderColor" Value="Transparent" />
-                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
+                            <Button Text="{Binding AgeChipLabel}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Command="{Binding OpenAgeSheetCommand}"
+                                    AutomationId="Home_Chip_Zeitraum">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsAgeFilterActive}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="Transparent" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
 
-                        <Button Text="{Binding Loc.ChipMore}"
-                                Style="{StaticResource FilterChipStyle}"
-                                Command="{Binding OpenFilterSettingsCommand}"
-                                AutomationId="Home_Chip_Mehr" />
-                    </HorizontalStackLayout>
-                </ScrollView>
+                            <Button x:Name="MoreFilterChip"
+                                    Text="{Binding Loc.ChipMore}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Command="{Binding OpenFilterSettingsCommand}"
+                                    AutomationId="Home_Chip_Mehr" />
+                        </HorizontalStackLayout>
+                    </ScrollView>
+
+                    <!-- Sichtbarer Hinweis, dass rechts weitere Filter liegen. Ein Tap
+                         scrollt direkt bis zum letzten Chip; am Zeilenende verschwindet er. -->
+                    <Border x:Name="FilterOverflowHint"
+                            WidthRequest="38"
+                            HorizontalOptions="End"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
+                            StrokeThickness="0"
+                            IsVisible="False"
+                            AutomationId="Home_FilterOverflowHint">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFilterOverflowHintTapped" />
+                        </Border.GestureRecognizers>
+                        <Label Text="›"
+                               FontFamily="SansBold"
+                               FontSize="26"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               SemanticProperties.Description="{Binding Loc.MoreFiltersSemantic}" />
+                    </Border>
+                </Grid>
             </Grid>
 
             <!-- Busy-Overlay -->
@@ -244,8 +287,8 @@
     <shiny:ShinyContentPage.Panels>
 
         <!-- Sortier-Sheet -->
-        <shiny:FloatingPanel x:Name="SortPanel"
-                             IsOpen="{Binding IsSortSheetOpen, Mode=TwoWay}"
+        <appcontrols:ReliableFloatingPanel x:Name="SortPanel"
+                             RequestedIsOpen="{Binding IsSortSheetOpen, Mode=TwoWay}"
                              MaximumWidthRequest="460"
                              HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
                              PanelCornerRadius="14"
@@ -367,11 +410,11 @@
                             Command="{Binding SelectSortCommand}" CommandParameter="PlzAb" AutomationId="Home_Sort_PlzAb" />
                 </Grid>
             </VerticalStackLayout>
-        </shiny:FloatingPanel>
+        </appcontrols:ReliableFloatingPanel>
 
         <!-- Typ-Sheet (Mehrfachauswahl, wirkt sofort) -->
-        <shiny:FloatingPanel x:Name="TypePanel"
-                             IsOpen="{Binding IsTypeSheetOpen, Mode=TwoWay}"
+        <appcontrols:ReliableFloatingPanel x:Name="TypePanel"
+                             RequestedIsOpen="{Binding IsTypeSheetOpen, Mode=TwoWay}"
                              MaximumWidthRequest="560"
                              HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
                              PanelCornerRadius="14"
@@ -429,11 +472,11 @@
                         Command="{Binding CloseTypeSheetCommand}"
                         AutomationId="Home_TypSheet_Fertig" />
             </VerticalStackLayout>
-        </shiny:FloatingPanel>
+        </appcontrols:ReliableFloatingPanel>
 
         <!-- Zeitraum-Sheet -->
-        <shiny:FloatingPanel x:Name="AgePanel"
-                             IsOpen="{Binding IsAgeSheetOpen, Mode=TwoWay}"
+        <appcontrols:ReliableFloatingPanel x:Name="AgePanel"
+                             RequestedIsOpen="{Binding IsAgeSheetOpen, Mode=TwoWay}"
                              MaximumWidthRequest="460"
                              HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
                              PanelCornerRadius="14"
@@ -533,11 +576,11 @@
                     </Button>
                 </Grid>
             </VerticalStackLayout>
-        </shiny:FloatingPanel>
+        </appcontrols:ReliableFloatingPanel>
 
         <!-- Ort-Sheet (Bezirk->Gemeinde-Baum, Arbeitskopie mit Uebernehmen) -->
-        <shiny:FloatingPanel x:Name="OrtPanel"
-                             IsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
+        <appcontrols:ReliableFloatingPanel x:Name="OrtPanel"
+                             RequestedIsOpen="{Binding IsOrtPanelOpen, Mode=TwoWay}"
                              IsContentScrollEnabled="False"
                              MaximumWidthRequest="640"
                              HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
@@ -766,7 +809,7 @@
                         Command="{Binding ApplyOrtPanelCommand}"
                         AutomationId="Home_OrtPanel_Apply" />
             </Grid>
-        </shiny:FloatingPanel>
+        </appcontrols:ReliableFloatingPanel>
     </shiny:ShinyContentPage.Panels>
 
 </shiny:ShinyContentPage>

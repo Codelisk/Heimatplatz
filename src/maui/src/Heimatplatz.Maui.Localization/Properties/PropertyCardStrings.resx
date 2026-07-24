@@ -57,7 +57,16 @@
   <data name="FavoriteActionDescription" xml:space="preserve">
     <value>Immobilie merken</value>
   </data>
+  <data name="RemoveFavoriteActionDescription" xml:space="preserve">
+    <value>Immobilie aus Merkliste entfernen</value>
+  </data>
   <data name="BlockActionDescription" xml:space="preserve">
     <value>Immobilie blockieren</value>
+  </data>
+  <data name="UnblockActionDescription" xml:space="preserve">
+    <value>Blockierung der Immobilie aufheben</value>
+  </data>
+  <data name="DeleteActionDescription" xml:space="preserve">
+    <value>Eigene Immobilie löschen</value>
   </data>
 </root>

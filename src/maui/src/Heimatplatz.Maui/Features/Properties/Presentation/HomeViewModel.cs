@@ -10,6 +10,7 @@ using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Features.Properties.Sync;
 using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Properties;
+using Heimatplatz.Maui.Offline;
 using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
@@ -37,6 +38,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private readonly IPropertyStatusService _propertyStatusService;
     private readonly ILocationService _locationService;
     private readonly IMediator _mediator;
+    private readonly OfflineReadState _offlineReadState;
     private readonly ILogger<HomeViewModel> _logger;
     private readonly HomeStringsLocalized _loc;
     // Dialog-Button-Texte (OK) - Shiny-Defaults sind englisch
@@ -104,6 +106,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     [ObservableProperty]
     public partial bool IsRefreshing { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsShowingCachedData { get; set; }
 
     [ObservableProperty]
     public partial bool IsEmpty { get; set; }
@@ -281,6 +286,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         IPropertyStatusService propertyStatusService,
         ILocationService locationService,
         IMediator mediator,
+        OfflineReadState offlineReadState,
         ILogger<HomeViewModel> logger,
         HomeStringsLocalized loc,
         CommonStringsLocalized commonLoc)
@@ -293,6 +299,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         _propertyStatusService = propertyStatusService;
         _locationService = locationService;
         _mediator = mediator;
+        _offlineReadState = offlineReadState;
         _logger = logger;
         _loc = loc;
         _commonLoc = commonLoc;
@@ -1030,8 +1037,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 _reloadQueued = false;
                 _currentPage = 0;
                 var items = await LoadPageAsync(0, CancellationToken.None);
-                ReplaceProperties(items);
-                UpdateResultCount();
+                if (items is not null)
+                {
+                    ReplaceProperties(items);
+                    UpdateResultCount();
+                }
             }
             while (_reloadQueued);
 
@@ -1104,8 +1114,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         try
         {
             var items = await LoadPageAsync(_currentPage, CancellationToken.None, forceRemoteRefresh: true);
-            ReplaceProperties(items);
-            UpdateResultCount();
+            if (items is not null)
+            {
+                ReplaceProperties(items);
+                UpdateResultCount();
+            }
         }
         catch (Exception ex)
         {
@@ -1124,8 +1137,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             LoadErrorMessage = null;
             _currentPage = 0;
             var items = await LoadPageAsync(0, CancellationToken.None, forceRemoteRefresh: true);
-            ReplaceProperties(items);
-            UpdateResultCount();
+            if (items is not null)
+            {
+                ReplaceProperties(items);
+                UpdateResultCount();
+            }
         }
         finally
         {
@@ -1151,7 +1167,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         try
         {
             var items = await LoadPageAsync(page, CancellationToken.None);
-            if (items.Count == 0 && _totalCount > 0)
+            if (items is null || (items.Count == 0 && _totalCount > 0))
                 return;
 
             _currentPage = page;
@@ -1202,18 +1218,27 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     /// <summary>
     /// Laedt eine Seite von der API mit allen server-seitigen Filtern
     /// </summary>
-    private async Task<List<PropertyListItemDto>> LoadPageAsync(
+    private async Task<List<PropertyListItemDto>?> LoadPageAsync(
         int page,
         CancellationToken ct,
         bool forceRemoteRefresh = false)
     {
         _logger.LogInformation("[HomePage] Loading page {Page} with pageSize {PageSize}", page, SelectedPageSize);
 
+        // Der sichtbare Stand wird vor dem Request gesichert. Bei einem Fehler darf
+        // weder eine leere Rueckgabe noch ein paralleler CollectionView-Reset die
+        // bereits nutzbaren Offline-Daten ausblenden.
+        var visibleItemsBeforeLoad = page == 0 && Properties.Count > 0
+            ? Properties.ToList()
+            : null;
+        var totalCountBeforeLoad = _totalCount;
+
         try
         {
 #if DEBUG
             if (_debugMockProperties != null)
             {
+                IsShowingCachedData = false;
                 _totalCount = _debugMockProperties.Count;
                 var mockPage = _debugMockProperties
                     .Skip(page * SelectedPageSize)
@@ -1229,6 +1254,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 ? static context => context.ForceCacheRefresh()
                 : null;
             var (_, response) = await _mediator.Request(request, ct, configure);
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
 
             _logger.LogInformation("[HomePage] Response received. Properties count: {Count}, HasMore: {HasMore}",
                 response?.Properties?.Count ?? 0, response?.HasMore ?? false);
@@ -1239,16 +1265,31 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         }
         catch (Exception ex)
         {
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
             _logger.LogError(ex, "[HomePage] Error loading page {Page}", page);
             // Kein modaler Dialog: der wuerde (v.a. beim App-Start) alle Eingaben blockieren
             // und das Busy-Overlay bis zum OK-Tap festhaengen. Stattdessen Inline-Fehlerzustand
             // mit Retry-Button; Fehler beim expliziten Seitenwechsel bleiben still.
             if (page == 0)
             {
-                _totalCount = 0;
+                // Einen bereits sichtbaren, zuvor erfolgreich geladenen Stand nie
+                // durch eine leere Fehlerantwort ersetzen. So bleiben Textdaten bei
+                // einem Backend-Ausfall nutzbar; der Offline-Hinweis kennzeichnet
+                // sie als zwischengespeichert/veraltet.
+                if (visibleItemsBeforeLoad is { Count: > 0 })
+                {
+                    ReplaceProperties(visibleItemsBeforeLoad);
+                    _totalCount = totalCountBeforeLoad;
+                    IsEmpty = false;
+                    UpdatePaginationState();
+                }
+                else
+                {
+                    _totalCount = 0;
+                }
                 LoadErrorMessage = _loc.LoadErrorFormat(PropertyCollectionViewModelBase.GetErrorHint(ex));
             }
-            return [];
+            return null;
         }
     }
 

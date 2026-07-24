@@ -233,6 +233,7 @@
                                 WidthRequest="40"
                                 HeightRequest="40"
                                 VerticalOptions="End"
+                                IsVisible="{Binding IsCameraSupported}"
                                 AutomationId="Feedback_TakePhoto">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding TakePhotoCommand}" />

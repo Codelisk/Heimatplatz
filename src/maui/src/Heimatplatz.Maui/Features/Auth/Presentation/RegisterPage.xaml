@@ -7,59 +7,6 @@
              Shell.FlyoutBehavior="Disabled"
              Title="{Binding Loc.PageTitle}">
 
-    <ContentPage.Resources>
-        <!-- Native RadioButtons rendern View-Content auf Windows/Android nur als
-             ToString(); erst ein ControlTemplate zeichnet den zweizeiligen Inhalt -->
-        <ControlTemplate x:Key="SellerTypeRadioTemplate">
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="12"
-                  Padding="0,4">
-                <VisualStateManager.VisualStateGroups>
-                    <VisualStateGroupList>
-                        <VisualStateGroup x:Name="CheckedStates">
-                            <VisualState x:Name="Checked">
-                                <VisualState.Setters>
-                                    <Setter TargetName="RadioRing"
-                                            Property="Ellipse.Stroke"
-                                            Value="{AppThemeBinding Light={StaticResource PrimaryBrush}, Dark={StaticResource PrimaryDarkBrush}}" />
-                                    <Setter TargetName="RadioDot"
-                                            Property="Opacity"
-                                            Value="1" />
-                                </VisualState.Setters>
-                            </VisualState>
-                            <VisualState x:Name="Unchecked">
-                                <VisualState.Setters>
-                                    <Setter TargetName="RadioRing"
-                                            Property="Ellipse.Stroke"
-                                            Value="{AppThemeBinding Light={StaticResource Gray500Brush}, Dark={StaticResource Gray400Brush}}" />
-                                    <Setter TargetName="RadioDot"
-                                            Property="Opacity"
-                                            Value="0" />
-                                </VisualState.Setters>
-                            </VisualState>
-                        </VisualStateGroup>
-                    </VisualStateGroupList>
-                </VisualStateManager.VisualStateGroups>
-                <Grid WidthRequest="20" HeightRequest="20" VerticalOptions="Center">
-                    <Ellipse x:Name="RadioRing"
-                             Stroke="{AppThemeBinding Light={StaticResource Gray500Brush}, Dark={StaticResource Gray400Brush}}"
-                             StrokeThickness="2"
-                             Fill="Transparent"
-                             WidthRequest="20"
-                             HeightRequest="20" />
-                    <Ellipse x:Name="RadioDot"
-                             Fill="{AppThemeBinding Light={StaticResource PrimaryBrush}, Dark={StaticResource PrimaryDarkBrush}}"
-                             Opacity="0"
-                             WidthRequest="10"
-                             HeightRequest="10"
-                             HorizontalOptions="Center"
-                             VerticalOptions="Center" />
-                </Grid>
-                <ContentPresenter Grid.Column="1" VerticalOptions="Center" />
-            </Grid>
-        </ControlTemplate>
-    </ContentPage.Resources>
-
     <Grid>
 
         <ScrollView>
@@ -174,50 +121,74 @@
                             <Label Text="{Binding Loc.OfferAsLabel}"
                                    Style="{StaticResource FieldLabel}" />
 
-                            <!-- Privatperson -->
-                            <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
-                                         GroupName="SellerType"
-                                         ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
-                                         SemanticProperties.Description="{Binding Loc.SellerTypePrivateSemantic}">
-                                <RadioButton.Content>
-                                    <VerticalStackLayout Spacing="2">
-                                        <Label Text="{Binding Loc.SellerTypePrivate}"
-                                               Style="{StaticResource BodyStrong}" />
-                                        <Label Text="{Binding Loc.SellerTypePrivateHint}"
-                                               Style="{StaticResource Caption}" />
-                                    </VerticalStackLayout>
-                                </RadioButton.Content>
-                            </RadioButton>
+                            <!-- Explizite Labels ausserhalb des RadioButton.Content:
+                                 View-Content verschwindet bei WinUI/Android in nativen
+                                 RadioButton-Handlern. Die ganze Zeile bleibt antippbar. -->
+                            <Grid ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="12"
+                                  Padding="0,4"
+                                  AutomationId="Register_SellerType_Private"
+                                  SemanticProperties.Description="{Binding Loc.SellerTypePrivateSemantic}">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSellerTypeTapped"
+                                                          CommandParameter="Private" />
+                                </Grid.GestureRecognizers>
+                                <RadioButton IsChecked="{Binding IsPrivateSeller, Mode=TwoWay}"
+                                             GroupName="SellerType"
+                                             VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="2"
+                                                     InputTransparent="True">
+                                    <Label Text="{Binding Loc.SellerTypePrivate}"
+                                           Style="{StaticResource BodyStrong}" />
+                                    <Label Text="{Binding Loc.SellerTypePrivateHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
 
-                            <!-- Makler/Agentur -->
-                            <RadioButton IsChecked="{Binding IsBrokerSeller, Mode=TwoWay}"
-                                         GroupName="SellerType"
-                                         ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
-                                         SemanticProperties.Description="{Binding Loc.SellerTypeBrokerSemantic}">
-                                <RadioButton.Content>
-                                    <VerticalStackLayout Spacing="2">
-                                        <Label Text="{Binding Loc.SellerTypeBroker}"
-                                               Style="{StaticResource BodyStrong}" />
-                                        <Label Text="{Binding Loc.SellerTypeBrokerHint}"
-                                               Style="{StaticResource Caption}" />
-                                    </VerticalStackLayout>
-                                </RadioButton.Content>
-                            </RadioButton>
+                            <Grid ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="12"
+                                  Padding="0,4"
+                                  AutomationId="Register_SellerType_Broker"
+                                  SemanticProperties.Description="{Binding Loc.SellerTypeBrokerSemantic}">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSellerTypeTapped"
+                                                          CommandParameter="Broker" />
+                                </Grid.GestureRecognizers>
+                                <RadioButton IsChecked="{Binding IsBrokerSeller, Mode=TwoWay}"
+                                             GroupName="SellerType"
+                                             VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="2"
+                                                     InputTransparent="True">
+                                    <Label Text="{Binding Loc.SellerTypeBroker}"
+                                           Style="{StaticResource BodyStrong}" />
+                                    <Label Text="{Binding Loc.SellerTypeBrokerHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
 
-                            <!-- Hausverwaltung -->
-                            <RadioButton IsChecked="{Binding IsPropertyManagerSeller, Mode=TwoWay}"
-                                         GroupName="SellerType"
-                                         ControlTemplate="{StaticResource SellerTypeRadioTemplate}"
-                                         SemanticProperties.Description="{Binding Loc.SellerTypePropertyManagerSemantic}">
-                                <RadioButton.Content>
-                                    <VerticalStackLayout Spacing="2">
-                                        <Label Text="{Binding Loc.SellerTypePropertyManager}"
-                                               Style="{StaticResource BodyStrong}" />
-                                        <Label Text="{Binding Loc.SellerTypePropertyManagerHint}"
-                                               Style="{StaticResource Caption}" />
-                                    </VerticalStackLayout>
-                                </RadioButton.Content>
-                            </RadioButton>
+                            <Grid ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="12"
+                                  Padding="0,4"
+                                  AutomationId="Register_SellerType_PropertyManager"
+                                  SemanticProperties.Description="{Binding Loc.SellerTypePropertyManagerSemantic}">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSellerTypeTapped"
+                                                          CommandParameter="PropertyManager" />
+                                </Grid.GestureRecognizers>
+                                <RadioButton IsChecked="{Binding IsPropertyManagerSeller, Mode=TwoWay}"
+                                             GroupName="SellerType"
+                                             VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="2"
+                                                     InputTransparent="True">
+                                    <Label Text="{Binding Loc.SellerTypePropertyManager}"
+                                           Style="{StaticResource BodyStrong}" />
+                                    <Label Text="{Binding Loc.SellerTypePropertyManagerHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
 
                             <!-- Firmenname (bei Makler und Verwaltung) -->
                             <VerticalStackLayout Spacing="6"

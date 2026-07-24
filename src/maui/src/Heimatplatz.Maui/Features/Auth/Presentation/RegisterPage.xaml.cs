@@ -17,4 +17,23 @@ public partial class RegisterPage : ContentPage
     private void OnEmailCompleted(object? sender, EventArgs e) => PasswortEntry.Focus();
 
     private void OnPasswortCompleted(object? sender, EventArgs e) => PasswortBestaetigungEntry.Focus();
+
+    private void OnSellerTypeTapped(object? sender, TappedEventArgs e)
+    {
+        if (BindingContext is not RegisterViewModel viewModel || e.Parameter is not string sellerType)
+            return;
+
+        switch (sellerType)
+        {
+            case "Private":
+                viewModel.IsPrivateSeller = true;
+                break;
+            case "Broker":
+                viewModel.IsBrokerSeller = true;
+                break;
+            case "PropertyManager":
+                viewModel.IsPropertyManagerSeller = true;
+                break;
+        }
+    }
 }

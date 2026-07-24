@@ -29,6 +29,8 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     // true bis zum ersten Laden, damit die Initialwerte aus dem Konstruktor
     // und dem Load keine Auto-Save-Aufrufe ausloesen
     private bool _isLoading = true;
+    private bool _suppressEnabledChange;
+    private bool _restoringRequiredSelection;
 
     // Gemeinden fuer die Ort-Suche (cached vom LocationService)
     private List<LocationGemeindeDto> _municipalities = [];
@@ -84,6 +86,29 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 
     /// <summary>Filter-/Info-Bereich nur zeigen wenn angemeldet und Benachrichtigungen aktiv</summary>
     public bool IsFilterSectionVisible => IsLoggedIn && IsEnabled;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPushStatusMessage))]
+    public partial string? PushStatusMessage { get; set; }
+
+    public bool HasPushStatusMessage => !string.IsNullOrWhiteSpace(PushStatusMessage);
+
+    [ObservableProperty]
+    public partial bool CanOpenSystemSettings { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPropertyTypeValidationMessage))]
+    public partial string? PropertyTypeValidationMessage { get; set; }
+
+    public bool HasPropertyTypeValidationMessage =>
+        !string.IsNullOrWhiteSpace(PropertyTypeValidationMessage);
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSellerTypeValidationMessage))]
+    public partial string? SellerTypeValidationMessage { get; set; }
+
+    public bool HasSellerTypeValidationMessage =>
+        !string.IsNullOrWhiteSpace(SellerTypeValidationMessage);
 
     [ObservableProperty]
     public partial NotificationFilterMode FilterMode { get; set; }
@@ -182,12 +207,9 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 
     partial void OnIsEnabledChanged(bool value)
     {
-        if (_isLoading) return;
+        if (_isLoading || _suppressEnabledChange) return;
 
-        // Das explizite Aktivieren ist zugleich der passende User-Intent fuer den
-        // System-Permission-Dialog. Erst nach erfolgreichem Speichern Token anfordern
-        // und beim API registrieren; beim Deaktivieren nur die Praeferenz speichern.
-        _ = PersistPreferencesAsync(requestPushRegistration: value);
+        _ = ApplyEnabledStateAsync(value);
     }
 
     partial void OnIsFilterModeAllChanged(bool value)
@@ -284,32 +306,77 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 
     partial void OnIsHausSelectedChanged(bool value)
     {
-        if (_isLoading) return;
-        _ = SavePreferencesAsync();
+        HandlePropertyTypeSelectionChanged(value, () => IsHausSelected = true);
     }
 
     partial void OnIsGrundstueckSelectedChanged(bool value)
     {
-        if (_isLoading) return;
-        _ = SavePreferencesAsync();
+        HandlePropertyTypeSelectionChanged(value, () => IsGrundstueckSelected = true);
     }
 
     partial void OnIsZwangsversteigerungSelectedChanged(bool value)
     {
-        if (_isLoading) return;
-        _ = SavePreferencesAsync();
+        HandlePropertyTypeSelectionChanged(value, () => IsZwangsversteigerungSelected = true);
     }
 
     partial void OnIsPrivateSelectedChanged(bool value)
     {
-        if (_isLoading) return;
-        _ = SavePreferencesAsync();
+        HandleSellerTypeSelectionChanged(value, () => IsPrivateSelected = true);
     }
 
     partial void OnIsBrokerSelectedChanged(bool value)
     {
-        if (_isLoading) return;
+        HandleSellerTypeSelectionChanged(value, () => IsBrokerSelected = true);
+    }
+
+    private void HandlePropertyTypeSelectionChanged(bool value, Action restoreSelection)
+    {
+        if (_isLoading || _restoringRequiredSelection)
+            return;
+
+        if (!value && !IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
+        {
+            _restoringRequiredSelection = true;
+            PropertyTypeValidationMessage = Loc.PropertyTypeRequired;
+            RestoreRequiredSelectionAfterNativeToggleAsync(restoreSelection);
+            return;
+        }
+
+        PropertyTypeValidationMessage = null;
         _ = SavePreferencesAsync();
+    }
+
+    private void HandleSellerTypeSelectionChanged(bool value, Action restoreSelection)
+    {
+        if (_isLoading || _restoringRequiredSelection)
+            return;
+
+        if (!value && !IsPrivateSelected && !IsBrokerSelected)
+        {
+            _restoringRequiredSelection = true;
+            SellerTypeValidationMessage = Loc.SellerTypeRequired;
+            RestoreRequiredSelectionAfterNativeToggleAsync(restoreSelection);
+            return;
+        }
+
+        SellerTypeValidationMessage = null;
+        _ = SavePreferencesAsync();
+    }
+
+    private async void RestoreRequiredSelectionAfterNativeToggleAsync(Action restoreSelection)
+    {
+        try
+        {
+            // WinUI muss den nativen Toggle zuerst vollstaendig abschliessen.
+            // Ein einfacher MainThread-Aufruf kann auf dem UI-Thread inline
+            // laufen und dadurch eine CheckBox/Binding-Toggle-Schleife ausloesen.
+            await Task.Delay(50);
+            restoreSelection();
+        }
+        finally
+        {
+            _restoringRequiredSelection = false;
+        }
     }
 
     /// <summary>
@@ -317,6 +384,8 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     /// </summary>
     public async Task LoadPreferencesAsync()
     {
+        var reconcileDisabledPermission = false;
+
         try
         {
             _isLoading = true;
@@ -339,6 +408,35 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
             IsPrivateSelected = preferences.IsPrivateSelected;
             IsBrokerSelected = preferences.IsBrokerSelected;
 
+            // Aeltere oder anderweitig erzeugte ungueltige Custom-Filter heilen:
+            // ein leerer Typ-/Anbieterfilter darf nicht erneut gespeichert werden.
+            if (!IsHausSelected && !IsGrundstueckSelected && !IsZwangsversteigerungSelected)
+            {
+                IsHausSelected = true;
+                reconcileDisabledPermission = true;
+            }
+
+            if (!IsPrivateSelected && !IsBrokerSelected)
+            {
+                IsPrivateSelected = true;
+                reconcileDisabledPermission = true;
+            }
+
+#if ANDROID
+            // CheckStatusAsync zeigt keinen Systemdialog. Ist die Android-
+            // Berechtigung blockiert, darf die App nicht weiterhin "aktiv"
+            // behaupten und korrigiert auch die Serverpraeferenz.
+            if (preferences.IsEnabled &&
+                OperatingSystem.IsAndroidVersionAtLeast(33) &&
+                await Permissions.CheckStatusAsync<Permissions.PostNotifications>() != PermissionStatus.Granted)
+            {
+                IsEnabled = false;
+                PushStatusMessage = Loc.PermissionBlocked;
+                CanOpenSystemSettings = true;
+                reconcileDisabledPermission = true;
+            }
+#endif
+
             // Verlassene Ort-Suche zuruecksetzen (Seite ist ein gecachtes Shell-Root)
             _suppressSearch = true;
             OrtSearchText = string.Empty;
@@ -354,6 +452,9 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
             _isLoading = false;
             IsBusy = false;
         }
+
+        if (reconcileDisabledPermission)
+            await PersistPreferencesAsync();
     }
 
     /// <summary>
@@ -361,38 +462,104 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     /// </summary>
     [RelayCommand]
     private Task SavePreferencesAsync()
-        => PersistPreferencesAsync(requestPushRegistration: false);
+        => PersistPreferencesAsync();
 
-    private async Task PersistPreferencesAsync(bool requestPushRegistration)
+    [RelayCommand]
+    private void OpenSystemSettings() => AppInfo.Current.ShowSettingsUI();
+
+    private async Task ApplyEnabledStateAsync(bool enabled)
+    {
+        if (!enabled)
+        {
+            PushStatusMessage = null;
+            CanOpenSystemSettings = false;
+            await PersistPreferencesAsync();
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            _logger.LogInformation("Notifications explicitly enabled; requesting device push access");
+            var result = await _pushNotificationInitializer.InitializeAsync();
+#if ANDROID
+            // Shiny kann einen abgelehnten Android-Systemdialog je nach
+            // Firebase-/Tokenzustand als Abbruch bzw. allgemeinen Fehler
+            // zurueckmelden. Fuer die UI ist der tatsaechliche OS-
+            // Berechtigungszustand massgeblich.
+            if (!result.IsAvailable &&
+                OperatingSystem.IsAndroidVersionAtLeast(33) &&
+                await Permissions.CheckStatusAsync<Permissions.PostNotifications>() != PermissionStatus.Granted)
+            {
+                result = new(PushInitializationStatus.Denied);
+            }
+#endif
+            if (result.IsAvailable)
+            {
+                PushStatusMessage = null;
+                CanOpenSystemSettings = false;
+            }
+            else
+            {
+                ApplyPushFailure(result.Status);
+
+                // Server- und UI-Zustand muessen dem tatsaechlich verfuegbaren
+                // Betriebssystemstatus entsprechen.
+                _suppressEnabledChange = true;
+                IsEnabled = false;
+                _suppressEnabledChange = false;
+            }
+
+            await PersistPreferencesCoreAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error enabling push notifications");
+            ApplyPushFailure(PushInitializationStatus.Failed);
+            _suppressEnabledChange = true;
+            IsEnabled = false;
+            _suppressEnabledChange = false;
+            try
+            {
+                await PersistPreferencesCoreAsync();
+            }
+            catch (Exception persistException)
+            {
+                _logger.LogError(persistException, "Error reconciling disabled push preference");
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void ApplyPushFailure(PushInitializationStatus status)
+    {
+        CanOpenSystemSettings = status is
+            PushInitializationStatus.Denied or
+            PushInitializationStatus.Disabled or
+            PushInitializationStatus.Restricted;
+
+        PushStatusMessage = status switch
+        {
+            PushInitializationStatus.Denied or
+            PushInitializationStatus.Disabled or
+            PushInitializationStatus.Restricted => Loc.PermissionBlocked,
+            PushInitializationStatus.NotConfigured or
+            PushInitializationStatus.NotSupported => Loc.PushUnavailable,
+            _ => Loc.PushActivationFailed
+        };
+    }
+
+    private async Task PersistPreferencesAsync()
     {
         if (_isLoading) return;
 
         try
         {
             IsBusy = true;
-            var success = await _notificationService.UpdatePreferencesAsync(
-                IsEnabled,
-                FilterMode,
-                SelectedOrte,
-                IsHausSelected,
-                IsGrundstueckSelected,
-                IsZwangsversteigerungSelected,
-                IsPrivateSelected,
-                IsBrokerSelected);
-            if (success)
-            {
-                _logger.LogInformation("Notification preferences saved successfully");
-
-                if (requestPushRegistration)
-                {
-                    _logger.LogInformation("Notifications enabled; initializing device push registration");
-                    await _pushNotificationInitializer.InitializeAsync();
-                }
-            }
-            else
-            {
-                _logger.LogWarning("Failed to save notification preferences");
-            }
+            await PersistPreferencesCoreAsync();
         }
         catch (Exception ex)
         {
@@ -402,5 +569,23 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         {
             IsBusy = false;
         }
+    }
+
+    private async Task PersistPreferencesCoreAsync()
+    {
+        var success = await _notificationService.UpdatePreferencesAsync(
+            IsEnabled,
+            FilterMode,
+            SelectedOrte,
+            IsHausSelected,
+            IsGrundstueckSelected,
+            IsZwangsversteigerungSelected,
+            IsPrivateSelected,
+            IsBrokerSelected);
+
+        if (success)
+            _logger.LogInformation("Notification preferences saved successfully");
+        else
+            _logger.LogWarning("Failed to save notification preferences");
     }
 }

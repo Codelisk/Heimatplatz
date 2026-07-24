@@ -2,6 +2,7 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
 using Heimatplatz.Maui.Features.Properties.Services;
@@ -27,6 +28,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     private readonly IAuthService _authService;
     private readonly IPropertyStatusService _propertyStatusService;
     private readonly IInternetService _internet;
+    private readonly OfflineReadState _offlineReadState;
+    private readonly PropertyImageCache _imageCache;
     private readonly ILogger<ForeclosureDetailViewModel> _logger;
     private readonly ForeclosureDetailStringsLocalized _loc;
 
@@ -49,6 +52,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
     [ObservableProperty]
     public partial string? BusyMessage { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsShowingCachedData { get; set; }
 
     [ObservableProperty]
     public partial PropertyDto? Property { get; set; }
@@ -245,6 +251,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         IAuthService authService,
         IPropertyStatusService propertyStatusService,
         IInternetService internet,
+        OfflineReadState offlineReadState,
+        PropertyImageCache imageCache,
         ILogger<ForeclosureDetailViewModel> logger,
         ForeclosureDetailStringsLocalized loc)
     {
@@ -254,6 +262,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         _authService = authService;
         _propertyStatusService = propertyStatusService;
         _internet = internet;
+        _offlineReadState = offlineReadState;
+        _imageCache = imageCache;
         _logger = logger;
         _loc = loc;
 
@@ -309,6 +319,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             _logger.LogInformation("[ForeclosureDetail] Loading property {PropertyId} from API", propertyId);
 
             var (_, response) = await _mediator.Request(new GetPropertyByIdHttpRequest { Id = propertyId });
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
 
             if (response?.Property != null)
             {
@@ -341,6 +352,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             }
 
             UpdateDisplayProperties();
+            if (Property != null)
+                _ = CachePropertyImagesAsync(propertyId, Property.ImageUrls);
             IsFavorite = isFavorite;
         }
         catch (Exception ex) when (ex is OfflineDataUnavailableException || !_internet.IsAvailable)
@@ -349,6 +362,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             // existiert weiterhin, sie kann nur gerade nicht geladen werden
             _logger.LogInformation("[ForeclosureDetail] Offline ohne lokale Daten fuer {PropertyId}", propertyId);
             Property = null;
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
             UpdateDisplayProperties();
             SetOfflineError(propertyId);
         }
@@ -356,6 +370,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         {
             _logger.LogError(ex, "[ForeclosureDetail] Error loading property {PropertyId}", propertyId);
             Property = null;
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
             UpdateDisplayProperties();
             SetLoadError(
                 "📡",
@@ -456,13 +471,43 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
 
         // Bilder
-        ImageUrls = Property.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList() ?? [];
+        ImageUrls = Property.ImageUrls?
+            .Where(url => !string.IsNullOrEmpty(url))
+            .Select(_imageCache.GetCachedOrOriginal)
+            .ToList() ?? [];
         HasImages = ImageUrls.Count > 0;
         CurrentImagePosition = 0;
         OnPropertyChanged(nameof(ImageCounterText));
 
         // TypeSpecificData parsen und Sektionen aufbauen
         BuildDetailSections();
+    }
+
+    private async Task CachePropertyImagesAsync(Guid propertyId, IEnumerable<string>? urls)
+    {
+        try
+        {
+            var sourceUrls = urls?.Where(url => !string.IsNullOrWhiteSpace(url)).ToList() ?? [];
+            if (sourceUrls.Count == 0)
+                return;
+
+            var resolved = await Task.WhenAll(
+                sourceUrls.Select(url => _imageCache.GetOrDownloadAsync(url)));
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                if (Property?.Id != propertyId)
+                    return;
+
+                ImageUrls = resolved.ToList();
+                HasImages = ImageUrls.Count > 0;
+                OnPropertyChanged(nameof(ImageCounterText));
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "[ForeclosureDetail] Bilder konnten nicht vorab gespeichert werden");
+        }
     }
 
     private void BuildDetailSections()

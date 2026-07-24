@@ -11,6 +11,7 @@ import {
   buildPropertySearchQuery,
   DEFAULT_TYPES,
   normalizeTypeValue,
+  SEARCH_PAGE_SIZE,
   type PropertySearchState,
 } from "@/features/properties/search-query";
 
@@ -33,6 +34,8 @@ const ortSlugMap = buildOrtSlugMap(ortRegions);
 // Ohne ?type-Parameter gilt die Standard-Auswahl (Zwangsversteigerungen aus) -
 // identisch zum Client-Default in PropertySearchApp, damit der Initial-Query matcht.
 const typeSelection = parseSelection("type", ALL_TYPES);
+const requestedPage = Number(params.get("page") ?? "1");
+const page = Math.max(0, Math.floor(Number.isFinite(requestedPage) ? requestedPage : 1) - 1);
 
 const searchState: PropertySearchState = {
   q: params.get("q") ?? "",
@@ -42,11 +45,21 @@ const searchState: PropertySearchState = {
   age: params.get("age") ?? "",
   sort: params.get("sort") ?? "newest",
   // URL-Parameter ist 1-basiert ("Seite 2" = ?page=2), intern/API-seitig 0-basiert
-  page: Math.max(0, (Number(params.get("page") ?? 1) || 1) - 1),
+  page,
 };
 
 const searchQuery = buildPropertySearchQuery(searchState, ortSlugMap);
 const searchResult = await fetchApiPropertySearch(searchQuery);
+
+// Direkte/veraltete Links dürfen keine leere Seite mit positiver Trefferzahl
+// zeigen. Auf die letzte gültige Seite umleiten (bei nur einer Seite ohne ?page).
+const lastPage = Math.max(0, Math.ceil(searchResult.total / SEARCH_PAGE_SIZE) - 1);
+if (searchState.page > lastPage) {
+  const redirectUrl = new URL(Astro.url);
+  if (lastPage === 0) redirectUrl.searchParams.delete("page");
+  else redirectUrl.searchParams.set("page", String(lastPage + 1));
+  return Astro.redirect(`${redirectUrl.pathname}${redirectUrl.search}`, 302);
+}
 ---
 
 <BaseLayout

@@ -105,7 +105,11 @@ export function buildPropertySearchQuery(state: PropertySearchState, ortSlugMap:
 
   const sellers = [...new Set(state.sellers)].filter((seller) =>
     (ALL_SELLERS as readonly string[]).includes(seller));
-  if (sellers.length > 0 && sellers.length < ALL_SELLERS.length) {
+  // Gericht/Edikt hat keinen privaten oder gewerblichen Anbieter. Die zuletzt
+  // gewählte Anbieter-Auswahl bleibt im UI erhalten, wird bei reiner
+  // Zwangsversteigerungs-Suche aber fachlich nicht angewendet.
+  const onlyForeclosure = types.length === 1 && types[0] === "foreclosure";
+  if (!onlyForeclosure && sellers.length > 0 && sellers.length < ALL_SELLERS.length) {
     const apiSellers: string[] = [];
     if (sellers.includes("private")) apiSellers.push("Private");
     if (sellers.includes("agent")) apiSellers.push("Broker", "PropertyManager");

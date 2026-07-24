@@ -30,12 +30,6 @@ public class ThemeService : IThemeService
             _ => AppThemeMode.System
         };
         Preferences.Default.Set(PreferenceKey, Mode.ToString());
-#if ANDROID
-        // AppCompat kann waehrend des UiMode-Wechsels kurz OnPause ausloesen. Ohne
-        // Kennzeichnung interpretiert MainActivity das als Hintergrundwechsel und
-        // Recreate() setzt den Shell-Navigationszustand auf die Startseite zurueck.
-        (Platform.CurrentActivity as MainActivity)?.MarkUserInitiatedThemeChange();
-#endif
         Apply();
         return Mode;
     }

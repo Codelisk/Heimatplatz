@@ -233,6 +233,26 @@ public partial class HomePage : ShinyContentPage
 
     private void HideChipBar() => TransitionChipBar(hide: true);
 
+    private void OnFilterChipBarMetricsChanged(object? sender, EventArgs e) =>
+        Dispatcher.Dispatch(UpdateFilterOverflowHint);
+
+    private void OnFilterChipBarScrolled(object? sender, ScrolledEventArgs e) =>
+        UpdateFilterOverflowHint();
+
+    private async void OnFilterOverflowHintTapped(object? sender, TappedEventArgs e)
+    {
+        var maximumOffset = Math.Max(0, FilterChipContent.Width - FilterChipBar.Width);
+        await FilterChipBar.ScrollToAsync(maximumOffset, 0, animated: true);
+        UpdateFilterOverflowHint();
+    }
+
+    private void UpdateFilterOverflowHint()
+    {
+        var maximumOffset = Math.Max(0, FilterChipContent.Width - FilterChipBar.Width);
+        FilterOverflowHint.IsVisible = maximumOffset > 8 &&
+                                       FilterChipBar.ScrollX < maximumOffset - 4;
+    }
+
     /// <summary>
     /// Faehrt die Chip-Zeile in den gewuenschten Zustand. Kein Fire-and-Forget:
     /// der Endzustand wird nach der Animation hart gesetzt, ein gestrandeter
@@ -251,7 +271,7 @@ public partial class HomePage : ShinyContentPage
         // laeuft - Scrolled feuert am Listenanfang fuer jedes Delta erneut.
         if (_chipBarHidden == hide &&
             (_chipBarAnimationTarget == target ||
-             (_chipBarAnimationTarget is null && FilterChipBar.TranslationY == target)))
+             (_chipBarAnimationTarget is null && FilterChipBarSurface.TranslationY == target)))
             return;
 
         _chipBarHidden = hide;
@@ -263,7 +283,7 @@ public partial class HomePage : ShinyContentPage
             FilterChipBarHost.IsVisible = true;
         }
 
-        var canceled = await FilterChipBar.TranslateToAsync(0, target, 160, hide ? Easing.CubicIn : Easing.CubicOut);
+        var canceled = await FilterChipBarSurface.TranslateToAsync(0, target, 160, hide ? Easing.CubicIn : Easing.CubicOut);
 
         if (_chipBarAnimationTarget == target)
             _chipBarAnimationTarget = null;
@@ -275,7 +295,7 @@ public partial class HomePage : ShinyContentPage
 
         // Endzustand festnageln - Animationsreste (Bruchpixel) machen die Zeile auf
         // iOS unscharf.
-        FilterChipBar.TranslationY = target;
+        FilterChipBarSurface.TranslationY = target;
 
         if (hide)
         {

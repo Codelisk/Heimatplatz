@@ -100,6 +100,26 @@
                     <Label
                         Text="{Binding Loc.EnableCaption}"
                         Style="{StaticResource Caption}" />
+                    <Border BackgroundColor="{AppThemeBinding Light=#FFF4E5, Dark=#352A1D}"
+                            Stroke="{AppThemeBinding Light=#D98200, Dark=#F2A93B}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12"
+                            IsVisible="{Binding HasPushStatusMessage}"
+                            AutomationId="NotificationSettings_PushStatus">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="{Binding PushStatusMessage}"
+                                   FontSize="13"
+                                   LineBreakMode="WordWrap"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Button Text="{Binding Loc.OpenSystemSettings}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding OpenSystemSettingsCommand}"
+                                    HorizontalOptions="Start"
+                                    IsVisible="{Binding CanOpenSystemSettings}"
+                                    AutomationId="NotificationSettings_OpenSystemSettings" />
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
@@ -272,6 +292,11 @@
                                     <Label Text="{Binding Loc.PropertyTypeZwangsversteigerung}" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
+                            <Label Text="{Binding PropertyTypeValidationMessage}"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}"
+                                   IsVisible="{Binding HasPropertyTypeValidationMessage}"
+                                   AutomationId="NotificationSettings_PropertyTypeValidation" />
                         </VerticalStackLayout>
                     </Border>
 
@@ -308,6 +333,11 @@
                                     <Label Text="{Binding Loc.SellerTypeBroker}" VerticalOptions="Center" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
+                            <Label Text="{Binding SellerTypeValidationMessage}"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}"
+                                   IsVisible="{Binding HasSellerTypeValidationMessage}"
+                                   AutomationId="NotificationSettings_SellerTypeValidation" />
                         </VerticalStackLayout>
                     </Border>
 

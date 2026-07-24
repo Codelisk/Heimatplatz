@@ -231,6 +231,7 @@ public class UpdatePropertyHandler(
                         {
                             ValidateForeclosureData(foreclosureData);
                             property.SetTypedData(foreclosureData);
+                            property.Price = foreclosureData.MinimumBid;
                         }
                         break;
                 }

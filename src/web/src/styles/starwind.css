@@ -307,6 +307,9 @@ body {
   /* Opak wie die Eingabefelder: Bretterfugen scheinen nicht durch */
   background-color: var(--muted);
 }
+.filter-chip-group.hidden {
+  display: none;
+}
 .filter-chip {
   display: inline-flex;
   align-items: center;

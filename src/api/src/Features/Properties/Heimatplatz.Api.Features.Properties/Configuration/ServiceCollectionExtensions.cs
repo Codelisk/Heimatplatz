@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddSeeder<PropertySeeder>();
         services.AddSeeder<PropertyMunicipalityFixSeeder>();
         services.AddSeeder<PropertyOriginalListingBackfillSeeder>();
+        services.AddSeeder<PropertyForeclosurePriceFixSeeder>();
         services.AddSeeder<FavoriteSeeder>();
         services.AddSeeder<BlockedSeeder>();
 

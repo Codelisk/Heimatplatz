@@ -36,6 +36,18 @@
   <data name="EnableCaption" xml:space="preserve">
     <value>Push-Benachrichtigungen für neue Immobilien</value>
   </data>
+  <data name="PermissionBlocked" xml:space="preserve">
+    <value>Benachrichtigungen sind in den Systemeinstellungen blockiert. Die App hat sie deshalb deaktiviert.</value>
+  </data>
+  <data name="PushUnavailable" xml:space="preserve">
+    <value>Push-Benachrichtigungen werden auf diesem Gerät derzeit nicht unterstützt.</value>
+  </data>
+  <data name="PushActivationFailed" xml:space="preserve">
+    <value>Benachrichtigungen konnten nicht aktiviert werden. Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="OpenSystemSettings" xml:space="preserve">
+    <value>Systemeinstellungen öffnen</value>
+  </data>
   <data name="FilterModeTitle" xml:space="preserve">
     <value>Filtermodus</value>
   </data>
@@ -75,6 +87,9 @@
   <data name="PropertyTypeZwangsversteigerung" xml:space="preserve">
     <value>Zwangsversteigerung</value>
   </data>
+  <data name="PropertyTypeRequired" xml:space="preserve">
+    <value>Mindestens ein Immobilientyp muss ausgewählt bleiben.</value>
+  </data>
   <data name="SellerTypeTitle" xml:space="preserve">
     <value>Anbietertyp</value>
   </data>
@@ -86,6 +101,9 @@
   </data>
   <data name="SellerTypeBroker" xml:space="preserve">
     <value>Makler &amp; Verwaltung</value>
+  </data>
+  <data name="SellerTypeRequired" xml:space="preserve">
+    <value>Mindestens ein Anbietertyp muss ausgewählt bleiben.</value>
   </data>
   <data name="LocationTitle" xml:space="preserve">
     <value>Orte</value>

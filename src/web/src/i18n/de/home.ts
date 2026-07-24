@@ -64,6 +64,8 @@ export const home = {
   "search.settingsSortTitle": "Sortierung",
   "search.settingsSortHint": "Die Standardsortierung entspricht den Optionen der Immobiliensuche.",
   "search.settingsSave": "Filter speichern",
+  "search.settingsTypeRequired": "Bitte mindestens einen Immobilientyp auswählen.",
+  "search.settingsSellerRequired": "Bitte mindestens einen Anbietertyp auswählen.",
 
   // Status-Meldungen der Einstellungs-Formulare (Filter- und Benachrichtigungs-Seite,
   // beide laufen über bindPreferenceForms in PropertyStateScript)

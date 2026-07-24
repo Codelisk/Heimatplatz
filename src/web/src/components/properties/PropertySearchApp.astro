@@ -651,9 +651,10 @@ const ortRegions = await fetchOrtRegions();
 
     // Bei Zwangsversteigerungen gibt es keinen Anbieter-Unterschied (immer Gericht/Edikt) -
     // Anbieter-Filter ist dann wirkungslos und wird ausgeblendet statt eine tote Auswahl zu zeigen.
+    // Die Auswahl bleibt erhalten, damit sie beim Zuschalten normaler Inserate wieder korrekt
+    // sichtbar und wirksam wird.
     const activeTypes = getActiveTypes();
     const onlyForeclosure = activeTypes.length === 1 && activeTypes[0] === "foreclosure";
-    if (onlyForeclosure) selectedSellers.clear();
     sellerFilterGroups.forEach((group) => group.classList.toggle("hidden", onlyForeclosure));
 
     sellerButtons.forEach((button) => {
@@ -746,11 +747,22 @@ const ortRegions = await fetchOrtRegions();
       });
       if (!response.ok) throw new Error(`API ${response.status}`);
       const payload = await response.json() as ApiPropertyResponse;
-      const verifiedImages = await loadVerifiedImageMap();
       if (controller.signal.aborted) return;
 
       const properties = payload.Properties ?? [];
       totalCount = payload.Total ?? properties.length;
+      const lastPage = Math.max(0, Math.ceil(totalCount / SEARCH_PAGE_SIZE) - 1);
+      if (currentPage > lastPage) {
+        // Kann z.B. nach dem Blockieren des letzten Treffers einer Seite passieren.
+        // URL sofort korrigieren und die letzte gültige Seite nachladen.
+        currentPage = lastPage;
+        updateUrl();
+        scheduleRefresh();
+        return;
+      }
+
+      const verifiedImages = await loadVerifiedImageMap();
+      if (controller.signal.aborted) return;
       grid.replaceChildren(...properties.map((property) => createApiCard(property, verifiedImages)));
       // PropertyStateScript setzt Favoriten-/Blockiert-Zustaende auf den neuen Karten
       document.dispatchEvent(new CustomEvent("property-cards-rendered"));

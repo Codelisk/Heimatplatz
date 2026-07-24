@@ -198,11 +198,32 @@ public class GetPropertiesHandler(
     /// </summary>
     public static string ResolveApiBaseUrl(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
     {
+        var req = httpContextAccessor.HttpContext?.Request;
         var configured = configuration["Api:PublicBaseUrl"];
         if (!string.IsNullOrWhiteSpace(configured))
-            return configured.TrimEnd('/');
+        {
+            var normalizedConfigured = configured.TrimEnd('/');
 
-        var req = httpContextAccessor.HttpContext?.Request;
+            // In der lokalen Entwicklung ist PublicBaseUrl oft "localhost",
+            // Android erreicht dieselbe API aber ueber 10.0.2.2. In diesem
+            // Sonderfall muss die Antwort den vom Client verwendeten Origin
+            // spiegeln; echte oeffentliche Produktions-URLs behalten weiterhin
+            // Vorrang vor internen Docker-Hosts.
+            if (req is not null &&
+                Uri.TryCreate(normalizedConfigured, UriKind.Absolute, out var configuredUri) &&
+                configuredUri.IsLoopback)
+            {
+                var requestOrigin = $"{req.Scheme}://{req.Host}";
+                if (Uri.TryCreate(requestOrigin, UriKind.Absolute, out var requestUri) &&
+                    !requestUri.IsLoopback)
+                {
+                    return requestOrigin.TrimEnd('/');
+                }
+            }
+
+            return normalizedConfigured;
+        }
+
         return req != null ? $"{req.Scheme}://{req.Host}" : "";
     }
 
@@ -237,9 +258,23 @@ public class GetPropertiesHandler(
                 // Upload-Request-Host gespeichert - gegen eine lokale Dev-API entstandene
                 // "http://localhost:xxxx/uploads/..."-Altlasten waeren im Browser IMMER
                 // kaputt (Mixed Content + CSP), lokal liegt die Datei aber meist vor.
-                var isOwnHost = Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
-                    && (string.Equals(parsed.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase) || parsed.IsLoopback);
-                if (isOwnHost)
+                var hasBaseUri = Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri);
+                var isSameOrigin = hasBaseUri
+                    && string.Equals(parsed.Scheme, baseUri!.Scheme, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(parsed.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase)
+                    && parsed.Port == baseUri.Port;
+
+                // Seed- und Upload-Altbestände können eine localhost-URL enthalten.
+                // Auf Android bezeichnet localhost jedoch den Emulator selbst. Gegen
+                // den Origin der aktuellen API-Anfrage rebasen und Query beibehalten.
+                if (parsed.IsLoopback && hasBaseUri && !isSameOrigin)
+                {
+                    return parsed.AbsolutePath.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
+                        ? BuildLocalImageUrl(baseUrl, parsed.AbsolutePath, width)
+                        : $"{baseUrl}{parsed.PathAndQuery}";
+                }
+
+                if (isSameOrigin)
                 {
                     return parsed.AbsolutePath.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
                         ? BuildLocalImageUrl(baseUrl, parsed.AbsolutePath, width)

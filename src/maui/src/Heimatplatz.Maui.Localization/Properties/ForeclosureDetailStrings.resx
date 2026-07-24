@@ -225,4 +225,7 @@ Standort: {3}</value>
     <value>Zwangsversteigerung: {0}
 Standort: {1}</value>
   </data>
+  <data name="CachedDataNotice" xml:space="preserve">
+    <value>Offline – angezeigt wird der zuletzt gespeicherte Stand.</value>
+  </data>
 </root>

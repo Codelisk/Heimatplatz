@@ -341,16 +341,18 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
 
                 case PropertyType.Foreclosure:
                     // Realistic foreclosure data with all fields populated
-                    var estimatedValue = property.Price * 1.2m; // Estimated value higher than minimum bid
+                    var marketValue = property.Price;
+                    var estimatedValue = marketValue * 1.2m; // Estimated value higher than minimum bid
+                    var minimumBid = marketValue * 0.7m;
                     var auctionDate = DateTime.UtcNow.AddDays(30 + Random.Shared.Next(0, 60));
                     var foreclosureData = new ForeclosurePropertyData(
                         CourtName: property.SellerName,
                         AuctionDate: auctionDate,
-                        MinimumBid: property.Price * 0.7m, // 70% of market value
+                        MinimumBid: minimumBid, // 70% of market value
                         EstimatedValue: estimatedValue,
                         Encumbrances:
                         [
-                            new Encumbrance("Hypothek Bank Austria", property.Price * 0.5m, "Bank Austria"),
+                            new Encumbrance("Hypothek Bank Austria", marketValue * 0.5m, "Bank Austria"),
                             new Encumbrance("Grundsteuer", 2500, "Finanzamt")
                         ],
                         Status: LegalStatus.Scheduled,
@@ -377,6 +379,9 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                         EdictUrl: $"https://edikte.justiz.gv.at/sample-{property.Id}.odt"
                     );
                     property.SetTypedData(foreclosureData);
+                    // Der allgemeine Price-Wert ist bei Zwangsversteigerungen das
+                    // Mindestgebot (gleiche Invariante wie beim EDIKTE-Sync).
+                    property.Price = minimumBid;
                     break;
             }
         }
