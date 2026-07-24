@@ -1,0 +1,6 @@
+• New: feedback area – send questions and requests with photos or a voice message straight to our team, replies arrive right in the app
+• Rename your requests any time
+• Property cards are more clearly separated and easier to scan
+• Tapping a notification reliably opens the matching property
+• Polish for light and dark mode and keyboard handling
+• Minor bug fixes and improvements

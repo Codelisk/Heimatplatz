@@ -15,6 +15,9 @@ Speichere interessante Objekte als Favoriten. Aktiviere Push-Benachrichtigungen 
 SELBST INSERIEREN – ALLES AUF EINER SEITE
 Du möchtest verkaufen? Du gestaltest dein Inserat direkt in der Ansicht, in der es später erscheint: Fotos, Eckdaten, Lage und Preis, Beschreibung – alles auf einer Seite. Dein Entwurf wird automatisch gespeichert – du kannst jederzeit unterbrechen und später weitermachen. Bei der Beschreibung hilft dir auf Wunsch die KI: Tippe ein paar Stichwörter oder sprich sie einfach ein – du prüfst den fertigen Text, passt ihn an und veröffentlichst. Deine Fotos bleiben dabei in voller Originalqualität erhalten. Auf Wunsch gibst du einen eigenen Ansprechpartner mit Kontaktdaten für dein Inserat an. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
 
+DIREKTER DRAHT ZUM TEAM
+Fragen, Ideen oder ein Problem? Melde dich direkt aus der App bei unserem Team – per Text, mit Fotos oder einfach als Sprachnachricht. Die Antwort bekommst du direkt in der App und wirst benachrichtigt, sobald sie da ist.
+
 DATENSCHUTZ
 Heimatplatz setzt auf Datensparsamkeit. Du kannst anonym stöbern, ohne ein Konto zu erstellen. Deine Daten gehören dir.
 
@@ -27,6 +30,7 @@ FUNKTIONEN IM ÜBERBLICK
 • Unerwünschte Objekte ausblenden
 • Eigene Inserate direkt in der fertigen Ansicht erstellen und bearbeiten
 • Privat- und Maklerangebote filtern
+• Direkter Draht zum Team – Feedback mit Fotos oder Sprachnachricht
 • Zuletzt geladene Inhalte auch offline verfügbar
 • Hell- oder Dunkelmodus wählbar
 • Minimalistisches, übersichtliches Design

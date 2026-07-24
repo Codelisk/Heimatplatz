@@ -15,6 +15,9 @@ Save interesting properties as favorites. Enable push notifications for your pre
 LIST YOUR OWN PROPERTY – ALL ON ONE PAGE
 Want to sell? You design your listing right in the view it will later appear in: photos, key facts, location and price, description – all on one page. Your draft is saved automatically – pause any time and continue later. For the description, AI can help if you like: type a few keywords or simply dictate them – you review the finished text, adjust it and publish. Your photos are kept in full original quality. If you like, you can name a dedicated contact person with their own contact details for your listing. Manage your ads conveniently in your personal area.
 
+DIRECT LINE TO OUR TEAM
+Questions, ideas or a problem? Reach out to our team right from the app – as text, with photos or simply as a voice message. You get the reply right in the app and are notified as soon as it arrives.
+
 PRIVACY
 Heimatplatz is built on data minimization. You can browse anonymously without creating an account. Your data belongs to you.
 
@@ -27,6 +30,7 @@ FEATURES AT A GLANCE
 • Hide unwanted properties
 • Create and edit your own listings right in the final view
 • Filter private and agent offers
+• Direct line to our team – feedback with photos or voice message
 • Recently loaded content also available offline
 • Choose between light and dark mode
 • Minimalist, clear design
