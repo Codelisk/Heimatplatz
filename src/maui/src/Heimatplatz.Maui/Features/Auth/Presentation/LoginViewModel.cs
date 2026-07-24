@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
@@ -54,10 +55,6 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
         Passwort = string.Empty;
     }
 
-    public bool CanLogin =>
-        !string.IsNullOrWhiteSpace(Email) &&
-        !string.IsNullOrWhiteSpace(Passwort);
-
     /// <summary>True wenn eine Fehlermeldung angezeigt werden soll</summary>
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
@@ -80,9 +77,10 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
     [RelayCommand]
     private async Task LoginAsync()
     {
-        if (!CanLogin)
+        var validationError = GetValidationError();
+        if (!string.IsNullOrEmpty(validationError))
         {
-            ErrorMessage = GetValidationError();
+            ErrorMessage = validationError;
             return;
         }
 
@@ -148,10 +146,16 @@ public partial class LoginViewModel : ObservableObject, IPageLifecycleAware
     [RelayCommand]
     private Task GoToForgotPasswordAsync() => _navigator.NavigateTo("ForgotPassword");
 
+    // Nur ein grobes Format-Muster: massgeblich fuer die tatsaechliche
+    // Gueltigkeit bleibt ausschliesslich die serverseitige Validierung.
+    private static readonly Regex EmailFormatRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
+
     private string GetValidationError()
     {
         if (string.IsNullOrWhiteSpace(Email))
             return Loc.ValidationEmailRequired;
+        if (!EmailFormatRegex.IsMatch(Email.Trim()))
+            return Loc.ValidationEmailInvalid;
         if (string.IsNullOrWhiteSpace(Passwort))
             return Loc.ValidationPasswordRequired;
         return string.Empty;

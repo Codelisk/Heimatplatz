@@ -346,6 +346,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     public void OnAppearing()
     {
+        // Hintergrund-Refreshes melden Serverausfaelle erst NACH dem synchronen
+        // Cache-Hit - den Hinweis "zwischengespeicherte Daten" live nachziehen.
+        _offlineReadState.Changed += OnOfflineReadStateChanged;
+        IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
+
         // Session-Filter-State wiederherstellen (z.B. nach Rueckkehr von einer Detail-Seite)
         SyncFiltersFromService();
 
@@ -385,7 +390,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     public void OnDisappearing()
     {
+        _offlineReadState.Changed -= OnOfflineReadStateChanged;
     }
+
+    private void OnOfflineReadStateChanged(object? sender, EventArgs e) =>
+        MainThread.BeginInvokeOnMainThread(() =>
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable);
 
     #endregion
 

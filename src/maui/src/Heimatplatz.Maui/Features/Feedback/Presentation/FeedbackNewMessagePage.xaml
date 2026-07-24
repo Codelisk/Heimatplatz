@@ -42,7 +42,7 @@
 
             <BoxView Style="{StaticResource Divider}" Margin="0,20,0,14" />
 
-            <Label Text="{Binding Loc.ComposeHint}"
+            <Label Text="{Binding Composer.ComposeHintText}"
                    Style="{StaticResource Caption}"
                    LineBreakMode="WordWrap" />
         </VerticalStackLayout>

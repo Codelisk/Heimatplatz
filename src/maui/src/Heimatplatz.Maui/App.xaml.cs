@@ -30,12 +30,26 @@ public partial class App : Application
         // Scroll-/Refresh-Flaechen nicht zuerst im Geraete-Theme entstehen.
         _theme.PrepareWindow(activationState);
 
+        // Vor dem Shell-Aufbau sichern: die Startnavigation der neuen Shell
+        // ueberschreibt AppShell.LastKnownLocation sofort mit "//MainPage".
+        var restoreLocation = AppShell.LastKnownLocation;
+
         var shell = new AppShell(_services.GetRequiredService<AppShellStringsLocalized>());
         ScreenshotMode.TryApply(shell, _services);
         var window = new Window(shell);
 
         // Session-Restore + Push-Init (fire-and-forget, blockiert den Start nicht)
-        _ = _startup.StartAsync();
+        var startupTask = _startup.StartAsync();
+
+        // Warm-Recreate (Android: System-Themewechsel erzeugt die Activity neu):
+        // die zuletzt aktive Route wiederherstellen statt auf die Startseite
+        // zurueckzufallen. Erst nach dem Session-Restore, damit auth-abhaengige
+        // Seiten nicht faelschlich zum Login umleiten.
+        if (!string.IsNullOrEmpty(restoreLocation) &&
+            restoreLocation.TrimEnd('/') != "//MainPage")
+        {
+            _ = RestoreNavigationAsync(shell, startupTask, restoreLocation);
+        }
 
         // Nach laengerer Hintergrund-Zeit koennen Immobilien veraltet sein -
         // beim Zurueckkehren sofort einen Delta-Sync anstossen
@@ -50,5 +64,37 @@ public partial class App : Application
         window.Activated += (_, _) => _theme.Apply();
 
         return window;
+    }
+
+    private static async Task RestoreNavigationAsync(AppShell shell, Task startupTask, string location)
+    {
+        try
+        {
+            await startupTask;
+            await WaitForLoadedAsync(shell);
+            await shell.Dispatcher.DispatchAsync(() => shell.GoToAsync(location));
+        }
+        catch
+        {
+            // Route nicht mehr aufloesbar (z.B. nach Logout) - der sichere
+            // Fallback ist der normale Start auf der Root-Seite.
+        }
+    }
+
+    private static Task WaitForLoadedAsync(AppShell shell)
+    {
+        if (shell.IsLoaded)
+            return Task.CompletedTask;
+
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void OnLoaded(object? sender, EventArgs e)
+        {
+            shell.Loaded -= OnLoaded;
+            tcs.TrySetResult();
+        }
+
+        shell.Loaded += OnLoaded;
+        return tcs.Task;
     }
 }

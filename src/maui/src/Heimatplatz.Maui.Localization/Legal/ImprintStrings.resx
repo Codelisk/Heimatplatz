@@ -21,8 +21,8 @@
   <data name="Email" xml:space="preserve">
     <value>E-Mail: {0}</value>
   </data>
-  <data name="EmailPhone" xml:space="preserve">
-    <value>E-Mail: {0}  Tel: {1}</value>
+  <data name="Phone" xml:space="preserve">
+    <value>Tel: {0}</value>
   </data>
   <data name="Uid" xml:space="preserve">
     <value>UID: {0}</value>

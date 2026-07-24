@@ -1,3 +1,4 @@
+using Heimatplatz.Maui.Core.Handlers;
 using Heimatplatz.Maui.Localization;
 using Shiny;
 
@@ -7,6 +8,13 @@ public partial class AppShell : ShinyShell
 {
     readonly List<FlyoutMenuEntry> flyoutEntries = [];
     Window? observedWindow;
+
+    /// <summary>
+    /// Prozess-lokales Gedaechtnis der letzten Shell-Route. Ueberlebt Android-
+    /// Activity-Recreates (z.B. System-Themewechsel), bewusst ohne Persistenz:
+    /// ein Kaltstart beginnt weiterhin auf der Startseite.
+    /// </summary>
+    internal static string? LastKnownLocation { get; private set; }
 
     public AppShellStringsLocalized Loc { get; }
 
@@ -42,6 +50,8 @@ public partial class AppShell : ShinyShell
 
     private void OnShellLoaded(object? sender, EventArgs e)
     {
+        WindowsShellBackButton.Apply(this);
+
         if (observedWindow == Window)
         {
             ApplyFlyoutBehavior();
@@ -84,11 +94,30 @@ public partial class AppShell : ShinyShell
         if (FlyoutBehavior != desiredBehavior)
             FlyoutBehavior = desiredBehavior;
 
-        // Ein geschlossenes Flyout bleibt unter WinUI beim Wechsel auf "Locked"
-        // ansonsten mit seiner schmalen Hamburger-Restbreite stehen. Locked ist
-        // dauerhaft sichtbar und muss deshalb auch explizit präsentiert werden.
-        if (desiredBehavior == FlyoutBehavior.Locked && !FlyoutIsPresented)
-            FlyoutIsPresented = true;
+        RestoreLockedFlyoutPresentation();
+    }
+
+    /// <summary>
+    /// Ein geschlossenes Flyout bleibt unter WinUI im "Locked"-Modus als schmale
+    /// Icon-Leiste (~48px) stehen. Locked ist dauerhaft sichtbar und muss deshalb
+    /// explizit praesentiert werden - auch nach jeder Navigation, weil Shell das
+    /// Flyout danach grundsaetzlich schliesst.
+    /// </summary>
+    private void RestoreLockedFlyoutPresentation()
+    {
+        if (FlyoutBehavior != FlyoutBehavior.Locked || FlyoutIsPresented)
+            return;
+
+        // Seiten wie Impressum/Datenschutz deaktivieren das Flyout fuer sich
+        // selbst - dort darf die Praesentation nicht erzwungen werden.
+        if (CurrentPage is Page page &&
+            page.IsSet(Shell.FlyoutBehaviorProperty) &&
+            Shell.GetFlyoutBehavior(page) == FlyoutBehavior.Disabled)
+        {
+            return;
+        }
+
+        FlyoutIsPresented = true;
     }
 
     private void CloseTransientFlyout()
@@ -153,6 +182,12 @@ public partial class AppShell : ShinyShell
     protected override void OnNavigated(ShellNavigatedEventArgs args)
     {
         base.OnNavigated(args);
+
+        // Shell schliesst das Flyout nach jeder Navigation auch im Locked-Modus -
+        // die fixierte Desktop-Seitenleiste sofort wieder oeffnen (HP-MAUI-001).
+        RestoreLockedFlyoutPresentation();
+
+        LastKnownLocation = CurrentState?.Location?.OriginalString;
 
         var segments = CurrentState?.Location?.OriginalString.Trim('/').Split('/');
         var currentRoot = segments is { Length: > 0 } ? segments[0] : null;

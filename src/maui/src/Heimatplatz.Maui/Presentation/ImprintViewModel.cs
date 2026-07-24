@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Localization.Legal;
+using Microsoft.Extensions.Logging;
 using Shiny;
 using Shiny.Mediator;
 
@@ -11,8 +13,14 @@ namespace Heimatplatz.Maui.Presentation;
 /// ViewModel fuer das Impressum
 /// </summary>
 [ShellMap<ImprintPage>("Imprint")]
-public partial class ImprintViewModel(IMediator mediator, ImprintStringsLocalized loc) : ObservableObject, IPageLifecycleAware
+public partial class ImprintViewModel(
+    IMediator mediator,
+    ImprintStringsLocalized loc,
+    ILogger<ImprintViewModel> logger) : ObservableObject, IPageLifecycleAware
 {
+    private string? _email;
+    private string? _phoneLink;
+
     public ImprintStringsLocalized Loc => loc;
 
     [ObservableProperty]
@@ -35,7 +43,13 @@ public partial class ImprintViewModel(IMediator mediator, ImprintStringsLocalize
     public partial string AddressLine { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string ContactLine { get; set; } = string.Empty;
+    public partial string EmailLine { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPhone))]
+    public partial string PhoneLine { get; set; } = string.Empty;
+
+    public bool HasPhone => !string.IsNullOrEmpty(PhoneLine);
 
     [ObservableProperty]
     public partial string UidLine { get; set; } = string.Empty;
@@ -68,10 +82,12 @@ public partial class ImprintViewModel(IMediator mediator, ImprintStringsLocalize
             CompanyLine = $"{imprint.CompanyName} {imprint.LegalForm}".Trim();
             OwnerLine = imprint.Owner ?? string.Empty;
             AddressLine = $"{imprint.Street}, {imprint.PostalCode} {imprint.City}, {imprint.Country}";
-            // "Tel:" nur anzeigen wenn eine Nummer vorhanden ist
-            ContactLine = string.IsNullOrWhiteSpace(imprint.Phone)
-                ? loc.EmailFormat(imprint.Email)
-                : loc.EmailPhoneFormat(imprint.Email, imprint.Phone);
+            _email = imprint.Email;
+            // Server liefert die tel:-taugliche Form separat (PhoneLink) - der
+            // Anzeigestring behaelt seine Leerzeichen/Schraegstriche.
+            _phoneLink = imprint.PhoneLink;
+            EmailLine = loc.EmailFormat(imprint.Email);
+            PhoneLine = string.IsNullOrWhiteSpace(imprint.Phone) ? string.Empty : loc.PhoneFormat(imprint.Phone);
             UidLine = string.IsNullOrEmpty(imprint.UidNumber) ? string.Empty : loc.UidFormat(imprint.UidNumber);
             VersionLine = loc.VersionFormat(imprint.Version, imprint.LastUpdated);
 
@@ -96,5 +112,38 @@ public partial class ImprintViewModel(IMediator mediator, ImprintStringsLocalize
 
     public void OnDisappearing()
     {
+    }
+
+    [RelayCommand]
+    private async Task OpenEmailAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_email))
+            return;
+
+        try
+        {
+            await Launcher.Default.OpenAsync(new Uri($"mailto:{_email}"));
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[Imprint] Mail-App konnte nicht geoeffnet werden");
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenPhoneAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_phoneLink))
+            return;
+
+        try
+        {
+            // PhoneLink ist die kompakte Nummer ("+43664..."), kein fertiger URI
+            await Launcher.Default.OpenAsync(new Uri($"tel:{_phoneLink}"));
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[Imprint] Telefon-App konnte nicht geoeffnet werden");
+        }
     }
 }

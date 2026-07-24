@@ -48,6 +48,12 @@ public partial class FeedbackComposer(
     public bool IsVoiceSupported => voiceRecorder.IsSupported;
 
     /// <summary>
+    /// Hinweistext ueber der Eingabezeile: auf Plattformen ohne Mikrofon (Windows/MacCatalyst)
+    /// darf der Text keine Sprachnachricht erwaehnen, die es dort gar nicht gibt.
+    /// </summary>
+    public string ComposeHintText => IsVoiceSupported ? Loc.ComposeHint : Loc.ComposeHintNoVoice;
+
+    /// <summary>
     /// Kamera-Aktion nur anzeigen, wenn der Plattformhandler sie zuverlässig
     /// unterstützt. Der Windows-MediaPicker meldet Capture-Support, obwohl er
     /// in der Desktop-App keine sichtbare Aufnahmeaktion startet.

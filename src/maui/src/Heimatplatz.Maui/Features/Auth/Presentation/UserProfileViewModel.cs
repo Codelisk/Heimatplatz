@@ -387,6 +387,12 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             return;
         }
 
+        if (!IsValidPhoneFormat(EditPhone))
+        {
+            ProfileStatusMessage = Loc.ValidationPhoneInvalid;
+            return;
+        }
+
         ApiClient.Generated.SellerType? sellerType = null;
         if (EditWantsToSell)
         {
@@ -648,6 +654,24 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
         {
             IsDeletingAccount = false;
         }
+    }
+
+    /// <summary>
+    /// Spiegelt UserInputValidator.NormalizePhone (API) fuer sofortiges UX-Feedback;
+    /// massgeblich bleibt ausschliesslich die serverseitige Validierung.
+    /// </summary>
+    private static bool IsValidPhoneFormat(string? phone)
+    {
+        var trimmed = phone?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+            return true;
+
+        const int minPhoneDigits = 4;
+        const int maxPhoneLength = 50;
+        var digitCount = trimmed.Count(char.IsAsciiDigit);
+        var onlyValidChars = trimmed.All(c => char.IsAsciiDigit(c) || c is ' ' or '+' or '-' or '/' or '(' or ')' or '.');
+
+        return trimmed.Length <= maxPhoneLength && digitCount >= minPhoneDigits && onlyValidChars;
     }
 
     private static string GetInitials(string? fullName)

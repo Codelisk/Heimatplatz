@@ -240,6 +240,9 @@
   <data name="ComposeHint" xml:space="preserve">
     <value>Bilder und Sprachnachricht hängen Sie mit den Symbolen direkt an die Nachricht an.</value>
   </data>
+  <data name="ComposeHintNoVoice" xml:space="preserve">
+    <value>Bilder hängen Sie mit dem Symbol direkt an die Nachricht an. Sprachnachrichten sind auf diesem Gerät nicht verfügbar.</value>
+  </data>
   <data name="MessagePlaceholder" xml:space="preserve">
     <value>Nachricht schreiben …</value>
   </data>

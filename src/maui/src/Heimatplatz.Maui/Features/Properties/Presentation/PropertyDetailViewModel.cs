@@ -276,6 +276,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     public void OnAppearing()
     {
+        // Hintergrund-Refreshes melden Serverausfaelle erst NACH dem synchronen
+        // Cache-Hit - den Hinweis "zwischengespeicherte Daten" live nachziehen.
+        _offlineReadState.Changed += OnOfflineReadStateChanged;
+
         if (Guid.TryParse(PropertyId, out var id))
         {
             _ = LoadPropertyAsync(id);
@@ -303,11 +307,16 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     public void OnDisappearing()
     {
+        _offlineReadState.Changed -= OnOfflineReadStateChanged;
         _syncSubscription?.Dispose();
         _syncSubscription = null;
         _onlineWaitCts?.Cancel();
         _onlineWaitCts = null;
     }
+
+    private void OnOfflineReadStateChanged(object? sender, EventArgs e) =>
+        MainThread.BeginInvokeOnMainThread(() =>
+            IsShowingCachedData = _offlineReadState.IsBackendUnavailable);
 
     #endregion
 

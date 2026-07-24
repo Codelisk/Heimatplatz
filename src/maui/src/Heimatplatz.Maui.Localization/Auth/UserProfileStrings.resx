@@ -156,6 +156,9 @@
   <data name="ValidationCompanyNameRequired" xml:space="preserve">
     <value>Bitte den Firmennamen angeben.</value>
   </data>
+  <data name="ValidationPhoneInvalid" xml:space="preserve">
+    <value>Die Telefonnummer hat kein gültiges Format.</value>
+  </data>
   <data name="ProfileSaveFailedRetry" xml:space="preserve">
     <value>Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.</value>
   </data>
