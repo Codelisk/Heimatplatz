@@ -67,6 +67,9 @@ if (searchState.page > lastPage) {
   description={t("home.metaDescription")}
   canonicalPath="/"
 >
+  {/* Die Suche rendert keine sichtbare Ueberschrift - sr-only H1 fuer die
+      Dokumentstruktur (Screenreader/SEO) */}
+  <h1 class="sr-only">{t("common.homeHeading")}</h1>
   <PropertySearchApp
     apiProperties={searchResult.properties}
     total={searchResult.total}

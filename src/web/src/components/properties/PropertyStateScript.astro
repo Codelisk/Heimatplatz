@@ -274,6 +274,13 @@
     confirmBlock.hidden = !open;
     const trigger = document.querySelector<HTMLButtonElement>("[data-delete-account]");
     if (trigger) trigger.hidden = open;
+    // Fokus fuehren (WEB-036): beim Oeffnen auf den Bestaetigen-Button, beim
+    // Schliessen zurueck auf den Ausloeser - sonst landet der Fokus auf <body>
+    if (open) {
+      confirmBlock.querySelector<HTMLButtonElement>("[data-delete-account-confirmed]")?.focus();
+    } else {
+      trigger?.focus();
+    }
     return true;
   }
 
@@ -292,6 +299,8 @@
       window.localStorage.removeItem(STORAGE_KEYS.drafts);
       window.localStorage.removeItem(STORAGE_KEYS.notificationPreferences);
       window.localStorage.removeItem(STORAGE_KEYS.filterPreferences);
+      // Push-Geraete-Id gehoert zum geloeschten Konto (WEB-044)
+      window.localStorage.removeItem(STORAGE_KEYS.webPushDeviceId);
 
       setDeleteAccountStatus(t("profile.deleteStatusDone"), "info");
       window.location.href = "/";
@@ -745,6 +754,9 @@
           // Neuer Access Token traegt die aktualisierten Claims (Seller/SellerType)
           saveSession({ ...session, AccessToken: result.AccessToken, FullName: result.FullName });
           setFormStatus(form, t("profile.statusSaved"), "success");
+          // Frisch eingeblendete Kacheln (z.B. "Meine Inserate" nach Anbieter-Opt-in)
+          // nachladen - sonst bleibt der Zaehler bis zum Reload bei "-" (WEB-024)
+          bindProfileStats();
         } catch (error) {
           setFormStatus(form, error instanceof Error ? error.message : t("profile.statusSaveFailed"), "error");
         }
@@ -2303,10 +2315,11 @@
     };
   }
 
-  function validatePropertyDraft(draft: Draft) {
+  function validatePropertyDraft(draft: Draft, options: { isEdit?: boolean } = {}) {
     if (requiredText(draft.title).length < 10) return t("editor.valTitleMin");
     if (requiredText(draft.description).length < 50) return t("editor.valDescriptionMin");
-    if (!toNumber(draft.price)) return t("editor.valPriceInvalid");
+    // ZV: das Preisfeld ist ausgeblendet, der Preis kommt aus dem Mindestgebot (WEB-014)
+    if (draft.propertyType !== "foreclosure" && !toNumber(draft.price)) return t("editor.valPriceInvalid");
     if (!requiredText(draft.address)) return t("editor.valStreetRequired");
     if (!requiredText(draft.city) || !requiredText(draft.postalCode)) return t("editor.valCityRequired");
     if (!/^\d{4}$/.test(requiredText(draft.postalCode))) return t("editor.valPostalCodeInvalid");
@@ -2342,7 +2355,13 @@
     if (draft.propertyType !== "foreclosure") return "";
     if (!draft.foreclosureCourtName) return t("editor.valCourtRequired");
     if (!draft.foreclosureFileNumber) return t("editor.valFileNumberRequired");
-    if (!toIsoDateTime(draft.foreclosureAuctionDate)) return t("editor.valAuctionDateInvalid");
+    const auctionIso = toIsoDateTime(draft.foreclosureAuctionDate);
+    if (!auctionIso) return t("editor.valAuctionDateInvalid");
+    // WEB-017: neue Versteigerungen brauchen einen zukuenftigen Termin; beim Bearbeiten
+    // bleiben vergangene Termine korrigierbar (Spiegel der Server-Regeln)
+    if (!options.isEdit && new Date(auctionIso).valueOf() < Date.now() - 24 * 60 * 60 * 1000) {
+      return t("editor.valAuctionDatePast");
+    }
     if (!toNumber(draft.foreclosureMinimumBid)) return t("editor.valMinimumBidRequired");
     return "";
   }
@@ -2494,7 +2513,11 @@
         Title: draft.title,
         Address: draft.address,
         MunicipalityId: municipalityId,
-        Price: toNumber(draft.price),
+        // Eingegebene PLZ erhalten (WEB-009): Municipality fuehrt nur eine PLZ pro
+        // Gemeinde, 4040 Linz wuerde sonst stillschweigend zu 4020
+        PostalCode: requiredText(draft.postalCode) || null,
+        // ZV: Preisfeld ist ausgeblendet, das Mindestgebot ist der Preis (WEB-014)
+        Price: draft.propertyType === "foreclosure" ? toNumber(draft.foreclosureMinimumBid) : toNumber(draft.price),
         Type: mapPropertyType(draft.propertyType),
         // SellerType/SellerName leitet der Server aus dem Benutzerprofil ab
         Description: draft.description || null,
@@ -2529,7 +2552,10 @@
         Title: draft.title,
         Address: draft.address,
         MunicipalityId: municipalityId,
-        Price: toNumber(draft.price),
+        // Eingegebene PLZ erhalten (WEB-009), s. createRemoteProperty
+        PostalCode: requiredText(draft.postalCode) || null,
+        // ZV: Preisfeld ist ausgeblendet, das Mindestgebot ist der Preis (WEB-014)
+        Price: draft.propertyType === "foreclosure" ? toNumber(draft.foreclosureMinimumBid) : toNumber(draft.price),
         Type: mapPropertyType(draft.propertyType),
         // SellerType/SellerName leitet der Server aus dem Benutzerprofil ab
         Description: draft.description || null,
@@ -2604,6 +2630,26 @@
           field.disabled = !isForeclosure;
           field.required = isForeclosure && field.hasAttribute("data-foreclosure-required");
         });
+
+      // WEB-017: keine vergangenen Versteigerungstermine anbieten (Server prueft beim
+      // Erstellen ebenfalls). datetime-local erwartet lokale Zeit im ISO-Kurzformat.
+      const auctionDate = foreclosureFields.querySelector<HTMLInputElement>('[name="foreclosureAuctionDate"]');
+      if (auctionDate && isForeclosure) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        auctionDate.min = now.toISOString().slice(0, 16);
+      }
+    }
+
+    // WEB-014: Bei Zwangsversteigerungen setzt der Server Price ohnehin auf das
+    // Mindestgebot - das separate Pflicht-Preisfeld war unerklaert und konnte
+    // widerspruechliche Werte erzeugen. Tile ausblenden, Mindestgebot uebernimmt.
+    const priceTile = form.querySelector<HTMLElement>("[data-price-tile]");
+    const priceField = form.elements.namedItem("price");
+    if (priceTile && priceField instanceof HTMLInputElement) {
+      priceTile.hidden = isForeclosure;
+      priceField.disabled = isForeclosure;
+      priceField.required = !isForeclosure;
     }
   }
 
@@ -2953,13 +2999,14 @@
         draft.id = editId ?? crypto.randomUUID?.() ?? `${Date.now()}`;
         draft.updatedAt = new Date().toISOString();
 
-        const validationMessage = validatePropertyDraft(draft);
+        const validationMessage = validatePropertyDraft(draft, { isEdit: !!editId });
         if (validationMessage) {
           setFormStatus(form, validationMessage, "error");
           return;
         }
 
-        if (!isEditForm && getImageState(form).length === 0) {
+        // Mindestens ein Foto - auch beim Bearbeiten (WEB-004; der Server prueft ebenfalls)
+        if (getImageState(form).length === 0) {
           setFormStatus(form, t("editor.photoRequired"), "error");
           return;
         }
@@ -2970,7 +3017,7 @@
         try {
           if (isRemoteEdit && readSession()) {
             setFormStatus(form, t("editor.statusUploadingImages"));
-            const imageUrls = await uploadImages(form, false);
+            const imageUrls = await uploadImages(form, true);
             draft.imageUrls = imageUrls;
             const updated = await updateRemoteProperty(remoteEditId, draft, imageUrls);
             if (updated) {
@@ -3055,6 +3102,26 @@
     }
   }
 
+  // Sichtbare Bestaetigung nach Clipboard-Kopie (WEB-042) - beim nativen
+  // Share-Sheet gibt das Betriebssystem selbst Rueckmeldung
+  let shareToastTimer = 0;
+  function announceLinkCopied() {
+    let toast = document.querySelector<HTMLElement>("[data-share-toast]");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.setAttribute("data-share-toast", "");
+      toast.setAttribute("role", "status");
+      toast.className = "fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-lg";
+      document.body.append(toast);
+    }
+    toast.textContent = t("detail.linkCopied");
+    toast.hidden = false;
+    window.clearTimeout(shareToastTimer);
+    shareToastTimer = window.setTimeout(() => {
+      toast.hidden = true;
+    }, 2000);
+  }
+
   async function shareUrl(button: HTMLButtonElement) {
     const url = button.getAttribute("data-share-url") || window.location.href;
     const title = button.getAttribute("data-share-title") || document.title;
@@ -3063,6 +3130,7 @@
         await navigator.share({ title, url });
       } else {
         await navigator.clipboard.writeText(url);
+        announceLinkCopied();
       }
       button.setAttribute("data-copied", "true");
       window.setTimeout(() => button.removeAttribute("data-copied"), 1600);
@@ -3489,6 +3557,8 @@
         remove.addEventListener("click", () => {
           URL.revokeObjectURL(attachment.previewUrl);
           attachments.splice(index, 1);
+          // Limit-Meldung ("Maximal 5 Bilder") ist nach dem Entfernen hinfaellig (WEB-026)
+          setError("");
           renderAttachments();
           updateButtons();
         });
@@ -3887,6 +3957,8 @@
       if (!content || !badges || !subject || !messages) return;
       content.hidden = false;
       subject.textContent = ticket.Subject;
+      // Konkreter Betreff im Tab-Titel statt generischem "Anfrage" (WEB-046)
+      document.title = `${ticket.Subject} | Heimatplatz`;
       badges.innerHTML = "";
       badges.append(
         createFeedbackBadge(feedbackStatusLabelText(ticket.Status), feedbackStatusBadgeClasses(ticket.Status)),
@@ -3911,6 +3983,11 @@
         }
         renderThread(response.Ticket);
       } catch (cause) {
+        // API antwortet bei unbekannten/fremden Tickets jetzt mit 404 (WEB-027)
+        if (cause instanceof ApiRequestError && cause.status === 404) {
+          showThreadError(t("feedback.threadNotFound"));
+          return;
+        }
         showThreadError(t("feedback.threadLoadFailed", { error: cause instanceof Error ? cause.message : String(cause) }));
       }
     }

@@ -9,6 +9,12 @@ namespace Heimatplatz.Api.Features.Marketing.Services;
 /// </summary>
 public class MockMarketingEmailGenerator(ILogger<MockMarketingEmailGenerator> logger) : IMarketingEmailGenerator
 {
+    /// <summary>
+    /// Kennzeichnet Mock-Entwuerfe im Text. SendMarketingEmailHandler verweigert
+    /// Bodies mit diesem Marker, damit Platzhaltertext nie an Kunden gehen kann.
+    /// </summary>
+    public const string PlaceholderMarker = "[PLATZHALTER OHNE KI]";
+
     public Task<MarketingEmailDraft> GenerateAsync(string keywords, string? recipientName, CancellationToken ct = default)
     {
         var salutation = string.IsNullOrWhiteSpace(recipientName)
@@ -16,6 +22,8 @@ public class MockMarketingEmailGenerator(ILogger<MockMarketingEmailGenerator> lo
             : $"Guten Tag {recipientName.Trim()},";
 
         var body = $"""
+            {PlaceholderMarker}
+
             {salutation}
 
             vielen Dank für Ihr Interesse an Heimatplatz, der Immobilien-Plattform für Oberösterreich.

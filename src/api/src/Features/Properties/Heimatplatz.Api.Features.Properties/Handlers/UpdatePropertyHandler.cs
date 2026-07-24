@@ -82,11 +82,19 @@ public class UpdatePropertyHandler(
             throw new ArgumentException("Address is required and must be at most 500 characters", nameof(request.Address));
         }
 
+        // Veroeffentlichte Inserate brauchen auch beim Bearbeiten mindestens ein Foto
+        // (WEB-004: vorher konnten alle Fotos entfernt und mit 0 Fotos gespeichert werden)
+        if (request.ImageUrls == null || request.ImageUrls.Count == 0)
+        {
+            throw new ArgumentException("At least one image is required for a published property", nameof(request.ImageUrls));
+        }
+
         PropertyFieldValidation.ValidateCoreFields(
             request.LivingAreaSquareMeters, request.PlotAreaSquareMeters, request.Rooms, request.YearBuilt);
         var features = PropertyFieldValidation.NormalizeFeatures(request.Features);
         var originalListingUrl = PropertyFieldValidation.NormalizeOriginalListingUrl(request.OriginalListingUrl);
         var contactPerson = PropertyFieldValidation.NormalizeContactPerson(request.ContactPerson);
+        var postalCode = PropertyFieldValidation.NormalizePostalCode(request.PostalCode);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
         // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
@@ -104,6 +112,14 @@ public class UpdatePropertyHandler(
         property.Title = request.Title.Trim();
         property.Address = request.Address.Trim();
         property.MunicipalityId = request.MunicipalityId;
+
+        // Nicht mitgesendet (null, z.B. MAUI-Client ohne das Feld) laesst die gespeicherte
+        // PLZ unangetastet; ein explizit leer gesendetes Feld setzt auf den Gemeinde-Default zurueck
+        if (request.PostalCode != null)
+        {
+            property.PostalCode = postalCode;
+        }
+
         property.Price = request.Price;
         property.Type = request.Type;
         property.SellerType = sellerInfo.SellerType;

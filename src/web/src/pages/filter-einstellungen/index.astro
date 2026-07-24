@@ -2,7 +2,12 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
+import { fetchOrtRegions } from "@/features/locations/live-api";
 import { t } from "@/i18n";
+
+// Gleiche API-basierte Ortsliste wie die Suche auf der Startseite (cached);
+// bei leerem Ergebnis greift der statische Fallback im OrtPicker
+const ortRegions = await fetchOrtRegions();
 ---
 
 <BaseLayout
@@ -23,7 +28,7 @@ import { t } from "@/i18n";
           {t("search.settingsOrteHint")}
         </p>
         <div class="mt-4">
-          <OrtPicker name="locations" placeholder={t("search.ortPlaceholderMulti")} />
+          <OrtPicker name="locations" placeholder={t("search.ortPlaceholderMulti")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
         </div>
       </div>
 

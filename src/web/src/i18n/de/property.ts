@@ -88,6 +88,9 @@ export const property = {
   "detail.labelViewingDate": "Besichtigung",
   "detail.labelBiddingDeadline": "Bietfrist",
   "detail.labelOwnershipShare": "Eigentumsanteil",
+  "detail.labelEdictUrl": "Edikt",
+  "detail.openEdict": "Edikt öffnen",
+  "detail.linkCopied": "Link kopiert",
   "detail.labelPricePerM2": "Preis / m²",
   "detail.labelCreatedAt": "Eingestellt am",
 

@@ -23,7 +23,8 @@ public record CreatePropertyRequest(
     List<string>? ImageUrls = null,
     Dictionary<string, object>? TypeSpecificData = null,
     string? OriginalListingUrl = null,
-    ContactPersonInput? ContactPerson = null
+    ContactPersonInput? ContactPerson = null,
+    string? PostalCode = null
 ) : IRequest<CreatePropertyResponse>;
 
 /// <summary>

@@ -43,6 +43,7 @@ export const intern = {
   "intern.syncTriggered":
     "Sync wurde gestartet und läuft im Hintergrund (Scraping mit Verzögerung pro Edikt - je nach Anzahl ein bis wenige Minuten). Lade diese Seite in 1-2 Minuten neu, um das Ergebnis zu sehen.",
   "intern.syncFailed": "Sync konnte nicht gestartet werden. Ist die API erreichbar?",
+  "intern.syncRunning": "Sync läuft gerade …",
   "intern.syncHeading": "Edikte-Sync (Zwangsversteigerungen)",
   "intern.lastSync": "Letzter Sync",
   "intern.activeAuctions": "Aktive Auktionen",
@@ -63,6 +64,7 @@ export const intern = {
   "intern.usersEmpty": "Keine Nutzer gefunden.",
   "intern.usersLoadFailed":
     "Nutzer konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  // Singular bewusst ohne eigene Variante: "1 Nutzer" ist bereits korrekt.
   "intern.usersTotal": "{count} Nutzer",
   "intern.usersColUser": "Nutzer",
   "intern.usersColRole": "Rolle",
@@ -97,6 +99,9 @@ export const intern = {
   "intern.propsLoadFailed":
     "Inserate konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
   "intern.propsTotal": "{count} Inserate",
+  "intern.propsTotalOne": "1 Inserat",
+  "intern.propsFilterSourceAria": "Nach Quelle filtern",
+  "intern.propsFilterStatusAria": "Nach Status filtern",
   "intern.badgeHidden": "Ausgeblendet",
   "intern.badgeForeclosure": "Zwangsversteigerung",
   "intern.propsOwnerPrefix": "Anbieter:",
@@ -172,6 +177,8 @@ export const intern = {
   "intern.marketingSendOkNoSmtp":
     "Achtung: Es ist kein SMTP-Server konfiguriert (EMAIL_SMTP_* fehlt in der Server-.env) – die E-Mail wurde nur im API-Log ausgegeben, NICHT zugestellt.",
   "intern.marketingSendFailed": "Versand fehlgeschlagen: {error}",
+  "intern.marketingPlaceholderWarning":
+    "Platzhaltertext ohne KI – kann nicht versendet werden. KI-Anbieter konfigurieren oder Text ersetzen.",
   "intern.marketingValidationRecipient": "Bitte eine gültige Empfänger-E-Mail-Adresse eingeben.",
   "intern.marketingValidationCc": "Bitte eine gültige CC-E-Mail-Adresse eingeben (oder das Feld leer lassen).",
   "intern.marketingValidationBcc": "Bitte eine gültige BCC-E-Mail-Adresse eingeben (oder das Feld leer lassen).",
@@ -229,6 +236,7 @@ export const intern = {
   "intern.mkPoolSitzPlaceholder": "Ort …",
   "intern.mkPoolShowTaken": "Auch bereits übernommene",
   "intern.mkPoolTotal": "{count} Firmen",
+  "intern.mkPoolTotalOne": "1 Firma",
   "intern.mkPoolEmpty": "Keine Firmen gefunden.",
   "intern.mkPoolEmptyHint": "Passe die Suche oder den Ortsfilter an.",
   "intern.mkPoolLoadFailed":
@@ -242,8 +250,11 @@ export const intern = {
   "intern.mkPoolSelectedCount": "{count} ausgewählt (auch auf anderen Seiten)",
   "intern.mkPoolAlreadyTaken": "Bereits übernommen",
   "intern.mkPoolAddedOk": "{count} Firmen als „Zu kontaktieren“ übernommen.",
+  "intern.mkPoolAddedOkOne": "1 Firma als „Zu kontaktieren“ übernommen.",
+  // Ohne "waren", damit die Formulierung auch bei {skipped}=1 grammatisch stimmt.
   "intern.mkPoolAddedWithSkipped":
-    "{count} Firmen übernommen, {skipped} waren bereits im CRM.",
+    "{count} Firmen übernommen, {skipped} bereits im CRM.",
+  "intern.mkPoolAddedWithSkippedOne": "1 Firma übernommen, {skipped} bereits im CRM.",
   "intern.mkPoolAddFailed": "Übernahme fehlgeschlagen: {error}",
   "intern.mkPoolNoSelection": "Bitte mindestens eine Firma auswählen.",
   "intern.mkPoolTakeSelectedShort": "Ausgewählte übernehmen",
@@ -312,6 +323,8 @@ export const intern = {
   "intern.mkContactsSearchPlaceholder": "E-Mail, Name oder Firma suchen …",
   "intern.mkContactsFilterStatusAll": "Alle Status",
   "intern.mkContactsFilterTypeAll": "Alle Typen",
+  "intern.mkContactsFilterStatusAria": "Nach Status filtern",
+  "intern.mkContactsFilterTypeAria": "Nach Typ filtern",
   "intern.mkContactsFilterDue": "Nur fällige Wiedervorlagen",
   "intern.mkContactsDueBadge": "fällig",
   "intern.mkContactsNoEmail": "keine E-Mail",
@@ -319,6 +332,7 @@ export const intern = {
   "intern.mkContactsLoadFailed":
     "Kontakte konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
   "intern.mkContactsTotal": "{count} Kontakte",
+  "intern.mkContactsTotalOne": "1 Kontakt",
   "intern.mkContactsNewHeading": "Neuen Kontakt anlegen",
   "intern.mkContactColContact": "Kontakt",
   "intern.mkContactColStatus": "Status",
@@ -326,6 +340,7 @@ export const intern = {
   "intern.mkContactColActivity": "Mails / Antworten",
   "intern.mkContactDetail": "Detail",
   "intern.mkContactWrite": "E-Mail schreiben",
+  "intern.mkContactWriteNoEmail": "Keine E-Mail-Adresse hinterlegt.",
   "intern.mkContactSavedOk": "Kontakt wurde gespeichert.",
   "intern.mkContactDeletedOk": "Kontakt wurde gelöscht.",
   "intern.mkContactActionFailed": "Aktion fehlgeschlagen: {error}",
@@ -409,9 +424,11 @@ export const intern = {
   "intern.mkSentLoadFailed":
     "Versand-Historie konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
   "intern.mkSentTotal": "{count} E-Mails",
+  "intern.mkSentTotalOne": "1 E-Mail",
   "intern.mkSentBadgeLoggedOnly": "Nur geloggt",
   "intern.mkSentBadgeFailed": "Zustellung fehlgeschlagen",
-  "intern.mkSentReplies": "{count} Antwort(en)",
+  "intern.mkSentReplies": "{count} Antworten",
+  "intern.mkSentRepliesOne": "1 Antwort",
   "intern.mkSentShowBody": "Text anzeigen",
 
   // Posteingang (/intern/marketing/eingang)
@@ -423,8 +440,10 @@ export const intern = {
   "intern.mkInboxLoadFailed":
     "Posteingang konnte nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
   "intern.mkInboxTotal": "{count} Rückmeldungen",
+  "intern.mkInboxTotalOne": "1 Rückmeldung",
   "intern.mkInboxSyncNow": "Jetzt abrufen",
-  "intern.mkInboxSyncOk": "Postfach abgerufen: {count} neue Rückmeldung(en).",
+  "intern.mkInboxSyncOk": "Postfach abgerufen: {count} neue Rückmeldungen.",
+  "intern.mkInboxSyncOkOne": "Postfach abgerufen: 1 neue Rückmeldung.",
   "intern.mkInboxSyncFailed": "Abruf fehlgeschlagen: {error}",
   "intern.mkInboxNotConfigured":
     "Postfach-Abruf nicht konfiguriert (EMAIL_SMTP_* fehlt) – es werden nur bereits gespeicherte Rückmeldungen angezeigt.",
@@ -475,6 +494,7 @@ export const intern = {
   "intern.fbLoadFailed":
     "Anfragen konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
   "intern.fbTotal": "{count} Anfragen",
+  "intern.fbTotalOne": "1 Anfrage",
   "intern.fbEmpty": "Keine Anfragen gefunden.",
   "intern.fbFilterStatus": "Status",
   "intern.fbFilterCategory": "Kategorie",
@@ -483,6 +503,7 @@ export const intern = {
   "intern.fbSearchSubmit": "Filtern",
   "intern.fbBadgeUnread": "Neu",
   "intern.fbMessageCount": "{count} Nachrichten",
+  "intern.fbMessageCountOne": "1 Nachricht",
   "intern.fbStatsOpen": "Offen",
   "intern.fbStatsInProgress": "In Arbeit",
   "intern.fbStatsUnread": "Ungelesen",

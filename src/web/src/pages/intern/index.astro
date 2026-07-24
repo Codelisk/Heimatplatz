@@ -14,6 +14,7 @@ type SyncStatus = {
   TotalActiveAuctions: number;
   TotalRemovedAuctions: number;
   TotalChanges: number;
+  IsRunning: boolean;
 };
 
 async function fetchSyncStatus(): Promise<SyncStatus | null> {
@@ -32,6 +33,9 @@ const [status, stats] = await Promise.all([
 ]);
 const triggered = Astro.url.searchParams.get("triggered") === "1";
 const triggerFailed = Astro.url.searchParams.get("triggered") === "0";
+// Laeuft gerade ein Sync, wird der Start-Button deaktiviert - der Server ignoriert
+// Doppel-Trigger zwar ohnehin, aber die UI soll das gar nicht erst anbieten.
+const syncRunning = status?.IsRunning === true;
 
 function formatDate(value: string | null) {
   if (!value) return t("intern.never");
@@ -177,8 +181,16 @@ const statEntries = stats
         <p class="mt-4 text-sm text-muted-foreground">{t("intern.statusLoadFailed")}</p>
       )}
 
+      {syncRunning && (
+        <p class="mt-4 text-sm font-medium text-amber-700 dark:text-amber-300">
+          {t("intern.syncRunning")}
+        </p>
+      )}
+
       <form method="POST" action="/intern/sync" class="mt-6">
-        <Button type="submit" variant="default">{t("intern.startSync")}</Button>
+        <Button type="submit" variant="default" disabled={syncRunning}>
+          {t("intern.startSync")}
+        </Button>
       </form>
 
       <p class="mt-3 text-xs leading-5 text-muted-foreground">

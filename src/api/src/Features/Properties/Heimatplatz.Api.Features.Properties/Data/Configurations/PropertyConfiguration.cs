@@ -32,6 +32,10 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .HasForeignKey(p => p.MunicipalityId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Vom Nutzer eingegebene PLZ (optional, sonst gilt Municipality.PostalCode)
+        builder.Property(p => p.PostalCode)
+            .HasMaxLength(10);
+
         builder.Property(p => p.Price)
             .HasPrecision(12, 2);
 

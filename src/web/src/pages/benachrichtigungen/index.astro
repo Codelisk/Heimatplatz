@@ -1,7 +1,12 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
+import { fetchOrtRegions } from "@/features/locations/live-api";
 import { t } from "@/i18n";
+
+// Gleiche API-basierte Ortsliste wie die Suche auf der Startseite (cached);
+// bei leerem Ergebnis greift der statische Fallback im OrtPicker
+const ortRegions = await fetchOrtRegions();
 ---
 
 <BaseLayout
@@ -89,7 +94,7 @@ import { t } from "@/i18n";
           {t("notifications.locationsHint")}
         </p>
         <div class="mt-4">
-          <OrtPicker name="locations" placeholder={t("notifications.locationsPlaceholder")} />
+          <OrtPicker name="locations" placeholder={t("notifications.locationsPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
         </div>
       </div>
       <p class="hidden text-sm" data-form-status></p>

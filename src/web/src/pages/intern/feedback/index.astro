@@ -148,7 +148,9 @@ const statCards = stats
     {data && (
       <section class="mt-6 rounded-lg border border-border bg-card">
         <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
-          {t("intern.fbTotal", { count: data.Total })}
+          {data.Total === 1
+            ? t("intern.fbTotalOne")
+            : t("intern.fbTotal", { count: data.Total })}
         </p>
 
         {data.Tickets.length === 0 ? (
@@ -185,7 +187,12 @@ const statCards = stats
                   {ticket.UserEmail && <span> · {ticket.UserEmail}</span>}
                   <span> · {feedbackSourceLabel(ticket.Source)}</span>
                   {ticket.AppVersion && <span> · v{ticket.AppVersion}</span>}
-                  <span> · {t("intern.fbMessageCount", { count: ticket.MessageCount })}</span>
+                  <span>
+                    {" · "}
+                    {ticket.MessageCount === 1
+                      ? t("intern.fbMessageCountOne")
+                      : t("intern.fbMessageCount", { count: ticket.MessageCount })}
+                  </span>
                 </p>
               </li>
             ))}

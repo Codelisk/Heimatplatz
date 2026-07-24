@@ -34,9 +34,25 @@ export type ApiProperty = {
   CreatedAt: string;
   InquiryType?: string | number | null;
   SourceName?: string | null;
+  /** Auktionstermin (nur bei Zwangsversteigerungen aus dem Listen-DTO belegt) */
+  AuctionDate?: string | null;
   Contacts?: ApiContact[];
   TypeSpecificData?: string | Record<string, unknown> | null;
 };
+
+/**
+ * Quellsystem-Name des Edikte-Syncs (Import-Tracking der API).
+ * Nur solche Zwangsversteigerungen stammen tatsaechlich vom Gericht.
+ */
+export const FORECLOSURE_SYNC_SOURCE = "edikte.justiz.gv.at";
+
+/**
+ * Anbieterrolle einer Zwangsversteigerung: "Gericht" nur fuer importierte
+ * Edikte - privat erstellte ZV behalten die echte Rolle des Anbieters (WEB-016).
+ */
+export function isCourtForeclosure(property: Pick<ApiProperty, "SourceName">) {
+  return property.SourceName === FORECLOSURE_SYNC_SOURCE;
+}
 
 export type ApiPropertyResponse = {
   Properties?: ApiProperty[];

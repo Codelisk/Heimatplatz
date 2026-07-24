@@ -30,10 +30,11 @@ const detail = id
 const contact = detail?.Contact ?? null;
 
 // Timeline: gesendete Mails + Rueckmeldungen zusammenfuehren, neueste zuerst
+// Kein ml-2 an den Badges: Der Abstand kommt vom " · "-Separator in der Timeline.
 const warnBadgeClass =
-  "ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
+  "rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
 const errorBadgeClass =
-  "ml-2 rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-900 dark:bg-red-900/40 dark:text-red-200";
+  "rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-900 dark:bg-red-900/40 dark:text-red-200";
 
 type TimelineEntry = {
   kind: "sent" | "reply" | "activity";
@@ -82,7 +83,7 @@ const timeline: TimelineEntry[] = [
     body: activity.Notes ?? "",
     badge: activityTypeLabel(activity.Type),
     badgeClass:
-      "ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground",
+      "rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground",
   })),
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -170,10 +171,21 @@ function composeLink(email: string | null, name: string | null, contactId: strin
           </p>
         )}
 
-        <div class="mt-4 flex flex-wrap gap-2">
-          <a href={composeLink(contact.Email, contact.Name, contact.Id)}>
-            <Button type="button" variant="default">{t("intern.mkContactWrite")}</Button>
-          </a>
+        <div class="mt-4 flex flex-wrap items-center gap-2">
+          {contact.Email ? (
+            <Button href={composeLink(contact.Email, contact.Name, contact.Id)} variant="default">
+              {t("intern.mkContactWrite")}
+            </Button>
+          ) : (
+            <Button type="button" variant="default" disabled>
+              {t("intern.mkContactWrite")}
+            </Button>
+          )}
+          {!contact.Email && (
+            <span class="text-sm text-muted-foreground">
+              {t("intern.mkContactWriteNoEmail")}
+            </span>
+          )}
           <form
             method="POST"
             action="/intern/marketing/kontakte/delete"
@@ -216,7 +228,12 @@ function composeLink(email: string | null, name: string | null, contactId: strin
                     {entry.kind === "sent" && t("intern.mkDetailSentPrefix")}
                     {entry.kind === "reply" && t("intern.mkDetailReplyPrefix")}{" "}
                     {formatInternDate(entry.date)}
-                    {entry.badge && <span class={entry.badgeClass}>{entry.badge}</span>}
+                    {entry.badge && (
+                      <>
+                        <span aria-hidden="true"> · </span>
+                        <span class={entry.badgeClass}>{entry.badge}</span>
+                      </>
+                    )}
                   </p>
                   <p class="mt-1 font-medium">{entry.subject}</p>
                   {entry.body && entry.kind === "activity" && (

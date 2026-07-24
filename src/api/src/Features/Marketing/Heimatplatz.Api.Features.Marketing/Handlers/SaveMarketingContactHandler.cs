@@ -28,6 +28,15 @@ public class SaveMarketingContactHandler(
     {
         accessGuard.EnsureAuthorized();
 
+        // Mindestens ein identifizierendes Merkmal (WEB-005): voellig leere Kontakte
+        // wurden gespeichert und erschienen als "keine E-Mail / Unbekannt"
+        if (NullIfEmpty(request.Email) is null
+            && NullIfEmpty(request.Name) is null
+            && NullIfEmpty(request.Company) is null)
+        {
+            return new SaveMarketingContactResponse(false, null, "Mindestens E-Mail, Name oder Firma muss angegeben werden.");
+        }
+
         // Adresse ist optional - nur wenn eine angegeben ist, muss sie gueltig und frei sein
         string? normalizedEmail = null;
         var rawEmail = NullIfEmpty(request.Email);

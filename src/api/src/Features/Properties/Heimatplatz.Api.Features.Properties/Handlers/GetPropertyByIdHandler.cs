@@ -38,7 +38,7 @@ public class GetPropertyByIdHandler(
                 p.Address,
                 p.MunicipalityId,
                 p.Municipality.Name,
-                p.Municipality.PostalCode,
+                p.PostalCode ?? p.Municipality.PostalCode,
                 p.Price,
                 p.LivingAreaSquareMeters,
                 p.PlotAreaSquareMeters,

@@ -1368,6 +1368,10 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.Property<int?>("PlotAreaSquareMeters")
                         .HasColumnType("integer");
 
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");

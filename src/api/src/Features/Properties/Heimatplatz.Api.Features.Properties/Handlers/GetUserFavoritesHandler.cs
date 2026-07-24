@@ -48,36 +48,37 @@ public class GetUserFavoritesHandler(
         // Get total count
         var total = await query.CountAsync(cancellationToken);
 
-        // Apply pagination and project to DTO
-        var properties = await query
+        // Seite laden und in-memory projizieren (AuctionDate steckt im TypeSpecificData-JSON
+        // und ist nicht in SQL uebersetzbar)
+        var favoriteProperties = await query
             .OrderByDescending(f => f.CreatedAt)
             .Skip(request.Page * request.PageSize)
             .Take(request.PageSize)
-            .Select(f => new PropertyListItemDto(
-                f.Property.Id,
-                f.Property.Title,
-                f.Property.Address,
-                f.Property.MunicipalityId,
-                f.Property.Municipality.Name,
-                f.Property.Municipality.PostalCode,
-                f.Property.Price,
-                f.Property.LivingAreaSquareMeters,
-                f.Property.PlotAreaSquareMeters,
-                f.Property.Rooms,
-                f.Property.Type,
-                f.Property.SellerType,
-                f.Property.SellerName,
-                f.Property.ImageUrls,
-                f.Property.CreatedAt,
-                f.Property.InquiryType,
-                f.Property.SourceName
-            ))
+            .Select(f => f.Property)
             .ToListAsync(cancellationToken);
 
-        // Proxy external image URLs
         var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
-        properties = properties
-            .Select(p => p with { ImageUrls = GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl, width: GetPropertiesHandler.ListThumbnailWidth) })
+        var properties = favoriteProperties
+            .Select(p => new PropertyListItemDto(
+                p.Id,
+                p.Title,
+                p.Address,
+                p.MunicipalityId,
+                p.Municipality.Name,
+                p.PostalCode ?? p.Municipality.PostalCode,
+                p.Price,
+                p.LivingAreaSquareMeters,
+                p.PlotAreaSquareMeters,
+                p.Rooms,
+                p.Type,
+                p.SellerType,
+                p.SellerName,
+                GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl, width: GetPropertiesHandler.ListThumbnailWidth),
+                p.CreatedAt,
+                p.InquiryType,
+                p.SourceName,
+                GetPropertiesHandler.ResolveAuctionDate(p)
+            ))
             .ToList();
 
         var hasMore = (request.Page + 1) * request.PageSize < total;

@@ -20,9 +20,18 @@ public class FeedbackService(IMediator mediator) : IFeedbackService
 
     public async Task<FeedbackTicketDetailDto?> GetTicketAsync(Guid ticketId, CancellationToken ct = default)
     {
-        var (_, response) = await mediator.Request(
-            new GetFeedbackTicketDetailHttpRequest { TicketId = ticketId }, ct);
-        return response?.Ticket;
+        try
+        {
+            var (_, response) = await mediator.Request(
+                new GetFeedbackTicketDetailHttpRequest { TicketId = ticketId }, ct);
+            return response?.Ticket;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            // API antwortet bei unbekannten/fremden Tickets mit 404 - fuer die
+            // Aufrufer bleibt das wie bisher ein "nicht gefunden" (null)
+            return null;
+        }
     }
 
     public async Task<UploadFeedbackAttachmentResponse> UploadAttachmentAsync(

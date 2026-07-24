@@ -24,6 +24,13 @@ public class Property : BaseEntity
     /// <summary>Navigation property to Municipality</summary>
     public Municipality Municipality { get; set; } = null!;
 
+    /// <summary>
+    /// Vom Nutzer eingegebene Postleitzahl. Municipality fuehrt nur EINE PLZ pro Gemeinde
+    /// (z.B. Linz = 4020) - ohne dieses Feld wuerde eine gueltige abweichende PLZ wie
+    /// 4040 Linz stillschweigend ersetzt (WEB-009). Null = PLZ der Gemeinde verwenden.
+    /// </summary>
+    public string? PostalCode { get; set; }
+
     /// <summary>Purchase price in currency</summary>
     public decimal Price { get; set; }
 

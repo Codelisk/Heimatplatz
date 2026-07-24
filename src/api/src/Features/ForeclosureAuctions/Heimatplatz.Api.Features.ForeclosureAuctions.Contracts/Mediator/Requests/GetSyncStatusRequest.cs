@@ -10,4 +10,7 @@ public record GetSyncStatusResponse
     public int TotalActiveAuctions { get; init; }
     public int TotalRemovedAuctions { get; init; }
     public int TotalChanges { get; init; }
+
+    /// <summary>Ob gerade ein Sync-Lauf aktiv ist (Doppel-Trigger werden serverseitig ignoriert).</summary>
+    public bool IsRunning { get; init; }
 }

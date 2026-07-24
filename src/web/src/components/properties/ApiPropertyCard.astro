@@ -16,6 +16,7 @@ import {
   getApiPropertyImage,
   getApiLocationLine,
   getApiStreetLine,
+  isCourtForeclosure,
   type ApiProperty,
 } from "@/features/properties/live-api";
 import { slugifyLocation } from "@/features/locations/region-match";
@@ -31,9 +32,16 @@ const { property } = Astro.props;
 const href = getApiPropertyPath(property);
 const typeSearchValue = getApiPropertyTypeSearchValue(property.Type, property);
 const sellerSearchValue = getApiSellerSearchValue(property.SellerType);
-// Zwangsversteigerungen tragen den SellerType des ZV-Syncs (Broker) - hier
-// aussagekraeftiger wie auf der Detailseite: "Gericht".
-const sellerLabel = typeSearchValue === "foreclosure" ? t("card.sellerCourt") : getApiSellerLabel(property.SellerType);
+const isForeclosure = typeSearchValue === "foreclosure";
+// "Gericht" nur fuer aus dem Edikte-Sync importierte ZV - privat erstellte
+// Zwangsversteigerungen behalten die echte Anbieterrolle (WEB-016)
+const sellerLabel = isForeclosure && isCourtForeclosure(property)
+  ? t("card.sellerCourt")
+  : getApiSellerLabel(property.SellerType);
+// ZV: Auktionstermin beschriftet statt unbeschriftetem Einstelldatum (WEB-011)
+const auctionDateLabel = isForeclosure && property.AuctionDate
+  ? t("card.auctionDate", { date: formatApiDate(property.AuctionDate) })
+  : null;
 // Fusszeile vertraegt fehlende Namen (kein haengender Trennpunkt)
 const sellerLine = [sellerLabel, property.SellerName?.trim()].filter(Boolean).join(" · ");
 const area = getApiAreaValue(property);
@@ -136,11 +144,11 @@ const citySlug = slugifyLocation(property.City);
       </div>
       <div class="mt-1.5">
         <dt class="sr-only">{t("card.area")}</dt>
-        <dd class="text-sm font-semibold text-muted-foreground">{area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
+        <dd class="text-sm font-semibold text-muted-foreground">{area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : isForeclosure ? "card.builtAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
       </div>
       {(property.LivingAreaM2 || property.Rooms) && (
         <div class="mt-3 flex justify-end gap-1">
-          {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
+          {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t(isForeclosure ? "card.chipBuiltArea" : "card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
           {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
         </div>
       )}
@@ -156,7 +164,7 @@ const citySlug = slugifyLocation(property.City);
     </span>
     <span class="flex shrink-0 items-center gap-1.5">
       <CalendarIcon class="size-3.5 shrink-0" aria-hidden="true" />
-      {formatApiDate(property.CreatedAt) || t("card.liveOffer")}
+      {auctionDateLabel ?? (formatApiDate(property.CreatedAt) || t("card.liveOffer"))}
     </span>
   </div>
   <p class="sr-only">{getApiAreaLabel(property)}</p>

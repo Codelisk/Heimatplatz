@@ -24,3 +24,25 @@ import { t } from "@/i18n";
     </div>
   </div>
 </AuthShell>
+
+<script>
+  // Die Kopf-Beschreibung "Wir prüfen Ihren Bestätigungslink." passt nur zum
+  // Pruef-Zustand: Sobald das globale Script Erfolg oder Fehler einblendet
+  // (hidden-Attribut entfernt), traegt der Body die eigentliche Meldung - die
+  // Kopfzeile wuerde sonst doppelt wirken. Der Zustand wird per
+  // MutationObserver beobachtet, weil das globale Script nicht hier lebt.
+  const description = document.querySelector<HTMLElement>("[data-auth-description]");
+  const states = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-verify-success], [data-verify-error]"),
+  );
+  if (description && states.length > 0) {
+    const sync = () => {
+      description.hidden = states.some((element) => !element.hidden);
+    };
+    const observer = new MutationObserver(sync);
+    for (const element of states) {
+      observer.observe(element, { attributes: true, attributeFilter: ["hidden"] });
+    }
+    sync();
+  }
+</script>

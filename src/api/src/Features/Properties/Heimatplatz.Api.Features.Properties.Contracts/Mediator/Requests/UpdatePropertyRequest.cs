@@ -15,6 +15,13 @@ public class UpdatePropertyRequest : IRequest<UpdatePropertyResponse>
     public string Title { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public Guid MunicipalityId { get; set; }
+
+    /// <summary>
+    /// Eingegebene PLZ. Optional: null/leer uebernimmt die PLZ der Gemeinde.
+    /// Erhaelt abweichende gueltige PLZ derselben Gemeinde (z.B. 4040 Linz).
+    /// </summary>
+    public string? PostalCode { get; set; }
+
     public decimal Price { get; set; }
     public PropertyType Type { get; set; }
     public string? Description { get; set; }

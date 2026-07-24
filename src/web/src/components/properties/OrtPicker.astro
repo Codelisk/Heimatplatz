@@ -177,7 +177,7 @@ const panelId = `${buttonId}-panel`;
     input.value = values.join(",");
   }
 
-  function updateLabel(picker: HTMLElement, values: string[]) {
+  function updateLabel(picker: HTMLElement, values: string[], selectedCount?: number) {
     const label = picker.querySelector<HTMLElement>("[data-ort-picker-label]");
     const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
     const placeholder = trigger?.getAttribute("data-ort-picker-placeholder") ?? t("filter.locationPlaceholder");
@@ -190,11 +190,18 @@ const panelId = `${buttonId}-panel`;
     label.classList.remove("text-muted-foreground");
     if (values.length === 1) {
       const checkbox = picker.querySelector<HTMLInputElement>(`[data-ort-picker-locality][value="${cssEscape(values[0])}"]`);
-      const span = checkbox?.parentElement?.querySelector<HTMLElement>("span");
-      label.textContent = span?.textContent?.trim() ?? values[0];
+      if (checkbox) {
+        const span = checkbox.parentElement?.querySelector<HTMLElement>("span");
+        label.textContent = span?.textContent?.trim() ?? values[0];
+        return;
+      }
+      // Kollabierter Bezirks-Slug (WEB-021): Bezirksnamen statt Roh-Slug anzeigen
+      const regionToggle = picker.querySelector<HTMLElement>(`[data-ort-picker-region-toggle="${cssEscape(values[0])}"]`);
+      const regionName = regionToggle?.querySelector("span")?.textContent?.trim();
+      label.textContent = regionName ? t("search.ortPickerWholeRegion", { region: regionName }) : values[0];
       return;
     }
-    label.textContent = t("search.ortPickerCountSelected", { count: values.length });
+    label.textContent = t("search.ortPickerCountSelected", { count: selectedCount ?? values.length });
   }
 
   function cssEscape(value: string) {
@@ -231,15 +238,28 @@ const panelId = `${buttonId}-panel`;
     const input = picker.querySelector<HTMLInputElement>("[data-ort-picker-input]");
     if (!input) return;
     const checked = Array.from(picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]:checked"));
-    const values = checked.map((item) => item.value);
-    writeValues(input, values);
+    let values = checked.map((item) => item.value);
     const regionSlugs = new Set<string>();
     picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((item) => {
       const region = item.getAttribute("data-ort-picker-locality-region");
       if (region) regionSlugs.add(region);
     });
+    // Vollstaendig gewaehlte Bezirke auf den Region-Slug kollabieren (WEB-021):
+    // haelt URL und gespeicherte Filter kompakt. setPickerValues expandiert beim
+    // Laden zurueck, der Server loest Region-Slugs ueber die OrtSlugMap auf.
+    regionSlugs.forEach((slug) => {
+      const localities = Array.from(
+        picker.querySelectorAll<HTMLInputElement>(`[data-ort-picker-locality-region="${cssEscape(slug)}"]`),
+      );
+      if (localities.length > 1 && localities.every((item) => item.checked)) {
+        const localityValues = new Set(localities.map((item) => item.value));
+        values = values.filter((value) => !localityValues.has(value));
+        values.push(slug);
+      }
+    });
+    writeValues(input, values);
     regionSlugs.forEach((slug) => updateRegionCheckboxState(picker, slug));
-    updateLabel(picker, values);
+    updateLabel(picker, values, checked.length);
   }
 
   function emitChange(picker: HTMLElement) {
@@ -261,6 +281,20 @@ const panelId = `${buttonId}-panel`;
       picker.querySelectorAll<HTMLInputElement>(`[data-ort-picker-locality-region="${cssEscape(value)}"]`).forEach((input) => {
         wanted.add(input.value);
       });
+    });
+    // Legacy-Slugs (z.B. "linz-land-leonding" aus alten Filtern) auf die heutigen
+    // Picker-Werte normalisieren - sonst filtert der gespeicherte Wert die Suche,
+    // waehrend der Picker "Ort auswaehlen" zeigt (WEB-019). Gleiches Fallback-Muster
+    // wie resolveOrtSlugs in search-query.ts.
+    const knownInputs = Array.from(picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]"));
+    values.forEach((value) => {
+      if (picker.querySelector(`[data-ort-picker-locality][value="${cssEscape(value)}"]`)) return;
+      if (picker.querySelector(`[data-ort-picker-region="${cssEscape(value)}"]`)) return;
+      const match = knownInputs.find((input) =>
+        input.dataset.ortPickerLocalityBase === value ||
+        value.endsWith(`-${input.value}`) ||
+        (input.dataset.ortPickerLocalityBase ? value.endsWith(`-${input.dataset.ortPickerLocalityBase}`) : false));
+      if (match) wanted.add(match.value);
     });
     picker.querySelectorAll<HTMLInputElement>("[data-ort-picker-locality]").forEach((input) => {
       input.checked = wanted.has(input.value);

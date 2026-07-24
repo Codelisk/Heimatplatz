@@ -89,7 +89,7 @@ public class GetAdminPropertiesHandler(
                 p.Title,
                 p.Address,
                 p.Municipality.Name,
-                p.Municipality.PostalCode,
+                p.PostalCode ?? p.Municipality.PostalCode,
                 p.Price,
                 p.Type,
                 p.SellerType,

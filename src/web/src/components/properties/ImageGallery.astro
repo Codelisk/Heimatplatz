@@ -283,10 +283,52 @@ const remainingCount = items.length - 3;
       if (image.src !== new URL(FALLBACK_IMAGE, location.href).href) image.src = FALLBACK_IMAGE;
     });
 
+    // Tab bleibt im modalen Dialog (role="dialog"/aria-modal): am letzten bzw.
+    // ersten fokussierbaren Element umbrechen - gleiches Muster wie der
+    // Navigations-Drawer im SiteHeader.
+    const focusableSelector = [
+      "a[href]",
+      "button:not([disabled])",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      "textarea:not([disabled])",
+      "[tabindex]:not([tabindex='-1'])",
+    ].join(",");
+
+    const getFocusableElements = () =>
+      Array.from(lightbox.querySelectorAll<HTMLElement>(focusableSelector)).filter((element) => {
+        const style = window.getComputedStyle(element);
+        return !element.hidden
+          && element.getAttribute("aria-hidden") !== "true"
+          && style.display !== "none"
+          && style.visibility !== "hidden"
+          && element.getClientRects().length > 0;
+      });
+
+    const trapFocus = (event: KeyboardEvent) => {
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !lightbox.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !lightbox.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
     const onKeydown = (event: KeyboardEvent) => {
       if (event.key === "Escape") close();
       else if (event.key === "ArrowRight") show(current + 1);
       else if (event.key === "ArrowLeft") show(current - 1);
+      else if (event.key === "Tab") trapFocus(event);
     };
 
     const open = (index: number) => {

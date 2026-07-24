@@ -31,7 +31,7 @@ const ortRegions = await fetchOrtRegions();
       <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
       {/* size="sm" (h-9): gleiche Hoehe wie der OrtPicker-Trigger daneben;
           text-base bleibt - <select> unter 16px loest auf iOS Auto-Zoom aus */}
-      <NativeSelect name="age" size="sm" class="text-base" data-filter-age>
+      <NativeSelect name="age" size="sm" class="text-base" aria-label={t("filter.period")} data-filter-age>
         <option value="">{t("filter.period")}</option>
         <option value="day">{t("filter.period24h")}</option>
         <option value="week">{t("filter.period7d")}</option>

@@ -168,6 +168,7 @@ const ortRegions = await fetchOrtRegions();
   } from "@/features/properties/search-query";
   // Nur Typ-Importe aus live-api (werden beim Build geloescht) - Wert-Importe wuerden
   // die Server-Abhaengigkeiten (ttl-cache, api-base) ins Client-Bundle ziehen
+  import { isCourtForeclosure } from "@/features/properties/live-api";
   import type { ApiProperty, ApiPropertyResponse } from "@/features/properties/live-api";
 
   type VerifiedImageMap = Record<string, string>;
@@ -437,9 +438,10 @@ const ortRegions = await fetchOrtRegions();
     return "house";
   }
 
-  // Anbieter-Label wie getApiSellerLabel/ApiPropertyCard (Anzeige, kein Filter)
+  // Anbieter-Label wie getApiSellerLabel/ApiPropertyCard (Anzeige, kein Filter).
+  // "Gericht" nur fuer importierte Edikte - privat erstellte ZV behalten ihre Rolle (WEB-016)
   function mapSellerLabel(property: ApiProperty) {
-    if (property.Type === "Foreclosure") return t("card.sellerCourt");
+    if (property.Type === "Foreclosure" && isCourtForeclosure(property)) return t("card.sellerCourt");
     const sellerType = property.SellerType;
     if (sellerType === "Broker" || sellerType === 2) return t("card.sellerAgent");
     if (sellerType === "PropertyManager" || sellerType === 3) return t("card.sellerManager");
@@ -486,7 +488,11 @@ const ortRegions = await fetchOrtRegions();
     const date = document.createElement("span");
     date.className = "flex shrink-0 items-center gap-1.5";
     date.innerHTML = ICONS.calendar.replace('class="size-3"', 'class="size-3.5 shrink-0"');
-    date.append(document.createTextNode(formatApiDate(property.CreatedAt) || t("card.liveOffer")));
+    // ZV: Auktionstermin beschriftet statt unbeschriftetem Einstelldatum (WEB-011)
+    const dateLabel = property.Type === "Foreclosure" && property.AuctionDate
+      ? t("card.auctionDate", { date: formatApiDate(property.AuctionDate) })
+      : formatApiDate(property.CreatedAt) || t("card.liveOffer");
+    date.append(document.createTextNode(dateLabel));
 
     footer.append(seller, date);
     return footer;
@@ -597,8 +603,10 @@ const ortRegions = await fetchOrtRegions();
 
     const facts = document.createElement("dl");
     facts.className = "text-right";
+    // ZV: LivingArea traegt die bebaute Flaeche aus dem Edikt (WEB-012)
+    const isForeclosureCard = property.Type === "Foreclosure";
     const chips = [
-      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipLivingArea", { value: property.LivingAreaM2 })}</span>` : "",
+      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t(isForeclosureCard ? "card.chipBuiltArea" : "card.chipLivingArea", { value: property.LivingAreaM2 })}</span>` : "",
       property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipRooms", { value: property.Rooms })}</span>` : "",
     ].filter(Boolean).join("");
     facts.innerHTML = `
@@ -608,7 +616,7 @@ const ortRegions = await fetchOrtRegions();
       </div>
       <div class="mt-1.5">
         <dt class="sr-only">${t("card.area")}</dt>
-        <dd class="text-sm font-semibold text-muted-foreground">${area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
+        <dd class="text-sm font-semibold text-muted-foreground">${area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : isForeclosureCard ? "card.builtAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
       </div>
       ${chips ? `<div class="mt-3 flex justify-end gap-1">${chips}</div>` : ""}
     `;

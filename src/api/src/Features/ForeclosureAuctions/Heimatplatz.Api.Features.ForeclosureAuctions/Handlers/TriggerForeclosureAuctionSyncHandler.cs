@@ -28,6 +28,9 @@ public class TriggerForeclosureAuctionSyncHandler(
     // weiteren parallelen Scraper-Lauf gegen edikte.justiz.gv.at samt konkurrierender DB-Writes.
     private static int _syncRunning;
 
+    /// <summary>Laufstatus fuer GetSyncStatus, damit der Intern-Bereich den Button sperren kann.</summary>
+    public static bool IsRunning => Volatile.Read(ref _syncRunning) == 1;
+
     // Shared-Key statt RequireAdmin, weil es auf Prod keinen echten Admin-Account gibt (nur der
     // Properties-System-User ohne Passwort/Rolle): Der Web-Container (/intern/sync.ts) schickt
     // SYNC_TRIGGER_KEY als X-Sync-Key-Header mit, die API vergleicht gegen

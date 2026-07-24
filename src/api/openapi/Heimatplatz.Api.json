@@ -4518,6 +4518,12 @@
                 "$ref": "#/components/schemas/ContactPersonInput"
               }
             ]
+          },
+          "PostalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -6816,6 +6822,9 @@
               "string"
             ],
             "format": "int32"
+          },
+          "IsRunning": {
+            "type": "boolean"
           }
         }
       },
@@ -8902,6 +8911,13 @@
               "null",
               "string"
             ]
+          },
+          "AuctionDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -10769,6 +10785,12 @@
           "MunicipalityId": {
             "type": "string",
             "format": "uuid"
+          },
+          "PostalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "Price": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",

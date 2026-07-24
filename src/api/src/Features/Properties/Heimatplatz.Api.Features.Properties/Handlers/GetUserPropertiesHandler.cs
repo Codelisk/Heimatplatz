@@ -63,7 +63,7 @@ public class GetUserPropertiesHandler(
                 p.Address,
                 p.MunicipalityId,
                 p.Municipality.Name,
-                p.Municipality.PostalCode,
+                p.PostalCode ?? p.Municipality.PostalCode,
                 p.Price,
                 p.LivingAreaSquareMeters,
                 p.PlotAreaSquareMeters,
@@ -74,7 +74,8 @@ public class GetUserPropertiesHandler(
                 GetPropertiesHandler.ProxyImageUrls(p.ImageUrls, baseUrl, width: GetPropertiesHandler.ListThumbnailWidth),
                 p.CreatedAt,
                 p.InquiryType,
-                p.SourceName
+                p.SourceName,
+                GetPropertiesHandler.ResolveAuctionDate(p)
             ))
             .ToList();
 

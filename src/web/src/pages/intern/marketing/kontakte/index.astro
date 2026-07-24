@@ -100,7 +100,7 @@ function composeLink(email: string | null, name: string | null, contactId: strin
         placeholder={t("intern.mkContactsSearchPlaceholder")}
         class="min-w-48 flex-1 rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
       />
-      <select name="status" class={selectClass}>
+      <select name="status" aria-label={t("intern.mkContactsFilterStatusAria")} class={selectClass}>
         <option value="" selected={!statusFilter}>{t("intern.mkContactsFilterStatusAll")}</option>
         {CONTACT_STATUSES.map((status) => (
           <option value={status} selected={statusFilter === status}>
@@ -108,7 +108,7 @@ function composeLink(email: string | null, name: string | null, contactId: strin
           </option>
         ))}
       </select>
-      <select name="type" class={selectClass}>
+      <select name="type" aria-label={t("intern.mkContactsFilterTypeAria")} class={selectClass}>
         <option value="" selected={!typeFilter}>{t("intern.mkContactsFilterTypeAll")}</option>
         {CONTACT_TYPES.map((type) => (
           <option value={type} selected={typeFilter === type}>{contactTypeLabel(type)}</option>
@@ -130,7 +130,9 @@ function composeLink(email: string | null, name: string | null, contactId: strin
     {data && (
       <section class="mt-6 rounded-lg border border-border bg-card">
         <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
-          {t("intern.mkContactsTotal", { count: data.Total })}
+          {data.Total === 1
+            ? t("intern.mkContactsTotalOne")
+            : t("intern.mkContactsTotal", { count: data.Total })}
         </p>
 
         {data.Contacts.length === 0 ? (

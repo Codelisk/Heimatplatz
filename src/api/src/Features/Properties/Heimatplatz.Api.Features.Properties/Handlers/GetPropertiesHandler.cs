@@ -3,7 +3,9 @@ using Heimatplatz.Api;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Properties.Contracts;
+using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
+using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -143,8 +145,8 @@ public class GetPropertiesHandler(
                 ? query.OrderByDescending(p => p.PlotAreaSquareMeters ?? 0)
                 : query.OrderBy(p => p.PlotAreaSquareMeters ?? 0),
             "postalcode" => request.SortDescending
-                ? query.OrderByDescending(p => p.Municipality.PostalCode)
-                : query.OrderBy(p => p.Municipality.PostalCode),
+                ? query.OrderByDescending(p => p.PostalCode ?? p.Municipality.PostalCode)
+                : query.OrderBy(p => p.PostalCode ?? p.Municipality.PostalCode),
             _ => query.OrderByDescending(p => p.CreatedAt) // default: newest first
         };
 
@@ -161,7 +163,7 @@ public class GetPropertiesHandler(
                 p.Address,
                 p.MunicipalityId,
                 p.Municipality.Name,
-                p.Municipality.PostalCode,
+                p.PostalCode ?? p.Municipality.PostalCode,
                 p.Price,
                 p.LivingAreaSquareMeters,
                 p.PlotAreaSquareMeters,
@@ -172,7 +174,8 @@ public class GetPropertiesHandler(
                 ProxyImageUrls(p.ImageUrls, baseUrl, width: ListThumbnailWidth),
                 p.CreatedAt,
                 p.InquiryType,
-                p.SourceName
+                p.SourceName,
+                ResolveAuctionDate(p)
             ))
             .ToList();
 
@@ -188,6 +191,21 @@ public class GetPropertiesHandler(
     // Zielbreite fuer Listen-Thumbnails (Karten sind min. 320dp breit, 640px deckt 2x-Displays ab
     // ohne die haeufig mehrere MB grossen Originalbilder ungeskaliert an den Client zu schicken).
     public const int ListThumbnailWidth = 640;
+
+    /// <summary>
+    /// Auktionstermin fuer Listen-Karten (WEB-011): nur bei Zwangsversteigerungen belegt,
+    /// damit Karten den Termin statt des Einstelldatums beschriften koennen.
+    /// Muss in-memory laufen (TypeSpecificData-JSON) - nicht in EF-Projektionen verwenden.
+    /// </summary>
+    public static DateTime? ResolveAuctionDate(Property property)
+    {
+        if (property.Type != PropertyType.Foreclosure)
+            return null;
+
+        // default(DateTime) aus unvollstaendigem JSON nicht als echten Termin ausliefern
+        var auctionDate = property.GetTypedData<ForeclosurePropertyData>()?.AuctionDate;
+        return auctionDate is { Year: > 1900 } ? auctionDate : null;
+    }
 
     /// <summary>
     /// Basis-URL fuer absolute, browser-erreichbare Links (Bild-Proxy etc.). Nutzt bevorzugt die

@@ -36,8 +36,10 @@ const normalizedContacts = contacts.length > 0 ? contacts : [{ name: sellerName 
 const hasDirectContact = Boolean(primaryEmail || primaryPhone);
 ---
 
+{/* Nur mobil/Tablet: auf Desktop zeigt die Detailseite bereits die sticky
+    Kontaktspalte - die fixe Leiste war dort redundant (WEB-035) */}
 <section
-  class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 shadow-[0_-12px_32px_rgba(15,23,42,0.12)] backdrop-blur"
+  class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 shadow-[0_-12px_32px_rgba(15,23,42,0.12)] backdrop-blur lg:hidden"
   aria-label={t("contact.dockLabel")}
   data-contact-dock
 >

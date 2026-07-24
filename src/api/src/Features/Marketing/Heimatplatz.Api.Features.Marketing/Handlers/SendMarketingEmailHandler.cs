@@ -48,6 +48,13 @@ public class SendMarketingEmailHandler(
         if (string.IsNullOrWhiteSpace(request.Body))
             return new SendMarketingEmailResponse(false, smtpConfigured, "Der E-Mail-Text darf nicht leer sein.");
 
+        // Fail-closed gegen Mock-Entwuerfe (WEB-006): Platzhaltertext ohne KI darf
+        // nie als echte Kundenmail rausgehen
+        if (request.Body.Contains(MockMarketingEmailGenerator.PlaceholderMarker, StringComparison.Ordinal)
+            || request.Body.Contains("Mock-Text ohne KI", StringComparison.Ordinal))
+            return new SendMarketingEmailResponse(false, smtpConfigured,
+                "Der Text ist ein Platzhalter-Entwurf ohne KI und kann nicht versendet werden. Bitte KI-Anbieter konfigurieren oder den Text vollständig ersetzen.");
+
         string? ccAddress = null;
         if (!string.IsNullOrWhiteSpace(request.CcEmail))
         {

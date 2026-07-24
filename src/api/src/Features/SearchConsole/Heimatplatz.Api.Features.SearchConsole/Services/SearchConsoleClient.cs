@@ -48,16 +48,18 @@ public class SearchConsoleClient(IOptions<SearchConsoleOptions> options, ILogger
             var queryRows = await QueryAsync(service, config.SiteUrl, startDate, endDate, "query", cancellationToken);
             var pageRows = await QueryAsync(service, config.SiteUrl, startDate, endDate, "page", cancellationToken);
 
-            var clicksTotal = queryRows.Sum(r => r.Clicks ?? 0);
-            var impressionsTotal = queryRows.Sum(r => r.Impressions ?? 0);
+            // Gesamtwerte aus einer dimensionslosen Abfrage (WEB-028): die Query-Dimension
+            // ist auf Top-10 gedeckelt und unterschlaegt anonymisierte Suchanfragen -
+            // Summen daraus widersprechen den Klickzahlen der Seiten-Liste
+            var totals = await QueryTotalsAsync(service, config.SiteUrl, startDate, endDate, cancellationToken);
 
             return new GetSearchConsoleSummaryResponse
             {
                 Enabled = true,
-                ClicksTotal = (int)clicksTotal,
-                ImpressionsTotal = (int)impressionsTotal,
-                AverageCtr = impressionsTotal > 0 ? clicksTotal / impressionsTotal : 0,
-                AveragePosition = queryRows.Count > 0 ? queryRows.Average(r => r.Position ?? 0) : 0,
+                ClicksTotal = (int)(totals?.Clicks ?? 0),
+                ImpressionsTotal = (int)(totals?.Impressions ?? 0),
+                AverageCtr = totals?.Ctr ?? 0,
+                AveragePosition = totals?.Position ?? 0,
                 TopQueries = queryRows.Select(ToRowDto).ToList(),
                 TopPages = pageRows.Select(ToRowDto).ToList(),
             };
@@ -97,6 +99,23 @@ public class SearchConsoleClient(IOptions<SearchConsoleOptions> options, ILogger
 
         var response = await service.Searchanalytics.Query(request, siteUrl).ExecuteAsync(cancellationToken);
         return response.Rows?.ToList() ?? [];
+    }
+
+    /// <summary>
+    /// Abfrage ohne Dimension: liefert genau eine Zeile mit den echten Gesamtwerten
+    /// des Zeitraums (inkl. anonymisierter Suchanfragen, ohne Top-N-Deckel).
+    /// </summary>
+    private static async Task<ApiDataRow?> QueryTotalsAsync(
+        SearchConsoleService service, string siteUrl, DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    {
+        var request = new SearchAnalyticsQueryRequest
+        {
+            StartDate = startDate.ToString("yyyy-MM-dd"),
+            EndDate = endDate.ToString("yyyy-MM-dd"),
+        };
+
+        var response = await service.Searchanalytics.Query(request, siteUrl).ExecuteAsync(cancellationToken);
+        return response.Rows?.FirstOrDefault();
     }
 
     private static SearchConsoleRowDto ToRowDto(ApiDataRow row) => new()

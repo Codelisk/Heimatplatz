@@ -34,7 +34,7 @@ public class MarketingTemplateSeeder(AppDbContext dbContext) : ISeeder
         new MarketingEmailTemplate
         {
             Name = "Erstkontakt",
-            Description = "Kurze Vorstellung von Heimatplatz, wenn noch kein Gespraech stattgefunden hat.",
+            Description = "Kurze Vorstellung von Heimatplatz, wenn noch kein Gespräch stattgefunden hat.",
             DisplayOrder = 10,
             Subject = "Ihre Immobilien auf Heimatplatz",
             Body =
@@ -42,35 +42,35 @@ public class MarketingTemplateSeeder(AppDbContext dbContext) : ISeeder
                 {anrede},
 
                 mein Name ist Daniel Hufnagl, ich betreibe Heimatplatz - die regionale
-                Immobilienplattform fuer Oberoesterreich.
+                Immobilienplattform für Oberösterreich.
 
-                Wir buendeln Angebote aus der Region an einem Ort, damit Suchende nicht
-                mehr ueber mehrere Portale hinweg vergleichen muessen. Fuer Anbieter wie
-                {firma} bedeutet das zusaetzliche Sichtbarkeit genau bei den Menschen,
+                Wir bündeln Angebote aus der Region an einem Ort, damit Suchende nicht
+                mehr über mehrere Portale hinweg vergleichen müssen. Für Anbieter wie
+                {firma} bedeutet das zusätzliche Sichtbarkeit genau bei den Menschen,
                 die in der Umgebung suchen.
 
-                Haetten Sie Interesse, Ihre Objekte auf Heimatplatz zu praesentieren?
+                Hätten Sie Interesse, Ihre Objekte auf Heimatplatz zu präsentieren?
                 Ich zeige Ihnen die Plattform gerne in einem kurzen Telefonat.
                 """
         },
         new MarketingEmailTemplate
         {
             Name = "Follow-up nach Telefonat",
-            Description = "Nachfassen im Anschluss an ein Gespraech, mit Verweis auf das Telefonat.",
+            Description = "Nachfassen im Anschluss an ein Gespräch, mit Verweis auf das Telefonat.",
             DisplayOrder = 20,
-            Subject = "Unser Telefonat - Heimatplatz fuer {firma}",
+            Subject = "Unser Telefonat - Heimatplatz für {firma}",
             Body =
                 """
                 {anrede},
 
-                vielen Dank fuer das freundliche Gespraech.
+                vielen Dank für das freundliche Gespräch.
 
                 Wie besprochen fasse ich kurz zusammen: Heimatplatz ist die regionale
-                Immobilienplattform fuer Oberoesterreich. Ihre Objekte erscheinen dort
-                gebuendelt neben den anderen Angeboten aus {ort} und Umgebung.
+                Immobilienplattform für Oberösterreich. Ihre Objekte erscheinen dort
+                gebündelt neben den anderen Angeboten aus {ort} und Umgebung.
 
-                Melden Sie sich einfach, wenn Sie starten moechten - ich richte Ihnen den
-                Zugang ein und uebernehme die ersten Inserate gerne gemeinsam mit Ihnen.
+                Melden Sie sich einfach, wenn Sie starten möchten - ich richte Ihnen den
+                Zugang ein und übernehme die ersten Inserate gerne gemeinsam mit Ihnen.
                 """
         }
     ];

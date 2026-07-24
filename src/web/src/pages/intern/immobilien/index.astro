@@ -109,6 +109,7 @@ const filteredUser = userId ? userLabel || userId : null;
     <form method="GET" action="/intern/immobilien/" class="mt-6 flex flex-wrap gap-2">
       <select
         name="source"
+        aria-label={t("intern.propsFilterSourceAria")}
         class="rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
       >
         <option value="" selected={!source}>{t("intern.propsFilterSourceAll")}</option>
@@ -121,6 +122,7 @@ const filteredUser = userId ? userLabel || userId : null;
       </select>
       <select
         name="status"
+        aria-label={t("intern.propsFilterStatusAria")}
         class="rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
       >
         <option value="" selected={!status}>{t("intern.propsFilterStatusAll")}</option>
@@ -161,7 +163,9 @@ const filteredUser = userId ? userLabel || userId : null;
     {data && (
       <section class="mt-6 rounded-lg border border-border bg-card">
         <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
-          {t("intern.propsTotal", { count: data.Total })}
+          {data.Total === 1
+            ? t("intern.propsTotalOne")
+            : t("intern.propsTotal", { count: data.Total })}
         </p>
 
         {data.Properties.length === 0 ? (

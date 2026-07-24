@@ -75,6 +75,11 @@ const statusMessage = editedDraft
 
 <BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex>
   <div class="py-6 sm:py-8">
+    {/* Hauptueberschrift ausserhalb von AuthGate und cta-bar: so bleibt sie in
+        allen Zustaenden (Gast, Leerzustand, gefuellte Liste) im
+        Accessibility-Tree - die cta-bar wird im Leerzustand per :has()-Regel
+        unten komplett ausgeblendet. */}
+    <h1 class="sr-only">{title}</h1>
     <AuthGate title={authCopy[mode].title} description={authCopy[mode].text}>
       <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-user-page>
         {isMine && (
@@ -87,7 +92,6 @@ const statusMessage = editedDraft
             grosse Button im Empty-State (siehe :has()-Regel unten). */}
         {isMine && (
           <div class="mb-6 flex items-center justify-end gap-3" data-mine-cta-bar>
-            <h1 class="sr-only">{t("myProperties.metaTitle")}</h1>
             <Button href="/inserieren/" data-mine-cta>
               <PlusIcon class="size-4.5" aria-hidden="true" />
               {t("myProperties.createCta")}

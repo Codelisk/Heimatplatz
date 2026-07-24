@@ -51,7 +51,8 @@ public class PropertyAuthorizationEndpointTests : BaseApiIntegrationTest
             LivingAreaSquareMeters = 120,
             Rooms = 5,
             Features = Array.Empty<string>(),
-            ImageUrls = Array.Empty<string>()
+            // Veroeffentlichte Inserate brauchen mindestens ein Foto (WEB-004)
+            ImageUrls = new[] { "/uploads/testhaus.jpg" }
         });
         createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         using var createJson = JsonDocument.Parse(await createResponse.Content.ReadAsStringAsync());
@@ -90,7 +91,7 @@ public class PropertyAuthorizationEndpointTests : BaseApiIntegrationTest
             LivingAreaSquareMeters = 130,
             Rooms = 6,
             Features = Array.Empty<string>(),
-            ImageUrls = Array.Empty<string>()
+            ImageUrls = new[] { "/uploads/testhaus.jpg" }
         });
 
         updateResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -98,6 +99,76 @@ public class PropertyAuthorizationEndpointTests : BaseApiIntegrationTest
         var deleteResponse = await Client.DeleteAsync($"/api/properties/{propertyId}");
 
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Test]
+    public async Task CreateAndUpdatePropertyWithoutImages_ReturnValidationError()
+    {
+        var accessToken = await RegisterSellerAsync("photorule");
+
+        var locationsResponse = await Client.GetAsync("/api/locations");
+        locationsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var locationsJson = JsonDocument.Parse(await locationsResponse.Content.ReadAsStringAsync());
+        var municipalityId = locationsJson.RootElement
+            .GetProperty("FederalProvinces")[0]
+            .GetProperty("Districts")[0]
+            .GetProperty("Municipalities")[0]
+            .GetProperty("Id")
+            .GetGuid();
+
+        Client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", accessToken);
+
+        // WEB-004: Erstellen ohne Foto wird abgelehnt
+        var createWithoutImages = await Client.PostAsJsonAsync("/api/properties", new
+        {
+            Title = "Testhaus ohne jedes Foto",
+            Address = "Teststrasse 3",
+            MunicipalityId = municipalityId,
+            Price = 250_000,
+            Type = "House",
+            Description = "Ausfuehrliche Beschreibung des fotolosen Testhauses mit mehr als fuenfzig Zeichen.",
+            LivingAreaSquareMeters = 100,
+            Rooms = 4,
+            Features = Array.Empty<string>(),
+            ImageUrls = Array.Empty<string>()
+        });
+        createWithoutImages.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        // Mit Foto klappt das Erstellen ...
+        var createResponse = await Client.PostAsJsonAsync("/api/properties", new
+        {
+            Title = "Testhaus mit einem Foto",
+            Address = "Teststrasse 4",
+            MunicipalityId = municipalityId,
+            Price = 250_000,
+            Type = "House",
+            Description = "Ausfuehrliche Beschreibung des bebilderten Testhauses mit mehr als fuenfzig Zeichen.",
+            LivingAreaSquareMeters = 100,
+            Rooms = 4,
+            Features = Array.Empty<string>(),
+            ImageUrls = new[] { "/uploads/testhaus.jpg" }
+        });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var createJson = JsonDocument.Parse(await createResponse.Content.ReadAsStringAsync());
+        var propertyId = createJson.RootElement.GetProperty("PropertyId").GetGuid();
+
+        // ... aber beim Bearbeiten koennen nicht alle Fotos entfernt werden (WEB-004)
+        var updateWithoutImages = await Client.PutAsJsonAsync("/api/properties", new
+        {
+            Id = propertyId,
+            Title = "Testhaus mit einem Foto",
+            Address = "Teststrasse 4",
+            MunicipalityId = municipalityId,
+            Price = 250_000,
+            Type = "House",
+            Description = "Ausfuehrliche Beschreibung des bebilderten Testhauses mit mehr als fuenfzig Zeichen.",
+            LivingAreaSquareMeters = 100,
+            Rooms = 4,
+            Features = Array.Empty<string>(),
+            ImageUrls = Array.Empty<string>()
+        });
+        updateWithoutImages.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     private async Task<string> RegisterSellerAsync(string prefix)

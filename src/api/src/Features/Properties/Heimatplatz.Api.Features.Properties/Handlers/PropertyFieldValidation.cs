@@ -23,6 +23,9 @@ internal static class PropertyFieldValidation
     private const int MaxContactNameLength = 200;
     private const int MaxContactEmailLength = 254;
 
+    // Spiegel der EF-Spaltenlaenge (PropertyConfiguration.PostalCode)
+    private const int MaxPostalCodeLength = 10;
+
     public static void ValidateCoreFields(int? livingAreaSquareMeters, int? plotAreaSquareMeters, int? rooms, int? yearBuilt)
     {
         if (livingAreaSquareMeters is <= 0 or > MaxLivingAreaSquareMeters)
@@ -70,6 +73,28 @@ internal static class PropertyFieldValidation
         }
 
         return normalized;
+    }
+
+    /// <summary>
+    /// Vom Nutzer eingegebene PLZ normalisieren (WEB-009): leer wird null (dann gilt
+    /// Municipality.PostalCode), sonst getrimmt mit Laengen-/Zeichenpruefung.
+    /// </summary>
+    public static string? NormalizePostalCode(string? postalCode)
+    {
+        var trimmed = postalCode?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return null;
+        }
+
+        if (trimmed.Length > MaxPostalCodeLength || !trimmed.All(char.IsAsciiDigit))
+        {
+            throw new ArgumentException(
+                $"Postal code must be numeric with at most {MaxPostalCodeLength} digits",
+                nameof(postalCode));
+        }
+
+        return trimmed;
     }
 
     /// <summary>

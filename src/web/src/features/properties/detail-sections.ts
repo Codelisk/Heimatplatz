@@ -4,6 +4,8 @@ import { formatApiDate, formatApiPriceLong, getApiPropertyTypeLabel, type ApiPro
 export type DetailItem = {
   label: string;
   value: string;
+  /** Optionaler externer Link - der Renderer gibt den Wert dann als <a> aus */
+  href?: string;
 };
 
 export type PropertyDetailSection = {
@@ -233,6 +235,15 @@ export function getApiPropertyDetailSections(property: ApiProperty): PropertyDet
   add(sections, SECTIONS.auction, t("detail.labelViewingDate"), formatDateTime(data.ViewingDate));
   add(sections, SECTIONS.auction, t("detail.labelBiddingDeadline"), formatDateTime(data.BiddingDeadline));
   add(sections, SECTIONS.auction, t("detail.labelOwnershipShare"), scalar(data, "OwnershipShare"));
+
+  // Im Editor eingetragene Edikt-URL als nutzbaren Link ausgeben (WEB-015) -
+  // Gericht-synchronisierte ZV verlinken das Edikt zusaetzlich ueber die Quellen-Karte
+  const edictUrl = scalar(data, "EdictUrl");
+  if (/^https?:\/\//.test(edictUrl)) {
+    const items = sections.get(SECTIONS.auction) ?? [];
+    items.push({ label: t("detail.labelEdictUrl"), value: t("detail.openEdict"), href: edictUrl });
+    sections.set(SECTIONS.auction, items);
+  }
 
   // Bei Zwangsversteigerungen waere das Mindestgebot / bebaute Flaeche - kein Kaufpreis pro m²
   const livingArea = numberValue(property.LivingAreaM2) ?? numberValue(data.LivingAreaInSquareMeters);

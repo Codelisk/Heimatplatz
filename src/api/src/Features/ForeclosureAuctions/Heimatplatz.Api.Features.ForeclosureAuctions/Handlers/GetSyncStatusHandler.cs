@@ -32,7 +32,8 @@ public class GetSyncStatusHandler(AppDbContext dbContext)
             LastSyncAt = lastSyncAt,
             TotalActiveAuctions = await auctions.CountAsync(a => a.IsActive, cancellationToken),
             TotalRemovedAuctions = await auctions.CountAsync(a => !a.IsActive, cancellationToken),
-            TotalChanges = await changes.CountAsync(cancellationToken)
+            TotalChanges = await changes.CountAsync(cancellationToken),
+            IsRunning = TriggerForeclosureAuctionSyncHandler.IsRunning
         };
     }
 }

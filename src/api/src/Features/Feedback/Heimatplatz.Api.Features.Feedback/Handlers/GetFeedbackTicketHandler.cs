@@ -1,5 +1,6 @@
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Exceptions;
 using Heimatplatz.Api.Features.Feedback.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Feedback.Contracts.Models;
 using Heimatplatz.Api.Features.Feedback.Data.Entities;
@@ -36,8 +37,10 @@ public class GetFeedbackTicketHandler(
             .ThenInclude(m => m.Attachments)
             .FirstOrDefaultAsync(t => t.Id == request.TicketId && t.UserId == userId, cancellationToken);
 
+        // 404 statt 200+null (WEB-027): unbekannte oder fremde Tickets sind semantisch
+        // "nicht gefunden" - die Clients behandeln den Status explizit
         if (ticket == null)
-            return new GetFeedbackTicketResponse(null);
+            throw new NotFoundException("Anfrage wurde nicht gefunden");
 
         var baseUrl = FeedbackMapping.GetBaseUrl(httpContextAccessor);
         var dto = new FeedbackTicketDetailDto(

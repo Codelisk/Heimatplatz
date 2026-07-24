@@ -159,7 +159,7 @@ public class GetPropertyChangesHandler(
                     property.Address,
                     property.MunicipalityId,
                     property.Municipality.Name,
-                    property.Municipality.PostalCode,
+                    property.PostalCode ?? property.Municipality.PostalCode,
                     property.Price,
                     property.LivingAreaSquareMeters,
                     property.PlotAreaSquareMeters,
@@ -173,7 +173,8 @@ public class GetPropertyChangesHandler(
                         width: GetPropertiesHandler.ListThumbnailWidth),
                     property.CreatedAt,
                     property.InquiryType,
-                    property.SourceName
+                    property.SourceName,
+                    GetPropertiesHandler.ResolveAuctionDate(property)
                 )
             });
         }

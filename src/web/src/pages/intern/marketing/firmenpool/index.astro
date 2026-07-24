@@ -142,7 +142,9 @@ const hasActiveFilters = Boolean(search || ortSelection.length > 0 || !onlyOpen)
       <h1 class="text-3xl font-bold tracking-tight">{t("intern.mkPoolTitle")}</h1>
       {data && (
         <span class="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-          {t("intern.mkPoolTotal", { count: data.Total })}
+          {data.Total === 1
+            ? t("intern.mkPoolTotalOne")
+            : t("intern.mkPoolTotal", { count: data.Total })}
         </span>
       )}
     </div>
@@ -151,8 +153,12 @@ const hasActiveFilters = Boolean(search || ortSelection.length > 0 || !onlyOpen)
     {action === "added" && (
       <div class="mt-5 rounded-xl border border-success/40 bg-success/10 p-4 text-sm text-success-foreground">
         {skippedCount === "0"
-          ? t("intern.mkPoolAddedOk", { count: addedCount })
-          : t("intern.mkPoolAddedWithSkipped", { count: addedCount, skipped: skippedCount })}
+          ? addedCount === "1"
+            ? t("intern.mkPoolAddedOkOne")
+            : t("intern.mkPoolAddedOk", { count: addedCount })
+          : addedCount === "1"
+            ? t("intern.mkPoolAddedWithSkippedOne", { skipped: skippedCount })
+            : t("intern.mkPoolAddedWithSkipped", { count: addedCount, skipped: skippedCount })}
       </div>
     )}
     {action === "failed" && (

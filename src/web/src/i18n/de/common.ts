@@ -25,6 +25,9 @@ export const common = {
   "common.themeLight": "Design: hell",
   "common.themeDark": "Design: dunkel",
   "common.themeSwitchHint": "{label} – klicken zum Wechseln",
+  // Startseite: unsichtbare Hauptueberschrift (sr-only) - die Suche selbst
+  // rendert keine sichtbare H1
+  "common.homeHeading": "Immobilien in Oberösterreich – Suche",
 
   "nav.openNavigation": "Navigation öffnen",
   "nav.closeNavigation": "Navigation schließen",

@@ -46,6 +46,8 @@ export const editor = {
   "editor.titlePlaceholder": "Ihr Titel – z.B. Sonniges Einfamilienhaus mit Garten",
   "editor.titleLabel": "Titel des Inserats",
 
+  "editor.photoUploadLabel": "Fotos auswählen",
+
   // Fakten-Kacheln
   "editor.priceLabel": "Preis",
   "editor.livingAreaLabel": "Wohnfläche",
@@ -148,6 +150,7 @@ export const editor = {
   "editor.valCourtRequired": "Bitte das zuständige Gericht angeben.",
   "editor.valFileNumberRequired": "Bitte das Aktenzeichen angeben.",
   "editor.valAuctionDateInvalid": "Bitte einen gültigen Versteigerungstermin angeben.",
+  "editor.valAuctionDatePast": "Der Versteigerungstermin darf nicht in der Vergangenheit liegen.",
   "editor.valMinimumBidRequired": "Bitte ein Mindestgebot größer als 0 angeben.",
   "editor.valOriginalUrlInvalid": "Der Link zum Originalinserat muss eine vollständige http(s)-Adresse sein.",
   "editor.valContactNameRequired": "Bitte geben Sie den Namen des Ansprechpartners an.",

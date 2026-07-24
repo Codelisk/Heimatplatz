@@ -49,7 +49,9 @@ function pageLink(target: number) {
     {data && (
       <section class="mt-6 rounded-lg border border-border bg-card">
         <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
-          {t("intern.mkSentTotal", { count: data.Total })}
+          {data.Total === 1
+            ? t("intern.mkSentTotalOne")
+            : t("intern.mkSentTotal", { count: data.Total })}
         </p>
 
         {data.Emails.length === 0 ? (
@@ -80,7 +82,9 @@ function pageLink(target: number) {
                   )}
                   {email.ReplyCount > 0 && (
                     <span class="rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-900 dark:bg-green-900/40 dark:text-green-200">
-                      {t("intern.mkSentReplies", { count: email.ReplyCount })}
+                      {email.ReplyCount === 1
+                        ? t("intern.mkSentRepliesOne")
+                        : t("intern.mkSentReplies", { count: email.ReplyCount })}
                     </span>
                   )}
                 </div>

@@ -21,6 +21,7 @@ import {
   getApiSellerLabel,
   getApiPropertyImage,
   getApiPropertyImages,
+  isCourtForeclosure,
   type ApiContact,
 } from "@/features/properties/live-api";
 import { getApiPriceFact, getApiPropertyDetailSections } from "@/features/properties/detail-sections";
@@ -49,22 +50,27 @@ const description = property.Description?.trim() ?? "";
 // Edikt-Semantik (LivingAreaM2 = bebaute Flaeche, PlotAreaM2 = Gesamtflaeche).
 const priceFact = getApiPriceFact(property);
 const isForeclosure = property.Type === "Foreclosure";
-const noInfo = t("detail.noInfo");
-const facts = isForeclosure
+// Kacheln ohne Wert ausblenden (WEB-043): "Wohnflaeche - Keine Angabe" bei einem
+// Grundstueck wirkt wie unvollstaendige Datenerfassung statt wie ein anderer Typ
+const factCandidates: ([string, string] | null)[] = isForeclosure
   ? [
       [priceFact.label, priceFact.value],
-      [t("detail.factArea"), property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : noInfo],
-      [t("detail.factBuiltArea"), property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : noInfo],
-      [t("detail.factRooms"), property.Rooms ? `${property.Rooms}` : noInfo],
+      property.PlotAreaM2 ? [t("detail.factArea"), `${property.PlotAreaM2} m²`] : null,
+      property.LivingAreaM2 ? [t("detail.factBuiltArea"), `${property.LivingAreaM2} m²`] : null,
+      property.Rooms ? [t("detail.factRooms"), `${property.Rooms}`] : null,
     ]
   : [
       [t("detail.factPrice"), formatApiPriceLong(property.Price)],
-      [t("detail.factLivingArea"), property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : noInfo],
-      [t("detail.factPlot"), property.PlotAreaM2 ? `${property.PlotAreaM2} m²` : noInfo],
-      [t("detail.factRooms"), property.Rooms ? `${property.Rooms}` : noInfo],
+      property.LivingAreaM2 ? [t("detail.factLivingArea"), `${property.LivingAreaM2} m²`] : null,
+      property.PlotAreaM2 ? [t("detail.factPlot"), `${property.PlotAreaM2} m²`] : null,
+      property.Rooms ? [t("detail.factRooms"), `${property.Rooms}`] : null,
     ];
+const facts = factCandidates.filter((fact): fact is [string, string] => fact !== null);
 const priceText = isForeclosure ? `${priceFact.label} ${priceFact.value}` : formatApiPriceLong(property.Price);
-const sellerRoleLabel = isForeclosure ? t("detail.sellerCourt") : getApiSellerLabel(property.SellerType);
+// "Gericht" nur fuer aus dem Edikte-Sync importierte ZV - privat erstellte
+// Zwangsversteigerungen behalten die echte Anbieterrolle (WEB-016)
+const courtForeclosure = isForeclosure && isCourtForeclosure(property);
+const sellerRoleLabel = courtForeclosure ? t("detail.sellerCourt") : getApiSellerLabel(property.SellerType);
 // SourceName ist nur als echte Fremdquelle eine Info; "Heimatplatz" (unser eigenes Portal) sagt dem Nutzer nichts.
 const externalSource = property.SourceName && property.SourceName !== "Heimatplatz" ? property.SourceName : null;
 const sellerMeta = [sellerRoleLabel, externalSource].filter(Boolean).join(" · ");
@@ -99,7 +105,7 @@ const detailSections = getApiPropertyDetailSections(property);
     getApiPropertyJsonLd(property, canonicalUrl, imageUrl),
   ]}
 >
-  <article class="bg-background pb-28">
+  <article class="bg-background pb-28 lg:pb-10">
     <header class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
       <a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon class="size-4" aria-hidden="true" />
@@ -189,7 +195,13 @@ const detailSections = getApiPropertyDetailSections(property);
                     {section.items.map((item) => (
                       <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2 text-sm">
                         <dt class="text-muted-foreground">{item.label}</dt>
-                        <dd class="max-w-44 text-right font-medium">{item.value}</dd>
+                        <dd class="max-w-44 text-right font-medium">
+                          {item.href ? (
+                            <a href={item.href} target="_blank" rel="nofollow noopener" class="underline underline-offset-4 hover:text-foreground">{item.value}</a>
+                          ) : (
+                            item.value
+                          )}
+                        </dd>
                       </div>
                     ))}
                   </dl>
@@ -215,9 +227,9 @@ const detailSections = getApiPropertyDetailSections(property);
       </div>
 
       <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">
-        <p class="text-sm text-muted-foreground">{isForeclosure ? t("detail.sellerCourt") : t("detail.sellerProvider")}</p>
+        <p class="text-sm text-muted-foreground">{courtForeclosure ? t("detail.sellerCourt") : t("detail.sellerProvider")}</p>
         <h2 class="mt-1 text-xl font-bold">{property.SellerName}</h2>
-        {!isForeclosure && sellerMeta && (
+        {!courtForeclosure && sellerMeta && (
           <p class="mt-2 text-sm text-muted-foreground">{sellerMeta}</p>
         )}
         <p class="mt-2 text-sm text-muted-foreground">{t("detail.updatedAt", { value: formatApiDate(property.CreatedAt) || t("detail.liveOffer") })}</p>

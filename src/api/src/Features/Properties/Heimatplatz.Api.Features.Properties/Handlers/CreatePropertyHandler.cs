@@ -68,11 +68,18 @@ public class CreatePropertyHandler(
             throw new ArgumentException("Address is required and must be at most 500 characters", nameof(request.Address));
         }
 
+        // Veroeffentlichte Inserate brauchen mindestens ein Foto (gleiche Regel wie im Editor-UI)
+        if (request.ImageUrls == null || request.ImageUrls.Count == 0)
+        {
+            throw new ArgumentException("At least one image is required for a published property", nameof(request.ImageUrls));
+        }
+
         PropertyFieldValidation.ValidateCoreFields(
             request.LivingAreaSquareMeters, request.PlotAreaSquareMeters, request.Rooms, request.YearBuilt);
         var features = PropertyFieldValidation.NormalizeFeatures(request.Features);
         var originalListingUrl = PropertyFieldValidation.NormalizeOriginalListingUrl(request.OriginalListingUrl);
         var contactPerson = PropertyFieldValidation.NormalizeContactPerson(request.ContactPerson);
+        var postalCode = PropertyFieldValidation.NormalizePostalCode(request.PostalCode);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
         // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
@@ -94,6 +101,7 @@ public class CreatePropertyHandler(
             Title = request.Title.Trim(),
             Address = request.Address.Trim(),
             MunicipalityId = request.MunicipalityId,
+            PostalCode = postalCode,
             Price = request.Price,
             Type = request.Type,
             SellerType = sellerInfo.SellerType,
@@ -293,9 +301,11 @@ public class CreatePropertyHandler(
             throw new ArgumentException("Court name is required", nameof(data.CourtName));
         }
 
-        if (data.AuctionDate < DateTime.UtcNow.AddDays(-30))
+        // Neue Versteigerungen brauchen einen zukuenftigen Termin; .Date als Toleranz
+        // fuer Zeitzonen-Differenzen bei taggleichen Terminen (WEB-017)
+        if (data.AuctionDate < DateTime.UtcNow.Date)
         {
-            throw new ArgumentException("Auction date cannot be more than 30 days in the past", nameof(data.AuctionDate));
+            throw new ArgumentException("Auction date cannot be in the past", nameof(data.AuctionDate));
         }
 
         if (data.MinimumBid <= 0)

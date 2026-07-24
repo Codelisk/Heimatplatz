@@ -49,6 +49,7 @@ export const home = {
   "search.ortPickerSelectAllRegion": "Alle Orte in {region} auswählen",
   "search.ortPickerCountSelected": "{count} Orte ausgewählt",
   "search.ortPickerRegionCount": "{count} ausgewählt",
+  "search.ortPickerWholeRegion": "{region} (ganzer Bezirk)",
 
   // Seite /filter-einstellungen/
   "search.settingsMetaTitle": "Filtereinstellungen",
@@ -96,8 +97,13 @@ export const home = {
   "card.areaOpen": "Fläche offen",
   "card.livingAreaValue": "{area} m² Wfl",
   "card.plotAreaValue": "{area} m² Grund",
-  "card.chipLivingArea": "{value} Wfl",
+  // ZV: LivingArea traegt die bebaute Flaeche aus dem Edikt - nicht als Wohnflaeche ausgeben
+  "card.builtAreaValue": "{area} m² bebaut",
+  "card.chipLivingArea": "{value} m² Wfl",
+  "card.chipBuiltArea": "{value} m² bebaut",
   "card.chipRooms": "{value} Zi",
+  // ZV-Karten: beschrifteter Auktionstermin statt unbeschriftetem Einstelldatum
+  "card.auctionDate": "Termin {date}",
 
   // Immobilien-Karten: Aktionen — "Bearbeiten"/"Details" leben in common.ts
   // (common.edit/common.details)
