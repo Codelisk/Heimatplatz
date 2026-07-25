@@ -102,10 +102,14 @@ const mapQuery = buildPropertySearchQuery(searchState, ortSlugMap);
   /* Schliessen uebernimmt die App (nativer Back/X) - Web-X und Pille weg */
   body.karte-embed .hpmap-close { display: none !important; }
   body.karte-embed .hpmap-pill { display: none !important; }
-  /* Android-WebView-Compositing: die translumente Kartusche ueber dem
-     WebGL-Canvas hinterlaesst beim GPU-Rendern einen grauen Schmier unter
-     der Box (im CDP-Software-Render nicht reproduzierbar) - im Embed opak
-     und ohne Weichzeichner-Schatten rendern */
+  /* Android-WebView-Compositing-Falle: die Falt-Animation hinterlaesst am
+     Geraet einen eingefrorenen Flap-Schatten-Layer unter der Kartusche
+     (grauer Verlaufs-Block; im CDP-Software-Render nicht reproduzierbar).
+     Im Embed laeuft die Falt-Animation ohnehin hinter dem nativen Lade-
+     Overlay der App - komplett abschalten und die Opacity-Transition der
+     Kartusche entfernen (keine Layer-Promotion), Kartusche opak rendern. */
+  body.karte-embed .hpmap-fold { display: none !important; }
+  body.karte-embed .hpmap-fade { transition: none; }
   body.karte-embed .hpmap-cartouche {
     background: var(--card);
     box-shadow: none;
