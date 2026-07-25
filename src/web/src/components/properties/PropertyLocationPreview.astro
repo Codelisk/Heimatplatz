@@ -1,0 +1,341 @@
+---
+import "@/styles/map-sheet.css";
+import CircleDashedIcon from "@tabler/icons/outline/circle-dashed.svg";
+import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
+import MapPinIcon from "@tabler/icons/outline/map-pin.svg";
+import { t } from "@/i18n";
+
+/**
+ * Editor-Abschnitt "Lage & Umgebung": Der Anbieter waehlt per Radio-Karten,
+ * wie genau sein Inserat auf Karten erscheint (Umgebungskreis = Standard,
+ * punktgenau, gar nicht) - und sieht darunter live in einer MapLibre-Vorschau
+ * exakt das, was Besucher spaeter sehen (WYSIWYG wie der Rest des Editors).
+ *
+ * Koordinaten kommen vom geocode-preview-Endpoint (debounced, sobald PLZ/Ort/
+ * Adresse ausgefuellt sind); "Genau" ohne punktgenaue Aufloesung zeigt ehrlich
+ * den Kreis samt Hinweis. Der gewaehlte Modus wandert als Radio-Wert
+ * (name=locationDisplay) mit dem normalen Formular-Draft zur API.
+ */
+---
+
+<section class="wys-rise mt-8" style="--rise: 0.42s" aria-labelledby="location-display-heading" data-location-section>
+  <h2 id="location-display-heading" class="text-sm font-bold uppercase text-muted-foreground">{t("editor.locationHeading")}</h2>
+  <p class="mt-1 text-xs text-muted-foreground">{t("editor.locationIntro")}</p>
+
+  <div class="mt-4 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={t("editor.locationHeading")}>
+    <label class="hploc-option wys-tile">
+      <input type="radio" name="locationDisplay" value="approximate" class="sr-only" checked />
+      <span class="flex items-center gap-2 text-sm font-bold">
+        <CircleDashedIcon class="size-4 shrink-0" aria-hidden="true" />
+        {t("editor.locationApprox")}
+      </span>
+      <span class="text-xs text-muted-foreground">{t("editor.locationApproxHint")}</span>
+    </label>
+    <label class="hploc-option wys-tile">
+      <input type="radio" name="locationDisplay" value="exact" class="sr-only" />
+      <span class="flex items-center gap-2 text-sm font-bold">
+        <MapPinIcon class="size-4 shrink-0" aria-hidden="true" />
+        {t("editor.locationExact")}
+      </span>
+      <span class="text-xs text-muted-foreground">{t("editor.locationExactHint")}</span>
+    </label>
+    <label class="hploc-option wys-tile">
+      <input type="radio" name="locationDisplay" value="hidden" class="sr-only" />
+      <span class="flex items-center gap-2 text-sm font-bold">
+        <EyeOffIcon class="size-4 shrink-0" aria-hidden="true" />
+        {t("editor.locationHidden")}
+      </span>
+      <span class="text-xs text-muted-foreground">{t("editor.locationHiddenHint")}</span>
+    </label>
+  </div>
+
+  <div class="hpdetailmap-sheet mt-4" data-location-preview>
+    <div class="hpdetailmap-canvas" data-location-preview-gl></div>
+
+    {/* Leerzustand: noch keine aufloesbare Anschrift eingegeben */}
+    <div class="hploc-overlay" data-location-preview-empty>
+      <MapPinIcon class="size-6 text-muted-foreground" aria-hidden="true" />
+      <p>{t("editor.locationPreviewEmpty")}</p>
+    </div>
+
+    {/* Verborgen: zeigt ehrlich, dass es keine Karte geben wird */}
+    <div class="hploc-overlay" data-location-preview-hidden hidden>
+      <EyeOffIcon class="size-6 text-muted-foreground" aria-hidden="true" />
+      <p class="font-semibold">{t("editor.locationPreviewHiddenTitle")}</p>
+      <p>{t("editor.locationPreviewHiddenText")}</p>
+    </div>
+  </div>
+  <p class="mt-2 text-xs text-muted-foreground" data-location-preview-note>{t("editor.locationPreviewNote")}</p>
+</section>
+
+<style is:global>
+  /* Radio-Karten der Lage-Auswahl (has-:checked traegt den gewaehlten Zustand) */
+  .hploc-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    cursor: pointer;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 0.85rem 1rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .hploc-option:hover { border-color: color-mix(in oklab, var(--foreground) 45%, transparent); }
+  .hploc-option:has(:checked) {
+    border-color: var(--outline);
+    box-shadow: 0 0 0 1px var(--outline);
+  }
+  .hploc-option:has(:focus-visible) {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* Overlays der Vorschau (Leerzustand / Verborgen) liegen ueber dem Karten-Canvas */
+  .hploc-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.4rem;
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    background: var(--muted);
+  }
+  .hploc-overlay[hidden] { display: none; }
+</style>
+
+<script>
+  import { t } from "@/i18n";
+  import { readDebugApiUrl } from "@/lib/utils/debug-host";
+  import { readAccessToken } from "@/lib/utils/access-token";
+
+  const section = document.querySelector<HTMLElement>("[data-location-section]");
+  const glContainer = section?.querySelector<HTMLElement>("[data-location-preview-gl]");
+  const form = section?.closest("form");
+
+  if (section && glContainer && form) {
+    const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+    const TILES_URL = new URL(import.meta.env.PUBLIC_MAP_TILES_URL || "/tiles/oberoesterreich.pmtiles", window.location.origin).href;
+    const ASSETS_URL = new URL(import.meta.env.PUBLIC_MAP_ASSETS_URL || "/tiles/assets", window.location.origin).href;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const emptyOverlay = section.querySelector<HTMLElement>("[data-location-preview-empty]")!;
+    const hiddenOverlay = section.querySelector<HTMLElement>("[data-location-preview-hidden]")!;
+    const noteEl = section.querySelector<HTMLElement>("[data-location-preview-note]")!;
+    const radios = Array.from(section.querySelectorAll<HTMLInputElement>('input[name="locationDisplay"]'));
+
+    const addressInput = form.querySelector<HTMLInputElement>('[name="address"]');
+    const postalCodeInput = form.querySelector<HTMLInputElement>('[name="postalCode"]');
+    const cityInput = form.querySelector<HTMLInputElement>('[name="city"]');
+
+    type PreviewCoords = { lat: number; lng: number; isExact: boolean };
+    let coords: PreviewCoords | null = null;
+    let lastGeocodeKey = "";
+    let geocodeTimer: number | undefined;
+    let requestSequence = 0;
+
+    // MapLibre lazy erst beim ersten aufloesbaren Ergebnis
+    let maplibre: typeof import("maplibre-gl") | null = null;
+    let styleModule: typeof import("@/features/map/map-style") | null = null;
+    let map: import("maplibre-gl").Map | null = null;
+    let marker: import("maplibre-gl").Marker | null = null;
+    let mapInitPromise: Promise<void> | null = null;
+    let dark = document.documentElement.classList.contains("dark");
+
+    function currentMode(): "approximate" | "exact" | "hidden" {
+      const checked = radios.find((radio) => radio.checked);
+      return (checked?.value as "approximate" | "exact" | "hidden") ?? "approximate";
+    }
+
+    function ensureMap(): Promise<void> {
+      if (mapInitPromise) return mapInitPromise;
+      mapInitPromise = (async () => {
+        const [maplibreModule, pmtilesModule, loadedStyleModule] = await Promise.all([
+          import("maplibre-gl"),
+          import("pmtiles"),
+          import("@/features/map/map-style"),
+          import("maplibre-gl/dist/maplibre-gl.css"),
+        ]);
+        maplibre = maplibreModule;
+        styleModule = loadedStyleModule;
+
+        const protocol = new pmtilesModule.Protocol();
+        maplibre.addProtocol("pmtiles", protocol.tile);
+
+        let tilesAvailable = false;
+        try {
+          const probe = await fetch(TILES_URL, { headers: { Range: "bytes=0-127" } });
+          tilesAvailable = probe.ok;
+        } catch {
+          tilesAvailable = false;
+        }
+
+        const buildStyle = () =>
+          loadedStyleModule.buildMapStyle({ dark, tilesAvailable, tilesUrl: TILES_URL, assetsUrl: ASSETS_URL });
+
+        map = new maplibre.Map({
+          container: glContainer!,
+          style: buildStyle(),
+          center: coords ? [coords.lng, coords.lat] : [14.29, 48.31],
+          zoom: 13,
+          minZoom: 8,
+          maxZoom: 16.5,
+          attributionControl: { compact: true },
+          cooperativeGestures: true,
+          locale: {
+            "CooperativeGesturesHandler.WindowsHelpText": "Zoomen mit Strg + Scrollen",
+            "CooperativeGesturesHandler.MacHelpText": "Zoomen mit ⌘ + Scrollen",
+            "CooperativeGesturesHandler.MobileHelpText": "Verschieben mit zwei Fingern",
+            "AttributionControl.ToggleAttribution": "Quellenangabe umschalten",
+          },
+        });
+        new ResizeObserver(() => map?.resize()).observe(glContainer!);
+
+        // Umgebungskreis-Layer nach jedem style.load neu anhaengen (Theme-Wechsel)
+        map.on("style.load", () => {
+          if (!map || !styleModule || !coords) return;
+          map.addSource("hploc-circle", {
+            type: "geojson",
+            data: styleModule.locationCirclePolygon(coords.lng, coords.lat, 300),
+          });
+          map.addLayer({
+            id: "hploc-circle-fill",
+            type: "fill",
+            source: "hploc-circle",
+            layout: { visibility: "none" },
+            paint: { "fill-color": styleModule.BRAND_RED, "fill-opacity": 0.14 },
+          });
+          map.addLayer({
+            id: "hploc-circle-line",
+            type: "line",
+            source: "hploc-circle",
+            layout: { visibility: "none" },
+            paint: { "line-color": styleModule.BRAND_RED, "line-width": 2, "line-opacity": 0.5 },
+          });
+          render();
+        });
+
+        new MutationObserver(() => {
+          const nextDark = document.documentElement.classList.contains("dark");
+          if (nextDark !== dark && map) {
+            dark = nextDark;
+            map.setStyle(buildStyle());
+          }
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+        await new Promise<void>((resolve) => map!.once("load", () => resolve()));
+      })();
+      return mapInitPromise;
+    }
+
+    function render() {
+      const mode = currentMode();
+
+      hiddenOverlay.hidden = mode !== "hidden";
+      emptyOverlay.hidden = mode === "hidden" || coords !== null;
+      noteEl.textContent =
+        mode === "exact" && coords && !coords.isExact
+          ? t("editor.locationPreviewExactFallback")
+          : t("editor.locationPreviewNote");
+
+      if (!map || !styleModule || !coords || mode === "hidden") return;
+
+      // Effektive Darstellung wie auf den echten Karten: punktgenau nur, wenn
+      // gewollt UND aufloesbar - sonst Umgebungskreis
+      const showExact = mode === "exact" && coords.isExact;
+
+      if (map.getSource("hploc-circle")) {
+        const visibility = showExact ? "none" : "visible";
+        map.setLayoutProperty("hploc-circle-fill", "visibility", visibility);
+        map.setLayoutProperty("hploc-circle-line", "visibility", visibility);
+        (map.getSource("hploc-circle") as import("maplibre-gl").GeoJSONSource).setData(
+          styleModule.locationCirclePolygon(coords.lng, coords.lat, 300),
+        );
+      }
+
+      if (showExact) {
+        if (!marker && maplibre) {
+          const pinElement = document.createElement("div");
+          pinElement.className = "hpdetailmap-pin";
+          marker = new maplibre.Marker({ element: pinElement });
+        }
+        marker?.setLngLat([coords.lng, coords.lat]).addTo(map);
+      } else {
+        marker?.remove();
+      }
+
+      map.easeTo({
+        center: [coords.lng, coords.lat],
+        zoom: showExact ? 15 : 13.2,
+        duration: reducedMotion ? 0 : 500,
+      });
+    }
+
+    async function geocodePreview() {
+      const city = cityInput?.value.trim() ?? "";
+      const postalCode = postalCodeInput?.value.trim() ?? "";
+      const address = addressInput?.value.trim() ?? "";
+      if (!city || postalCode.length < 4) {
+        coords = null;
+        render();
+        return;
+      }
+
+      const key = `${address}|${postalCode}|${city}`;
+      if (key === lastGeocodeKey) return;
+
+      const token = readAccessToken();
+      if (!token) return;
+
+      const sequence = ++requestSequence;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/properties/geocode-preview`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ City: city, PostalCode: postalCode, Address: address || null }),
+        });
+        if (!response.ok || sequence !== requestSequence) return;
+        const payload = (await response.json()) as { Latitude?: number | null; Longitude?: number | null; IsExact?: boolean };
+        if (sequence !== requestSequence) return;
+
+        lastGeocodeKey = key;
+        coords =
+          typeof payload.Latitude === "number" && typeof payload.Longitude === "number"
+            ? { lat: payload.Latitude, lng: payload.Longitude, isExact: payload.IsExact === true }
+            : null;
+
+        if (coords) {
+          await ensureMap();
+        }
+        render();
+      } catch {
+        // Vorschau ist Komfort - Fehler still lassen, der Leerzustand bleibt stehen
+      }
+    }
+
+    function scheduleGeocode() {
+      window.clearTimeout(geocodeTimer);
+      geocodeTimer = window.setTimeout(() => void geocodePreview(), 1200);
+    }
+
+    [addressInput, postalCodeInput, cityInput].forEach((input) => {
+      input?.addEventListener("input", scheduleGeocode);
+      input?.addEventListener("change", scheduleGeocode);
+    });
+    radios.forEach((radio) => radio.addEventListener("change", render));
+
+    // Bearbeiten-Prefill setzt Felder programmatisch (keine input-Events)
+    form.addEventListener("property-form-prefilled", () => {
+      window.clearTimeout(geocodeTimer);
+      void geocodePreview();
+      render();
+    });
+
+    render();
+  }
+</script>

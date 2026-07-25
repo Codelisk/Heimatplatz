@@ -125,6 +125,12 @@ public class UpdatePropertyHandler(
             property.PostalCode = postalCode;
         }
 
+        // Anzeige-Absicht fuer die Lage: null (aelterer Client) = gespeicherten Wert behalten
+        if (request.LocationDisplay.HasValue)
+        {
+            property.LocationDisplay = request.LocationDisplay.Value;
+        }
+
         // Koordinaten nachziehen: bei geaenderter Adresse oder wenn noch keine da sind.
         // Schlaegt das Geocoding bei geaenderter Adresse fehl, werden die alten
         // Koordinaten verworfen - ein falscher Pin waere schlechter als keiner.

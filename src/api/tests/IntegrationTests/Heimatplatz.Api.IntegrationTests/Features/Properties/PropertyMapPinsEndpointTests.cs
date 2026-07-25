@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Heimatplatz.Api.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -65,10 +66,10 @@ public class PropertyMapPinsEndpointTests : BaseApiIntegrationTest
     }
 
     [Test]
-    public async Task MapPins_ExactLocation_IsDeliveredUnchanged()
+    public async Task MapPins_ExactIntentWithExactGeocode_IsDeliveredUnchanged()
     {
         var propertyId = await CreateHouseAsync("Kartenhaus mit exakter Position");
-        await SetCoordinatesAsync(propertyId, TestLatitude, TestLongitude, isExact: true);
+        await SetCoordinatesAsync(propertyId, TestLatitude, TestLongitude, isExact: true, display: LocationDisplayMode.Exact);
 
         using var response = await GetMapPinsAsync();
         var pin = FindPin(response, propertyId);
@@ -76,6 +77,36 @@ public class PropertyMapPinsEndpointTests : BaseApiIntegrationTest
         pin!.Value.GetProperty("IsApproximate").GetBoolean().Should().BeFalse();
         pin.Value.GetProperty("Latitude").GetDouble().Should().Be(TestLatitude);
         pin.Value.GetProperty("Longitude").GetDouble().Should().Be(TestLongitude);
+    }
+
+    [Test]
+    public async Task MapPins_ExactIntentWithoutExactGeocode_FallsBackToApproximate()
+    {
+        // Anbieter will "Genau", aber die Adresse war nur aufs Ortszentrum aufloesbar -
+        // ehrlich bleiben: Kreis-Semantik samt Streuung statt falschem Punkt-Pin
+        var propertyId = await CreateHouseAsync("Kartenhaus mit Genau-Wunsch ohne exakte Aufloesung");
+        await SetCoordinatesAsync(propertyId, TestLatitude, TestLongitude, isExact: false, display: LocationDisplayMode.Exact);
+
+        using var response = await GetMapPinsAsync();
+        var pin = FindPin(response, propertyId);
+        pin.Should().NotBeNull();
+        pin!.Value.GetProperty("IsApproximate").GetBoolean().Should().BeTrue();
+        pin.Value.GetProperty("Latitude").GetDouble().Should().NotBe(TestLatitude);
+    }
+
+    [Test]
+    public async Task MapPins_HiddenDisplay_NeverAppearsOnTheMap()
+    {
+        var propertyId = await CreateHouseAsync("Kartenhaus mit verborgener Lage");
+        await SetCoordinatesAsync(propertyId, TestLatitude, TestLongitude, isExact: true, display: LocationDisplayMode.Hidden);
+
+        using var response = await GetMapPinsAsync();
+        FindPin(response, propertyId).Should().BeNull("verborgene Lagen duerfen nie als Pin erscheinen");
+        // Zaehlt wie ein Inserat ohne Kartenposition ("nur in der Liste")
+        response.RootElement.GetProperty("WithoutCoordinates").GetInt32().Should().BeGreaterThan(0);
+        // Auch der Einzelabruf der Detailseiten-Mini-Karte liefert nichts
+        using var single = await GetMapPinsAsync($"?PropertyId={propertyId}");
+        single.RootElement.GetProperty("Pins").GetArrayLength().Should().Be(0);
     }
 
     [Test]
@@ -111,7 +142,12 @@ public class PropertyMapPinsEndpointTests : BaseApiIntegrationTest
         return null;
     }
 
-    private async Task SetCoordinatesAsync(Guid propertyId, double latitude, double longitude, bool isExact)
+    private async Task SetCoordinatesAsync(
+        Guid propertyId,
+        double latitude,
+        double longitude,
+        bool isExact,
+        LocationDisplayMode display = LocationDisplayMode.Approximate)
     {
         using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -119,6 +155,7 @@ public class PropertyMapPinsEndpointTests : BaseApiIntegrationTest
         property.Latitude = latitude;
         property.Longitude = longitude;
         property.IsLocationExact = isExact;
+        property.LocationDisplay = display;
         await dbContext.SaveChangesAsync();
     }
 

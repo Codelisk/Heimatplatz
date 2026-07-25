@@ -27,6 +27,10 @@ public record PropertyDto(
     InquiryType InquiryType,
     List<ContactInfoDto> Contacts,
     string? TypeSpecificData,
+    // Anzeige-Absicht des Anbieters fuer die Lage (Genau/Ungefaehr/Verborgen) -
+    // Prefill des Bearbeiten-Editors. Positionell VOR den berechneten Feldern,
+    // damit die EF-Projektion in GetPropertyByIdHandler sie mitliefern kann.
+    LocationDisplayMode LocationDisplay = LocationDisplayMode.Approximate,
     // Serverseitig abgeleitete Anzeige-Fakten (Backend-First: Clients rendern nur)
     // "Kaufpreis" | "Mindestgebot" | "Schätzwert" - haengt bei Zwangsversteigerungen
     // davon ab, ob ein Mindestgebot vorliegt (Price = MinimumBid ?? EstimatedValue)

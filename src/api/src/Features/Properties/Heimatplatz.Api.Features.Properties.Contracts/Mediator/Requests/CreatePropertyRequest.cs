@@ -24,7 +24,10 @@ public record CreatePropertyRequest(
     Dictionary<string, object>? TypeSpecificData = null,
     string? OriginalListingUrl = null,
     ContactPersonInput? ContactPerson = null,
-    string? PostalCode = null
+    string? PostalCode = null,
+    // Anzeige-Absicht fuer die Lage (Genau/Ungefaehr/Verborgen); null = Standard
+    // Approximate (auch fuer aeltere Clients ohne das Feld)
+    LocationDisplayMode? LocationDisplay = null
 ) : IRequest<CreatePropertyResponse>;
 
 /// <summary>

@@ -272,6 +272,8 @@ public class ForeclosurePropertySyncService(
             YearBuilt = auction.YearBuilt,
             Type = PropertyType.Foreclosure,
             SellerType = SellerType.Broker,
+            // Edikt-Adressen sind oeffentlich - punktgenaue Kartenanzeige erwuenscht
+            LocationDisplay = LocationDisplayMode.Exact,
             SellerName = auction.Court ?? "Bezirksgericht",
             Description = auction.ObjectDescription,
             UserId = systemUserId,
@@ -306,6 +308,8 @@ public class ForeclosurePropertySyncService(
         property.Rooms = auction.NumberOfRooms;
         property.YearBuilt = auction.YearBuilt;
         property.ImageUrls = CollectImageUrls(auction);
+        // Bestandszeilen nachziehen: Edikt-Adressen sind oeffentlich (punktgenau)
+        property.LocationDisplay = LocationDisplayMode.Exact;
         property.SellerName = auction.Court ?? "Bezirksgericht";
         property.Description = auction.ObjectDescription;
         property.SourceUrl = auction.EdictUrl;

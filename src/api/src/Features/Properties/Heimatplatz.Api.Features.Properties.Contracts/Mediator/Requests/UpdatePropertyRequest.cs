@@ -41,6 +41,12 @@ public class UpdatePropertyRequest : IRequest<UpdatePropertyResponse>
     /// Ansprechpartner; der Anbieter-Kontakt bleibt davon unberuehrt.
     /// </summary>
     public ContactPersonInput? ContactPerson { get; set; }
+
+    /// <summary>
+    /// Anzeige-Absicht fuer die Lage (Genau/Ungefaehr/Verborgen).
+    /// null (aeltere Clients ohne das Feld) laesst den gespeicherten Wert unangetastet.
+    /// </summary>
+    public LocationDisplayMode? LocationDisplay { get; set; }
 }
 
 /// <summary>

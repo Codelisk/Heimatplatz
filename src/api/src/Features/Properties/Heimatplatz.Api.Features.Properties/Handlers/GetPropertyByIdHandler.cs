@@ -66,7 +66,8 @@ public class GetPropertyByIdHandler(
                         c.DisplayOrder
                     ))
                     .ToList(),
-                p.TypeSpecificData
+                p.TypeSpecificData,
+                p.LocationDisplay
             ))
             .FirstOrDefaultAsync(cancellationToken);
 

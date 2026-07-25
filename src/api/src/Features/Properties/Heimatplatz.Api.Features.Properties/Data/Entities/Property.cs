@@ -111,8 +111,17 @@ public class Property : BaseEntity
     /// oeffentlicher Adresse im Edikt). False = ungefaehre Lage (Ortszentrums-Fallback) -
     /// die Karten-API streut solche Pins zusaetzlich deterministisch, damit private
     /// Anbieter nicht punktgenau markiert werden (GetPropertyMapPinsHandler).
+    /// Qualitaetsmerkmal des Geocodings - die ANZEIGE-Absicht des Anbieters
+    /// steht in LocationDisplay.
     /// </summary>
     public bool IsLocationExact { get; set; }
+
+    /// <summary>
+    /// Wie der Anbieter die Lage anzeigen will: Umgebungskreis (Standard),
+    /// punktgenau oder gar nicht. "Exact" wird nur punktgenau gerendert, wenn
+    /// IsLocationExact das hergibt; ZV-Edikte setzt der Sync auf Exact.
+    /// </summary>
+    public LocationDisplayMode LocationDisplay { get; set; } = LocationDisplayMode.Approximate;
 
     // === Import-Tracking Felder ===
 

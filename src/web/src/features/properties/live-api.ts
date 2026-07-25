@@ -36,6 +36,8 @@ export type ApiProperty = {
   SourceName?: string | null;
   /** Auktionstermin (nur bei Zwangsversteigerungen aus dem Listen-DTO belegt) */
   AuctionDate?: string | null;
+  /** Anzeige-Absicht der Lage: "Approximate" | "Exact" | "Hidden" (Editor-Prefill) */
+  LocationDisplay?: string | number | null;
   Contacts?: ApiContact[];
   TypeSpecificData?: string | Record<string, unknown> | null;
 };

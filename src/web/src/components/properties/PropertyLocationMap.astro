@@ -1,4 +1,5 @@
 ---
+import "@/styles/map-sheet.css";
 import { t } from "@/i18n";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import type { ApiMapPin } from "@/features/properties/map-pins";
@@ -37,59 +38,7 @@ const locationData = {
 </section>
 <script is:inline type="application/json" data-detail-map-pin set:html={jsonForScriptTag(locationData)} />
 
-<style is:global>
-  /* Mini-Karte im Zettel-Look; Marker/Controls entstehen per JS bzw. MapLibre
-     und haetten keine Astro-Scoped-Attribute - daher global mit Prefix. */
-  .hpdetailmap-sheet {
-    position: relative;
-    overflow: hidden;
-    background: var(--card);
-    border: 1px solid var(--zettel-rand);
-    border-radius: var(--radius);
-    box-shadow: var(--zettel-shadow);
-    outline: 1px solid var(--zettel-frame);
-    outline-offset: -7px;
-  }
-  .hpdetailmap-canvas { width: 100%; aspect-ratio: 16 / 9; background: var(--card); }
-  .hpdetailmap-canvas .maplibregl-canvas { outline: none; }
-
-  @media (max-width: 640px) {
-    .hpdetailmap-canvas { aspect-ratio: 4 / 3; }
-  }
-
-  /* MapLibre-Chrome in Zettel-Optik (gleiche Werte wie die Faltkarte der Suche) */
-  .hpdetailmap-sheet .maplibregl-ctrl-group {
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: 0 3px 8px -3px oklch(0.25 0.04 55 / 40%);
-    border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent);
-    overflow: hidden;
-  }
-  .hpdetailmap-sheet .maplibregl-ctrl-group button { background: transparent; }
-  .hpdetailmap-sheet .maplibregl-ctrl-group button + button {
-    border-top: 1px solid color-mix(in oklab, var(--foreground) 16%, transparent);
-  }
-  .dark .hpdetailmap-sheet .maplibregl-ctrl button.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
-  .dark .hpdetailmap-sheet .maplibregl-ctrl button.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
-    filter: invert(1);
-  }
-  .hpdetailmap-sheet .maplibregl-ctrl-attrib {
-    background: color-mix(in oklab, var(--card) 80%, transparent);
-    color: var(--muted-foreground);
-    font-size: 10px;
-  }
-  .hpdetailmap-sheet .maplibregl-ctrl-attrib a { color: var(--muted-foreground); }
-
-  /* Punktgenauer Lage-Pin (nur exakte Lagen, z.B. ZV-Edikte) */
-  .hpdetailmap-pin {
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    background: #de2a2f;
-    border: 3px solid #ffffff;
-    box-shadow: 0 0 0 1px oklch(0.3 0.03 55 / 35%), 0 4px 10px -3px oklch(0.2 0.05 26 / 55%);
-  }
-</style>
+{/* Sheet-/Pin-/Chrome-Styles kommen aus der geteilten map-sheet.css (Frontmatter-Import) */}
 
 <script>
   const container = document.querySelector<HTMLElement>("[data-detail-map-gl]");

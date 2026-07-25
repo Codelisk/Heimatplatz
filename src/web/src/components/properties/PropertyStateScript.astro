@@ -26,6 +26,8 @@
     rooms?: string;
     yearBuilt?: string;
     features?: string;
+    /** "approximate" | "exact" | "hidden" - Lage-Anzeige des Inserats */
+    locationDisplay?: string;
     originalListingUrl?: string;
     contactName?: string;
     contactEmail?: string;
@@ -2530,6 +2532,8 @@
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
         OriginalListingUrl: requiredText(draft.originalListingUrl) || null,
         ContactPerson: buildDraftContactPerson(draft),
+        // Lage-Anzeige (Genau/Ungefaehr/Verborgen) - Entscheidung des Anbieters
+        LocationDisplay: mapLocationDisplayToApi(draft.locationDisplay),
       },
     });
 
@@ -2568,10 +2572,25 @@
         TypeSpecificData: buildForeclosureTypeSpecificData(draft),
         OriginalListingUrl: requiredText(draft.originalListingUrl) || null,
         ContactPerson: buildDraftContactPerson(draft),
+        // Lage-Anzeige (Genau/Ungefaehr/Verborgen) - Entscheidung des Anbieters
+        LocationDisplay: mapLocationDisplayToApi(draft.locationDisplay),
       },
     });
 
     return response;
+  }
+
+  // Lage-Anzeige: Formularwerte (lowercase Radios) <-> API-Enum-Strings
+  function mapLocationDisplayToApi(value?: string) {
+    if (value === "exact") return "Exact";
+    if (value === "hidden") return "Hidden";
+    return "Approximate";
+  }
+
+  function mapLocationDisplayFromApi(value?: string | number | null) {
+    if (value === "Exact" || value === 1) return "exact";
+    if (value === "Hidden" || value === 2) return "hidden";
+    return "approximate";
   }
 
   // Optionaler Ansprechpartner: komplett leere Felder bedeuten "kein
@@ -2601,6 +2620,12 @@
 
   function setField(form: HTMLFormElement, name: string, value: string | number | null | undefined) {
     const field = form.elements.namedItem(name);
+    // Radio-Gruppen (z.B. locationDisplay) liefern eine RadioNodeList - deren
+    // value-Setter checkt das passende Radio
+    if (typeof RadioNodeList !== "undefined" && field instanceof RadioNodeList) {
+      field.value = value === null || value === undefined ? "" : String(value);
+      return;
+    }
     if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
       field.value = value === null || value === undefined ? "" : String(value);
     }
@@ -2703,9 +2728,13 @@
       "foreclosureBuildingCondition",
       "foreclosureNotes",
     ].forEach((field) => setField(form, field, draft[field] as string | undefined));
+    setField(form, "locationDisplay", draft.locationDisplay ?? "approximate");
     updatePropertyTypeFields(form);
     setFormImages(form, getDraftImageUrls(draft));
     syncLocationSelect(form);
+    // Kartenvorschau u.a. lauschen darauf - programmatisches setField feuert
+    // keine input/change-Events
+    form.dispatchEvent(new CustomEvent("property-form-prefilled", { bubbles: true }));
   }
 
   function apiPropertyToDraft(property: ApiProperty) {
@@ -2738,6 +2767,7 @@
       contactEmail: contactPerson?.Email ?? "",
       contactPhone: contactPerson?.Phone ?? "",
       municipalityId: property.MunicipalityId ?? "",
+      locationDisplay: mapLocationDisplayFromApi(property.LocationDisplay),
       imageUrls: property.ImageUrls ?? [],
       foreclosureCourtName: readTypedString(typeSpecificData, "CourtName"),
       foreclosureFileNumber: readTypedString(typeSpecificData, "FileNumber"),

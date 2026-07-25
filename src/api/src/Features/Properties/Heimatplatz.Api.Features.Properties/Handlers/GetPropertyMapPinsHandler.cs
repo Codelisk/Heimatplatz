@@ -1,5 +1,6 @@
 using Heimatplatz.Api;
 using Heimatplatz.Api.Core.Data;
+using Heimatplatz.Api.Features.Properties.Contracts;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
 using Heimatplatz.Api.Features.Properties.Services;
@@ -57,7 +58,12 @@ public class GetPropertyMapPinsHandler(
 
         var total = await query.CountAsync(cancellationToken);
 
-        var pinQuery = query.Where(p => p.Latitude != null && p.Longitude != null);
+        // Verborgene Lagen (LocationDisplay=Hidden) erscheinen NIE auf der Karte -
+        // sie zaehlen wie Inserate ohne Koordinaten ("nur in der Liste")
+        var pinQuery = query.Where(p =>
+            p.Latitude != null &&
+            p.Longitude != null &&
+            p.LocationDisplay != LocationDisplayMode.Hidden);
         var totalWithCoordinates = await pinQuery.CountAsync(cancellationToken);
 
         var entities = await pinQuery
@@ -70,10 +76,13 @@ public class GetPropertyMapPinsHandler(
 
         var pins = entities.Select(p =>
         {
-            // Ungenaue Lagen (Privat-Inserate, Ortszentrums-Fallback) deterministisch
-            // streuen: sonst stapeln sich alle Inserate eines Orts auf einem Punkt und
-            // ein einzelner Pin saehe faelschlich punktgenau aus.
-            var (latitude, longitude) = p.IsLocationExact
+            // Punktgenau nur, wenn der Anbieter es WILL (LocationDisplay=Exact) UND das
+            // Geocoding es HERGIBT (IsLocationExact) - wer "Genau" waehlt, dessen Adresse
+            // aber nur aufs Ortszentrum aufloesbar war, bekommt ehrlich den Kreis.
+            // Alle anderen Lagen werden deterministisch gestreut: sonst stapeln sich die
+            // Inserate eines Orts auf einem Punkt und saehen faelschlich punktgenau aus.
+            var showExact = p.LocationDisplay == LocationDisplayMode.Exact && p.IsLocationExact;
+            var (latitude, longitude) = showExact
                 ? (p.Latitude!.Value, p.Longitude!.Value)
                 : ApplyPrivacyJitter(p.Id, p.Latitude!.Value, p.Longitude!.Value);
 
@@ -85,7 +94,7 @@ public class GetPropertyMapPinsHandler(
                 p.Id,
                 latitude,
                 longitude,
-                IsApproximate: !p.IsLocationExact,
+                IsApproximate: !showExact,
                 p.Type,
                 p.SellerType,
                 p.Price,

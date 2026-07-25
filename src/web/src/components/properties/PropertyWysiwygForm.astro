@@ -7,6 +7,7 @@ import PencilIcon from "@tabler/icons/outline/pencil.svg";
 import PhotoPlusIcon from "@tabler/icons/outline/photo-plus.svg";
 import ShareIcon from "@tabler/icons/outline/share.svg";
 import { Button } from "@/components/starwind/button";
+import PropertyLocationPreview from "@/components/properties/PropertyLocationPreview.astro";
 import { fetchApiPropertyTypes } from "@/features/properties/live-api";
 import { t } from "@/i18n";
 
@@ -316,6 +317,10 @@ const currentYear = new Date().getFullYear();
         placeholder={t("editor.descriptionPlaceholder")}
         aria-label={t("editor.descriptionHeading")}></textarea>
     </section>
+
+    {/* Lage & Umgebung: an derselben Stelle wie im veroeffentlichten Inserat
+        (WYSIWYG) - Auswahl Genau/Ungefaehr/Verborgen mit Live-Kartenvorschau */}
+    <PropertyLocationPreview />
 
     <fieldset class="mt-8 rounded-lg border border-border bg-card p-4" data-foreclosure-fields hidden>
       <legend class="px-1 text-sm font-bold uppercase text-muted-foreground">{t("editor.foreclosureLegend")}</legend>

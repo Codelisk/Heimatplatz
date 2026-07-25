@@ -115,6 +115,8 @@ public class CreatePropertyHandler(
             Features = features,
             ImageUrls = request.ImageUrls ?? new List<string>(),
             UserId = userId,
+            // Anzeige-Absicht des Anbieters; ohne Angabe (aeltere Clients) Umgebungskreis
+            LocationDisplay = request.LocationDisplay ?? LocationDisplayMode.Approximate,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

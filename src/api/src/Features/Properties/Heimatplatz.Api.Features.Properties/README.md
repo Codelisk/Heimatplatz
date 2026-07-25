@@ -22,9 +22,13 @@ Hauptprojekt fuer das Properties (Immobilien) Feature.
 - `GetPropertyMapPinsHandler` - `GET /api/properties/map-pins`: alle Treffer der aktuellen
   Filter als leichte Pins fuer die Kartenansicht im Web (gleiche Filter-Parameter wie die
   Listen-Suche, ohne Paging/Sortierung, Deckel 500 Pins). Nutzt `PropertyQueryFilters`,
-  damit Karte und Liste nie auseinanderlaufen. Ungenaue Lagen (`IsLocationExact=false`)
-  werden deterministisch gestreut (`ApplyPrivacyJitter`) - private Anbieter sind nie
-  punktgenau markiert, ZV-Edikte (oeffentliche Adressen) schon.
+  damit Karte und Liste nie auseinanderlaufen. Anzeige-Logik: `Property.LocationDisplay`
+  (Anbieter-Wahl Genau/Ungefaehr/Verborgen) x `IsLocationExact` (Geocoding-Qualitaet) -
+  punktgenau NUR wenn beides passt, Verborgen erscheint nie, alles andere wird
+  deterministisch gestreut (`ApplyPrivacyJitter`).
+- `GeocodePropertyPreviewHandler` - `POST /api/properties/geocode-preview` (RequireSeller):
+  Live-Kartenvorschau im Inserats-Editor, loest die eingegebene Anschrift on-the-fly auf
+  (fehlertolerant, durch die Geocoder-Drossel ratenbegrenzt).
 - `GetPropertyByIdHandler` - Einzelne Immobilie
 - `GetPropertyChangesHandler` - `GET /api/properties/changes?Since=...`: Delta-Sync fuer
   Client-Caches. Dedupliziert das Journal pro Immobilie (Deleted gewinnt; Created+Updated = Created)

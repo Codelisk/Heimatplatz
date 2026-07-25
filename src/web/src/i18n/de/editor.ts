@@ -71,6 +71,22 @@ export const editor = {
   "editor.descriptionPlaceholder":
     "Beschreiben Sie Lage, Zustand und Besonderheiten Ihrer Immobilie (mind. 50 Zeichen)…",
 
+  // Lage & Umgebung (Kartenanzeige-Auswahl + Live-Vorschau)
+  "editor.locationHeading": "Lage & Umgebung",
+  "editor.locationIntro": "Sie entscheiden, wie genau Ihr Inserat auf der Karte erscheint.",
+  "editor.locationApprox": "Ungefähr",
+  "editor.locationApproxHint": "Umgebungskreis – die genaue Adresse bleibt privat",
+  "editor.locationExact": "Genau",
+  "editor.locationExactHint": "Punktgenauer Pin auf Ihrer Adresse",
+  "editor.locationHidden": "Nicht anzeigen",
+  "editor.locationHiddenHint": "Keine Karte im Inserat",
+  "editor.locationPreviewEmpty": "PLZ und Ort eingeben, um die Kartenvorschau zu sehen.",
+  "editor.locationPreviewHiddenTitle": "Keine Kartenanzeige",
+  "editor.locationPreviewHiddenText": "Das Inserat erscheint weder auf der Suchkarte noch mit Umgebungskarte.",
+  "editor.locationPreviewExactFallback":
+    "Die Adresse konnte nur ungefähr gefunden werden – Besucher sehen den Umgebungskreis.",
+  "editor.locationPreviewNote": "So sehen Besucher die Lage Ihres Inserats.",
+
   // Versteigerungsdaten (Foreclosure-Felder)
   "editor.foreclosureLegend": "Versteigerungsdaten",
   "editor.fcCourt": "Gericht *",

@@ -1365,6 +1365,9 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Property<int?>("LivingAreaSquareMeters")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("LocationDisplay")
+                        .HasColumnType("INTEGER");
+
                     b.Property<double?>("Longitude")
                         .HasColumnType("REAL");
 
