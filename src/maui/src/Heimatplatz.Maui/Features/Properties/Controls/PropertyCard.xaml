@@ -128,19 +128,54 @@
                     </Grid>
                 </HorizontalStackLayout>
 
-                <!-- Bild-Counter unten rechts -->
-                <Border x:Name="ImageCounterBadge"
-                        Style="{StaticResource GlassPill}"
-                        Padding="8,3"
-                        Margin="12"
-                        VerticalOptions="End"
-                        HorizontalOptions="End"
-                        IsVisible="False">
-                    <Label x:Name="ImageCounterText"
-                           FontSize="10.5"
-                           FontFamily="SansMedium"
-                           TextColor="White" />
-                </Border>
+                <!-- Untere Foto-Zeile: ZV-Countdown links, Bild-Counter rechts.
+                     Beide in einer Spalten-Zeile statt frei uebereinander, damit ein
+                     langer Countdown nicht unter den Counter laeuft. InputTransparent
+                     (Web: pointer-events-none), damit Taps weiter das Inserat oeffnen. -->
+                <Grid ColumnDefinitions="*,Auto"
+                      ColumnSpacing="8"
+                      Margin="12"
+                      VerticalOptions="End"
+                      InputTransparent="True">
+
+                    <!-- ZV: Countdown-Chip unten links im Foto ("heute/morgen/in X
+                         Tagen"). Im Bild statt als eigene Zeile, damit Titel/Preis
+                         aller Karten buendig bleiben; Glas-Pill wie die Foto-Buttons,
+                         also kein zweites Rot neben dem ZV-Badge. -->
+                    <Border x:Name="AuctionCountdownBadge"
+                            Grid.Column="0"
+                            Style="{StaticResource GlassPill}"
+                            Padding="8,3"
+                            HorizontalOptions="Start"
+                            IsVisible="False">
+                        <HorizontalStackLayout Spacing="5">
+                            <Image Source="icon_gavel_white.png"
+                                   WidthRequest="13"
+                                   HeightRequest="13"
+                                   VerticalOptions="Center" />
+                            <Label x:Name="AuctionCountdownText"
+                                   FontSize="10.5"
+                                   FontFamily="SansSemibold"
+                                   LineBreakMode="TailTruncation"
+                                   MaxLines="1"
+                                   VerticalOptions="Center"
+                                   TextColor="White" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Bild-Counter unten rechts -->
+                    <Border x:Name="ImageCounterBadge"
+                            Grid.Column="1"
+                            Style="{StaticResource GlassPill}"
+                            Padding="8,3"
+                            HorizontalOptions="End"
+                            IsVisible="False">
+                        <Label x:Name="ImageCounterText"
+                               FontSize="10.5"
+                               FontFamily="SansMedium"
+                               TextColor="White" />
+                    </Border>
+                </Grid>
             </Grid>
             </Border>
 

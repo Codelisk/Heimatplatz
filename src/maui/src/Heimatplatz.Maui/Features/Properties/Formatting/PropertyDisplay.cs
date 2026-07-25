@@ -76,6 +76,42 @@ public static class PropertyDisplay
         return street;
     }
 
+    // Kalendertage werden in oesterreichischer Ortszeit verglichen (wie am Web-Zettel,
+    // viennaDayValue in format.ts) - eine reine Differenz der Zeitstempel zaehlt je
+    // nach Uhrzeit einen Tag zu viel oder zu wenig und ist nicht DST-fest.
+    // Fallback auf die Geraete-Zeitzone, falls die IANA-Id nicht aufloesbar ist.
+    private static readonly TimeZoneInfo AustrianTimeZone = ResolveAustrianTimeZone();
+
+    private static TimeZoneInfo ResolveAustrianTimeZone()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna");
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            return TimeZoneInfo.Local;
+        }
+    }
+
+    private static DateTime AustrianDay(DateTimeOffset value) =>
+        TimeZoneInfo.ConvertTime(value, AustrianTimeZone).Date;
+
+    /// <summary>
+    /// Volle Kalendertage bis zum Versteigerungstermin (0 = heute, 1 = morgen).
+    /// Liefert null fuer fehlende, unplausible (Jahr &lt;= 1900, wie die API-seitige
+    /// ResolveAuctionDate) oder vergangene Termine - die Karte zeigt dann keinen
+    /// Countdown (Web: getAuctionCountdownLabel in format.ts).
+    /// </summary>
+    public static int? AuctionCountdownDays(DateTimeOffset? auctionDate)
+    {
+        if (auctionDate is not { } value || value.Year <= 1900)
+            return null;
+
+        var days = (AustrianDay(value) - AustrianDay(DateTimeOffset.UtcNow)).Days;
+        return days < 0 ? null : days;
+    }
+
     // Localized Status-Texte per Service-Locator - PropertyDisplay ist statisch
     // (Aufrufer erwarten die statische API), lazy aufgeloest und gecacht wie in
     // PropertyCard.xaml.cs. GetService statt GetRequiredService: solange die

@@ -42,6 +42,15 @@
   <data name="PriceOnRequest" xml:space="preserve">
     <value>Preis offen</value>
   </data>
+  <data name="AuctionToday" xml:space="preserve">
+    <value>Versteigerung heute</value>
+  </data>
+  <data name="AuctionTomorrow" xml:space="preserve">
+    <value>Versteigerung morgen</value>
+  </data>
+  <data name="AuctionInDays" xml:space="preserve">
+    <value>Versteigerung in {0} Tagen</value>
+  </data>
   <data name="SellerPrivate" xml:space="preserve">
     <value>Privat</value>
   </data>

@@ -267,6 +267,22 @@ public partial class PropertyCard : ContentView
 
         TypeBadge.IsVisible = property.Type is PropertyType.House or PropertyType.Land or PropertyType.Foreclosure;
 
+        // ZV: Countdown-Chip unten links im Foto ("Versteigerung heute/morgen/in X
+        // Tagen") - nur fuer kuenftige Termine, wie am Web-Zettel. Das absolute Datum
+        // bleibt der Detailseite vorbehalten (kein doppeltes Datum auf der Karte).
+        var auctionDays = property.Type == PropertyType.Foreclosure
+            ? PropertyDisplay.AuctionCountdownDays(property.AuctionDate)
+            : null;
+        AuctionCountdownText.Text = auctionDays switch
+        {
+            0 => Loc.AuctionToday,
+            1 => Loc.AuctionTomorrow,
+            { } days => Loc.AuctionInDaysFormat(days),
+            null => ""
+        };
+        // Recycelte Card kann von einer ZV auf ein normales Inserat wechseln
+        AuctionCountdownBadge.IsVisible = auctionDays.HasValue;
+
         // Flaechenzeile unter dem Preis: Grund vor Wohnflaeche (wie Web getApiAreaValue)
         AreaText.Text = property.PlotAreaM2.HasValue
             ? Loc.PlotAreaFormat(PropertyDisplay.Number(property.PlotAreaM2.Value))
