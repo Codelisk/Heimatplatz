@@ -188,7 +188,7 @@ export function getApiPropertyDetailSections(property: ApiProperty): PropertyDet
   const isForeclosure = property.Type === "Foreclosure";
   const priceFact = getApiPriceFact(property);
 
-  add(sections, SECTIONS.basics, t("detail.labelPropertyType"), getApiPropertyTypeLabel(property.Type, property));
+  add(sections, SECTIONS.basics, t("detail.labelPropertyType"), getApiPropertyTypeLabel(property.Type));
   add(sections, SECTIONS.basics, priceFact.label, priceFact.value);
   add(sections, SECTIONS.basics, t("detail.labelPostalCode"), property.PostalCode);
   add(sections, SECTIONS.basics, t("detail.labelCity"), property.City);

@@ -78,7 +78,7 @@ const externalSource = property.SourceName && property.SourceName !== "Heimatpla
 const sellerMeta = [sellerRoleLabel, externalSource].filter(Boolean).join(" · ");
 const features = property.Features?.length
   ? property.Features
-  : [getApiPropertyTypeLabel(property.Type, property), property.City, getApiAreaLabel(property)].filter(Boolean);
+  : [getApiPropertyTypeLabel(property.Type), property.City, getApiAreaLabel(property)].filter(Boolean);
 // Mini-Karte "Lage & Umgebung": Pin kommt vom map-pins-Endpoint (serverseitiger
 // Privacy-Jitter fuer ungenaue Lagen); ohne Koordinaten entfaellt die Section.
 const mapPin = await fetchApiPropertyMapPin(property.Id);
@@ -137,7 +137,7 @@ const detailSections = getApiPropertyDetailSections(property);
                       ? "bg-type-haus text-white"
                       : "bg-foreground text-background",
               ]}
-            >{getApiPropertyTypeLabel(property.Type, property)}</span>
+            >{getApiPropertyTypeLabel(property.Type)}</span>
             <span class="rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold text-foreground">{property.City}</span>
           </div>
           <div class="pointer-events-none absolute right-4 top-4 z-10 flex gap-2">

@@ -160,30 +160,15 @@ async function withVerifiedPrimaryImage(property: ApiProperty) {
   };
 }
 
-export function isApiApartmentCandidate(property: ApiProperty) {
-  if (property.Type !== "House") return false;
-
-  const searchText = [
-    property.Title,
-    property.Description ?? "",
-    property.Features?.join(" ") ?? "",
-  ].join(" ").toLowerCase();
-
-  return Boolean(property.LivingAreaM2 && !property.PlotAreaM2)
-    || searchText.includes("wohnung")
-    || searchText.includes("eigentumswohnung")
-    || searchText.includes("apartment");
-}
-
-export function getApiPropertyTypeLabel(type: string, property?: ApiProperty) {
-  if (property && isApiApartmentCandidate(property)) return t("card.typeApartment");
+// Es gibt genau drei Objekttypen (Haus/Grund/ZV) - keine "Wohnung"-Ableitung
+// aus Textheuristiken oder fehlender Grundflaeche.
+export function getApiPropertyTypeLabel(type: string) {
   if (type === "Land") return t("card.typeLand");
   if (type === "Foreclosure") return t("card.typeForeclosure");
   return t("card.typeHouse");
 }
 
-export function getApiPropertyTypeSearchValue(type: string, property?: ApiProperty) {
-  if (property && isApiApartmentCandidate(property)) return "apartment";
+export function getApiPropertyTypeSearchValue(type: string) {
   if (type === "Land") return "land";
   if (type === "Foreclosure") return "foreclosure";
   return "house";
@@ -218,7 +203,7 @@ export function getApiAreaLabel(property: ApiProperty) {
 
 export function getApiPropertyDescription(property: ApiProperty) {
   return property.Description?.trim()
-    || `${getApiPropertyTypeLabel(property.Type, property)} in ${property.PostalCode} ${property.City}, Oberösterreich. ${getApiAreaLabel(property)}. Anbieter: ${property.SellerName}.`;
+    || `${getApiPropertyTypeLabel(property.Type)} in ${property.PostalCode} ${property.City}, Oberösterreich. ${getApiAreaLabel(property)}. Anbieter: ${property.SellerName}.`;
 }
 
 export function getApiPropertyJsonLd(property: ApiProperty, url: string, image = getApiPropertyImage(property)) {

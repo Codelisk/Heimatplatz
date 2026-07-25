@@ -417,22 +417,9 @@ const ortRegions = await fetchOrtRegions();
   });
   if (sort) sort.value = initial.sort;
 
-  function isApiApartmentCandidate(property: ApiProperty) {
-    const searchText = [
-      property.Title,
-      property.Description ?? "",
-      property.Features?.join(" ") ?? "",
-    ].join(" ").toLowerCase();
-
-    return Boolean(property.LivingAreaM2 && !property.PlotAreaM2)
-      || searchText.includes("wohnung")
-      || searchText.includes("eigentumswohnung")
-      || searchText.includes("apartment");
-  }
-
-  // Nur fuer die Badge-Anzeige auf der Karte - gefiltert wird serverseitig
+  // Nur fuer die Badge-Anzeige auf der Karte - gefiltert wird serverseitig.
+  // Es gibt genau drei Objekttypen (Haus/Grund/ZV) - keine "Wohnung"-Heuristik.
   function mapType(property: ApiProperty) {
-    if (property.Type === "House" && isApiApartmentCandidate(property)) return "apartment";
     const type = property.Type;
     if (type === "Land") return "land";
     if (type === "Foreclosure") return "foreclosure";
@@ -572,7 +559,7 @@ const ortRegions = await fetchOrtRegions();
     const badge = createText(
       "span",
       `absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold ${badgeClasses}`,
-      type === "foreclosure" ? t("card.typeForeclosure") : type === "land" ? t("card.typeLand") : type === "apartment" ? t("card.typeApartment") : t("card.typeHouse"),
+      type === "foreclosure" ? t("card.typeForeclosure") : type === "land" ? t("card.typeLand") : t("card.typeHouse"),
     );
     const actions = document.createElement("div");
     actions.className = "absolute right-3 top-3 flex gap-1";

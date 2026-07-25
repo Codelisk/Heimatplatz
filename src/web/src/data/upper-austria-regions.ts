@@ -14,37 +14,37 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     slug: "linz",
     title: "Immobilien in Linz kaufen",
     description:
-      "Häuser, Wohnungen und Grundstücke in Linz und Linz-Urfahr mit Fokus auf zentrale Lagen, Pendlerwege, Hochschulen und Familieninfrastruktur.",
+      "Häuser und Grundstücke in Linz und Linz-Urfahr mit Fokus auf zentrale Lagen, Pendlerwege, Hochschulen und Familieninfrastruktur.",
     districts: ["Innenstadt", "Urfahr", "Pöstlingberg", "Kleinmünchen", "Ebelsberg"],
-    searchIntents: ["Haus kaufen Linz", "Wohnung kaufen Linz", "Immobilien Linz Umgebung"],
-    marketNotes: ["Starke Nachfrage nach Wohnungen und Reihenhäusern", "Viele Suchanfragen nach Urfahr, Pöstlingberg und Zentrum"],
+    searchIntents: ["Haus kaufen Linz", "Grundstück kaufen Linz", "Immobilien Linz Umgebung"],
+    marketNotes: ["Starke Nachfrage nach Häusern und Baugründen", "Viele Suchanfragen nach Urfahr, Pöstlingberg und Zentrum"],
   },
   {
     name: "Steyr",
     slug: "steyr",
     title: "Immobilien in Steyr kaufen",
     description:
-      "Regionale Immobilienseiten für Steyr mit Altstadtlagen, Familienhäusern, Wohnungen und Anlageobjekten nahe Enns und Steyr-Fluss.",
+      "Regionale Immobilienseiten für Steyr mit Altstadtlagen, Familienhäusern und Anlageobjekten nahe Enns und Steyr-Fluss.",
     districts: ["Altstadt", "Steyrdorf", "Münichholz", "Tabor"],
-    searchIntents: ["Immobilien Steyr", "Haus kaufen Steyr", "Wohnung Steyr"],
-    marketNotes: ["Altstadtwohnungen und sanierte Bestandsobjekte sind wichtige Suchthemen", "Steyr ist ein eigener lokaler Immobilienmarkt neben Steyr-Land"],
+    searchIntents: ["Immobilien Steyr", "Haus kaufen Steyr", "Grundstück Steyr"],
+    marketNotes: ["Altstadthäuser und sanierte Bestandsobjekte sind wichtige Suchthemen", "Steyr ist ein eigener lokaler Immobilienmarkt neben Steyr-Land"],
   },
   {
     name: "Wels",
     slug: "wels",
     title: "Immobilien in Wels kaufen",
     description:
-      "Immobiliensuche für Wels im oberösterreichischen Zentralraum mit Wohnungen, Reihenhäusern und Pendlerlagen Richtung Linz.",
+      "Immobiliensuche für Wels im oberösterreichischen Zentralraum mit Reihenhäusern, Baugründen und Pendlerlagen Richtung Linz.",
     districts: ["Innenstadt", "Lichtenegg", "Pernau", "Vogelweide"],
-    searchIntents: ["Haus kaufen Wels", "Wohnung Wels kaufen", "Immobilien Wels Zentrum"],
-    marketNotes: ["Wels ist für Wohnungssuchen und Zentralraum-Pendler relevant", "Die Stadt sollte getrennt von Wels-Land auffindbar bleiben"],
+    searchIntents: ["Haus kaufen Wels", "Grundstück Wels kaufen", "Immobilien Wels Zentrum"],
+    marketNotes: ["Wels ist für Haussuchende und Zentralraum-Pendler relevant", "Die Stadt sollte getrennt von Wels-Land auffindbar bleiben"],
   },
   {
     name: "Braunau am Inn",
     slug: "braunau-am-inn",
     title: "Immobilien im Bezirk Braunau am Inn",
     description:
-      "Häuser, Wohnungen und Grundstücke im Innviertel: Braunau, Mattighofen, Altheim und Gemeinden nahe Bayern.",
+      "Häuser und Grundstücke im Innviertel: Braunau, Mattighofen, Altheim und Gemeinden nahe Bayern.",
     districts: ["Braunau am Inn", "Mattighofen", "Altheim", "Mauerkirchen"],
     searchIntents: ["Immobilien Braunau", "Haus kaufen Braunau am Inn", "Grundstück Innviertel"],
     marketNotes: ["Grenznahe Lagen zu Bayern erzeugen eigene Suchintentionen", "Familienhäuser und Baugründe sind zentrale Themen"],
@@ -64,7 +64,7 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     slug: "freistadt",
     title: "Immobilien im Bezirk Freistadt",
     description:
-      "Häuser, Wohnungen, Bauernhäuser und Grundstücke im Mühlviertel: Freistadt, Pregarten, Unterweitersdorf und Grenzlagen.",
+      "Häuser, Bauernhäuser und Grundstücke im Mühlviertel: Freistadt, Pregarten, Unterweitersdorf und Grenzlagen.",
     districts: ["Freistadt", "Pregarten", "Unterweitersdorf", "Kefermarkt"],
     searchIntents: ["Immobilien Freistadt", "Haus kaufen Freistadt", "Grundstück Mühlviertel"],
     marketNotes: ["Mühlviertler Wohnlagen und Pendeln nach Linz sind zentrale Entscheidungsthemen", "Freistadt braucht eigene regionale Informationen jenseits allgemeiner OÖ-Seiten"],
@@ -74,7 +74,7 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     slug: "gmunden",
     title: "Immobilien im Bezirk Gmunden",
     description:
-      "Häuser, Wohnungen und Baugrund im Bezirk Gmunden, im Salzkammergut und rund um Traunsee, Bad Ischl und Altmünster.",
+      "Häuser und Baugrund im Bezirk Gmunden, im Salzkammergut und rund um Traunsee, Bad Ischl und Altmünster.",
     districts: ["Gmunden", "Altmünster", "Laakirchen", "Bad Ischl", "Ebensee"],
     searchIntents: ["Immobilien Gmunden", "Grundstück Traunsee", "Haus Salzkammergut"],
     marketNotes: ["See- und Salzkammergutlagen haben stark eigene Suchbegriffe", "Wohn- und Ferienimmobilien sollten sauber unterschieden werden"],
@@ -94,9 +94,9 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     slug: "kirchdorf-an-der-krems",
     title: "Immobilien im Bezirk Kirchdorf an der Krems",
     description:
-      "Immobilien im Bezirk Kirchdorf mit Krems-, Pyhrn- und Almtal-Lagen: Häuser, Wohnungen und Grundstücke in Oberösterreichs Süden.",
+      "Immobilien im Bezirk Kirchdorf mit Krems-, Pyhrn- und Almtal-Lagen: Häuser und Grundstücke in Oberösterreichs Süden.",
     districts: ["Kirchdorf an der Krems", "Micheldorf", "Kremsmünster", "Windischgarsten"],
-    searchIntents: ["Immobilien Kirchdorf", "Haus kaufen Kirchdorf an der Krems", "Wohnung Kremsmünster"],
+    searchIntents: ["Immobilien Kirchdorf", "Haus kaufen Kirchdorf an der Krems", "Grundstück Kremsmünster"],
     marketNotes: ["Der Bezirk verbindet Pendlerlagen und alpine Wohnlagen", "Regionale Begriffe wie Pyhrn-Priel und Almtal helfen bei Long-Tail-Suchen"],
   },
   {
@@ -106,7 +106,7 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     description:
       "Suchseiten für Linz-Land, Leonding, Traun, Ansfelden und Enns als zentrale Pendler- und Familienlagen in Oberösterreich.",
     districts: ["Leonding", "Traun", "Ansfelden", "Enns", "Pasching"],
-    searchIntents: ["Haus kaufen Linz-Land", "Immobilien Leonding", "Wohnung Traun"],
+    searchIntents: ["Haus kaufen Linz-Land", "Immobilien Leonding", "Grundstück Traun"],
     marketNotes: ["Linz-Land ist für Pendler und Familien einer der wichtigsten Bezirke", "Leonding, Traun und Ansfelden sollten intern stark verlinkt werden"],
   },
   {
@@ -116,7 +116,7 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     description:
       "Immobilien im unteren Mühlviertel: Perg, Mauthausen, Schwertberg und Donau-nahe Wohnlagen mit guter Linz-Anbindung.",
     districts: ["Perg", "Mauthausen", "Schwertberg", "Grein"],
-    searchIntents: ["Immobilien Perg", "Haus kaufen Perg", "Wohnung Mauthausen"],
+    searchIntents: ["Immobilien Perg", "Haus kaufen Perg", "Grundstück Mauthausen"],
     marketNotes: ["Perg ist für Linz-Pendler und Donau-Lagen relevant", "Suchbegriffe verbinden oft Mühlviertel, Donau und Familienhaus"],
   },
   {
@@ -124,7 +124,7 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     slug: "ried-im-innkreis",
     title: "Immobilien im Bezirk Ried im Innkreis",
     description:
-      "Häuser, Wohnungen und Baugrund im Bezirk Ried im Innkreis mit Fokus auf Ried, Geinberg, Obernberg und Innviertler Gemeinden.",
+      "Häuser und Baugrund im Bezirk Ried im Innkreis mit Fokus auf Ried, Geinberg, Obernberg und Innviertler Gemeinden.",
     districts: ["Ried im Innkreis", "Geinberg", "Obernberg am Inn", "Eberschwang"],
     searchIntents: ["Immobilien Ried im Innkreis", "Haus kaufen Ried", "Grundstück Innviertel"],
     marketNotes: ["Ried ist ein eigener Immobilienmarkt im Innviertel", "Thermen- und Grenzregionen erzeugen zusätzliche lokale Suchintentionen"],
@@ -144,10 +144,10 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     slug: "schaerding",
     title: "Immobilien im Bezirk Schärding",
     description:
-      "Immobilien im Bezirk Schärding mit Innlagen, Grenznähe zu Bayern, Familienhäusern, Wohnungen und Baugrund.",
+      "Immobilien im Bezirk Schärding mit Innlagen, Grenznähe zu Bayern, Familienhäusern und Baugrund.",
     districts: ["Schärding", "Andorf", "Raab", "Taufkirchen an der Pram"],
-    searchIntents: ["Immobilien Schärding", "Haus kaufen Schärding", "Wohnung Innviertel"],
-    marketNotes: ["Grenznähe und Innlage sind wichtige Long-Tail-Signale", "Schärding sollte für Haus- und Wohnungssuchen getrennt auffindbar sein"],
+    searchIntents: ["Immobilien Schärding", "Haus kaufen Schärding", "Baugrund Innviertel"],
+    marketNotes: ["Grenznähe und Innlage sind wichtige Long-Tail-Signale", "Schärding sollte für Haus- und Grundstückssuchen getrennt auffindbar sein"],
   },
   {
     name: "Steyr-Land",
@@ -176,7 +176,7 @@ export const upperAustriaRegions: UpperAustriaRegion[] = [
     description:
       "Immobilien in Vöcklabruck, Attersee-Region, Mondsee, Schwanenstadt und Pendlerlagen Richtung Linz und Salzburg.",
     districts: ["Vöcklabruck", "Attnang-Puchheim", "Schwanenstadt", "Attersee", "Mondsee"],
-    searchIntents: ["Immobilien Vöcklabruck", "Wohnung Vöcklabruck", "Haus Attersee"],
+    searchIntents: ["Immobilien Vöcklabruck", "Grundstück Vöcklabruck", "Haus Attersee"],
     marketNotes: ["Attersee und Mondsee bringen eigene, starke Suchbegriffe", "Vöcklabruck verbindet leistbare Pendlerlagen und Seenregion"],
   },
   {

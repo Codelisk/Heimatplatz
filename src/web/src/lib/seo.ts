@@ -126,7 +126,7 @@ export function realEstateAgentSchema(contact?: ContactInfo): StructuredData {
     knowsAbout: [
       "Immobilien in Oberösterreich",
       "Haus kaufen in Linz",
-      "Wohnung kaufen in Wels",
+      "Grundstück kaufen in Wels",
       "Zwangsversteigerungen Oberösterreich",
     ],
   };

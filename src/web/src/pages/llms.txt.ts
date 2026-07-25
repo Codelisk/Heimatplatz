@@ -21,7 +21,7 @@ export const GET: APIRoute = async () => {
 
   const body = `# ${SITE.name}
 
-> Immobilienportal für Oberösterreich (Österreich): Häuser, Wohnungen und Grundstücke von privaten Anbietern, Maklern, Bauträgern und Verwaltungen sowie gerichtliche Zwangsversteigerungen — mit Filtern nach Bezirk und Typ, Favoriten und Push-Benachrichtigungen.
+> Immobilienportal für Oberösterreich (Österreich): Häuser und Grundstücke von privaten Anbietern, Maklern, Bauträgern und Verwaltungen sowie gerichtliche Zwangsversteigerungen — mit Filtern nach Bezirk und Typ, Favoriten und Push-Benachrichtigungen.
 
 Heimatplatz ist eine deutschsprachige Web-App (de-AT). Zwangsversteigerungen basieren auf öffentlichen gerichtlichen Edikten und enthalten Termin, Gericht, Schätzwert und Mindestgebot. Alle Detailseiten liefern strukturierte Daten (schema.org: Offer, Residence, Event, BreadcrumbList).
 

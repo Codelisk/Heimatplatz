@@ -47,7 +47,7 @@ function truncate(value: string, maxLength = 500) {
 
 export function propertyLine(property: ApiProperty) {
   const facts = [
-    `${getApiPropertyTypeLabel(property.Type, property)} in ${property.PostalCode} ${property.City}`,
+    `${getApiPropertyTypeLabel(property.Type)} in ${property.PostalCode} ${property.City}`,
     formatApiPriceLong(property.Price),
     getApiAreaLabel(property),
   ].join(" · ");
@@ -75,7 +75,7 @@ export function propertyBlock(property: ApiProperty) {
   const sellerRole = property.Type === "Foreclosure" ? "Gericht" : getApiSellerLabel(property.SellerType);
   const facts = factList([
     ["URL", absoluteUrl(getApiPropertyPath(property))],
-    ["Typ", getApiPropertyTypeLabel(property.Type, property)],
+    ["Typ", getApiPropertyTypeLabel(property.Type)],
     ["Ort", `${property.PostalCode} ${property.City}, ${property.Address}`.trim()],
     ["Preis", formatApiPriceLong(property.Price)],
     ["Wohnfläche", property.LivingAreaM2 ? `${property.LivingAreaM2} m²` : null],

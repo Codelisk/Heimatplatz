@@ -8,7 +8,7 @@ export const home = {
   // Startseite (Meta)
   "home.metaTitle": "Heimatplatz",
   "home.metaDescription":
-    "Immobilien in Oberösterreich finden: Häuser, Wohnungen, Grundstücke und Zwangsversteigerungen mit Filtern und Push-Benachrichtigungen.",
+    "Immobilien in Oberösterreich finden: Häuser, Grundstücke und Zwangsversteigerungen mit Filtern und Push-Benachrichtigungen.",
 
   // Trefferliste und Status
   "search.resultCountOne": "{count} Objekt",
@@ -99,7 +99,6 @@ export const home = {
   // Immobilien-Karten: Typ-Badges
   "card.typeHouse": "Haus",
   "card.typeLand": "Grund",
-  "card.typeApartment": "Wohnung",
   "card.typeForeclosure": "Zwangsversteigerung",
 
   // Immobilien-Karten: Anbieter-Labels
