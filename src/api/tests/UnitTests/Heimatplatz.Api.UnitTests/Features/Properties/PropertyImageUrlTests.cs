@@ -81,4 +81,56 @@ public class PropertyImageUrlTests
 
         result.Should().ContainSingle().Which.Should().Be(url);
     }
+
+    /// <summary>
+    /// Die Detailseite zeigt die Vorschau-Breite, nicht die bis zu 2560px breite
+    /// Display-Variante - sonst laedt jedes Foto ein Vielfaches der noetigen Pixel.
+    /// </summary>
+    [Test]
+    public void ProxyImageUrls_UsesDetailPreviewWidthForUploads()
+    {
+        var result = GetPropertiesHandler.ProxyImageUrls(
+            ["http://localhost:5292/uploads/property/photo.jpg"],
+            "http://localhost:5292",
+            width: GetPropertyByIdHandler.DetailPreviewWidth);
+
+        result.Should().ContainSingle()
+            .Which.Should().Be(
+                "http://localhost:5292/api/images/local?path=%2Fuploads%2Fproperty%2Fphoto.jpg&w=1280");
+    }
+
+    /// <summary>
+    /// Das Thumbnail der Detailantwort muss zeichengleich mit der Listen-URL sein -
+    /// nur dann findet der Bild-Cache der App das von der Karte geladene Foto wieder
+    /// und kann es sofort als Platzhalter zeigen.
+    /// </summary>
+    [Test]
+    public void ProxyImageUrls_DetailThumbnailMatchesListUrlExactly()
+    {
+        List<string> source = ["http://localhost:5292/uploads/property/photo.jpg"];
+
+        var listUrl = GetPropertiesHandler.ProxyImageUrls(
+            source, "http://localhost:5292", width: GetPropertiesHandler.ListThumbnailWidth);
+        var detailThumbnail = GetPropertiesHandler.ProxyImageUrls(
+            source, "http://localhost:5292", width: GetPropertiesHandler.ListThumbnailWidth);
+
+        detailThumbnail.Should().Equal(listUrl);
+    }
+
+    /// <summary>
+    /// Externe Bilder (ZV-Sync) laufen ueber den Proxy - auch dort muss die
+    /// Vorschau-Breite ankommen.
+    /// </summary>
+    [Test]
+    public void ProxyImageUrls_AppliesWidthToExternalProxiedImages()
+    {
+        var result = GetPropertiesHandler.ProxyImageUrls(
+            ["https://edikte.example.at/bild.jpg"],
+            "https://api.heimatplatz.at",
+            width: GetPropertyByIdHandler.DetailPreviewWidth);
+
+        result.Should().ContainSingle()
+            .Which.Should().EndWith("&w=1280")
+            .And.StartWith("https://api.heimatplatz.at/api/images/proxy?url=");
+    }
 }

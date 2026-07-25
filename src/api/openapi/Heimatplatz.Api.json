@@ -36,6 +36,36 @@
         }
       }
     },
+    "/api/admin/properties/geocode": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GeocodeAdminProperties",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeocodeAdminPropertiesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodeAdminPropertiesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/properties": {
       "get": {
         "tags": [
@@ -1272,6 +1302,131 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetPropertyChangesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/properties/map-pins": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPropertyMapPins",
+        "parameters": [
+          {
+            "name": "PropertyTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SellerTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MunicipalityIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CreatedAfter",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "PriceMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "PriceMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "AreaMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "AreaMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "RoomsMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "ExcludedSellerSourceIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SearchText",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertyMapPinsResponse"
                 }
               }
             }
@@ -5485,6 +5640,63 @@
           }
         }
       },
+      "GeocodeAdminPropertiesRequest": {
+        "type": "object",
+        "properties": {
+          "Limit": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 100
+          }
+        }
+      },
+      "GeocodeAdminPropertiesResponse": {
+        "required": [
+          "Processed",
+          "Geocoded",
+          "Failed",
+          "Remaining"
+        ],
+        "type": "object",
+        "properties": {
+          "Processed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Geocoded": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Failed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Remaining": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "GetAdminFeedbackStatsResponse": {
         "required": [
           "Total",
@@ -6703,6 +6915,42 @@
             "items": {
               "$ref": "#/components/schemas/PropertyDraftListItemDto"
             }
+          }
+        }
+      },
+      "GetPropertyMapPinsResponse": {
+        "required": [
+          "Pins",
+          "Total",
+          "WithoutCoordinates",
+          "Truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "Pins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyMapPinDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "WithoutCoordinates": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Truncated": {
+            "type": "boolean"
           }
         }
       },
@@ -8805,6 +9053,24 @@
               "string"
             ],
             "format": "double"
+          },
+          "PreviewImageUrls": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "ThumbnailImageUrls": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -8907,6 +9173,89 @@
             "$ref": "#/components/schemas/InquiryType"
           },
           "SourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "AuctionDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PropertyMapPinDto": {
+        "required": [
+          "Id",
+          "Latitude",
+          "Longitude",
+          "IsApproximate",
+          "Type",
+          "SellerType",
+          "Price",
+          "Title",
+          "City",
+          "PostalCode",
+          "MunicipalityId",
+          "ImageUrl",
+          "AuctionDate"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Latitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Longitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "IsApproximate": {
+            "type": "boolean"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/PropertyType"
+          },
+          "SellerType": {
+            "$ref": "#/components/schemas/SellerType"
+          },
+          "Price": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": "string"
+          },
+          "MunicipalityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ImageUrl": {
             "type": [
               "null",
               "string"

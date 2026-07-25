@@ -32,7 +32,15 @@ public record PropertyDto(
     // davon ab, ob ein Mindestgebot vorliegt (Price = MinimumBid ?? EstimatedValue)
     string PriceLabel = "Kaufpreis",
     // Preis pro m² Wohnflaeche; null bei Zwangsversteigerungen oder fehlender Flaeche
-    decimal? PricePerSquareMeter = null
+    decimal? PricePerSquareMeter = null,
+    // Skalierte Varianten derselben Bilder in identischer Reihenfolge (Backend-First:
+    // Clients bauen keine Bild-URLs selbst zusammen). ImageUrls bleibt die volle
+    // Display-Variante (Lightbox, Bearbeiten-Flow).
+    // Preview: Detail-Ansicht/Carousel - deutlich kleiner als die bis zu 2560px breiten Originale.
+    List<string>? PreviewImageUrls = null,
+    // Thumbnail: byte-identisch mit den Listen-URLs, liegt auf Clients daher meist
+    // schon im Bild-Cache und kann sofort als Platzhalter gezeigt werden.
+    List<string>? ThumbnailImageUrls = null
 );
 
 /// <summary>

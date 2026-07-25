@@ -73,8 +73,17 @@ public class GetPropertyByIdHandler(
         if (property != null && property.ImageUrls.Count > 0)
         {
             var baseUrl = GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
-            var proxied = GetPropertiesHandler.ProxyImageUrls(property.ImageUrls, baseUrl);
-            property = property with { ImageUrls = proxied };
+
+            // Alle drei Varianten aus denselben Rohpfaden ableiten (die with-Initialisierer
+            // sehen jeweils die ungeaenderten ImageUrls des Originals)
+            property = property with
+            {
+                ImageUrls = GetPropertiesHandler.ProxyImageUrls(property.ImageUrls, baseUrl),
+                PreviewImageUrls = GetPropertiesHandler.ProxyImageUrls(
+                    property.ImageUrls, baseUrl, width: DetailPreviewWidth),
+                ThumbnailImageUrls = GetPropertiesHandler.ProxyImageUrls(
+                    property.ImageUrls, baseUrl, width: GetPropertiesHandler.ListThumbnailWidth)
+            };
         }
 
         if (property != null)
@@ -90,6 +99,13 @@ public class GetPropertyByIdHandler(
 
         return new GetPropertyByIdResponse(property);
     }
+
+    /// <summary>
+    /// Zielbreite der Detail-Ansicht. Die Display-Varianten unter /uploads sind bis zu
+    /// 2560px breit - fuer Carousel und Hero auf Telefonen ist das ein Vielfaches der
+    /// noetigen Pixel (Download + Decode dauern entsprechend lange).
+    /// </summary>
+    public const int DetailPreviewWidth = 1280;
 
     private static readonly JsonSerializerOptions TypeSpecificJsonOptions = new()
     {
