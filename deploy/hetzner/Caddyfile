@@ -54,7 +54,9 @@
 		# (BaseLayout.astro). Prod und Test-Web tracken je in eine eigene Rybbit-Site-Id.
 		# media-src (22.7.2026): Sprachnachrichten-Wiedergabe (Feedback) laedt Audio von der API;
 		# blob: fuer die Vorschau der im Browser aufgenommenen Sprachnachricht (MediaRecorder).
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://analytics.heimatplatz.at; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# worker-src blob: (25.7.2026): MapLibre GL (Faltkarte) startet seine Tile-Worker
+		# aus Blob-URLs; ohne Eintrag fiele worker-src auf script-src zurueck und blockte.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://analytics.heimatplatz.at; worker-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI fuer den Edikte-Sync, nur von HOME_IP erreichbar.
@@ -63,6 +65,14 @@
 		not remote_ip {$HOME_IP}
 	}
 	respond @internBlocked "Forbidden" 403
+
+	# Karten-Tiles der Faltkarte (PMTiles + Fonts/Sprites): statisch aus dem
+	# gemounteten Ordner, file_server beherrscht die noetigen Range-Requests.
+	handle_path /tiles/* {
+		root * /srv/map-tiles
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
 
 	reverse_proxy web:8080
 }
@@ -91,7 +101,8 @@ www.{$WEB_DOMAIN} {
 		# blob: fuer die Vorschau der im Browser aufgenommenen Sprachnachricht (MediaRecorder).
 		# analytics.heimatplatz.at (23.7.2026): selbstgehostetes Rybbit-Tracking-Snippet, das
 		# Test-Web hat eine eigene Rybbit-Site-Id (s. BaseLayout.astro / DeployAstroTest).
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN} https://analytics.heimatplatz.at; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# worker-src blob: (25.7.2026): MapLibre GL (Faltkarte), wie Prod-Web.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://analytics.heimatplatz.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; media-src 'self' blob: https://{$API_DOMAIN} https://{$TEST_API_DOMAIN}; connect-src 'self' https://{$API_DOMAIN} https://{$TEST_API_DOMAIN} https://analytics.heimatplatz.at; worker-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	# Interner Bereich (/intern) - Admin-UI, nur von HOME_IP erreichbar (wie Prod-Web).
@@ -100,6 +111,13 @@ www.{$WEB_DOMAIN} {
 		not remote_ip {$HOME_IP}
 	}
 	respond @internBlocked "Forbidden" 403
+
+	# Karten-Tiles wie Prod-Web (gleicher gemounteter Ordner, gleiche Daten).
+	handle_path /tiles/* {
+		root * /srv/map-tiles
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
 
 	reverse_proxy web-test:8080
 }

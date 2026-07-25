@@ -1,5 +1,8 @@
 # build output
 dist/
+
+# Karten-Tiles/-Fonts (gross, per npm run map-tiles beschafft - nie einchecken)
+public/tiles/
 # generated types
 .astro/
 

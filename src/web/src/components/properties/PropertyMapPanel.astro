@@ -2,27 +2,19 @@
 import { fetchOrtRegions } from "@/features/locations/live-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
-import {
-  buildMapPath,
-  DANUBE_WAYPOINTS,
-  LAKES,
-  MAP_VIEW,
-  NEIGHBOR_LABELS,
-  OOE_OUTLINE,
-  projectToMap,
-  UNITS_PER_KM,
-} from "@/features/map/ooe-geometry";
 
 /**
  * "Faltkarte": Kartenansicht der Immobiliensuche als Aushang an der Anschlagtafel.
- * Klappt zwischen Suchleiste und Trefferliste auf (Toggle-Chip data-map-toggle in
- * der Suchleiste), zeigt Bezirks-Cluster aus echten Pins (GET /api/properties/
- * map-pins) und zoomt per Klick zu einzelnen Preis-Schildern. Der Bezirks-Zoom
- * fährt über den bestehenden Region-Filter (ort-picker-change), damit die
- * Trefferliste dem Kartenausschnitt folgt - es gibt kein zweites Filtersystem.
+ * Seit Phase 2 rendert MapLibre GL die Karte (lazy geladen beim ersten Oeffnen):
+ * eigener Papier-Stil aus den Heimatplatz-Tokens (map-style.ts), selbst gehostete
+ * PMTiles von der eigenen Origin (Range-Requests via Caddy, CSP bleibt 'self').
+ * Ohne erreichbare Tiles faellt der Stil auf die gezeichnete Papierkarte zurueck
+ * (Landesgrenze/Donau/Seen als GeoJSON im Bundle) - frei zoombar bleibt sie trotzdem.
  *
- * Filter-Sync: PropertySearchApp feuert "property-search-query-changed" mit dem
- * Listen-Query; die Karte leitet daraus den Pins-Query ab (buildMapPinsQuery).
+ * Interaktion: Bezirks-Cluster (Stempel) bis Zoom ~9, darueber Preis-Schilder.
+ * Stempel-Klick zoomt auf den Bezirk UND setzt den bestehenden Region-Filter
+ * (ort-picker-change) - die Trefferliste folgt dem Kartenausschnitt, es gibt
+ * kein zweites Filtersystem. Filter-Sync via "property-search-query-changed".
  */
 
 // municipalityId -> Bezirk fuer die Cluster-Gruppierung (gleiche Quelle wie der
@@ -36,21 +28,6 @@ for (const region of regions) {
     }
   }
 }
-
-const outlinePath = buildMapPath(OOE_OUTLINE, true);
-const danubePath = buildMapPath(DANUBE_WAYPOINTS, false);
-const danubeLabel = projectToMap(14.02, 48.415);
-const lakes = LAKES.map(([lng, lat, rxKm, ryKm, rotation]) => {
-  const { x, y } = projectToMap(lng, lat);
-  return { x, y, rx: rxKm * UNITS_PER_KM, ry: ryKm * UNITS_PER_KM, rotation };
-});
-const neighborLabels = NEIGHBOR_LABELS.map(([name, lng, lat, rotation]) => {
-  const { x, y } = projectToMap(lng, lat);
-  return { name, x, y, rotation };
-});
-const scaleBarLength = Math.round(25 * UNITS_PER_KM);
-const scaleBarX = MAP_VIEW.width - 60 - scaleBarLength;
-const scaleBarY = MAP_VIEW.height - 34;
 ---
 
 <section data-map-stage class="hpmap-stage">
@@ -59,51 +36,7 @@ const scaleBarY = MAP_VIEW.height - 34;
       <div class="mx-auto max-w-3xl px-3 pb-5 pt-4 sm:px-5">
         <div class="hpmap-sheet">
           <div class="hpmap-canvas" data-map-canvas>
-            <svg
-              viewBox={`0 0 ${MAP_VIEW.width} ${MAP_VIEW.height}`}
-              data-map-svg
-              role="img"
-              aria-label={t("search.mapRegionLabel")}
-            >
-              <path class="hpmap-outline-halo" d={outlinePath}></path>
-              <path class="hpmap-outline" d={outlinePath}></path>
-              <path class="hpmap-danube" d={danubePath}></path>
-              <text
-                class="hpmap-water-label"
-                x={danubeLabel.x}
-                y={danubeLabel.y}
-                transform={`rotate(-6 ${danubeLabel.x} ${danubeLabel.y})`}>Donau</text
-              >
-              {lakes.map((lake) => (
-                <ellipse
-                  class="hpmap-lake"
-                  cx={lake.x}
-                  cy={lake.y}
-                  rx={lake.rx}
-                  ry={lake.ry}
-                  transform={`rotate(${lake.rotation} ${lake.x} ${lake.y})`}
-                />
-              ))}
-              {neighborLabels.map((label) => (
-                <text
-                  class="hpmap-neighbor"
-                  x={label.x}
-                  y={label.y}
-                  text-anchor="middle"
-                  transform={`rotate(${label.rotation} ${label.x} ${label.y})`}>{label.name}</text
-                >
-              ))}
-              <g class="hpmap-scalebar" transform={`translate(${scaleBarX} ${scaleBarY})`}>
-                <line x1="0" y1="0" x2={scaleBarLength} y2="0"></line>
-                <line x1="0" y1="-5" x2="0" y2="5"></line>
-                <line x1={scaleBarLength} y1="-5" x2={scaleBarLength} y2="5"></line>
-                <text x={scaleBarLength / 2} y="-9" text-anchor="middle">25 km</text>
-              </g>
-              <g class="hpmap-north" transform={`translate(${MAP_VIEW.width - 42} ${scaleBarY - 52})`}>
-                <path d="M0 16 L6 -14 L12 16 L6 9 Z"></path>
-                <text x="6" y="34" text-anchor="middle">N</text>
-              </g>
-            </svg>
+            <div class="hpmap-maplibre" data-map-gl></div>
 
             {/* Falz-Spuren: die Karte bleibt erkennbar eine gefaltete Karte */}
             <div class="hpmap-falz" aria-hidden="true"><i class="v1"></i><i class="v2"></i><i class="h1"></i></div>
@@ -129,9 +62,6 @@ const scaleBarY = MAP_VIEW.height - 34;
               {t("search.mapBackToOverview")}
             </button>
 
-            <div class="hpmap-clusters hpmap-fade" data-map-clusters></div>
-            <div class="hpmap-pins" data-map-pins></div>
-            <div class="hpmap-popup" data-map-popup hidden></div>
             <p class="hpmap-status" data-map-status hidden></p>
           </div>
         </div>
@@ -143,8 +73,8 @@ const scaleBarY = MAP_VIEW.height - 34;
 <script is:inline type="application/json" data-municipality-region-map set:html={jsonForScriptTag(municipalityRegionMap)} />
 
 <style is:global>
-  /* Faltkarte - globale Styles (Cluster/Pins/Popup entstehen per JS und haetten
-     keine Astro-Scoped-Attribute). Alles unter .hpmap- Prefix. */
+  /* Faltkarte - globale Styles (Marker/Popup entstehen per JS bzw. MapLibre und
+     haetten keine Astro-Scoped-Attribute). Alles unter .hpmap- Prefix. */
 
   .hpmap-collapse {
     display: grid;
@@ -156,7 +86,6 @@ const scaleBarY = MAP_VIEW.height - 34;
 
   .hpmap-sheet {
     --hpmap-ink: color-mix(in oklab, var(--foreground) 88%, transparent);
-    --hpmap-wasser: oklch(0.58 0.075 235);
     position: relative;
     background: var(--card);
     border: 1px solid var(--zettel-rand);
@@ -165,58 +94,34 @@ const scaleBarY = MAP_VIEW.height - 34;
     outline: 1px solid var(--zettel-frame);
     outline-offset: -7px;
   }
-  .dark .hpmap-sheet { --hpmap-wasser: oklch(0.68 0.07 235); }
 
   .hpmap-canvas { position: relative; overflow: hidden; border-radius: var(--radius); }
-  .hpmap-canvas > svg { display: block; width: 100%; height: auto; }
+  /* Seitenverhaeltnis der OÖ-Geografie (breitenkorrigiert), wie die Phase-1-SVG */
+  .hpmap-maplibre { width: 100%; aspect-ratio: 1000 / 883; background: var(--card); }
+  .hpmap-maplibre .maplibregl-canvas { outline: none; }
 
-  .hpmap-outline {
-    fill: color-mix(in oklab, var(--hpmap-ink) 5%, transparent);
-    stroke: color-mix(in oklab, var(--hpmap-ink) 62%, transparent);
-    stroke-width: 2;
-    vector-effect: non-scaling-stroke;
-    stroke-linejoin: round;
+  /* MapLibre-Chrome in Zettel-Optik */
+  .hpmap-canvas .maplibregl-ctrl-group {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 3px 8px -3px oklch(0.25 0.04 55 / 40%);
+    border: 1px solid color-mix(in oklab, var(--hpmap-ink) 25%, transparent);
+    overflow: hidden;
   }
-  .hpmap-outline-halo {
-    fill: none;
-    stroke: color-mix(in oklab, var(--hpmap-ink) 16%, transparent);
-    stroke-width: 7;
-    vector-effect: non-scaling-stroke;
-    stroke-linejoin: round;
+  .hpmap-canvas .maplibregl-ctrl-group button { background: transparent; }
+  .hpmap-canvas .maplibregl-ctrl-group button + button {
+    border-top: 1px solid color-mix(in oklab, var(--hpmap-ink) 18%, transparent);
   }
-  .hpmap-danube {
-    fill: none;
-    stroke: var(--hpmap-wasser);
-    stroke-width: 4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    opacity: 0.7;
-    vector-effect: non-scaling-stroke;
+  .dark .hpmap-canvas .maplibregl-ctrl button.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
+  .dark .hpmap-canvas .maplibregl-ctrl button.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+    filter: invert(1);
   }
-  .hpmap-lake { fill: var(--hpmap-wasser); opacity: 0.5; }
-  .hpmap-water-label {
-    fill: var(--hpmap-wasser);
-    font-size: 15px;
-    font-style: italic;
-    letter-spacing: 3px;
+  .hpmap-canvas .maplibregl-ctrl-attrib {
+    background: color-mix(in oklab, var(--card) 80%, transparent);
+    color: var(--muted-foreground);
+    font-size: 10px;
   }
-  .hpmap-neighbor {
-    fill: color-mix(in oklab, var(--hpmap-ink) 32%, transparent);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 4px;
-  }
-  .hpmap-scalebar line, .hpmap-north path {
-    stroke: color-mix(in oklab, var(--hpmap-ink) 50%, transparent);
-    stroke-width: 2;
-    vector-effect: non-scaling-stroke;
-  }
-  .hpmap-north path { fill: color-mix(in oklab, var(--hpmap-ink) 50%, transparent); stroke: none; }
-  .hpmap-scalebar text, .hpmap-north text {
-    fill: color-mix(in oklab, var(--hpmap-ink) 55%, transparent);
-    font-size: 11px;
-    font-weight: 600;
-  }
+  .hpmap-canvas .maplibregl-ctrl-attrib a { color: var(--muted-foreground); }
 
   .hpmap-falz { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
   .hpmap-falz i { position: absolute; display: block; }
@@ -235,12 +140,17 @@ const scaleBarY = MAP_VIEW.height - 34;
   .hpmap-fold { position: absolute; inset: 0; display: none; perspective: 1400px; pointer-events: none; z-index: 6; }
   .hpmap-stage.folding .hpmap-fold { display: block; }
   .hpmap-stage.folding .hpmap-fade,
-  .hpmap-stage.folding .hpmap-pins { opacity: 0; }
+  .hpmap-stage.folding .hpmap-pin,
+  .hpmap-stage.folding .hpmap-cluster { opacity: 0; }
   .hpmap-flap { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; backface-visibility: hidden; background: var(--card); }
-  .hpmap-flap > svg { display: block; width: 100%; height: auto; }
+  .hpmap-flap::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(90deg, transparent calc(33.3% - 7px), oklch(0.3 0.03 55 / 7%) 33.3%, transparent calc(33.3% + 7px)),
+      linear-gradient(90deg, transparent calc(66.6% - 7px), oklch(0.3 0.03 55 / 7%) 66.6%, transparent calc(66.6% + 7px));
+  }
   .hpmap-flap-top { top: 0; transform-origin: top center; animation: hpmap-unfold 0.42s cubic-bezier(0.25, 0.7, 0.3, 1) both; }
   .hpmap-flap-bottom { top: 50%; transform-origin: top center; animation: hpmap-unfold 0.42s 0.4s cubic-bezier(0.25, 0.7, 0.3, 1) both; }
-  .hpmap-flap-bottom > svg { transform: translateY(-50%); }
   .hpmap-flap::after {
     content: ""; position: absolute; inset: 0;
     background: linear-gradient(180deg, oklch(0.2 0.02 55 / 45%), transparent 80%);
@@ -252,15 +162,17 @@ const scaleBarY = MAP_VIEW.height - 34;
 
   .hpmap-fade { transition: opacity 0.25s ease; }
 
-  /* Ebenen: Bezirks-Cluster (Uebersicht) vs. Preis-Schilder (Zoom) */
-  .hpmap-clusters, .hpmap-pins { position: absolute; inset: 0; z-index: 3; transition: opacity 0.28s ease; }
-  .hpmap-stage.zoomed .hpmap-clusters { opacity: 0; pointer-events: none; }
-  .hpmap-pins { opacity: 0; pointer-events: none; }
-  .hpmap-stage.zoomed .hpmap-pins { opacity: 1; pointer-events: auto; transition-delay: 0.12s; }
+  /* Marker-Ebenen: Bezirks-Stempel (Uebersicht) vs. Preis-Schilder (ab Zoom ~9).
+     MapLibre-Marker sind DOM-Kinder des Karten-Containers - die Stage-Klassen
+     schalten per CSS um, die Marker selbst bleiben bestehen. */
+  .maplibregl-marker { z-index: 3; }
+  .hpmap-cluster, .hpmap-pin { transition: opacity 0.25s ease, transform 0.18s cubic-bezier(0.3, 0.7, 0.3, 1.4); }
+  .hpmap-stage.zoomed .hpmap-cluster { opacity: 0 !important; pointer-events: none; }
+  .hpmap-pin { opacity: 0; pointer-events: none; }
+  .hpmap-stage.zoomed .hpmap-pin { opacity: 1; pointer-events: auto; }
 
   .hpmap-cluster {
-    position: absolute; transform: translate(-50%, -50%);
-    display: grid; place-items: center;
+    display: grid; place-items: center; position: relative;
     width: var(--s, 38px); height: var(--s, 38px);
     font-weight: 700; font-size: calc(var(--s, 38px) * 0.34);
     font-variant-numeric: tabular-nums;
@@ -271,17 +183,16 @@ const scaleBarY = MAP_VIEW.height - 34;
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--card) 80%, transparent),
                 0 4px 10px -4px oklch(0.25 0.04 55 / 40%);
     cursor: zoom-in;
-    transition: transform 0.18s cubic-bezier(0.3, 0.7, 0.3, 1.4), opacity 0.25s;
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: scale(0.6);
   }
   .hpmap-stage.unfolded .hpmap-cluster {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
     transition-delay: calc(var(--i) * 28ms), calc(var(--i) * 28ms);
   }
   .hpmap-stage.unfolded .hpmap-cluster:hover {
-    transform: translate(-50%, -50%) scale(1.12);
+    transform: scale(1.12);
     border-color: var(--primary);
     transition-delay: 0ms;
   }
@@ -294,7 +205,6 @@ const scaleBarY = MAP_VIEW.height - 34;
   }
 
   .hpmap-pin {
-    position: absolute; transform: translate(-50%, -50%);
     display: inline-flex; align-items: center; gap: 0.35rem;
     font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums;
     color: var(--card-foreground);
@@ -303,13 +213,11 @@ const scaleBarY = MAP_VIEW.height - 34;
     border-radius: 999px; padding: 3px 9px 3px 7px;
     box-shadow: 0 3px 8px -3px oklch(0.25 0.04 55 / 45%);
     cursor: pointer; white-space: nowrap;
-    transition: transform 0.15s cubic-bezier(0.3, 0.7, 0.3, 1.4), box-shadow 0.15s;
   }
-  .hpmap-pin:hover { transform: translate(-50%, -50%) scale(1.09); box-shadow: var(--zettel-shadow-hover); z-index: 4; }
+  .hpmap-pin:hover { transform: scale(1.09); box-shadow: var(--zettel-shadow-hover); }
   .hpmap-pin.aktiv {
     border-color: var(--primary);
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 45%, transparent), var(--zettel-shadow-hover);
-    z-index: 4;
   }
   .hpmap-dot { width: 8px; height: 8px; border-radius: 999px; flex: none; display: inline-block; }
   .hpmap-dot-haus { background: var(--type-haus); }
@@ -335,8 +243,9 @@ const scaleBarY = MAP_VIEW.height - 34;
     border: 1px solid color-mix(in oklab, var(--hpmap-ink) 32%, transparent);
     border-radius: 3px; padding: 0.5rem 0.75rem 0.55rem;
     box-shadow: 0 2px 8px -4px oklch(0.25 0.04 55 / 30%);
+    pointer-events: none;
   }
-  .hpmap-stage.zoomed .hpmap-cartouche { opacity: 0; pointer-events: none; }
+  .hpmap-stage.zoomed .hpmap-cartouche { opacity: 0; }
   .hpmap-cartouche-title { font-size: 0.72rem; font-weight: 750; letter-spacing: 0.16em; color: var(--hpmap-ink); }
   .hpmap-cartouche-count {
     font-size: 0.64rem; letter-spacing: 0.06em; color: var(--muted-foreground);
@@ -345,13 +254,19 @@ const scaleBarY = MAP_VIEW.height - 34;
   .hpmap-legend { display: grid; gap: 2px; margin-top: 0.45rem; }
   .hpmap-legend-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.66rem; color: var(--muted-foreground); }
 
-  .hpmap-popup {
-    position: absolute; z-index: 7; width: 200px; overflow: hidden;
+  /* Mini-Zettel als MapLibre-Popup */
+  .hpmap-glpopup { z-index: 7; }
+  .hpmap-glpopup .maplibregl-popup-content {
+    padding: 0; width: 200px; overflow: hidden;
     background: var(--card); color: var(--card-foreground);
     border: 1px solid var(--zettel-rand); border-radius: var(--radius);
     box-shadow: var(--zettel-shadow-hover);
     font-size: 0.8rem; line-height: 1.45;
   }
+  .hpmap-glpopup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--card); }
+  .hpmap-glpopup.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--card); }
+  .hpmap-glpopup.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--card); }
+  .hpmap-glpopup.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--card); }
   .hpmap-popup-foto { display: block; width: 100%; height: 72px; object-fit: cover; background: var(--muted); }
   .hpmap-popup-inner { padding: 0.5rem 0.7rem 0.65rem; }
   .hpmap-popup-title { font-weight: 700; font-size: 0.82rem; line-height: 1.3; margin: 0; }
@@ -380,15 +295,13 @@ const scaleBarY = MAP_VIEW.height - 34;
   @media (max-width: 640px) {
     .hpmap-legend { display: none; }
     .hpmap-cluster-label { display: none; }
-    .hpmap-neighbor { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .hpmap-collapse { transition: none; }
     .hpmap-flap-top, .hpmap-flap-bottom, .hpmap-flap-top::after, .hpmap-flap-bottom::after { animation: none; }
     .hpmap-fold { display: none !important; }
-    .hpmap-cluster, .hpmap-stage.unfolded .hpmap-cluster, .hpmap-pin,
-    .hpmap-clusters, .hpmap-pins, .hpmap-fade { transition: none; }
+    .hpmap-cluster, .hpmap-stage.unfolded .hpmap-cluster, .hpmap-pin, .hpmap-fade { transition: none; }
   }
 </style>
 
@@ -398,25 +311,26 @@ const scaleBarY = MAP_VIEW.height - 34;
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
   import { readAccessToken } from "@/lib/utils/access-token";
   import { buildMapPinsQuery, type ApiMapPin, type ApiMapPinsResponse } from "@/features/properties/map-pins";
-  import { MAP_VIEW, projectToMap } from "@/features/map/ooe-geometry";
+  import type { Map as MapLibreMap, Marker as MapLibreMarker, Popup as MapLibrePopup } from "maplibre-gl";
 
   const stage = document.querySelector<HTMLElement>("[data-map-stage]");
   const toggle = document.querySelector<HTMLButtonElement>("[data-map-toggle]");
-  const canvas = stage?.querySelector<HTMLElement>("[data-map-canvas]");
-  const mapSvg = stage?.querySelector<SVGSVGElement>("[data-map-svg]");
+  const glContainer = stage?.querySelector<HTMLElement>("[data-map-gl]");
 
-  if (stage && toggle && canvas && mapSvg) {
+  if (stage && toggle && glContainer) {
     const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+    // Tiles/Assets von der eigenen Origin (Caddy liefert PMTiles per Range-Request);
+    // ohne hinterlegte Datei rendert map-style.ts die Papier-Fallback-Karte
+    // Absolute URLs: MapLibre verlangt fuer sprite zwingend eine absolute URL
+    const TILES_URL = new URL(import.meta.env.PUBLIC_MAP_TILES_URL || "/tiles/oberoesterreich.pmtiles", window.location.origin).href;
+    const ASSETS_URL = new URL(import.meta.env.PUBLIC_MAP_ASSETS_URL || "/tiles/assets", window.location.origin).href;
+    /** Ab diesem Zoom werden aus Bezirks-Stempeln einzelne Preis-Schilder */
+    const PIN_MIN_ZOOM = 9;
 
-    const clustersLayer = stage.querySelector<HTMLElement>("[data-map-clusters]")!;
-    const pinsLayer = stage.querySelector<HTMLElement>("[data-map-pins]")!;
-    const popup = stage.querySelector<HTMLElement>("[data-map-popup]")!;
     const statusEl = stage.querySelector<HTMLElement>("[data-map-status]")!;
     const noteEl = stage.querySelector<HTMLElement>("[data-map-note]")!;
     const cartoucheCount = stage.querySelector<HTMLElement>("[data-map-cartouche-count]")!;
     const backBtn = stage.querySelector<HTMLButtonElement>("[data-map-back]")!;
-    const flapTop = stage.querySelector<HTMLElement>("[data-flap-top]")!;
-    const flapBottom = stage.querySelector<HTMLElement>("[data-flap-bottom]")!;
 
     type RegionInfo = { name: string; slug: string };
     const municipalityRegionMap: Record<string, RegionInfo> = (() => {
@@ -428,33 +342,29 @@ const scaleBarY = MAP_VIEW.height - 34;
     })();
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const WORLD = { x: 0, y: 0, w: MAP_VIEW.width, h: MAP_VIEW.height };
-    const view = { ...WORLD };
 
     let isOpen = false;
+    /** 'bezirk' = Bezirks-Filter aktiv (Stempel-Klick), steuert die Filter-Kopplung */
     let mode: "over" | "bezirk" = "over";
-    // Initial-Query von PropertySearchApp: je nach Bundle-Reihenfolge kam der
-    // erste Dispatch evtl. schon vor unserem Listener - Fallback ueber das Dataset
-    let latestQuery = document.querySelector<HTMLElement>("[data-search-config]")?.dataset.latestQuery ?? "";
-    /** Vom Karten-Zoom gesicherte Region-Auswahl (URL-Param) fuer die Rueckkehr */
     let savedRegionParam: string | null = null;
-    /** Eigene ort-picker-change-Events nicht als Fremd-Filterwechsel behandeln */
     let selfDispatchedOrtChange = false;
+    let latestQuery = document.querySelector<HTMLElement>("[data-search-config]")?.dataset.latestQuery ?? "";
     let lastFetchedQuery: string | null = null;
     let pins: ApiMapPin[] = [];
     let fetchTimer: number | undefined;
     let foldTimer: number | undefined;
-    let animationId: number | null = null;
     let abortController: AbortController | null = null;
 
-    type PinEntry = { pin: ApiMapPin; el: HTMLButtonElement; x: number; y: number };
-    type ClusterEntry = { slug: string; el: HTMLButtonElement; x: number; y: number };
-    let pinEntries: PinEntry[] = [];
-    let clusterEntries: ClusterEntry[] = [];
-
-    // Falt-Bahnen bekommen je einen Klon der Karten-SVG (rein dekorativ)
-    flapTop.appendChild(mapSvg.cloneNode(true));
-    flapBottom.appendChild(mapSvg.cloneNode(true));
+    // MapLibre wird erst beim ersten Oeffnen geladen (Bundle-Split)
+    let maplibre: typeof import("maplibre-gl") | null = null;
+    let buildStyle: ((dark: boolean) => import("maplibre-gl").StyleSpecification) | null = null;
+    let map: MapLibreMap | null = null;
+    let mapInitPromise: Promise<void> | null = null;
+    let fitOverviewBounds: (() => void) | null = null;
+    let clusterMarkers: MapLibreMarker[] = [];
+    let pinMarkers: MapLibreMarker[] = [];
+    let popup: MapLibrePopup | null = null;
+    let lastDark = document.documentElement.classList.contains("dark");
 
     function typeKey(type: ApiMapPin["Type"]): "haus" | "grund" | "zv" {
       if (type === "Land" || type === 1) return "grund";
@@ -466,55 +376,91 @@ const scaleBarY = MAP_VIEW.height - 34;
       return `/immobilien/angebote/${encodeURIComponent(id)}/`;
     }
 
-    function layout() {
-      mapSvg!.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
-      for (const entry of clusterEntries) {
-        entry.el.style.left = `${((entry.x - view.x) / view.w) * 100}%`;
-        entry.el.style.top = `${((entry.y - view.y) / view.h) * 100}%`;
-      }
-      for (const entry of pinEntries) {
-        entry.el.style.left = `${((entry.x - view.x) / view.w) * 100}%`;
-        entry.el.style.top = `${((entry.y - view.y) / view.h) * 100}%`;
+    async function checkTilesAvailable(): Promise<boolean> {
+      try {
+        const response = await fetch(TILES_URL, { headers: { Range: "bytes=0-127" } });
+        return response.ok;
+      } catch {
+        return false;
       }
     }
 
-    function easeInOutCubic(p: number) {
-      return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-    }
+    async function ensureMap(): Promise<void> {
+      if (mapInitPromise) return mapInitPromise;
+      mapInitPromise = (async () => {
+        const [maplibreModule, pmtilesModule, styleModule] = await Promise.all([
+          import("maplibre-gl"),
+          import("pmtiles"),
+          import("@/features/map/map-style"),
+          import("maplibre-gl/dist/maplibre-gl.css"),
+        ]);
+        maplibre = maplibreModule;
 
-    function animateTo(target: { x: number; y: number; w: number; h: number }) {
-      if (animationId) cancelAnimationFrame(animationId);
-      if (reducedMotion) {
-        Object.assign(view, target);
-        layout();
-        return;
-      }
-      const from = { ...view };
-      const start = performance.now();
-      const step = (now: number) => {
-        const p = Math.min(1, (now - start) / 480);
-        const e = easeInOutCubic(p);
-        view.x = from.x + (target.x - from.x) * e;
-        view.y = from.y + (target.y - from.y) * e;
-        view.w = from.w + (target.w - from.w) * e;
-        view.h = from.h + (target.h - from.h) * e;
-        layout();
-        if (p < 1) animationId = requestAnimationFrame(step);
-      };
-      animationId = requestAnimationFrame(step);
+        const protocol = new pmtilesModule.Protocol();
+        maplibre.addProtocol("pmtiles", protocol.tile);
+
+        const tilesAvailable = await checkTilesAvailable();
+        buildStyle = (dark: boolean) =>
+          styleModule.buildMapStyle({ dark, tilesAvailable, tilesUrl: TILES_URL, assetsUrl: ASSETS_URL });
+
+        map = new maplibre.Map({
+          container: glContainer!,
+          style: buildStyle(lastDark),
+          bounds: styleModule.OOE_BOUNDS,
+          fitBoundsOptions: { padding: 24 },
+          maxBounds: styleModule.OOE_MAX_BOUNDS,
+          minZoom: 6.3,
+          maxZoom: 16.5,
+          attributionControl: { compact: true },
+          // Seiten-Scroll nicht kapern: Zoomen per Strg+Scrollen bzw. zwei Fingern
+          cooperativeGestures: true,
+          locale: {
+            "CooperativeGesturesHandler.WindowsHelpText": "Zoomen mit Strg + Scrollen",
+            "CooperativeGesturesHandler.MacHelpText": "Zoomen mit ⌘ + Scrollen",
+            "CooperativeGesturesHandler.MobileHelpText": "Verschieben mit zwei Fingern",
+            "NavigationControl.ZoomIn": "Hineinzoomen",
+            "NavigationControl.ZoomOut": "Herauszoomen",
+            "AttributionControl.ToggleAttribution": "Quellenangabe umschalten",
+          },
+        });
+        // unten links: oben links sitzt die Kartusche, unten rechts die Attribution
+        map.addControl(new maplibre.NavigationControl({ showCompass: false }), "bottom-left");
+
+        fitOverviewBounds = () =>
+          map!.fitBounds(styleModule.OOE_BOUNDS, { padding: 24, duration: reducedMotion ? 0 : 600 });
+
+        // Stempel bis PIN_MIN_ZOOM, darueber Preis-Schilder (CSS schaltet um)
+        map.on("zoom", () => {
+          stage!.classList.toggle("zoomed", map!.getZoom() >= PIN_MIN_ZOOM);
+        });
+
+        // Container startet zusammengeklappt (Hoehe 0) und aendert sich mit dem
+        // Aufklappen/Umbruechen - MapLibre beobachtet nur window-Resizes selbst
+        new ResizeObserver(() => map?.resize()).observe(glContainer!);
+
+        // Theme-Wechsel: Stil neu setzen, Marker (DOM-Overlays) bleiben erhalten
+        new MutationObserver(() => {
+          const dark = document.documentElement.classList.contains("dark");
+          if (dark !== lastDark && map && buildStyle) {
+            lastDark = dark;
+            map.setStyle(buildStyle(dark));
+          }
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+        await new Promise<void>((resolve) => map!.once("load", () => resolve()));
+        render();
+      })();
+      return mapInitPromise;
     }
 
     function hidePopup() {
-      popup.hidden = true;
-      pinEntries.forEach((entry) => entry.el.classList.remove("aktiv"));
+      popup?.remove();
+      popup = null;
+      pinMarkers.forEach((marker) => marker.getElement().firstElementChild?.classList.remove("aktiv"));
     }
 
-    function showPopup(entry: PinEntry) {
-      pinEntries.forEach((other) => other.el.classList.remove("aktiv"));
-      entry.el.classList.add("aktiv");
-
-      const pin = entry.pin;
-      popup.replaceChildren();
+    function buildPopupContent(pin: ApiMapPin): HTMLElement {
+      const content = document.createElement("div");
 
       if (pin.ImageUrl) {
         const img = document.createElement("img");
@@ -523,7 +469,7 @@ const scaleBarY = MAP_VIEW.height - 34;
         img.loading = "lazy";
         img.src = pin.ImageUrl;
         img.addEventListener("error", () => img.remove());
-        popup.append(img);
+        content.append(img);
       }
 
       const close = document.createElement("button");
@@ -535,7 +481,7 @@ const scaleBarY = MAP_VIEW.height - 34;
         event.stopPropagation();
         hidePopup();
       });
-      popup.append(close);
+      content.append(close);
 
       const inner = document.createElement("div");
       inner.className = "hpmap-popup-inner";
@@ -569,29 +515,43 @@ const scaleBarY = MAP_VIEW.height - 34;
       cta.href = getDetailPath(pin.Id);
       cta.textContent = `${t("search.mapOpenListing")} →`;
       inner.append(cta);
-      popup.append(inner);
+      content.append(inner);
+      return content;
+    }
 
-      popup.hidden = false;
-      const canvasWidth = canvas!.clientWidth;
-      const canvasHeight = canvas!.clientHeight;
-      const pinX = entry.el.offsetLeft;
-      const pinY = entry.el.offsetTop;
-      const popupWidth = popup.offsetWidth;
-      const popupHeight = popup.offsetHeight;
-      const left = Math.min(Math.max(pinX - popupWidth / 2, 8), Math.max(8, canvasWidth - popupWidth - 8));
-      let top = pinY - popupHeight - 26;
-      if (top < 8) top = Math.min(pinY + 26, Math.max(8, canvasHeight - popupHeight - 8));
-      popup.style.left = `${left}px`;
-      popup.style.top = `${top}px`;
+    function showPopup(pin: ApiMapPin, marker: MapLibreMarker) {
+      const mapRef = map;
+      const libRef = maplibre;
+      if (!mapRef || !libRef) return;
+      hidePopup();
+      marker.getElement().firstElementChild?.classList.add("aktiv");
+      const nextPopup = new libRef.Popup({
+        closeButton: false,
+        offset: 16,
+        maxWidth: "230px",
+        className: "hpmap-glpopup",
+      })
+        .setLngLat(marker.getLngLat())
+        .setDOMContent(buildPopupContent(pin))
+        .addTo(mapRef);
+      nextPopup.on("close", () => {
+        pinMarkers.forEach((m) => m.getElement().firstElementChild?.classList.remove("aktiv"));
+      });
+      popup = nextPopup;
     }
 
     function render() {
+      const mapRef = map;
+      const libRef = maplibre;
+      if (!mapRef || !libRef) return;
       hidePopup();
+      clusterMarkers.forEach((marker) => marker.remove());
+      pinMarkers.forEach((marker) => marker.remove());
+      clusterMarkers = [];
+      pinMarkers = [];
 
-      // Preis-Schilder
-      pinsLayer.replaceChildren();
-      pinEntries = pins.map((pin) => {
-        const { x, y } = projectToMap(pin.Longitude, pin.Latitude);
+      // Preis-Schilder (einzelne Inserate)
+      for (const pin of pins) {
         const el = document.createElement("button");
         el.type = "button";
         const key = typeKey(pin.Type);
@@ -603,80 +563,88 @@ const scaleBarY = MAP_VIEW.height - 34;
           "aria-label",
           t("search.mapPinAria", { title: pin.Title, location: `${pin.PostalCode} ${pin.City}`, price: formatApiPrice(pin.Price) }),
         );
-        const entry: PinEntry = { pin, el, x, y };
+        // Marker-Element als Wrapper, damit Hover-Transforms nicht mit MapLibres
+        // eigenem translate() auf dem Marker-Element kollidieren
+        const wrapper = document.createElement("div");
+        wrapper.append(el);
+        const marker = new libRef.Marker({ element: wrapper }).setLngLat([pin.Longitude, pin.Latitude]).addTo(mapRef);
         el.addEventListener("click", (event) => {
           event.stopPropagation();
-          showPopup(entry);
+          showPopup(pin, marker);
         });
-        pinsLayer.append(el);
-        return entry;
-      });
+        pinMarkers.push(marker);
+      }
 
-      // Bezirks-Cluster (Position = Schwerpunkt der Pins des Bezirks)
-      clustersLayer.replaceChildren();
-      const groups = new Map<string, { name: string; entries: PinEntry[] }>();
-      for (const entry of pinEntries) {
-        const region = municipalityRegionMap[entry.pin.MunicipalityId];
+      // Bezirks-Stempel (Cluster) am Schwerpunkt der Bezirks-Pins
+      const groups = new Map<string, { name: string; pins: ApiMapPin[] }>();
+      for (const pin of pins) {
+        const region = municipalityRegionMap[pin.MunicipalityId];
         const slug = region?.slug ?? "__other";
         const name = region?.name ?? t("search.mapOtherRegion");
-        const group = groups.get(slug) ?? { name, entries: [] };
-        group.entries.push(entry);
+        const group = groups.get(slug) ?? { name, pins: [] };
+        group.pins.push(pin);
         groups.set(slug, group);
       }
-      clusterEntries = [...groups.entries()]
-        .sort((a, b) => b[1].entries.length - a[1].entries.length)
-        .map(([slug, group], index) => {
-          const count = group.entries.length;
-          const x = group.entries.reduce((sum, e) => sum + e.x, 0) / count;
-          const y = group.entries.reduce((sum, e) => sum + e.y, 0) / count;
-          const el = document.createElement("button");
-          el.type = "button";
-          el.className = "hpmap-cluster";
-          const size = count >= 20 ? 48 : count >= 8 ? 41 : 34;
-          el.style.setProperty("--s", `${size}px`);
-          el.style.setProperty("--i", String(index));
-          el.setAttribute("aria-label", t("search.mapClusterAria", { region: group.name, count }));
-          el.append(document.createTextNode(String(count)));
-          const label = document.createElement("span");
-          label.className = "hpmap-cluster-label";
-          label.textContent = group.name;
-          el.append(label);
-          el.addEventListener("click", (event) => {
-            event.stopPropagation();
-            zoomToBezirk(slug, group.entries);
-          });
-          clustersLayer.append(el);
-          return { slug, el, x, y };
+      const entries = [...groups.entries()]
+        .sort((a, b) => b[1].pins.length - a[1].pins.length)
+        .map(([slug, group]) => {
+          const count = group.pins.length;
+          return {
+            slug,
+            group,
+            count,
+            lng: group.pins.reduce((sum, p) => sum + p.Longitude, 0) / count,
+            lat: group.pins.reduce((sum, p) => sum + p.Latitude, 0) / count,
+          };
         });
 
-      // Entzerrung: eng benachbarte Cluster (z.B. Stadt Linz / Linz-Land liegen
-      // als Schwerpunkte fast uebereinander) sanft auseinanderschieben
+      // Entzerrung in Pixeln (Stadt Linz / Linz-Land liegen fast uebereinander):
+      // Schwerpunkte projizieren, auseinanderschieben, zurueckprojizieren
+      const projected = entries.map((entry) => mapRef.project([entry.lng, entry.lat]));
       for (let iteration = 0; iteration < 3; iteration++) {
-        for (let i = 0; i < clusterEntries.length; i++) {
-          for (let j = i + 1; j < clusterEntries.length; j++) {
-            const a = clusterEntries[i];
-            const b = clusterEntries[j];
-            const dx = b.x - a.x;
-            const dy = b.y - a.y;
+        for (let i = 0; i < projected.length; i++) {
+          for (let j = i + 1; j < projected.length; j++) {
+            const dx = projected[j].x - projected[i].x;
+            const dy = projected[j].y - projected[i].y;
             const distance = Math.hypot(dx, dy);
-            const minDistance = 56;
+            const minDistance = 46;
             if (distance > 0 && distance < minDistance) {
               const push = (minDistance - distance) / 2;
-              const ux = dx / distance;
-              const uy = dy / distance;
-              a.x -= ux * push;
-              a.y -= uy * push;
-              b.x += ux * push;
-              b.y += uy * push;
+              projected[i].x -= (dx / distance) * push;
+              projected[i].y -= (dy / distance) * push;
+              projected[j].x += (dx / distance) * push;
+              projected[j].y += (dy / distance) * push;
             }
           }
         }
       }
 
+      entries.forEach((entry, index) => {
+        const position = mapRef.unproject(projected[index]);
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "hpmap-cluster";
+        const size = entry.count >= 20 ? 48 : entry.count >= 8 ? 41 : 34;
+        el.style.setProperty("--s", `${size}px`);
+        el.style.setProperty("--i", String(index));
+        el.setAttribute("aria-label", t("search.mapClusterAria", { region: entry.group.name, count: entry.count }));
+        el.append(document.createTextNode(String(entry.count)));
+        const label = document.createElement("span");
+        label.className = "hpmap-cluster-label";
+        label.textContent = entry.group.name;
+        el.append(label);
+        el.addEventListener("click", (event) => {
+          event.stopPropagation();
+          zoomToBezirk(entry.slug, entry.group.pins);
+        });
+        const wrapper = document.createElement("div");
+        wrapper.append(el);
+        clusterMarkers.push(new libRef.Marker({ element: wrapper }).setLngLat(position).addTo(mapRef));
+      });
+
       statusEl.hidden = pins.length > 0;
       if (pins.length === 0) statusEl.textContent = t("search.mapEmpty");
       cartoucheCount.textContent = t("search.mapCartoucheCount", { count: pins.length });
-      layout();
     }
 
     function updateNote(payload: ApiMapPinsResponse) {
@@ -726,30 +694,23 @@ const scaleBarY = MAP_VIEW.height - 34;
       selfDispatchedOrtChange = false;
     }
 
-    function zoomToBezirk(slug: string, entries: PinEntry[]) {
+    function zoomToBezirk(slug: string, bezirkPins: ApiMapPin[]) {
+      if (!map) return;
       if (mode === "over") {
         savedRegionParam = new URLSearchParams(window.location.search).get("region");
       }
       mode = "bezirk";
-      stage!.classList.add("zoomed");
       hidePopup();
 
-      // Ausschnitt: Bounding-Box der Bezirks-Pins, Seitenverhaeltnis der Welt
-      const xs = entries.map((e) => e.x);
-      const ys = entries.map((e) => e.y);
-      const aspect = WORLD.w / WORLD.h;
-      const spanX = Math.max(...xs) - Math.min(...xs);
-      const spanY = Math.max(...ys) - Math.min(...ys);
-      const w = Math.min(WORLD.w, Math.max(spanX * 1.6, spanY * aspect * 1.6, 190));
-      const h = w / aspect;
-      const centerX = (Math.min(...xs) + Math.max(...xs)) / 2;
-      const centerY = (Math.min(...ys) + Math.max(...ys)) / 2;
-      animateTo({
-        x: Math.min(Math.max(centerX - w / 2, 0), WORLD.w - w),
-        y: Math.min(Math.max(centerY - h / 2, 0), WORLD.h - h),
-        w,
-        h,
-      });
+      const lngs = bezirkPins.map((p) => p.Longitude);
+      const lats = bezirkPins.map((p) => p.Latitude);
+      map.fitBounds(
+        [
+          [Math.min(...lngs), Math.min(...lats)],
+          [Math.max(...lngs), Math.max(...lats)],
+        ],
+        { padding: 72, maxZoom: 12.5, duration: reducedMotion ? 0 : 600 },
+      );
 
       // Liste folgt dem Kartenausschnitt: Bezirks-Slug ueber den bestehenden
       // Region-Filter anwenden (kein zweites Filtersystem). "__other" hat
@@ -760,9 +721,8 @@ const scaleBarY = MAP_VIEW.height - 34;
     function zoomToOverview(restoreFilter: boolean) {
       const wasBezirk = mode === "bezirk";
       mode = "over";
-      stage!.classList.remove("zoomed");
       hidePopup();
-      animateTo(WORLD);
+      fitOverviewBounds?.();
       if (restoreFilter && wasBezirk) {
         dispatchOrtChange(savedRegionParam ? savedRegionParam.split(",").filter(Boolean) : []);
       }
@@ -790,18 +750,16 @@ const scaleBarY = MAP_VIEW.height - 34;
       } else {
         stage!.classList.remove("unfolded");
         stage!.classList.add("folding");
-        // Falt-Animation bei jedem Oeffnen neu starten
-        for (const flap of [flapTop, flapBottom]) {
-          flap.style.animation = "none";
-          void flap.offsetWidth;
-          flap.style.animation = "";
-        }
         foldTimer = window.setTimeout(() => {
           stage!.classList.remove("folding");
           stage!.classList.add("unfolded");
         }, 880);
       }
 
+      void ensureMap().catch(() => {
+        statusEl.hidden = false;
+        statusEl.textContent = t("search.mapLoadError");
+      });
       if (latestQuery !== lastFetchedQuery) scheduleFetch();
     }
 
@@ -811,7 +769,7 @@ const scaleBarY = MAP_VIEW.height - 34;
       toggle!.setAttribute("aria-pressed", "false");
       toggle!.setAttribute("aria-expanded", "false");
       if (mode === "bezirk") zoomToOverview(true);
-      stage!.classList.remove("open", "folding", "unfolded", "zoomed");
+      stage!.classList.remove("open", "folding", "unfolded");
       hidePopup();
       updateAnsichtParam(false);
     }
@@ -831,23 +789,21 @@ const scaleBarY = MAP_VIEW.height - 34;
     });
 
     // Fremder Ortsfilter-Wechsel (OrtPicker) waehrend des Bezirks-Zooms:
-    // zurueck zur Uebersicht, ohne die neue Auswahl zu ueberschreiben
+    // Kopplung loesen, ohne die neue Auswahl zu ueberschreiben
     document.addEventListener("ort-picker-change", (event) => {
       const detail = (event as CustomEvent<{ name: string }>).detail;
       if (selfDispatchedOrtChange || detail?.name !== "region") return;
-      if (mode === "bezirk") zoomToOverview(false);
+      if (mode === "bezirk") {
+        mode = "over";
+        savedRegionParam = null;
+      }
     });
 
-    document.addEventListener("click", (event) => {
-      if (!popup.hidden && !popup.contains(event.target as Node)) hidePopup();
-    });
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
-      if (!popup.hidden) hidePopup();
+      if (popup) hidePopup();
       else if (mode === "bezirk") zoomToOverview(true);
     });
-
-    layout();
 
     // Deep-Link ?ansicht=karte: Karte gleich aufklappen
     if (new URLSearchParams(window.location.search).get("ansicht") === "karte") {

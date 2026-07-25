@@ -217,6 +217,10 @@ services:
       HOME_IP: ${HOME_IP}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Karten-Tiles der Faltkarte (PMTiles + Fonts/Sprites), einmalig per
+      # "npm run map-tiles -- --out deploy/hetzner/map-tiles" erzeugt und
+      # hochgeladen; Caddy served sie unter /tiles/* (Range-Requests).
+      - ./map-tiles:/srv/map-tiles:ro
       - caddy_data:/data
       - caddy_config:/config
 
