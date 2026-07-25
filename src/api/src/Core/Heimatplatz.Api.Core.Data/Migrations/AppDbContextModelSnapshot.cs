@@ -1354,8 +1354,19 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("IsLocationExact")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("REAL");
+
                     b.Property<int?>("LivingAreaSquareMeters")
                         .HasColumnType("INTEGER");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("REAL");
 
                     b.Property<Guid>("MunicipalityId")
                         .HasColumnType("TEXT");
@@ -1434,6 +1445,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.HasIndex("Type");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("Latitude", "Longitude");
 
                     b.HasIndex("SourceName", "SourceId")
                         .IsUnique()

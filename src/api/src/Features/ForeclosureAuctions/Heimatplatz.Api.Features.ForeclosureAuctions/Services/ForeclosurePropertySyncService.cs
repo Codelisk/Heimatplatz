@@ -10,6 +10,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific.Enums;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shiny.Mediator;
@@ -21,10 +22,16 @@ public class ForeclosurePropertySyncService(
     IPasswordHasher passwordHasher,
     IHttpClientFactory httpClientFactory,
     ILoggerFactory loggerFactory,
+    IPropertyGeocoder propertyGeocoder,
     IMediator mediator,
     ILogger<ForeclosurePropertySyncService> logger
 ) : IForeclosurePropertySyncService
 {
+    // Deckel pro Sync-Lauf: das Geocoding ist auf 1 Request/Sekunde gedrosselt -
+    // ohne Deckel wuerde der Erstlauf mit vielen Auctions minutenlang haengen.
+    // Der Rest kommt beim naechsten Sync bzw. ueber den Admin-Backfill dran.
+    private const int MaxGeocodesPerSync = 25;
+
     public async Task<PropertySyncResult> SyncToPropertiesAsync(CancellationToken ct = default)
     {
         logger.LogInformation("Starte Property-Sync aus Zwangsversteigerungen");
@@ -98,6 +105,7 @@ public class ForeclosurePropertySyncService(
         var now = DateTimeOffset.UtcNow;
         var processedSourceIds = new HashSet<string>();
         var newProperties = new List<(Property Property, string City)>();
+        var geocodeCandidates = new List<(Property Property, ForeclosureAuction Auction)>();
 
         // 5. Upsert: Fuer jede aktive Auction → Property erstellen oder aktualisieren
         foreach (var auction in activeAuctions)
@@ -121,6 +129,10 @@ public class ForeclosurePropertySyncService(
 
                 if (existingProperties.TryGetValue(sourceId, out var existingProperty))
                 {
+                    // Adressaenderung VOR der Mutation erkennen (UpdateProperty ueberschreibt sie)
+                    if (existingProperty.Latitude == null || existingProperty.Address != auction.Address)
+                        geocodeCandidates.Add((existingProperty, auction));
+
                     // Update
                     UpdateProperty(existingProperty, auction, municipalityId.Value, foreclosureData, now);
                     updated++;
@@ -130,6 +142,7 @@ public class ForeclosurePropertySyncService(
                     // Create
                     var property = CreateProperty(auction, systemUserId, municipalityId.Value, foreclosureData, now);
                     dbContext.Set<Property>().Add(property);
+                    geocodeCandidates.Add((property, auction));
 
                     // Kontakt hinzufuegen
                     var contact = CreateContact(property, auction);
@@ -164,6 +177,26 @@ public class ForeclosurePropertySyncService(
                 dbContext.Set<PropertyContactInfo>().RemoveRange(property.Contacts);
                 dbContext.Set<Property>().Remove(property);
                 removed++;
+            }
+        }
+
+        // 6b. Koordinaten fuer neue bzw. adressgeaenderte Properties aufloesen -
+        // Edikt-Adressen sind oeffentlich, punktgenaue Pins sind hier erwuenscht.
+        // Gedeckelt pro Lauf, fehlertolerant (null = beim naechsten Lauf erneut).
+        var geocodeAttempts = 0;
+        foreach (var (property, auction) in geocodeCandidates)
+        {
+            if (geocodeAttempts >= MaxGeocodesPerSync)
+                break;
+            geocodeAttempts++;
+
+            var geocodeResult = await propertyGeocoder.GeocodeAsync(
+                auction.Address, auction.PostalCode, auction.City, ct);
+            if (geocodeResult != null)
+            {
+                property.Latitude = geocodeResult.Latitude;
+                property.Longitude = geocodeResult.Longitude;
+                property.IsLocationExact = geocodeResult.IsExact;
             }
         }
 

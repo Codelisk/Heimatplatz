@@ -19,6 +19,12 @@ Hauptprojekt fuer das Properties (Immobilien) Feature.
 
 ### Handlers
 - `GetPropertiesHandler` - Gefilterte Immobilien-Liste
+- `GetPropertyMapPinsHandler` - `GET /api/properties/map-pins`: alle Treffer der aktuellen
+  Filter als leichte Pins fuer die Kartenansicht im Web (gleiche Filter-Parameter wie die
+  Listen-Suche, ohne Paging/Sortierung, Deckel 500 Pins). Nutzt `PropertyQueryFilters`,
+  damit Karte und Liste nie auseinanderlaufen. Ungenaue Lagen (`IsLocationExact=false`)
+  werden deterministisch gestreut (`ApplyPrivacyJitter`) - private Anbieter sind nie
+  punktgenau markiert, ZV-Edikte (oeffentliche Adressen) schon.
 - `GetPropertyByIdHandler` - Einzelne Immobilie
 - `GetPropertyChangesHandler` - `GET /api/properties/changes?Since=...`: Delta-Sync fuer
   Client-Caches. Dedupliziert das Journal pro Immobilie (Deleted gewinnt; Created+Updated = Created)
@@ -33,6 +39,15 @@ Hauptprojekt fuer das Properties (Immobilien) Feature.
 - `PropertiesUserDataEraser` (`IUserDataEraser`) - loescht bei der Konto-Loeschung die Inserate,
   Favoriten und Blockierungen eines Benutzers (via `ExecuteDelete`, journaliert Tombstones manuell).
   Registriert in `AddPropertiesFeature()`.
+- `PropertyQueryFilters` - gemeinsame Filterlogik von Listen-Suche und Kartenansicht
+  (Typ/Anbieter/Gemeinden/Alter/Preis/Flaeche/Zimmer/Volltext/Blockiert-Ausschluss).
+- `IPropertyGeocoder` / `NominatimPropertyGeocoder` - Adresse -> WGS84 (`Property.Latitude/
+  Longitude/IsLocationExact`). Opt-in ueber `Geocoding:Enabled` (ohne Konfiguration keine
+  externen Requests - Tests/CI bleiben offline), prozessweit auf 1 Request/Sekunde gedrosselt
+  (Nominatim-Policy), fehlertolerant (null statt Exception). Laeuft beim Anlegen/Bearbeiten,
+  im ZV-Sync (gedeckelt pro Lauf) und im Admin-Backfill `POST /api/admin/properties/geocode`.
+  Seed-Inserate bekommen ihre Koordinaten direkt aus `PropertySeeder.SeedCityCoordinates`
+  (Backfill fuer Bestands-DBs: `PropertyCoordinateBackfillSeeder`, Order 13).
 
 ## Verwendung
 

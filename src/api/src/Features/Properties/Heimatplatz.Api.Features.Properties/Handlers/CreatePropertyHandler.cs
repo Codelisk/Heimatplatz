@@ -29,6 +29,7 @@ public class CreatePropertyHandler(
     AppDbContext dbContext,
     IHttpContextAccessor httpContextAccessor,
     ISellerInfoResolver sellerInfoResolver,
+    IPropertyGeocoder propertyGeocoder,
     IMediator mediator
 ) : IRequestHandler<CreatePropertyRequest, CreatePropertyResponse>
 {
@@ -82,13 +83,12 @@ public class CreatePropertyHandler(
         var postalCode = PropertyFieldValidation.NormalizePostalCode(request.PostalCode);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
-        // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
-        var municipalityExists = await dbContext.Set<Municipality>()
-            .AnyAsync(m => m.Id == request.MunicipalityId, cancellationToken);
-        if (!municipalityExists)
-        {
-            throw new ArgumentException("Unknown MunicipalityId", nameof(request.MunicipalityId));
-        }
+        // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden.
+        // Gleich vollstaendig laden - Name/PLZ braucht das Geocoding und das Event.
+        var municipality = await dbContext.Set<Municipality>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == request.MunicipalityId, cancellationToken)
+            ?? throw new ArgumentException("Unknown MunicipalityId", nameof(request.MunicipalityId));
 
         // Anbieter-Daten serverseitig aus dem Profil des Verkaeufers ableiten
         // (Backend-First: der Client kann sich nicht als Makler/Privat ausgeben)
@@ -117,6 +117,21 @@ public class CreatePropertyHandler(
             UserId = userId,
             CreatedAt = DateTimeOffset.UtcNow
         };
+
+        // Koordinaten fuer die Kartenansicht aufloesen (fehlertolerant, blockiert
+        // das Anlegen nie). Punktgenau nur wenn die Hausanschrift aufloesbar war -
+        // die Karten-API streut ungenaue Lagen zusaetzlich (Privatsphaere).
+        var geocodeResult = await propertyGeocoder.GeocodeAsync(
+            property.Address,
+            postalCode ?? municipality.PostalCode,
+            municipality.Name,
+            cancellationToken);
+        if (geocodeResult != null)
+        {
+            property.Latitude = geocodeResult.Latitude;
+            property.Longitude = geocodeResult.Longitude;
+            property.IsLocationExact = geocodeResult.IsExact;
+        }
 
         // TypeSpecificData serialisieren und validieren basierend auf PropertyType
         if (request.TypeSpecificData != null && request.TypeSpecificData.Count > 0)
@@ -212,15 +227,11 @@ public class CreatePropertyHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Load Municipality for City name
-        var municipality = await dbContext.Set<Municipality>()
-            .FirstOrDefaultAsync(m => m.Id == property.MunicipalityId, cancellationToken);
-
         // Publish PropertyCreatedEvent for notification system
         var propertyCreatedEvent = new PropertyCreatedEvent(
             property.Id,
             property.Title,
-            municipality?.Name ?? "Unknown",
+            municipality.Name,
             property.Price,
             property.Type,
             property.SellerType

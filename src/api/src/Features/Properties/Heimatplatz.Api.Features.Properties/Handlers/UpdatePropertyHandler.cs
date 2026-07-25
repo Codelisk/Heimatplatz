@@ -27,7 +27,8 @@ namespace Heimatplatz.Api.Features.Properties.Handlers;
 public class UpdatePropertyHandler(
     AppDbContext dbContext,
     IHttpContextAccessor httpContextAccessor,
-    Services.ISellerInfoResolver sellerInfoResolver
+    Services.ISellerInfoResolver sellerInfoResolver,
+    Services.IPropertyGeocoder propertyGeocoder
 ) : IRequestHandler<UpdatePropertyRequest, UpdatePropertyResponse>
 {
     [MediatorHttpPut("/", OperationId = "UpdateProperty", RequiresAuthorization = true, AuthorizationPolicies = [AuthorizationPolicies.RequireSeller])]
@@ -97,16 +98,20 @@ public class UpdatePropertyHandler(
         var postalCode = PropertyFieldValidation.NormalizePostalCode(request.PostalCode);
 
         // FK vorab pruefen: eine unbekannte MunicipalityId wuerde sonst erst beim
-        // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden
-        var municipalityExists = await dbContext.Set<Municipality>()
-            .AnyAsync(m => m.Id == request.MunicipalityId, cancellationToken);
-        if (!municipalityExists)
-        {
-            throw new ArgumentException("Unknown MunicipalityId", nameof(request.MunicipalityId));
-        }
+        // SaveChanges als DbUpdateException (500) statt als Validierungsfehler enden.
+        // Vollstaendig laden - Name/PLZ braucht das Re-Geocoding bei Adressaenderung.
+        var municipality = await dbContext.Set<Municipality>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == request.MunicipalityId, cancellationToken)
+            ?? throw new ArgumentException("Unknown MunicipalityId", nameof(request.MunicipalityId));
 
         // Anbieter-Daten serverseitig aus dem aktuellen Profil des Eigentuemers ableiten
         var sellerInfo = await sellerInfoResolver.ResolveForUserAsync(userId, cancellationToken);
+
+        // Adressaenderung VOR der Mutation erkennen - danach sind alte Werte weg
+        var addressChanged = property.Address != request.Address.Trim()
+            || property.MunicipalityId != request.MunicipalityId
+            || (request.PostalCode != null && property.PostalCode != postalCode);
 
         // Update property fields
         property.Title = request.Title.Trim();
@@ -118,6 +123,30 @@ public class UpdatePropertyHandler(
         if (request.PostalCode != null)
         {
             property.PostalCode = postalCode;
+        }
+
+        // Koordinaten nachziehen: bei geaenderter Adresse oder wenn noch keine da sind.
+        // Schlaegt das Geocoding bei geaenderter Adresse fehl, werden die alten
+        // Koordinaten verworfen - ein falscher Pin waere schlechter als keiner.
+        if (addressChanged || property.Latitude == null)
+        {
+            var geocodeResult = await propertyGeocoder.GeocodeAsync(
+                property.Address,
+                property.PostalCode ?? municipality.PostalCode,
+                municipality.Name,
+                cancellationToken);
+            if (geocodeResult != null)
+            {
+                property.Latitude = geocodeResult.Latitude;
+                property.Longitude = geocodeResult.Longitude;
+                property.IsLocationExact = geocodeResult.IsExact;
+            }
+            else if (addressChanged)
+            {
+                property.Latitude = null;
+                property.Longitude = null;
+                property.IsLocationExact = false;
+            }
         }
 
         property.Price = request.Price;

@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Authorization;
 using Heimatplatz.Api.Core.Data;
@@ -7,6 +6,7 @@ using Heimatplatz.Api.Features.Properties.Contracts.Enums;
 using Heimatplatz.Api.Features.Properties.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Properties.Contracts.Models.TypeSpecific;
 using Heimatplatz.Api.Features.Properties.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -42,84 +42,22 @@ public class GetPropertiesHandler(
             .AsNoTracking()
             .Where(p => !p.IsHidden);
 
-        // Exclude blocked properties for authenticated users
-        var httpContext = httpContextAccessor.HttpContext;
-        if (httpContext?.User?.Identity?.IsAuthenticated == true)
-        {
-            var userIdClaim = httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub);
-            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
-            {
-                var blockedPropertyIds = dbContext.Set<Blocked>()
-                    .Where(b => b.UserId == userId)
-                    .Select(b => b.PropertyId);
-
-                query = query.Where(p => !blockedPropertyIds.Contains(p.Id));
-            }
-        }
-
-        // Filter: PropertyTypes (Multi-Select)
-        var propertyTypes = request.GetPropertyTypes();
-        if (propertyTypes.Count > 0)
-            query = query.Where(p => propertyTypes.Contains(p.Type));
-
-        // Filter: SellerTypes (Multi-Select)
-        var sellerTypes = request.GetSellerTypes();
-        if (sellerTypes.Count > 0)
-            query = query.Where(p => sellerTypes.Contains(p.SellerType));
-
-        // Filter: MunicipalityIds (Multi-Select)
-        var municipalityIds = request.GetMunicipalityIds();
-        if (municipalityIds.Count > 0)
-            query = query.Where(p => municipalityIds.Contains(p.MunicipalityId));
-
-        // Filter: CreatedAfter (Age filter) - convert to UTC DateTimeOffset for proper comparison.
-        // Laeuft auch auf SQLite in SQL - die Konverter im AppDbContext speichern
-        // DateTimeOffset dort als long (UTC-Ticks), kein In-Memory-Umweg noetig.
-        if (request.CreatedAfter.HasValue)
-        {
-            var createdAfterUtc = new DateTimeOffset(request.CreatedAfter.Value.ToUniversalTime(), TimeSpan.Zero);
-            query = query.Where(p => p.CreatedAt >= createdAfterUtc);
-        }
-
-        // Filter: Price range
-        if (request.PriceMin.HasValue)
-            query = query.Where(p => p.Price >= request.PriceMin.Value);
-
-        if (request.PriceMax.HasValue)
-            query = query.Where(p => p.Price <= request.PriceMax.Value);
-
-        // Filter: Area range (use LivingArea if available, otherwise PlotArea)
-        if (request.AreaMin.HasValue)
-            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) >= request.AreaMin.Value);
-
-        if (request.AreaMax.HasValue)
-            query = query.Where(p => (p.LivingAreaSquareMeters ?? p.PlotAreaSquareMeters) <= request.AreaMax.Value);
-
-        // Filter: Minimum rooms
-        if (request.RoomsMin.HasValue)
-            query = query.Where(p => p.Rooms >= request.RoomsMin.Value);
-
-        // Filter: Volltextsuche - serverseitig, damit Clients nicht ueber den geladenen
-        // Seiten-Ausschnitt suchen muessen (ToLower().Contains uebersetzt auf allen Providern)
-        if (!string.IsNullOrWhiteSpace(request.SearchText))
-        {
-            var search = request.SearchText.Trim().ToLower();
-            query = query.Where(p =>
-                p.Title.ToLower().Contains(search) ||
-                (p.Description ?? "").ToLower().Contains(search) ||
-                p.Address.ToLower().Contains(search) ||
-                p.Municipality.Name.ToLower().Contains(search));
-        }
-
-        // Filter: Bestimmte Anbieter (Makler/Verwaltungen) ausblenden - ueber die
-        // SellerSource-FK-Beziehung statt fragilem String-Matching auf SellerName
-        var excludedSourceIds = request.GetExcludedSellerSourceIds();
-        if (excludedSourceIds.Count > 0)
-        {
-            query = query.Where(p =>
-                p.SellerSourceId == null ||
-                !excludedSourceIds.Contains(p.SellerSourceId.Value));
-        }
+        // Gemeinsame Filterlogik mit der Kartenansicht (GetPropertyMapPinsHandler):
+        // beide muessen bei gleichen Parametern dieselbe Treffermenge liefern.
+        query = PropertyQueryFilters.ExcludeBlockedForCurrentUser(query, dbContext, httpContextAccessor);
+        query = PropertyQueryFilters.ApplyCommonFilters(
+            query,
+            request.GetPropertyTypes(),
+            request.GetSellerTypes(),
+            request.GetMunicipalityIds(),
+            request.CreatedAfter,
+            request.PriceMin,
+            request.PriceMax,
+            request.AreaMin,
+            request.AreaMax,
+            request.RoomsMin,
+            request.SearchText,
+            request.GetExcludedSellerSourceIds());
 
         var page = Math.Max(request.Page, 0);
         var pageSize = Math.Clamp(request.PageSize, 1, MaxPageSize);

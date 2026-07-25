@@ -71,6 +71,9 @@ services:
       # echte Domain, nicht fuer api-test. Ohne Key bleibt das Feature fail-soft deaktiviert.
       SearchConsole__ServiceAccountPath: /run/secrets/search-console-service-account.json
       SearchConsole__SiteUrl: ${SEARCH_CONSOLE_SITE_URL:-sc-domain:heimatplatz.at}
+      # Adress-Geocoding fuer die Kartenansicht (Nominatim, im Service auf
+      # 1 Request/Sekunde gedrosselt). Opt-in: ohne Flag keine externen Requests.
+      Geocoding__Enabled: "true"
     volumes:
       # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
       # Container-Rebuilds ueberleben.
@@ -113,6 +116,7 @@ services:
       Firmenbuch__Hvd__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       JustizOnline__IwgApiKey: ${JUSTIZONLINE_IWG_API_KEY:-}
       Admin__ApiKey: ${ADMIN_API_KEY:-}
+      Geocoding__Enabled: "true"
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
       PushNotifications__Apns__KeyId: ${APNS_KEY_ID}
       PushNotifications__Apns__BundleId: ${APNS_BUNDLE_ID:-at.heimatplatz.app}

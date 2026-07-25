@@ -94,6 +94,15 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasIndex(p => p.CreatedAt);
         builder.HasIndex(p => p.UserId);
 
+        // Karten-Felder: bestehende Zeilen starten ohne Koordinaten (Backfill via
+        // Admin-Endpoint) und gelten als ungefaehr, bis das Geocoding sie aufloest
+        builder.Property(p => p.IsLocationExact)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        // Bounding-Box-Abfragen der Karte filtern ueber beide Spalten
+        builder.HasIndex(p => new { p.Latitude, p.Longitude });
+
         // Import-Tracking Felder
         builder.Property(p => p.SourceName)
             .HasMaxLength(100);

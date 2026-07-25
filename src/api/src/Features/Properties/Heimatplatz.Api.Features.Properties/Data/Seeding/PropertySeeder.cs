@@ -257,6 +257,51 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
     }
 
     /// <summary>
+    /// Ortszentren der Seed-Städte (WGS84). Seeds bekommen ihre Koordinaten direkt
+    /// gesetzt - lokal läuft kein Geocoding (Geocoding:Enabled ist Opt-in).
+    /// Internal: dient auch dem PropertyCoordinateBackfillSeeder für Bestands-DBs.
+    /// </summary>
+    internal static readonly Dictionary<string, (double Latitude, double Longitude)> SeedCityCoordinates = new()
+    {
+        ["Linz"] = (48.3069, 14.2858),
+        ["Wels"] = (48.1575, 14.0289),
+        ["Gmunden"] = (47.9184, 13.7983),
+        ["Bad Ischl"] = (47.7119, 13.6197),
+        ["Steyr"] = (48.0425, 14.4212),
+        ["Leonding"] = (48.2792, 14.2528),
+        ["Freistadt"] = (48.5111, 14.5047),
+        ["Traun"] = (48.2206, 14.2397),
+        ["Enns"] = (48.2128, 14.4753),
+        ["Braunau am Inn"] = (48.2583, 13.0433),
+        ["Vöcklabruck"] = (48.0086, 13.6558),
+        ["Roitham am Traunfall"] = (47.9931, 13.8256)
+    };
+
+    /// <summary>
+    /// Setzt Ortszentrums-Koordinaten mit deterministischem Titel-Versatz (~±550 m),
+    /// damit mehrere Objekte derselben Stadt nicht exakt übereinander liegen.
+    /// IsLocationExact bleibt false - die Adressen sind fiktiv, die Karten-API
+    /// streut ungenaue Lagen ohnehin zusätzlich.
+    /// </summary>
+    internal static void ApplySeedCoordinates(Property property, string cityName)
+    {
+        if (!SeedCityCoordinates.TryGetValue(cityName, out var center))
+            return;
+
+        // Stabiler Titel-Hash wie BuildOriginalListingLink (string.GetHashCode ist
+        // pro Prozess randomisiert - Backfill und Erst-Seeding müssen gleich streuen)
+        var hash = 0;
+        foreach (var c in property.Title)
+            hash = unchecked(hash * 31 + c);
+
+        var offsetLatitude = ((Math.Abs(hash) % 100) - 50) / 10000.0;
+        var offsetLongitude = ((Math.Abs(hash / 100) % 100) - 50) / 10000.0;
+        property.Latitude = center.Latitude + offsetLatitude;
+        property.Longitude = center.Longitude + offsetLongitude;
+        property.IsLocationExact = false;
+    }
+
+    /// <summary>
     /// Helper: Create a Property with MunicipalityId lookup.
     /// Liefert null wenn die Gemeinde nicht auflösbar ist (Objekt wird übersprungen).
     /// Internal: wird auch vom PropertyMunicipalityFixSeeder für nachgelegte Objekte genutzt.
@@ -272,7 +317,7 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
         if (municipalityId == null)
             return null;
 
-        return new Property
+        var property = new Property
         {
             Id = Guid.NewGuid(),
             Title = title,
@@ -290,6 +335,9 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
             Features = features,
             ImageUrls = imageUrls
         };
+
+        ApplySeedCoordinates(property, cityName);
+        return property;
     }
 
     /// <summary>

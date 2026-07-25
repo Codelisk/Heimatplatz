@@ -21,6 +21,19 @@ public static class ServiceCollectionExtensions
     {
         services.AddGeneratedServices();
 
+        // Geocoding (Kartenansicht): HttpClient-basiert, daher explizite Registrierung
+        // statt [Service]-Attribut. Opt-in ueber Geocoding:Enabled - ohne Konfiguration
+        // gehen keine externen Requests raus (Tests/CI), die Drossel (1 Request/Sekunde,
+        // Nominatim-Policy) sitzt im Service selbst.
+        services.AddOptions<GeocodingOptions>().BindConfiguration(GeocodingOptions.SectionName);
+        services.AddHttpClient<IPropertyGeocoder, NominatimPropertyGeocoder>((provider, client) =>
+        {
+            var geocodingOptions = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<GeocodingOptions>>().Value;
+            client.BaseAddress = new Uri(geocodingOptions.BaseUrl.TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromSeconds(10);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", geocodingOptions.UserAgent);
+        });
+
         // PropertyChange-Journal: erfasst alle Immobilien-Aenderungen zentral beim SaveChanges
         // (Basis fuer den Client-Delta-Sync via GET /api/properties/changes)
         services.AddSingleton<IInterceptor, PropertyChangeInterceptor>();
@@ -36,6 +49,7 @@ public static class ServiceCollectionExtensions
         services.AddSeeder<PropertyMunicipalityFixSeeder>();
         services.AddSeeder<PropertyOriginalListingBackfillSeeder>();
         services.AddSeeder<PropertyForeclosurePriceFixSeeder>();
+        services.AddSeeder<PropertyCoordinateBackfillSeeder>();
         services.AddSeeder<FavoriteSeeder>();
         services.AddSeeder<BlockedSeeder>();
 

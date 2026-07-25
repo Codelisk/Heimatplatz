@@ -2,6 +2,7 @@
 import ArrowsSortIcon from "@tabler/icons/outline/arrows-sort.svg";
 import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
 import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
+import MapIcon from "@tabler/icons/outline/map-2.svg";
 import { NativeSelect } from "@/components/starwind/native-select";
 import type { ApiProperty } from "@/features/properties/live-api";
 import type { OrtSlugMap } from "@/features/properties/search-query";
@@ -12,6 +13,7 @@ import { t } from "@/i18n";
 import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
 import MobileFilterPanel from "@/components/properties/MobileFilterPanel.astro";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
+import PropertyMapPanel from "@/components/properties/PropertyMapPanel.astro";
 
 interface Props {
   apiProperties?: ApiProperty[];
@@ -80,6 +82,20 @@ const ortRegions = await fetchOrtRegions();
       </div>
     </form>
     <div class="flex flex-1 items-center justify-between gap-3 lg:flex-none lg:justify-end">
+      {/* Kartenansicht: Toggle-Chip mit gleicher aria-pressed-Sprache wie die
+          Filter-Chips - die Faltkarte (PropertyMapPanel) klappt zwischen
+          Suchleiste und Trefferliste auf, die Liste bleibt sichtbar */}
+      <button
+        type="button"
+        class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-input bg-muted px-2.5 py-1.5 text-sm font-semibold text-foreground transition-colors aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+        data-map-toggle
+        aria-pressed="false"
+        aria-expanded="false"
+        aria-controls="property-map"
+      >
+        <MapIcon class="size-4" aria-hidden="true" />
+        {t("search.mapToggle")}
+      </button>
       <span class="result-count" data-result-count>{t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total })}</span>
       <label class="flex items-center">
         <span class="sr-only">{t("search.sortLabel")}</span>
@@ -105,6 +121,8 @@ const ortRegions = await fetchOrtRegions();
     </div>
   </div>
 </section>
+
+<PropertyMapPanel />
 
 <slot name="after-toolbar" />
 
@@ -154,6 +172,7 @@ const ortRegions = await fetchOrtRegions();
 <script>
   import { getResponsiveImage } from "@/lib/images";
   import { formatApiDate, formatApiPrice, getApiLocationLine, getApiStreetLine, getAuctionCountdownLabel, getDisplayTitle } from "@/features/properties/format";
+  import { readAccessToken } from "@/lib/utils/access-token";
   import { readDebugApiUrl } from "@/lib/utils/debug-host";
   import { t } from "@/i18n";
   import {
@@ -177,29 +196,9 @@ const ortRegions = await fetchOrtRegions();
   const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
 
   // Angemeldet suchen: Die API filtert blockierte Immobilien nur bei
-  // authentifizierten Requests aus (GetPropertiesHandler) - dafuer braucht der
-  // Such-Fetch das Access Token aus der Session (gleicher Key wie PropertyStateScript).
-  function readAccessToken(): string | null {
-    try {
-      const raw = window.localStorage.getItem("heimatplatz:session");
-      if (!raw) return null;
-      const session = JSON.parse(raw) as { AccessToken?: string; ExpiresAt?: string };
-      if (!session.AccessToken) return null;
-      if (session.ExpiresAt && new Date(session.ExpiresAt).getTime() <= Date.now()) return null;
-      // Abgelaufene Access Tokens (JWT exp) nicht mitschicken - dann lieber
-      // anonym suchen; den Refresh erledigt PropertyStateScript beim naechsten
-      // apiRequest, die Suche liest hier den frischen Token aus dem localStorage.
-      const payload = session.AccessToken.split(".")[1];
-      if (payload) {
-        const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
-        const exp = (JSON.parse(window.atob(padded)) as { exp?: number }).exp;
-        if (typeof exp === "number" && exp * 1000 <= Date.now()) return null;
-      }
-      return session.AccessToken;
-    } catch {
-      return null;
-    }
-  }
+  // authentifizierten Requests aus (GetPropertiesHandler) - dafuer liest der
+  // Such-Fetch das Access Token aus der Session (readAccessToken, geteilt
+  // mit der Kartenansicht in PropertyMapPanel).
   const params = new URLSearchParams(window.location.search);
   const resultCount = document.querySelector<HTMLElement>("[data-result-count]");
   const mobileResultCount = document.querySelector<HTMLElement>("[data-mobile-result-count]");
@@ -740,6 +739,14 @@ const ortRegions = await fetchOrtRegions();
   let refreshTimer: number | undefined;
   let abortController: AbortController | null = null;
 
+  function announceQuery(query: string) {
+    // Zusaetzlich am Config-Element ablegen: die Bundle-Reihenfolge der
+    // Component-Skripte ist nicht garantiert - laeuft PropertyMapPanel nach
+    // dem Initial-Dispatch, liest es den Query von hier statt aus dem Event.
+    if (config) config.dataset.latestQuery = query;
+    document.dispatchEvent(new CustomEvent("property-search-query-changed", { detail: { query } }));
+  }
+
   function scheduleRefresh(resetPage = false) {
     if (resetPage) currentPage = 0;
     window.clearTimeout(refreshTimer);
@@ -760,6 +767,9 @@ const ortRegions = await fetchOrtRegions();
 
     try {
       const query = buildPropertySearchQuery(getSearchState(), ortSlugMap);
+      // Kartenansicht synchron halten: PropertyMapPanel leitet aus dem Listen-
+      // Query den map-pins-Query ab (gleiche Filter, ohne Paging/Sortierung)
+      announceQuery(query);
       const token = readAccessToken();
       const response = await fetch(`${API_BASE_URL}/api/properties?${query}`, {
         signal: controller.signal,
@@ -934,6 +944,9 @@ const ortRegions = await fetchOrtRegions();
 
   updateFilterChips();
   updateResultMeta();
+  // Initialen Query auch ohne Refetch melden - die Kartenansicht braucht ihn,
+  // sobald sie geoeffnet wird (bei Refetch folgt gleich ein zweiter Dispatch)
+  announceQuery(buildPropertySearchQuery(getSearchState(), ortSlugMap));
   // Refetch, wenn der effektive Initial-Zustand (URL + gespeicherte Praeferenzen)
   // vom SSR-Zustand (nur URL) abweicht - oder eine Session existiert: SSR laeuft
   // ohne Token, erst der authentifizierte Fetch filtert blockierte Immobilien aus.

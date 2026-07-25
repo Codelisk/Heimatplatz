@@ -29,6 +29,23 @@ export const home = {
   "search.sortPostalDesc": "PLZ absteigend",
   "search.sortPostal": "PLZ",
 
+  // Kartenansicht (Faltkarte)
+  "search.mapToggle": "Karte",
+  "search.mapRegionLabel": "Kartenansicht Oberösterreich",
+  "search.mapBackToOverview": "Übersicht",
+  "search.mapCartoucheTitle": "OBERÖSTERREICH",
+  "search.mapCartoucheCount": "{count} Inserate auf der Karte",
+  "search.mapClusterAria": "{region}: {count} Inserate. Klicken zoomt zu den Objekten.",
+  "search.mapPinAria": "{title}, {location}, {price}. Öffnet die Vorschau.",
+  "search.mapApproxHint": "Ungefähre Lage",
+  "search.mapOpenListing": "Inserat öffnen",
+  "search.mapPopupClose": "Vorschau schließen",
+  "search.mapEmpty": "Keine Treffer mit Kartenposition.",
+  "search.mapWithoutCoords": "{count} Treffer ohne Kartenposition erscheinen nur in der Liste.",
+  "search.mapTruncated": "Es werden die neuesten {count} Pins gezeigt.",
+  "search.mapLoadError": "Karte konnte nicht geladen werden. Bitte später erneut versuchen.",
+  "search.mapOtherRegion": "Weitere Orte",
+
   // Pagination
   "search.paginationLabel": "Suchergebnisse Seiten",
   "search.pagePrev": "Vorherige Seite",

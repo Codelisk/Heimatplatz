@@ -98,6 +98,22 @@ public class Property : BaseEntity
     /// <summary>Kontaktinformationen zu dieser Immobilie</summary>
     public List<PropertyContactInfo> Contacts { get; set; } = [];
 
+    // === Karten-/Geo-Felder ===
+
+    /// <summary>Geografische Breite (WGS84). Null = noch nicht geocodiert.</summary>
+    public double? Latitude { get; set; }
+
+    /// <summary>Geografische Laenge (WGS84). Null = noch nicht geocodiert.</summary>
+    public double? Longitude { get; set; }
+
+    /// <summary>
+    /// True = Koordinaten punktgenau (Hausanschrift aufgeloest, z.B. ZV-Edikte mit
+    /// oeffentlicher Adresse im Edikt). False = ungefaehre Lage (Ortszentrums-Fallback) -
+    /// die Karten-API streut solche Pins zusaetzlich deterministisch, damit private
+    /// Anbieter nicht punktgenau markiert werden (GetPropertyMapPinsHandler).
+    /// </summary>
+    public bool IsLocationExact { get; set; }
+
     // === Import-Tracking Felder ===
 
     /// <summary>Name des Quellsystems (z.B. "ImmoScout24", "Willhaben")</summary>
