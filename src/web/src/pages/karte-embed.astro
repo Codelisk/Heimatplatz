@@ -1,0 +1,105 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PropertyMapPanel from "@/components/properties/PropertyMapPanel.astro";
+import { t } from "@/i18n";
+import { buildOrtSlugMap, fetchOrtRegions } from "@/features/locations/live-api";
+import {
+  ALL_SELLERS,
+  ALL_TYPES,
+  buildPropertySearchQuery,
+  DEFAULT_TYPES,
+  normalizeTypeValue,
+  type PropertySearchState,
+} from "@/features/properties/search-query";
+
+/**
+ * Faltkarte als Vollbild-Embed fuer die MAUI-App (WebView): gleiche Karte,
+ * gleicher Papier-Stil, gleiche Stempel/Schilder/Mini-Zettel wie auf der
+ * Startseite - nur ohne Site-Chrome und IMMER als Vollbild, unabhaengig von
+ * der Viewport-Breite (auch im Windows-Fenster der App).
+ *
+ * Vertrag mit der App:
+ * - Filter kommen als dieselben Query-Params wie auf der Startseite
+ *   (q, type, seller, region, age) plus ansicht=karte (oeffnet die Karte).
+ * - ?theme=dark|light uebersteuert das System-Theme (App-Theme-Umschalter).
+ * - Der Mini-Zettel-CTA verlinkt auf /immobilien/angebote/{id}/ - die App
+ *   faengt diese Navigation im WebView ab und oeffnet die native Detailseite.
+ */
+
+const params = Astro.url.searchParams;
+
+function parseSelection(name: string, allowed: readonly string[]) {
+  const values = params
+    .getAll(name)
+    .flatMap((value) => value.split(","))
+    .map((value) => normalizeTypeValue(value.trim()))
+    .filter((value) => allowed.includes(value));
+  return [...new Set(values)];
+}
+
+const ortRegions = await fetchOrtRegions();
+const ortSlugMap = buildOrtSlugMap(ortRegions);
+const typeSelection = parseSelection("type", ALL_TYPES);
+
+const searchState: PropertySearchState = {
+  q: params.get("q") ?? "",
+  types: typeSelection.length > 0 ? typeSelection : [...DEFAULT_TYPES],
+  sellers: parseSelection("seller", ALL_SELLERS),
+  ortSlugs: (params.get("region") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
+  age: params.get("age") ?? "",
+  sort: "newest",
+  page: 0,
+};
+
+const mapQuery = buildPropertySearchQuery(searchState, ortSlugMap);
+---
+
+<BaseLayout title={t("search.mapToggle")} noindex chrome={false} bodyClass="karte-embed">
+  {/* PropertyMapPanel liest den Query aus data-latest-query (gleicher Fallback
+      wie auf der Startseite, wenn kein property-search-query-changed feuert) */}
+  <div data-search-config data-latest-query={mapQuery} hidden></div>
+  {/* Das Panel-Script verlangt einen Toggle - im Embed unsichtbar, geoeffnet
+      wird ueber den ansicht=karte-Param der App-URL */}
+  <button type="button" data-map-toggle aria-pressed="false" aria-expanded="false" aria-controls="property-map" hidden></button>
+  <PropertyMapPanel />
+</BaseLayout>
+
+<script is:inline>
+  // App-Theme uebernehmen, bevor die Karte baut (dark/light aus der App -
+  // __heimatplatzTheme kommt aus dem BaseLayout-Head und persistiert die Wahl)
+  (() => {
+    const theme = new URLSearchParams(window.location.search).get("theme");
+    if ((theme === "dark" || theme === "light") && window.__heimatplatzTheme) {
+      window.__heimatplatzTheme.set(theme);
+    }
+  })();
+</script>
+
+<style is:global>
+  /* Vollbild bei JEDER Breite erzwingen (die normalen Vollbild-Regeln haengen
+     an max-width: 1023.98px - das Windows-Fenster der App ist breiter) */
+  body.karte-embed { overflow: hidden; }
+  body.karte-embed .hpmap-collapse {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    grid-template-rows: 1fr;
+    transition: none;
+    background: var(--background);
+  }
+  body.karte-embed .hpmap-clip { overflow: visible; height: 100%; }
+  body.karte-embed .hpmap-frame { height: 100%; max-width: none; margin: 0; padding: 0; }
+  body.karte-embed .hpmap-sheet {
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    outline: none;
+    box-shadow: none;
+  }
+  body.karte-embed .hpmap-canvas { height: 100%; border-radius: 0; }
+  body.karte-embed .hpmap-maplibre { height: 100%; aspect-ratio: auto; }
+  body.karte-embed .hpmap-note { display: none; }
+  /* Schliessen uebernimmt die App (nativer Back/X) - Web-X und Pille weg */
+  body.karte-embed .hpmap-close { display: none !important; }
+  body.karte-embed .hpmap-pill { display: none !important; }
+</style>
