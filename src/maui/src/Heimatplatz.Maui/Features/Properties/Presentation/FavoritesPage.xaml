@@ -42,7 +42,7 @@
                                              VerticalOptions="Start"
                                              HorizontalOptions="Center"
                                              IsVisible="{Binding ShowLoadError}">
-                            <Label Text="📡" Style="{StaticResource EmptyStateIcon}" />
+                            <Image Source="icon_offline.png" Style="{StaticResource EmptyStateImageIcon}" />
                             <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="{Binding LoadErrorMessage}" Style="{StaticResource EmptyStateHint}" />
                             <Button Text="{Binding Loc.Retry}"

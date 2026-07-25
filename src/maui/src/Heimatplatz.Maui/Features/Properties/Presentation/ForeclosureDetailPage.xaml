@@ -7,7 +7,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.ForeclosureDetailPage"
              x:DataType="vm:ForeclosureDetailViewModel"
-             Shell.FlyoutBehavior="Disabled"
+             appcontrols:DeferredFlyoutLock.IsEnabled="True"
              Title="{Binding Loc.PageTitle}">
 
     <Grid x:Name="ForeclosureRoot"
@@ -76,8 +76,7 @@
                                  VerticalOptions="Center"
                                  HorizontalOptions="Center"
                                  MaximumWidthRequest="420">
-                <Label Text="{Binding LoadErrorIcon}"
-                       Style="{StaticResource EmptyStateIcon}" />
+                <Image Source="{Binding LoadErrorIcon}" Style="{StaticResource EmptyStateImageIcon}" />
                 <Label Text="{Binding LoadErrorTitle}"
                        Style="{StaticResource EmptyStateTitle}"
                        AutomationId="ForeclosureDetail_LoadErrorTitle" />
@@ -150,18 +149,20 @@
                                       Loop="False">
                             <CarouselView.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">
+                                    <!-- Tippen oeffnet die Grossansicht. Bewusst ein
+                                         TapGestureRecognizer statt einer unsichtbaren
+                                         Button-Flaeche: jedes Carousel-Item wuerde sonst
+                                         einen MaterialButton inflaten, und die beiden
+                                         Items, die beim Seitenaufbau gebunden werden,
+                                         hielten damit die Navigationsanimation auf. -->
                                     <Grid>
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding OpenImageViewerCommand, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}" />
+                                        </Grid.GestureRecognizers>
                                         <Image Source="{Binding .}"
-                                               Aspect="AspectFill" />
-                                        <!-- Unsichtbare Tap-Flaeche: oeffnet die Grossansicht
-                                             (Button statt TapGestureRecognizer, wirkt ueberall) -->
-                                        <Button BackgroundColor="Transparent"
-                                                BorderColor="Transparent"
-                                                BorderWidth="0"
-                                                Padding="0"
-                                                MinimumHeightRequest="0"
-                                                Command="{Binding OpenImageViewerCommand, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}"
-                                                SemanticProperties.Description="{Binding Loc.OpenImageViewerSemantic, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}" />
+                                               Aspect="AspectFill"
+                                               SemanticProperties.Description="{Binding Loc.OpenImageViewerSemantic, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}" />
                                     </Grid>
                                 </DataTemplate>
                             </CarouselView.ItemTemplate>
@@ -400,8 +401,11 @@
                                     BindableLayout.ItemsSource="{Binding StatTiles}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:StatTileItem">
+                                    <!-- 45% statt 30%: ZV-Werte sind Geldbetraege/Termine -
+                                         drei Kacheln pro Zeile schneiden "222 000 €" auf
+                                         schmalen Geraeten ab, zwei pro Zeile passen. -->
                                     <Border Style="{StaticResource StatTile}"
-                                            FlexLayout.Basis="30%"
+                                            FlexLayout.Basis="45%"
                                             FlexLayout.Grow="1"
                                             Margin="0,0,8,8">
                                         <VerticalStackLayout Spacing="3">

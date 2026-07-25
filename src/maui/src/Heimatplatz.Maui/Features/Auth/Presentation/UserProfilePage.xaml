@@ -363,7 +363,13 @@
 
                         <Label Text="{Binding ProfileStatusMessage}"
                                IsVisible="{Binding HasProfileStatus}"
-                               Style="{StaticResource Caption}" />
+                               Style="{StaticResource Caption}">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsProfileStatusError}" Value="True">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
 
                         <Button Text="{Binding Loc.SaveProfileButton}"
                                 Command="{Binding SaveProfileCommand}"
@@ -393,7 +399,7 @@
                                     Style="{StaticResource LinkButton}"
                                     FontSize="12" />
                         </Grid>
-                        <Entry Text="{Binding CurrentPassword}" IsPassword="True" />
+                        <Entry Text="{Binding CurrentPassword}" IsPassword="True" Placeholder="{Binding Loc.CurrentPasswordPlaceholder}" />
 
                         <VerticalStackLayout Spacing="6">
                             <Label Text="{Binding Loc.NewPasswordLabel}" Style="{StaticResource FieldLabel}" />
@@ -401,12 +407,18 @@
                         </VerticalStackLayout>
                         <VerticalStackLayout Spacing="6">
                             <Label Text="{Binding Loc.NewPasswordConfirmLabel}" Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding NewPasswordConfirm}" IsPassword="True" />
+                            <Entry Text="{Binding NewPasswordConfirm}" IsPassword="True" Placeholder="{Binding Loc.NewPasswordConfirmPlaceholder}" />
                         </VerticalStackLayout>
 
                         <Label Text="{Binding PasswordStatusMessage}"
                                IsVisible="{Binding HasPasswordStatus}"
-                               Style="{StaticResource Caption}" />
+                               Style="{StaticResource Caption}">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsPasswordStatusError}" Value="True">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
 
                         <Button Text="{Binding Loc.ChangePasswordButton}"
                                 Command="{Binding ChangePasswordCommand}"

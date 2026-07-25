@@ -1249,6 +1249,36 @@
         }
       }
     },
+    "/api/properties/geocode-preview": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GeocodePropertyPreview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeocodePropertyPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodePropertyPreviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/properties/{Id}/edit": {
       "get": {
         "tags": [
@@ -1417,6 +1447,14 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "PropertyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -4679,6 +4717,16 @@
               "null",
               "string"
             ]
+          },
+          "LocationDisplay": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LocationDisplayMode"
+              }
+            ]
           }
         }
       },
@@ -5694,6 +5742,60 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "GeocodePropertyPreviewRequest": {
+        "required": [
+          "City"
+        ],
+        "type": "object",
+        "properties": {
+          "City": {
+            "type": "string"
+          },
+          "PostalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GeocodePropertyPreviewResponse": {
+        "required": [
+          "Latitude",
+          "Longitude",
+          "IsExact"
+        ],
+        "type": "object",
+        "properties": {
+          "Latitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "Longitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "IsExact": {
+            "type": "boolean"
           }
         }
       },
@@ -7961,6 +8063,14 @@
           }
         }
       },
+      "LocationDisplayMode": {
+        "enum": [
+          "Approximate",
+          "Exact",
+          "Hidden",
+          null
+        ]
+      },
       "LoginRequest": {
         "required": [
           "Email",
@@ -8813,6 +8923,16 @@
             ],
             "format": "double"
           },
+          "LocationDisplay": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LocationDisplayMode"
+              }
+            ]
+          },
           "OriginalListingUrl": {
             "type": [
               "null",
@@ -9040,6 +9160,9 @@
               "null",
               "string"
             ]
+          },
+          "LocationDisplay": {
+            "$ref": "#/components/schemas/LocationDisplayMode"
           },
           "PriceLabel": {
             "type": "string",
@@ -11231,6 +11354,16 @@
               },
               {
                 "$ref": "#/components/schemas/ContactPersonInput"
+              }
+            ]
+          },
+          "LocationDisplay": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LocationDisplayMode"
               }
             ]
           }

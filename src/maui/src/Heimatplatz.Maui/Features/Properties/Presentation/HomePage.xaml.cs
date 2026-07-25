@@ -71,6 +71,15 @@ public partial class HomePage : ShinyContentPage
         if (PropertiesCollection.Handler?.PlatformView is Microsoft.UI.Xaml.DependencyObject platformView &&
             FindScrollViewer(platformView) is { } scrollViewer)
             scrollViewer.ChangeView(null, 0, null, disableAnimation: true);
+#elif ANDROID
+        // Gleiches Problem wie unter WinUI: ScrollTo(0, Start) ankert die erste KARTE
+        // am Viewport-Anfang, der Header-Spacer (56px) faellt raus und die Karte
+        // beginnt hinter der Chip-Zeile. Adapter-Position 0 ist der Header - dorthin
+        // springen nimmt den Spacer mit.
+        if (PropertiesCollection.Handler?.PlatformView is AndroidX.RecyclerView.Widget.RecyclerView recyclerView)
+            recyclerView.ScrollToPosition(0);
+        else if (_viewModel?.Properties.Count > 0)
+            PropertiesCollection.ScrollTo(0, position: ScrollToPosition.Start, animate: false);
 #else
         if (_viewModel?.Properties.Count > 0)
             PropertiesCollection.ScrollTo(0, position: ScrollToPosition.Start, animate: false);

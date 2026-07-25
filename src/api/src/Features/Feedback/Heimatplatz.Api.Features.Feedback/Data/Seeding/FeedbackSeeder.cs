@@ -39,6 +39,9 @@ public class FeedbackSeeder(AppDbContext dbContext) : ISeeder
             Status = FeedbackTicketStatus.Answered,
             Source = FeedbackSource.Android,
             AppVersion = "1.80.0",
+            // CreatedAt explizit = erste Nachricht: sonst stempelt der SaveChanges-
+            // Interceptor "jetzt" und der Thread waere juenger als sein Inhalt
+            CreatedAt = now.AddDays(-3),
             LastMessageAt = now.AddDays(-1),
             HasUnreadForUser = true,
             Messages =
@@ -66,6 +69,7 @@ public class FeedbackSeeder(AppDbContext dbContext) : ISeeder
             Status = FeedbackTicketStatus.Open,
             Source = FeedbackSource.Ios,
             AppVersion = "1.80.0",
+            CreatedAt = now.AddHours(-5),
             LastMessageAt = now.AddHours(-5),
             HasUnreadForTeam = true,
             Messages =
@@ -90,6 +94,7 @@ public class FeedbackSeeder(AppDbContext dbContext) : ISeeder
                 Subject = "Inserat nachträglich bearbeiten?",
                 Status = FeedbackTicketStatus.Closed,
                 Source = FeedbackSource.Web,
+                CreatedAt = now.AddDays(-7),
                 LastMessageAt = now.AddDays(-6),
                 Messages =
                 {

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
              xmlns:services="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
              xmlns:wizard="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.Wizard.PropertyWizardPage"
              x:DataType="wizard:PropertyWizardViewModel"
-             Shell.FlyoutBehavior="Disabled"
+             appcontrols:DeferredFlyoutLock.IsEnabled="True"
              Title="{Binding PageTitle}">
 
     <ContentPage.Resources>
@@ -35,7 +36,7 @@
     <!-- Single-Cell-Grid wie die Detailseite: Aktionsleiste liegt UEBER dem Inhalt -->
     <Grid>
 
-        <ScrollView>
+        <ScrollView x:Name="WizardScroll">
             <!-- Bottom-Padding reserviert Platz fuer die Veroeffentlichen-Leiste -->
             <VerticalStackLayout Spacing="0" Padding="0,0,0,132">
 
@@ -128,8 +129,9 @@
                         <VerticalStackLayout Spacing="6"
                                              HorizontalOptions="Center"
                                              VerticalOptions="Center">
-                            <Label Text="📷"
-                                   FontSize="30"
+                            <Image Source="icon_camera.png"
+                                   WidthRequest="30"
+                                   HeightRequest="30"
                                    HorizontalOptions="Center" />
                             <Label Text="{Binding Loc.AddPhotosTitle}"
                                    Style="{StaticResource BodyStrong}"
@@ -189,7 +191,10 @@
                                            VerticalOptions="End"
                                            HorizontalOptions="End"
                                            Margin="0,0,14,38">
+                        <!-- Icons statt Emoji (📷/🖼): konsistent zum monochromen Icon-Set -->
                         <Button Text="{Binding Loc.TakePhotoButton}"
+                                ImageSource="icon_camera_white.png"
+                                ContentLayout="Left, 6"
                                 Command="{Binding TakePhotoCommand}"
                                 FontSize="12"
                                 Padding="12,0"
@@ -202,6 +207,8 @@
                                 TextColor="White"
                                 AutomationId="Wizard_TakePhoto" />
                         <Button Text="{Binding Loc.PickPhotosButton}"
+                                ImageSource="icon_gallery_white.png"
+                                ContentLayout="Left, 6"
                                 Command="{Binding PickPhotosCommand}"
                                 FontSize="12"
                                 Padding="12,0"
@@ -380,7 +387,8 @@
                             </Grid>
 
                             <!-- Ort-Vorschlaege (unter der Adresszeile) -->
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ort.OrtSuggestions}"
+                            <VerticalStackLayout x:Name="OrtSuggestionsPanel"
+                                                 BindableLayout.ItemsSource="{Binding Ort.OrtSuggestions}"
                                                  IsVisible="{Binding Ort.HasOrtSuggestions}"
                                                  Spacing="0">
                                 <BindableLayout.ItemTemplate>
@@ -543,6 +551,81 @@
                                            Style="{StaticResource Caption}" />
                                 </VerticalStackLayout>
                             </Grid>
+                        </Border>
+
+                        <!-- Lage-Anzeige: Der Anbieter entscheidet, wie genau die Karte
+                             sein Inserat zeigt (Pendant zum Web-Editor "Lage & Umgebung",
+                             MAUI bewusst ohne Live-Kartenvorschau) -->
+                        <Border Style="{StaticResource Card}"
+                                Padding="16,12"
+                                Margin="16,0"
+                                MaximumWidthRequest="768"
+                                HorizontalOptions="Fill">
+                            <VerticalStackLayout Spacing="12" RadioButtonGroup.GroupName="WizardLocationDisplay">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="{Binding Loc.LocationDisplaySectionHeader}"
+                                           Style="{StaticResource SectionHeader}" />
+                                    <Label Text="{Binding Loc.LocationDisplayIntro}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+
+                                <Grid ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="12"
+                                      AutomationId="Wizard_LocationApprox"
+                                      SemanticProperties.Description="{Binding Loc.LocationApproxTitle}">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectLocationDisplayCommand}"
+                                                              CommandParameter="Approximate" />
+                                    </Grid.GestureRecognizers>
+                                    <RadioButton IsChecked="{Binding IsLocationApproximate, Mode=TwoWay}"
+                                                 GroupName="WizardLocationDisplay"
+                                                 VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" InputTransparent="True">
+                                        <Label Text="{Binding Loc.LocationApproxTitle}"
+                                               Style="{StaticResource BodyStrong}" />
+                                        <Label Text="{Binding Loc.LocationApproxHint}"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="12"
+                                      AutomationId="Wizard_LocationExact"
+                                      SemanticProperties.Description="{Binding Loc.LocationExactTitle}">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectLocationDisplayCommand}"
+                                                              CommandParameter="Exact" />
+                                    </Grid.GestureRecognizers>
+                                    <RadioButton IsChecked="{Binding IsLocationExact, Mode=TwoWay}"
+                                                 GroupName="WizardLocationDisplay"
+                                                 VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" InputTransparent="True">
+                                        <Label Text="{Binding Loc.LocationExactTitle}"
+                                               Style="{StaticResource BodyStrong}" />
+                                        <Label Text="{Binding Loc.LocationExactHint}"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="12"
+                                      AutomationId="Wizard_LocationHidden"
+                                      SemanticProperties.Description="{Binding Loc.LocationHiddenTitle}">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectLocationDisplayCommand}"
+                                                              CommandParameter="Hidden" />
+                                    </Grid.GestureRecognizers>
+                                    <RadioButton IsChecked="{Binding IsLocationHidden, Mode=TwoWay}"
+                                                 GroupName="WizardLocationDisplay"
+                                                 VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" InputTransparent="True">
+                                        <Label Text="{Binding Loc.LocationHiddenTitle}"
+                                               Style="{StaticResource BodyStrong}" />
+                                        <Label Text="{Binding Loc.LocationHiddenHint}"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </VerticalStackLayout>
                         </Border>
 
                         <!-- Anbieter & Kontakt: Anbieter-Zeile read-only aus dem Profil
@@ -763,7 +846,6 @@
                                             </DataTrigger>
                                         </Border.Triggers>
                                         <VerticalStackLayout Spacing="4">
-                                            <Label Text="✍️" FontSize="20" />
                                             <Label Text="{Binding Loc.ManualModeTitle}"
                                                    Style="{StaticResource BodyStrong}">
                                                 <Label.Triggers>
@@ -794,7 +876,6 @@
                                             </DataTrigger>
                                         </Border.Triggers>
                                         <VerticalStackLayout Spacing="4">
-                                            <Label Text="✨" FontSize="20" />
                                             <Label Text="{Binding Loc.GenerateModeTitle}"
                                                    Style="{StaticResource BodyStrong}">
                                                 <Label.Triggers>

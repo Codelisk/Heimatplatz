@@ -117,6 +117,12 @@
   <data name="CurrentPasswordLabel" xml:space="preserve">
     <value>Aktuelles Passwort</value>
   </data>
+  <data name="CurrentPasswordPlaceholder" xml:space="preserve">
+    <value>Ihr aktuelles Passwort</value>
+  </data>
+  <data name="NewPasswordConfirmPlaceholder" xml:space="preserve">
+    <value>Passwort wiederholen</value>
+  </data>
   <data name="ForgotPasswordLink" xml:space="preserve">
     <value>Passwort vergessen?</value>
   </data>

@@ -23,6 +23,15 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        // Die App ist bewusst rein deutschsprachig: Formatierung (Datum, Zahlen)
+        // haengt sonst an der GERAETESPRACHE - auf einem en-US-Geraet stand z.B.
+        // im Impressum "Stand: 7/25/2026" statt "25.07.2026".
+        var germanCulture = new System.Globalization.CultureInfo("de-AT");
+        System.Globalization.CultureInfo.DefaultThreadCurrentCulture = germanCulture;
+        System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = germanCulture;
+        System.Globalization.CultureInfo.CurrentCulture = germanCulture;
+        System.Globalization.CultureInfo.CurrentUICulture = germanCulture;
+
         // So frueh wie moeglich: Crash-Hooks persistieren unbehandelte Exceptions
         // in die Preferences, gemeldet wird beim naechsten Start (AppStartupService)
         Features.Telemetry.Services.CrashReporter.RegisterGlobalHandlers();

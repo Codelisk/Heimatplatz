@@ -278,21 +278,32 @@
                                            LineBreakMode="TailTruncation"
                                            IsVisible="{Binding HasPreview}" />
 
-                                    <HorizontalStackLayout Spacing="6" Margin="0,2,0,0">
-                                        <Ellipse Fill="{Binding StatusColor}"
+                                    <!-- Grid statt HorizontalStackLayout: die Stack-Variante hat den
+                                         letzten Eintrag auf schmalen Geraeten hart abgeschnitten
+                                         ("2 Nachricl") - die *-Spalte truncated sauber mit Ellipse. -->
+                                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*"
+                                          ColumnSpacing="6"
+                                          Margin="0,2,0,0">
+                                        <Ellipse Grid.Column="0"
+                                                 Fill="{Binding StatusColor}"
                                                  WidthRequest="7"
                                                  HeightRequest="7"
                                                  VerticalOptions="Center" />
-                                        <Label Text="{Binding StatusLabel}"
+                                        <Label Grid.Column="1"
+                                               Text="{Binding StatusLabel}"
                                                FontFamily="SansSemibold"
                                                FontSize="12"
                                                TextColor="{Binding StatusColor}"
                                                VerticalOptions="Center" />
-                                        <Label Text="·" Style="{StaticResource Caption}" VerticalOptions="Center" />
-                                        <Label Text="{Binding DateText}" Style="{StaticResource Caption}" VerticalOptions="Center" />
-                                        <Label Text="·" Style="{StaticResource Caption}" VerticalOptions="Center" />
-                                        <Label Text="{Binding MessageCountText}" Style="{StaticResource Caption}" VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
+                                        <Label Grid.Column="2" Text="·" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                        <Label Grid.Column="3" Text="{Binding DateText}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                        <Label Grid.Column="4" Text="·" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                        <Label Grid.Column="5"
+                                               Text="{Binding MessageCountText}"
+                                               Style="{StaticResource Caption}"
+                                               LineBreakMode="TailTruncation"
+                                               VerticalOptions="Center" />
+                                    </Grid>
                                 </VerticalStackLayout>
                             </Grid>
                         </Border>

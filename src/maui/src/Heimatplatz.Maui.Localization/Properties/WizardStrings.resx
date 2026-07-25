@@ -43,10 +43,10 @@
     <value>JPG oder PNG – bis zu 20 Fotos, das erste wird zum Titelbild</value>
   </data>
   <data name="TakePhotoButton" xml:space="preserve">
-    <value>📷 Aufnehmen</value>
+    <value>Aufnehmen</value>
   </data>
   <data name="PickPhotosButton" xml:space="preserve">
-    <value>🖼 Galerie</value>
+    <value>Galerie</value>
   </data>
   <data name="TypeBadgeHouse" xml:space="preserve">
     <value>HAUS</value>
@@ -77,6 +77,30 @@
   </data>
   <data name="BuildingSectionHeader" xml:space="preserve">
     <value>GEBÄUDE</value>
+  </data>
+  <data name="LocationDisplaySectionHeader" xml:space="preserve">
+    <value>LAGE-ANZEIGE</value>
+  </data>
+  <data name="LocationDisplayIntro" xml:space="preserve">
+    <value>Sie entscheiden, wie genau Ihr Inserat auf der Karte erscheint.</value>
+  </data>
+  <data name="LocationApproxTitle" xml:space="preserve">
+    <value>Ungefähr</value>
+  </data>
+  <data name="LocationApproxHint" xml:space="preserve">
+    <value>Umgebungskreis – die genaue Adresse bleibt privat</value>
+  </data>
+  <data name="LocationExactTitle" xml:space="preserve">
+    <value>Genau</value>
+  </data>
+  <data name="LocationExactHint" xml:space="preserve">
+    <value>Punktgenauer Pin auf Ihrer Adresse</value>
+  </data>
+  <data name="LocationHiddenTitle" xml:space="preserve">
+    <value>Nicht anzeigen</value>
+  </data>
+  <data name="LocationHiddenHint" xml:space="preserve">
+    <value>Keine Karte im Inserat</value>
   </data>
   <data name="YearBuiltLabel" xml:space="preserve">
     <value>Baujahr</value>
@@ -118,13 +142,13 @@
     <value>Diktat ist auf diesem Gerät nicht verfügbar – Stichwörter einfach eintippen.</value>
   </data>
   <data name="RequestGenerationButton" xml:space="preserve">
-    <value>✨ Text erstellen lassen</value>
+    <value>Text erstellen lassen</value>
   </data>
   <data name="RequestGenerationAgainButton" xml:space="preserve">
-    <value>✨ Text neu erstellen lassen</value>
+    <value>Text neu erstellen lassen</value>
   </data>
   <data name="GenerationRunningTitle" xml:space="preserve">
-    <value>✨ Ihr Text wird erstellt – Sie müssen nicht warten</value>
+    <value>Ihr Text wird erstellt – Sie müssen nicht warten</value>
   </data>
   <data name="GenerationRunningBody" xml:space="preserve">
     <value>Tippen Sie einfach auf „Inserat veröffentlichen“ – die fertige Beschreibung erscheint automatisch in Ihrem Inserat.</value>

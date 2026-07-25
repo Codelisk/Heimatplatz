@@ -53,6 +53,9 @@ public partial class PropertyWizardViewModel
 
             Adresse = prop.Address;
             Preis = ((decimal)prop.Price).ToString("0.##", CultureInfo.CurrentCulture);
+            // Lage-Anzeige MUSS vorbefuellt werden - sonst wuerde Speichern die
+            // Anbieter-Entscheidung auf den Standard zuruecksetzen
+            SelectedLocationDisplay = prop.LocationDisplay ?? LocationDisplayMode.Approximate;
             OriginalListingUrl = prop.Contacts
                 ?.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.OriginalListingUrl))
                 ?.OriginalListingUrl ?? string.Empty;
@@ -145,6 +148,7 @@ public partial class PropertyWizardViewModel
                     YearBuilt = baujahr,
                     // Features immer mitsenden - null wuerde serverseitig alle Merkmale loeschen
                     Features = FeatureItems.ToList(),
+                    LocationDisplay = SelectedLocationDisplay,
                     ImageUrls = imageUrls,
                     OriginalListingUrl = string.IsNullOrWhiteSpace(OriginalListingUrl) ? null : OriginalListingUrl.Trim(),
                     ContactPerson = BuildContactPersonInput()

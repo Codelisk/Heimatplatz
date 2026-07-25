@@ -120,6 +120,10 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
 
     public bool HasProfileStatus => !string.IsNullOrEmpty(ProfileStatusMessage);
 
+    /// <summary>Fehler rot darstellen - Erfolg und Fehler sahen sonst identisch aus</summary>
+    [ObservableProperty]
+    public partial bool IsProfileStatusError { get; set; }
+
     [ObservableProperty]
     public partial bool IsSavingProfile { get; set; }
 
@@ -157,6 +161,10 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     public partial string? PasswordStatusMessage { get; set; }
 
     public bool HasPasswordStatus => !string.IsNullOrEmpty(PasswordStatusMessage);
+
+    /// <summary>Fehler rot darstellen - Erfolg und Fehler sahen sonst identisch aus</summary>
+    [ObservableProperty]
+    public partial bool IsPasswordStatusError { get; set; }
 
     [ObservableProperty]
     public partial bool IsChangingPassword { get; set; }
@@ -374,6 +382,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     private async Task SaveProfileAsync()
     {
         ProfileStatusMessage = null;
+        IsProfileStatusError = true;
 
         if (string.IsNullOrWhiteSpace(EditFirstName) || string.IsNullOrWhiteSpace(EditLastName))
         {
@@ -429,6 +438,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             LoadUserData();
             // Kachelzeile passt sich der neuen Rolle an (z.B. Inserate-Zaehler fuer neue Verkaeufer)
             _ = LoadStatsAsync();
+            IsProfileStatusError = false;
             ProfileStatusMessage = Loc.ProfileSaved;
         }
         catch (Exception ex)
@@ -488,6 +498,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     private async Task ChangePasswordAsync()
     {
         PasswordStatusMessage = null;
+        IsPasswordStatusError = true;
 
         if (string.IsNullOrWhiteSpace(CurrentPassword) || string.IsNullOrWhiteSpace(NewPassword))
         {
@@ -530,6 +541,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
             CurrentPassword = string.Empty;
             NewPassword = string.Empty;
             NewPasswordConfirm = string.Empty;
+            IsPasswordStatusError = false;
             PasswordStatusMessage = Loc.PasswordChanged;
         }
         catch (Exception ex)

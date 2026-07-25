@@ -29,6 +29,14 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     private readonly IMediator _mediator;
     private readonly ILogger<DebugViewModel> _logger;
 
+    /// <summary>
+    /// Waehrend der Konstruktor die Radio-Zustaende vorbelegt, darf Apply() nicht
+    /// feuern: Es wuerde die EFFEKTIVE Konfiguration (z.B. HEIMATPLATZ_API_URL-
+    /// Env-Override) mit der persistierten Preference ueberschreiben - blosses
+    /// Oeffnen der Debug-Seite hat so den Endpunkt zurueckgesetzt.
+    /// </summary>
+    private readonly bool _initializing;
+
     public DebugViewModel(
         IApiEndpointService apiEndpoints,
         IAuthService authService,
@@ -41,8 +49,8 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
         _authService = authService;
         _mediator = mediator;
         _logger = logger;
-        CurrentUrl = apiEndpoints.CurrentUrl;
 
+        _initializing = true;
         switch (apiEndpoints.SelectedEndpoint)
         {
             case ApiEndpointKind.Development:
@@ -55,6 +63,11 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
                 IsProductionSelected = true;
                 break;
         }
+        _initializing = false;
+
+        // Nach der Radio-Vorbelegung lesen: zeigt die tatsaechlich wirksame URL
+        // (inkl. Env-Override), nicht die Preference
+        CurrentUrl = apiEndpoints.CurrentUrl;
 
         UpdateAuthenticationState();
     }
@@ -105,6 +118,7 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     public void OnAppearing()
     {
         ErrorMessage = null;
+        CurrentUrl = _apiEndpoints.CurrentUrl;
         UpdateAuthenticationState();
     }
 
@@ -138,19 +152,19 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
 
     partial void OnIsDevelopmentSelectedChanged(bool value)
     {
-        if (value)
+        if (value && !_initializing)
             Apply(ApiEndpointKind.Development);
     }
 
     partial void OnIsTestSelectedChanged(bool value)
     {
-        if (value)
+        if (value && !_initializing)
             Apply(ApiEndpointKind.Test);
     }
 
     partial void OnIsProductionSelectedChanged(bool value)
     {
-        if (value)
+        if (value && !_initializing)
             Apply(ApiEndpointKind.Production);
     }
 

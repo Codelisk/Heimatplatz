@@ -34,6 +34,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     private readonly IInternetService _internet;
     private readonly OfflineReadState _offlineReadState;
     private readonly PropertyImageCache _imageCache;
+    private readonly Features.Debug.Services.IApiEndpointService _apiEndpoints;
     private readonly PropertyHandoffCache _handoffCache;
     private readonly PropertyDetailPreloader _detailPreloader;
     private readonly PropertyDetailImageResolver _imageResolver;
@@ -105,6 +106,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     [ObservableProperty]
     public partial string? LoadErrorText { get; set; }
 
+    /// <summary>Bilddatei des Fehlerzustands (Offline-Antenne bzw. Nicht-verfuegbar), ersetzt das fruehere Emoji</summary>
     [ObservableProperty]
     public partial string LoadErrorIcon { get; set; }
 
@@ -336,6 +338,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         PropertyDetailPreloader detailPreloader,
         PropertyDetailImageResolver imageResolver,
         DetailNavigationTrace trace,
+        Features.Debug.Services.IApiEndpointService apiEndpoints,
         ILogger<PropertyDetailViewModel> logger,
         PropertyDetailStringsLocalized loc,
         CommonStringsLocalized commonLoc)
@@ -352,6 +355,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         _internet = internet;
         _offlineReadState = offlineReadState;
         _imageCache = imageCache;
+        _apiEndpoints = apiEndpoints;
         _logger = logger;
         _loc = loc;
         _commonLoc = commonLoc;
@@ -583,6 +587,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         LoadErrorText = null;
         _onlineWaitCts?.Cancel();
 
+        // Erst zeichnen, dann eintragen: Der vorgeladene Request ist beim Aufruf aus
+        // OnAppearing oft schon fertig. Ohne diesen Bruch laeuft das komplette
+        // Uebernehmen der Detaildaten (Kacheln, Sektionen, Kontakte) noch im
+        // Tap-Handler - also mitten in der Navigationsanimation. Die Vorschau aus den
+        // Listendaten steht zu diesem Zeitpunkt bereits, sichtbar fehlt also nichts.
+        await Task.Yield();
+
         var busyCts = new CancellationTokenSource();
         _ = ShowBusyAfterDelayAsync(busyCts.Token);
 
@@ -604,7 +615,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
                 Property = null;
                 _logger.LogWarning("[PropertyDetail] Property {PropertyId} not found", propertyId);
                 SetLoadError(
-                    "🏠",
+                    "icon_unavailable.png",
                     _loc.NotAvailableTitle,
                     _loc.NotAvailableText,
                     canRetry: false);
@@ -644,7 +655,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
             UpdateDisplayProperties();
             SetLoadError(
-                "📡",
+                "icon_offline.png",
                 _loc.LoadFailedTitle,
                 ex is HttpRequestException
                     ? _loc.ServerUnreachableText
@@ -697,16 +708,16 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     private void SetOfflineError(Guid propertyId)
     {
         SetLoadError(
-            "📡",
+            "icon_offline.png",
             _loc.OfflineTitle,
             _loc.OfflineText,
             canRetry: true);
         StartAutoReloadWhenOnline(propertyId);
     }
 
-    private void SetLoadError(string icon, string title, string text, bool canRetry)
+    private void SetLoadError(string iconSource, string title, string text, bool canRetry)
     {
-        LoadErrorIcon = icon;
+        LoadErrorIcon = iconSource;
         LoadErrorTitle = title;
         LoadErrorText = text;
         CanRetryLoad = canRetry;
@@ -1283,7 +1294,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
         _logger.LogInformation("[PropertyDetail] Sharing property {PropertyId}", Property.Id);
 
-        var propertyUrl = new Uri($"https://heimatplatz.at/immobilien/angebote/{Property.Id}");
+        // Web-Pendant des aktiven Endpunkts: Debug/Test-Builds teilen Test-Links
+        var propertyUrl = Services.WebLinks.ListingUrl(_apiEndpoints.CurrentUrl, Property.Id);
 
         var description = $"{Property.Title}\n" +
                           $"{FormattedPrice}\n" +

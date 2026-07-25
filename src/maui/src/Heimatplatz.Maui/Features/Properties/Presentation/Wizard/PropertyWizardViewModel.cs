@@ -36,7 +36,8 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
         nameof(Baujahr), nameof(Preis), nameof(Adresse), nameof(Beschreibung),
         nameof(OriginalListingUrl), nameof(DescriptionKeywords), nameof(DescriptionMode),
         nameof(SelectedPropertyTypeItem), nameof(GenerationStatus),
-        nameof(ContactName), nameof(ContactEmail), nameof(ContactPhone)
+        nameof(ContactName), nameof(ContactEmail), nameof(ContactPhone),
+        nameof(SelectedLocationDisplay)
     ];
 
     private readonly IAuthService _authService;
@@ -299,11 +300,17 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
             return;
         }
 
+        // "Verwerfen" bewusst NICHT als destruction-Button: Android rendert
+        // cancel+destruction als Dialog-Buttons und einen einzelnen weiteren
+        // Eintrag als graue Textzeile - "Als Entwurf speichern" sah damit aus
+        // wie deaktivierter Beschreibungstext. Als zwei gleichwertige
+        // Listeneintraege sind beide Optionen klar als Auswahl erkennbar.
         var choice = await Shell.Current.DisplayActionSheetAsync(
             Loc.DraftPromptTitle,
             Loc.KeepEditing,
-            Loc.Discard,
-            Loc.SaveAsDraft);
+            null,
+            Loc.SaveAsDraft,
+            Loc.Discard);
 
         // Kein switch: Lokalisierte Texte sind keine Konstanten (case-Labels unzulaessig)
         if (choice == Loc.SaveAsDraft)

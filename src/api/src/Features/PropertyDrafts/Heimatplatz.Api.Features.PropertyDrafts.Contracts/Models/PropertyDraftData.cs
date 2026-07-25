@@ -49,6 +49,12 @@ public class PropertyDraftData
     public string? MunicipalityDisplay { get; set; }
     public decimal? Price { get; set; }
 
+    /// <summary>
+    /// Lage-Anzeige (Genau/Ungefaehr/Verborgen) - Entscheidung des Anbieters,
+    /// landet beim Veroeffentlichen 1:1 im CreatePropertyRequest (null = Standard).
+    /// </summary>
+    public LocationDisplayMode? LocationDisplay { get; set; }
+
     /// <summary>Link zum Originalinserat (landet beim Veroeffentlichen am Erst-Kontakt)</summary>
     public string? OriginalListingUrl { get; set; }
 

@@ -96,7 +96,7 @@ public class LegalSettingsSeeder(AppDbContext dbContext) : ISeeder
                 "Website: https://www.dsb.gv.at"),
 
             new(8, "Cookies und Local Storage",
-                "Unsere Website verwendet ausschließlich technisch notwendige Cookies bzw. Local Storage für:\n\n" +
+                "Unsere Website und unsere App verwenden ausschließlich technisch notwendige Cookies bzw. Local Storage für:\n\n" +
                 "- Speicherung Ihrer Anmeldedaten (Session)\n" +
                 "- Speicherung Ihrer Filtereinstellungen\n\n" +
                 "Für technisch notwendige Cookies ist keine Einwilligung erforderlich (Paragraph 165 Abs. 3 TKG)."),

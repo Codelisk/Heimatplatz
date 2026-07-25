@@ -139,6 +139,8 @@ public class PublishPropertyDraftHandler(
             Features: data.Features,
             ImageUrls: data.ImageUrls,
             OriginalListingUrl: data.OriginalListingUrl,
+            // Lage-Anzeige des Anbieters durchreichen (null = Standard Approximate)
+            LocationDisplay: data.LocationDisplay,
             ContactPerson: string.IsNullOrWhiteSpace(data.ContactName)
                 && string.IsNullOrWhiteSpace(data.ContactEmail)
                 && string.IsNullOrWhiteSpace(data.ContactPhone)

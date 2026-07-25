@@ -684,6 +684,14 @@
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
     </Style>
 
+    <!-- Bild-Variante (z.B. Offline-Zustand): ersetzt das fruehere 📡-Emoji,
+         das je nach Android-Version unterschiedlich und farbig gerendert wurde -->
+    <Style x:Key="EmptyStateImageIcon" TargetType="Image">
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
     <Style x:Key="EmptyStateTitle" TargetType="Label">
         <Setter Property="FontFamily" Value="Display" />
         <Setter Property="FontSize" Value="18" />

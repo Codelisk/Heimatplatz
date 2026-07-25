@@ -7,7 +7,7 @@
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.PropertyDetailPage"
              x:DataType="vm:PropertyDetailViewModel"
-             Shell.FlyoutBehavior="Disabled"
+             appcontrols:DeferredFlyoutLock.IsEnabled="True"
              Title="{Binding Title}">
 
     <!-- Single-Cell-Grid: Der Kontakt-Footer liegt als Bottom-Sheet UEBER dem Inhalt.
@@ -71,8 +71,7 @@
                                  VerticalOptions="Center"
                                  HorizontalOptions="Center"
                                  MaximumWidthRequest="420">
-                <Label Text="{Binding LoadErrorIcon}"
-                       Style="{StaticResource EmptyStateIcon}" />
+                <Image Source="{Binding LoadErrorIcon}" Style="{StaticResource EmptyStateImageIcon}" />
                 <Label Text="{Binding LoadErrorTitle}"
                        Style="{StaticResource EmptyStateTitle}"
                        AutomationId="Detail_LoadErrorTitle" />
@@ -143,18 +142,20 @@
                                       Loop="False">
                             <CarouselView.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">
+                                    <!-- Tippen oeffnet die Grossansicht. Bewusst ein
+                                         TapGestureRecognizer statt einer unsichtbaren
+                                         Button-Flaeche: jedes Carousel-Item wuerde sonst
+                                         einen MaterialButton inflaten, und die beiden
+                                         Items, die beim Seitenaufbau gebunden werden,
+                                         hielten damit die Navigationsanimation auf. -->
                                     <Grid>
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding OpenImageViewerCommand, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}, x:DataType=vm:PropertyDetailViewModel}" />
+                                        </Grid.GestureRecognizers>
                                         <Image Source="{Binding .}"
-                                               Aspect="AspectFill" />
-                                        <!-- Unsichtbare Tap-Flaeche: oeffnet die Grossansicht
-                                             (Button statt TapGestureRecognizer, wirkt ueberall) -->
-                                        <Button BackgroundColor="Transparent"
-                                                BorderColor="Transparent"
-                                                BorderWidth="0"
-                                                Padding="0"
-                                                MinimumHeightRequest="0"
-                                                Command="{Binding OpenImageViewerCommand, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}, x:DataType=vm:PropertyDetailViewModel}"
-                                                SemanticProperties.Description="{Binding Loc.OpenImageViewerSemantic, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}, x:DataType=vm:PropertyDetailViewModel}" />
+                                               Aspect="AspectFill"
+                                               SemanticProperties.Description="{Binding Loc.OpenImageViewerSemantic, Source={RelativeSource AncestorType={x:Type vm:PropertyDetailViewModel}}, x:DataType=vm:PropertyDetailViewModel}" />
                                     </Grid>
                                 </DataTemplate>
                             </CarouselView.ItemTemplate>

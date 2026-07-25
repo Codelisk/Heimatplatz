@@ -97,6 +97,14 @@ public class ThemeService : IThemeService
             insets.AppearanceLightStatusBars = !dark;
             insets.AppearanceLightNavigationBars = !dark;
         }
+
+        // Edge-to-Edge (API 35+): Der Streifen hinter der Status-Bar ist die
+        // Inset-Flaeche der AppBarLayout, deren Hintergrund aus dem NATIVEN Theme
+        // (colorPrimary) kommt. Beim UserAppTheme-Wechsel ohne Recreate bleibt der
+        // alte Wert stehen, bis die naechste Navigation die Toolbar neu aufbaut -
+        // deshalb hier direkt umfaerben.
+        if (window.DecorView is Android.Views.ViewGroup decorRoot)
+            PaintAppBarLayouts(decorRoot, barColor);
 #elif IOS || MACCATALYST
         // MAUI reicht UserAppTheme nur an den gerade aktiven ViewController weiter -
         // beim App-Start existiert der noch nicht. System-gezeichnete Flaechen
@@ -122,6 +130,22 @@ public class ThemeService : IThemeService
         }
 #endif
     }
+
+#if ANDROID
+    /// <summary>Faerbt alle AppBarLayouts im View-Baum um (Status-Bar-Inset-Flaeche).</summary>
+    private static void PaintAppBarLayouts(Android.Views.ViewGroup root, Android.Graphics.Color color)
+    {
+        for (var i = 0; i < root.ChildCount; i++)
+        {
+            var child = root.GetChildAt(i);
+            if (child is Google.Android.Material.AppBar.AppBarLayout appBar)
+                appBar.SetBackgroundColor(color);
+
+            if (child is Android.Views.ViewGroup group)
+                PaintAppBarLayouts(group, color);
+        }
+    }
+#endif
 
 #if IOS || MACCATALYST
     private void ApplyNativeWindowTheme(UIKit.UIWindow nativeWindow)
