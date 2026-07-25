@@ -624,18 +624,17 @@ const ortRegions = await fetchOrtRegions();
 
     body.append(left, facts);
 
-    // ZV: Countdown-Zeile unter dem Foto - 1:1 zu ApiPropertyCard.astro
+    // ZV: Countdown-Overlay am Foto-Unterrand - 1:1 zu ApiPropertyCard.astro
     // (relative Angabe hier, das absolute Datum bleibt in der Fusszeile)
     const auctionCountdown = isForeclosureCard ? getAuctionCountdownLabel(property.AuctionDate) : null;
     if (auctionCountdown) {
       const strip = document.createElement("p");
-      strip.className = "flex items-center gap-1.5 border-b border-brand/15 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand dark:text-price";
+      strip.className = "pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-brand/90 px-3 py-1.5 text-xs font-semibold text-brand-foreground";
       strip.innerHTML = ICONS.gavel.replace('class="size-3"', 'class="size-3.5 shrink-0"');
       strip.append(createText("span", "truncate", auctionCountdown));
-      article.append(media, strip, body, createCardFooter(property));
-    } else {
-      article.append(media, body, createCardFooter(property));
+      media.append(strip);
     }
+    article.append(media, body, createCardFooter(property));
     return article;
   }
 
