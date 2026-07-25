@@ -617,6 +617,8 @@ for (const region of regions) {
     let lastDark = document.documentElement.classList.contains("dark");
     /** Nach dem Split-Aufklappen (Spaltenbreiten-Animation) Karte nachziehen */
     let settleTimer: number | undefined;
+    /** Bezirks-Schwerpunkte (unentzerrt) - Basis fuer positionClusters() */
+    let clusterEntries: { lng: number; lat: number }[] = [];
     /** Marker-Registries fuer den Hover-Sync mit der Trefferliste */
     let pinElById = new Map<string, HTMLElement>();
     let clusterElBySlug = new Map<string, HTMLElement>();
@@ -711,8 +713,12 @@ for (const region of regions) {
           if (mobileQuery.matches) hidePopup();
         });
 
-        // Schilder-Kollisionen haengen vom Zoom ab (Pixel- vs. Geo-Abstand)
-        map.on("zoomend", declutterPins);
+        // Schilder-Kollisionen und Stempel-Entzerrung haengen vom Zoom ab
+        // (Pixel- vs. Geo-Abstand) - beides je Zoomstufe neu berechnen
+        map.on("zoomend", () => {
+          positionClusters();
+          declutterPins();
+        });
 
         // Container startet zusammengeklappt (Hoehe 0) und aendert sich mit dem
         // Aufklappen/Umbruechen - MapLibre beobachtet nur window-Resizes selbst
@@ -950,29 +956,8 @@ for (const region of regions) {
           };
         });
 
-      // Entzerrung in Pixeln (Stadt Linz / Linz-Land liegen fast uebereinander):
-      // Schwerpunkte projizieren, auseinanderschieben, zurueckprojizieren
-      const projected = entries.map((entry) => mapRef.project([entry.lng, entry.lat]));
-      for (let iteration = 0; iteration < 3; iteration++) {
-        for (let i = 0; i < projected.length; i++) {
-          for (let j = i + 1; j < projected.length; j++) {
-            const dx = projected[j].x - projected[i].x;
-            const dy = projected[j].y - projected[i].y;
-            const distance = Math.hypot(dx, dy);
-            const minDistance = 46;
-            if (distance > 0 && distance < minDistance) {
-              const push = (minDistance - distance) / 2;
-              projected[i].x -= (dx / distance) * push;
-              projected[i].y -= (dy / distance) * push;
-              projected[j].x += (dx / distance) * push;
-              projected[j].y += (dy / distance) * push;
-            }
-          }
-        }
-      }
-
+      clusterEntries = entries.map((entry) => ({ lng: entry.lng, lat: entry.lat }));
       entries.forEach((entry, index) => {
-        const position = mapRef.unproject(projected[index]);
         const el = document.createElement("button");
         el.type = "button";
         el.className = "hpmap-cluster";
@@ -992,7 +977,7 @@ for (const region of regions) {
         clusterElBySlug.set(entry.slug, el);
         const wrapper = document.createElement("div");
         wrapper.append(el);
-        clusterMarkers.push(new libRef.Marker({ element: wrapper }).setLngLat(position).addTo(mapRef));
+        clusterMarkers.push(new libRef.Marker({ element: wrapper }).setLngLat([entry.lng, entry.lat]).addTo(mapRef));
       });
 
       statusEl.hidden = pins.length > 0;
@@ -1000,7 +985,40 @@ for (const region of regions) {
       setCartoucheCount(pins.length);
       // Laufenden Listen-Hover auf die frisch gebauten Marker uebertragen
       applyCardFokus(fokusPinId);
+      positionClusters();
       declutterPins();
+    }
+
+    /**
+     * Bezirks-Stempel in Pixeln entzerren (Stadt Linz / Linz-Land liegen fast
+     * uebereinander): Schwerpunkte projizieren, auseinanderschieben, zurueck-
+     * projizieren. MUSS nach jeder Zoomaenderung neu laufen - project/unproject
+     * backen die aktuelle Kamera ein; einmalig beim Rendern berechnet klebten
+     * die Stempel nach fitBounds an der alten Projektion (auf Test sichtbar,
+     * wenn die Pins vor dem Einpassen der frisch initialisierten Karte ankamen).
+     */
+    function positionClusters() {
+      const mapRef = map;
+      if (!mapRef || clusterMarkers.length < 1) return;
+      const projected = clusterEntries.map((entry) => mapRef.project([entry.lng, entry.lat]));
+      for (let iteration = 0; iteration < 3; iteration++) {
+        for (let i = 0; i < projected.length; i++) {
+          for (let j = i + 1; j < projected.length; j++) {
+            const dx = projected[j].x - projected[i].x;
+            const dy = projected[j].y - projected[i].y;
+            const distance = Math.hypot(dx, dy);
+            const minDistance = 46;
+            if (distance > 0 && distance < minDistance) {
+              const push = (minDistance - distance) / 2;
+              projected[i].x -= (dx / distance) * push;
+              projected[i].y -= (dy / distance) * push;
+              projected[j].x += (dx / distance) * push;
+              projected[j].y += (dy / distance) * push;
+            }
+          }
+        }
+      }
+      clusterMarkers.forEach((marker, index) => marker.setLngLat(mapRef.unproject(projected[index])));
     }
 
     function updateNote(payload: ApiMapPinsResponse) {
