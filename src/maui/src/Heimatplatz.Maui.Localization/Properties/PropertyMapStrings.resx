@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Karte</value>
+  </data>
+  <data name="LoadingMessage" xml:space="preserve">
+    <value>Karte wird aufgefaltet...</value>
+  </data>
+  <data name="OfflineTitle" xml:space="preserve">
+    <value>Keine Verbindung</value>
+  </data>
+  <data name="OfflineHint" xml:space="preserve">
+    <value>Die Kartenansicht braucht eine Internetverbindung. Bitte pruefen Sie Ihre Verbindung und versuchen Sie es erneut.</value>
+  </data>
+  <data name="LoadFailedTitle" xml:space="preserve">
+    <value>Karte konnte nicht geladen werden</value>
+  </data>
+  <data name="LoadFailedHint" xml:space="preserve">
+    <value>Beim Laden der Karte ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+</root>

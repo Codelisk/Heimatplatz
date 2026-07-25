@@ -268,6 +268,46 @@
                 </Grid>
             </Grid>
 
+            <!-- Schwebende Karte-Pille (1:1 zur Astro-Web-Pille .hpmap-pill):
+                 kompakt, Tabler-map-2-Icon, warme Tinte statt hartem Schwarz
+                 (Web-Foreground-Token = Gray900), weicher Schatten. Oeffnet
+                 die Vollbild-Kartenansicht mit den aktuellen Filtern. -->
+            <Border HorizontalOptions="Center"
+                    VerticalOptions="End"
+                    Margin="0,0,0,20"
+                    Padding="20,0"
+                    HeightRequest="40"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 20"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=#F0EAE1}"
+                    SemanticProperties.Description="{Binding Loc.MapPillSemantic}"
+                    AutomationId="Home_MapPill">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.3" Radius="12" Offset="0,5" />
+                </Border.Shadow>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenMapCommand}" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                    <!-- Tabler map-2 (wie im Web) als Vektor-Path, Strichstaerke
+                         auf 16px-Rendering angepasst (2 * 16/24) -->
+                    <Path Data="M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v7.5 M9 4v13 M15 7v5.5 M21.121 20.121a3 3 0 1 0 -4.242 0c.418 .419 1.125 1.045 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879 M19 18v.01"
+                          Stroke="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
+                          StrokeThickness="1.4"
+                          StrokeLineCap="Round"
+                          StrokeLineJoin="Round"
+                          Aspect="Uniform"
+                          WidthRequest="16"
+                          HeightRequest="16"
+                          VerticalOptions="Center" />
+                    <Label Text="{Binding Loc.MapPill}"
+                           FontFamily="SansBold"
+                           FontSize="14"
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
+                </HorizontalStackLayout>
+            </Border>
+
             <!-- Busy-Overlay -->
             <Grid Style="{StaticResource BusyOverlay}"
                   IsVisible="{Binding IsBusy}">

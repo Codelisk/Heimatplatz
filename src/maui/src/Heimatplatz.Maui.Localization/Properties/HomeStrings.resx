@@ -15,6 +15,12 @@
   <data name="EmptyTitle" xml:space="preserve">
     <value>Keine Treffer</value>
   </data>
+  <data name="MapPill" xml:space="preserve">
+    <value>Karte</value>
+  </data>
+  <data name="MapPillSemantic" xml:space="preserve">
+    <value>Kartenansicht der Suchergebnisse oeffnen</value>
+  </data>
   <data name="EmptyHint" xml:space="preserve">
     <value>Passen Sie Ihre Filter an, um mehr Immobilien zu sehen.</value>
   </data>

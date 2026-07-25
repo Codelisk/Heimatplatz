@@ -1449,6 +1449,14 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private Task OpenFilterSettingsAsync()
         => _navigator.NavigateTo<FilterSettingsViewModel>();
 
+    /// <summary>
+    /// Oeffnet die Vollbild-Kartenansicht (Karte-Pille). Die aktuellen Filter
+    /// nimmt die Karte selbst aus dem FilterStateService mit.
+    /// </summary>
+    [RelayCommand]
+    private Task OpenMapAsync()
+        => _navigator.NavigateTo<PropertyMapViewModel>();
+
     [RelayCommand]
     private void ToggleHaus() => IsHausSelected = !IsHausSelected;
 
