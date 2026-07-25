@@ -30,6 +30,8 @@ export const property = {
   "detail.sectionDetails": "Details",
   "detail.sectionFeaturesHeading": "Ausstattung & Merkmale",
   "detail.sectionDescription": "Beschreibung",
+  "detail.sectionLocation": "Lage & Umgebung",
+  "detail.locationApproxHint": "Ungefähre Lage – der genaue Standort wird zum Schutz der Anbieter nicht angezeigt.",
 
   // Detailseite: Anbieter-Sidebar
   "detail.sellerCourt": "Gericht",

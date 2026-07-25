@@ -334,6 +334,25 @@ export function fetchApiPropertyById(id: string) {
   return cached(`property:${id}`, TTL.propertyDetail, () => fetchApiPropertyByIdUncached(id));
 }
 
+// Karten-Pin fuer die Mini-Karte der Detailseite: bewusst ueber den map-pins-
+// Endpoint statt des Detail-DTOs - der Privacy-Jitter fuer ungenaue Lagen
+// bleibt damit serverseitig, exakte Koordinaten verlassen die API nie.
+async function fetchApiPropertyMapPinUncached(id: string): Promise<import("./map-pins").ApiMapPin | null> {
+  try {
+    const response = await fetch(new URL(`/api/properties/map-pins?PropertyId=${encodeURIComponent(id)}`, getServerApiBaseUrl()));
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const payload = await response.json() as import("./map-pins").ApiMapPinsResponse;
+    return payload.Pins?.[0] ?? null;
+  } catch (error) {
+    console.warn(`[Heimatplatz] API map pin ${id} could not be loaded`, error);
+    return null;
+  }
+}
+
+export function fetchApiPropertyMapPin(id: string) {
+  return cached(`property-map-pin:${id}`, TTL.propertyDetail, () => fetchApiPropertyMapPinUncached(id));
+}
+
 export type ApiPropertyTypeOption = {
   Value: string;
   Label: string;

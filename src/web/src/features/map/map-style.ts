@@ -158,6 +158,27 @@ function lakePolygons(): FeatureCollection {
   return { type: "FeatureCollection", features };
 }
 
+/**
+ * Kreis-Polygon um eine Position (Mini-Karte der Detailseite: ungenaue Lagen
+ * werden als Umgebungskreis statt als punktgenauer Pin gezeigt).
+ */
+export function locationCirclePolygon(lng: number, lat: number, radiusMeters: number): Feature<Polygon> {
+  const points: LngLat[] = [];
+  for (let i = 0; i <= 48; i++) {
+    const angle = (i / 48) * 2 * Math.PI;
+    const eastKm = (radiusMeters / 1000) * Math.cos(angle);
+    const northKm = (radiusMeters / 1000) * Math.sin(angle);
+    points.push([
+      lng + eastKm / (111.32 * Math.cos((lat * Math.PI) / 180)),
+      lat + northKm / 111.32,
+    ]);
+  }
+  return { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [points] } };
+}
+
+/** Markenrot (Logo, themenunabhaengig) fuer Lage-Markierungen auf der Karte. */
+export const BRAND_RED = "#de2a2f";
+
 export type MapStyleOptions = {
   dark: boolean;
   /** PMTiles erreichbar? Ohne Tiles rendert der Stil die Papier-Fallback-Karte. */

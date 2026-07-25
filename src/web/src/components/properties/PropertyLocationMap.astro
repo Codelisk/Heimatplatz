@@ -1,0 +1,208 @@
+---
+import { t } from "@/i18n";
+import { jsonForScriptTag } from "@/lib/utils/json";
+import type { ApiMapPin } from "@/features/properties/map-pins";
+
+/**
+ * Mini-Karte "Lage & Umgebung" der Inserats-Detailseite: derselbe MapLibre-
+ * Papierstil wie die Faltkarte der Suche, festgezoomt auf das Inserat.
+ * Ungenaue Lagen (IsApproximate, Privatsphaere der Anbieter) zeigen einen
+ * Umgebungskreis statt eines punktgenauen Pins - die Koordinaten kommen
+ * bereits serverseitig gestreut aus dem map-pins-Endpoint (SSR-Fetch in
+ * fetchApiPropertyMapPin), exakte Werte verlassen die API nie.
+ *
+ * MapLibre laedt lazy erst, wenn die Karte in den Viewport scrollt.
+ */
+
+interface Props {
+  pin: ApiMapPin;
+}
+
+const { pin } = Astro.props;
+const locationData = {
+  lat: pin.Latitude,
+  lng: pin.Longitude,
+  approximate: pin.IsApproximate,
+};
+---
+
+<section class="mt-8" aria-labelledby="api-location">
+  <h2 id="api-location" class="text-sm font-bold uppercase text-muted-foreground">{t("detail.sectionLocation")}</h2>
+  <div class="hpdetailmap-sheet mt-4" data-detail-map>
+    <div class="hpdetailmap-canvas" data-detail-map-gl></div>
+  </div>
+  {pin.IsApproximate && (
+    <p class="mt-2 max-w-3xl text-xs text-muted-foreground">{t("detail.locationApproxHint")}</p>
+  )}
+</section>
+<script is:inline type="application/json" data-detail-map-pin set:html={jsonForScriptTag(locationData)} />
+
+<style is:global>
+  /* Mini-Karte im Zettel-Look; Marker/Controls entstehen per JS bzw. MapLibre
+     und haetten keine Astro-Scoped-Attribute - daher global mit Prefix. */
+  .hpdetailmap-sheet {
+    position: relative;
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--zettel-rand);
+    border-radius: var(--radius);
+    box-shadow: var(--zettel-shadow);
+    outline: 1px solid var(--zettel-frame);
+    outline-offset: -7px;
+  }
+  .hpdetailmap-canvas { width: 100%; aspect-ratio: 16 / 9; background: var(--card); }
+  .hpdetailmap-canvas .maplibregl-canvas { outline: none; }
+
+  @media (max-width: 640px) {
+    .hpdetailmap-canvas { aspect-ratio: 4 / 3; }
+  }
+
+  /* MapLibre-Chrome in Zettel-Optik (gleiche Werte wie die Faltkarte der Suche) */
+  .hpdetailmap-sheet .maplibregl-ctrl-group {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 3px 8px -3px oklch(0.25 0.04 55 / 40%);
+    border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent);
+    overflow: hidden;
+  }
+  .hpdetailmap-sheet .maplibregl-ctrl-group button { background: transparent; }
+  .hpdetailmap-sheet .maplibregl-ctrl-group button + button {
+    border-top: 1px solid color-mix(in oklab, var(--foreground) 16%, transparent);
+  }
+  .dark .hpdetailmap-sheet .maplibregl-ctrl button.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
+  .dark .hpdetailmap-sheet .maplibregl-ctrl button.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+    filter: invert(1);
+  }
+  .hpdetailmap-sheet .maplibregl-ctrl-attrib {
+    background: color-mix(in oklab, var(--card) 80%, transparent);
+    color: var(--muted-foreground);
+    font-size: 10px;
+  }
+  .hpdetailmap-sheet .maplibregl-ctrl-attrib a { color: var(--muted-foreground); }
+
+  /* Punktgenauer Lage-Pin (nur exakte Lagen, z.B. ZV-Edikte) */
+  .hpdetailmap-pin {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #de2a2f;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 1px oklch(0.3 0.03 55 / 35%), 0 4px 10px -3px oklch(0.2 0.05 26 / 55%);
+  }
+</style>
+
+<script>
+  const container = document.querySelector<HTMLElement>("[data-detail-map-gl]");
+  const dataElement = document.querySelector("[data-detail-map-pin]");
+
+  if (container && dataElement) {
+    const location = (() => {
+      try {
+        return JSON.parse(dataElement.textContent ?? "null") as { lat: number; lng: number; approximate: boolean } | null;
+      } catch {
+        return null;
+      }
+    })();
+
+    if (location) {
+      const TILES_URL = new URL(import.meta.env.PUBLIC_MAP_TILES_URL || "/tiles/oberoesterreich.pmtiles", window.location.origin).href;
+      const ASSETS_URL = new URL(import.meta.env.PUBLIC_MAP_ASSETS_URL || "/tiles/assets", window.location.origin).href;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      async function initMap() {
+        const [maplibreModule, pmtilesModule, styleModule] = await Promise.all([
+          import("maplibre-gl"),
+          import("pmtiles"),
+          import("@/features/map/map-style"),
+          import("maplibre-gl/dist/maplibre-gl.css"),
+        ]);
+        const maplibre = maplibreModule;
+
+        const protocol = new pmtilesModule.Protocol();
+        maplibre.addProtocol("pmtiles", protocol.tile);
+
+        let tilesAvailable = false;
+        try {
+          const probe = await fetch(TILES_URL, { headers: { Range: "bytes=0-127" } });
+          tilesAvailable = probe.ok;
+        } catch {
+          tilesAvailable = false;
+        }
+
+        let dark = document.documentElement.classList.contains("dark");
+        const buildStyle = () =>
+          styleModule.buildMapStyle({ dark, tilesAvailable, tilesUrl: TILES_URL, assetsUrl: ASSETS_URL });
+
+        const map = new maplibre.Map({
+          container: container!,
+          style: buildStyle(),
+          center: [location!.lng, location!.lat],
+          // Ungenaue Lagen nicht zu nah heranholen - der Kreis soll Umgebung zeigen
+          zoom: location!.approximate ? 13.2 : 15,
+          minZoom: 8,
+          maxZoom: 16.5,
+          attributionControl: { compact: true },
+          cooperativeGestures: true,
+          locale: {
+            "CooperativeGesturesHandler.WindowsHelpText": "Zoomen mit Strg + Scrollen",
+            "CooperativeGesturesHandler.MacHelpText": "Zoomen mit ⌘ + Scrollen",
+            "CooperativeGesturesHandler.MobileHelpText": "Verschieben mit zwei Fingern",
+            "NavigationControl.ZoomIn": "Hineinzoomen",
+            "NavigationControl.ZoomOut": "Herauszoomen",
+            "AttributionControl.ToggleAttribution": "Quellenangabe umschalten",
+          },
+        });
+        map.addControl(new maplibre.NavigationControl({ showCompass: false }), "bottom-left");
+        new ResizeObserver(() => map.resize()).observe(container!);
+
+        if (location!.approximate) {
+          // Umgebungskreis (~300 m) statt Pin - style.load feuert auch nach jedem
+          // setStyle (Theme-Wechsel), der Kreis kommt so immer wieder mit
+          map.on("style.load", () => {
+            map.addSource("hp-location", {
+              type: "geojson",
+              data: styleModule.locationCirclePolygon(location!.lng, location!.lat, 300),
+            });
+            map.addLayer({
+              id: "hp-location-fill",
+              type: "fill",
+              source: "hp-location",
+              paint: { "fill-color": styleModule.BRAND_RED, "fill-opacity": 0.14 },
+            });
+            map.addLayer({
+              id: "hp-location-line",
+              type: "line",
+              source: "hp-location",
+              paint: { "line-color": styleModule.BRAND_RED, "line-width": 2, "line-opacity": 0.5 },
+            });
+          });
+        } else {
+          const pinElement = document.createElement("div");
+          pinElement.className = "hpdetailmap-pin";
+          new maplibre.Marker({ element: pinElement }).setLngLat([location!.lng, location!.lat]).addTo(map);
+        }
+
+        // Theme-Wechsel: Stil neu setzen (style.load haengt den Kreis wieder an)
+        new MutationObserver(() => {
+          const nextDark = document.documentElement.classList.contains("dark");
+          if (nextDark !== dark) {
+            dark = nextDark;
+            map.setStyle(buildStyle());
+          }
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+      }
+
+      // Lazy: MapLibre erst laden, wenn die Karte in Sichtweite scrollt
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            observer.disconnect();
+            void initMap();
+          }
+        },
+        { rootMargin: reducedMotion ? "0px" : "300px" },
+      );
+      observer.observe(container);
+    }
+  }
+</script>

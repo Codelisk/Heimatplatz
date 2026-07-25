@@ -9,9 +9,11 @@ import ShareIcon from "@tabler/icons/outline/share.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ContactDock from "@/components/properties/ContactDock.astro";
 import ImageGallery from "@/components/properties/ImageGallery.astro";
+import PropertyLocationMap from "@/components/properties/PropertyLocationMap.astro";
 import { Button } from "@/components/starwind/button";
 import {
   fetchApiPropertyById,
+  fetchApiPropertyMapPin,
   formatApiDate,
   formatApiPriceLong,
   getApiAreaLabel,
@@ -77,6 +79,9 @@ const sellerMeta = [sellerRoleLabel, externalSource].filter(Boolean).join(" · "
 const features = property.Features?.length
   ? property.Features
   : [getApiPropertyTypeLabel(property.Type, property), property.City, getApiAreaLabel(property)].filter(Boolean);
+// Mini-Karte "Lage & Umgebung": Pin kommt vom map-pins-Endpoint (serverseitiger
+// Privacy-Jitter fuer ungenaue Lagen); ohne Koordinaten entfaellt die Section.
+const mapPin = await fetchApiPropertyMapPin(property.Id);
 const contactCards: ApiContact[] = property.Contacts?.length
   ? property.Contacts
   : [{ Name: property.SellerName, SourceName: property.SourceName, Email: null, Phone: null }];
@@ -224,6 +229,8 @@ const detailSections = getApiPropertyDetailSections(property);
             <p class="mt-4 max-w-3xl text-base leading-7">{description}</p>
           </section>
         )}
+
+        {mapPin && <PropertyLocationMap pin={mapPin} />}
       </div>
 
       <aside class="self-start rounded-lg border border-border bg-card p-5 shadow-sm lg:sticky lg:top-20">

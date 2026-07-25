@@ -36,7 +36,12 @@ public record GetPropertyMapPinsRequest(
     string? ExcludedSellerSourceIdsJson = null,
 
     // Filter: Volltextsuche (Titel, Beschreibung, Adresse, Gemeindename)
-    string? SearchText = null
+    string? SearchText = null,
+
+    // Filter: einzelnes Inserat (Mini-Karte der Detailseite). Liefert dessen Pin
+    // inklusive serverseitigem Privacy-Jitter - exakte Koordinaten verlassen den
+    // Server fuer ungenaue Lagen nie, egal welcher Client fragt.
+    Guid? PropertyId = null
 ) : IRequest<GetPropertyMapPinsResponse>
 {
     /// <summary>Parsed PropertyTypes from JSON string (tolerant: defekt = leer)</summary>

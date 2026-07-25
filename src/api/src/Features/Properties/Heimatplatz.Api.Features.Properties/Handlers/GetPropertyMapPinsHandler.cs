@@ -36,6 +36,10 @@ public class GetPropertyMapPinsHandler(
             .AsNoTracking()
             .Where(p => !p.IsHidden);
 
+        // Detailseiten-Mini-Karte: nur das eine Inserat (Privacy-Jitter greift trotzdem)
+        if (request.PropertyId.HasValue)
+            query = query.Where(p => p.Id == request.PropertyId.Value);
+
         query = PropertyQueryFilters.ExcludeBlockedForCurrentUser(query, dbContext, httpContextAccessor);
         query = PropertyQueryFilters.ApplyCommonFilters(
             query,
