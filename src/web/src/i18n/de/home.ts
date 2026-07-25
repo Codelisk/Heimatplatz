@@ -45,6 +45,7 @@ export const home = {
   "search.mapTruncated": "Es werden die neuesten {count} Pins gezeigt.",
   "search.mapLoadError": "Karte konnte nicht geladen werden. Bitte später erneut versuchen.",
   "search.mapOtherRegion": "Weitere Orte",
+  "search.mapClose": "Karte schließen",
 
   // Pagination
   "search.paginationLabel": "Suchergebnisse Seiten",

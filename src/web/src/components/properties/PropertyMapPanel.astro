@@ -1,4 +1,5 @@
 ---
+import MapIcon from "@tabler/icons/outline/map-2.svg";
 import { fetchOrtRegions } from "@/features/locations/live-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
@@ -33,7 +34,7 @@ for (const region of regions) {
 <section data-map-stage class="hpmap-stage">
   <div class="hpmap-collapse" id="property-map" role="region" aria-label={t("search.mapRegionLabel")}>
     <div class="hpmap-clip">
-      <div class="mx-auto max-w-3xl px-3 pb-5 pt-4 sm:px-5">
+      <div class="hpmap-frame mx-auto max-w-3xl px-3 pb-5 pt-4 sm:px-5">
         <div class="hpmap-sheet">
           <div class="hpmap-canvas" data-map-canvas>
             <div class="hpmap-maplibre" data-map-gl></div>
@@ -62,13 +63,27 @@ for (const region of regions) {
               {t("search.mapBackToOverview")}
             </button>
 
+            {/* Vollbild-Modus (mobil): eigener Schliessen-Button oben rechts */}
+            <button type="button" class="hpmap-close lg:hidden" data-map-close aria-label={t("search.mapClose")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg>
+            </button>
+
             <p class="hpmap-status" data-map-status hidden></p>
           </div>
         </div>
         <p class="hpmap-note" data-map-note hidden></p>
       </div>
     </div>
+
+    {/* Mini-Zettel als Bottom-Sheet (mobil) - Inhalt kommt aus buildPopupContent */}
+    <div class="hpmap-bottomsheet lg:hidden" data-map-bottomsheet aria-live="polite"></div>
   </div>
+
+  {/* Schwebende Karte-Pille (mobil, Airbnb-Muster) - verschwindet bei offener Karte */}
+  <button type="button" class="hpmap-pill lg:hidden" data-map-pill aria-controls="property-map" aria-expanded="false">
+    <MapIcon class="size-4" aria-hidden="true" />
+    {t("search.mapToggle")}
+  </button>
 </section>
 <script is:inline type="application/json" data-municipality-region-map set:html={jsonForScriptTag(municipalityRegionMap)} />
 
@@ -290,6 +305,112 @@ for (const region of regions) {
   }
   .hpmap-note { margin: 0.6rem 0 0; text-align: center; font-size: 0.78rem; color: var(--muted-foreground); }
 
+  /* Schwebende Karte-Pille (mobil): dunkle Pille unten mittig, verschwindet
+     bei offener Karte. bg/fg invertiert = passt sich beiden Themes an. */
+  .hpmap-pill {
+    position: fixed;
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.35rem;
+    border-radius: 999px;
+    background: var(--foreground);
+    color: var(--background);
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 10px 26px -10px oklch(0 0 0 / 55%);
+    cursor: pointer;
+  }
+  .hpmap-stage.open .hpmap-pill { display: none; }
+
+  /* Vollbild-Schliessen (mobil) */
+  .hpmap-close {
+    position: absolute;
+    right: 12px;
+    top: max(12px, env(safe-area-inset-top));
+    z-index: 6;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--foreground);
+    border: 1px solid color-mix(in oklab, var(--hpmap-ink) 35%, transparent);
+    box-shadow: 0 3px 8px -3px oklch(0.25 0.04 55 / 40%);
+    cursor: pointer;
+  }
+
+  /* Mini-Zettel als Bottom-Sheet (mobil): schiebt von unten ein */
+  .hpmap-bottomsheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    background: var(--card);
+    color: var(--card-foreground);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -12px 34px -12px oklch(0 0 0 / 50%);
+    padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(110%);
+    visibility: hidden;
+    transition: transform 0.3s cubic-bezier(0.3, 0.7, 0.3, 1), visibility 0.3s;
+  }
+  .hpmap-bottomsheet.sichtbar { transform: none; visibility: visible; }
+  .hpmap-bottomsheet::before {
+    content: "";
+    display: block;
+    width: 42px;
+    height: 4px;
+    margin: 0.5rem auto 0;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--foreground) 25%, transparent);
+  }
+  .hpmap-bottomsheet .hpmap-popup-foto { height: 150px; }
+  .hpmap-bottomsheet .hpmap-popup-inner { padding: 0.75rem 1.1rem 1rem; font-size: 0.9rem; }
+  .hpmap-bottomsheet .hpmap-popup-title { font-size: 1rem; }
+  .hpmap-bottomsheet .hpmap-popup-ort { font-size: 0.8rem; }
+  .hpmap-bottomsheet .hpmap-popup-preis { font-size: 1.05rem; }
+  .hpmap-bottomsheet .hpmap-popup-cta { font-size: 0.9rem; margin-top: 0.6rem; }
+  .hpmap-bottomsheet .hpmap-popup-close { top: 12px; right: 12px; width: 26px; height: 26px; font-size: 13px; }
+
+  /* Waehrend die Vollbildkarte offen ist, scrollt die Seite dahinter nicht */
+  .hpmap-lock { overflow: hidden; }
+
+  /* Mobil/Tablet (< lg): offene Karte als Vollbild-Overlay statt Inline-Panel */
+  @media (max-width: 1023.98px) {
+    .hpmap-stage.open .hpmap-collapse {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      grid-template-rows: 1fr;
+      transition: none;
+      background: var(--background);
+    }
+    .hpmap-stage.open .hpmap-frame {
+      height: 100%;
+      max-width: none;
+      padding: 0;
+    }
+    .hpmap-stage.open .hpmap-sheet {
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+      outline: none;
+      box-shadow: none;
+    }
+    .hpmap-stage.open .hpmap-canvas { height: 100%; border-radius: 0; }
+    .hpmap-stage.open .hpmap-maplibre { height: 100%; aspect-ratio: auto; }
+    .hpmap-stage.open .hpmap-note { display: none; }
+    /* Zurueck-Button kollidiert oben rechts mit dem Schliessen-X */
+    .hpmap-stage.open .hpmap-back { right: auto; left: 12px; top: max(12px, env(safe-area-inset-top)); }
+  }
+
   /* Kleine Screens: Kartusche kompakt, Beschriftungen weg - die Stempel-Zahlen
      tragen die Information, alles andere wird auf 390px nur Kollisionsrauschen */
   @media (max-width: 640px) {
@@ -331,6 +452,11 @@ for (const region of regions) {
     const noteEl = stage.querySelector<HTMLElement>("[data-map-note]")!;
     const cartoucheCount = stage.querySelector<HTMLElement>("[data-map-cartouche-count]")!;
     const backBtn = stage.querySelector<HTMLButtonElement>("[data-map-back]")!;
+    const closeBtn = stage.querySelector<HTMLButtonElement>("[data-map-close]")!;
+    const pillBtn = stage.querySelector<HTMLButtonElement>("[data-map-pill]")!;
+    const bottomSheet = stage.querySelector<HTMLElement>("[data-map-bottomsheet]")!;
+    // Unter lg: Vollbild-Overlay + Bottom-Sheet statt Inline-Panel + Popup
+    const mobileQuery = window.matchMedia("(max-width: 1023.98px)");
 
     type RegionInfo = { name: string; slug: string };
     const municipalityRegionMap: Record<string, RegionInfo> = (() => {
@@ -434,6 +560,12 @@ for (const region of regions) {
           stage!.classList.toggle("zoomed", map!.getZoom() >= PIN_MIN_ZOOM);
         });
 
+        // Klick auf leere Karte schliesst das Bottom-Sheet (Marker-Klicks laufen
+        // ueber eigene DOM-Elemente und loesen kein Karten-Click aus)
+        map.on("click", () => {
+          if (mobileQuery.matches) hidePopup();
+        });
+
         // Container startet zusammengeklappt (Hoehe 0) und aendert sich mit dem
         // Aufklappen/Umbruechen - MapLibre beobachtet nur window-Resizes selbst
         new ResizeObserver(() => map?.resize()).observe(glContainer!);
@@ -456,6 +588,7 @@ for (const region of regions) {
     function hidePopup() {
       popup?.remove();
       popup = null;
+      bottomSheet.classList.remove("sichtbar");
       pinMarkers.forEach((marker) => marker.getElement().firstElementChild?.classList.remove("aktiv"));
     }
 
@@ -525,6 +658,15 @@ for (const region of regions) {
       if (!mapRef || !libRef) return;
       hidePopup();
       marker.getElement().firstElementChild?.classList.add("aktiv");
+
+      // Mobil: Bottom-Sheet statt Popup - am Pin verankerte Popups clippen auf
+      // kleinen Screens staendig am Kartenrand
+      if (mobileQuery.matches) {
+        bottomSheet.replaceChildren(buildPopupContent(pin));
+        bottomSheet.classList.add("sichtbar");
+        return;
+      }
+
       const nextPopup = new libRef.Popup({
         closeButton: false,
         offset: 16,
@@ -741,7 +883,10 @@ for (const region of regions) {
       isOpen = true;
       toggle!.setAttribute("aria-pressed", "true");
       toggle!.setAttribute("aria-expanded", "true");
+      pillBtn.setAttribute("aria-expanded", "true");
       stage!.classList.add("open");
+      // Vollbild-Overlay (mobil): Seite dahinter nicht mitscrollen lassen
+      if (mobileQuery.matches) document.documentElement.classList.add("hpmap-lock");
       updateAnsichtParam(true);
 
       window.clearTimeout(foldTimer);
@@ -768,13 +913,23 @@ for (const region of regions) {
       isOpen = false;
       toggle!.setAttribute("aria-pressed", "false");
       toggle!.setAttribute("aria-expanded", "false");
+      pillBtn.setAttribute("aria-expanded", "false");
       if (mode === "bezirk") zoomToOverview(true);
       stage!.classList.remove("open", "folding", "unfolded");
+      document.documentElement.classList.remove("hpmap-lock");
       hidePopup();
       updateAnsichtParam(false);
     }
 
     toggle.addEventListener("click", () => (isOpen ? closeMap() : openMap()));
+    pillBtn.addEventListener("click", openMap);
+    closeBtn.addEventListener("click", closeMap);
+
+    // Breakpoint-Wechsel bei offener Karte: Scroll-Lock nur im Vollbild-Modus
+    mobileQuery.addEventListener("change", () => {
+      document.documentElement.classList.toggle("hpmap-lock", isOpen && mobileQuery.matches);
+      if (!mobileQuery.matches) bottomSheet.classList.remove("sichtbar");
+    });
     backBtn.addEventListener("click", (event) => {
       event.stopPropagation();
       zoomToOverview(true);
@@ -801,8 +956,9 @@ for (const region of regions) {
 
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
-      if (popup) hidePopup();
+      if (popup || bottomSheet.classList.contains("sichtbar")) hidePopup();
       else if (mode === "bezirk") zoomToOverview(true);
+      else if (isOpen && mobileQuery.matches) closeMap();
     });
 
     // Deep-Link ?ansicht=karte: Karte gleich aufklappen
