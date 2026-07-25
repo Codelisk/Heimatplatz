@@ -101,10 +101,13 @@ public static class AstroWeb
         // rsync --delete haelt das Zielverzeichnis exakt auf dem Stand des Builds.
         // dist/ enthaelt das SSR-Bundle (server/entry.mjs + client-Assets); das separat
         // gesyncte node_modules im Ziel wird per --exclude vor --delete geschuetzt.
+        // client/tiles ausschliessen: die Karten-Tiles (public/tiles, ~250 MB, gitignored)
+        // liegen nur fuer die lokale Entwicklung im public-Ordner - auf dem Server liefert
+        // Caddy sie direkt aus /srv/heimatplatz/deploy/hetzner/map-tiles (handle_path /tiles).
         RunProcess(
             context,
             "rsync",
-            $"-az --delete --exclude=/node_modules -e \"{sshCommand}\" \"{distDir}/\" \"{target}\"",
+            $"-az --delete --exclude=/node_modules --exclude=/client/tiles -e \"{sshCommand}\" \"{distDir}/\" \"{target}\"",
             context.ProjectDirectory,
             label: "rsync (dist)");
 
