@@ -267,6 +267,13 @@ body {
   border-color: var(--zettel-rand-hover);
   box-shadow: var(--zettel-shadow-hover);
 }
+/* Hover-Sync von der Faltkarte: Pin/Schild gehovert -> der zugehoerige Zettel
+   hebt sich wie beim direkten Maus-Hover (PropertySearchApp setzt .karte-fokus) */
+[data-property-card].karte-fokus {
+  translate: 0 -2px;
+  border-color: var(--zettel-rand-hover);
+  box-shadow: var(--zettel-shadow-hover);
+}
 [data-property-card] > div:first-child {
   margin: 12px 12px 0;
   border-radius: 2px;

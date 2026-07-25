@@ -12,10 +12,18 @@ import { t } from "@/i18n";
  * Ohne erreichbare Tiles faellt der Stil auf die gezeichnete Papierkarte zurueck
  * (Landesgrenze/Donau/Seen als GeoJSON im Bundle) - frei zoombar bleibt sie trotzdem.
  *
+ * Layout (Phase 3, Split-Ansicht): Ab lg ist die Karte die rechte Spalte des
+ * .hpsplit-Grids in PropertySearchApp - sie klappt seitlich von 0 auf ~47%
+ * Breite auf, klebt sticky unter der Suchleiste und nutzt die volle Resthoehe
+ * (Airbnb-Muster; Baymard: Karte NEBEN der Liste). Unter lg oeffnet sie als
+ * Vollbild-Overlay mit Bottom-Sheet und schwebender Karte-Pille.
+ *
  * Interaktion: Bezirks-Cluster (Stempel) bis Zoom ~9, darueber Preis-Schilder.
  * Stempel-Klick zoomt auf den Bezirk UND setzt den bestehenden Region-Filter
  * (ort-picker-change) - die Trefferliste folgt dem Kartenausschnitt, es gibt
  * kein zweites Filtersystem. Filter-Sync via "property-search-query-changed".
+ * Hover-Sync mit der Trefferliste: "property-card-hover" (Liste -> Karte)
+ * und "map-pin-hover" (Karte -> Liste).
  */
 
 // municipalityId -> Bezirk fuer die Cluster-Gruppierung (gleiche Quelle wie der
@@ -34,7 +42,9 @@ for (const region of regions) {
 <section data-map-stage class="hpmap-stage">
   <div class="hpmap-collapse" id="property-map" role="region" aria-label={t("search.mapRegionLabel")}>
     <div class="hpmap-clip">
-      <div class="hpmap-frame mx-auto max-w-3xl px-3 pb-5 pt-4 sm:px-5">
+      {/* Breite/Hoehe kommen komplett aus der CSS: Split-Spalte (lg+) bzw.
+          Vollbild-Overlay (mobil) - keine Utility-Masse mehr am Frame */}
+      <div class="hpmap-frame">
         <div class="hpmap-sheet">
           <div class="hpmap-canvas" data-map-canvas>
             <div class="hpmap-maplibre" data-map-gl></div>
@@ -195,6 +205,12 @@ for (const region of regions) {
   .hpmap-pin, .hpmap-realpin { opacity: 0; pointer-events: none; }
   .hpmap-stage.zoomed .hpmap-pin { opacity: 1; pointer-events: auto; }
   .hpmap-stage.zoomed .hpmap-realpin { opacity: 1; pointer-events: auto; }
+  /* Gestaffeltes Aufploppen der Schilder an der Zoom-Schwelle (--i aus render,
+     Deckel 300ms). Der Delay gilt nur der Opacity - Transform (Hover/Fokus)
+     reagiert sofort. Achtung: die transition-Reihenfolgen der beiden Marker-
+     Arten sind gespiegelt (Pin: opacity,transform - Realpin: transform,opacity). */
+  .hpmap-stage.zoomed .hpmap-pin { transition-delay: calc(min(var(--i, 0) * 14, 300) * 1ms), 0s; }
+  .hpmap-stage.zoomed .hpmap-realpin { transition-delay: 0s, calc(min(var(--i, 0) * 14, 300) * 1ms); }
 
   .hpmap-cluster {
     pointer-events: auto;
@@ -267,6 +283,23 @@ for (const region of regions) {
   .hpmap-pin.aktiv {
     border-color: var(--primary);
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 45%, transparent), var(--zettel-shadow-hover);
+  }
+
+  /* Hover-Sync Liste -> Karte: Zettel in der Trefferliste gehovert -> das
+     zugehoerige Preis-Schild bzw. der Pin hebt sich; in der Uebersicht
+     uebernimmt der Bezirks-Stempel des Inserats. Gehobene Marker stechen
+     per z-index aus dem Schilderwald heraus. */
+  .maplibregl-marker:has(.hpmap-fokus) { z-index: 5; }
+  .hpmap-pin.hpmap-fokus {
+    transform: scale(1.09);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 45%, transparent), var(--zettel-shadow-hover);
+  }
+  .hpmap-realpin.hpmap-fokus { transform: scale(1.15); filter: drop-shadow(0 3px 6px oklch(0.2 0.04 40 / 70%)); }
+  .hpmap-stage.unfolded .hpmap-cluster.hpmap-fokus {
+    transform: scale(1.12);
+    border-color: var(--primary);
+    transition-delay: 0ms;
   }
   .hpmap-dot { width: 8px; height: 8px; border-radius: 999px; flex: none; display: inline-block; }
   .hpmap-dot-haus { background: var(--type-haus); }
@@ -426,6 +459,48 @@ for (const region of regions) {
   /* Waehrend die Vollbildkarte offen ist, scrollt die Seite dahinter nicht */
   .hpmap-lock { overflow: hidden; }
 
+  /* Split-Ansicht (Desktop, ab lg): Die Faltkarte ist die rechte Spalte des
+     .hpsplit-Grids (PropertySearchApp) und klappt seitlich auf - von 0fr auf
+     ~47% Breite, die Trefferliste weicht fluessig zur Seite. Offen klebt die
+     Karte sticky unter der Suchleiste und nutzt die volle Resthoehe -
+     vollwertige Arbeitsflaeche statt Deko-Panel (Baymard: Karte NEBEN der
+     Liste, nie als Overlay). */
+  @media (min-width: 1024px) {
+    .hpsplit {
+      /* Ankerpunkt der sticky Karte: Header (3.5rem) + Suchleiste (~3.5rem) */
+      --hpsplit-top: 7rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0fr);
+      transition: grid-template-columns 0.5s cubic-bezier(0.3, 0.7, 0.3, 1);
+    }
+    .hpsplit:has(.hpmap-stage.open) {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    }
+    /* overflow:clip statt hidden - hidden wuerde einen Scroll-Container
+       erzeugen und position:sticky im Frame brechen */
+    .hpsplit > .hpmap-stage { min-width: 0; overflow: clip; }
+    /* Vertikal-Kollaps + Clip der frueheren Inline-Variante entfallen im
+       Split-Layout: hier animiert die Spaltenbreite, nicht die Zeilenhoehe.
+       height:100% zieht die Kette bis zum Frame auf Spaltenhoehe, damit die
+       sticky Karte ueber die ganze Listenlaenge mitwandern kann. */
+    .hpsplit .hpmap-collapse { grid-template-rows: 1fr; transition: none; height: 100%; }
+    .hpsplit .hpmap-clip { overflow: visible; }
+    .hpsplit .hpmap-frame { max-width: none; margin: 0; padding: 1rem 1.25rem 1.25rem 0; }
+    .hpsplit:has(.hpmap-stage.open) .hpmap-frame {
+      position: sticky;
+      top: var(--hpsplit-top);
+      height: calc(100vh - var(--hpsplit-top));
+      height: calc(100dvh - var(--hpsplit-top));
+      display: flex;
+      flex-direction: column;
+    }
+    .hpsplit .hpmap-sheet { min-height: 0; display: flex; flex-direction: column; }
+    .hpsplit:has(.hpmap-stage.open) .hpmap-sheet { flex: 1 1 auto; }
+    .hpsplit .hpmap-canvas { flex: 1 1 auto; min-height: 0; }
+    .hpsplit:has(.hpmap-stage.open) .hpmap-maplibre { height: 100%; aspect-ratio: auto; }
+    .hpsplit .hpmap-note { flex: none; }
+  }
+
   /* Mobil/Tablet (< lg): offene Karte als Vollbild-Overlay statt Inline-Panel */
   @media (max-width: 1023.98px) {
     .hpmap-pill { display: inline-flex; }
@@ -540,6 +615,14 @@ for (const region of regions) {
     let pinMarkers: MapLibreMarker[] = [];
     let popup: MapLibrePopup | null = null;
     let lastDark = document.documentElement.classList.contains("dark");
+    /** Nach dem Split-Aufklappen (Spaltenbreiten-Animation) Karte nachziehen */
+    let settleTimer: number | undefined;
+    /** Marker-Registries fuer den Hover-Sync mit der Trefferliste */
+    let pinElById = new Map<string, HTMLElement>();
+    let clusterElBySlug = new Map<string, HTMLElement>();
+    let fokusPinId: string | null = null;
+    let cartoucheAnim = 0;
+    let lastCartoucheCount = 0;
 
     function typeKey(type: ApiMapPin["Type"]): "haus" | "grund" | "zv" {
       if (type === "Land" || type === 1) return "grund";
@@ -747,6 +830,46 @@ for (const region of regions) {
       popup = nextPopup;
     }
 
+    /** Kartuschen-Zaehler zaehlt sichtbar zum neuen Wert hoch/runter
+     *  (bei prefers-reduced-motion: direkt setzen). */
+    function setCartoucheCount(target: number) {
+      window.cancelAnimationFrame(cartoucheAnim);
+      const from = lastCartoucheCount;
+      lastCartoucheCount = target;
+      if (reducedMotion || from === target) {
+        cartoucheCount.textContent = t("search.mapCartoucheCount", { count: target });
+        return;
+      }
+      const start = performance.now();
+      const step = (now: number) => {
+        const progress = Math.min(1, (now - start) / 550);
+        const eased = 1 - (1 - progress) ** 3;
+        cartoucheCount.textContent = t("search.mapCartoucheCount", { count: Math.round(from + (target - from) * eased) });
+        if (progress < 1) cartoucheAnim = window.requestAnimationFrame(step);
+      };
+      cartoucheAnim = window.requestAnimationFrame(step);
+    }
+
+    /** Hover-Sync Liste -> Karte: Schild/Pin des gehoverten Zettels hervorheben,
+     *  in der Bezirks-Uebersicht stellvertretend den Stempel seiner Region. */
+    function applyCardFokus(id: string | null) {
+      fokusPinId = id;
+      pinElById.forEach((el, pinId) => el.classList.toggle("hpmap-fokus", pinId === id));
+      const pin = id ? pins.find((entry) => entry.Id === id) : undefined;
+      const slug = pin ? municipalityRegionMap[pin.MunicipalityId]?.slug ?? "__other" : null;
+      clusterElBySlug.forEach((el, clusterSlug) => el.classList.toggle("hpmap-fokus", clusterSlug === slug));
+    }
+
+    /** Rueckrichtung Karte -> Liste: PropertySearchApp hebt den Zettel an. */
+    function announcePinHover(id: string | null) {
+      document.dispatchEvent(new CustomEvent("map-pin-hover", { detail: { id } }));
+    }
+
+    document.addEventListener("property-card-hover", (event) => {
+      const detail = (event as CustomEvent<{ id: string | null }>).detail;
+      applyCardFokus(isOpen ? (detail?.id ?? null) : null);
+    });
+
     function render() {
       const mapRef = map;
       const libRef = maplibre;
@@ -756,12 +879,16 @@ for (const region of regions) {
       pinMarkers.forEach((marker) => marker.remove());
       clusterMarkers = [];
       pinMarkers = [];
+      pinElById = new Map();
+      clusterElBySlug = new Map();
 
       // Preis-Schilder (einzelne Inserate). Punkt = gestreute Umgebungslage,
       // kleines Pin-Symbol = echte Adresse (Anbieter-Wahl "Genau" bzw. ZV-Edikt)
       for (const pin of pins) {
         const el = document.createElement("button");
         el.type = "button";
+        // Stagger-Index: Schilder ploppen an der Zoom-Schwelle gestaffelt auf
+        el.style.setProperty("--i", String(pinMarkers.length));
         const key = typeKey(pin.Type);
         if (pin.IsApproximate) {
           // Ungefaehre Lage: schwebendes Preis-Schild mit Typ-Punkt
@@ -793,6 +920,10 @@ for (const region of regions) {
           event.stopPropagation();
           showPopup(pin, marker);
         });
+        // Hover-Sync Karte -> Liste: der zugehoerige Zettel hebt sich
+        el.addEventListener("mouseenter", () => announcePinHover(pin.Id));
+        el.addEventListener("mouseleave", () => announcePinHover(null));
+        pinElById.set(pin.Id, el);
         pinMarkers.push(marker);
       }
 
@@ -858,6 +989,7 @@ for (const region of regions) {
           event.stopPropagation();
           zoomToBezirk(entry.slug, entry.group.pins);
         });
+        clusterElBySlug.set(entry.slug, el);
         const wrapper = document.createElement("div");
         wrapper.append(el);
         clusterMarkers.push(new libRef.Marker({ element: wrapper }).setLngLat(position).addTo(mapRef));
@@ -865,7 +997,9 @@ for (const region of regions) {
 
       statusEl.hidden = pins.length > 0;
       if (pins.length === 0) statusEl.textContent = t("search.mapEmpty");
-      cartoucheCount.textContent = t("search.mapCartoucheCount", { count: pins.length });
+      setCartoucheCount(pins.length);
+      // Laufenden Listen-Hover auf die frisch gebauten Marker uebertragen
+      applyCardFokus(fokusPinId);
       declutterPins();
     }
 
@@ -965,11 +1099,13 @@ for (const region of regions) {
       savedRegionParam = null;
     }
 
-    /** Zwei-Finger-Sperre nur fuer die eingebettete Karte, nicht im Vollbild. */
+    /** Gesten-Sperre (Strg+Scrollen/Zwei-Finger) nur fuer die zugeklappte
+     *  Einbettung: Offen ist die Karte eigene Flaeche (Split-Panel sticky
+     *  neben der Liste bzw. Vollbild) und liegt nicht im Scrollweg der
+     *  Seite - dort zoomt man direkt, wie von Airbnb & Co. gewohnt. */
     function syncGestureMode() {
       if (!map) return;
-      const fullscreen = isOpen && mobileQuery.matches;
-      if (fullscreen) map.cooperativeGestures.disable();
+      if (isOpen) map.cooperativeGestures.disable();
       else map.cooperativeGestures.enable();
     }
 
@@ -1048,6 +1184,17 @@ for (const region of regions) {
           statusEl.hidden = false;
           statusEl.textContent = t("search.mapLoadError");
         });
+      // Das Split-Aufklappen animiert die Spaltenbreite (0.5s) - erst danach
+      // hat der Kartencontainer seine Endbreite. Wurde die Karte waehrend der
+      // Animation (schmal) initialisiert, danach nachziehen und, solange noch
+      // die Uebersicht steht, sauber auf OÖ einpassen. Haendisch gezoomte
+      // Ausschnitte bleiben unangetastet.
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => {
+        if (!isOpen || !map) return;
+        map.resize();
+        if (mode === "over" && map.getZoom() < PIN_MIN_ZOOM - 0.5) fitOverviewBounds?.();
+      }, 560);
       if (latestQuery !== lastFetchedQuery) scheduleFetch();
     }
 

@@ -83,8 +83,8 @@ const ortRegions = await fetchOrtRegions();
     </form>
     <div class="flex flex-1 items-center justify-between gap-3 lg:flex-none lg:justify-end">
       {/* Kartenansicht: Toggle-Chip mit gleicher aria-pressed-Sprache wie die
-          Filter-Chips - die Faltkarte (PropertyMapPanel) klappt zwischen
-          Suchleiste und Trefferliste auf, die Liste bleibt sichtbar */}
+          Filter-Chips - die Faltkarte (PropertyMapPanel) klappt als rechte
+          Split-Spalte neben der Trefferliste auf, die Liste bleibt sichtbar */}
       {/* Unter lg uebernimmt die schwebende Karte-Pille (PropertyMapPanel) -
           der Toolbar-Chip wuerde dort nur Platz in der engen Leiste kosten */}
       <button
@@ -124,52 +124,60 @@ const ortRegions = await fetchOrtRegions();
   </div>
 </section>
 
-<PropertyMapPanel />
-
 <slot name="after-toolbar" />
 
-<section class="px-3 py-4 sm:px-5">
-  <div class="mx-auto grid max-w-7xl gap-4 sm:grid-cols-2 xl:grid-cols-3" data-property-grid>
-    {apiProperties.map((property) => <ApiPropertyCard property={property} />)}
-  </div>
-  <p class="mx-auto mt-4 hidden max-w-7xl text-sm text-muted-foreground" data-live-status></p>
-  <p
-    class:list={["mx-auto max-w-7xl py-16 text-center text-sm text-muted-foreground", total !== 0 && "hidden"]}
-    data-empty-state
-  >
-    {t("search.emptyState")}
-  </p>
-  <nav
-    class:list={[
-      "mx-auto mt-5 max-w-7xl items-center justify-center gap-4 border-t border-border pt-4",
-      pageCount > 1 ? "flex" : "hidden",
-    ]}
-    aria-label={t("search.paginationLabel")}
-    data-pagination
-  >
-    <button
-      type="button"
-      class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-      aria-label={t("search.pagePrev")}
-      disabled={page <= 0}
-      data-page-prev
+{/* Split-Ansicht (Desktop, Airbnb-Muster): Trefferliste links, Faltkarte rechts
+    als sticky Spalte in voller Resthoehe. Die Kartenspalte klappt per
+    .hpsplit:has(.open) von 0fr auf ~47% auf (CSS in PropertyMapPanel).
+    Unter lg aendert der Wrapper nichts - dort oeffnet die Karte als
+    Vollbild-Overlay wie bisher. Die Kartenspalten des Treffer-Grids haengen
+    deshalb am Container (statt am Viewport): bei offener Karte ist die Liste
+    schmaler und faellt automatisch auf weniger Spalten zurueck. */}
+<div class="hpsplit">
+  <section class="@container min-w-0 px-3 py-4 sm:px-5">
+    <div class="mx-auto grid max-w-7xl gap-4 @2xl:grid-cols-2 @6xl:grid-cols-3" data-property-grid>
+      {apiProperties.map((property) => <ApiPropertyCard property={property} />)}
+    </div>
+    <p class="mx-auto mt-4 hidden max-w-7xl text-sm text-muted-foreground" data-live-status></p>
+    <p
+      class:list={["mx-auto max-w-7xl py-16 text-center text-sm text-muted-foreground", total !== 0 && "hidden"]}
+      data-empty-state
     >
-      <ChevronLeftIcon class="size-5" aria-hidden="true" />
-    </button>
-    <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info>
-      {pageCount > 1 ? t("search.pageOf", { current: page + 1, total: pageCount }) : ""}
-    </span>
-    <button
-      type="button"
-      class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-      aria-label={t("search.pageNext")}
-      disabled={page >= pageCount - 1}
-      data-page-next
+      {t("search.emptyState")}
+    </p>
+    <nav
+      class:list={[
+        "mx-auto mt-5 max-w-7xl items-center justify-center gap-4 border-t border-border pt-4",
+        pageCount > 1 ? "flex" : "hidden",
+      ]}
+      aria-label={t("search.paginationLabel")}
+      data-pagination
     >
-      <ChevronRightIcon class="size-5" aria-hidden="true" />
-    </button>
-  </nav>
-</section>
+      <button
+        type="button"
+        class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+        aria-label={t("search.pagePrev")}
+        disabled={page <= 0}
+        data-page-prev
+      >
+        <ChevronLeftIcon class="size-5" aria-hidden="true" />
+      </button>
+      <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info>
+        {pageCount > 1 ? t("search.pageOf", { current: page + 1, total: pageCount }) : ""}
+      </span>
+      <button
+        type="button"
+        class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+        aria-label={t("search.pageNext")}
+        disabled={page >= pageCount - 1}
+        data-page-next
+      >
+        <ChevronRightIcon class="size-5" aria-hidden="true" />
+      </button>
+    </nav>
+  </section>
+  <PropertyMapPanel />
+</div>
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
@@ -930,6 +938,36 @@ const ortRegions = await fetchOrtRegions();
   // PropertyStateScript meldet Blockieren/Entblocken aus der Trefferliste -
   // authentifizierter Refetch entfernt die Karte und korrigiert den Zaehler.
   document.addEventListener("property-block-changed", () => scheduleRefresh());
+
+  // Hover-Sync mit der Faltkarte (nur echte Hover-Geraete): Zettel in der
+  // Liste gehovert -> Preis-Schild/Pin hebt sich auf der Karte, und umgekehrt.
+  // Event-Delegation am Grid, damit auch JS-nachgerenderte Karten mitmachen.
+  if (window.matchMedia("(hover: hover)").matches) {
+    const grid = document.querySelector<HTMLElement>("[data-property-grid]");
+    let lastHoverId: string | null = null;
+    const announceCardHover = (id: string | null) => {
+      if (id === lastHoverId) return;
+      lastHoverId = id;
+      document.dispatchEvent(new CustomEvent("property-card-hover", { detail: { id } }));
+    };
+    grid?.addEventListener("mouseover", (event) => {
+      const card = (event.target as HTMLElement).closest<HTMLElement>("[data-property-card]");
+      announceCardHover(card?.dataset.propertyId ?? null);
+    });
+    grid?.addEventListener("mouseleave", () => announceCardHover(null));
+
+    // Rueckrichtung: PropertyMapPanel meldet gehoverte Pins - der zugehoerige
+    // Zettel hebt sich (.karte-fokus in starwind.css, Optik wie Maus-Hover)
+    let fokusCard: HTMLElement | null = null;
+    document.addEventListener("map-pin-hover", (event) => {
+      const id = (event as CustomEvent<{ id: string | null }>).detail?.id ?? null;
+      fokusCard?.classList.remove("karte-fokus");
+      fokusCard = id
+        ? document.querySelector<HTMLElement>(`[data-property-card][data-property-id="${id}"]`)
+        : null;
+      fokusCard?.classList.add("karte-fokus");
+    });
+  }
 
   updateFilterChips();
   updateResultMeta();
