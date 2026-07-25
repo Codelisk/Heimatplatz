@@ -55,6 +55,11 @@ for (const region of regions) {
                 <span class="hpmap-legend-row"><i class="hpmap-dot hpmap-dot-haus"></i>{t("filter.typeHouse")}</span>
                 <span class="hpmap-legend-row"><i class="hpmap-dot hpmap-dot-grund"></i>{t("filter.typeLand")}</span>
                 <span class="hpmap-legend-row"><i class="hpmap-dot hpmap-dot-zv"></i>{t("filter.typeForeclosure")}</span>
+                {/* Punkt = gestreute Lage, Pin-Symbol = echte Adresse (IsApproximate=false) */}
+                <span class="hpmap-legend-row">
+                  <span class="hpmap-exact" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg></span>
+                  {t("search.mapLegendExact")}
+                </span>
               </div>
             </div>
 
@@ -238,8 +243,16 @@ for (const region of regions) {
   .hpmap-dot-haus { background: var(--type-haus); }
   .hpmap-dot-grund { background: var(--type-grund); }
   .hpmap-dot-zv { background: var(--brand); }
+  /* Punktgenaue Lagen tragen ein kleines Pin-Symbol in der Typ-Farbe statt des
+     Punkts - der Punkt bedeutet "gestreute Umgebungslage" */
+  .hpmap-exact { display: inline-flex; flex: none; color: var(--muted-foreground); }
+  .hpmap-exact svg { width: 12px; height: 12px; }
+  .hpmap-exact-haus { color: var(--type-haus); }
+  .hpmap-exact-grund { color: var(--type-grund); }
+  .hpmap-exact-zv { color: var(--brand); }
   .hpmap-pin--zv { background: var(--brand); color: var(--brand-foreground); border-color: var(--brand); }
   .hpmap-pin--zv .hpmap-dot-zv { background: var(--brand-foreground); }
+  .hpmap-pin--zv .hpmap-exact-zv { color: var(--brand-foreground); }
 
   .hpmap-back {
     position: absolute; right: 12px; top: 12px; z-index: 5;
@@ -712,15 +725,26 @@ for (const region of regions) {
       clusterMarkers = [];
       pinMarkers = [];
 
-      // Preis-Schilder (einzelne Inserate)
+      // Preis-Schilder (einzelne Inserate). Punkt = gestreute Umgebungslage,
+      // kleines Pin-Symbol = echte Adresse (Anbieter-Wahl "Genau" bzw. ZV-Edikt)
       for (const pin of pins) {
         const el = document.createElement("button");
         el.type = "button";
         const key = typeKey(pin.Type);
         el.className = `hpmap-pin${key === "zv" ? " hpmap-pin--zv" : ""}`;
-        const dot = document.createElement("i");
-        dot.className = `hpmap-dot hpmap-dot-${key}`;
-        el.append(dot, document.createTextNode(formatApiPrice(pin.Price)));
+        if (pin.IsApproximate) {
+          const dot = document.createElement("i");
+          dot.className = `hpmap-dot hpmap-dot-${key}`;
+          el.append(dot);
+        } else {
+          const exactIcon = document.createElement("span");
+          exactIcon.className = `hpmap-exact hpmap-exact-${key}`;
+          exactIcon.setAttribute("aria-hidden", "true");
+          exactIcon.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg>';
+          el.append(exactIcon);
+        }
+        el.append(document.createTextNode(formatApiPrice(pin.Price)));
         el.setAttribute(
           "aria-label",
           t("search.mapPinAria", { title: pin.Title, location: `${pin.PostalCode} ${pin.City}`, price: formatApiPrice(pin.Price) }),

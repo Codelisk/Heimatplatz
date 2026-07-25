@@ -46,6 +46,7 @@ export const home = {
   "search.mapLoadError": "Karte konnte nicht geladen werden. Bitte später erneut versuchen.",
   "search.mapOtherRegion": "Weitere Orte",
   "search.mapClose": "Karte schließen",
+  "search.mapLegendExact": "Punktgenaue Lage",
 
   // Pagination
   "search.paginationLabel": "Suchergebnisse Seiten",
