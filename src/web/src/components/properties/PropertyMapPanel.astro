@@ -185,13 +185,17 @@ for (const region of regions) {
   /* Marker-Ebenen: Bezirks-Stempel (Uebersicht) vs. Preis-Schilder (ab Zoom ~9).
      MapLibre-Marker sind DOM-Kinder des Karten-Containers - die Stage-Klassen
      schalten per CSS um, die Marker selbst bleiben bestehen. */
-  .maplibregl-marker { z-index: 3; }
+  /* Marker-Wrapper sind reine Positionierungs-Container: Klicks gehen nur an
+     die Buttons darin - sonst blockieren unsichtbare Wrapper (z.B. exakter Pin
+     ueber einem Cluster) die Elemente darunter */
+  .maplibregl-marker { z-index: 3; pointer-events: none; }
   .hpmap-cluster, .hpmap-pin { transition: opacity 0.25s ease, transform 0.18s cubic-bezier(0.3, 0.7, 0.3, 1.4); }
   .hpmap-stage.zoomed .hpmap-cluster { opacity: 0 !important; pointer-events: none; }
   .hpmap-pin { opacity: 0; pointer-events: none; }
   .hpmap-stage.zoomed .hpmap-pin { opacity: 1; pointer-events: auto; }
 
   .hpmap-cluster {
+    pointer-events: auto;
     display: grid; place-items: center; position: relative;
     width: var(--s, 38px); height: var(--s, 38px);
     font-weight: 700; font-size: calc(var(--s, 38px) * 0.34);
@@ -237,10 +241,15 @@ for (const region of regions) {
   }
 
   /* Punktgenaue Lagen: das Schild steckt als echter Pin auf der Adresse -
-     Nadelspitze unten, Marker ankert mit anchor:bottom exakt am Punkt */
+     Nadelspitze unten, Marker ankert mit anchor:bottom exakt am Punkt.
+     Liegt bei Kollisionen ueber den ungefaehren Schildern (die weichen aus). */
   .hpmap-marker--exact { display: flex; flex-direction: column; align-items: center; }
+  .maplibregl-marker.hpmap-marker--exact { z-index: 4; }
   .hpmap-tip {
     width: 10px; height: 10px; margin-top: -6px;
+    /* rein dekorativ - darf nie Klicks abfangen (blockierte sonst unsichtbar
+       die Cluster darunter, solange die Schilder ausgeblendet sind) */
+    pointer-events: none;
     background: var(--card);
     border-right: 1px solid color-mix(in oklab, var(--hpmap-ink) 45%, transparent);
     border-bottom: 1px solid color-mix(in oklab, var(--hpmap-ink) 45%, transparent);
@@ -617,6 +626,9 @@ for (const region of regions) {
           if (mobileQuery.matches) hidePopup();
         });
 
+        // Schilder-Kollisionen haengen vom Zoom ab (Pixel- vs. Geo-Abstand)
+        map.on("zoomend", declutterPins);
+
         // Container startet zusammengeklappt (Hoehe 0) und aendert sich mit dem
         // Aufklappen/Umbruechen - MapLibre beobachtet nur window-Resizes selbst
         new ResizeObserver(() => map?.resize()).observe(glContainer!);
@@ -858,6 +870,7 @@ for (const region of regions) {
       statusEl.hidden = pins.length > 0;
       if (pins.length === 0) statusEl.textContent = t("search.mapEmpty");
       cartoucheCount.textContent = t("search.mapCartoucheCount", { count: pins.length });
+      declutterPins();
     }
 
     function updateNote(payload: ApiMapPinsResponse) {
@@ -905,6 +918,47 @@ for (const region of regions) {
       selfDispatchedOrtChange = true;
       document.dispatchEvent(new CustomEvent("ort-picker-change", { detail: { name: "region", values } }));
       selfDispatchedOrtChange = false;
+    }
+
+    /**
+     * Ueberlappende Preis-Schilder entzerren - ehrlich: exakte Pins bleiben
+     * fix auf ihrer Adresse, nur ungefaehre Schilder (Position ist ohnehin
+     * gestreut) weichen in Pixeln aus. Laeuft nach dem Rendern und je Zoomstufe.
+     */
+    function declutterPins() {
+      const mapRef = map;
+      if (!mapRef || pinMarkers.length < 2) return;
+      const items = pinMarkers.map((marker) => ({
+        marker,
+        exact: marker.getElement().classList.contains("hpmap-marker--exact"),
+        point: mapRef.project(marker.getLngLat()),
+        dx: 0,
+        dy: 0,
+      }));
+      for (let iteration = 0; iteration < 3; iteration++) {
+        for (let i = 0; i < items.length; i++) {
+          for (let j = i + 1; j < items.length; j++) {
+            const a = items[i];
+            const b = items[j];
+            const overlapX = 88 - Math.abs(a.point.x + a.dx - (b.point.x + b.dx));
+            const overlapY = 32 - Math.abs(a.point.y + a.dy - (b.point.y + b.dy));
+            if (overlapX <= 0 || overlapY <= 0) continue;
+            // Vertikal trennen (Schilder sind breit und flach)
+            const aAbove = a.point.y + a.dy <= b.point.y + b.dy;
+            if (!a.exact && !b.exact) {
+              const push = overlapY / 2 + 2;
+              a.dy += aAbove ? -push : push;
+              b.dy += aAbove ? push : -push;
+            } else if (!a.exact) {
+              a.dy += aAbove ? -(overlapY + 4) : overlapY + 4;
+            } else if (!b.exact) {
+              b.dy += aAbove ? overlapY + 4 : -(overlapY + 4);
+            }
+            // beide exakt: nichts verschieben - Wahrheit geht vor Optik
+          }
+        }
+      }
+      items.forEach((item) => item.marker.setOffset([item.dx, item.dy]));
     }
 
     /** Bezirks-Kopplung loesen und den vorherigen Region-Filter wiederherstellen. */
