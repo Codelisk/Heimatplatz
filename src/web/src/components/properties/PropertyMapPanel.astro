@@ -487,6 +487,8 @@ for (const region of regions) {
     let map: MapLibreMap | null = null;
     let mapInitPromise: Promise<void> | null = null;
     let fitOverviewBounds: (() => void) | null = null;
+    /** Waehrend fitBounds in den Bezirk faehrt, darf der Zoom-Handler nicht ausloesen */
+    let bezirkFitting = false;
     let clusterMarkers: MapLibreMarker[] = [];
     let pinMarkers: MapLibreMarker[] = [];
     let popup: MapLibrePopup | null = null;
@@ -555,10 +557,23 @@ for (const region of regions) {
         fitOverviewBounds = () =>
           map!.fitBounds(styleModule.OOE_BOUNDS, { padding: 24, duration: reducedMotion ? 0 : 600 });
 
-        // Stempel bis PIN_MIN_ZOOM, darueber Preis-Schilder (CSS schaltet um)
+        // Stempel bis PIN_MIN_ZOOM, darueber Preis-Schilder (CSS schaltet um).
+        // Natuerlicher Rueckweg: wer unter die Stempel-Schwelle rauszoomt/pincht,
+        // loest die Bezirks-Kopplung automatisch - man muss den Uebersicht-Button
+        // nicht kennen. bezirkFitting schuetzt die Hinein-Animation (dort ist der
+        // Zoom anfangs noch niedrig, waehrend mode schon 'bezirk' ist).
         map.on("zoom", () => {
-          stage!.classList.toggle("zoomed", map!.getZoom() >= PIN_MIN_ZOOM);
+          const zoomLevel = map!.getZoom();
+          stage!.classList.toggle("zoomed", zoomLevel >= PIN_MIN_ZOOM);
+          if (!bezirkFitting && mode === "bezirk" && zoomLevel < PIN_MIN_ZOOM - 0.2) {
+            releaseBezirk();
+          }
         });
+
+        // Vollbild (mobil): Ein-Finger-Verschieben - die Zwei-Finger-Sperre schuetzt
+        // nur eingebettete Karten vor gekapertem Seiten-Scroll, im Vollbild gibt es
+        // keine Seite dahinter
+        syncGestureMode();
 
         // Klick auf leere Karte schliesst das Bottom-Sheet (Marker-Klicks laufen
         // ueber eigene DOM-Elemente und loesen kein Karten-Click aus)
@@ -836,6 +851,22 @@ for (const region of regions) {
       selfDispatchedOrtChange = false;
     }
 
+    /** Bezirks-Kopplung loesen und den vorherigen Region-Filter wiederherstellen. */
+    function releaseBezirk() {
+      if (mode !== "bezirk") return;
+      mode = "over";
+      dispatchOrtChange(savedRegionParam ? savedRegionParam.split(",").filter(Boolean) : []);
+      savedRegionParam = null;
+    }
+
+    /** Zwei-Finger-Sperre nur fuer die eingebettete Karte, nicht im Vollbild. */
+    function syncGestureMode() {
+      if (!map) return;
+      const fullscreen = isOpen && mobileQuery.matches;
+      if (fullscreen) map.cooperativeGestures.disable();
+      else map.cooperativeGestures.enable();
+    }
+
     function zoomToBezirk(slug: string, bezirkPins: ApiMapPin[]) {
       if (!map) return;
       if (mode === "over") {
@@ -846,6 +877,10 @@ for (const region of regions) {
 
       const lngs = bezirkPins.map((p) => p.Longitude);
       const lats = bezirkPins.map((p) => p.Latitude);
+      bezirkFitting = true;
+      map.once("moveend", () => {
+        bezirkFitting = false;
+      });
       map.fitBounds(
         [
           [Math.min(...lngs), Math.min(...lats)],
@@ -861,14 +896,14 @@ for (const region of regions) {
     }
 
     function zoomToOverview(restoreFilter: boolean) {
-      const wasBezirk = mode === "bezirk";
-      mode = "over";
       hidePopup();
-      fitOverviewBounds?.();
-      if (restoreFilter && wasBezirk) {
-        dispatchOrtChange(savedRegionParam ? savedRegionParam.split(",").filter(Boolean) : []);
+      if (restoreFilter) {
+        releaseBezirk();
+      } else {
+        mode = "over";
+        savedRegionParam = null;
       }
-      savedRegionParam = null;
+      fitOverviewBounds?.();
     }
 
     function updateAnsichtParam(open: boolean) {
@@ -901,10 +936,12 @@ for (const region of regions) {
         }, 880);
       }
 
-      void ensureMap().catch(() => {
-        statusEl.hidden = false;
-        statusEl.textContent = t("search.mapLoadError");
-      });
+      void ensureMap()
+        .then(() => syncGestureMode())
+        .catch(() => {
+          statusEl.hidden = false;
+          statusEl.textContent = t("search.mapLoadError");
+        });
       if (latestQuery !== lastFetchedQuery) scheduleFetch();
     }
 
@@ -917,6 +954,7 @@ for (const region of regions) {
       if (mode === "bezirk") zoomToOverview(true);
       stage!.classList.remove("open", "folding", "unfolded");
       document.documentElement.classList.remove("hpmap-lock");
+      syncGestureMode();
       hidePopup();
       updateAnsichtParam(false);
     }
@@ -925,10 +963,11 @@ for (const region of regions) {
     pillBtn.addEventListener("click", openMap);
     closeBtn.addEventListener("click", closeMap);
 
-    // Breakpoint-Wechsel bei offener Karte: Scroll-Lock nur im Vollbild-Modus
+    // Breakpoint-Wechsel bei offener Karte: Scroll-Lock/Gesten nur im Vollbild-Modus
     mobileQuery.addEventListener("change", () => {
       document.documentElement.classList.toggle("hpmap-lock", isOpen && mobileQuery.matches);
       if (!mobileQuery.matches) bottomSheet.classList.remove("sichtbar");
+      syncGestureMode();
     });
     backBtn.addEventListener("click", (event) => {
       event.stopPropagation();
