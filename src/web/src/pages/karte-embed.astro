@@ -102,4 +102,12 @@ const mapQuery = buildPropertySearchQuery(searchState, ortSlugMap);
   /* Schliessen uebernimmt die App (nativer Back/X) - Web-X und Pille weg */
   body.karte-embed .hpmap-close { display: none !important; }
   body.karte-embed .hpmap-pill { display: none !important; }
+  /* Android-WebView-Compositing: die translumente Kartusche ueber dem
+     WebGL-Canvas hinterlaesst beim GPU-Rendern einen grauen Schmier unter
+     der Box (im CDP-Software-Render nicht reproduzierbar) - im Embed opak
+     und ohne Weichzeichner-Schatten rendern */
+  body.karte-embed .hpmap-cartouche {
+    background: var(--card);
+    box-shadow: none;
+  }
 </style>

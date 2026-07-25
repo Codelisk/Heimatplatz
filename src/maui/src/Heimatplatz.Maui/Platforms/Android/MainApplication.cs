@@ -39,6 +39,11 @@ public class MainApplication : MauiApplication
 		// Env-Vars uebersetzen, BEVOR CreateMauiApp die API-URL fixiert. No-op ausserhalb
 		// des Emulators.
 		Platforms.Android.ScreenshotSysProps.TryImport();
+
+#if DEBUG
+		// WebView-Inhalte (Kartenansicht) via chrome://inspect debuggbar machen
+		Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
+#endif
 		return MauiProgram.CreateMauiApp();
 	}
 }
