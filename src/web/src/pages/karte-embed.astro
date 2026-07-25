@@ -113,5 +113,10 @@ const mapQuery = buildPropertySearchQuery(searchState, ortSlugMap);
   body.karte-embed .hpmap-cartouche {
     background: var(--card);
     box-shadow: none;
+    /* Erzwingt den Transform-Layer-Pfad: der Android-WebView rastert
+       untransformierte Overlays ueber dem WebGL-Canvas falsch (Hintergrund
+       zu klein skaliert, grauer Pufferrand) - mit translateZ(0) nimmt die
+       Kartusche denselben, korrekten Pfad wie die Bezirks-Stempel */
+    transform: translateZ(0);
   }
 </style>
