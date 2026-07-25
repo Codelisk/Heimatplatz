@@ -142,8 +142,11 @@ public class ForeclosureAuctionSeeder(AppDbContext dbContext) : ISeeder
             new ForeclosureAuction
             {
                 AuctionDate = baseDate.AddDays(60),
-                Category = PropertyCategory.Wohnungseigentum,
-                ObjectDescription = "3-Zimmer-Wohnung mit Balkon und Tiefgaragenplatz",
+                // Bewusst KEIN Wohnungseigentum: Wohnungen sind beim ZV-Sync per
+                // Produktentscheidung ausgeschlossen (ScrapingOptions.ExcludedCategories),
+                // also duerfen sie auch in den Seed-Daten nicht vorkommen.
+                Category = PropertyCategory.Einfamilienhaus,
+                ObjectDescription = "Einfamilienhaus mit Garten und Doppelgarage in zentraler Lage",
                 Status = "Aktiv",
                 Address = "Stadtplatz 12",
                 City = "Braunau am Inn",
@@ -151,21 +154,21 @@ public class ForeclosureAuctionSeeder(AppDbContext dbContext) : ISeeder
                 RegistrationNumber = "EZ 2345/2024",
                 CadastralMunicipality = "Braunau am Inn",
                 PlotNumber = "123/45/6",
-                SheetNumber = "Blatt 8, Top 6",
-                TotalArea = 95m,
-                BuildingArea = 95m,
+                SheetNumber = "Blatt 8",
+                TotalArea = 540m,
+                BuildingArea = 130m,
                 YearBuilt = 2010,
-                NumberOfRooms = 3,
+                NumberOfRooms = 5,
                 ZoningDesignation = "Bauland-Kerngebiet",
                 BuildingCondition = "Sehr gut, neuwertig",
-                EstimatedValue = 285000m,
-                MinimumBid = 228000m,
+                EstimatedValue = 385000m,
+                MinimumBid = 308000m,
                 ViewingDate = baseDate.AddDays(53),
                 OwnershipShare = "1/1",
                 CaseNumber = "123 E 789/24",
                 Court = "Bezirksgericht Braunau am Inn",
                 EdictUrl = "https://edikte.justiz.gv.at/sample-braunau.odt",
-                Notes = "Zentrale Lage, moderne Ausstattung, inkl. Tiefgaragenplatz"
+                Notes = "Zentrale Lage, moderne Ausstattung, inkl. Doppelgarage"
             },
 
             // Oberösterreich - Ried im Innkreis
