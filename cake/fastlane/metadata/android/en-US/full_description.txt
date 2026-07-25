@@ -4,7 +4,7 @@ DISCOVER PROPERTIES
 Browse current listings from all over Upper Austria. Filter by property type, location and time period. Sort by price, area or recency – and find exactly what suits you.
 
 FORECLOSURE AUCTIONS
-If you like, Heimatplatz shows you current auctions from the official Austrian edict database – simply enable them in the filter. With appraised value, minimum bid, auction date and court information, you have all the details at a glance.
+If you like, Heimatplatz shows you current auctions from the official Austrian edict database – simply enable them in the filter. With appraised value, minimum bid, auction date and court information, you have all the details at a glance. Right in the list you can see how many days are left until the auction.
 
 PRIVATE OR AGENT
 Decide for yourself: filter specifically for private listings or offers from agents and property managers. Heimatplatz transparently shows you who is behind every listing.
@@ -23,7 +23,7 @@ Heimatplatz is built on data minimization. You can browse anonymously without cr
 
 FEATURES AT A GLANCE
 • Property search with extensive filters
-• Foreclosure auctions with court data
+• Foreclosure auctions with court data and a countdown to the auction date
 • AI help for your listing description – from keywords or dictation
 • Push notifications for new properties
 • Save and manage favorites

@@ -1,0 +1,2 @@
+• Foreclosure auctions now show right in the list how many days are left until the auction date
+• Minor bug fixes and improvements

@@ -57,7 +57,10 @@ public sealed class PropertyDetailPreloader(
 
     private void StartRequest(Guid propertyId)
     {
-        var request = RequestAsync(propertyId);
+        // Bewusst ueber den Threadpool: der synchrone Anlauf der Mediator-Pipeline
+        // (Cache-Lookup in SQLite) laeuft sonst im Tap-Handler und blockiert den
+        // UI-Thread, bevor die Navigation ueberhaupt beginnt.
+        var request = Task.Run(() => RequestAsync(propertyId));
 
         // Holt die Seite den Request nicht ab (z.B. abgebrochene Navigation), darf seine
         // Exception niemanden erreichen - beobachtet wird sie hier.
