@@ -579,6 +579,10 @@ for (const region of regions) {
     const bottomSheet = stage.querySelector<HTMLElement>("[data-map-bottomsheet]")!;
     // Unter lg: Vollbild-Overlay + Bottom-Sheet statt Inline-Panel + Popup
     const mobileQuery = window.matchMedia("(max-width: 1023.98px)");
+    // Embed-Modus (MAUI-WebView, /karte-embed): Detail-Links tragen den
+    // Objekttyp als typ-Hint, damit die App die passende NATIVE Detailseite
+    // oeffnen kann (Property vs. Zwangsversteigerung)
+    const embedMode = document.body.classList.contains("karte-embed");
 
     type RegionInfo = { name: string; slug: string };
     const municipalityRegionMap: Record<string, RegionInfo> = (() => {
@@ -799,7 +803,7 @@ for (const region of regions) {
 
       const cta = document.createElement("a");
       cta.className = "hpmap-popup-cta";
-      cta.href = getDetailPath(pin.Id);
+      cta.href = embedMode ? `${getDetailPath(pin.Id)}?typ=${typeKey(pin.Type)}` : getDetailPath(pin.Id);
       cta.textContent = `${t("search.mapOpenListing")} →`;
       inner.append(cta);
       content.append(inner);
