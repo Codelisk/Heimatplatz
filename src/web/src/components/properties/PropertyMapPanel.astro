@@ -57,7 +57,7 @@ for (const region of regions) {
                 <span class="hpmap-legend-row"><i class="hpmap-dot hpmap-dot-zv"></i>{t("filter.typeForeclosure")}</span>
                 {/* Punkt = gestreute Lage, Pin-Symbol = echte Adresse (IsApproximate=false) */}
                 <span class="hpmap-legend-row">
-                  <span class="hpmap-exact" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg></span>
+                  <span class="hpmap-exact" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.364 4.636a9 9 0 0 1 .203 12.519l-.203 .21l-4.243 4.242a3 3 0 0 1 -4.097 .135l-.144 -.135l-4.244 -4.243a9 9 0 0 1 12.728 -12.728zm-6.364 3.364a3 3 0 1 0 0 6a3 3 0 0 0 0 -6z"></path></svg></span>
                   {t("search.mapLegendExact")}
                 </span>
               </div>
@@ -161,6 +161,7 @@ for (const region of regions) {
   .hpmap-stage.folding .hpmap-fold { display: block; }
   .hpmap-stage.folding .hpmap-fade,
   .hpmap-stage.folding .hpmap-pin,
+  .hpmap-stage.folding .hpmap-realpin,
   .hpmap-stage.folding .hpmap-cluster { opacity: 0; }
   .hpmap-flap { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; backface-visibility: hidden; background: var(--card); }
   .hpmap-flap::before {
@@ -191,8 +192,9 @@ for (const region of regions) {
   .maplibregl-marker { z-index: 3; pointer-events: none; }
   .hpmap-cluster, .hpmap-pin { transition: opacity 0.25s ease, transform 0.18s cubic-bezier(0.3, 0.7, 0.3, 1.4); }
   .hpmap-stage.zoomed .hpmap-cluster { opacity: 0 !important; pointer-events: none; }
-  .hpmap-pin { opacity: 0; pointer-events: none; }
+  .hpmap-pin, .hpmap-realpin { opacity: 0; pointer-events: none; }
   .hpmap-stage.zoomed .hpmap-pin { opacity: 1; pointer-events: auto; }
+  .hpmap-stage.zoomed .hpmap-realpin { opacity: 1; pointer-events: auto; }
 
   .hpmap-cluster {
     pointer-events: auto;
@@ -240,27 +242,27 @@ for (const region of regions) {
     cursor: pointer; white-space: nowrap;
   }
 
-  /* Punktgenaue Lagen: das Schild steckt als echter Pin auf der Adresse -
-     Nadelspitze unten, Marker ankert mit anchor:bottom exakt am Punkt.
-     Liegt bei Kollisionen ueber den ungefaehren Schildern (die weichen aus). */
-  .hpmap-marker--exact { display: flex; flex-direction: column; align-items: center; }
+  /* Punktgenaue Lagen: echter Karten-Pin (Tropfenform) in der Typ-Farbe, die
+     Spitze steckt via anchor:bottom exakt auf der Adresse. Liegt bei
+     Kollisionen ueber den ungefaehren Schildern (nur die weichen aus). */
   .maplibregl-marker.hpmap-marker--exact { z-index: 4; }
-  .hpmap-tip {
-    width: 10px; height: 10px; margin-top: -6px;
-    /* rein dekorativ - darf nie Klicks abfangen (blockierte sonst unsichtbar
-       die Cluster darunter, solange die Schilder ausgeblendet sind) */
-    pointer-events: none;
-    background: var(--card);
-    border-right: 1px solid color-mix(in oklab, var(--hpmap-ink) 45%, transparent);
-    border-bottom: 1px solid color-mix(in oklab, var(--hpmap-ink) 45%, transparent);
-    border-bottom-right-radius: 2px;
-    transform: rotate(45deg);
-    opacity: 0;
-    transition: opacity 0.25s ease;
+  .hpmap-realpin {
+    /* pointer-events kommt aus den Sichtbarkeitsregeln oben (nur im zoomed-
+       Zustand klickbar) - hier gesetzt wuerde es das Verstecken uebersteuern */
+    display: grid; place-items: center;
+    width: 38px; height: 38px;
+    margin: 0; padding: 0; border: 0; background: none;
+    cursor: pointer;
+    filter: drop-shadow(0 3px 4px oklch(0.2 0.04 40 / 45%));
+    transform-origin: bottom center;
+    transition: transform 0.15s cubic-bezier(0.3, 0.7, 0.3, 1.4), opacity 0.25s ease;
   }
-  .hpmap-tip--zv { background: var(--brand); border-color: var(--brand); }
-  .hpmap-stage.zoomed .hpmap-tip { opacity: 1; transition-delay: 0.12s; }
-  .hpmap-stage.folding .hpmap-tip { opacity: 0; }
+  .hpmap-realpin svg { width: 100%; height: 100%; }
+  .hpmap-realpin:hover { transform: scale(1.15); }
+  .hpmap-realpin.aktiv { transform: scale(1.15); filter: drop-shadow(0 3px 6px oklch(0.2 0.04 40 / 70%)); }
+  .hpmap-realpin--haus { color: var(--type-haus); }
+  .hpmap-realpin--grund { color: var(--type-grund); }
+  .hpmap-realpin--zv { color: var(--brand); }
   .hpmap-pin:hover { transform: scale(1.09); box-shadow: var(--zettel-shadow-hover); }
   .hpmap-pin.aktiv {
     border-color: var(--primary);
@@ -761,35 +763,29 @@ for (const region of regions) {
         const el = document.createElement("button");
         el.type = "button";
         const key = typeKey(pin.Type);
-        el.className = `hpmap-pin${key === "zv" ? " hpmap-pin--zv" : ""}`;
         if (pin.IsApproximate) {
+          // Ungefaehre Lage: schwebendes Preis-Schild mit Typ-Punkt
+          el.className = `hpmap-pin${key === "zv" ? " hpmap-pin--zv" : ""}`;
           const dot = document.createElement("i");
           dot.className = `hpmap-dot hpmap-dot-${key}`;
-          el.append(dot);
+          el.append(dot, document.createTextNode(formatApiPrice(pin.Price)));
         } else {
-          const exactIcon = document.createElement("span");
-          exactIcon.className = `hpmap-exact hpmap-exact-${key}`;
-          exactIcon.setAttribute("aria-hidden", "true");
-          exactIcon.innerHTML =
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg>';
-          el.append(exactIcon);
+          // Punktgenaue Lage: echter Karten-Pin (Tropfen), Spitze auf der Adresse -
+          // Preis und Details kommen beim Antippen im Mini-Zettel
+          el.className = `hpmap-realpin hpmap-realpin--${key}`;
+          el.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="currentColor" stroke="#ffffff" stroke-width="0.8" aria-hidden="true"><path d="M18.364 4.636a9 9 0 0 1 .203 12.519l-.203 .21l-4.243 4.242a3 3 0 0 1 -4.097 .135l-.144 -.135l-4.244 -4.243a9 9 0 0 1 12.728 -12.728zm-6.364 3.364a3 3 0 1 0 0 6a3 3 0 0 0 0 -6z"></path></svg>';
         }
-        el.append(document.createTextNode(formatApiPrice(pin.Price)));
         el.setAttribute(
           "aria-label",
           t("search.mapPinAria", { title: pin.Title, location: `${pin.PostalCode} ${pin.City}`, price: formatApiPrice(pin.Price) }),
         );
         // Marker-Element als Wrapper, damit Hover-Transforms nicht mit MapLibres
-        // eigenem translate() auf dem Marker-Element kollidieren. Exakte Lagen
-        // bekommen eine Nadelspitze und ankern mit der Spitze auf der Adresse.
+        // eigenem translate() auf dem Marker-Element kollidieren. Der echte Pin
+        // ankert mit der Spitze (anchor:bottom) exakt auf der Adresse.
         const wrapper = document.createElement("div");
         if (!pin.IsApproximate) wrapper.className = "hpmap-marker--exact";
         wrapper.append(el);
-        if (!pin.IsApproximate) {
-          const tip = document.createElement("i");
-          tip.className = `hpmap-tip${key === "zv" ? " hpmap-tip--zv" : ""}`;
-          wrapper.append(tip);
-        }
         const marker = new libRef.Marker({ element: wrapper, anchor: pin.IsApproximate ? "center" : "bottom" })
           .setLngLat([pin.Longitude, pin.Latitude])
           .addTo(mapRef);
