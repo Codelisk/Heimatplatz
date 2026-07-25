@@ -313,7 +313,9 @@ for (const region of regions) {
     left: 50%;
     transform: translateX(-50%);
     z-index: 40;
-    display: inline-flex;
+    /* Anzeige kommt aus der max-lg-Media-Query unten - ein display hier wuerde
+       das lg:hidden-Utility bei gleicher Spezifitaet per Quellreihenfolge schlagen */
+    display: none;
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.35rem;
@@ -327,13 +329,13 @@ for (const region of regions) {
   }
   .hpmap-stage.open .hpmap-pill { display: none; }
 
-  /* Vollbild-Schliessen (mobil) */
+  /* Vollbild-Schliessen (mobil) - Anzeige nur in der max-lg-Media-Query */
   .hpmap-close {
     position: absolute;
     right: 12px;
     top: max(12px, env(safe-area-inset-top));
     z-index: 6;
-    display: grid;
+    display: none;
     place-items: center;
     width: 40px;
     height: 40px;
@@ -384,6 +386,9 @@ for (const region of regions) {
 
   /* Mobil/Tablet (< lg): offene Karte als Vollbild-Overlay statt Inline-Panel */
   @media (max-width: 1023.98px) {
+    .hpmap-pill { display: inline-flex; }
+    .hpmap-stage.open .hpmap-pill { display: none; }
+    .hpmap-close { display: grid; }
     .hpmap-stage.open .hpmap-collapse {
       position: fixed;
       inset: 0;
