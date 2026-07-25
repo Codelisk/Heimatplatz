@@ -749,6 +749,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     {
         if (Property == null)
         {
+            // Mit dem Inhalt ist auch die Vorschau aus den Listendaten weg - ein
+            // erneuter Ladeversuch muss daher wieder eine Ladeanzeige bekommen
+            _hasHandoffPreview = false;
+
             Title = _loc.FallbackTitle;
             FormattedPrice = string.Empty;
             AddressText = string.Empty;

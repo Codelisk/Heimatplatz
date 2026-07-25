@@ -689,6 +689,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     {
         if (Property == null)
         {
+            // Mit dem Inhalt ist auch die Vorschau aus den Listendaten weg - ein
+            // erneuter Ladeversuch muss daher wieder eine Ladeanzeige bekommen
+            _hasHandoffPreview = false;
+
             FormattedPrice = string.Empty;
             HasPrice = false;
             PriceCaption = _loc.PriceCaptionMinimumBid;
