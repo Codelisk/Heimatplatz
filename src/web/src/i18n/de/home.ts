@@ -104,7 +104,7 @@ export const home = {
   "card.chipRooms": "{value} Zi",
   // ZV-Karten: beschrifteter Auktionstermin statt unbeschriftetem Einstelldatum
   "card.auctionDate": "Termin {date}",
-  // ZV-Karten: Countdown-Overlay am Foto-Unterrand - relative Angabe, das
+  // ZV-Karten: Countdown-Chip unten links im Foto - relative Angabe, das
   // absolute Datum bleibt in der Fusszeile (kein doppeltes Datum auf der Karte)
   "card.auctionToday": "Versteigerung heute",
   "card.auctionTomorrow": "Versteigerung morgen",

@@ -128,10 +128,11 @@ const citySlug = slugifyLocation(property.City);
         <EyeOffIcon class="size-5" aria-hidden="true" />
       </button>
     </div>
-    {/* Countdown als Overlay am Foto-Unterrand statt eigener Zeile - so
-        bleiben Titel/Preis aller Karten einer Grid-Zeile auf gleicher Hoehe */}
+    {/* Countdown als Chip unten links im Foto (Scrim wie die Foto-Buttons,
+        kein zweites Rot neben dem ZV-Badge) - im Bild statt eigener Zeile,
+        damit Titel/Preis aller Karten einer Grid-Zeile buendig bleiben */}
     {auctionCountdown && (
-      <p class="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-brand/90 px-3 py-1.5 text-xs font-semibold text-brand-foreground">
+      <p class="pointer-events-none absolute bottom-3 left-3 flex max-w-[calc(100%-1.5rem)] items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white">
         <GavelIcon class="size-3.5 shrink-0" aria-hidden="true" />
         <span class="truncate">{auctionCountdown}</span>
       </p>
