@@ -24,11 +24,8 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 /// Laedt die Immobilie anhand der PropertyId via API (GetPropertyByIdHttpRequest).
 /// </summary>
 [ShellMap<PropertyDetailPage>("PropertyDetail")]
-public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleAware, IImageViewerHost
+public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleAware
 {
-    /// <summary>Barrierefreiheits-Beschreibung des Schliessen-Buttons im Vollbild-Viewer</summary>
-    public string CloseViewerSemantic => _loc.CloseViewerSemantic;
-
     private readonly IClipboardService _clipboardService;
     private readonly IShareService _shareService;
     private readonly IMediator _mediator;

@@ -21,7 +21,7 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 /// Laedt die Immobilie anhand der PropertyId via API (GetPropertyByIdHttpRequest).
 /// </summary>
 [ShellMap<ForeclosureDetailPage>("ForeclosureDetail")]
-public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecycleAware, IImageViewerHost
+public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecycleAware
 {
     private readonly IClipboardService _clipboardService;
     private readonly IShareService _shareService;
@@ -40,9 +40,6 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
     /// <summary>Lokalisierte Texte fuer XAML-Bindings (Loc.Key)</summary>
     public ForeclosureDetailStringsLocalized Loc => _loc;
-
-    /// <summary>Barrierefreiheits-Beschreibung des Schliessen-Buttons im Vollbild-Viewer</summary>
-    public string CloseViewerSemantic => _loc.CloseViewerSemantic;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
