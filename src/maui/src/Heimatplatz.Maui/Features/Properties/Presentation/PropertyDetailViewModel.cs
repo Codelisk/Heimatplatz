@@ -1,3 +1,4 @@
+﻿using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,8 +24,11 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 /// Laedt die Immobilie anhand der PropertyId via API (GetPropertyByIdHttpRequest).
 /// </summary>
 [ShellMap<PropertyDetailPage>("PropertyDetail")]
-public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleAware
+public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleAware, IImageViewerHost
 {
+    /// <summary>Barrierefreiheits-Beschreibung des Schliessen-Buttons im Vollbild-Viewer</summary>
+    public string CloseViewerSemantic => _loc.CloseViewerSemantic;
+
     private readonly IClipboardService _clipboardService;
     private readonly IShareService _shareService;
     private readonly IMediator _mediator;
@@ -33,6 +37,10 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     private readonly IInternetService _internet;
     private readonly OfflineReadState _offlineReadState;
     private readonly PropertyImageCache _imageCache;
+    private readonly PropertyHandoffCache _handoffCache;
+    private readonly PropertyDetailPreloader _detailPreloader;
+    private readonly PropertyDetailImageResolver _imageResolver;
+    private readonly DetailNavigationTrace _trace;
     private readonly ILogger<PropertyDetailViewModel> _logger;
     private readonly PropertyDetailStringsLocalized _loc;
     private readonly CommonStringsLocalized _commonLoc;
@@ -147,8 +155,20 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     [ObservableProperty]
     public partial bool HasImages { get; set; }
 
-    [ObservableProperty]
-    public partial List<string> ImageUrls { get; set; }
+    /// <summary>
+    /// Angezeigte Bilder (Thumbnail bis die Vorschau lokal vorliegt). Feste Instanz mit
+    /// In-Place-Updates: ein Austausch der Liste wuerde die CarouselView komplett neu
+    /// aufbauen, jedes Foto neu laden lassen und die Position zuruecksetzen.
+    /// </summary>
+    public ObservableCollection<string> ImageUrls { get; } = [];
+
+    /// <summary>Volle Display-Varianten - ausschliesslich fuer den Vollbild-Viewer</summary>
+    private List<string> _fullImageUrls = [];
+
+    /// <summary>Vorschau-Varianten (1280px), die im Hintergrund nachgeladen werden</summary>
+    private List<string> _previewImageUrls = [];
+
+    private CancellationTokenSource? _imageUpgradeCts;
 
     [ObservableProperty]
     public partial string? SellerName { get; set; }
@@ -170,6 +190,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImageCounterText))]
     [NotifyPropertyChangedFor(nameof(CurrentImageUrl))]
+    [NotifyPropertyChangedFor(nameof(CurrentFullImageUrl))]
     public partial int CurrentImagePosition { get; set; }
 
     /// <summary>
@@ -191,12 +212,35 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         ? ImageUrls[CurrentImagePosition]
         : null;
 
+    /// <summary>
+    /// Bild fuer den Vollbild-Viewer: die volle Aufloesung, sobald sie lokal vorliegt,
+    /// bis dahin die bereits sichtbare Vorschau. Der Viewer bekommt bewusst immer nur
+    /// lokale Dateien - eine entfernte URL laedt er unter WinUI nicht.
+    /// </summary>
+    public string? CurrentFullImageUrl
+    {
+        get
+        {
+            if (CurrentImagePosition >= 0 && CurrentImagePosition < _fullImageUrls.Count)
+            {
+                var full = _fullImageUrls[CurrentImagePosition];
+                var cached = _imageCache.GetCachedOrOriginal(full);
+                if (!string.Equals(cached, full, StringComparison.Ordinal))
+                    return cached;
+            }
+
+            return CurrentImageUrl;
+        }
+    }
+
     /// <summary>True bei mehr als einem Bild (blendet die Pfeile im Windows-Bildviewer ein)</summary>
     public bool HasMultipleImages => ImageUrls.Count > 1;
 
-    partial void OnImageUrlsChanged(List<string> value)
+    private void OnImagesChanged()
     {
+        OnPropertyChanged(nameof(ImageCounterText));
         OnPropertyChanged(nameof(CurrentImageUrl));
+        OnPropertyChanged(nameof(CurrentFullImageUrl));
         OnPropertyChanged(nameof(HasMultipleImages));
         OnPropertyChanged(nameof(ShowViewerNavigation));
     }
@@ -215,6 +259,58 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     {
         OnPropertyChanged(nameof(ShowContactFooter));
         OnPropertyChanged(nameof(ShowViewerNavigation));
+
+        if (value)
+            EnsureFullImageCached();
+    }
+
+    partial void OnCurrentImagePositionChanged(int value)
+    {
+        if (IsImageViewerOpen)
+            EnsureFullImageCached();
+    }
+
+    private CancellationTokenSource? _fullImageCts;
+
+    /// <summary>
+    /// Holt die volle Aufloesung des gerade gezeigten Bildes in den Bild-Cache. Erst
+    /// danach kann <see cref="CurrentFullImageUrl"/> sie liefern; bis dahin bleibt die
+    /// Vorschau stehen. Nur auf Anforderung (geoeffneter Viewer) - die vollen Dateien
+    /// sind bis zu 2560px breit und werden fuer die Seite selbst nie gebraucht.
+    /// </summary>
+    private void EnsureFullImageCached()
+    {
+        var index = CurrentImagePosition;
+        if (index < 0 || index >= _fullImageUrls.Count)
+            return;
+
+        var url = _fullImageUrls[index];
+        if (!string.Equals(_imageCache.GetCachedOrOriginal(url), url, StringComparison.Ordinal))
+            return; // liegt bereits lokal
+
+        _fullImageCts?.Cancel();
+        _fullImageCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _fullImageCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _imageCache.GetOrDownloadAsync(url, cts.Token).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "[PropertyDetail] Vollbild konnte nicht geladen werden");
+                return;
+            }
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (!cts.IsCancellationRequested && CurrentImagePosition == index)
+                    OnPropertyChanged(nameof(CurrentFullImageUrl));
+            });
+        });
     }
 
     partial void OnHasContactFooterChanged(bool value)
@@ -239,10 +335,18 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         IInternetService internet,
         OfflineReadState offlineReadState,
         PropertyImageCache imageCache,
+        PropertyHandoffCache handoffCache,
+        PropertyDetailPreloader detailPreloader,
+        PropertyDetailImageResolver imageResolver,
+        DetailNavigationTrace trace,
         ILogger<PropertyDetailViewModel> logger,
         PropertyDetailStringsLocalized loc,
         CommonStringsLocalized commonLoc)
     {
+        _handoffCache = handoffCache;
+        _detailPreloader = detailPreloader;
+        _imageResolver = imageResolver;
+        _trace = trace;
         _clipboardService = clipboardService;
         _shareService = shareService;
         _mediator = mediator;
@@ -265,7 +369,6 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         TypeBadgeColor = Colors.Gray;
         DetailSections = [];
         StatTiles = [];
-        ImageUrls = [];
         Contacts = [];
         IsAuthenticated = authService.IsAuthenticated;
     }
@@ -282,6 +385,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
         if (Guid.TryParse(PropertyId, out var id))
         {
+            _trace.Mark(id, "Seite sichtbar");
+
+            // Vorschau aus den Listendaten der angetippten Karte: Kopf und erstes Foto
+            // stehen damit im ersten Frame, ohne auf den Detail-Request zu warten
+            ApplyHandoff(id);
+            _trace.Mark(id, "Vorschau gezeichnet");
+
             _ = LoadPropertyAsync(id);
 
             // Delta-Sync: betrifft eine Aenderung/Loeschung die angezeigte Immobilie,
@@ -312,6 +422,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         _syncSubscription = null;
         _onlineWaitCts?.Cancel();
         _onlineWaitCts = null;
+        _imageUpgradeCts?.Cancel();
+        _imageUpgradeCts = null;
     }
 
     private void OnOfflineReadStateChanged(object? sender, EventArgs e) =>
@@ -322,19 +434,166 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
 
     private CancellationTokenSource? _onlineWaitCts;
 
+    /// <summary>True sobald die Vorschau aus den Listendaten auf der Seite steht</summary>
+    private bool _hasHandoffPreview;
+
+    /// <summary>
+    /// Uebernimmt die Listendaten der angetippten Karte als Sofort-Anzeige. Alle Werte
+    /// stammen aus derselben Quelle wie die Karte und werden vom Detail-Ergebnis
+    /// ersetzt, sobald es vorliegt.
+    /// </summary>
+    private void ApplyHandoff(Guid propertyId)
+    {
+        var item = _handoffCache.Get(propertyId);
+        if (item == null)
+            return;
+
+        _hasHandoffPreview = true;
+
+        Title = PropertyDisplay.DisplayTitle(item.Title) is { Length: > 0 } title
+            ? title
+            : _loc.FallbackTitle;
+        FormattedPrice = item.Price > 0 ? PropertyDisplay.Price((decimal)item.Price) : string.Empty;
+        AddressText = $"{item.Address}, {item.PostalCode} {item.City}";
+
+        TypeBadgeText = GetTypeBadgeText(item.Type);
+        TypeBadgeColor = GetTypeBadgeColor(item.Type);
+
+        // Anbieterzeile sofort setzen, damit der Kontakt-Footer nicht nachtraeglich
+        // aufpoppt; die Kontaktdetails darin kommen mit den Detaildaten
+        SellerName = item.SellerName;
+        HasContactFooter = !string.IsNullOrWhiteSpace(item.SellerName);
+
+        StatTiles = BuildHandoffStatTiles(item);
+        HasStatTiles = StatTiles.Count > 0;
+
+        // Die Listen-URLs sind die Thumbnails, die die Karte bereits geladen hat -
+        // GetCachedOrOriginal loest sie auf den lokalen Dateipfad auf (kein Download)
+        CurrentImagePosition = 0;
+        SetImages(item.ImageUrls?
+            .Where(url => !string.IsNullOrEmpty(url))
+            .Select(_imageCache.GetCachedOrOriginal)
+            .ToList() ?? []);
+    }
+
+    /// <summary>
+    /// Setzt die angezeigten Bilder. Bleibt die Anzahl gleich (Vorschau aus den
+    /// Listendaten -> Detaildaten derselben Immobilie), werden nur die geaenderten
+    /// Positionen ersetzt - die CarouselView behaelt dadurch ihre Items und ihre
+    /// Position, statt alles neu zu laden.
+    /// </summary>
+    private void SetImages(IReadOnlyList<string> urls)
+    {
+        if (ImageUrls.Count == urls.Count)
+        {
+            for (var i = 0; i < urls.Count; i++)
+                PatchImage(i, urls[i]);
+        }
+        else
+        {
+            ImageUrls.Clear();
+            foreach (var url in urls)
+                ImageUrls.Add(url);
+        }
+
+        HasImages = ImageUrls.Count > 0;
+        OnImagesChanged();
+    }
+
+    /// <summary>Ersetzt ein einzelnes Bild (z.B. Thumbnail -> geladene Vorschau).</summary>
+    private void PatchImage(int index, string url)
+    {
+        if (index < 0 || index >= ImageUrls.Count)
+            return;
+
+        if (string.Equals(ImageUrls[index], url, StringComparison.Ordinal))
+            return;
+
+        ImageUrls[index] = url;
+
+        if (index == CurrentImagePosition)
+            OnPropertyChanged(nameof(CurrentImageUrl));
+    }
+
+    /// <summary>
+    /// Kernfakten aus den Listendaten (ohne TypeSpecificData) - dieselben Kacheln wie
+    /// nach dem Laden, nur aus den groberen Listenfeldern.
+    /// </summary>
+    private List<StatTileItem> BuildHandoffStatTiles(PropertyListItemDto item)
+    {
+        var tiles = new List<StatTileItem>();
+
+        if (item.Type == PropertyType.Foreclosure)
+        {
+            if (item.PlotAreaM2 is > 0)
+                tiles.Add(new StatTileItem(_loc.TileArea, PropertyDisplay.Area(item.PlotAreaM2.Value)));
+            if (item.LivingAreaM2 is > 0)
+                tiles.Add(new StatTileItem(_loc.TileBuilt, PropertyDisplay.Area(item.LivingAreaM2.Value)));
+            if (item.AuctionDate is { } auctionDate)
+                tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yy")));
+        }
+        else
+        {
+            if (item.LivingAreaM2 is > 0)
+                tiles.Add(new StatTileItem(_loc.TileLivingArea, PropertyDisplay.Area(item.LivingAreaM2.Value)));
+            if (item.PlotAreaM2 is > 0)
+                tiles.Add(new StatTileItem(_loc.TilePlot, PropertyDisplay.Area(item.PlotAreaM2.Value)));
+            if (item.Rooms is > 0)
+                tiles.Add(new StatTileItem(_loc.TileRooms, item.Rooms.Value.ToString()));
+        }
+
+        return tiles;
+    }
+
+    private string GetTypeBadgeText(PropertyType type) => type switch
+    {
+        PropertyType.House => _loc.TypeBadgeHouse,
+        PropertyType.Land => _loc.TypeBadgeLand,
+        PropertyType.Foreclosure => _loc.TypeBadgeForeclosure,
+        _ => _loc.TypeBadgeDefault
+    };
+
+    /// <summary>
+    /// Typ-Farben (analog zur PropertyCard, wie Web): ZV = Signal-Rot,
+    /// Grund = Gruen, Haus = Blau, Rest warmes Glas
+    /// </summary>
+    private static Color GetTypeBadgeColor(PropertyType type) => type switch
+    {
+        PropertyType.Foreclosure => Color.FromArgb("#DE2A2F"),
+        PropertyType.Land => Color.FromArgb("#33854A"),
+        PropertyType.House => Color.FromArgb("#2F6E9E"),
+        _ => Color.FromArgb("#66171310")
+    };
+
+    /// <summary>
+    /// Nutzt den beim Antippen der Karte gestarteten Request, falls vorhanden - der
+    /// laeuft dann schon waehrend Seitenaufbau und Navigationsanimation. Sonst (Deep-Link,
+    /// erneuter Ladeversuch, Delta-Sync) wird wie bisher selbst angefragt.
+    /// </summary>
+    private async Task<GetPropertyByIdResponse?> RequestPropertyAsync(Guid propertyId)
+    {
+        var pending = _detailPreloader.TryTakePendingRequest(propertyId);
+        if (pending != null)
+            return await pending;
+
+        var (_, response) = await _mediator.Request(new GetPropertyByIdHttpRequest { Id = propertyId });
+        return response;
+    }
+
     private async Task LoadPropertyAsync(Guid propertyId)
     {
-        IsBusy = true;
-        BusyMessage = _loc.BusyLoading;
         HasLoadError = false;
         LoadErrorText = null;
         _onlineWaitCts?.Cancel();
+
+        var busyCts = new CancellationTokenSource();
+        _ = ShowBusyAfterDelayAsync(busyCts.Token);
 
         try
         {
             _logger.LogInformation("[PropertyDetail] Loading property {PropertyId} from API", propertyId);
 
-            var (_, response) = await _mediator.Request(new GetPropertyByIdHttpRequest { Id = propertyId });
+            var response = await RequestPropertyAsync(propertyId);
             IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
 
             if (response?.Property != null)
@@ -368,9 +627,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             }
 
             UpdateDisplayProperties();
-            if (Property != null)
-                _ = CachePropertyImagesAsync(propertyId, Property.ImageUrls);
             IsFavorite = isFavorite;
+            _trace.Mark(propertyId, "Detailseite vollstaendig");
         }
         catch (Exception ex) when (ex is OfflineDataUnavailableException || !_internet.IsAvailable)
         {
@@ -398,9 +656,45 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         }
         finally
         {
+            busyCts.Cancel();
+            busyCts.Dispose();
             IsBusy = false;
             BusyMessage = null;
         }
+    }
+
+    /// <summary>
+    /// Wie lange gewartet wird, bevor das Lade-Overlay erscheint. Cache-Treffer und
+    /// vorgeladene Requests sind deutlich schneller - ohne diese Verzoegerung wuerde
+    /// bei jedem Oeffnen ein Spinner aufblitzen.
+    /// </summary>
+    private static readonly TimeSpan BusyOverlayDelay = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>
+    /// Zeigt das Lade-Overlay nur, wenn nach <see cref="BusyOverlayDelay"/> noch immer
+    /// nichts anzuzeigen ist. Steht bereits Inhalt auf der Seite (Vorschau aus den
+    /// Listendaten oder ein frueheres Ergebnis), bleibt es ganz aus - ein Vollbild-Dimmer
+    /// ueber sichtbarem Inhalt wirkt wie ein Ruckler.
+    /// </summary>
+    private async Task ShowBusyAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        if (Property != null || _hasHandoffPreview)
+            return;
+
+        try
+        {
+            await Task.Delay(BusyOverlayDelay, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        BusyMessage = _loc.BusyLoading;
+        IsBusy = true;
     }
 
     private void SetOfflineError(Guid propertyId)
@@ -463,8 +757,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             IsBroker = false;
             OriginalListingUrl = null;
             HasOriginalListingUrl = false;
-            HasImages = false;
-            ImageUrls = [];
+            _fullImageUrls = [];
+            _previewImageUrls = [];
+            SetImages([]);
             SellerName = null;
             Contacts = [];
             HasContacts = false;
@@ -482,25 +777,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         }
 
         Title = Property.Title;
-
-        // Typ-Badge Text
-        TypeBadgeText = Property.Type switch
-        {
-            PropertyType.House => _loc.TypeBadgeHouse,
-            PropertyType.Land => _loc.TypeBadgeLand,
-            PropertyType.Foreclosure => _loc.TypeBadgeForeclosure,
-            _ => _loc.TypeBadgeDefault
-        };
-
-        // Typ-Farben (analog zur PropertyCard, wie Web): ZV = Signal-Rot,
-        // Grund = Gruen, Haus = Blau, Rest warmes Glas
-        TypeBadgeColor = Property.Type switch
-        {
-            PropertyType.Foreclosure => Color.FromArgb("#DE2A2F"),
-            PropertyType.Land => Color.FromArgb("#33854A"),
-            PropertyType.House => Color.FromArgb("#2F6E9E"),
-            _ => Color.FromArgb("#66171310")
-        };
+        TypeBadgeText = GetTypeBadgeText(Property.Type);
+        TypeBadgeColor = GetTypeBadgeColor(Property.Type);
 
         // Preis formatieren: "3.590.000 €"
         FormattedPrice = PropertyDisplay.Price((decimal)Property.Price);
@@ -528,14 +806,9 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         }
         HasOriginalListingUrl = !string.IsNullOrWhiteSpace(OriginalListingUrl);
 
-        // Bilder
-        ImageUrls = Property.ImageUrls?
-            .Where(url => !string.IsNullOrEmpty(url))
-            .Select(_imageCache.GetCachedOrOriginal)
-            .ToList() ?? [];
-        HasImages = ImageUrls.Count > 0;
-        CurrentImagePosition = 0;
-        OnPropertyChanged(nameof(ImageCounterText));
+        // Bilder: angezeigt wird die Vorschau-Variante (bzw. solange das Thumbnail,
+        // das die Karte schon geladen hat), die volle Aufloesung nur im Vollbild-Viewer
+        ApplyImageVariants();
 
         // Kontaktperson (erster Kontakt falls vorhanden); ausblenden wenn identisch
         // mit dem Anbieternamen (sonst steht derselbe Name doppelt im Footer)
@@ -566,44 +839,117 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         Description = Property.Description;
         HasDescription = !string.IsNullOrWhiteSpace(Property.Description);
 
-        // Strukturierte Datentabelle aufbauen
-        BuildDetailSections();
+        // Strukturierte Datentabelle aufbauen (im Hintergrund, s.u.)
+        StartDetailContentBuild();
     }
 
-    private async Task CachePropertyImagesAsync(Guid propertyId, IEnumerable<string>? urls)
+    /// <summary>
+    /// Baut Datentabelle und Kernfakten im Hintergrund und setzt sie danach auf dem
+    /// UI-Thread. Kopf und Foto sind damit schon gezeichnet, bevor die Tabelle mit
+    /// ihren rund drei Dutzend Zeilen ins Layout kommt.
+    /// </summary>
+    private void StartDetailContentBuild()
     {
-        try
+        var property = Property;
+        if (property == null)
+            return;
+
+        var formattedPrice = FormattedPrice;
+
+        _ = Task.Run(() =>
         {
-            var sourceUrls = urls?.Where(url => !string.IsNullOrWhiteSpace(url)).ToList() ?? [];
-            if (sourceUrls.Count == 0)
-                return;
+            var (sections, tiles) = BuildDetailContent(property, formattedPrice);
 
-            var resolved = await Task.WhenAll(
-                sourceUrls.Select(url => _imageCache.GetOrDownloadAsync(url)));
-
-            await MainThread.InvokeOnMainThreadAsync(() =>
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                if (Property?.Id != propertyId)
+                // Zwischenzeitlicher Wechsel auf eine andere Immobilie (Delta-Sync,
+                // Deep-Link) darf keine fremde Tabelle einspielen
+                if (Property?.Id != property.Id)
                     return;
 
-                ImageUrls = resolved.ToList();
-                HasImages = ImageUrls.Count > 0;
-                OnPropertyChanged(nameof(ImageCounterText));
+                DetailSections = sections;
+                StatTiles = tiles;
+                HasStatTiles = tiles.Count > 0;
             });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "[PropertyDetail] Bilder konnten nicht vorab gespeichert werden");
-        }
+        });
     }
 
-    private void BuildDetailSections()
+    /// <summary>
+    /// Uebernimmt die drei Bild-Varianten der geladenen Immobilie: sofort sichtbar wird
+    /// die beste lokal vorhandene (Vorschau, sonst Thumbnail), die volle Aufloesung
+    /// bleibt dem Vollbild-Viewer vorbehalten. Fehlen die skalierten Listen (Antwort aus
+    /// einem Offline-Cache von vor diesem Feld), dienen die vollen URLs als Fallback.
+    /// </summary>
+    private void ApplyImageVariants()
     {
-        if (Property == null) return;
+        var full = Property?.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList() ?? [];
+        var previews = NonEmptyOrFallback(Property?.PreviewImageUrls, full);
+        var thumbnails = NonEmptyOrFallback(Property?.ThumbnailImageUrls, previews);
 
+        _fullImageUrls = full;
+        _previewImageUrls = previews;
+
+        SetImages(_imageResolver.ResolveDisplayUrls(previews, thumbnails));
+
+        StartPreviewUpgrade();
+    }
+
+    private static List<string> NonEmptyOrFallback(IEnumerable<string>? candidate, List<string> fallback)
+    {
+        var list = candidate?.Where(url => !string.IsNullOrEmpty(url)).ToList();
+        return list is { Count: > 0 } ? list : fallback;
+    }
+
+    /// <summary>
+    /// Laedt die Vorschau-Varianten in den Bild-Cache und ersetzt die angezeigten
+    /// Thumbnails, sobald die scharfe Variante lokal vorliegt.
+    /// </summary>
+    private void StartPreviewUpgrade()
+    {
+        _imageUpgradeCts?.Cancel();
+        _imageUpgradeCts?.Dispose();
+        _imageUpgradeCts = null;
+
+        if (_previewImageUrls.Count == 0)
+            return;
+
+        var cts = new CancellationTokenSource();
+        _imageUpgradeCts = cts;
+
+        var propertyId = Property?.Id;
+        var previews = _previewImageUrls;
+
+        _ = Task.Run(() => _imageResolver.UpgradeToPreviewsAsync(
+            previews,
+            CurrentImagePosition,
+            (index, resolved) => MainThread.BeginInvokeOnMainThread(() =>
+            {
+                // Zwischenzeitlicher Wechsel auf eine andere Immobilie (Delta-Sync,
+                // Deep-Link) darf keine fremden Bilder einspielen
+                if (cts.IsCancellationRequested || Property?.Id != propertyId)
+                    return;
+
+                PatchImage(index, resolved);
+
+                if (index == 0 && propertyId is { } id)
+                    _trace.Complete(id, "Hero-Foto scharf");
+            }),
+            cts.Token));
+    }
+
+    /// <summary>
+    /// Baut Datentabelle und Kernfakten-Kacheln aus der geladenen Immobilie. Greift
+    /// bewusst auf keinen View-State zu, damit der Aufbau (JSON-Parsen plus rund drei
+    /// Dutzend Eintraege) im Hintergrund laufen kann und den ersten Frame der Seite
+    /// nicht aufhaelt; gesetzt wird das Ergebnis auf dem UI-Thread.
+    /// </summary>
+    private (List<PropertyDetailSection> Sections, List<StatTileItem> Tiles) BuildDetailContent(
+        PropertyDto property,
+        string formattedPrice)
+    {
         var items = new List<PropertyDetailItem>();
-        var price = (decimal)Property.Price;
-        var isForeclosure = Property.Type == PropertyType.Foreclosure;
+        var price = (decimal)property.Price;
+        var isForeclosure = property.Type == PropertyType.Foreclosure;
 
         // TypeSpecificData deserialisieren (vor den Basisdaten: das Preis-Label haengt bei
         // Zwangsversteigerungen davon ab, ob Price aus MinimumBid oder EstimatedValue stammt)
@@ -611,20 +957,20 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         LandPropertyData? landData = null;
         ForeclosurePropertyData? foreclosureData = null;
 
-        if (!string.IsNullOrWhiteSpace(Property.TypeSpecificData))
+        if (!string.IsNullOrWhiteSpace(property.TypeSpecificData))
         {
             try
             {
-                switch (Property.Type)
+                switch (property.Type)
                 {
                     case PropertyType.House:
-                        houseData = JsonSerializer.Deserialize<HousePropertyData>(Property.TypeSpecificData, JsonOptions);
+                        houseData = JsonSerializer.Deserialize<HousePropertyData>(property.TypeSpecificData, JsonOptions);
                         break;
                     case PropertyType.Land:
-                        landData = JsonSerializer.Deserialize<LandPropertyData>(Property.TypeSpecificData, JsonOptions);
+                        landData = JsonSerializer.Deserialize<LandPropertyData>(property.TypeSpecificData, JsonOptions);
                         break;
                     case PropertyType.Foreclosure:
-                        foreclosureData = JsonSerializer.Deserialize<ForeclosurePropertyData>(Property.TypeSpecificData, JsonOptions);
+                        foreclosureData = JsonSerializer.Deserialize<ForeclosurePropertyData>(property.TypeSpecificData, JsonOptions);
                         break;
                 }
             }
@@ -635,12 +981,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         }
 
         // --- Basisdaten (hervorgehoben) ---
-        var typeLabel = Property.Type switch
+        var typeLabel = property.Type switch
         {
             PropertyType.House => _loc.TypeHouse,
             PropertyType.Land => _loc.TypeLand,
             PropertyType.Foreclosure => _loc.TypeForeclosure,
-            _ => Property.Type.ToString()
+            _ => property.Type.ToString()
         };
         items.Add(new PropertyDetailItem(_loc.LabelPropertyType, typeLabel, PropertyDataCategory.Basisdaten, true));
 
@@ -649,15 +995,15 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         // Antworten aus dem Offline-Cache von vor diesem Feld (Record-Default "Kaufpreis").
         // Bewusst NICHT lokalisiert: die Literale spiegeln serverseitige Anzeige-Texte 1:1
         // und der Vergleich unten prueft gegen genau diesen Server-Text.
-        var priceLabel = string.IsNullOrWhiteSpace(Property.PriceLabel) ? "Kaufpreis" : Property.PriceLabel;
+        var priceLabel = string.IsNullOrWhiteSpace(property.PriceLabel) ? "Kaufpreis" : property.PriceLabel;
         if (isForeclosure && priceLabel == "Kaufpreis")
         {
             priceLabel = foreclosureData is { MinimumBid: <= 0, EstimatedValue: > 0 } ? "Schätzwert" : "Mindestgebot";
         }
-        items.Add(new PropertyDetailItem(priceLabel, price > 0 ? FormattedPrice : _loc.PriceOnRequest, PropertyDataCategory.Basisdaten, true));
-        AddIfNotEmpty(items, _loc.LabelPostalCode, Property.PostalCode, PropertyDataCategory.Basisdaten, true);
-        AddIfNotEmpty(items, _loc.LabelCity, Property.City, PropertyDataCategory.Basisdaten, true);
-        AddIfNotEmpty(items, _loc.LabelAddress, Property.Address, PropertyDataCategory.Basisdaten, true);
+        items.Add(new PropertyDetailItem(priceLabel, price > 0 ? formattedPrice : _loc.PriceOnRequest, PropertyDataCategory.Basisdaten, true));
+        AddIfNotEmpty(items, _loc.LabelPostalCode, property.PostalCode, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, _loc.LabelCity, property.City, PropertyDataCategory.Basisdaten, true);
+        AddIfNotEmpty(items, _loc.LabelAddress, property.Address, PropertyDataCategory.Basisdaten, true);
 
         // --- Flaechen ---
         // Bei Zwangsversteigerungen tragen die Kernfelder Edikt-Semantik (LivingAreaM2 = bebaute
@@ -667,24 +1013,24 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             if (foreclosureData?.TotalArea is > 0)
                 items.Add(new PropertyDetailItem(_loc.LabelTotalArea, PropertyDisplay.Area(foreclosureData.TotalArea.Value), PropertyDataCategory.Flaechen));
             else
-                AddIfHasValue(items, _loc.LabelPlotArea, Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+                AddIfHasValue(items, _loc.LabelPlotArea, property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
 
             if (foreclosureData?.BuildingArea is > 0)
                 items.Add(new PropertyDetailItem(_loc.LabelBuildingArea, PropertyDisplay.Area(foreclosureData.BuildingArea.Value), PropertyDataCategory.Flaechen));
             else
-                AddIfHasValue(items, _loc.LabelBuildingArea, Property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+                AddIfHasValue(items, _loc.LabelBuildingArea, property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
         }
         else
         {
             if (houseData != null && houseData.LivingAreaInSquareMeters > 0)
                 items.Add(new PropertyDetailItem(_loc.LabelLivingArea, PropertyDisplay.Area(houseData.LivingAreaInSquareMeters), PropertyDataCategory.Flaechen));
             else
-                AddIfHasValue(items, _loc.LabelLivingArea, Property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+                AddIfHasValue(items, _loc.LabelLivingArea, property.LivingAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
 
             if (landData != null && landData.PlotSizeInSquareMeters > 0)
                 items.Add(new PropertyDetailItem(_loc.LabelPlotArea, PropertyDisplay.Area(landData.PlotSizeInSquareMeters), PropertyDataCategory.Flaechen));
             else
-                AddIfHasValue(items, _loc.LabelPlotArea, Property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
+                AddIfHasValue(items, _loc.LabelPlotArea, property.PlotAreaM2, v => PropertyDisplay.Area(v), PropertyDataCategory.Flaechen);
         }
 
         // --- Gebaeude (Haus) ---
@@ -693,7 +1039,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             if (houseData.TotalRooms > 0)
                 items.Add(new PropertyDetailItem(_loc.LabelRooms, houseData.TotalRooms.ToString(), PropertyDataCategory.Gebaeude));
             else
-                AddIfHasValue(items, _loc.LabelRooms, Property.Rooms, v => v.ToString(), PropertyDataCategory.Gebaeude);
+                AddIfHasValue(items, _loc.LabelRooms, property.Rooms, v => v.ToString(), PropertyDataCategory.Gebaeude);
 
             if (houseData.Bedrooms > 0)
                 items.Add(new PropertyDetailItem(_loc.LabelBedrooms, houseData.Bedrooms.ToString(), PropertyDataCategory.Gebaeude));
@@ -704,7 +1050,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             if (houseData.YearBuilt.HasValue)
                 items.Add(new PropertyDetailItem(_loc.LabelYearBuilt, houseData.YearBuilt.Value.ToString(), PropertyDataCategory.Gebaeude));
             else
-                AddIfHasValue(items, _loc.LabelYearBuilt, Property.YearBuilt, v => v.ToString(), PropertyDataCategory.Gebaeude);
+                AddIfHasValue(items, _loc.LabelYearBuilt, property.YearBuilt, v => v.ToString(), PropertyDataCategory.Gebaeude);
 
             // Default(0) ist kein definierter Enum-Wert (z.B. bei leerem TypeSpecificData "{}")
             if (Enum.IsDefined(houseData.Condition))
@@ -716,8 +1062,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         else
         {
             // Fallback auf Kernfelder ohne HousePropertyData
-            AddIfHasValue(items, _loc.LabelRooms, Property.Rooms, v => v.ToString(), PropertyDataCategory.Gebaeude);
-            AddIfHasValue(items, _loc.LabelYearBuilt, Property.YearBuilt, v => v.ToString(), PropertyDataCategory.Gebaeude);
+            AddIfHasValue(items, _loc.LabelRooms, property.Rooms, v => v.ToString(), PropertyDataCategory.Gebaeude);
+            AddIfHasValue(items, _loc.LabelYearBuilt, property.YearBuilt, v => v.ToString(), PropertyDataCategory.Gebaeude);
         }
 
         // --- Ausstattung (Haus) ---
@@ -764,48 +1110,46 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         // Preis/m² kommt serverseitig berechnet (null bei Zwangsversteigerungen - dort waere
         // es Mindestgebot / bebaute Flaeche). Fallback nur fuer Offline-Cache-Antworten
         // von vor diesem Feld.
-        decimal? pricePerSqm = Property.PricePerSquareMeter is > 0
-            ? (decimal)Property.PricePerSquareMeter.Value
-            : !isForeclosure && price > 0 && Property.LivingAreaM2 is > 0
-                ? price / Property.LivingAreaM2.Value
+        decimal? pricePerSqm = property.PricePerSquareMeter is > 0
+            ? (decimal)property.PricePerSquareMeter.Value
+            : !isForeclosure && price > 0 && property.LivingAreaM2 is > 0
+                ? price / property.LivingAreaM2.Value
                 : null;
         if (pricePerSqm is > 0)
             items.Add(new PropertyDetailItem(_loc.LabelPricePerSqm, PropertyDisplay.PriceExact(pricePerSqm.Value), PropertyDataCategory.Kosten));
 
         // --- Basisdaten: Eingestellt am ---
-        items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, Property.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
+        items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, property.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));
 
         // Nach Kategorie gruppieren, leere Sektionen entfallen automatisch
-        DetailSections = items
+        var sections = items
             .GroupBy(i => i.Category)
             .OrderBy(g => g.Key)
             .Select(g => new PropertyDetailSection(GetCategoryTitle(g.Key), g.Key, g.ToList()))
             .ToList();
 
-        BuildStatTiles(houseData, landData, foreclosureData);
+        return (sections, BuildStatTiles(property, houseData, landData, foreclosureData));
     }
 
     /// <summary>
     /// Kernfakten fuer die Kachel-Zeile unter dem Kopf. Gleiche Wertequellen wie die
     /// Datentabelle (TypeSpecificData vor Kernfeldern), aber auf drei Werte verdichtet.
     /// </summary>
-    private void BuildStatTiles(HousePropertyData? houseData, LandPropertyData? landData, ForeclosurePropertyData? foreclosureData)
+    private List<StatTileItem> BuildStatTiles(
+        PropertyDto property,
+        HousePropertyData? houseData,
+        LandPropertyData? landData,
+        ForeclosurePropertyData? foreclosureData)
     {
         var tiles = new List<StatTileItem>();
-        if (Property == null)
-        {
-            StatTiles = tiles;
-            HasStatTiles = false;
-            return;
-        }
 
-        if (Property.Type == PropertyType.Foreclosure)
+        if (property.Type == PropertyType.Foreclosure)
         {
-            decimal? totalArea = foreclosureData is { TotalArea: > 0 } fa ? fa.TotalArea : Property.PlotAreaM2;
+            decimal? totalArea = foreclosureData is { TotalArea: > 0 } fa ? fa.TotalArea : property.PlotAreaM2;
             if (totalArea is > 0)
                 tiles.Add(new StatTileItem(_loc.TileArea, PropertyDisplay.Area(totalArea.Value)));
 
-            decimal? buildingArea = foreclosureData is { BuildingArea: > 0 } fb ? fb.BuildingArea : Property.LivingAreaM2;
+            decimal? buildingArea = foreclosureData is { BuildingArea: > 0 } fb ? fb.BuildingArea : property.LivingAreaM2;
             if (buildingArea is > 0)
                 tiles.Add(new StatTileItem(_loc.TileBuilt, PropertyDisplay.Area(buildingArea.Value)));
 
@@ -816,23 +1160,22 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         {
             decimal? livingArea = houseData is { LivingAreaInSquareMeters: > 0 } hl
                 ? hl.LivingAreaInSquareMeters
-                : Property.LivingAreaM2;
+                : property.LivingAreaM2;
             if (livingArea is > 0)
                 tiles.Add(new StatTileItem(_loc.TileLivingArea, PropertyDisplay.Area(livingArea.Value)));
 
             decimal? plotArea = landData is { PlotSizeInSquareMeters: > 0 } lp
                 ? lp.PlotSizeInSquareMeters
-                : Property.PlotAreaM2;
+                : property.PlotAreaM2;
             if (plotArea is > 0)
                 tiles.Add(new StatTileItem(_loc.TilePlot, PropertyDisplay.Area(plotArea.Value)));
 
-            int? rooms = houseData is { TotalRooms: > 0 } hr ? hr.TotalRooms : Property.Rooms;
+            int? rooms = houseData is { TotalRooms: > 0 } hr ? hr.TotalRooms : property.Rooms;
             if (rooms is > 0)
                 tiles.Add(new StatTileItem(_loc.TileRooms, rooms.Value.ToString()));
         }
 
-        StatTiles = tiles;
-        HasStatTiles = tiles.Count > 0;
+        return tiles;
     }
 
     #region Formatting Helpers

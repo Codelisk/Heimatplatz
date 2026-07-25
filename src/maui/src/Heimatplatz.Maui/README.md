@@ -60,6 +60,28 @@ lokalen Caches gezielt, statt Listen neu zu laden:
 
 Die `RefreshAfterSeconds` der Immobilien-Requests (900 s) sind dadurch nur noch Sicherheitsnetz.
 
+## Weg von der Karte zur Detailseite
+
+Damit die Detailseite beim Antippen sofort steht statt auf den Detail-Request zu warten
+(`Features/Properties/Services/`):
+
+- `PropertyDetailPreloader.Prepare()` laeuft beim Tap **vor** der Navigation: legt die
+  Listendaten der Karte im `PropertyHandoffCache` ab und startet den Detail-Request. Die
+  Detailseite holt genau diesen laufenden Request per `TryTakePendingRequest()` ab - es geht
+  nie ein zweiter raus.
+- Die Detail-ViewModels zeichnen aus dem Handoff sofort Kopf, Kernfakten und erstes Foto;
+  die Detaildaten ersetzen den Zustand, sobald sie da sind. Das Busy-Overlay erscheint nur,
+  wenn nach 250 ms noch nichts anzuzeigen ist.
+- Bilder liefert der Server in drei Varianten (`ImageUrls` voll, `PreviewImageUrls` 1280px,
+  `ThumbnailImageUrls` 640px = zeichengleich mit den Listen-URLs). `PropertyDetailImageResolver`
+  zeigt die beste lokal vorhandene Variante und laedt die Vorschau im Hintergrund nach
+  (`ImageUrls` ist eine feste `ObservableCollection` mit In-Place-Patch - kein Carousel-Rebuild).
+  Die volle Aufloesung wird erst beim Oeffnen des Vollbild-Viewers geholt.
+- Der Vollbild-Viewer (`Controls/PropertyImageViewerOverlay`, geteilt ueber `IImageViewerHost`)
+  entsteht erst beim ersten Oeffnen. Er bekommt ausschliesslich lokale Dateipfade - eine
+  entfernte URL laedt er unter WinUI nicht.
+- `DetailNavigationTrace` protokolliert Tap → Seite sichtbar → Vorschau → Daten → Foto scharf.
+
 ## Wiederverwendet aus der Uno-App
 
 - `Heimatplatz.Features.Notifications.Contracts` und `Heimatplatz.Features.AppUpdate.Contracts` (plain net10.0) als Projektreferenzen.

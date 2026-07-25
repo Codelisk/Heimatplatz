@@ -23,8 +23,9 @@ public partial class BlockedViewModel(
     ILogger<BlockedViewModel> logger,
     CollectionStringsLocalized collectionLoc,
     CommonStringsLocalized commonLoc,
-    BlockedStringsLocalized loc
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc)
+    BlockedStringsLocalized loc,
+    PropertyDetailPreloader detailPreloader
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc, detailPreloader)
 {
     public BlockedStringsLocalized Loc => loc;
 

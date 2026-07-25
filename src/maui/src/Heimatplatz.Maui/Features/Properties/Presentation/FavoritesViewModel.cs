@@ -22,8 +22,9 @@ public partial class FavoritesViewModel(
     ILogger<FavoritesViewModel> logger,
     CollectionStringsLocalized collectionLoc,
     CommonStringsLocalized commonLoc,
-    FavoritesStringsLocalized loc
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc)
+    FavoritesStringsLocalized loc,
+    PropertyDetailPreloader detailPreloader
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc, detailPreloader)
 {
     public FavoritesStringsLocalized Loc => loc;
 

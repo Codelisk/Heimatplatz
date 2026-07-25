@@ -39,6 +39,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private readonly ILocationService _locationService;
     private readonly IMediator _mediator;
     private readonly OfflineReadState _offlineReadState;
+    private readonly PropertyDetailPreloader _detailPreloader;
     private readonly ILogger<HomeViewModel> _logger;
     private readonly HomeStringsLocalized _loc;
     // Dialog-Button-Texte (OK) - Shiny-Defaults sind englisch
@@ -289,8 +290,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         OfflineReadState offlineReadState,
         ILogger<HomeViewModel> logger,
         HomeStringsLocalized loc,
-        CommonStringsLocalized commonLoc)
+        CommonStringsLocalized commonLoc,
+        PropertyDetailPreloader detailPreloader)
     {
+        _detailPreloader = detailPreloader;
         _authService = authService;
         _navigator = navigator;
         _dialogs = dialogs;
@@ -1513,6 +1516,9 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     private async Task PropertySelectedAsync(PropertyListItemDto property)
     {
         _logger.LogInformation("[HomePage] Navigating to details for {PropertyId}", property.Id);
+
+        // Vor der Navigation: der Detailseite die bereits geladenen Listendaten mitgeben
+        _detailPreloader.Prepare(property);
 
         if (property.Type == PropertyType.Foreclosure)
         {

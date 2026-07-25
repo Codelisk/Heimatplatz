@@ -1,10 +1,12 @@
 using System.ComponentModel;
+using Heimatplatz.Maui.Features.Properties.Controls;
 
 namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
 public partial class PropertyDetailPage : ContentPage
 {
     private PropertyDetailViewModel? _viewModel;
+    private PropertyImageViewerOverlay? _imageViewerOverlay;
 
     public PropertyDetailPage()
     {
@@ -54,6 +56,26 @@ public partial class PropertyDetailPage : ContentPage
     {
         if (e.PropertyName == nameof(PropertyDetailViewModel.IsContactExpanded))
             ForceFooterRelayout();
+
+        if (e.PropertyName == nameof(PropertyDetailViewModel.IsImageViewerOpen) &&
+            _viewModel?.IsImageViewerOpen == true)
+        {
+            EnsureImageViewerOverlay();
+        }
+    }
+
+    /// <summary>
+    /// Der Vollbild-Viewer entsteht erst, wenn ein Foto zum ersten Mal gross angesehen
+    /// wird. Bei jeder Navigation mit aufzubauen kostet Zeit fuer etwas, das die meisten
+    /// Aufrufe der Seite nie zu Gesicht bekommen.
+    /// </summary>
+    private void EnsureImageViewerOverlay()
+    {
+        if (_imageViewerOverlay != null)
+            return;
+
+        _imageViewerOverlay = new PropertyImageViewerOverlay("Detail");
+        DetailRoot.Add(_imageViewerOverlay);
     }
 
     /// <summary>

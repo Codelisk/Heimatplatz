@@ -29,9 +29,8 @@ public class AppStartupService(
     public async Task StartAsync()
     {
 #if !ANDROID
-        // Diese Abhaengigkeiten werden nur vom Android-In-App-Updatepfad benoetigt.
+        // Diese Abhaengigkeit wird nur vom Android-In-App-Updatepfad benoetigt.
         _ = mediator;
-        _ = logger;
 #endif
 
         // Crash-Reports des letzten Laufs melden (fire-and-forget, fail-open)
@@ -55,7 +54,35 @@ public class AppStartupService(
             logger.LogDebug(ex, "App-Update-Check fehlgeschlagen");
         }
 #endif
+
+        WarmUpDetailPage();
     }
+
+    /// <summary>
+    /// Baut die Detailseite einmal im Leerlauf auf und verwirft sie sofort wieder.
+    /// Der erste Aufbau einer Seite ist immer der teuerste (JIT des generierten
+    /// XAML-Codes, Aufloesen von Styles und Ressourcen) - danach ist die erste echte
+    /// Navigation genauso schnell wie jede weitere.
+    /// </summary>
+    private void WarmUpDetailPage() => _ = Task.Run(async () =>
+    {
+        // Erst wenn die Startseite steht - waehrend des Starts wuerde der Warmup mit
+        // ihrem eigenen Aufbau um den UI-Thread konkurrieren
+        await Task.Delay(TimeSpan.FromSeconds(3));
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            try
+            {
+                _ = new Features.Properties.Presentation.PropertyDetailPage();
+            }
+            catch (Exception ex)
+            {
+                // Reine Optimierung - schlaegt sie fehl, laeuft die App unveraendert weiter
+                logger.LogDebug(ex, "Warmup der Detailseite fehlgeschlagen");
+            }
+        });
+    });
 
     /// <summary>
     /// App kehrt aus dem Hintergrund zurueck: sofort einen Delta-Sync anstossen.

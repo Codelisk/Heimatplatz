@@ -27,8 +27,9 @@ public partial class MyPropertiesViewModel(
     ILogger<MyPropertiesViewModel> logger,
     CollectionStringsLocalized collectionLoc,
     CommonStringsLocalized commonLoc,
-    MyPropertiesStringsLocalized loc
-) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc)
+    MyPropertiesStringsLocalized loc,
+    PropertyDetailPreloader detailPreloader
+) : PropertyCollectionViewModelBase(authService, mediator, navigator, dialogs, logger, collectionLoc, commonLoc, detailPreloader)
 {
     public MyPropertiesStringsLocalized Loc => loc;
 

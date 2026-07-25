@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
 using Heimatplatz.Maui.Core.Collections;
 using Heimatplatz.Maui.Features.Auth;
+using Heimatplatz.Maui.Features.Properties.Services;
 using Heimatplatz.Maui.Features.Properties.Sync;
 using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Localization.Properties;
@@ -28,6 +29,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     protected INavigator Navigator { get; }
     protected IDialogs Dialogs { get; }
     protected ILogger Logger { get; }
+    protected PropertyDetailPreloader DetailPreloader { get; }
 
     /// <summary>
     /// Gemeinsame Localized-Texte der Sammlungsseiten (Fehler-Hinweise etc.)
@@ -162,13 +164,15 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         IDialogs dialogs,
         ILogger logger,
         CollectionStringsLocalized collectionLoc,
-        CommonStringsLocalized commonLoc)
+        CommonStringsLocalized commonLoc,
+        PropertyDetailPreloader detailPreloader)
     {
         AuthService = authService;
         Mediator = mediator;
         Navigator = navigator;
         Dialogs = dialogs;
         Logger = logger;
+        DetailPreloader = detailPreloader;
         CollectionLoc = collectionLoc;
         CommonLoc = commonLoc;
 
@@ -501,6 +505,9 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     private async Task PropertySelectedAsync(PropertyListItemDto property)
     {
         Logger.LogInformation("[{Type}] Navigating to details for {PropertyId}", GetType().Name, property.Id);
+
+        // Vor der Navigation: der Detailseite die bereits geladenen Listendaten mitgeben
+        DetailPreloader.Prepare(property);
 
         if (property.Type == PropertyType.Foreclosure)
         {

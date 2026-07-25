@@ -1,3 +1,4 @@
+﻿using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -20,7 +21,7 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 /// Laedt die Immobilie anhand der PropertyId via API (GetPropertyByIdHttpRequest).
 /// </summary>
 [ShellMap<ForeclosureDetailPage>("ForeclosureDetail")]
-public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecycleAware
+public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecycleAware, IImageViewerHost
 {
     private readonly IClipboardService _clipboardService;
     private readonly IShareService _shareService;
@@ -30,11 +31,18 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     private readonly IInternetService _internet;
     private readonly OfflineReadState _offlineReadState;
     private readonly PropertyImageCache _imageCache;
+    private readonly PropertyHandoffCache _handoffCache;
+    private readonly PropertyDetailPreloader _detailPreloader;
+    private readonly PropertyDetailImageResolver _imageResolver;
+    private readonly DetailNavigationTrace _trace;
     private readonly ILogger<ForeclosureDetailViewModel> _logger;
     private readonly ForeclosureDetailStringsLocalized _loc;
 
     /// <summary>Lokalisierte Texte fuer XAML-Bindings (Loc.Key)</summary>
     public ForeclosureDetailStringsLocalized Loc => _loc;
+
+    /// <summary>Barrierefreiheits-Beschreibung des Schliessen-Buttons im Vollbild-Viewer</summary>
+    public string CloseViewerSemantic => _loc.CloseViewerSemantic;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -177,12 +185,25 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     [ObservableProperty]
     public partial bool HasImages { get; set; }
 
-    [ObservableProperty]
-    public partial List<string> ImageUrls { get; set; }
+    /// <summary>
+    /// Angezeigte Bilder (Thumbnail bis die Vorschau lokal vorliegt). Feste Instanz mit
+    /// In-Place-Updates: ein Austausch der Liste wuerde die CarouselView komplett neu
+    /// aufbauen, jedes Foto neu laden lassen und die Position zuruecksetzen.
+    /// </summary>
+    public ObservableCollection<string> ImageUrls { get; } = [];
+
+    /// <summary>Volle Display-Varianten - ausschliesslich fuer den Vollbild-Viewer</summary>
+    private List<string> _fullImageUrls = [];
+
+    /// <summary>Vorschau-Varianten (1280px), die im Hintergrund nachgeladen werden</summary>
+    private List<string> _previewImageUrls = [];
+
+    private CancellationTokenSource? _imageUpgradeCts;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImageCounterText))]
     [NotifyPropertyChangedFor(nameof(CurrentImageUrl))]
+    [NotifyPropertyChangedFor(nameof(CurrentFullImageUrl))]
     public partial int CurrentImagePosition { get; set; }
 
     [ObservableProperty]
@@ -205,14 +226,76 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         ? ImageUrls[CurrentImagePosition]
         : null;
 
+    /// <summary>
+    /// Bild fuer den Vollbild-Viewer: die volle Aufloesung, sobald sie lokal vorliegt,
+    /// bis dahin die bereits sichtbare Vorschau. Der Viewer bekommt bewusst immer nur
+    /// lokale Dateien - eine entfernte URL laedt er unter WinUI nicht.
+    /// </summary>
+    public string? CurrentFullImageUrl
+    {
+        get
+        {
+            if (CurrentImagePosition >= 0 && CurrentImagePosition < _fullImageUrls.Count)
+            {
+                var full = _fullImageUrls[CurrentImagePosition];
+                var cached = _imageCache.GetCachedOrOriginal(full);
+                if (!string.Equals(cached, full, StringComparison.Ordinal))
+                    return cached;
+            }
+
+            return CurrentImageUrl;
+        }
+    }
+
     /// <summary>True bei mehr als einem Bild (blendet die Pfeile im Windows-Bildviewer ein)</summary>
     public bool HasMultipleImages => ImageUrls.Count > 1;
 
-    partial void OnImageUrlsChanged(List<string> value)
+    private void OnImagesChanged()
     {
+        OnPropertyChanged(nameof(ImageCounterText));
         OnPropertyChanged(nameof(CurrentImageUrl));
+        OnPropertyChanged(nameof(CurrentFullImageUrl));
         OnPropertyChanged(nameof(HasMultipleImages));
         OnPropertyChanged(nameof(ShowViewerNavigation));
+    }
+
+    /// <summary>
+    /// Setzt die angezeigten Bilder. Bleibt die Anzahl gleich (Vorschau aus den
+    /// Listendaten -> Detaildaten derselben Immobilie), werden nur die geaenderten
+    /// Positionen ersetzt - die CarouselView behaelt dadurch ihre Items und ihre
+    /// Position, statt alles neu zu laden.
+    /// </summary>
+    private void SetImages(IReadOnlyList<string> urls)
+    {
+        if (ImageUrls.Count == urls.Count)
+        {
+            for (var i = 0; i < urls.Count; i++)
+                PatchImage(i, urls[i]);
+        }
+        else
+        {
+            ImageUrls.Clear();
+            foreach (var url in urls)
+                ImageUrls.Add(url);
+        }
+
+        HasImages = ImageUrls.Count > 0;
+        OnImagesChanged();
+    }
+
+    /// <summary>Ersetzt ein einzelnes Bild (z.B. Thumbnail -> geladene Vorschau).</summary>
+    private void PatchImage(int index, string url)
+    {
+        if (index < 0 || index >= ImageUrls.Count)
+            return;
+
+        if (string.Equals(ImageUrls[index], url, StringComparison.Ordinal))
+            return;
+
+        ImageUrls[index] = url;
+
+        if (index == CurrentImagePosition)
+            OnPropertyChanged(nameof(CurrentImageUrl));
     }
 
     /// <summary>True solange der Vollbild-Bildviewer (Lightbox) offen ist</summary>
@@ -229,6 +312,58 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     {
         OnPropertyChanged(nameof(ShowCourtFooter));
         OnPropertyChanged(nameof(ShowViewerNavigation));
+
+        if (value)
+            EnsureFullImageCached();
+    }
+
+    partial void OnCurrentImagePositionChanged(int value)
+    {
+        if (IsImageViewerOpen)
+            EnsureFullImageCached();
+    }
+
+    private CancellationTokenSource? _fullImageCts;
+
+    /// <summary>
+    /// Holt die volle Aufloesung des gerade gezeigten Bildes in den Bild-Cache. Erst
+    /// danach kann <see cref="CurrentFullImageUrl"/> sie liefern; bis dahin bleibt die
+    /// Vorschau stehen. Nur auf Anforderung (geoeffneter Viewer) - die vollen Dateien
+    /// sind bis zu 2560px breit und werden fuer die Seite selbst nie gebraucht.
+    /// </summary>
+    private void EnsureFullImageCached()
+    {
+        var index = CurrentImagePosition;
+        if (index < 0 || index >= _fullImageUrls.Count)
+            return;
+
+        var url = _fullImageUrls[index];
+        if (!string.Equals(_imageCache.GetCachedOrOriginal(url), url, StringComparison.Ordinal))
+            return; // liegt bereits lokal
+
+        _fullImageCts?.Cancel();
+        _fullImageCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _fullImageCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _imageCache.GetOrDownloadAsync(url, cts.Token).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "[ForeclosureDetail] Vollbild konnte nicht geladen werden");
+                return;
+            }
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (!cts.IsCancellationRequested && CurrentImagePosition == index)
+                    OnPropertyChanged(nameof(CurrentFullImageUrl));
+            });
+        });
     }
 
     partial void OnHasCourtNameChanged(bool value)
@@ -253,9 +388,17 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         IInternetService internet,
         OfflineReadState offlineReadState,
         PropertyImageCache imageCache,
+        PropertyHandoffCache handoffCache,
+        PropertyDetailPreloader detailPreloader,
+        PropertyDetailImageResolver imageResolver,
+        DetailNavigationTrace trace,
         ILogger<ForeclosureDetailViewModel> logger,
         ForeclosureDetailStringsLocalized loc)
     {
+        _handoffCache = handoffCache;
+        _detailPreloader = detailPreloader;
+        _imageResolver = imageResolver;
+        _trace = trace;
         _clipboardService = clipboardService;
         _shareService = shareService;
         _mediator = mediator;
@@ -277,7 +420,6 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         TypeBadgeColor = Color.FromArgb("#DE2A2F");
         DetailSections = [];
         StatTiles = [];
-        ImageUrls = [];
         CourtName = string.Empty;
         IsAuthenticated = authService.IsAuthenticated;
     }
@@ -292,6 +434,13 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
         if (Guid.TryParse(PropertyId, out var id))
         {
+            _trace.Mark(id, "Seite sichtbar");
+
+            // Vorschau aus den Listendaten der angetippten Karte: Kopf und erstes Foto
+            // stehen damit im ersten Frame, ohne auf den Detail-Request zu warten
+            ApplyHandoff(id);
+            _trace.Mark(id, "Vorschau gezeichnet");
+
             _ = LoadPropertyAsync(id);
         }
         else
@@ -305,6 +454,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         _offlineReadState.Changed -= OnOfflineReadStateChanged;
         _onlineWaitCts?.Cancel();
         _onlineWaitCts = null;
+        _imageUpgradeCts?.Cancel();
+        _imageUpgradeCts = null;
     }
 
     private void OnOfflineReadStateChanged(object? sender, EventArgs e) =>
@@ -315,19 +466,74 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
     private CancellationTokenSource? _onlineWaitCts;
 
+    /// <summary>True sobald die Vorschau aus den Listendaten auf der Seite steht</summary>
+    private bool _hasHandoffPreview;
+
+    /// <summary>
+    /// Uebernimmt die Listendaten der angetippten Karte als Sofort-Anzeige. Alle Werte
+    /// stammen aus derselben Quelle wie die Karte und werden vom Detail-Ergebnis
+    /// ersetzt, sobald es vorliegt. Gericht und Versteigerungsdaten stecken in
+    /// TypeSpecificData und kommen daher erst mit den Detaildaten.
+    /// </summary>
+    private void ApplyHandoff(Guid propertyId)
+    {
+        var item = _handoffCache.Get(propertyId);
+        if (item == null)
+            return;
+
+        _hasHandoffPreview = true;
+
+        Title = item.Title;
+        HasPrice = item.Price > 0;
+        FormattedPrice = HasPrice ? PropertyDisplay.Price((decimal)item.Price) : string.Empty;
+        AddressText = $"{item.Address}, {item.PostalCode} {item.City}";
+
+        var tiles = new List<StatTileItem>();
+        if (item.AuctionDate is { } auctionDate)
+            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yy")));
+        if (item.PlotAreaM2 is > 0)
+            tiles.Add(new StatTileItem(_loc.TileArea, PropertyDisplay.Area(item.PlotAreaM2.Value)));
+        StatTiles = tiles;
+        HasStatTiles = tiles.Count > 0;
+
+        // Die Listen-URLs sind die Thumbnails, die die Karte bereits geladen hat -
+        // GetCachedOrOriginal loest sie auf den lokalen Dateipfad auf (kein Download)
+        CurrentImagePosition = 0;
+        SetImages(item.ImageUrls?
+            .Where(url => !string.IsNullOrEmpty(url))
+            .Select(_imageCache.GetCachedOrOriginal)
+            .ToList() ?? []);
+    }
+
+    /// <summary>
+    /// Nutzt den beim Antippen der Karte gestarteten Request, falls vorhanden - der
+    /// laeuft dann schon waehrend Seitenaufbau und Navigationsanimation. Sonst (Deep-Link,
+    /// erneuter Ladeversuch) wird wie bisher selbst angefragt.
+    /// </summary>
+    private async Task<GetPropertyByIdResponse?> RequestPropertyAsync(Guid propertyId)
+    {
+        var pending = _detailPreloader.TryTakePendingRequest(propertyId);
+        if (pending != null)
+            return await pending;
+
+        var (_, response) = await _mediator.Request(new GetPropertyByIdHttpRequest { Id = propertyId });
+        return response;
+    }
+
     private async Task LoadPropertyAsync(Guid propertyId)
     {
-        IsBusy = true;
-        BusyMessage = _loc.BusyLoading;
         HasLoadError = false;
         LoadErrorText = null;
         _onlineWaitCts?.Cancel();
+
+        var busyCts = new CancellationTokenSource();
+        _ = ShowBusyAfterDelayAsync(busyCts.Token);
 
         try
         {
             _logger.LogInformation("[ForeclosureDetail] Loading property {PropertyId} from API", propertyId);
 
-            var (_, response) = await _mediator.Request(new GetPropertyByIdHttpRequest { Id = propertyId });
+            var response = await RequestPropertyAsync(propertyId);
             IsShowingCachedData = _offlineReadState.IsBackendUnavailable;
 
             if (response?.Property != null)
@@ -361,9 +567,8 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             }
 
             UpdateDisplayProperties();
-            if (Property != null)
-                _ = CachePropertyImagesAsync(propertyId, Property.ImageUrls);
             IsFavorite = isFavorite;
+            _trace.Mark(propertyId, "Detailseite vollstaendig");
         }
         catch (Exception ex) when (ex is OfflineDataUnavailableException || !_internet.IsAvailable)
         {
@@ -391,9 +596,45 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         }
         finally
         {
+            busyCts.Cancel();
+            busyCts.Dispose();
             IsBusy = false;
             BusyMessage = null;
         }
+    }
+
+    /// <summary>
+    /// Wie lange gewartet wird, bevor das Lade-Overlay erscheint. Cache-Treffer und
+    /// vorgeladene Requests sind deutlich schneller - ohne diese Verzoegerung wuerde
+    /// bei jedem Oeffnen ein Spinner aufblitzen.
+    /// </summary>
+    private static readonly TimeSpan BusyOverlayDelay = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>
+    /// Zeigt das Lade-Overlay nur, wenn nach <see cref="BusyOverlayDelay"/> noch immer
+    /// nichts anzuzeigen ist. Steht bereits Inhalt auf der Seite (Vorschau aus den
+    /// Listendaten oder ein frueheres Ergebnis), bleibt es ganz aus - ein Vollbild-Dimmer
+    /// ueber sichtbarem Inhalt wirkt wie ein Ruckler.
+    /// </summary>
+    private async Task ShowBusyAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        if (Property != null || _hasHandoffPreview)
+            return;
+
+        try
+        {
+            await Task.Delay(BusyOverlayDelay, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        BusyMessage = _loc.BusyLoading;
+        IsBusy = true;
     }
 
     private void SetOfflineError(Guid propertyId)
@@ -459,10 +700,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             Description = null;
             HasDescription = false;
             HasDocuments = false;
-            HasImages = false;
-            ImageUrls = [];
+            _fullImageUrls = [];
+            _previewImageUrls = [];
             CurrentImagePosition = 0;
-            OnPropertyChanged(nameof(ImageCounterText));
+            SetImages([]);
             CourtName = string.Empty;
             HasCourtName = false;
             return;
@@ -479,49 +720,80 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         // Volle Adresse
         AddressText = $"{Property.Address}, {Property.PostalCode} {Property.City}";
 
-        // Bilder
-        ImageUrls = Property.ImageUrls?
-            .Where(url => !string.IsNullOrEmpty(url))
-            .Select(_imageCache.GetCachedOrOriginal)
-            .ToList() ?? [];
-        HasImages = ImageUrls.Count > 0;
-        CurrentImagePosition = 0;
-        OnPropertyChanged(nameof(ImageCounterText));
+        // Bilder: angezeigt wird die Vorschau-Variante (bzw. solange das Thumbnail,
+        // das die Karte schon geladen hat), die volle Aufloesung nur im Vollbild-Viewer
+        ApplyImageVariants();
 
         // TypeSpecificData parsen und Sektionen aufbauen
         BuildDetailSections();
     }
 
-    private async Task CachePropertyImagesAsync(Guid propertyId, IEnumerable<string>? urls)
+    /// <summary>
+    /// Uebernimmt die drei Bild-Varianten der geladenen Immobilie: sofort sichtbar wird
+    /// die beste lokal vorhandene (Vorschau, sonst Thumbnail), die volle Aufloesung
+    /// bleibt dem Vollbild-Viewer vorbehalten. Fehlen die skalierten Listen (Antwort aus
+    /// einem Offline-Cache von vor diesem Feld), dienen die vollen URLs als Fallback.
+    /// </summary>
+    private void ApplyImageVariants()
     {
-        try
-        {
-            var sourceUrls = urls?.Where(url => !string.IsNullOrWhiteSpace(url)).ToList() ?? [];
-            if (sourceUrls.Count == 0)
-                return;
+        var full = Property?.ImageUrls?.Where(url => !string.IsNullOrEmpty(url)).ToList() ?? [];
+        var previews = NonEmptyOrFallback(Property?.PreviewImageUrls, full);
+        var thumbnails = NonEmptyOrFallback(Property?.ThumbnailImageUrls, previews);
 
-            var resolved = await Task.WhenAll(
-                sourceUrls.Select(url => _imageCache.GetOrDownloadAsync(url)));
+        _fullImageUrls = full;
+        _previewImageUrls = previews;
 
-            await MainThread.InvokeOnMainThreadAsync(() =>
+        SetImages(_imageResolver.ResolveDisplayUrls(previews, thumbnails));
+
+        StartPreviewUpgrade();
+    }
+
+    private static List<string> NonEmptyOrFallback(IEnumerable<string>? candidate, List<string> fallback)
+    {
+        var list = candidate?.Where(url => !string.IsNullOrEmpty(url)).ToList();
+        return list is { Count: > 0 } ? list : fallback;
+    }
+
+    /// <summary>
+    /// Laedt die Vorschau-Varianten in den Bild-Cache und ersetzt die angezeigten
+    /// Thumbnails, sobald die scharfe Variante lokal vorliegt.
+    /// </summary>
+    private void StartPreviewUpgrade()
+    {
+        _imageUpgradeCts?.Cancel();
+        _imageUpgradeCts?.Dispose();
+        _imageUpgradeCts = null;
+
+        if (_previewImageUrls.Count == 0)
+            return;
+
+        var cts = new CancellationTokenSource();
+        _imageUpgradeCts = cts;
+
+        var propertyId = Property?.Id;
+        var previews = _previewImageUrls;
+
+        _ = Task.Run(() => _imageResolver.UpgradeToPreviewsAsync(
+            previews,
+            CurrentImagePosition,
+            (index, resolved) => MainThread.BeginInvokeOnMainThread(() =>
             {
-                if (Property?.Id != propertyId)
+                // Zwischenzeitlicher Wechsel auf eine andere Immobilie (Delta-Sync,
+                // Deep-Link) darf keine fremden Bilder einspielen
+                if (cts.IsCancellationRequested || Property?.Id != propertyId)
                     return;
 
-                ImageUrls = resolved.ToList();
-                HasImages = ImageUrls.Count > 0;
-                OnPropertyChanged(nameof(ImageCounterText));
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "[ForeclosureDetail] Bilder konnten nicht vorab gespeichert werden");
-        }
+                PatchImage(index, resolved);
+
+                if (index == 0 && propertyId is { } id)
+                    _trace.Complete(id, "Hero-Foto scharf");
+            }),
+            cts.Token));
     }
 
     private void BuildDetailSections()
     {
-        if (Property == null) return;
+        if (Property is not { } property) return;
 
         var items = new List<PropertyDetailItem>();
 
@@ -647,20 +919,37 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             PropertyDataCategory.Sonstiges
         };
 
-        DetailSections = items
+        var sections = items
             .GroupBy(i => i.Category)
             .OrderBy(g => Array.IndexOf(categoryOrder, g.Key) is var idx && idx >= 0 ? idx : 999)
             .Select(g => new PropertyDetailSection(GetCategoryTitle(g.Key), g.Key, g.ToList()))
             .ToList();
 
-        BuildStatTiles(data, minimumBid, estimatedValue);
+        var tiles = BuildStatTiles(data, minimumBid, estimatedValue);
+
+        // Erst nach dem naechsten Dispatcher-Durchlauf setzen: die Datentabelle legt
+        // acht Karten mit mehreren Dutzend Zeilen ins Layout - Kopf und Foto sollen
+        // vorher gezeichnet sein. Das Aufbauen der Eintraege oben bleibt bewusst
+        // synchron (reine JsonElement-Zugriffe, im Vergleich zum Layout vernachlaessigbar).
+        var propertyId = property.Id;
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Zwischenzeitlicher Wechsel auf eine andere Versteigerung darf keine
+            // fremde Tabelle einspielen
+            if (Property?.Id != propertyId)
+                return;
+
+            DetailSections = sections;
+            StatTiles = tiles;
+            HasStatTiles = tiles.Count > 0;
+        });
     }
 
     /// <summary>
     /// Kernfakten fuer die Kachel-Zeile unter dem Kopf: Termin, Schaetzwert (sofern er
     /// nicht ohnehin schon als prominenter Preis dient) und Gesamtflaeche.
     /// </summary>
-    private void BuildStatTiles(JsonElement? data, decimal? minimumBid, decimal? estimatedValue)
+    private List<StatTileItem> BuildStatTiles(JsonElement? data, decimal? minimumBid, decimal? estimatedValue)
     {
         var tiles = new List<StatTileItem>();
 
@@ -678,8 +967,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         if (totalArea is > 0)
             tiles.Add(new StatTileItem(_loc.TileArea, PropertyDisplay.Area(totalArea.Value)));
 
-        StatTiles = tiles;
-        HasStatTiles = tiles.Count > 0;
+        return tiles;
     }
 
     #region JSON Helpers
