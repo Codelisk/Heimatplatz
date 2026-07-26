@@ -1,2 +1,6 @@
-• Foreclosure auctions: right in the list you now see in the photo when the auction takes place – today, tomorrow or in how many days
-• Minor improvements under the hood
+• New: map view – your search as a map, from district stamps via price signs straight into the listing
+• Foreclosure auctions: right in the list you see in the photo when the auction takes place – today, tomorrow or in how many days
+• When listing, you choose how precisely your location appears: exact, approximate or not at all
+• Detail pages open instantly, photos load faster
+• Enabling notifications now works reliably
+• Polish for forms, prices and wording

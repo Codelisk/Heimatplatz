@@ -1,2 +1,6 @@
-• Zwangsversteigerungen: Schon in der Liste siehst du jetzt direkt im Foto, wann versteigert wird – heute, morgen oder in wie vielen Tagen
-• Kleinere Verbesserungen im Hintergrund
+• Neu: Kartenansicht – deine Suche als Karte, von Bezirks-Stempeln über Preis-Schilder direkt ins Inserat
+• Zwangsversteigerungen: Schon in der Liste siehst du im Foto, wann versteigert wird – heute, morgen oder in wie vielen Tagen
+• Beim Inserieren wählst du, wie genau deine Lage erscheint: genau, ungefähr oder gar nicht
+• Detailseiten öffnen sofort, Fotos laden schneller
+• Benachrichtigungen aktivieren klappt jetzt zuverlässig
+• Feinschliff an Formularen, Preisen und Texten
