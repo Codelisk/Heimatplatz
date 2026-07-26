@@ -18,7 +18,8 @@ Der komplette Release läuft mit einem Befehl:
    `android-v*`-Tag). Danach harte Limit-Validierung in C# (30/80/4000/500 Zeichen) – bei Verstoß bricht der Lauf ab.
 3. **AndroidScreenshots** – deterministische Screenshots im Emulator:
    - Release-APK (debug-signiert, `android-x64`), frische Installation
-   - AVD aus `Android:Screenshots:Devices` (läuft er schon, wird er wiederverwendet)
+   - AVD aus `Android:Screenshots:Devices` (läuft er schon, wird er wiederverwendet), sonst
+     Kaltstart mit `-no-snapshot`
    - Demo-Statusbar: 09:41, WLAN voll, Akku 100 %, keine Notifications
    - App gegen die gehostete Test-API (`https://test-api.heimatplatz.at`, geseedete Daten)
    - Auto-Login mit dem Test-User + Navigation pro Route, Aufnahme erst wenn zwei
@@ -39,8 +40,23 @@ Der komplette Release läuft mit einem Befehl:
 |-----|----|
 | Play-Service-Account-Key | `cake/secrets/play-store-key.json` |
 | Keystore + Passwörter | `cake/secrets/heimatplatz.keystore`, Passwörter in `cake/appsettings.Local.json` |
-| Android-Emulator (AVD) | `Android:Screenshots:Devices` in `cake/appsettings.json` (Default `pixel_5_-_api_30`) |
+| Android-Emulator (AVD) | `Android:Screenshots:Devices` in `cake/appsettings.json` (Default `pixel_5_-_api_35`) |
 | Claude CLI | `claude` auf dem PATH (nutzt das Default-Modell) |
+
+### AVD für die Screenshots
+
+Neu anlegen (Pixel-5-Profil, 1080x2340 – passt zu den bestehenden Store-Screenshots):
+
+```powershell
+& "$env:ANDROID_HOME\cmdline-tools\latest\bin\avdmanager.bat" create avd `
+    -n "pixel_5_-_api_35" -k "system-images;android-35;google_apis_playstore;x86_64" -d "pixel_5"
+```
+
+**Mindestens API 35 verwenden.** Der Karten-Shot rendert die Web-Faltkarte (`/karte-embed`, MapLibre)
+im WebView; das API-30-Image bringt WebView 83 (Chrome 83, 2020) mit und zeigt dort nur eine leere
+Seite. Die Statusleiste ist unter API 35 empfindlich – die Regeln stehen als Kommentar im Task:
+Demo-Mode genau einmal und erst nach der Installation setzen, WLAN und Mobilfunk in einem einzigen
+`network`-Befehl, Emulator immer kalt booten.
 
 ## Konfiguration (`cake/appsettings.json`)
 

@@ -17,6 +17,9 @@ namespace Build.Tasks;
 /// die Sysprops im Emulator in Env-Vars (ScreenshotSysProps) fuer den geteilten
 /// ScreenshotMode. Standard-API ist die gehostete Test-API (test-api.heimatplatz.at)
 /// mit geseedeten Daten - kein lokaler API-Start noetig.
+/// AVD-Anforderung: aktuelles System-Image (API 35+). Der Karten-Shot rendert die
+/// Web-Faltkarte (/karte-embed, MapLibre) im WebView - das API-30-Image bringt
+/// WebView 83 (Chrome 83, 2020) mit und zeigt dort nur eine leere Seite.
 /// Ausgabe: cake/fastlane/metadata/android/&lt;locale&gt;/images/&lt;imageType&gt;/&lt;shot&gt;.png
 /// (direkt im fastlane-kompatiblen Metadata-Layout, damit Upload und Git-Diff zusammenfallen).
 /// Konfiguration: Sektion "Android:Screenshots" in appsettings.json.
@@ -64,7 +67,7 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
             .ToList();
         if (devices.Count == 0)
         {
-            devices = [new Device("pixel_5_-_api_30", "phoneScreenshots")];
+            devices = [new Device("pixel_5_-_api_35", "phoneScreenshots")];
         }
 
         var defaultDelay = int.TryParse(section["LaunchDelaySeconds"], out var d) ? d : 12;
@@ -182,19 +185,23 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
             Run(context, adb, Adb("shell", "wm", "dismiss-keyguard"), throwOnError: false);
             Run(context, adb, Adb("shell", "input", "keyevent", "KEYCODE_WAKEUP"), throwOnError: false);
 
-            // Deterministische Status-Bar via SystemUI-Demo-Mode: 09:41, WLAN voll,
-            // Akku 100%, keine Notifications, kein Mobilfunk
             Run(context, adb, Adb("shell", "settings", "put", "global", "sysui_demo_allowed", "1"));
-            Demo(context, adb, serial, "enter");
-            Demo(context, adb, serial, "clock", "-e", "hhmm", "0941");
-            Demo(context, adb, serial, "network", "-e", "wifi", "show", "-e", "level", "4", "-e", "fully", "true");
-            Demo(context, adb, serial, "network", "-e", "mobile", "hide");
-            Demo(context, adb, serial, "battery", "-e", "level", "100", "-e", "plugged", "false");
-            Demo(context, adb, serial, "notifications", "-e", "visible", "false");
 
             // Frische Installation fuer reproduzierbaren App-Zustand
             Run(context, adb, Adb("uninstall", context.ApplicationId), throwOnError: false);
             Run(context, adb, Adb("install", "-r", apkPath));
+
+            // Deterministische Status-Bar via SystemUI-Demo-Mode: 09:41, WLAN voll,
+            // Akku 100%, keine Notifications, kein Mobilfunk.
+            // Timing ist heikel und beide Richtungen sind schon schiefgegangen:
+            // - zu frueh (direkt nach dem Boot): der Mobilfunk-Slot registriert sich erst
+            //   danach und "mobile hide" verpufft - es bleibt ein zweites WLAN-Icon stehen
+            //   (Carrier-Merged-Darstellung des Emulator-Modems).
+            // - mehrfach: jede weitere Demo-Sendung setzt die Icon-Toenung dauerhaft auf
+            //   hell, die Icons waeren weiss auf Papierfarbe und damit unsichtbar.
+            // Deshalb GENAU EINMAL und erst nach der Installation - dann steht die
+            // Telefonie, und die danach startende App faerbt die Icons wieder dunkel.
+            ApplyStatusBarDemo(context, adb, serial);
 
             // Screenshot-Steuerung: debug.*-Sysprops sind fuer die adb-Shell ohne Root
             // setzbar; ScreenshotSysProps in der App uebersetzt sie in Env-Vars
@@ -275,8 +282,8 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
 
     /// <summary>
     /// Findet einen bereits laufenden Emulator mit dem konfigurierten AVD-Namen oder
-    /// bootet ihn frisch (Snapshot-Load erlaubt - Determinismus kommt aus Demo-Statusbar
-    /// und frischer App-Installation, nicht aus dem Kaltstart).
+    /// bootet ihn kalt (-no-snapshot): der Quickboot-Snapshot wuerde SystemUI-Zustand
+    /// aus dem Vorlauf mitschleppen.
     /// </summary>
     private static (string Serial, bool StartedByUs, Process? EmulatorProcess) EnsureEmulator(
         BuildContext context, ScreenshotConfig config, Device device, string adb, string emulatorExe)
@@ -302,6 +309,10 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
         processInfo.ArgumentList.Add(device.Avd);
         processInfo.ArgumentList.Add("-no-boot-anim");
         processInfo.ArgumentList.Add("-no-audio");
+        // Immer kalt booten und nichts speichern: der Quickboot-Snapshot konserviert den
+        // SystemUI-Zustand des Vorlaufs (u.a. die helle Icon-Toenung der Demo-Statusbar),
+        // die Screenshots waeren damit vom letzten Lauf abhaengig statt deterministisch.
+        processInfo.ArgumentList.Add("-no-snapshot");
 
         var process = Process.Start(processInfo)
             ?? throw new InvalidOperationException("Failed to start emulator process");
@@ -387,6 +398,25 @@ public sealed class AndroidScreenshotsTask : FrostingTask<BuildContext>
         // adb-shell-Argumente erneut (Leerzeichen/!-Zeichen); leerer Wert loescht die
         // Property effektiv (App ignoriert leere Werte)
         Run(context, adb, ["-s", serial, "shell", "setprop", name, $"'{value.Replace("'", "'\\''")}'"]);
+    }
+
+    /// <summary>
+    /// Setzt die deterministische Demo-Statusbar (09:41, WLAN voll, Akku 100%, keine
+    /// Notifications, kein Mobilfunk). Darf pro Lauf nur EINMAL aufgerufen werden -
+    /// siehe Kommentar an der Aufrufstelle.
+    /// </summary>
+    private static void ApplyStatusBarDemo(BuildContext context, string adb, string serial)
+    {
+        Demo(context, adb, serial, "enter");
+        Demo(context, adb, serial, "clock", "-e", "hhmm", "0941");
+        // WLAN und Mobilfunk MUESSEN in einem einzigen network-Befehl stehen: unter API 35
+        // ersetzt ein zweiter network-Broadcast den kompletten Demo-Netzwerkzustand, ein
+        // nachgeschobenes "mobile hide" loescht damit auch das WLAN-Icon wieder.
+        Demo(context, adb, serial, "network",
+            "-e", "wifi", "show", "-e", "level", "4", "-e", "fully", "true",
+            "-e", "mobile", "hide");
+        Demo(context, adb, serial, "battery", "-e", "level", "100", "-e", "plugged", "false");
+        Demo(context, adb, serial, "notifications", "-e", "visible", "false");
     }
 
     private static void Demo(BuildContext context, string adb, string serial, string command, params string[] extraArgs)
