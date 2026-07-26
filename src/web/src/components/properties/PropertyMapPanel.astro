@@ -352,6 +352,11 @@ for (const region of regions) {
     border: 1px solid var(--zettel-rand); border-radius: var(--radius);
     box-shadow: var(--zettel-shadow-hover);
     font-size: 0.8rem; line-height: 1.45;
+    /* Eigener Transform-Layer: ohne ihn rastert Chrome den Popup-Inhalt ueber
+       dem WebGL-Canvas fehlerhaft - an der Foto-Unterkante blutet eine rote
+       Naht durch (aktiv-Ring des Pins dahinter). Gleiche Compositing-Falle
+       wie die Kartusche im Android-WebView, gleicher Fix. */
+    transform: translateZ(0);
   }
   .hpmap-glpopup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--card); }
   .hpmap-glpopup.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--card); }
