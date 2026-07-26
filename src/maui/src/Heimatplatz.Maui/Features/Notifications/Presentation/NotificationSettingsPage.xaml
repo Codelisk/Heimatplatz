@@ -65,21 +65,16 @@
                     LineBreakMode="WordWrap"
                     AutomationId="NotificationSettings_Description" />
 
-                <HorizontalStackLayout
+                <!-- Auto-Save-Spinner in fest reserviertem Slot: KEIN IsVisible-Toggle
+                     und kein "Speichern…"-Label - beides liess die Auto-Spalte wachsen
+                     und der Beschreibungstext brach bei jedem Speichern neu um. -->
+                <ActivityIndicator
                     Grid.Column="1"
-                    Spacing="6"
+                    IsRunning="{Binding IsBusy}"
+                    WidthRequest="18"
+                    HeightRequest="18"
                     VerticalOptions="Center"
-                    IsVisible="{Binding IsBusy}"
-                    AutomationId="NotificationSettings_SavingIndicator">
-                    <ActivityIndicator
-                        IsRunning="{Binding IsBusy}"
-                        WidthRequest="16"
-                        HeightRequest="16" />
-                    <Label
-                        Text="{Binding Loc.Saving}"
-                        Style="{StaticResource Caption}"
-                        VerticalOptions="Center" />
-                </HorizontalStackLayout>
+                    AutomationId="NotificationSettings_SavingIndicator" />
             </Grid>
 
             <!-- Enable/Disable Toggle -->
