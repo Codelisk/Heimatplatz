@@ -38,7 +38,10 @@
 
         <Style x:Key="QuickTileHint" TargetType="Label">
             <Setter Property="FontSize" Value="11" />
-            <Setter Property="LineBreakMode" Value="TailTruncation" />
+            <!-- Umbrechen statt abschneiden: auf 360dp-Phones waren die Untertitel
+                 sonst mitten im Satz gekappt ("Etwas geht nich...") -->
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+            <Setter Property="MaxLines" Value="2" />
             <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
         </Style>
     </ContentPage.Resources>

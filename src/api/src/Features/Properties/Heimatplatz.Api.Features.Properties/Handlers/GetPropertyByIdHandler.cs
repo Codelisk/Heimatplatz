@@ -67,7 +67,8 @@ public class GetPropertyByIdHandler(
                     ))
                     .ToList(),
                 p.TypeSpecificData,
-                p.LocationDisplay
+                p.LocationDisplay,
+                p.SourceName
             ))
             .FirstOrDefaultAsync(cancellationToken);
 

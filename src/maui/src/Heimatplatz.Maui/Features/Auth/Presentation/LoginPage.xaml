@@ -41,24 +41,32 @@
                     <VerticalStackLayout Spacing="6">
                         <Label Text="{Binding Loc.EmailLabel}"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry x:Name="EmailEntry"
-                               Text="{Binding Email}"
-                               Placeholder="{Binding Loc.EmailPlaceholder}"
-                               Keyboard="Email"
-                               ReturnType="Next"
-                               Completed="OnEmailCompleted" />
+                        <Border Style="{StaticResource BoxedField}">
+                            <Entry x:Name="EmailEntry"
+                                   Style="{StaticResource BoxedFieldEntry}"
+                                   StyleClass="borderless"
+                                   Text="{Binding Email}"
+                                   Placeholder="{Binding Loc.EmailPlaceholder}"
+                                   Keyboard="Email"
+                                   ReturnType="Next"
+                                   Completed="OnEmailCompleted" />
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Passwort -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="{Binding Loc.PasswordLabel}"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry x:Name="PasswortEntry"
-                               Text="{Binding Passwort}"
-                               Placeholder="{Binding Loc.PasswordPlaceholder}"
-                               IsPassword="True"
-                               ReturnType="Go"
-                               ReturnCommand="{Binding LoginCommand}" />
+                        <Border Style="{StaticResource BoxedField}">
+                            <Entry x:Name="PasswortEntry"
+                                   Style="{StaticResource BoxedFieldEntry}"
+                                   StyleClass="borderless"
+                                   Text="{Binding Passwort}"
+                                   Placeholder="{Binding Loc.PasswordPlaceholder}"
+                                   IsPassword="True"
+                                   ReturnType="Go"
+                                   ReturnCommand="{Binding LoginCommand}" />
+                        </Border>
                         <Button Text="{Binding Loc.ForgotPasswordLink}"
                                 Command="{Binding GoToForgotPasswordCommand}"
                                 Style="{StaticResource LinkButton}"

@@ -13,13 +13,23 @@ namespace Heimatplatz.Maui.Features.Properties;
 /// </summary>
 public static class PropertyDisplay
 {
-    public static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("de-AT");
+    public static readonly CultureInfo Culture = CreateAustrianCulture();
 
-    /// <summary>"3.590.000 €"</summary>
-    public static string Price(decimal value) => string.Format(Culture, "{0:N0} €", value);
+    /// <summary>
+    /// ICU/CLDR gruppiert de-AT-Zahlen mit geschuetztem Leerzeichen ("520 000"),
+    /// Windows-NLS mit Punkt ("520.000") - fuer eine plattformuebergreifend
+    /// identische Anzeige werden die Trennzeichen fest verdrahtet.
+    /// </summary>
+    private static CultureInfo CreateAustrianCulture()
+    {
+        var culture = (CultureInfo)CultureInfo.GetCultureInfo("de-AT").Clone();
+        culture.NumberFormat.NumberGroupSeparator = ".";
+        culture.NumberFormat.NumberDecimalSeparator = ",";
+        return culture;
+    }
 
-    /// <summary>"2.500,00 €" (z.B. Preis pro m²)</summary>
-    public static string PriceExact(decimal value) => string.Format(Culture, "{0:N2} €", value);
+    /// <summary>"€ 3.590.000" - Symbol vorn wie am Web (formatApiPrice)</summary>
+    public static string Price(decimal value) => string.Format(Culture, "€ {0:N0}", value);
 
     /// <summary>"1.234 m²"</summary>
     public static string Area(decimal value) => string.Format(Culture, "{0:N0} m²", value);

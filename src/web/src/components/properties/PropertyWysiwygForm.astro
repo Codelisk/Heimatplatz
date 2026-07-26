@@ -478,7 +478,9 @@ const currentYear = new Date().getFullYear();
       </div>
     </div>
     <p class="mt-3 text-xs text-muted-foreground" data-preview-seller-hint>
-      {t("editor.sellerHint")}
+      {/* Explizites Leerzeichen im Ausdruck - den Zeilenumbruch vor dem Link
+          schluckt Astros HTML-Kompression */}
+      {t("editor.sellerHint") + " "}
       <a href="/profil/" class="underline underline-offset-2 transition-colors hover:text-foreground">{t("editor.sellerProfileLink")}</a>
     </p>
 

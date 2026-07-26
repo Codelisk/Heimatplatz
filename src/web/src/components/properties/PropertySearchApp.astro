@@ -603,7 +603,9 @@ const ortRegions = await fetchOrtRegions();
     // ZV: LivingArea traegt die bebaute Flaeche aus dem Edikt (WEB-012)
     const isForeclosureCard = property.Type === "Foreclosure";
     const chips = [
-      property.LivingAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t(isForeclosureCard ? "card.chipBuiltArea" : "card.chipLivingArea", { value: property.LivingAreaM2 })}</span>` : "",
+      // Ohne Grundflaeche zeigt die Flaechen-Zeile darueber bereits die Wohnflaeche -
+      // der Chip waere derselbe Wert doppelt (wie ApiPropertyCard.astro)
+      property.LivingAreaM2 && property.PlotAreaM2 ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t(isForeclosureCard ? "card.chipBuiltArea" : "card.chipLivingArea", { value: property.LivingAreaM2 })}</span>` : "",
       property.Rooms ? `<span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">${t("card.chipRooms", { value: property.Rooms })}</span>` : "",
     ].filter(Boolean).join("");
     facts.innerHTML = `

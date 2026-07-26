@@ -159,9 +159,11 @@ const citySlug = slugifyLocation(property.City);
         <dt class="sr-only">{t("card.area")}</dt>
         <dd class="text-sm font-semibold text-muted-foreground">{area ? t(property.PlotAreaM2 ? "card.plotAreaValue" : isForeclosure ? "card.builtAreaValue" : "card.livingAreaValue", { area }) : t("card.areaUnknown")}</dd>
       </div>
-      {(property.LivingAreaM2 || property.Rooms) && (
+      {((property.LivingAreaM2 && property.PlotAreaM2) || property.Rooms) && (
         <div class="mt-3 flex justify-end gap-1">
-          {property.LivingAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t(isForeclosure ? "card.chipBuiltArea" : "card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
+          {/* Ohne Grundflaeche zeigt die Flaechen-Zeile darueber bereits die
+              Wohnflaeche - der Chip waere derselbe Wert doppelt */}
+          {property.LivingAreaM2 && property.PlotAreaM2 && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t(isForeclosure ? "card.chipBuiltArea" : "card.chipLivingArea", { value: property.LivingAreaM2 })}</span>}
           {property.Rooms && <span class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("card.chipRooms", { value: property.Rooms })}</span>}
         </div>
       )}

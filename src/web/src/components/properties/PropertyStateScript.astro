@@ -2201,7 +2201,7 @@
       actions.innerHTML = `
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/angebote/${property.Id}/">${t("common.details")}</a>
         <a class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium" href="/immobilien/bearbeiten/?id=${property.Id}">${t("common.edit")}</a>
-        <button type="button" class="inline-flex h-9 items-center rounded-md bg-error px-3 text-sm font-medium text-error-foreground" data-remote-delete="${property.Id}">${t("common.delete")}</button>
+        <button type="button" class="inline-flex h-9 items-center rounded-md border border-error/50 px-3 text-sm font-medium text-error transition-colors hover:bg-error hover:text-error-foreground" data-remote-delete="${property.Id}">${t("common.delete")}</button>
       `;
       body.append(head, ...address, meta, actions);
     } else {

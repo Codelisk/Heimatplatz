@@ -792,7 +792,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         TypeBadgeText = GetTypeBadgeText(Property.Type);
         TypeBadgeColor = GetTypeBadgeColor(Property.Type);
 
-        // Preis formatieren: "3.590.000 €"
+        // Preis formatieren: "€ 3.590.000"
         FormattedPrice = PropertyDisplay.Price((decimal)Property.Price);
 
         // Volle Adresse: "Strasse, PLZ Ort"
@@ -1128,7 +1128,8 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
                 ? price / property.LivingAreaM2.Value
                 : null;
         if (pricePerSqm is > 0)
-            items.Add(new PropertyDetailItem(_loc.LabelPricePerSqm, PropertyDisplay.PriceExact(pricePerSqm.Value), PropertyDataCategory.Kosten));
+            // Gerundet wie am Web ("€ 3.714") - Cent-Betraege sagen hier nichts aus
+            items.Add(new PropertyDetailItem(_loc.LabelPricePerSqm, PropertyDisplay.Price(pricePerSqm.Value), PropertyDataCategory.Kosten));
 
         // --- Basisdaten: Eingestellt am ---
         items.Add(new PropertyDetailItem(_loc.LabelCreatedAt, property.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"), PropertyDataCategory.Basisdaten));

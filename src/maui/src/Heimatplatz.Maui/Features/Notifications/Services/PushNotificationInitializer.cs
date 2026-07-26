@@ -54,8 +54,29 @@ public class PushNotificationInitializer(
         {
             logger.LogInformation("[PushNotificationInitializer] Initializing push notifications...");
 
+#if ANDROID
+            // Den Android-13-Berechtigungsdialog VOR RequestAccess anzeigen - ohne
+            // Kunst-Timeout: der Dialog darf beliebig lange offen stehen. Vorher lief
+            // der Dialog innerhalb von RequestAccess und das 15s-Timeout feuerte,
+            // waehrend der Nutzer noch las - der Toggle sprang zurueck auf "aus",
+            // obwohl anschliessend "Zulassen" getippt wurde.
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
+            {
+                var permission = await MainThread.InvokeOnMainThreadAsync(
+                    Permissions.RequestAsync<Permissions.PostNotifications>);
+                if (permission != PermissionStatus.Granted)
+                {
+                    logger.LogWarning(
+                        "[PushNotificationInitializer] POST_NOTIFICATIONS not granted (status: {Status})",
+                        permission);
+                    return new(PushInitializationStatus.Denied);
+                }
+            }
+#endif
+
             // RequestAccess() wartet auf den iOS-APNs-Registrierungs-Callback, der ohne korrekte
-            // Push-Provisionierung nie feuert -> harte Obergrenze per WaitAsync.
+            // Push-Provisionierung nie feuert -> harte Obergrenze per WaitAsync. Auf Android ist
+            // die Berechtigung hier schon erteilt, das Timeout begrenzt nur die FCM-Registrierung.
             var result = await pushManager.RequestAccess().WaitAsync(InitTimeout);
 
             switch (result.Status)

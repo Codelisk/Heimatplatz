@@ -142,7 +142,7 @@
     <value>Letzte 30 Tage</value>
   </data>
   <data name="AgeLastYear" xml:space="preserve">
-    <value>Letzte 12 Monate</value>
+    <value>Letztes Jahr</value>
   </data>
   <data name="AgeOptionAll" xml:space="preserve">
     <value>Alle</value>
@@ -157,7 +157,7 @@
     <value>30 Tage</value>
   </data>
   <data name="AgeOptionYear" xml:space="preserve">
-    <value>12 Monate</value>
+    <value>1 Jahr</value>
   </data>
   <data name="ChipAgeDefault" xml:space="preserve">
     <value>Zeitraum</value>
@@ -166,7 +166,7 @@
     <value>Privat</value>
   </data>
   <data name="SellerBroker" xml:space="preserve">
-    <value>Makler &amp; Verwaltung</value>
+    <value>Makler</value>
   </data>
   <data name="OrtPanelTitle" xml:space="preserve">
     <value>Orte auswählen</value>

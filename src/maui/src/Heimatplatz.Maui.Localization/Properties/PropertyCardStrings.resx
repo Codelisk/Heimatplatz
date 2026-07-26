@@ -34,7 +34,7 @@
     <value>{0} Zi</value>
   </data>
   <data name="ChipLivingArea" xml:space="preserve">
-    <value>{0} Wfl</value>
+    <value>{0} m² Wfl</value>
   </data>
   <data name="AreaUnknown" xml:space="preserve">
     <value>Fläche k.A.</value>

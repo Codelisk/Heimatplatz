@@ -83,25 +83,25 @@ const loginHref = requestedReturnTo ? buildLoginHref(successRedirect) : "/anmeld
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="space-y-2">
           <Label for="firstName" size="sm">{t("auth.firstNameLabel")}</Label>
-          <Input id="firstName" name="firstName" placeholder={t("auth.firstNamePlaceholder")} autocomplete="given-name" required class="bg-card" />
+          <Input id="firstName" name="firstName" placeholder={t("auth.firstNamePlaceholder")} autocomplete="given-name" required />
         </div>
         <div class="space-y-2">
           <Label for="lastName" size="sm">{t("auth.lastNameLabel")}</Label>
-          <Input id="lastName" name="lastName" placeholder={t("auth.lastNamePlaceholder")} autocomplete="family-name" required class="bg-card" />
+          <Input id="lastName" name="lastName" placeholder={t("auth.lastNamePlaceholder")} autocomplete="family-name" required />
         </div>
       </div>
       <div class="space-y-2">
         <Label for="email" size="sm">{t("auth.emailLabel")}</Label>
-        <Input id="email" type="email" name="email" placeholder={t("auth.emailPlaceholder")} autocomplete="email" required class="bg-card" />
+        <Input id="email" type="email" name="email" placeholder={t("auth.emailPlaceholder")} autocomplete="email" required />
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="space-y-2">
           <Label for="password" size="sm">{t("auth.passwordLabel")}</Label>
-          <Input id="password" type="password" name="password" placeholder={t("auth.passwordMinHint")} autocomplete="new-password" minlength="8" required class="bg-card" />
+          <Input id="password" type="password" name="password" placeholder={t("auth.passwordMinHint")} autocomplete="new-password" minlength="8" required />
         </div>
         <div class="space-y-2">
           <Label for="passwordConfirm" size="sm">{t("auth.passwordConfirmLabel")}</Label>
-          <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder={t("auth.passwordConfirmPlaceholder")} autocomplete="new-password" minlength="8" required class="bg-card" />
+          <Input id="passwordConfirm" type="password" name="passwordConfirm" placeholder={t("auth.passwordConfirmPlaceholder")} autocomplete="new-password" minlength="8" required />
         </div>
       </div>
     </fieldset>
@@ -141,7 +141,7 @@ const loginHref = requestedReturnTo ? buildLoginHref(successRedirect) : "/anmeld
           </div>
           <div class="space-y-2" data-company-field hidden>
             <Label for="companyName" size="sm">{t("auth.companyNameLabel")}</Label>
-            <Input id="companyName" name="companyName" placeholder={t("auth.companyNamePlaceholder")} autocomplete="organization" disabled class="bg-background" />
+            <Input id="companyName" name="companyName" placeholder={t("auth.companyNamePlaceholder")} autocomplete="organization" disabled />
           </div>
         </fieldset>
       </div>

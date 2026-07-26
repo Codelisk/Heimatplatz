@@ -314,20 +314,28 @@
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                             <VerticalStackLayout Grid.Column="0" Spacing="6">
                                 <Label Text="{Binding Loc.FirstNameLabel}" Style="{StaticResource FieldLabel}" />
-                                <Entry Text="{Binding EditFirstName}" Placeholder="{Binding Loc.FirstNamePlaceholder}" />
+                                <Border Style="{StaticResource BoxedField}">
+                                    <Entry Style="{StaticResource BoxedFieldEntry}" StyleClass="borderless" Text="{Binding EditFirstName}" Placeholder="{Binding Loc.FirstNamePlaceholder}" />
+                                </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="6">
                                 <Label Text="{Binding Loc.LastNameLabel}" Style="{StaticResource FieldLabel}" />
-                                <Entry Text="{Binding EditLastName}" Placeholder="{Binding Loc.LastNamePlaceholder}" />
+                                <Border Style="{StaticResource BoxedField}">
+                                    <Entry Style="{StaticResource BoxedFieldEntry}" StyleClass="borderless" Text="{Binding EditLastName}" Placeholder="{Binding Loc.LastNamePlaceholder}" />
+                                </Border>
                             </VerticalStackLayout>
                         </Grid>
 
                         <VerticalStackLayout Spacing="6">
                             <Label Text="{Binding Loc.PhoneLabel}" Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding EditPhone}"
-                                   Keyboard="Telephone"
-                                   Placeholder="{Binding Loc.PhonePlaceholder}"
-                                   AutomationId="Profile_PhoneEntry" />
+                            <Border Style="{StaticResource BoxedField}">
+                                <Entry Style="{StaticResource BoxedFieldEntry}"
+                                       StyleClass="borderless"
+                                       Text="{Binding EditPhone}"
+                                       Keyboard="Telephone"
+                                       Placeholder="{Binding Loc.PhonePlaceholder}"
+                                       AutomationId="Profile_PhoneEntry" />
+                            </Border>
                             <Label Text="{Binding Loc.PhoneHint}" Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
 
@@ -357,7 +365,9 @@
 
                             <VerticalStackLayout Spacing="6" IsVisible="{Binding EditNeedsCompanyName}">
                                 <Label Text="{Binding Loc.CompanyNameLabel}" Style="{StaticResource FieldLabel}" />
-                                <Entry Text="{Binding EditCompanyName}" Placeholder="{Binding Loc.CompanyNamePlaceholder}" />
+                                <Border Style="{StaticResource BoxedField}">
+                                    <Entry Style="{StaticResource BoxedFieldEntry}" StyleClass="borderless" Text="{Binding EditCompanyName}" Placeholder="{Binding Loc.CompanyNamePlaceholder}" />
+                                </Border>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
 
@@ -399,15 +409,21 @@
                                     Style="{StaticResource LinkButton}"
                                     FontSize="12" />
                         </Grid>
-                        <Entry Text="{Binding CurrentPassword}" IsPassword="True" Placeholder="{Binding Loc.CurrentPasswordPlaceholder}" />
+                        <Border Style="{StaticResource BoxedField}">
+                            <Entry Style="{StaticResource BoxedFieldEntry}" StyleClass="borderless" Text="{Binding CurrentPassword}" IsPassword="True" Placeholder="{Binding Loc.CurrentPasswordPlaceholder}" />
+                        </Border>
 
                         <VerticalStackLayout Spacing="6">
                             <Label Text="{Binding Loc.NewPasswordLabel}" Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding NewPassword}" IsPassword="True" Placeholder="{Binding Loc.NewPasswordPlaceholder}" />
+                            <Border Style="{StaticResource BoxedField}">
+                                <Entry Style="{StaticResource BoxedFieldEntry}" StyleClass="borderless" Text="{Binding NewPassword}" IsPassword="True" Placeholder="{Binding Loc.NewPasswordPlaceholder}" />
+                            </Border>
                         </VerticalStackLayout>
                         <VerticalStackLayout Spacing="6">
                             <Label Text="{Binding Loc.NewPasswordConfirmLabel}" Style="{StaticResource FieldLabel}" />
-                            <Entry Text="{Binding NewPasswordConfirm}" IsPassword="True" Placeholder="{Binding Loc.NewPasswordConfirmPlaceholder}" />
+                            <Border Style="{StaticResource BoxedField}">
+                                <Entry Style="{StaticResource BoxedFieldEntry}" StyleClass="borderless" Text="{Binding NewPasswordConfirm}" IsPassword="True" Placeholder="{Binding Loc.NewPasswordConfirmPlaceholder}" />
+                            </Border>
                         </VerticalStackLayout>
 
                         <Label Text="{Binding PasswordStatusMessage}"

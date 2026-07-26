@@ -31,6 +31,10 @@ public record PropertyDto(
     // Prefill des Bearbeiten-Editors. Positionell VOR den berechneten Feldern,
     // damit die EF-Projektion in GetPropertyByIdHandler sie mitliefern kann.
     LocationDisplayMode LocationDisplay = LocationDisplayMode.Approximate,
+    // Sync-Quelle des Inserats (z.B. "edikte.justiz.gv.at") - die Clients leiten
+    // daraus die Anbieterrolle "Gericht" ab (WEB-016). Positionell VOR den
+    // berechneten Feldern, damit die EF-Projektion sie mitliefern kann.
+    string? SourceName = null,
     // Serverseitig abgeleitete Anzeige-Fakten (Backend-First: Clients rendern nur)
     // "Kaufpreis" | "Mindestgebot" | "Schätzwert" - haengt bei Zwangsversteigerungen
     // davon ab, ob ein Mindestgebot vorliegt (Price = MinimumBid ?? EstimatedValue)

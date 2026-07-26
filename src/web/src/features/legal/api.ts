@@ -200,7 +200,7 @@ const fallbackPrivacyPolicy: PrivacyPolicy = {
       sortOrder: 8,
       title: "Cookies und Local Storage",
       content:
-        "Unsere Website verwendet ausschließlich technisch notwendige Cookies bzw. Local Storage für:\n\n- Speicherung Ihrer Anmeldedaten (Session)\n- Speicherung Ihrer Filtereinstellungen\n\nFür technisch notwendige Cookies ist keine Einwilligung erforderlich (Paragraph 165 Abs. 3 TKG).",
+        "Unsere Website verwendet ausschließlich technisch notwendige Cookies bzw. Local Storage für:\n\n- Speicherung Ihrer Anmeldedaten (Session)\n- Speicherung Ihrer Filtereinstellungen\n\nFür technisch notwendige Cookies ist keine Einwilligung erforderlich (§ 165 Abs. 3 TKG).",
       isVisible: true,
     },
     {

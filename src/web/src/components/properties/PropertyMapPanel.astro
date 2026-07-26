@@ -366,7 +366,9 @@ for (const region of regions) {
   .hpmap-popup-inner { padding: 0.5rem 0.7rem 0.65rem; }
   .hpmap-popup-title { font-weight: 700; font-size: 0.82rem; line-height: 1.3; margin: 0; }
   .hpmap-popup-ort { font-size: 0.72rem; color: var(--muted-foreground); margin: 0; }
-  .hpmap-popup-preis { font-weight: 750; color: var(--price); font-variant-numeric: tabular-nums; margin: 0.2rem 0 0; }
+  /* Keine tabular-nums: die Tab-Ziffernbreite reisst bei dieser Schrift
+     sichtbare Luecken um die Tausenderpunkte ("890 . 000") */
+  .hpmap-popup-preis { font-weight: 750; color: var(--price); margin: 0.2rem 0 0; }
   .hpmap-popup-zv { font-size: 0.7rem; font-weight: 700; color: var(--primary); margin: 0.15rem 0 0; }
   .hpmap-popup-approx { font-size: 0.68rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
   /* Foto und Titel verlinken aufs Inserat; der Titel bleibt optisch Text.

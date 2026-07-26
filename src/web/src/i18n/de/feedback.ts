@@ -8,21 +8,21 @@ export const feedback = {
   // Seite /feedback
   "feedback.metaTitle": "Feedback & Wünsche",
   "feedback.metaDescription":
-    "Sag uns, was dir an Heimatplatz fehlt, was dich stört oder was dir gefällt.",
+    "Sagen Sie uns, was Ihnen an Heimatplatz fehlt, was Sie stört oder was Ihnen gefällt.",
   "feedback.title": "Feedback & Wünsche",
   "feedback.intro":
-    "Was fehlt dir, was stört dich, was gefällt dir? Wir lesen jede Nachricht und antworten dir direkt hier - in der App bekommst du zusätzlich eine Benachrichtigung.",
+    "Was fehlt Ihnen, was stört Sie, was gefällt Ihnen? Wir lesen jede Nachricht und antworten Ihnen direkt hier - in der App bekommen Sie zusätzlich eine Benachrichtigung.",
   "feedback.authTitle": "Feedback nur mit Konto",
   "feedback.authDescription":
-    "Melde dich an, um uns Feedback zu schicken und unsere Antworten zu erhalten.",
+    "Melden Sie sich an, um uns Feedback zu schicken und unsere Antworten zu erhalten.",
 
   // Formular
   "feedback.categoryLegend": "Worum geht es?",
-  "feedback.bodyLabel": "Deine Nachricht",
+  "feedback.bodyLabel": "Ihre Nachricht",
   "feedback.bodyPlaceholder":
-    "Beschreib dein Anliegen - je konkreter, desto besser können wir helfen.",
+    "Beschreiben Sie Ihr Anliegen - je konkreter, desto besser können wir helfen.",
   "feedback.photosLabel": "Bilder (optional)",
-  "feedback.photosHint": "Screenshots oder Fotos helfen uns, dein Anliegen zu verstehen.",
+  "feedback.photosHint": "Screenshots oder Fotos helfen uns, Ihr Anliegen zu verstehen.",
   "feedback.photosAdd": "Bilder auswählen",
   "feedback.photoRemove": "Bild entfernen",
   "feedback.photosMax": "Maximal {count} Bilder pro Nachricht.",
@@ -30,19 +30,19 @@ export const feedback = {
   "feedback.submitting": "Wird gesendet …",
   "feedback.uploadingPhotos": "Bild {current} von {total} wird hochgeladen …",
   "feedback.submitSuccess":
-    "Danke für dein Feedback! Du findest die Anfrage unten unter \"Meine Anfragen\".",
-  "feedback.errorEmpty": "Bitte gib eine Nachricht ein oder häng ein Bild an.",
+    "Danke für Ihr Feedback! Sie finden die Anfrage unten unter \"Meine Anfragen\".",
+  "feedback.errorEmpty": "Bitte geben Sie eine Nachricht ein oder hängen Sie ein Bild an.",
   "feedback.errorGeneric": "Senden fehlgeschlagen: {error}",
 
   // Kategorien (Auswahlkarten)
   "feedback.categoryIdea": "Wunsch / Idee",
-  "feedback.categoryIdeaHint": "Etwas fehlt dir oder würde Heimatplatz besser machen",
+  "feedback.categoryIdeaHint": "Etwas fehlt Ihnen oder würde Heimatplatz besser machen",
   "feedback.categoryProblem": "Problem melden",
   "feedback.categoryProblemHint": "Etwas funktioniert nicht so, wie es soll",
   "feedback.categoryQuestion": "Frage",
-  "feedback.categoryQuestionHint": "Du kommst an einer Stelle nicht weiter",
+  "feedback.categoryQuestionHint": "Sie kommen an einer Stelle nicht weiter",
   "feedback.categoryPraise": "Lob",
-  "feedback.categoryPraiseHint": "Dir gefällt etwas besonders gut",
+  "feedback.categoryPraiseHint": "Ihnen gefällt etwas besonders gut",
   "feedback.categoryOther": "Sonstiges",
   "feedback.categoryOtherHint": "Alles, was sonst nirgends reinpasst",
 
@@ -54,7 +54,7 @@ export const feedback = {
 
   // Meine Anfragen
   "feedback.listTitle": "Meine Anfragen",
-  "feedback.listEmpty": "Noch keine Anfragen - dein erstes Feedback landet hier.",
+  "feedback.listEmpty": "Noch keine Anfragen - Ihr erstes Feedback landet hier.",
   "feedback.listLoadFailed": "Anfragen konnten nicht geladen werden: {error}",
   "feedback.listUnread": "Neue Antwort",
   "feedback.listMessageCount": "{count} Nachrichten",
@@ -68,12 +68,12 @@ export const feedback = {
   "feedback.threadNotFound":
     "Diese Anfrage wurde nicht gefunden. Sie gehört möglicherweise zu einem anderen Konto.",
   "feedback.threadLoadFailed": "Verlauf konnte nicht geladen werden: {error}",
-  "feedback.threadYou": "Du",
+  "feedback.threadYou": "Sie",
   "feedback.threadTeam": "Heimatplatz-Team",
   "feedback.threadVoiceMessage": "Sprachnachricht",
   "feedback.threadImageAlt": "Anhang {index}",
   "feedback.replyLabel": "Antwort schreiben",
-  "feedback.replyPlaceholder": "Deine Antwort …",
+  "feedback.replyPlaceholder": "Ihre Antwort …",
   "feedback.replySend": "Senden",
   "feedback.replySuccess": "Antwort gesendet.",
 

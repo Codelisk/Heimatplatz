@@ -491,7 +491,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
 
         var tiles = new List<StatTileItem>();
         if (item.AuctionDate is { } auctionDate)
-            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yy")));
+            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yyyy")));
         if (item.PlotAreaM2 is > 0)
             tiles.Add(new StatTileItem(_loc.TileArea, PropertyDisplay.Area(item.PlotAreaM2.Value)));
         StatTiles = tiles;
@@ -969,7 +969,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             && auctionProp.ValueKind == JsonValueKind.String
             && DateTime.TryParse(auctionProp.GetString(), out var auctionDate))
         {
-            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yy")));
+            tiles.Add(new StatTileItem(_loc.TileAuctionDate, auctionDate.ToLocalTime().ToString("dd.MM.yyyy")));
         }
 
         if (minimumBid is > 0 && estimatedValue is > 0)

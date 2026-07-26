@@ -463,6 +463,23 @@
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
     </Style>
 
+    <!-- Einheitlicher Formularfeld-Rahmen (Login, Registrierung, ...): solide Box
+         wie die Wizard-Felder, nur ohne deren gestrichelte Editier-Optik. Das
+         Entry darin traegt StyleClass "borderless", sonst doppelt die
+         Plattform-Dekoration (Android-Unterstreichung) den Rahmen. -->
+    <Style x:Key="BoxedField" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+        <Setter Property="Padding" Value="10,2" />
+    </Style>
+
+    <Style x:Key="BoxedFieldEntry" TargetType="Entry">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="MinimumHeightRequest" Value="40" />
+    </Style>
+
     <Style x:Key="Caption" TargetType="Label">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />

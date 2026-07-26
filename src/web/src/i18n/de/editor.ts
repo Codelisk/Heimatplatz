@@ -43,7 +43,7 @@ export const editor = {
   "editor.cityLabel": "Ort",
   "editor.addressPlaceholder": "Straße und Hausnummer",
   "editor.addressLabel": "Adresse",
-  "editor.titlePlaceholder": "Ihr Titel – z.B. Sonniges Einfamilienhaus mit Garten",
+  "editor.titlePlaceholder": "Titel – z.B. Haus mit Garten",
   "editor.titleLabel": "Titel des Inserats",
 
   "editor.photoUploadLabel": "Fotos auswählen",

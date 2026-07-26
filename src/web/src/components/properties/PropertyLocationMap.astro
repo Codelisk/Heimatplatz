@@ -17,9 +17,11 @@ import type { ApiMapPin } from "@/features/properties/map-pins";
 
 interface Props {
   pin: ApiMapPin;
+  /** Gerichts-ZV: der "Schutz der Anbieter"-Hinweis passt dort nicht (Anbieter = Gericht) */
+  courtForeclosure?: boolean;
 }
 
-const { pin } = Astro.props;
+const { pin, courtForeclosure = false } = Astro.props;
 const locationData = {
   lat: pin.Latitude,
   lng: pin.Longitude,
@@ -33,7 +35,7 @@ const locationData = {
     <div class="hpdetailmap-canvas" data-detail-map-gl></div>
   </div>
   {pin.IsApproximate && (
-    <p class="mt-2 max-w-3xl text-xs text-muted-foreground">{t("detail.locationApproxHint")}</p>
+    <p class="mt-2 max-w-3xl text-xs text-muted-foreground">{t(courtForeclosure ? "detail.locationApproxHintCourt" : "detail.locationApproxHint")}</p>
   )}
 </section>
 <script is:inline type="application/json" data-detail-map-pin set:html={jsonForScriptTag(locationData)} />

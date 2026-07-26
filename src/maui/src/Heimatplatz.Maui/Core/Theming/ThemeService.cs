@@ -1,9 +1,10 @@
+using Microsoft.Extensions.Logging;
 using Shiny;
 
 namespace Heimatplatz.Maui.Core.Theming;
 
 [Singleton]
-public class ThemeService : IThemeService
+public class ThemeService(ILogger<ThemeService> logger) : IThemeService
 {
     private const string PreferenceKey = "app.theme-mode";
 
@@ -30,7 +31,21 @@ public class ThemeService : IThemeService
             _ => AppThemeMode.System
         };
         Preferences.Default.Set(PreferenceKey, Mode.ToString());
+
+        // Diagnose (Beobachtung 26.07.: nach einem Theme-Wechsel stand die App einmalig
+        // auf Home statt auf der vorherigen Seite). Ein Recreate gibt es nicht (UiMode in
+        // ConfigurationChanges) - falls die Route trotzdem kippt, soll das Log es zeigen.
+        var routeBefore = Shell.Current?.CurrentState?.Location?.ToString();
         Apply();
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            var routeAfter = Shell.Current?.CurrentState?.Location?.ToString();
+            if (routeBefore != routeAfter)
+                logger.LogWarning(
+                    "Theme-Wechsel auf {Mode} hat die Route veraendert: {Before} -> {After}",
+                    Mode, routeBefore, routeAfter);
+        });
+
         return Mode;
     }
 

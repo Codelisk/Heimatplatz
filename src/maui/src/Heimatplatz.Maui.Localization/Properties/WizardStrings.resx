@@ -58,7 +58,7 @@
     <value>Immobilientyp</value>
   </data>
   <data name="TitlePlaceholder" xml:space="preserve">
-    <value>Ihr Titel – z.B. Sonniges Einfamilienhaus mit Garten</value>
+    <value>Titel – z.B. Haus mit Garten</value>
   </data>
   <data name="StreetPlaceholder" xml:space="preserve">
     <value>Straße und Hausnummer</value>

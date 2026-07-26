@@ -37,7 +37,7 @@
     <value>Privat</value>
   </data>
   <data name="SellerBroker" xml:space="preserve">
-    <value>Makler &amp; Verwaltung</value>
+    <value>Makler</value>
   </data>
   <data name="AgeSectionTitle" xml:space="preserve">
     <value>EINGESTELLT SEIT</value>
@@ -55,7 +55,7 @@
     <value>30 Tage</value>
   </data>
   <data name="AgeOptionYear" xml:space="preserve">
-    <value>12 Monate</value>
+    <value>1 Jahr</value>
   </data>
   <data name="OrtSectionTitle" xml:space="preserve">
     <value>ORTE</value>

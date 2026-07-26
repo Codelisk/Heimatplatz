@@ -20,6 +20,9 @@ public partial class PropertyCard : ContentView
     private static readonly ImageSource HeartFilledIcon = ImageSource.FromFile("icon_heart_filled.png");
     private static readonly ImageSource BlockGlyphIcon = ImageSource.FromFile("icon_block_white.png");
     private static readonly ImageSource CloseGlyphIcon = ImageSource.FromFile("icon_close_white.png");
+    // Owner-Karten: Papierkorb statt X - das X liest sich als "schliessen",
+    // nicht als destruktives Loeschen (Befund Design-Durchlauf 26.07.)
+    private static readonly ImageSource TrashGlyphIcon = ImageSource.FromFile("icon_trash_white.png");
 
     // Localized Kartentexte per Service-Locator - PropertyCard ist ein ContentView
     // ohne DI (gleiches Muster wie IPropertyStatusService in OnCardLoaded). Statisch
@@ -290,11 +293,14 @@ public partial class PropertyCard : ContentView
                 ? Loc.LivingAreaFormat(PropertyDisplay.Number(property.LivingAreaM2.Value))
                 : Loc.AreaUnknown;
 
-        // Fakten-Chips (nur Wohnflaeche + Zimmer; leere Zeile komplett weg)
-        if (property.LivingAreaM2.HasValue)
+        // Fakten-Chips (nur Wohnflaeche + Zimmer; leere Zeile komplett weg).
+        // Ohne Grundflaeche zeigt die Flaechenzeile darueber bereits die Wohnflaeche -
+        // der Chip waere derselbe Wert doppelt (wie ApiPropertyCard.astro am Web)
+        var showWohnflaecheChip = property.LivingAreaM2.HasValue && property.PlotAreaM2.HasValue;
+        if (showWohnflaecheChip)
         {
             WohnflaechePanel.IsVisible = true;
-            WohnflaecheText.Text = Loc.ChipLivingAreaFormat(PropertyDisplay.Number(property.LivingAreaM2.Value));
+            WohnflaecheText.Text = Loc.ChipLivingAreaFormat(PropertyDisplay.Number(property.LivingAreaM2!.Value));
         }
         else
         {
@@ -311,7 +317,7 @@ public partial class PropertyCard : ContentView
             RoomsPanel.IsVisible = false;
         }
 
-        ChipsRow.IsVisible = property.LivingAreaM2.HasValue || property.Rooms.HasValue;
+        ChipsRow.IsVisible = showWohnflaecheChip || property.Rooms.HasValue;
 
         // Fusszeile: Anbieter-Label + Name (vertraegt fehlende Namen, kein haengender
         // Trennpunkt); ZV zeigt wie die Detailseite "Gericht" statt des SellerTypes
@@ -376,10 +382,14 @@ public partial class PropertyCard : ContentView
                 BlockPanel.IsVisible = false;
                 break;
             case CardMode.Blocked:
-            case CardMode.Owner:
                 FavoritePanel.IsVisible = false;
                 BlockPanel.IsVisible = true;
                 BlockIcon.Source = CloseGlyphIcon;
+                break;
+            case CardMode.Owner:
+                FavoritePanel.IsVisible = false;
+                BlockPanel.IsVisible = true;
+                BlockIcon.Source = TrashGlyphIcon;
                 break;
             default:
                 FavoritePanel.IsVisible = IsAuthenticated;
@@ -448,7 +458,7 @@ public partial class PropertyCard : ContentView
         // Voller Preis statt Kompaktform ("alle Infos auf einen Blick");
         // nur Millionenbetraege werden verdichtet
         if (price >= 1_000_000)
-            return string.Format(PropertyDisplay.Culture, "{0:0.##} Mio €", price / 1_000_000);
+            return string.Format(PropertyDisplay.Culture, "€ {0:0.##} Mio", price / 1_000_000);
         return PropertyDisplay.Price(price);
     }
 

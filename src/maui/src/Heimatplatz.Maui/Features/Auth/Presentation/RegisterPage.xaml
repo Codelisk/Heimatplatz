@@ -45,22 +45,30 @@
                         <VerticalStackLayout Grid.Column="0" Spacing="6">
                             <Label Text="{Binding Loc.FirstNameLabel}"
                                    Style="{StaticResource FieldLabel}" />
-                            <Entry x:Name="VornameEntry"
-                                   Text="{Binding Vorname}"
-                                   Placeholder="{Binding Loc.FirstNamePlaceholder}"
-                                   ReturnType="Next"
-                                   Completed="OnVornameCompleted" />
+                            <Border Style="{StaticResource BoxedField}">
+                                <Entry x:Name="VornameEntry"
+                                       Style="{StaticResource BoxedFieldEntry}"
+                                       StyleClass="borderless"
+                                       Text="{Binding Vorname}"
+                                       Placeholder="{Binding Loc.FirstNamePlaceholder}"
+                                       ReturnType="Next"
+                                       Completed="OnVornameCompleted" />
+                            </Border>
                         </VerticalStackLayout>
 
                         <!-- Nachname -->
                         <VerticalStackLayout Grid.Column="1" Spacing="6">
                             <Label Text="{Binding Loc.LastNameLabel}"
                                    Style="{StaticResource FieldLabel}" />
-                            <Entry x:Name="NachnameEntry"
-                                   Text="{Binding Nachname}"
-                                   Placeholder="{Binding Loc.LastNamePlaceholder}"
-                                   ReturnType="Next"
-                                   Completed="OnNachnameCompleted" />
+                            <Border Style="{StaticResource BoxedField}">
+                                <Entry x:Name="NachnameEntry"
+                                       Style="{StaticResource BoxedFieldEntry}"
+                                       StyleClass="borderless"
+                                       Text="{Binding Nachname}"
+                                       Placeholder="{Binding Loc.LastNamePlaceholder}"
+                                       ReturnType="Next"
+                                       Completed="OnNachnameCompleted" />
+                            </Border>
                         </VerticalStackLayout>
                     </Grid>
 
@@ -68,36 +76,48 @@
                     <VerticalStackLayout Spacing="6">
                         <Label Text="{Binding Loc.EmailLabel}"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry x:Name="EmailEntry"
-                               Text="{Binding Email}"
-                               Placeholder="{Binding Loc.EmailPlaceholder}"
-                               Keyboard="Email"
-                               ReturnType="Next"
-                               Completed="OnEmailCompleted" />
+                        <Border Style="{StaticResource BoxedField}">
+                            <Entry x:Name="EmailEntry"
+                                   Style="{StaticResource BoxedFieldEntry}"
+                                   StyleClass="borderless"
+                                   Text="{Binding Email}"
+                                   Placeholder="{Binding Loc.EmailPlaceholder}"
+                                   Keyboard="Email"
+                                   ReturnType="Next"
+                                   Completed="OnEmailCompleted" />
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Passwort -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="{Binding Loc.PasswordLabel}"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry x:Name="PasswortEntry"
-                               Text="{Binding Passwort}"
-                               Placeholder="{Binding Loc.PasswordPlaceholder}"
-                               IsPassword="True"
-                               ReturnType="Next"
-                               Completed="OnPasswortCompleted" />
+                        <Border Style="{StaticResource BoxedField}">
+                            <Entry x:Name="PasswortEntry"
+                                   Style="{StaticResource BoxedFieldEntry}"
+                                   StyleClass="borderless"
+                                   Text="{Binding Passwort}"
+                                   Placeholder="{Binding Loc.PasswordPlaceholder}"
+                                   IsPassword="True"
+                                   ReturnType="Next"
+                                   Completed="OnPasswortCompleted" />
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Passwort bestaetigen -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="{Binding Loc.PasswordConfirmLabel}"
                                Style="{StaticResource FieldLabel}" />
-                        <Entry x:Name="PasswortBestaetigungEntry"
-                               Text="{Binding PasswortBestaetigung}"
-                               Placeholder="{Binding Loc.PasswordConfirmPlaceholder}"
-                               IsPassword="True"
-                               ReturnType="Done"
-                               ReturnCommand="{Binding RegisterCommand}" />
+                        <Border Style="{StaticResource BoxedField}">
+                            <Entry x:Name="PasswortBestaetigungEntry"
+                                   Style="{StaticResource BoxedFieldEntry}"
+                                   StyleClass="borderless"
+                                   Text="{Binding PasswortBestaetigung}"
+                                   Placeholder="{Binding Loc.PasswordConfirmPlaceholder}"
+                                   IsPassword="True"
+                                   ReturnType="Done"
+                                   ReturnCommand="{Binding RegisterCommand}" />
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Verkäufer-Sektion: Suchen kann jeder Account, nur Anbieten ist optional -->
@@ -197,8 +217,12 @@
                                                  IsVisible="{Binding NeedsCompanyName}">
                                 <Label Text="{Binding Loc.CompanyNameLabel}"
                                        Style="{StaticResource FieldLabel}" />
-                                <Entry Text="{Binding CompanyName}"
-                                       Placeholder="{Binding Loc.CompanyNamePlaceholder}" />
+                                <Border Style="{StaticResource BoxedField}">
+                                    <Entry Style="{StaticResource BoxedFieldEntry}"
+                                           StyleClass="borderless"
+                                           Text="{Binding CompanyName}"
+                                           Placeholder="{Binding Loc.CompanyNamePlaceholder}" />
+                                </Border>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </VerticalStackLayout>

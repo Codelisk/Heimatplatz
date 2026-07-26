@@ -9164,6 +9164,12 @@
           "LocationDisplay": {
             "$ref": "#/components/schemas/LocationDisplayMode"
           },
+          "SourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "PriceLabel": {
             "type": "string",
             "default": "Kaufpreis"

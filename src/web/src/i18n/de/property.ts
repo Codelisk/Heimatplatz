@@ -32,6 +32,7 @@ export const property = {
   "detail.sectionDescription": "Beschreibung",
   "detail.sectionLocation": "Lage & Umgebung",
   "detail.locationApproxHint": "Ungefähre Lage – der genaue Standort wird zum Schutz der Anbieter nicht angezeigt.",
+  "detail.locationApproxHintCourt": "Ungefähre Lage laut Edikt – Details zum Standort finden Sie in den Objektangaben.",
 
   // Detailseite: Anbieter-Sidebar
   "detail.sellerCourt": "Gericht",

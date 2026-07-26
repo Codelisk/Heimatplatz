@@ -308,7 +308,7 @@
                                            StyleClass="borderless"
                                            Text="{Binding Preis}"
                                            Keyboard="Numeric"
-                                           Placeholder="450000"
+                                           Placeholder="450.000"
                                            FontFamily="Display"
                                            FontSize="28"
                                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}"
