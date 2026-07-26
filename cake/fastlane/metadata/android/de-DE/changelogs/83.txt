@@ -1,2 +1,2 @@
-• Zwangsversteigerungen zeigen jetzt schon in der Liste, wie viele Tage es noch bis zum Versteigerungstermin sind
-• Kleinere Fehlerbehebungen und Verbesserungen
+• Zwangsversteigerungen: Schon in der Liste siehst du jetzt direkt im Foto, wann versteigert wird – heute, morgen oder in wie vielen Tagen
+• Kleinere Verbesserungen im Hintergrund

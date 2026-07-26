@@ -4,7 +4,7 @@ IMMOBILIEN ENTDECKEN
 Durchsuche aktuelle Angebote aus ganz Oberösterreich. Filtere nach Immobilientyp, Ort und Zeitraum. Sortiere nach Preis, Fläche oder Aktualität – und finde genau das, was zu dir passt.
 
 ZWANGSVERSTEIGERUNGEN
-Auf Wunsch zeigt dir Heimatplatz aktuelle Versteigerungen aus der österreichischen Ediktsdatei – einfach im Filter zuschalten. Mit Schätzwert, Mindestgebot, Versteigerungstermin und Gerichtsinformationen hast du alle Details auf einen Blick. Schon in der Liste siehst du, wie viele Tage es noch bis zur Versteigerung sind.
+Auf Wunsch zeigt dir Heimatplatz aktuelle Versteigerungen aus der österreichischen Ediktsdatei – einfach im Filter zuschalten. Mit Schätzwert, Mindestgebot, Versteigerungstermin und Gerichtsinformationen hast du alle Details auf einen Blick. Schon in der Liste siehst du, wie viele Tage bis zur Versteigerung bleiben.
 
 PRIVAT ODER MAKLER
 Entscheide selbst: Filtere gezielt nach privaten Inseraten oder Angeboten von Maklern und Verwaltungen. Heimatplatz zeigt dir transparent, wer hinter jedem Inserat steht.
@@ -23,13 +23,14 @@ Heimatplatz setzt auf Datensparsamkeit. Du kannst anonym stöbern, ohne ein Kont
 
 FUNKTIONEN IM ÜBERBLICK
 • Immobiliensuche mit umfangreichen Filtern
-• Zwangsversteigerungen mit Gerichtsdaten und Countdown bis zum Termin
+• Zwangsversteigerungen mit Gerichtsdaten und Termin-Countdown
 • KI-Hilfe für die Inseratsbeschreibung – aus Stichwörtern oder Diktat
 • Push-Benachrichtigungen für neue Objekte
 • Favoriten speichern und verwalten
 • Unerwünschte Objekte ausblenden
 • Eigene Inserate direkt in der fertigen Ansicht erstellen und bearbeiten
 • Privat- und Maklerangebote filtern
+• Anbieter direkt aus dem Inserat anrufen oder anschreiben
 • Direkter Draht zum Team – Feedback mit Fotos oder Sprachnachricht
 • Zuletzt geladene Inhalte auch offline verfügbar
 • Hell- oder Dunkelmodus wählbar

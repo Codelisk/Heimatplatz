@@ -30,6 +30,7 @@ FEATURES AT A GLANCE
 • Hide unwanted properties
 • Create and edit your own listings right in the final view
 • Filter private and agent offers
+• Call or message the provider right from the listing
 • Direct line to our team – feedback with photos or voice message
 • Recently loaded content also available offline
 • Choose between light and dark mode
