@@ -64,6 +64,9 @@
     <!-- Foto-Overlays (immersive Karten/Detail-Hero) -->
     <Color x:Key="GlassPillBackground">#66171310</Color>
     <Color x:Key="GlassPillStroke">#33FFFFFF</Color>
+    <!-- Glas ueber dunklen Seitenflaechen (z.B. Karte-Pille im Dark Mode):
+         dunkles Glas verschwindet auf OffBlack, daher heller Warmton -->
+    <Color x:Key="GlassPillBackgroundDark">#33F3EDE7</Color>
     <Color x:Key="PhotoScrimEnd">#D9171008</Color>      <!-- unterer Gradient-Stop auf Fotos -->
 
     <!-- Kompatibilitaets-Aliase (Bestandsseiten) -->
