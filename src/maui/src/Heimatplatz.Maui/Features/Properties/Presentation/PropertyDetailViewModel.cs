@@ -157,9 +157,12 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     /// <summary>
     /// Angezeigte Bilder (Thumbnail bis die Vorschau lokal vorliegt). Feste Instanz mit
     /// In-Place-Updates: ein Austausch der Liste wuerde die CarouselView komplett neu
-    /// aufbauen, jedes Foto neu laden lassen und die Position zuruecksetzen.
+    /// aufbauen, jedes Foto neu laden lassen und die Position zuruecksetzen. Die Items
+    /// sind bewusst <see cref="DetailImage"/>-Objekte statt Strings: das Qualitaets-
+    /// Upgrade wechselt nur deren Url-Binding und loest damit keine Collection-
+    /// Notification aus (die wuerde auf Android jeden laufenden Swipe abbrechen).
     /// </summary>
-    public ObservableRangeCollection<string> ImageUrls { get; } = [];
+    public ObservableRangeCollection<DetailImage> Images { get; } = [];
 
     /// <summary>Volle Display-Varianten - ausschliesslich fuer den Vollbild-Viewer</summary>
     private List<string> _fullImageUrls = [];
@@ -200,15 +203,15 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     /// <summary>
     /// Bild-Zaehler fuer das Carousel, z.B. "2 / 7"
     /// </summary>
-    public string ImageCounterText => ImageUrls.Count > 0
-        ? $"{CurrentImagePosition + 1} / {ImageUrls.Count}"
+    public string ImageCounterText => Images.Count > 0
+        ? $"{CurrentImagePosition + 1} / {Images.Count}"
         : string.Empty;
 
     /// <summary>
     /// Aktuelles Bild fuer den Windows-Bildviewer (Einzelbild statt CarouselView)
     /// </summary>
-    public string? CurrentImageUrl => CurrentImagePosition >= 0 && CurrentImagePosition < ImageUrls.Count
-        ? ImageUrls[CurrentImagePosition]
+    public string? CurrentImageUrl => CurrentImagePosition >= 0 && CurrentImagePosition < Images.Count
+        ? Images[CurrentImagePosition].Url
         : null;
 
     /// <summary>
@@ -233,7 +236,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     }
 
     /// <summary>True bei mehr als einem Bild (blendet die Pfeile im Windows-Bildviewer ein)</summary>
-    public bool HasMultipleImages => ImageUrls.Count > 1;
+    public bool HasMultipleImages => Images.Count > 1;
 
     private void OnImagesChanged()
     {
@@ -485,7 +488,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     /// </summary>
     private void SetImages(IReadOnlyList<string> urls)
     {
-        if (ImageUrls.Count == urls.Count)
+        if (Images.Count == urls.Count)
         {
             for (var i = 0; i < urls.Count; i++)
                 PatchImage(i, urls[i]);
@@ -498,23 +501,26 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             // Liste - "Invalid update: invalid number of items in section 0" beendet
             // die App. Genau dieser Fall trat beim Wechsel von der Handoff-Vorschau
             // (ein Listenfoto) auf die geladenen Detailfotos auf.
-            ImageUrls.ReplaceRange(urls);
+            Images.ReplaceRange(urls.Select(url => new DetailImage(url)));
         }
 
-        HasImages = ImageUrls.Count > 0;
+        HasImages = Images.Count > 0;
         OnImagesChanged();
     }
 
-    /// <summary>Ersetzt ein einzelnes Bild (z.B. Thumbnail -> geladene Vorschau).</summary>
+    /// <summary>
+    /// Ersetzt ein einzelnes Bild (z.B. Thumbnail -> geladene Vorschau). Nur das
+    /// Url-Binding des Items wechselt - keine Collection-Notification, siehe <see cref="Images"/>.
+    /// </summary>
     private void PatchImage(int index, string url)
     {
-        if (index < 0 || index >= ImageUrls.Count)
+        if (index < 0 || index >= Images.Count)
             return;
 
-        if (string.Equals(ImageUrls[index], url, StringComparison.Ordinal))
+        if (string.Equals(Images[index].Url, url, StringComparison.Ordinal))
             return;
 
-        ImageUrls[index] = url;
+        Images[index].Url = url;
 
         if (index == CurrentImagePosition)
             OnPropertyChanged(nameof(CurrentImageUrl));
@@ -1334,17 +1340,17 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     [RelayCommand]
     private void ShowPreviousImage()
     {
-        if (ImageUrls.Count == 0)
+        if (Images.Count == 0)
             return;
-        CurrentImagePosition = CurrentImagePosition <= 0 ? ImageUrls.Count - 1 : CurrentImagePosition - 1;
+        CurrentImagePosition = CurrentImagePosition <= 0 ? Images.Count - 1 : CurrentImagePosition - 1;
     }
 
     [RelayCommand]
     private void ShowNextImage()
     {
-        if (ImageUrls.Count == 0)
+        if (Images.Count == 0)
             return;
-        CurrentImagePosition = CurrentImagePosition >= ImageUrls.Count - 1 ? 0 : CurrentImagePosition + 1;
+        CurrentImagePosition = CurrentImagePosition >= Images.Count - 1 ? 0 : CurrentImagePosition + 1;
     }
 
     [RelayCommand]

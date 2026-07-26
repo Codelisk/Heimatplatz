@@ -141,14 +141,14 @@
                             </OnPlatform>
                         </Grid.IsVisible>
 
-                        <CarouselView ItemsSource="{Binding ImageUrls}"
+                        <CarouselView ItemsSource="{Binding Images}"
                                       IndicatorView="ImageIndicator"
                                       IsVisible="{Binding HasImages}"
                                       Position="{Binding CurrentImagePosition, Mode=TwoWay}"
                                       PositionChanged="OnImagePositionChanged"
                                       Loop="False">
                             <CarouselView.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
+                                <DataTemplate x:DataType="models:DetailImage">
                                     <!-- Tippen oeffnet die Grossansicht. Bewusst ein
                                          TapGestureRecognizer statt einer unsichtbaren
                                          Button-Flaeche: jedes Carousel-Item wuerde sonst
@@ -160,7 +160,7 @@
                                             <TapGestureRecognizer
                                                 Command="{Binding OpenImageViewerCommand, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}" />
                                         </Grid.GestureRecognizers>
-                                        <Image Source="{Binding .}"
+                                        <Image Source="{Binding Url}"
                                                Aspect="AspectFill"
                                                SemanticProperties.Description="{Binding Loc.OpenImageViewerSemantic, Source={RelativeSource AncestorType={x:Type vm:ForeclosureDetailViewModel}}, x:DataType=vm:ForeclosureDetailViewModel}" />
                                     </Grid>
