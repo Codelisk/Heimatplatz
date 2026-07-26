@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Collections;
 using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
@@ -189,7 +189,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     /// In-Place-Updates: ein Austausch der Liste wuerde die CarouselView komplett neu
     /// aufbauen, jedes Foto neu laden lassen und die Position zuruecksetzen.
     /// </summary>
-    public ObservableCollection<string> ImageUrls { get; } = [];
+    public ObservableRangeCollection<string> ImageUrls { get; } = [];
 
     /// <summary>Volle Display-Varianten - ausschliesslich fuer den Vollbild-Viewer</summary>
     private List<string> _fullImageUrls = [];
@@ -273,9 +273,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         }
         else
         {
-            ImageUrls.Clear();
-            foreach (var url in urls)
-                ImageUrls.Add(url);
+            // ReplaceRange (eine Reset-Notification) statt Clear + N Adds - siehe
+            // PropertyDetailViewModel.SetImages: die Einzel-Notifications beenden die
+            // App auf iOS mit "Invalid update: invalid number of items in section 0".
+            ImageUrls.ReplaceRange(urls);
         }
 
         HasImages = ImageUrls.Count > 0;

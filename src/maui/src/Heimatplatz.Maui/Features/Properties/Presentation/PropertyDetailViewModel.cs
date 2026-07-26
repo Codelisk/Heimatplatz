@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Collections;
 using Heimatplatz.Maui.Core.Media;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Properties.Models;
@@ -159,7 +159,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     /// In-Place-Updates: ein Austausch der Liste wuerde die CarouselView komplett neu
     /// aufbauen, jedes Foto neu laden lassen und die Position zuruecksetzen.
     /// </summary>
-    public ObservableCollection<string> ImageUrls { get; } = [];
+    public ObservableRangeCollection<string> ImageUrls { get; } = [];
 
     /// <summary>Volle Display-Varianten - ausschliesslich fuer den Vollbild-Viewer</summary>
     private List<string> _fullImageUrls = [];
@@ -492,9 +492,13 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         }
         else
         {
-            ImageUrls.Clear();
-            foreach (var url in urls)
-                ImageUrls.Add(url);
+            // ReplaceRange (eine Reset-Notification) statt Clear + N Adds: die
+            // CarouselView-Handler von iOS fassen die Einzel-Notifications zu einem
+            // performBatchUpdates zusammen und rechnen sie gegen die bereits gefuellte
+            // Liste - "Invalid update: invalid number of items in section 0" beendet
+            // die App. Genau dieser Fall trat beim Wechsel von der Handoff-Vorschau
+            // (ein Listenfoto) auf die geladenen Detailfotos auf.
+            ImageUrls.ReplaceRange(urls);
         }
 
         HasImages = ImageUrls.Count > 0;
