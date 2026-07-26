@@ -364,7 +364,25 @@ for (const region of regions) {
   .hpmap-popup-preis { font-weight: 750; color: var(--price); font-variant-numeric: tabular-nums; margin: 0.2rem 0 0; }
   .hpmap-popup-zv { font-size: 0.7rem; font-weight: 700; color: var(--primary); margin: 0.15rem 0 0; }
   .hpmap-popup-approx { font-size: 0.68rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
-  .hpmap-popup-cta { display: inline-block; margin-top: 0.45rem; font-size: 0.75rem; font-weight: 700; color: var(--primary); }
+  /* Foto und Titel verlinken aufs Inserat; der Titel bleibt optisch Text.
+     line-height 0 + keine Underline: sonst zeichnet der Anker eine Linie
+     unter dem Foto (Inline-Descender des img) */
+  .hpmap-popup-fotolink { display: block; line-height: 0; text-decoration: none; }
+  .hpmap-popup-title a { color: inherit; text-decoration: none; }
+  .hpmap-popup-title a:hover { text-decoration: underline; }
+  /* Untere Zeile: Infos links, grosser runder Oeffnen-Knopf (↗) rechts -
+     neben Preis/Lage-Hinweis ist ohnehin Luft, der Knopf ersetzt den Text-CTA */
+  .hpmap-popup-zeile { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .hpmap-popup-infos { min-width: 0; }
+  .hpmap-popup-open {
+    flex: none; display: grid; place-items: center;
+    width: 36px; height: 36px; margin-top: 0.2rem; border-radius: 999px;
+    background: var(--primary); color: var(--primary-foreground);
+    box-shadow: 0 3px 8px -3px oklch(0.25 0.04 55 / 45%);
+    transition: transform 0.15s cubic-bezier(0.3, 0.7, 0.3, 1.4);
+  }
+  .hpmap-popup-open:hover { transform: scale(1.1); }
+  .hpmap-popup-open svg { width: 18px; height: 18px; }
   .hpmap-popup-close {
     position: absolute; right: 5px; top: 5px; z-index: 1;
     display: grid; place-items: center; width: 20px; height: 20px;
@@ -453,7 +471,9 @@ for (const region of regions) {
   .hpmap-bottomsheet .hpmap-popup-title { font-size: 1rem; }
   .hpmap-bottomsheet .hpmap-popup-ort { font-size: 0.8rem; }
   .hpmap-bottomsheet .hpmap-popup-preis { font-size: 1.05rem; }
-  .hpmap-bottomsheet .hpmap-popup-cta { font-size: 0.9rem; margin-top: 0.6rem; }
+  /* Groesserer Oeffnen-Knopf im Bottom-Sheet (Daumen-Reichweite) */
+  .hpmap-bottomsheet .hpmap-popup-open { width: 48px; height: 48px; }
+  .hpmap-bottomsheet .hpmap-popup-open svg { width: 24px; height: 24px; }
   .hpmap-bottomsheet .hpmap-popup-close { top: 12px; right: 12px; width: 26px; height: 26px; font-size: 13px; }
 
   /* Waehrend die Vollbildkarte offen ist, scrollt die Seite dahinter nicht */
@@ -752,15 +772,23 @@ for (const region of regions) {
 
     function buildPopupContent(pin: ApiMapPin): HTMLElement {
       const content = document.createElement("div");
+      // Foto, Titel und Oeffnen-Knopf fuehren alle zum Inserat (im Embed mit
+      // typ-Hint, damit die App die passende native Detailseite oeffnet)
+      const href = embedMode ? `${getDetailPath(pin.Id)}?typ=${typeKey(pin.Type)}` : getDetailPath(pin.Id);
 
       if (pin.ImageUrl) {
+        const fotoLink = document.createElement("a");
+        fotoLink.className = "hpmap-popup-fotolink";
+        fotoLink.href = href;
+        fotoLink.setAttribute("aria-label", t("search.mapOpenListing"));
         const img = document.createElement("img");
         img.className = "hpmap-popup-foto";
         img.alt = "";
         img.loading = "lazy";
         img.src = pin.ImageUrl;
-        img.addEventListener("error", () => img.remove());
-        content.append(img);
+        img.addEventListener("error", () => fotoLink.remove());
+        fotoLink.append(img);
+        content.append(fotoLink);
       }
 
       const close = document.createElement("button");
@@ -778,34 +806,49 @@ for (const region of regions) {
       inner.className = "hpmap-popup-inner";
       const title = document.createElement("p");
       title.className = "hpmap-popup-title";
-      title.textContent = pin.Title;
+      const titleLink = document.createElement("a");
+      titleLink.href = href;
+      titleLink.textContent = pin.Title;
+      title.append(titleLink);
       const ort = document.createElement("p");
       ort.className = "hpmap-popup-ort";
       ort.textContent = `${pin.PostalCode} ${pin.City}`;
+
+      // Untere Zeile: Preis + Hinweise links, grosser runder Oeffnen-Knopf
+      // rechts (ersetzt den frueheren Text-CTA - neben Preis/Lage ist Luft)
+      const zeile = document.createElement("div");
+      zeile.className = "hpmap-popup-zeile";
+      const infos = document.createElement("div");
+      infos.className = "hpmap-popup-infos";
       const preis = document.createElement("p");
       preis.className = "hpmap-popup-preis";
       preis.textContent = formatApiPrice(pin.Price);
-      inner.append(title, ort, preis);
+      infos.append(preis);
 
       const countdown = typeKey(pin.Type) === "zv" ? getAuctionCountdownLabel(pin.AuctionDate) : null;
       if (countdown) {
         const zv = document.createElement("p");
         zv.className = "hpmap-popup-zv";
         zv.textContent = countdown;
-        inner.append(zv);
+        infos.append(zv);
       }
       if (pin.IsApproximate) {
         const approx = document.createElement("p");
         approx.className = "hpmap-popup-approx";
         approx.textContent = t("search.mapApproxHint");
-        inner.append(approx);
+        infos.append(approx);
       }
 
-      const cta = document.createElement("a");
-      cta.className = "hpmap-popup-cta";
-      cta.href = embedMode ? `${getDetailPath(pin.Id)}?typ=${typeKey(pin.Type)}` : getDetailPath(pin.Id);
-      cta.textContent = `${t("search.mapOpenListing")} →`;
-      inner.append(cta);
+      const open = document.createElement("a");
+      open.className = "hpmap-popup-open";
+      open.href = href;
+      open.setAttribute("aria-label", t("search.mapOpenListing"));
+      // Tabler arrow-up-right: etabliertes "Oeffnen"-Zeichen
+      open.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7l-10 10"></path><path d="M8 7h9v9"></path></svg>';
+
+      zeile.append(infos, open);
+      inner.append(title, ort, zeile);
       content.append(inner);
       return content;
     }
