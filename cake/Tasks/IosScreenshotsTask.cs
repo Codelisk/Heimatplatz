@@ -542,15 +542,36 @@ public sealed class IosScreenshotsTask : FrostingTask<BuildContext>
         ], throwOnError: false);
         context.Information($"Console launch output:\n{consoleOut}");
 
+        // Der Crash-Report ist gross und der interessante Teil steht HINTEN: die Threads
+        // liefern nur native Frames, die Managed-Exception samt Stacktrace steckt in
+        // "asi"/"lastExceptionBacktrace" am Ende. Ein blindes "head -c" schneidet genau
+        // das ab - deshalb gezielt danach greppen und den Kopf nur kurz mitnehmen.
         var (_, crash) = RunProcess(context, "bash",
         [
             "-c",
             "for dir in ~/Library/Logs/DiagnosticReports ~/Library/Logs/DiagnosticReports/Retired; do " +
             "echo \"--- $dir ---\"; ls -t \"$dir\" 2>/dev/null | head -8; " +
             "f=$(ls -t \"$dir\" 2>/dev/null | grep -i heimatplatz | head -1); " +
-            "if [ -n \"$f\" ]; then echo \"--- $dir/$f ---\"; head -c 8000 \"$dir/$f\"; fi; done"
+            "if [ -n \"$f\" ]; then " +
+            "echo \"--- $dir/$f (Kopf) ---\"; head -c 2500 \"$dir/$f\"; " +
+            "echo; echo \"--- $dir/$f (Managed-Exception) ---\"; " +
+            "grep -ao '\"asi\".\\{0,4000\\}' \"$dir/$f\" | head -c 4000; " +
+            "grep -ao '\"lastExceptionBacktrace\".\\{0,3000\\}' \"$dir/$f\" | head -c 3000; " +
+            "grep -aoiE '(unhandled|managed) exception.{0,2000}' \"$dir/$f\" | head -c 4000; " +
+            "fi; done"
         ], throwOnError: false);
         context.Information($"Crash reports:\n{crash}");
+
+        // Zuerst die Fehlerzeilen selbst (ein blindes tail zeigt sonst nur das Rauschen,
+        // das NACH dem Crash noch anfaellt), danach der Schwanz als Kontext.
+        var (_, appErrors) = RunProcess(context, "bash",
+        [
+            "-c",
+            $"xcrun simctl spawn {device.Udid} log show --last 5m --style compact " +
+            "--predicate 'process == \"Heimatplatz.Maui\" OR eventMessage CONTAINS[c] \"heimatplatz\"' 2>/dev/null " +
+            "| grep -aiE 'unhandled|exception|stacktrace|   at |mono_|abort|fatal' | tail -80"
+        ], throwOnError: false);
+        context.Information($"Simulator log (Fehlerzeilen):\n{appErrors}");
 
         var (_, appLog) = RunProcess(context, "bash",
         [
