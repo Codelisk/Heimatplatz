@@ -2,13 +2,13 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftVersion>10.0.10</MicrosoftVersion>
-    <MicrosoftExtensionsVersion>10.7.0</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsVersion>10.8.0</MicrosoftExtensionsVersion>
     <AspireVersion>13.4.6</AspireVersion>
     <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
     <ShinyDocumentDbVersion>11.2.1</ShinyDocumentDbVersion>
-    <ShinyPushVersion>5.2.4</ShinyPushVersion>
+    <ShinyPushVersion>5.3.0</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
 
@@ -65,7 +65,7 @@
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState.Android" Version="$(AndroidXLifecycleVersion)" />
 
     <!-- HTML Scraping -->
-    <PackageVersion Include="AngleSharp" Version="1.5.1" />
+    <PackageVersion Include="AngleSharp" Version="1.6.0" />
 
     <!-- E-Mail-Versand (SMTP via Hetzner-Webhosting-Mailbox) -->
     <PackageVersion Include="MailKit" Version="4.17.0" />
@@ -79,9 +79,9 @@
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.10" />
-    <PackageVersion Include="SkiaSharp" Version="4.148.0" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.148.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.16" />
+    <PackageVersion Include="SkiaSharp" Version="4.150.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
 
     <!-- Aspire packages -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="$(AspireVersion)" />
@@ -104,10 +104,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
-
-    <!-- CLI Tools -->
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
 
     <!-- Background-Jobs (TickerQ, EF-Core-Store im AppDbContext) -->
     <PackageVersion Include="TickerQ" Version="10.4.0" />
@@ -118,11 +115,11 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftVersion)" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.3" />
 
     <!-- Security: transitive Pins gegen bekannte Sicherheitsluecken (NU1903) -->
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.android" Version="2.1.12" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.ios" Version="2.1.12" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
@@ -131,7 +128,7 @@
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <PackageVersion Include="FluentAssertions" Version="8.10.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
 
     <!-- Unit & Integration Testing -->
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
