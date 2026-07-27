@@ -3,7 +3,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftVersion>10.0.10</MicrosoftVersion>
     <MicrosoftExtensionsVersion>10.8.0</MicrosoftExtensionsVersion>
-    <AspireVersion>13.4.6</AspireVersion>
     <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
@@ -20,13 +19,12 @@
     <PackageVersion Include="Shiny.DocumentDb.Sqlite" Version="$(ShinyDocumentDbVersion)" />
     <PackageVersion Include="Shiny.Extensions.DependencyInjection" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Extensions.Stores" Version="$(ShinyExtensionsVersion)" />
-    <PackageVersion Include="Shiny.Hosting.Native" Version="$(ShinyPushVersion)" />
+    <!-- Shiny.Core ist kein direkter Verweis, sondern ein transitiver Pin (haelt den
+         Push-Stack auf einer Version). -->
     <PackageVersion Include="Shiny.Core" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Push" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Notifications" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Extensions.Push" Version="3.0.0-beta-0002" />
-    <PackageVersion Include="Shiny.Reflector" Version="1.7.2" />
-    <PackageVersion Include="System.Reactive" Version="7.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 
@@ -39,15 +37,11 @@
     <PackageVersion Include="Shiny.Extensions.Serialization" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Mediator.Maui" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Hosting.Maui" Version="$(ShinyPushVersion)" />
-    <PackageVersion Include="Shiny.Push.FirebaseMessaging" Version="5.0.2" />
     <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0017" />
     <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.12.26368.2" />
     <!-- Localization (rein deutsch, Strings aus .resx via Shiny-Generator) -->
     <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Shiny.Extensions.Localization.Generator" Version="2.0.1" />
-
-    <!-- Logging -->
-    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
 
     <!-- Android In-App Updates -->
     <PackageVersion Include="Xamarin.Google.Android.Play.App.Update" Version="2.1.0.19" />
@@ -82,16 +76,12 @@
     <PackageVersion Include="SkiaSharp" Version="4.150.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
 
-    <!-- Aspire packages -->
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="$(AspireVersion)" />
+    <!-- Resilience + OpenTelemetry (Telemetrie geht in die eigene DB, kein OTLP-Export) -->
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="$(MicrosoftExtensionsVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="$(MicrosoftExtensionsVersion)" />
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="$(OpenTelemetryVersion)" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryVersion)" />
 
     <!-- Microsoft Extensions -->
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftVersion)" />
