@@ -181,7 +181,7 @@ const currentYear = new Date().getFullYear();
       <input
         id="title"
         name="title"
-        class="wys mt-3 w-full max-w-3xl text-3xl font-bold leading-tight sm:text-4xl"
+        class="wys wys-title mt-3 w-full max-w-3xl text-3xl font-bold leading-tight sm:text-4xl"
         placeholder={t("editor.titlePlaceholder")}
         aria-label={t("editor.titleLabel")}
         minlength="10"
@@ -197,19 +197,21 @@ const currentYear = new Date().getFullYear();
       <div class="wys-tile rounded-lg border border-border bg-card p-4" data-price-tile>
         <label for="price" class="text-sm text-muted-foreground">{t("editor.priceLabel")}</label>
         {/* Euro-Zeichen vorangestellt wie im de-AT-Format der Detailseite ("€ 350.000");
-            bewusst KEIN text-price im Editor - Rot an Eingabefeldern liest sich als Fehler */}
+            bewusst KEIN text-price im Editor - Rot an Eingabefeldern liest sich als Fehler.
+            type="text" statt number: nur so sind Tausenderpunkte waehrend der Eingabe
+            moeglich (WEB-B04) - data-amount-input gruppiert live, gespeichert werden
+            reine Ziffern. Zahlenbereich prueft validatePropertyDraft (und der Server). */}
         <div class="mt-1 flex items-baseline gap-1">
           <span class="text-xl font-bold" aria-hidden="true">€</span>
           <input
             id="price"
             name="price"
-            type="number"
+            type="text"
             inputmode="numeric"
-            min="1"
-            max="100000000"
-            step="1"
-            placeholder="350000"
+            autocomplete="off"
+            placeholder="350.000"
             class="wys-bare w-full text-xl font-bold"
+            data-amount-input
             required
           />
         </div>
@@ -339,11 +341,12 @@ const currentYear = new Date().getFullYear();
         </div>
         <div class="space-y-1">
           <label for="foreclosureMinimumBid" class="wys-label">{t("editor.fcMinimumBid")}</label>
-          <input id="foreclosureMinimumBid" name="foreclosureMinimumBid" type="number" inputmode="numeric" min="1" step="1" placeholder="250000" class="wys wys-sm w-full" data-foreclosure-required disabled />
+          {/* Betragsfelder mit Tausenderpunkten wie das Preisfeld (WEB-B04) */}
+          <input id="foreclosureMinimumBid" name="foreclosureMinimumBid" type="text" inputmode="numeric" autocomplete="off" placeholder="250.000" class="wys wys-sm w-full" data-amount-input data-foreclosure-required disabled />
         </div>
         <div class="space-y-1">
           <label for="foreclosureEstimatedValue" class="wys-label">{t("editor.fcEstimatedValue")}</label>
-          <input id="foreclosureEstimatedValue" name="foreclosureEstimatedValue" type="number" inputmode="numeric" min="1" step="1" placeholder="500000" class="wys wys-sm w-full" disabled />
+          <input id="foreclosureEstimatedValue" name="foreclosureEstimatedValue" type="text" inputmode="numeric" autocomplete="off" placeholder="500.000" class="wys wys-sm w-full" data-amount-input disabled />
         </div>
         <div class="space-y-1">
           <label for="foreclosureStatus" class="wys-label">{t("editor.fcStatus")}</label>
@@ -563,6 +566,19 @@ const currentYear = new Date().getFullYear();
     padding: 0.3rem 0.5rem;
     font-size: 0.875rem;
     line-height: 1.4;
+  }
+  /* Der Titel wird so gross gesetzt wie auf der Detailseite - der
+     Platzhalter-Hinweis passt in dieser Groesse auf Phone nicht ins Feld und
+     wurde abgeschnitten (WEB-B05). Der Hinweis darf kleiner sein als der
+     spaetere Titel, der Eingabetext bleibt gross. */
+  .wys-title::placeholder {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  @media (min-width: 640px) {
+    .wys-title::placeholder {
+      font-size: 1.25rem;
+    }
   }
   .wys-label {
     display: block;

@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { SITE } from "@/config/site";
 import { fetchForeclosureAuctions } from "@/features/foreclosures/api";
+import { isMirroredForeclosure } from "@/features/foreclosures/property-mirror";
 import { fetchApiProperties } from "@/features/properties/live-api";
 import { auctionLine, mdLink, propertyLine, textResponse } from "@/lib/llms";
 
@@ -14,10 +15,14 @@ const LISTING_PREVIEW_LIMIT = 20;
 const AUCTION_PREVIEW_LIMIT = 10;
 
 export const GET: APIRoute = async () => {
-  const [properties, auctions] = await Promise.all([
+  const [allProperties, auctions] = await Promise.all([
     fetchApiProperties({ pageSize: LISTING_PREVIEW_LIMIT }),
     fetchForeclosureAuctions(),
   ]);
+  // Gespiegelte Zwangsversteigerungen stehen unten als Auktion mit allen
+  // Edikt-Daten - unter "Inserate" waeren sie dasselbe Objekt ein zweites Mal
+  // (WEB-B08, siehe property-mirror.ts)
+  const properties = allProperties.filter((property) => !isMirroredForeclosure(property));
 
   const body = `# ${SITE.name}
 

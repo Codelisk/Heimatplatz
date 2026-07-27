@@ -3,6 +3,7 @@ import {
   fetchForeclosureAuctions,
   getForeclosureAuctionPath,
 } from "@/features/foreclosures/api";
+import { isMirroredForeclosure } from "@/features/foreclosures/property-mirror";
 import {
   API_PROPERTY_LIST_LIMIT,
   fetchApiProperties,
@@ -37,7 +38,10 @@ export const GET: APIRoute = async ({ site }) => {
 
   const entries = [
     ...staticRoutes.map((route) => urlEntry(new URL(route, site).toString())),
-    ...properties.map((property) =>
+    // Aus Edikten gespiegelte Zwangsversteigerungen stehen schon als Auktion in
+    // der Sitemap - beide URLs waeren dasselbe Objekt (WEB-B08, siehe
+    // property-mirror.ts). Kanon ist die /zwangsversteigerungen/-Route.
+    ...properties.filter((property) => !isMirroredForeclosure(property)).map((property) =>
       urlEntry(new URL(getApiPropertyPath(property), site).toString(), toLastmod(property.CreatedAt))),
     ...auctions.map((auction) =>
       urlEntry(new URL(getForeclosureAuctionPath(auction), site).toString(), toLastmod(auction.CreatedAt))),

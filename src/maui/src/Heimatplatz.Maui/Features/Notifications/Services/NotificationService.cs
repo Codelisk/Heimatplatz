@@ -27,7 +27,8 @@ public class NotificationService(
             if (response == null)
             {
                 logger.LogWarning("Failed to get notification preferences - null response");
-                return new NotificationPreferenceDto(false, NotificationFilterMode.All, []);
+                // Fallback wie der API-Default: SameAsSearch statt "alle neuen Objekte"
+            return new NotificationPreferenceDto(false, NotificationFilterMode.SameAsSearch, []);
             }
 
             return new NotificationPreferenceDto(
@@ -43,7 +44,8 @@ public class NotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting notification preferences");
-            return new NotificationPreferenceDto(false, NotificationFilterMode.All, []);
+            // Fallback wie der API-Default: SameAsSearch statt "alle neuen Objekte"
+            return new NotificationPreferenceDto(false, NotificationFilterMode.SameAsSearch, []);
         }
     }
 
@@ -53,7 +55,8 @@ public class NotificationService(
         List<string> locations,
         bool isHausSelected = true,
         bool isGrundstueckSelected = true,
-        bool isZwangsversteigerungSelected = true,
+        // Zwangsversteigerungen sind ueberall default-aus (wie in der Suche)
+        bool isZwangsversteigerungSelected = false,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         CancellationToken cancellationToken = default)

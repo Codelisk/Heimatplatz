@@ -41,8 +41,10 @@ public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
         // Cities to use for preferences (matching PropertySeeder)
         var cities = new[] { "Linz", "Wels", "Gmunden", "Bad Ischl", "Steyr", "Leonding", "Freistadt", "Traun" };
 
-        // Create notification preferences for users - one preference per user
-        var filterModes = new[] { NotificationFilterMode.All, NotificationFilterMode.SameAsSearch, NotificationFilterMode.Custom };
+        // Create notification preferences for users - one preference per user.
+        // "All" bewusst nicht seeden: der Modus benachrichtigt ueber jedes neue
+        // Objekt und wuerde auf Testkonten wie eine ZV-Vorauswahl wirken.
+        var filterModes = new[] { NotificationFilterMode.SameAsSearch, NotificationFilterMode.Custom };
 
         foreach (var (user, index) in users.Take(5).Select((u, i) => (u, i)))
         {
@@ -58,7 +60,9 @@ public class NotificationsSeeder(AppDbContext dbContext) : ISeeder
                 SelectedLocationsJson = JsonSerializer.Serialize(userCities),
                 IsHausSelected = true,
                 IsGrundstueckSelected = true,
-                IsZwangsversteigerungSelected = index % 2 == 0,
+                // Zwangsversteigerungen sind - wie in der Suche - nie vorausgewaehlt;
+                // geseedete Testkonten sahen sonst ein ZV-Abo, das niemand gewaehlt hat
+                IsZwangsversteigerungSelected = false,
                 IsPrivateSelected = true,
                 IsBrokerSelected = true,
                 CreatedAt = DateTimeOffset.UtcNow.AddDays(-Random.Shared.Next(1, 30))

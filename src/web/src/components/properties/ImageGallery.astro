@@ -75,7 +75,7 @@ const remainingCount = items.length - 3;
             loading="eager"
             decoding="async"
             data-fallback-image={FALLBACK_IMAGE}
-            data-smart-image
+            data-smart-image="fit"
           />
           <span class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <span class="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-full bg-black/70 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
@@ -101,7 +101,7 @@ const remainingCount = items.length - 3;
               loading="lazy"
               decoding="async"
               data-fallback-image={FALLBACK_IMAGE}
-              data-smart-image
+              data-smart-image="fit"
             />
             {index === sideItems.length - 1 && remainingCount > 0 && (
               <span class="absolute inset-0 grid place-items-center bg-black/55 text-lg font-bold text-white backdrop-blur-[2px] transition-colors duration-300 group-hover:bg-black/45">

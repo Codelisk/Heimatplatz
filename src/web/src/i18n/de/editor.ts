@@ -156,6 +156,7 @@ export const editor = {
   "editor.valTitleMin": "Titel muss mindestens 10 Zeichen lang sein.",
   "editor.valDescriptionMin": "Beschreibung muss mindestens 50 Zeichen lang sein.",
   "editor.valPriceInvalid": "Bitte geben Sie einen gültigen Preis ein.",
+  "editor.valPriceUnrealistic": "Der Preis darf höchstens € 100.000.000 betragen.",
   "editor.valStreetRequired": "Bitte geben Sie eine Straße ein.",
   "editor.valCityRequired": "Bitte wählen Sie einen Ort aus.",
   "editor.valPostalCodeInvalid": "Bitte geben Sie eine gültige vierstellige PLZ ein.",

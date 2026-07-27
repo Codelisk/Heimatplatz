@@ -46,10 +46,14 @@ public class GetNotificationPreferencesHandler(
 
         if (preference == null)
         {
-            // Default: notifications disabled, no filter
+            // Default: Benachrichtigungen aus, Filter wie in der Suche.
+            // NICHT "All": dieser Modus benachrichtigt ueber jedes neue Objekt
+            // und damit auch ueber Zwangsversteigerungen - die brauchen aber
+            // ueberall ein ausdrueckliches Opt-in. SameAsSearch ohne
+            // gespeicherte Suchfilter matcht genau Haus + Grundstueck.
             return new GetNotificationPreferencesResponse(
                 IsEnabled: false,
-                FilterMode: NotificationFilterMode.All,
+                FilterMode: NotificationFilterMode.SameAsSearch,
                 Locations: [],
                 IsHausSelected: true,
                 IsGrundstueckSelected: true,

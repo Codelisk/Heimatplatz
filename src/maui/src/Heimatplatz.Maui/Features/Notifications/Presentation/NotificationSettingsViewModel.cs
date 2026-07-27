@@ -56,7 +56,13 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         SelectedOrte = [];
         OrtSearchText = string.Empty;
         OrtSuggestions = [];
-        IsFilterModeAll = true;
+        // Vorauswahl wie der API-Default: die gespeicherten Suchfilter. "Alle
+        // neuen Objekte" wuerde auch ueber Zwangsversteigerungen benachrichtigen,
+        // die ueberall ein ausdrueckliches Opt-in brauchen.
+        IsFilterModeSameAsSearch = true;
+        // Die Radio-Handler setzen FilterMode nur ausserhalb des Ladens (_isLoading),
+        // im Konstruktor bliebe sonst der Enum-Default All stehen
+        FilterMode = NotificationFilterMode.SameAsSearch;
         IsHausSelected = true;
         IsGrundstueckSelected = true;
         // Zwangsversteigerungen wie in der Suche standardmaessig aus

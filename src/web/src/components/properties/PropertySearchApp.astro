@@ -62,7 +62,9 @@ const ortRegions = await fetchOrtRegions();
       <div class="w-44 xl:w-56">
         <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
       </div>
-      <NativeSelect name="age" size="sm" class="w-32" data-filter-age>
+      {/* aria-label PFLICHT: die erste Option ist nur ein visueller Titel, ohne
+          Label bliebe die Auswahl im Accessibility-Tree namenlos (WEB-B07) */}
+      <NativeSelect name="age" size="sm" class="w-32" aria-label={t("filter.period")} data-filter-age>
         <option value="">{t("filter.period")}</option>
         <option value="day">{t("filter.period24h")}</option>
         <option value="week">{t("filter.period7d")}</option>

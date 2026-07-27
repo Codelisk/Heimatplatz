@@ -21,7 +21,8 @@ public interface INotificationService
         List<string> locations,
         bool isHausSelected = true,
         bool isGrundstueckSelected = true,
-        bool isZwangsversteigerungSelected = true,
+        // Zwangsversteigerungen sind ueberall default-aus (wie in der Suche)
+        bool isZwangsversteigerungSelected = false,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         CancellationToken cancellationToken = default);

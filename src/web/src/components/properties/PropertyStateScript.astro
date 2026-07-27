@@ -2257,6 +2257,58 @@
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }
 
+  // --- Betragsfelder (Preis, Mindestgebot, Schaetzwert) -------------------
+  // Angezeigt wird das Hausformat mit Tausenderpunkten ("350.000"), gespeichert
+  // und an die API geht immer die reine Ziffernfolge (WEB-B04). Die App ist
+  // ausschliesslich deutsch, die Gruppierung darf also fest verdrahtet sein.
+  function groupAmountDigits(digits: string) {
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // Eingabe des Nutzers: Punkte sind reine Anzeige, alles andere faellt weg
+  function amountInputDigits(value: string) {
+    return value.replace(/\D+/g, "").replace(/^0+(?=\d)/, "").slice(0, 12);
+  }
+
+  // Vorbefuellung aus Entwurf/API: Price und MinimumBid sind decimal ("349000.5")
+  function amountValueDigits(value: string | number | null | undefined) {
+    const raw = String(value ?? "").trim();
+    if (!raw) return "";
+    const numeric = Number(raw);
+    return Number.isFinite(numeric) && numeric > 0
+      ? String(Math.round(numeric))
+      : amountInputDigits(raw);
+  }
+
+  function formatAmountField(input: HTMLInputElement) {
+    const formatted = groupAmountDigits(amountInputDigits(input.value));
+    if (formatted === input.value) return;
+
+    // Caret relativ zum Feldende halten - beim Tippen wandern die Punkte nach
+    // links, eine absolute Position wuerde springen
+    const fromEnd = input.value.length - (input.selectionStart ?? input.value.length);
+    input.value = formatted;
+    if (input === document.activeElement) {
+      const caret = Math.max(0, formatted.length - fromEnd);
+      input.setSelectionRange(caret, caret);
+    }
+  }
+
+  function bindAmountInputs() {
+    document.querySelectorAll<HTMLInputElement>("input[data-amount-input]").forEach((input) => {
+      if (input.dataset.amountBound === "true") return;
+      input.dataset.amountBound = "true";
+      formatAmountField(input);
+      input.addEventListener("input", () => formatAmountField(input));
+    });
+  }
+
+  function getAmountFieldNames(form: HTMLFormElement) {
+    return new Set(
+      Array.from(form.querySelectorAll<HTMLInputElement>("input[data-amount-input]")).map((input) => input.name),
+    );
+  }
+
   function requiredText(value: string | string[] | number | null | undefined) {
     return String(scalarValue(value) ?? "").trim();
   }
@@ -2356,7 +2408,13 @@
     if (requiredText(draft.title).length < 10) return t("editor.valTitleMin");
     if (requiredText(draft.description).length < 50) return t("editor.valDescriptionMin");
     // ZV: das Preisfeld ist ausgeblendet, der Preis kommt aus dem Mindestgebot (WEB-014)
-    if (draft.propertyType !== "foreclosure" && !toNumber(draft.price)) return t("editor.valPriceInvalid");
+    if (draft.propertyType !== "foreclosure") {
+      const price = toNumber(draft.price);
+      if (!price) return t("editor.valPriceInvalid");
+      // Obergrenze wie CreatePropertyHandler; das Feld ist seit WEB-B04 ein
+      // Textfeld mit Tausenderpunkten, der Browser prueft sie nicht mehr
+      if (price > 100_000_000) return t("editor.valPriceUnrealistic");
+    }
     if (!requiredText(draft.address)) return t("editor.valStreetRequired");
     if (!requiredText(draft.city) || !requiredText(draft.postalCode)) return t("editor.valCityRequired");
     if (!/^\d{4}$/.test(requiredText(draft.postalCode))) return t("editor.valPostalCodeInvalid");
@@ -2662,7 +2720,11 @@
       return;
     }
     if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
-      field.value = value === null || value === undefined ? "" : String(value);
+      // Betragsfelder werden im Hausformat vorbefuellt ("350.000"); beim
+      // Speichern schreibt das Formular wieder reine Ziffern (WEB-B04)
+      field.value = field instanceof HTMLInputElement && field.dataset.amountInput !== undefined
+        ? groupAmountDigits(amountValueDigits(value))
+        : value === null || value === undefined ? "" : String(value);
     }
   }
 
@@ -2951,7 +3013,11 @@
     const source = image.currentSrc || image.src;
     const isFallbackLogo = source.endsWith("/favicon.svg");
     const frameWidth = parent.getBoundingClientRect().width;
-    const isPortrait = image.naturalHeight > image.naturalWidth;
+    // Hochformat nur dort einpassen, wo das ganze Bild zaehlt (Galerie der
+    // Detailseite, data-smart-image="fit"). Im Kartenraster wird wie ueberall
+    // formatfuellend beschnitten - eine einzelne Karte mit Balken sieht dort
+    // nach Fehler aus, obwohl das Foto nur hochkant ist (WEB-B06).
+    const isPortrait = image.naturalHeight > image.naturalWidth && image.dataset.smartImage === "fit";
     const wouldUpscale = frameWidth > 0 && image.naturalWidth < frameWidth * 0.75;
     if (!isFallbackLogo && !isPortrait && !wouldUpscale) return;
 
@@ -2991,6 +3057,19 @@
     }).observe(document.body, { childList: true, subtree: true });
   }
 
+  // "Meine Immobilien" ohne Anbieter-Rolle: Hinweis + Weg ins Profil statt
+  // leerer Liste (der Server antwortet auf /api/properties/user mit 403).
+  function renderSellerNotEnabled(container: HTMLElement) {
+    const emptyState = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
+    const title = emptyState?.querySelector("h2");
+    const text = emptyState?.querySelector("p");
+    if (title) title.textContent = t("myProperties.sellerNotEnabledTitle");
+    if (text) text.textContent = t("myProperties.sellerNotEnabledText");
+    // Inserieren fuehrt ohne Anbieter-Rolle ins Leere -> auf das Profil umlenken
+    document.querySelectorAll<HTMLElement>("[data-mine-cta]").forEach((cta) => cta.classList.add("hidden"));
+    document.querySelector<HTMLElement>("[data-mine-profile-cta]")?.classList.remove("hidden");
+  }
+
   async function renderRemoteUserLists() {
     const session = readSession();
     if (!session) return;
@@ -3000,11 +3079,20 @@
       blocked: "/api/blocked",
       mine: "/api/properties/user",
     };
+    const isSeller = readSessionRoles(session).has("seller");
 
     document.querySelectorAll<HTMLElement>("[data-remote-properties]").forEach(async (container) => {
       const mode = container.getAttribute("data-remote-mode") ?? "";
       const endpoint = endpoints[mode];
       if (!endpoint) return;
+
+      // Ohne Anbieter-Rolle liefert der Endpunkt garantiert 403 - die Anfrage
+      // gar nicht erst senden, sonst steht bei jedem Aufruf ein Fehler in
+      // Konsole und Telemetrie (WEB-B03).
+      if (mode === "mine" && !isSeller) {
+        renderSellerNotEnabled(container);
+        return;
+      }
 
       try {
         const response = await apiRequest<{ Properties: ApiProperty[] }>(endpoint);
@@ -3019,15 +3107,12 @@
         console.warn("[Heimatplatz] API user list load failed", error);
         // Fehler nicht als "leere Liste" maskieren: Kaeufer ohne Anbieter-Rolle
         // bekommen auf "Meine Immobilien" ein 403 - auf den Profil-Schalter verweisen.
+        // (Greift nur noch bei veraltetem Token; der Normalfall wird oben abgefangen.)
         const emptyState = container.closest("[data-user-page]")?.querySelector("[data-user-empty]");
         const title = emptyState?.querySelector("h2");
         const text = emptyState?.querySelector("p");
         if (mode === "mine" && error instanceof Error && error.message.includes("403")) {
-          if (title) title.textContent = t("myProperties.sellerNotEnabledTitle");
-          if (text) text.textContent = t("myProperties.sellerNotEnabledText");
-          // Inserieren fuehrt ohne Anbieter-Rolle ins Leere -> auf das Profil umlenken
-          document.querySelectorAll<HTMLElement>("[data-mine-cta]").forEach((cta) => cta.classList.add("hidden"));
-          document.querySelector<HTMLElement>("[data-mine-profile-cta]")?.classList.remove("hidden");
+          renderSellerNotEnabled(container);
         } else if (title) {
           title.textContent = t("account.listLoadFailedTitle");
           if (text) text.textContent = t("account.listLoadFailedText");
@@ -3056,10 +3141,14 @@
         }
 
         const formData = new FormData(form);
+        const amountFields = getAmountFieldNames(form);
         const draft: Draft = {};
         formData.forEach((value, key) => {
           if (key === "propertyImages" || key === "municipalityLookup" || key === "imageUrls") return;
-          draft[key] = typeof value === "string" ? value : value.name;
+          const raw = typeof value === "string" ? value : value.name;
+          // Betragsfelder tragen Tausenderpunkte fuer die Anzeige - Entwurf und
+          // API bekommen die reine Ziffernfolge (WEB-B04)
+          draft[key] = amountFields.has(key) ? amountInputDigits(raw) : raw;
         });
         draft.id = editId ?? crypto.randomUUID?.() ?? `${Date.now()}`;
         draft.updatedAt = new Date().toISOString();
@@ -4117,6 +4206,7 @@
     bindImagePickers();
     bindLocationPickers();
     bindPropertyTypeFields();
+    bindAmountInputs();
     void hydratePropertyEditForm();
     bindAuthForms();
     bindPasswordResetForms();

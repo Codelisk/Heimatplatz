@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { SITE } from "@/config/site";
 import { fetchForeclosureAuctions } from "@/features/foreclosures/api";
+import { isMirroredForeclosure } from "@/features/foreclosures/property-mirror";
 import {
   API_PROPERTY_LIST_LIMIT,
   fetchApiProperties,
@@ -15,10 +16,13 @@ import { auctionBlock, mdLink, propertyBlock, textResponse } from "@/lib/llms";
  * Detailseiten, aber ohne HTML-Ballast.
  */
 export const GET: APIRoute = async () => {
-  const [properties, auctions] = await Promise.all([
+  const [allProperties, auctions] = await Promise.all([
     fetchApiProperties({ pageSize: API_PROPERTY_LIST_LIMIT }),
     fetchForeclosureAuctions(),
   ]);
+  // Gespiegelte Zwangsversteigerungen stehen unten als Auktion mit allen
+  // Edikt-Daten (WEB-B08, siehe property-mirror.ts)
+  const properties = allProperties.filter((property) => !isMirroredForeclosure(property));
 
   const body = `# ${SITE.name} — Aktuelle Inserate (Volltext)
 

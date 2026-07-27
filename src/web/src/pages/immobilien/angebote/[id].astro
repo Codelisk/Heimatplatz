@@ -27,6 +27,7 @@ import {
   type ApiContact,
 } from "@/features/properties/live-api";
 import { getApiPriceFact, getApiPropertyDetailSections } from "@/features/properties/detail-sections";
+import { getForeclosureCanonicalPath } from "@/features/foreclosures/property-mirror";
 import { getDisplayTitle } from "@/features/properties/format";
 import { t } from "@/i18n";
 import { breadcrumbSchema } from "@/lib/seo";
@@ -39,7 +40,12 @@ const property = id ? await fetchApiPropertyById(id) : null;
 if (!property) {
   return new Response(null, { status: 404, statusText: "Not Found" });
 }
-const canonicalPath = getApiPropertyPath(property);
+// Aus einem Edikt gespiegelte Zwangsversteigerungen gibt es zusaetzlich unter
+// /zwangsversteigerungen/<slug>/ - diese Route ist der Kanon (WEB-B08, siehe
+// property-mirror.ts). Ohne Treffer bleibt die Angebots-URL ihr eigener Kanon.
+// canonicalUrl traegt auch Breadcrumb, JSON-LD und den Teilen-Button: geteilt
+// werden soll die Adresse, auf der das Objekt kanonisch lebt.
+const canonicalPath = await getForeclosureCanonicalPath(property) ?? getApiPropertyPath(property);
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
 // Viele Titel enthalten den Ort bereits ("... in Pettenbach") - nicht doppelt anhaengen
 const pageTitle = property.Title.includes(property.City)
