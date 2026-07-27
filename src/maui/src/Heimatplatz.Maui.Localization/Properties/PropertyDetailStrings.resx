@@ -51,6 +51,18 @@
   <data name="ShareSemantic" xml:space="preserve">
     <value>Immobilie teilen</value>
   </data>
+  <data name="FavoriteSemantic" xml:space="preserve">
+    <value>Immobilie merken</value>
+  </data>
+  <data name="RemoveFavoriteSemantic" xml:space="preserve">
+    <value>Immobilie aus Merkliste entfernen</value>
+  </data>
+  <data name="BlockSemantic" xml:space="preserve">
+    <value>Immobilie blockieren</value>
+  </data>
+  <data name="UnblockSemantic" xml:space="preserve">
+    <value>Blockierung der Immobilie aufheben</value>
+  </data>
   <data name="SourceLabel" xml:space="preserve">
     <value>QUELLE</value>
   </data>

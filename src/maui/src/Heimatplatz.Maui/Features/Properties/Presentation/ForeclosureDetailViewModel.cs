@@ -120,9 +120,14 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     public partial bool IsAuthenticated { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FavoriteButtonText))]
-    [NotifyPropertyChangedFor(nameof(FavoriteButtonIcon))]
+    [NotifyPropertyChangedFor(nameof(FavoriteIcon))]
+    [NotifyPropertyChangedFor(nameof(FavoriteSemantic))]
     public partial bool IsFavorite { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BlockIcon))]
+    [NotifyPropertyChangedFor(nameof(BlockSemantic))]
+    public partial bool IsBlocked { get; set; }
 
     [ObservableProperty]
     public partial string TypeBadgeText { get; set; }
@@ -376,14 +381,16 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         => OnPropertyChanged(nameof(ShowCourtFooter));
 
     /// <summary>
-    /// Text fuer den Favoriten-Button je nach Status
+    /// Objekt-Aktionen liegen als Glas-Chips auf dem Foto - wie auf den Karten.
+    /// Aktiv = das Icon selbst fuellt sich im Markenrot, der Chip bleibt Glas.
     /// </summary>
-    public string FavoriteButtonText => IsFavorite ? _loc.FavoriteSaved : _loc.FavoriteSave;
+    public string FavoriteIcon => IsFavorite ? "icon_heart_filled.png" : "icon_heart_white.png";
 
-    /// <summary>
-    /// Icon fuer den Favoriten-Button (gefuelltes/leeres Herz)
-    /// </summary>
-    public string FavoriteButtonIcon => IsFavorite ? "♥" : "♡";
+    public string BlockIcon => IsBlocked ? "icon_block_filled.png" : "icon_block_white.png";
+
+    public string FavoriteSemantic => IsFavorite ? _loc.RemoveFavoriteSemantic : _loc.FavoriteSemantic;
+
+    public string BlockSemantic => IsBlocked ? _loc.UnblockSemantic : _loc.BlockSemantic;
 
     public ForeclosureDetailViewModel(
         IClipboardService clipboardService,
@@ -573,16 +580,19 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
                 SetOfflineError(propertyId);
             }
 
-            // Favoriten-Status laden
+            // Favoriten-/Blockiert-Status laden
             var isFavorite = false;
+            var isBlocked = false;
             if (_authService.IsAuthenticated)
             {
                 await _propertyStatusService.EnsureLoadedAsync();
                 isFavorite = _propertyStatusService.IsFavorite(propertyId);
+                isBlocked = _propertyStatusService.IsBlocked(propertyId);
             }
 
             UpdateDisplayProperties();
             IsFavorite = isFavorite;
+            IsBlocked = isBlocked;
             _trace.Mark(propertyId, "Detailseite vollstaendig");
         }
         catch (Exception ex) when (ex is OfflineDataUnavailableException || !_internet.IsAvailable)
@@ -1130,6 +1140,21 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         _logger.LogInformation("[ForeclosureDetail] Toggling favorite for {PropertyId}", Property.Id);
 
         IsFavorite = await _propertyStatusService.ToggleFavoriteAsync(Property.Id);
+    }
+
+    /// <summary>
+    /// Blockiert die Versteigerung bzw. hebt die Blockierung auf. Keine Rueckfrage -
+    /// die Aktion ist mit demselben Chip sofort umkehrbar.
+    /// </summary>
+    [RelayCommand]
+    private async Task ToggleBlockedAsync()
+    {
+        if (Property == null || !_authService.IsAuthenticated)
+            return;
+
+        _logger.LogInformation("[ForeclosureDetail] Toggling blocked for {PropertyId}", Property.Id);
+
+        IsBlocked = await _propertyStatusService.ToggleBlockedAsync(Property.Id);
     }
 
     /// <summary>

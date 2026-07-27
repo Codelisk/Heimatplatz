@@ -51,6 +51,18 @@
   <data name="ShareSemantic" xml:space="preserve">
     <value>Zwangsversteigerung teilen</value>
   </data>
+  <data name="FavoriteSemantic" xml:space="preserve">
+    <value>Zwangsversteigerung merken</value>
+  </data>
+  <data name="RemoveFavoriteSemantic" xml:space="preserve">
+    <value>Zwangsversteigerung aus Merkliste entfernen</value>
+  </data>
+  <data name="BlockSemantic" xml:space="preserve">
+    <value>Zwangsversteigerung blockieren</value>
+  </data>
+  <data name="UnblockSemantic" xml:space="preserve">
+    <value>Blockierung der Zwangsversteigerung aufheben</value>
+  </data>
   <data name="OfficialDocumentLabel" xml:space="preserve">
     <value>AMTLICHES DOKUMENT</value>
   </data>

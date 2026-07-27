@@ -267,30 +267,40 @@
                                TextColor="White" />
                     </Border>
 
-                    <!-- Teilen als kontextuelle Bildaktion (weisses Icon auf Glas);
-                         Icon als zentriertes Overlay: ImageButton platziert sein Bild
-                         auf WinUI nicht mittig -->
-                    <Grid Margin="14"
-                          VerticalOptions="Start"
-                          HorizontalOptions="End">
-                        <Button Command="{Binding SharePropertyCommand}"
-                                Padding="0"
-                                MinimumHeightRequest="0"
-                                MinimumWidthRequest="0"
-                                WidthRequest="44"
-                                HeightRequest="44"
-                                CornerRadius="22"
-                                BorderWidth="1"
-                                BackgroundColor="{StaticResource GlassPillBackground}"
-                                BorderColor="{StaticResource GlassPillStroke}"
-                                SemanticProperties.Description="{Binding Loc.ShareSemantic}" />
-                        <Image Source="icon_share_white.png"
-                               WidthRequest="22"
-                               HeightRequest="22"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
-                               InputTransparent="True" />
-                    </Grid>
+                    <!-- Objekt-Aktionen oben rechts auf dem Foto: dieselbe Stelle und
+                         dieselbe Glas-Optik wie auf den Karten und im Web (Merken,
+                         Blockieren, Teilen). Aktiv = das Icon fuellt sich im Markenrot,
+                         der Chip bleibt unveraendert. Icon als zentriertes Overlay:
+                         ImageButton platziert sein Bild auf WinUI nicht mittig. -->
+                    <HorizontalStackLayout Margin="14"
+                                           Spacing="8"
+                                           VerticalOptions="Start"
+                                           HorizontalOptions="End">
+
+                        <Grid IsVisible="{Binding IsAuthenticated}">
+                            <Button Command="{Binding ToggleFavoriteCommand}"
+                                    Style="{StaticResource PhotoActionButton}"
+                                    SemanticProperties.Description="{Binding FavoriteSemantic}" />
+                            <Image Source="{Binding FavoriteIcon}"
+                                   Style="{StaticResource PhotoActionIcon}" />
+                        </Grid>
+
+                        <Grid IsVisible="{Binding IsAuthenticated}">
+                            <Button Command="{Binding ToggleBlockedCommand}"
+                                    Style="{StaticResource PhotoActionButton}"
+                                    SemanticProperties.Description="{Binding BlockSemantic}" />
+                            <Image Source="{Binding BlockIcon}"
+                                   Style="{StaticResource PhotoActionIcon}" />
+                        </Grid>
+
+                        <Grid>
+                            <Button Command="{Binding SharePropertyCommand}"
+                                    Style="{StaticResource PhotoActionButton}"
+                                    SemanticProperties.Description="{Binding Loc.ShareSemantic}" />
+                            <Image Source="icon_share_white.png"
+                                   Style="{StaticResource PhotoActionIcon}" />
+                        </Grid>
+                    </HorizontalStackLayout>
 
                     <!-- Bild-Zaehler (oberhalb der Sheet-Kante) -->
                     <Border Style="{StaticResource GlassPill}"
@@ -336,7 +346,9 @@
                     </VisualStateManager.VisualStateGroups>
                     <VerticalStackLayout Spacing="16">
 
-                        <!-- Kopf: Preis (Serif, Markenrot), Titel, Adresse, Merken -->
+                        <!-- Kopf: Preis (Serif, Markenrot), Titel, Adresse.
+                             Die Objekt-Aktionen liegen oben auf dem Foto, damit der
+                             Lesefluss Preis -> Titel -> Adresse -> Fakten durchlaeuft. -->
                         <VerticalStackLayout Spacing="6"
                                              Padding="16,0"
                                              MaximumWidthRequest="800"
@@ -356,20 +368,6 @@
                             <Label Text="{Binding AddressText}"
                                    FontSize="13"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-
-                            <!-- Merken bleibt beim Objekt; Teilen liegt direkt auf dem Bild -->
-                            <HorizontalStackLayout Spacing="8" Margin="0,8,0,0">
-                                <Button Command="{Binding ToggleFavoriteCommand}"
-                                        IsVisible="{Binding IsAuthenticated}"
-                                        Style="{StaticResource FilterChipStyle}">
-                                    <Button.Text>
-                                        <MultiBinding StringFormat="{}{0} {1}">
-                                            <Binding Path="FavoriteButtonIcon" />
-                                            <Binding Path="FavoriteButtonText" />
-                                        </MultiBinding>
-                                    </Button.Text>
-                                </Button>
-                            </HorizontalStackLayout>
 
                             <Label Text="{Binding CopyFeedback}"
                                    FontSize="12"

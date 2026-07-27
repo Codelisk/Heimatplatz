@@ -567,6 +567,31 @@
         <Setter Property="TextColor" Value="{StaticResource White}" />
     </Style>
 
+    <!-- Objekt-Aktionen auf Fotos (Merken, Blockieren, Teilen): runder Glas-Chip,
+         oben rechts, in Liste wie Detail an derselben Stelle. Der Zustand steckt
+         im Icon (gefuellt = aktiv), der Chip bleibt immer gleich - sonst konkurrieren
+         zwei Signale um dieselbe Aussage. Icon liegt als Overlay ueber dem Button,
+         weil ImageButton sein Bild auf WinUI nicht mittig platziert. -->
+    <Style x:Key="PhotoActionButton" TargetType="Button">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinimumHeightRequest" Value="0" />
+        <Setter Property="MinimumWidthRequest" Value="0" />
+        <Setter Property="WidthRequest" Value="44" />
+        <Setter Property="HeightRequest" Value="44" />
+        <Setter Property="CornerRadius" Value="22" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="BackgroundColor" Value="{StaticResource GlassPillBackground}" />
+        <Setter Property="BorderColor" Value="{StaticResource GlassPillStroke}" />
+    </Style>
+
+    <Style x:Key="PhotoActionIcon" TargetType="Image">
+        <Setter Property="WidthRequest" Value="22" />
+        <Setter Property="HeightRequest" Value="22" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="InputTransparent" Value="True" />
+    </Style>
+
     <!-- Fakten-Tags auf Flaechen (Karten-Fuss, Detail) -->
     <Style x:Key="PillTag" TargetType="Border">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}" />
