@@ -26,7 +26,11 @@ Der komplette Release läuft mit einem Befehl:
    - Steuerung über `adb shell setprop debug.heimatplatz.*` → `ScreenshotSysProps` (nur im Emulator aktiv)
      übersetzt sie in Env-Vars für den geteilten `ScreenshotMode`
    - Ablage direkt in `cake/fastlane/metadata/android/de-DE/images/phoneScreenshots/` (git-versioniert)
-4. **BuildAndroid** – signiertes AAB nach `artifacts/android`.
+4. **BuildAndroid** – signiertes AAB nach `artifacts/android`. Der Track bestimmt dabei den
+   Auslieferungskanal (`-p:HeimatplatzChannel`): alles außer `production` baut mit
+   Entwicklerwerkzeugen (Flyout „Debug" mit API-Umschalter), `production` ohne.
+   Ein Test-Bundle darf deshalb **nicht** über die Play-Konsole nach production promotet werden –
+   für Production neu bauen. Siehe [app-channels.md](app-channels.md).
 5. **Play-Upload** – alles in einem Edit über die **Google Play Developer API** (nativ in C#, kein fastlane/Ruby):
    Listing-Texte (de-DE + en-US), Icon, Feature-Graphic, Screenshots (en-US fällt auf de-DE zurück,
    solange die App nicht lokalisiert ist), Kontaktdaten, AAB, Track-Release inkl. Release-Notes.
@@ -47,7 +51,8 @@ Der komplette Release läuft mit einem Befehl:
 - `Android:Screenshots` – AVDs (`ImageType`: `phoneScreenshots`/`sevenInchScreenshots`/`tenInchScreenshots`),
   Shots (Name + Shell-Route), Test-API-URL, Login, Emulator-Architektur.
 - `Android:Release` – Track (`internal`/`production`), `ReleaseStatus` (`completed`/`draft`), Locales,
-  Kontaktdaten, Git-Verhalten.
+  Kontaktdaten, Git-Verhalten. Der Track steuert zusätzlich den Auslieferungskanal des Binaries
+  (überschreibbar mit der Env-Var `HEIMATPLATZ_CHANNEL`).
 - `Android:StoreTexts:ClaudeModel` – leer = Default-Modell der Claude CLI.
 
 ## Diagnose

@@ -34,7 +34,9 @@ public partial class App : Application
         // ueberschreibt AppShell.LastKnownLocation sofort mit "//MainPage".
         var restoreLocation = AppShell.LastKnownLocation;
 
-        var shell = new AppShell(_services.GetRequiredService<AppShellStringsLocalized>());
+        var shell = new AppShell(
+            _services.GetRequiredService<AppShellStringsLocalized>(),
+            _services.GetRequiredService<Features.Debug.Services.IApiEndpointService>());
         ScreenshotMode.TryApply(shell, _services);
         var window = new Window(shell);
 

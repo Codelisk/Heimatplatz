@@ -34,7 +34,8 @@ Heimatplatz.Maui/
 │   ├── Properties/             # Immobilien: Liste/Detail/Anlegen/Favoriten/Filter
 │   ├── Notifications/          # Shiny.Push Delegate/Initializer, Einstellungen
 │   └── AppUpdate/              # Google Play In-App-Update (Android)
-└── Core/DeepLink/              # heimatplatz://property|foreclosure/{guid}
+├── Core/DeepLink/              # heimatplatz://property|foreclosure/{guid}
+└── Core/Build/                 # AppChannels: Development/Internal/Production (Debug-Werkzeuge)
 ```
 
 ## Offline & Caching (Local-First + Delta-Sync)
@@ -113,9 +114,33 @@ Badge = `src/web/public/favicon.svg`, vereinfachte Variante = `src/web/public/ic
 Nach Icon-Aenderungen: `obj/**/resizetizer` loeschen und App deinstallieren -
 inkrementelle Builds cachen Icons (auch `ForegroundScale`-Aenderungen greifen sonst nicht).
 
+## Auslieferungskanäle (Debug-Werkzeuge)
+
+`Core/Build/AppChannels.cs` entscheidet, ob die App Entwicklerwerkzeuge zeigt — Flyout-Eintrag
+„Debug" mit API-Umschalter (Entwicklung/Test/Produktion), Test-Anmeldungen und die Umgebungs-Pille
+in der Flyout-Fußzeile.
+
+| Kanal | Wann | Werkzeuge |
+|---|---|---|
+| `Development` | Debug-Build | ja |
+| `Internal` | Play-Testkanäle, TestFlight, Ad-hoc-iOS | ja |
+| `Production` | App Store, Play-Production-Track | nein |
+
+- **Android** setzt den Kanal beim Build (`-p:HeimatplatzChannel=Internal`); der Release-Lauf leitet
+  ihn aus dem Play-Track ab. Ein Test-Bundle darf nicht per Play-Promotion nach production wandern.
+- **iOS** erkennt TestFlight zur Laufzeit (`sandboxReceipt` / `embedded.mobileprovision`), weil
+  derselbe Build später zur Store-Version befördert wird — kein Build-Parameter nötig.
+- Fail-closed: Release ohne Angabe ist immer `Production`, ein ungültiger Wert bricht den Build ab,
+  und eine in TestFlight gespeicherte Endpunkt-Auswahl wird im Store-Build verworfen.
+
+Details, Fallen und der Ablauf eines Umgebungswechsels: [`docs/app-channels.md`](../../../../docs/app-channels.md).
+
 ## Build
 
 ```
 dotnet build src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj -f net10.0-windows10.0.19041.0
 dotnet build src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj -f net10.0-android
+
+# Interner Testkanal (Debug-Werkzeuge im Release-Build)
+dotnet build src/maui/src/Heimatplatz.Maui/Heimatplatz.Maui.csproj -f net10.0-android -c Release -p:HeimatplatzChannel=Internal
 ```

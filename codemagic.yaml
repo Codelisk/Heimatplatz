@@ -34,6 +34,10 @@ workflows:
             echo "$PLAY_STORE_JSON_KEY_BASE64" | base64 --decode > "$CM_BUILD_DIR/cake/play-store-key.json"
           fi
 
+      # Kein Kanal-Parameter noetig: Der Build geht als TestFlight-Version raus und
+      # wird spaeter unveraendert zur App-Store-Version befoerdert. Die App erkennt
+      # TestFlight zur Laufzeit am sandboxReceipt und schaltet nur dort die
+      # Entwicklerwerkzeuge frei (docs/app-channels.md).
       - name: Run Cake DeployIos (build + TestFlight upload)
         script: |
           cd "$CM_BUILD_DIR/cake"

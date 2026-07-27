@@ -15,8 +15,20 @@
   <data name="PageTitle" xml:space="preserve">
     <value>Debug</value>
   </data>
+  <data name="ChannelCardTitle" xml:space="preserve">
+    <value>Build</value>
+  </data>
+  <data name="Channel" xml:space="preserve">
+    <value>Kanal: {0}</value>
+  </data>
+  <data name="ChannelHint" xml:space="preserve">
+    <value>Diese Seite gibt es nur in Entwicklungs- und internen Testversionen (Play-Testkanal, TestFlight). Die Version aus dem Store zeigt sie nicht und spricht immer die Produktions-API an.</value>
+  </data>
   <data name="AuthCardTitle" xml:space="preserve">
     <value>Anmeldestatus</value>
+  </data>
+  <data name="TestLoginsUnavailableHint" xml:space="preserve">
+    <value>Die Schnellanmeldungen stehen nur gegen die Entwicklungs- und die Test-API zur Verfügung – die Testkonten gibt es nur dort.</value>
   </data>
   <data name="CurrentState" xml:space="preserve">
     <value>Aktuell: {0}</value>
@@ -55,7 +67,16 @@
     <value>Aktiv: {0}</value>
   </data>
   <data name="ApiHint" xml:space="preserve">
-    <value>Wirkt sofort für alle folgenden API-Aufrufe. Nach dem Wechsel ggf. neu anmelden, da Tokens nur für die jeweilige API gelten. Entwicklung braucht die lokale API (am Gerät zusätzlich adb reverse tcp:5292 tcp:5292).</value>
+    <value>Wirkt sofort für alle folgenden API-Aufrufe. Eine bestehende Anmeldung wird dabei beendet, da Tokens nur für die jeweilige Umgebung gelten. Jede Umgebung führt ihren eigenen lokalen Datenbestand – beim Zurückschalten ist der vorherige Stand wieder da. Entwicklung braucht die lokale API (am Gerät zusätzlich adb reverse tcp:5292 tcp:5292).</value>
+  </data>
+  <data name="Switched" xml:space="preserve">
+    <value>Umgestellt auf {0}.</value>
+  </data>
+  <data name="SwitchedWithLogout" xml:space="preserve">
+    <value>Umgestellt auf {0}. Sie wurden abgemeldet – bitte in der neuen Umgebung neu anmelden.</value>
+  </data>
+  <data name="SwitchFailed" xml:space="preserve">
+    <value>Der Wechsel der Umgebung ist fehlgeschlagen.</value>
   </data>
   <data name="RoleBuyer" xml:space="preserve">
     <value>Käufer</value>

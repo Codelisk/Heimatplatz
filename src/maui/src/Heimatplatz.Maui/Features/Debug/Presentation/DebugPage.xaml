@@ -14,6 +14,20 @@
             MaximumWidthRequest="600"
             HorizontalOptions="Fill">
 
+            <!-- Kanal des laufenden Builds: beantwortet dem Tester sofort, warum diese
+                 Seite ueberhaupt da ist und was in der Store-Version anders laeuft. -->
+            <Border Style="{StaticResource Card}" AutomationId="Debug_ChannelCard">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{Binding Loc.ChannelCardTitle}" Style="{StaticResource CardTitle}" />
+
+                    <Label Text="{Binding ChannelDisplay}"
+                           Style="{StaticResource BodyStrong}"
+                           AutomationId="Debug_Channel" />
+
+                    <Label Text="{Binding Loc.ChannelHint}" Style="{StaticResource Caption}" />
+                </VerticalStackLayout>
+            </Border>
+
             <Border Style="{StaticResource Card}" AutomationId="Debug_AuthenticationCard">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="{Binding Loc.AuthCardTitle}" Style="{StaticResource CardTitle}" />
@@ -27,24 +41,35 @@
                             IsEnabled="{Binding IsNotBusy}"
                             Style="{StaticResource SecondaryButton}"
                             AutomationId="Debug_SetLoggedOut" />
+
+                    <!-- Die Testkonten gibt es nur in der Entwicklungs-/Test-Datenbank -->
+                    <Label Text="{Binding Loc.TestLoginsUnavailableHint}"
+                           IsVisible="{Binding AreTestLoginsUnavailable}"
+                           Style="{StaticResource Caption}"
+                           AutomationId="Debug_TestLoginsUnavailable" />
+
                     <Button Text="{Binding Loc.LoginAsSellerButton}"
                             Command="{Binding LoginAsSellerCommand}"
                             IsEnabled="{Binding IsNotBusy}"
+                            IsVisible="{Binding AreTestLoginsAvailable}"
                             Style="{StaticResource PrimaryButton}"
                             AutomationId="Debug_LoginAsSeller" />
                     <Button Text="{Binding Loc.LoginAsBrokerButton}"
                             Command="{Binding LoginAsBrokerCommand}"
                             IsEnabled="{Binding IsNotBusy}"
+                            IsVisible="{Binding AreTestLoginsAvailable}"
                             Style="{StaticResource PrimaryButton}"
                             AutomationId="Debug_LoginAsBroker" />
                     <Button Text="{Binding Loc.LoginAsPropertyManagerButton}"
                             Command="{Binding LoginAsPropertyManagerCommand}"
                             IsEnabled="{Binding IsNotBusy}"
+                            IsVisible="{Binding AreTestLoginsAvailable}"
                             Style="{StaticResource PrimaryButton}"
                             AutomationId="Debug_LoginAsPropertyManager" />
                     <Button Text="{Binding Loc.LoginAsBuyerButton}"
                             Command="{Binding LoginAsBuyerCommand}"
                             IsEnabled="{Binding IsNotBusy}"
+                            IsVisible="{Binding AreTestLoginsAvailable}"
                             Style="{StaticResource PrimaryButton}"
                             AutomationId="Debug_LoginAsBuyer" />
 
@@ -66,9 +91,12 @@
                 <VerticalStackLayout Spacing="8">
                     <Label Text="{Binding Loc.ApiCardTitle}" Style="{StaticResource CardTitle}" />
 
+                    <!-- Lokale API nur am Entwicklungsrechner: auf einem TestFlight-/
+                         Play-Test-Geraet gibt es hinter localhost nichts. -->
                     <RadioButton GroupName="ApiEndpoint"
                                  Content="{Binding DevelopmentLabel}"
                                  IsChecked="{Binding IsDevelopmentSelected, Mode=TwoWay}"
+                                 IsVisible="{Binding IsDevelopmentEndpointAvailable}"
                                  AutomationId="Debug_ApiDevelopment" />
                     <RadioButton GroupName="ApiEndpoint"
                                  Content="{Binding TestLabel}"
@@ -82,6 +110,12 @@
                     <Label Text="{Binding CurrentUrlDisplay}"
                            Style="{StaticResource Caption}"
                            AutomationId="Debug_CurrentApiUrl" />
+
+                    <Label Text="{Binding StatusMessage}"
+                           IsVisible="{Binding HasStatusMessage}"
+                           Style="{StaticResource BodyStrong}"
+                           Margin="0,4,0,0"
+                           AutomationId="Debug_SwitchStatus" />
 
                     <Label Text="{Binding Loc.ApiHint}"
                            Style="{StaticResource Caption}"

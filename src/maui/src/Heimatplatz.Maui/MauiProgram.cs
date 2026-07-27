@@ -56,14 +56,11 @@ public static class MauiProgram
                 fonts.AddFont("Fraunces-SemiBold.ttf", "Display");
             });
 
-        // API-Endpunkt fuer den generierten Shiny.Mediator OpenAPI-Client
-        var apiBaseUrl = ApiEndpoints.ProductionUrl;
-#if DEBUG
-        // Debug: zuletzt auf der DebugPage (Flyout "Debug") gewaehlter Endpunkt
-        // (Entwicklung/Test/Produktion); Default je Plattform: Android lokal,
-        // sonst Produktion. Zur Laufzeit umschaltbar.
-        apiBaseUrl = ApiEndpoints.GetUrl(ApiEndpoints.GetSelectedEndpoint());
-#endif
+        // API-Endpunkt fuer den generierten Shiny.Mediator OpenAPI-Client:
+        // zuletzt auf der Debug-Seite (Flyout "Debug") gewaehlter Endpunkt.
+        // In Store-Builds liefert GetSelectedEndpoint immer Produktion - dort gibt
+        // es die Debug-Seite nicht (siehe AppChannels).
+        var apiBaseUrl = ApiEndpoints.GetUrl(ApiEndpoints.GetSelectedEndpoint());
         // Override per Umgebungsvariable (z.B. Screenshot-Runs im Simulator gegen die
         // Test-API via SIMCTL_CHILD_HEIMATPLATZ_API_URL) - auf Geraeten nie gesetzt
         var envApiUrl = Environment.GetEnvironmentVariable("HEIMATPLATZ_API_URL");

@@ -209,6 +209,26 @@
             <Label x:Name="VersionLabel"
                    FontSize="11"
                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+            <!-- Umgebungs-Pille: nur in Builds mit Entwicklerwerkzeugen (Entwicklung,
+                 interner Test, TestFlight). Sie beantwortet die Frage, die sonst jeden
+                 Fehlerbericht eines Testers begleitet: Gegen welche API lief die App?
+                 In der Store-Version bleibt sie unsichtbar (siehe UpdateEnvironmentBadge). -->
+            <Border x:Name="EnvironmentBadge"
+                    IsVisible="False"
+                    HorizontalOptions="Start"
+                    Padding="9,4"
+                    Stroke="Transparent"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 9"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource RedTint}, Dark={StaticResource RedTintDark}}"
+                    AutomationId="Flyout_EnvironmentBadge">
+                <Label x:Name="EnvironmentBadgeLabel"
+                       FontFamily="SansSemibold"
+                       FontSize="10.5"
+                       CharacterSpacing="0.6"
+                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PriceDark}}" />
+            </Border>
         </VerticalStackLayout>
     </Shell.FlyoutFooter>
 

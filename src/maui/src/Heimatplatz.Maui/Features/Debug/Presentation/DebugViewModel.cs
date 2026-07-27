@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.ApiClient.Generated;
+using Heimatplatz.Maui.Core.Build;
 using Heimatplatz.Maui.Events;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Debug.Services;
@@ -12,8 +13,10 @@ using Shiny.Mediator;
 namespace Heimatplatz.Maui.Features.Debug.Presentation;
 
 /// <summary>
-/// Debug-Werkzeuge fuer Entwicklungs-Builds: Testbenutzer anmelden/abmelden und zwischen
-/// lokaler Entwicklungs-API, Test-API und Produktions-API umschalten.
+/// Debug-Werkzeuge fuer Entwicklungs- und interne Testversionen (Play-Test-Tracks,
+/// TestFlight): Testbenutzer anmelden/abmelden und zwischen lokaler Entwicklungs-API,
+/// Test-API und Produktions-API umschalten. In der Store-Version ist die Seite nicht
+/// erreichbar - der Flyout-Eintrag wird dort nicht angelegt (siehe AppShell).
 /// </summary>
 [ShellMap<DebugPage>("Debug", registerRoute: false)]
 public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
@@ -69,8 +72,28 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
         // (inkl. Env-Override), nicht die Preference
         CurrentUrl = apiEndpoints.CurrentUrl;
 
+        UpdateEndpointDependentState();
         UpdateAuthenticationState();
     }
+
+    /// <summary>Kanal dieses Builds, z.B. "TestFlight" oder "Interner Test"</summary>
+    public string ChannelDisplay => Loc.ChannelFormat(AppChannels.DisplayName);
+
+    /// <summary>
+    /// Die lokale Entwicklungs-API ist nur am Entwicklungsrechner erreichbar - auf einem
+    /// TestFlight-/Play-Test-Geraet waere die Option nur eine Sackgasse.
+    /// </summary>
+    public bool IsDevelopmentEndpointAvailable => ApiEndpoints.IsDevelopmentEndpointAvailable;
+
+    /// <summary>
+    /// Die Testkonten existieren nur in der Entwicklungs- und Test-Datenbank. Gegen die
+    /// Produktions-API werden die Schnellanmeldungen deshalb ausgeblendet.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AreTestLoginsUnavailable))]
+    public partial bool AreTestLoginsAvailable { get; set; }
+
+    public bool AreTestLoginsUnavailable => !AreTestLoginsAvailable;
 
     public DebugStringsLocalized Loc { get; }
 
@@ -102,6 +125,13 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
 
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
+    /// <summary>Bestaetigung nach einem Umgebungswechsel (inkl. Hinweis auf die Abmeldung)</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
+    public partial string? StatusMessage { get; set; }
+
+    public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage);
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CurrentAuthenticationStateDisplay))]
     public partial string CurrentAuthenticationState { get; set; } = string.Empty;
@@ -119,6 +149,7 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     {
         ErrorMessage = null;
         CurrentUrl = _apiEndpoints.CurrentUrl;
+        UpdateEndpointDependentState();
         UpdateAuthenticationState();
     }
 
@@ -153,26 +184,59 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     partial void OnIsDevelopmentSelectedChanged(bool value)
     {
         if (value && !_initializing)
-            Apply(ApiEndpointKind.Development);
+            _ = ApplyAsync(ApiEndpointKind.Development);
     }
 
     partial void OnIsTestSelectedChanged(bool value)
     {
         if (value && !_initializing)
-            Apply(ApiEndpointKind.Test);
+            _ = ApplyAsync(ApiEndpointKind.Test);
     }
 
     partial void OnIsProductionSelectedChanged(bool value)
     {
         if (value && !_initializing)
-            Apply(ApiEndpointKind.Production);
+            _ = ApplyAsync(ApiEndpointKind.Production);
     }
 
-    private void Apply(ApiEndpointKind kind)
+    /// <summary>
+    /// Umgebungswechsel: Endpunkt umstellen, Session beenden und offene Listen neu laden
+    /// (siehe ApiEndpointService.SwitchEndpointAsync). Der Aufruf kommt aus einem
+    /// Property-Setter des RadioButtons, deshalb ohne await gestartet - Fehler landen
+    /// im Fehlerbanner statt in einer unbeobachteten Task.
+    /// </summary>
+    private async Task ApplyAsync(ApiEndpointKind kind)
     {
-        _apiEndpoints.SetEndpoint(kind);
-        CurrentUrl = _apiEndpoints.CurrentUrl;
+        ErrorMessage = null;
+        StatusMessage = null;
+
+        try
+        {
+            var loggedOut = await _apiEndpoints.SwitchEndpointAsync(kind);
+
+            CurrentUrl = _apiEndpoints.CurrentUrl;
+            UpdateEndpointDependentState();
+            UpdateAuthenticationState();
+
+            var endpointName = ApiEndpoints.GetDisplayName(kind);
+            StatusMessage = loggedOut
+                ? Loc.SwitchedWithLogoutFormat(endpointName)
+                : Loc.SwitchedFormat(endpointName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Wechsel auf den Endpunkt {Endpoint} fehlgeschlagen", kind);
+            ErrorMessage = Loc.SwitchFailed;
+        }
     }
+
+    /// <summary>
+    /// Zustaende, die vom aktiven Endpunkt abhaengen (aktuell: Verfuegbarkeit der
+    /// Schnellanmeldungen mit Testkonten)
+    /// </summary>
+    private void UpdateEndpointDependentState() =>
+        AreTestLoginsAvailable =
+            ApiEndpoints.GetKindForUrl(_apiEndpoints.CurrentUrl) != ApiEndpointKind.Production;
 
     private async Task LoginAsAsync(string email, string roleLabel)
     {

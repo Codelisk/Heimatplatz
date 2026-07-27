@@ -54,6 +54,28 @@
          schlug mit ITMS-90713 fehl, Build 78). -->
     <AppIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">AppIcon</AppIcon>
   </PropertyGroup>
+  <!-- Auslieferungskanal (Development|Internal|Production, siehe Core/Build/AppChannels.cs).
+       Steuert, ob die App Entwicklerwerkzeuge (Flyout "Debug", API-Umschalter) freischaltet.
+       Debug ist immer Development, Release ohne explizite Angabe immer Production - ein
+       versehentlich ohne Parameter gebauter Store-Release kann die Werkzeuge also nie zeigen.
+       Interne Android-Builds setzen den Kanal explizit:
+         dotnet publish -f net10.0-android -c Release -p:HeimatplatzChannel=Internal
+       (macht cake/Tasks/BuildAndroidTask.cs automatisch fuer alle Nicht-Production-Tracks).
+       iOS braucht den Schalter NICHT: dort erkennt AppChannels TestFlight zur Laufzeit,
+       weil derselbe Build spaeter zur App-Store-Version befoerdert wird. -->
+  <PropertyGroup>
+    <HeimatplatzChannel Condition="'$(HeimatplatzChannel)' == '' AND '$(Configuration)' == 'Debug'">Development</HeimatplatzChannel>
+    <HeimatplatzChannel Condition="'$(HeimatplatzChannel)' == ''">Production</HeimatplatzChannel>
+    <DefineConstants Condition="'$(HeimatplatzChannel)' == 'Internal'">$(DefineConstants);HEIMATPLATZ_INTERNAL</DefineConstants>
+  </PropertyGroup>
+  <Target Name="_HeimatplatzValidateChannel" BeforeTargets="BeforeBuild">
+    <Error Condition="'$(HeimatplatzChannel)' != 'Development' AND '$(HeimatplatzChannel)' != 'Internal' AND '$(HeimatplatzChannel)' != 'Production'"
+           Text="HeimatplatzChannel muss Development, Internal oder Production sein (ist: '$(HeimatplatzChannel)')." />
+    <!-- In Debug gewinnt ohnehin die DEBUG-Konstante: der Kanal waere nur scheinbar gesetzt -->
+    <Warning Condition="'$(Configuration)' == 'Debug' AND '$(HeimatplatzChannel)' != 'Development'"
+             Text="HeimatplatzChannel='$(HeimatplatzChannel)' wird in Debug-Builds ignoriert - Debug ist immer Development." />
+    <Message Importance="high" Text="Heimatplatz-Auslieferungskanal: $(HeimatplatzChannel)" />
+  </Target>
   <ItemGroup>
     <!-- App Icon: pro Plattform - es gilt nur das ERSTE passende Item, konditionale muessen vor dem Default stehen -->
     <!-- Android Adaptive Icon: Background full-bleed Markenrot, Badge bleibt in der 66dp-Safe-Zone (66/108, Badge fuellt 97.5% der ViewBox -> 0.62) -->
