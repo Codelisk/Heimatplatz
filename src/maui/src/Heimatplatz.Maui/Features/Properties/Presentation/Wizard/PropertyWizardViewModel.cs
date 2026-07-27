@@ -100,6 +100,17 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
+    /// <summary>
+    /// Angemeldet, aber ohne Verkaeufer-Konto. Der Editor bleibt sichtbar (bereits
+    /// Eingetipptes geht nicht verloren), das Veroeffentlichen ist aber gesperrt -
+    /// statt Ausfuellen und erst am Ende scheitern fuehrt ein Button ins Profil.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanUsePublishButton))]
+    public partial bool RequiresSellerAccount { get; set; }
+
+    public bool CanUsePublishButton => !RequiresSellerAccount;
+
     #endregion
 
     public PropertyWizardViewModel(
@@ -148,7 +159,8 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
             return;
         }
 
-        if (!_authService.IsSeller)
+        RequiresSellerAccount = !_authService.IsSeller;
+        if (RequiresSellerAccount)
             ErrorMessage = Loc.SellerAccountRequired;
 
         SubscribeDictation();

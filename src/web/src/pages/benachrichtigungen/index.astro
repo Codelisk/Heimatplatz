@@ -39,7 +39,9 @@ const ortRegions = await fetchOrtRegions();
     <form class="mt-4 space-y-4" data-preferences-form="notifications">
       <label class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 text-sm">
         <span><strong>{t("notifications.title")}</strong><br /><span class="text-muted-foreground">{t("notifications.enableHint")}</span></span>
-        <input type="checkbox" name="isEnabled" checked />
+        <!-- Serverseitiger Default = API-Default (IsEnabled: false). Ein "checked"
+             hier laesst Benachrichtigungen bis zum Hydrieren faelschlich aktiv wirken. -->
+        <input type="checkbox" name="isEnabled" />
       </label>
       <div class="rounded-lg border border-border bg-card p-4" data-notification-filter-settings>
         <h2 class="text-base font-semibold">{t("notifications.filterTitle")}</h2>
@@ -78,7 +80,8 @@ const ortRegions = await fetchOrtRegions();
         <div class="mt-4 flex flex-wrap gap-3">
           <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="house" checked /> {t("notifications.typeHouse")}</label>
           <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="land" checked /> {t("notifications.typeLand")}</label>
-          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="foreclosure" checked /> {t("notifications.typeForeclosure")}</label>
+          <!-- Zwangsversteigerungen wie in der Suche standardmaessig aus -->
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="foreclosure" /> {t("notifications.typeForeclosure")}</label>
         </div>
       </div>
       <div class="rounded-lg border border-border bg-card p-4" data-notification-custom hidden>

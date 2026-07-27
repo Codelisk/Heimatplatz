@@ -53,7 +53,8 @@ public class GetNotificationPreferencesHandler(
                 Locations: [],
                 IsHausSelected: true,
                 IsGrundstueckSelected: true,
-                IsZwangsversteigerungSelected: true,
+                // Wie in der Suche: Zwangsversteigerungen sind standardmaessig aus
+                IsZwangsversteigerungSelected: false,
                 IsPrivateSelected: true,
                 IsBrokerSelected: true
             );

@@ -177,5 +177,15 @@ public partial class PropertyWizardViewModel
         }
     }
 
+    /// <summary>
+    /// Weg aus der Sackgasse "Kaeufer-Konto": Im Profil laesst sich das Anbieten
+    /// aktivieren, danach ist der Wizard nutzbar.
+    /// </summary>
+    [RelayCommand]
+    private async Task OpenSellerProfileAsync()
+    {
+        await _navigator.NavigateTo("UserProfile", relativeNavigation: false);
+    }
+
     #endregion
 }

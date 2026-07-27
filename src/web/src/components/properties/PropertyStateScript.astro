@@ -56,6 +56,11 @@
   type RequestOptions = Omit<RequestInit, "body"> & {
     body?: unknown;
     skipAuth?: boolean;
+    /**
+     * Endpunkt liefert ohne Token grundsaetzlich 401 (z.B. /api/favorites).
+     * Endet die Sitzung beim Refresh, wird der Request gar nicht erst gesendet.
+     */
+    authRequired?: boolean;
   };
 
   class ApiRequestError extends Error {
@@ -414,6 +419,13 @@
     let session = options.skipAuth ? null : readSession();
     if (session && isAccessTokenStale(session)) {
       session = await refreshSession();
+
+      // Refresh mit 401 beantwortet: Die Sitzung ist endgueltig vorbei. Einen
+      // reinen Auth-Endpunkt jetzt noch ohne Token anzufragen erzeugt nur einen
+      // weiteren 401 in der Konsole - der Fehler steht schon fest.
+      if (!session && options.authRequired) {
+        throw new ApiRequestError(401, t("auth.errorSessionExpired"));
+      }
     }
 
     const doFetch = () => {
@@ -500,6 +512,23 @@
     if (tone === "error") status.classList.add("text-error");
     if (tone === "success") status.classList.add("text-success-foreground", "dark:text-success");
     if (tone === "info") status.classList.add("text-muted-foreground");
+
+    // Die Statuszeile steht oben im Formular, der Speichern-Button in der Sidebar
+    // klebt aber weiter unten. Ohne Scrollen sieht ein Fehler nach "es passiert
+    // nichts" aus (native Pflichtfeld-Fehler scrollen selbst, eigene nicht).
+    if (tone === "error") scrollStatusIntoView(status);
+  }
+
+  function scrollStatusIntoView(status: HTMLElement) {
+    const rect = status.getBoundingClientRect();
+    const header = document.querySelector<HTMLElement>("header");
+    const topOffset = (header?.offsetHeight ?? 0) + 12;
+    if (rect.top >= topOffset && rect.bottom <= window.innerHeight) return;
+
+    window.scrollTo({
+      top: Math.max(0, rect.top + window.scrollY - topOffset),
+      behavior: "smooth",
+    });
   }
 
   function renderAuthState() {
@@ -1130,7 +1159,7 @@
     if (!pending) return "none";
 
     try {
-      await apiRequest(config.endpoint, { method: config.method, body: pending });
+      await apiRequest(config.endpoint, { method: config.method, body: pending, authRequired: true });
       writeJson(config.storageKey, pending);
       window.localStorage.removeItem(config.pendingKey);
       return "synced";
@@ -1214,7 +1243,7 @@
       const pendingResult = await syncPendingPreference(mode);
       if (pendingResult === "failed") return;
 
-      const preferences = await apiRequest<Record<string, unknown>>(endpoint);
+      const preferences = await apiRequest<Record<string, unknown>>(endpoint, { authRequired: true });
       if (revision !== preferenceLoadRevision || !readSession()) return;
       writeJson(storageKey, preferences);
       if (form && form.dataset.preferencesDirty !== "true") {
@@ -1224,8 +1253,9 @@
         document.dispatchEvent(new CustomEvent("filter-preferences-loaded", { detail: preferences }));
       }
     } catch (error) {
-      // Lokale Einstellungen bleiben als Offline-Fallback aktiv.
-      console.warn(`[Heimatplatz] ${mode} preferences load failed`, error);
+      // Lokale Einstellungen bleiben als Offline-Fallback aktiv. Eine beendete
+      // Sitzung ist erwartbar und keine Warnung wert.
+      if (readSession()) console.warn(`[Heimatplatz] ${mode} preferences load failed`, error);
     } finally {
       form?.removeAttribute("aria-busy");
     }
@@ -1258,7 +1288,7 @@
   }
 
   function updateNotificationPreferenceVisibility(form: HTMLFormElement) {
-    const enabled = form.querySelector<HTMLInputElement>("[name='isEnabled']")?.checked ?? true;
+    const enabled = form.querySelector<HTMLInputElement>("[name='isEnabled']")?.checked ?? false;
     const mode = form.querySelector<HTMLInputElement>("[name='filterMode']:checked")?.value ?? "SameAsSearch";
     const showFilters = enabled;
     const showCustom = enabled && mode === "Custom";
@@ -1604,6 +1634,7 @@
       const separator = endpoint.includes("?") ? "&" : "?";
       const response = await apiRequest<PropertyActionListResponse>(
         `${endpoint}${separator}Page=${page}&PageSize=100`,
+        { authRequired: true },
       );
       (response.Properties ?? []).forEach((property) => {
         if (property.Id) ids.push(property.Id);
@@ -1626,14 +1657,18 @@
     // Eine inzwischen erfolgte Benutzeraktion hat Vorrang vor einem aelteren GET.
     if (revision !== propertyActionRevision) return;
 
+    // Abgelaufene Sitzung ist kein Fehlerfall: readSession() ist dann bereits leer,
+    // die Listen bleiben schlicht ungeladen (Gast-Zustand).
+    const sessionEnded = !readSession();
+
     if (favorites.status === "fulfilled") {
       writeArray(STORAGE_KEYS.favorites, favorites.value);
-    } else {
+    } else if (!sessionEnded) {
       console.warn("[Heimatplatz] Favorite state load failed", favorites.reason);
     }
     if (blocked.status === "fulfilled") {
       writeArray(STORAGE_KEYS.blocked, blocked.value);
-    } else {
+    } else if (!sessionEnded) {
       console.warn("[Heimatplatz] Blocked state load failed", blocked.reason);
     }
 
@@ -3849,7 +3884,13 @@
 
         const subject = createText("p", "mt-1 text-sm font-semibold", ticket.Subject);
         const preview = createText("p", "mt-0.5 truncate text-sm text-muted-foreground", ticket.LastMessagePreview);
-        const meta = createText("p", "mt-1 text-xs text-muted-foreground", t("feedback.listMessageCount", { count: ticket.MessageCount }));
+        const meta = createText(
+          "p",
+          "mt-1 text-xs text-muted-foreground",
+          ticket.MessageCount === 1
+            ? t("feedback.listMessageCountOne")
+            : t("feedback.listMessageCount", { count: ticket.MessageCount }),
+        );
 
         link.append(badges, subject, preview, meta);
         item.append(link, renameButton);

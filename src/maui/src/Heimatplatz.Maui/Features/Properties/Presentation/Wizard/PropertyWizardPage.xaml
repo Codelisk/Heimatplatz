@@ -1057,9 +1057,18 @@
                              HorizontalOptions="Fill">
             <Border Style="{StaticResource ErrorBanner}"
                     IsVisible="{Binding HasError}">
-                <Label Text="{Binding ErrorMessage}"
-                       Style="{StaticResource ErrorBannerText}"
-                       AutomationId="Wizard_ErrorText" />
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{Binding ErrorMessage}"
+                           Style="{StaticResource ErrorBannerText}"
+                           AutomationId="Wizard_ErrorText" />
+                    <!-- Kaeufer-Konto: Ausweg anbieten statt nur zu blockieren -->
+                    <Button Text="{Binding Loc.SellerAccountActivate}"
+                            Command="{Binding OpenSellerProfileCommand}"
+                            IsVisible="{Binding RequiresSellerAccount}"
+                            Style="{StaticResource SecondaryButton}"
+                            HorizontalOptions="Start"
+                            AutomationId="Wizard_ActivateSeller" />
+                </VerticalStackLayout>
             </Border>
             <Border Style="{StaticResource ErrorBanner}"
                     IsVisible="{Binding DraftSaveFailed}">
@@ -1089,6 +1098,7 @@
                        IsVisible="{Binding CanPublish}" />
                 <Button Text="{Binding PublishButtonText}"
                         Command="{Binding PublishCommand}"
+                        IsEnabled="{Binding CanUsePublishButton}"
                         Style="{StaticResource PrimaryButton}"
                         AutomationId="Wizard_Publish" />
             </VerticalStackLayout>

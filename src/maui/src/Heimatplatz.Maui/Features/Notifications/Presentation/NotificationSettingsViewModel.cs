@@ -59,7 +59,8 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         IsFilterModeAll = true;
         IsHausSelected = true;
         IsGrundstueckSelected = true;
-        IsZwangsversteigerungSelected = true;
+        // Zwangsversteigerungen wie in der Suche standardmaessig aus
+        IsZwangsversteigerungSelected = false;
         IsPrivateSelected = true;
         IsBrokerSelected = true;
     }

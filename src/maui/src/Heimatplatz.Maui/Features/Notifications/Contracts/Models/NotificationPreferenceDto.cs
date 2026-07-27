@@ -8,7 +8,7 @@ namespace Heimatplatz.Features.Notifications.Contracts.Models;
 /// <param name="Locations">List of locations for custom filter</param>
 /// <param name="IsHausSelected">House property type selected</param>
 /// <param name="IsGrundstueckSelected">Land property type selected</param>
-/// <param name="IsZwangsversteigerungSelected">Foreclosure property type selected</param>
+/// <param name="IsZwangsversteigerungSelected">Foreclosure property type selected (default off, wie in der Suche)</param>
 /// <param name="IsPrivateSelected">Private seller type selected</param>
 /// <param name="IsBrokerSelected">Broker seller type selected</param>
 public record NotificationPreferenceDto(
@@ -17,7 +17,7 @@ public record NotificationPreferenceDto(
     List<string> Locations,
     bool IsHausSelected = true,
     bool IsGrundstueckSelected = true,
-    bool IsZwangsversteigerungSelected = true,
+    bool IsZwangsversteigerungSelected = false,
     bool IsPrivateSelected = true,
     bool IsBrokerSelected = true
 );

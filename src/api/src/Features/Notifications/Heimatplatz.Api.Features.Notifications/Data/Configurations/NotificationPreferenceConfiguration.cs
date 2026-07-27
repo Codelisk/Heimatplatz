@@ -33,8 +33,12 @@ public class NotificationPreferenceConfiguration : IEntityTypeConfiguration<Noti
         builder.Property(np => np.IsGrundstueckSelected)
             .HasDefaultValue(true);
 
+        // Zwangsversteigerungen standardmaessig aus - der DB-Default muss dem
+        // CLR-Default (false) entsprechen, sonst wertet EF ein explizites "false"
+        // beim Insert als "nicht gesetzt" (bool-Sentinel-Falle, wie bei den
+        // UserFilterPreferences).
         builder.Property(np => np.IsZwangsversteigerungSelected)
-            .HasDefaultValue(true);
+            .HasDefaultValue(false);
 
         builder.Property(np => np.IsPrivateSelected)
             .HasDefaultValue(true);

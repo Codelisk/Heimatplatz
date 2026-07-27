@@ -31,7 +31,11 @@ public class NotificationPreference : BaseEntity
     public bool IsGrundstueckSelected { get; set; } = true;
 
     /// <summary>Ob Zwangsversteigerungen im Filter selektiert sind</summary>
-    public bool IsZwangsversteigerungSelected { get; set; } = true;
+    /// <summary>
+    /// Zwangsversteigerungen sind - wie in der Suche - standardmaessig NICHT
+    /// abonniert. CLR- und DB-Default muessen uebereinstimmen (bool-Sentinel-Falle).
+    /// </summary>
+    public bool IsZwangsversteigerungSelected { get; set; }
 
     /// <summary>Ob private Anbieter im Filter selektiert sind</summary>
     public bool IsPrivateSelected { get; set; } = true;

@@ -21,6 +21,9 @@
   <data name="SellerAccountRequired" xml:space="preserve">
     <value>Inserate erstellen ist nur mit einem Verkäufer-Konto möglich.</value>
   </data>
+  <data name="SellerAccountActivate" xml:space="preserve">
+    <value>Verkäufer-Konto aktivieren</value>
+  </data>
   <data name="DiscardChangesTitle" xml:space="preserve">
     <value>Änderungen verwerfen?</value>
   </data>

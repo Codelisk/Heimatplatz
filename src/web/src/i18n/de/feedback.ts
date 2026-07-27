@@ -58,6 +58,7 @@ export const feedback = {
   "feedback.listLoadFailed": "Anfragen konnten nicht geladen werden: {error}",
   "feedback.listUnread": "Neue Antwort",
   "feedback.listMessageCount": "{count} Nachrichten",
+  "feedback.listMessageCountOne": "1 Nachricht",
   "feedback.renameAction": "Umbenennen",
   "feedback.renamePrompt": "Neuer Titel für diese Anfrage",
   "feedback.renameFailed": "Umbenennen fehlgeschlagen: {error}",
