@@ -7,6 +7,11 @@
 		<!-- Eigener lowercase-Name: Xamarins Manifest-Generator lowercased Referenzen,
 		     @color/colorAccent wuerde als "coloraccent" gesucht (APT2260) -->
 		<meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/notification_accent" />
+		<!-- Ohne diesen Kanal landen Firebase-gerenderte Meldungen auf dessen
+		     "fcm_fallback_notification_channel": generischer Name in den Android-
+		     Einstellungen, Wichtigkeit/Ton nicht app-seitig steuerbar. Der Kanal wird in
+		     MainApplication angelegt - eine blosse Deklaration hier genuegt nicht. -->
+		<meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="@string/notification_channel_id" />
 	</application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />

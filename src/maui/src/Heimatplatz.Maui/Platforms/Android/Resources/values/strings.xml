@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Benachrichtigungskanal fuer FCM-Payloads, die Firebase im Hintergrund selbst
+         anzeigt. Bewusst durchgehend lowercase benannt: Xamarins Manifest-Generator
+         lowercased Ressourcen-Referenzen (gleiche Falle wie bei notification_accent). -->
+    <string name="notification_channel_id">heimatplatz_default</string>
+    <string name="notification_channel_name">Mitteilungen</string>
+    <string name="notification_channel_description">Neue Immobilien und Antworten auf Ihre Anfragen.</string>
+</resources>

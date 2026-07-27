@@ -40,10 +40,52 @@ public class MainApplication : MauiApplication
 		// des Emulators.
 		Platforms.Android.ScreenshotSysProps.TryImport();
 
+		EnsureNotificationChannel();
+
 #if DEBUG
 		// WebView-Inhalte (Kartenansicht) via chrome://inspect debuggbar machen
 		Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
 #endif
 		return MauiProgram.CreateMauiApp();
+	}
+
+	/// <summary>
+	/// Legt den Benachrichtigungskanal an, auf den das Manifest per
+	/// <c>default_notification_channel_id</c> verweist.
+	///
+	/// FCM-Payloads mit Notification-Block zeigt Firebase im Hintergrund selbst an. Existiert
+	/// der deklarierte Kanal nicht, weicht es auf seinen eigenen
+	/// "fcm_fallback_notification_channel" aus - dann steht in den Android-Einstellungen ein
+	/// generischer Eintrag und Wichtigkeit/Ton lassen sich nicht app-seitig setzen.
+	///
+	/// Bewusst hier und nicht in der Activity: Bei einer Push-Zustellung im Hintergrund startet
+	/// FCM nur den Prozess, keine Activity - der Kanal muss trotzdem schon stehen.
+	/// CreateNotificationChannel ist idempotent, ein erneuter Aufruf aktualisiert nur Name und
+	/// Beschreibung (die vom Nutzer gewaehlte Wichtigkeit bleibt unangetastet).
+	/// </summary>
+	void EnsureNotificationChannel()
+	{
+		// Kanaele gibt es erst ab API 26, minSdk ist 23
+		if (!OperatingSystem.IsAndroidVersionAtLeast(26))
+			return;
+
+		if (GetSystemService(Android.Content.Context.NotificationService) is not NotificationManager manager)
+			return;
+
+		var channelId = Resources?.GetString(Resource.String.notification_channel_id);
+		if (string.IsNullOrEmpty(channelId))
+			return;
+
+		// Importance.Default entspricht dem bisherigen Verhalten des Firebase-Fallbackkanals
+		// (importance=3) - der Sprung ist rein kosmetisch, kein neues Aufpoppen.
+		using var channel = new NotificationChannel(
+			channelId,
+			Resources!.GetString(Resource.String.notification_channel_name),
+			NotificationImportance.Default)
+		{
+			Description = Resources.GetString(Resource.String.notification_channel_description)
+		};
+
+		manager.CreateNotificationChannel(channel);
 	}
 }
