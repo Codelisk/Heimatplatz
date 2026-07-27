@@ -7,7 +7,7 @@
     <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
-    <ShinyDocumentDbVersion>11.2.1</ShinyDocumentDbVersion>
+    <ShinyDocumentDbVersion>12.1.0</ShinyDocumentDbVersion>
     <ShinyPushVersion>5.3.0</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
@@ -26,7 +26,7 @@
     <PackageVersion Include="Shiny.Notifications" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Extensions.Push" Version="3.0.0-beta-0002" />
     <PackageVersion Include="Shiny.Reflector" Version="1.7.2" />
-    <PackageVersion Include="System.Reactive" Version="6.1.0" />
+    <PackageVersion Include="System.Reactive" Version="7.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 
@@ -34,13 +34,13 @@
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.90" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Shiny.Maui.Shell" Version="6.3.2" />
-    <PackageVersion Include="Shiny.Maui.Controls" Version="1.0.1-beta-0146" />
+    <PackageVersion Include="Shiny.Maui.Controls" Version="1.0.1-beta-0148" />
     <PackageVersion Include="Shiny.Extensions.MauiHosting" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Extensions.Serialization" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Mediator.Maui" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Hosting.Maui" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Push.FirebaseMessaging" Version="5.0.2" />
-    <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0014" />
+    <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0017" />
     <PackageVersion Include="CommunityToolkit.Maui" Version="14.2.0" />
     <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.12.26368.2" />
     <!-- Localization (rein deutsch, Strings aus .resx via Shiny-Generator) -->
@@ -122,6 +122,8 @@
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.android" Version="2.1.12" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.ios" Version="2.1.12" />
+    <!-- NICHT auf 3.x: der XmlCommentGenerator von Microsoft.AspNetCore.OpenApi (net10) setzt
+         IOpenApiMediaType.Example, das in 3.x read-only ist -> CS0200 in generiertem Code. -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
 
     <!-- UI Testing -->
@@ -131,7 +133,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
 
     <!-- Unit & Integration Testing -->
-    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="NSubstitute" Version="6.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftVersion)" />
