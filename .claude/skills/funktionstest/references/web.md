@@ -125,6 +125,16 @@ ein Wohnungs-Objekt auf, ist das ein Befund.
 Auf Prod lagen zeitweise fast nur Zwangsversteigerungen — leere Ergebnislisten dort sind nicht
 automatisch ein Bug. Im Zweifel gegen Test gegenpruefen.
 
+**8. ZV lassen sich auf Test NICHT gegen die Suche pruefen** (verifiziert 27.7.2026).
+Zwangsversteigerungen erscheinen in Liste/Karte nur ueber ihren Property-Spiegel:
+`ForeclosurePropertySyncService` mappt jede Auktion mit `IsActive && ExternalId != null` auf eine
+`Property`. Der **Scraper** setzt `ExternalId` (Prod → Spiegel laeuft), der
+**`ForeclosureAuctionSeeder` setzt sie nicht** (Test → kein Spiegel). Folge auf Test: 8 Auktionen
+haben Detailseite + Sitemap-Eintrag, tauchen aber bei aktivem ZV-Filter nicht auf.
+**Das ist ein Test-Daten-Artefakt, kein Bug** — nicht erneut melden. Wer ZV gegen die Suche
+pruefen will, muss lesend gegen Prod gegenpruefen (`/api/foreclosure-auctions` vs.
+`/api/properties?PropertyTypesJson=["Foreclosure"]` vergleichen).
+
 ## Responsive — Pflicht auf jeder Seite
 
 Jede Seite wird in **mindestens zwei Breiten** getestet: Desktop **und** Phone. Kein Bereich gilt
