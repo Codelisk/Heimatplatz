@@ -59,6 +59,7 @@ public class PropertyStatusService : IPropertyStatusService
         _favoriteIds.Remove(propertyId);
         _logger.LogInformation("[PropertyStatus] Synchronized removed favorite: {PropertyId}", propertyId);
         StatusChanged?.Invoke(this, EventArgs.Empty);
+        PublishStatusChanged(propertyId, PropertyStatusKind.Favorite, isMember: false);
     }
 
     public void NotifyBlockedRemoved(Guid propertyId)
@@ -66,7 +67,16 @@ public class PropertyStatusService : IPropertyStatusService
         _blockedIds.Remove(propertyId);
         _logger.LogInformation("[PropertyStatus] Synchronized removed blocked property: {PropertyId}", propertyId);
         StatusChanged?.Invoke(this, EventArgs.Empty);
+        PublishStatusChanged(propertyId, PropertyStatusKind.Blocked, isMember: false);
     }
+
+    /// <summary>
+    /// Meldet die Aenderung an die Sammlungsseiten (Favoriten/Blockierte), damit eine
+    /// bereits geladene Liste nicht mit dem alten Stand stehen bleibt. Bewusst
+    /// fire-and-forget: der Toggle-Aufrufer soll nicht auf die Abonnenten warten.
+    /// </summary>
+    private void PublishStatusChanged(Guid propertyId, PropertyStatusKind kind, bool isMember)
+        => _ = _mediator.Publish(new PropertyStatusChangedEvent(propertyId, kind, isMember));
 
     public async Task<bool> ToggleFavoriteAsync(Guid propertyId)
     {
@@ -93,6 +103,7 @@ public class PropertyStatusService : IPropertyStatusService
                     _favoriteIds.Remove(propertyId);
                     _logger.LogInformation("[PropertyStatus] Removed favorite: {PropertyId}", propertyId);
                     StatusChanged?.Invoke(this, EventArgs.Empty);
+                    PublishStatusChanged(propertyId, PropertyStatusKind.Favorite, isMember: false);
                     return false;
                 }
             }
@@ -110,6 +121,7 @@ public class PropertyStatusService : IPropertyStatusService
                     _favoriteIds.Add(propertyId);
                     _logger.LogInformation("[PropertyStatus] Added favorite: {PropertyId}", propertyId);
                     StatusChanged?.Invoke(this, EventArgs.Empty);
+                    PublishStatusChanged(propertyId, PropertyStatusKind.Favorite, isMember: true);
                     return true;
                 }
             }
@@ -147,6 +159,7 @@ public class PropertyStatusService : IPropertyStatusService
                     _blockedIds.Remove(propertyId);
                     _logger.LogInformation("[PropertyStatus] Removed blocked: {PropertyId}", propertyId);
                     StatusChanged?.Invoke(this, EventArgs.Empty);
+                    PublishStatusChanged(propertyId, PropertyStatusKind.Blocked, isMember: false);
                     return false;
                 }
             }
@@ -164,6 +177,7 @@ public class PropertyStatusService : IPropertyStatusService
                     _blockedIds.Add(propertyId);
                     _logger.LogInformation("[PropertyStatus] Added blocked: {PropertyId}", propertyId);
                     StatusChanged?.Invoke(this, EventArgs.Empty);
+                    PublishStatusChanged(propertyId, PropertyStatusKind.Blocked, isMember: true);
                     return true;
                 }
             }

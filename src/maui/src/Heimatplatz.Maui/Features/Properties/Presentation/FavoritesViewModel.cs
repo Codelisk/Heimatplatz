@@ -28,6 +28,9 @@ public partial class FavoritesViewModel(
 {
     public FavoritesStringsLocalized Loc => loc;
 
+    // Merken/Entfernen auf der Detailseite zieht diese Liste nach
+    protected override PropertyStatusKind? StatusKind => PropertyStatusKind.Favorite;
+
     protected override string LoadingMessage => loc.LoadingMessage;
     protected override string RemovingMessage => loc.RemovingMessage;
     protected override string RemoveConfirmTitle => loc.RemoveConfirmTitle;

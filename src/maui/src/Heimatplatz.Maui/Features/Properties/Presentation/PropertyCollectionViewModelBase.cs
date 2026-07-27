@@ -42,6 +42,14 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     private int _currentPage;
     private bool _hasMore;
     private readonly IDisposable _syncSubscription;
+    private readonly IDisposable _statusSubscription;
+
+    /// <summary>
+    /// Gesetzt, wenn sich die Zugehoerigkeit zur Sammlung woanders geaendert hat
+    /// (z.B. Merken auf der Detailseite). Der Mediator-Cache dieser Listen ist
+    /// persistent (LocalFirst), deshalb muss das naechste Laden am Cache vorbei.
+    /// </summary>
+    private bool _needsFreshReload;
 
     // Feste Instanz + ReplaceRange bei Reloads (eine Reset-Notification), damit die
     // CollectionView ihren Container-Recycling-Pool behaelt
@@ -157,6 +165,12 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// </summary>
     protected virtual bool AlwaysReloadOnAppearing => false;
 
+    /// <summary>
+    /// Welche Benutzer-Sammlung diese Seite zeigt. Sammlungen, die nicht am
+    /// Favoriten-/Blockiert-Status haengen (eigene Inserate), lassen das null.
+    /// </summary>
+    protected virtual PropertyStatusKind? StatusKind => null;
+
     protected PropertyCollectionViewModelBase(
         IAuthService authService,
         IMediator mediator,
@@ -187,6 +201,36 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             MainThread.BeginInvokeOnMainThread(() => ApplySyncedChanges(evt));
             return Task.CompletedTask;
         });
+
+        // Merken/Blockieren von einer anderen Seite aus (v.a. Detailseite)
+        _statusSubscription = Mediator.Subscribe<PropertyStatusChangedEvent>((evt, _, _) =>
+        {
+            MainThread.BeginInvokeOnMainThread(() => ApplyStatusChange(evt));
+            return Task.CompletedTask;
+        });
+    }
+
+    /// <summary>
+    /// Zieht die geladene Liste nach, wenn die Zugehoerigkeit woanders geaendert wurde:
+    /// entfernte Objekte verschwinden sofort, neu hinzugekommene kommen mit dem
+    /// naechsten (cache-freien) Laden - die Liste kann sie nicht selbst bilden.
+    /// </summary>
+    private void ApplyStatusChange(PropertyStatusChangedEvent evt)
+    {
+        if (StatusKind is not { } kind || evt.Kind != kind)
+            return;
+
+        _needsFreshReload = true;
+
+        if (evt.IsMember)
+            return;
+
+        var existing = Properties.FirstOrDefault(p => p.Id == evt.PropertyId);
+        if (existing is null)
+            return;
+
+        Properties.Remove(existing);
+        IsEmpty = Properties.Count == 0;
     }
 
     /// <summary>
@@ -264,9 +308,13 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
             return;
         }
 
-        if (AlwaysReloadOnAppearing || Properties.Count == 0)
+        if (AlwaysReloadOnAppearing || _needsFreshReload || Properties.Count == 0)
         {
-            _ = ReloadAsync();
+            // Nach einer Statusaenderung am Cache vorbei laden, sonst liefert der
+            // persistente Mediator-Cache den Stand von vor dem Merken/Entfernen.
+            var forceRemoteRefresh = _needsFreshReload;
+            _needsFreshReload = false;
+            _ = ReloadAsync(forceRemoteRefresh);
         }
     }
 
@@ -346,7 +394,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     /// <summary>
     /// Laedt die Liste neu (erste Seite)
     /// </summary>
-    protected async Task ReloadAsync()
+    protected async Task ReloadAsync(bool forceRemoteRefresh = false)
     {
         if (IsBusy) return;
 
@@ -356,7 +404,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
         try
         {
             _currentPage = 0;
-            var items = await LoadPageSafeAsync(0, forceRemoteRefresh: false);
+            var items = await LoadPageSafeAsync(0, forceRemoteRefresh);
 
             Properties.ReplaceRange(items);
             IsEmpty = Properties.Count == 0;
@@ -522,6 +570,7 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
     public virtual void Dispose()
     {
         _syncSubscription.Dispose();
+        _statusSubscription.Dispose();
         AuthService.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         GC.SuppressFinalize(this);
     }

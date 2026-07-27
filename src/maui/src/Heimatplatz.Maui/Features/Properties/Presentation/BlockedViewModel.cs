@@ -29,6 +29,9 @@ public partial class BlockedViewModel(
 {
     public BlockedStringsLocalized Loc => loc;
 
+    // Blockieren/Aufheben auf anderen Seiten zieht diese Liste nach
+    protected override PropertyStatusKind? StatusKind => PropertyStatusKind.Blocked;
+
     protected override string LoadingMessage => loc.LoadingMessage;
     protected override string RemovingMessage => loc.RemovingMessage;
     protected override string RemoveErrorTitle => loc.RemoveErrorTitle;
