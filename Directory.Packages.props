@@ -7,7 +7,7 @@
 	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
     <ShinyDocumentDbVersion>12.1.0</ShinyDocumentDbVersion>
-    <ShinyPushVersion>5.3.0</ShinyPushVersion>
+    <ShinyPushVersion>5.4.0-beta-0074</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
 
