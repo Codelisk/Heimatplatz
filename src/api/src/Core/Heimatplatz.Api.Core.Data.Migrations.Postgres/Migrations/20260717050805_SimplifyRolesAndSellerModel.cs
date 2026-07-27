@@ -27,7 +27,7 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                 newName: "LastName");
 
             // Bestandsdaten: E-Mails normalisieren (Registrierung/Login vergleichen ab jetzt lowercase)
-            migrationBuilder.Sql("UPDATE \"Users\" SET \"Email\" = lower(trim(\"Email\"))");
+            migrationBuilder.Sql("UPDATE \"Users\" SET \"Email\" = lower(trim(\"Email\"));");
 
             migrationBuilder.AlterColumn<string>(
                 name: "CompanyName",
