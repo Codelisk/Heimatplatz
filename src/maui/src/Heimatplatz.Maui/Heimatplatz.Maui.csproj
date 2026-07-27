@@ -122,6 +122,28 @@
   <ItemGroup Condition="$(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))">
     <BundleResource Include="Platforms\iOS\GoogleService-Info.plist" Condition="Exists('Platforms\iOS\GoogleService-Info.plist')" />
   </ItemGroup>
+  <!-- 16-KB-Seitengroesse (Play-Warnung "aeltere Android NDK-Version"):
+       libdatastore_shared_counter.so aus AndroidX DataStore traegt die NDK-Kennung r20,
+       Play verlangt r28+. Ausrichtung stimmt zwar (p_align 0x4000), die Kennung reicht
+       Play aber als Warnung. Auch das neueste Paket (Xamarin.AndroidX.DataStore.* 1.2.1.1)
+       bringt keine neuere Kennung mit - upstream muss die Lib erst neu bauen.
+       Die Lib kommt transitiv ueber Xamarin.Firebase.Common herein, geladen wird sie aber
+       ausschliesslich von androidx.datastore.core.MultiProcessCoordinator (einzige Klasse
+       mit System.loadLibrary("datastore_shared_counter") ist SharedCounter$Factory, und die
+       haengt nur am Multi-Process-Pfad). Der einzige Firebase-Nutzer von
+       MultiProcessDataStoreFactory ist firebase-sessions, das nur ueber Crashlytics kommt -
+       beides referenziert diese App nicht. Ohne Aufrufer ist die .so toter Ballast.
+       Der Error unten bricht den Build, falls Crashlytics/Sessions je dazukommt. -->
+  <Target Name="_HeimatplatzStripUnusedDataStoreNativeLib"
+          AfterTargets="_GetLibraryImports"
+          Condition="$(TargetFramework.Contains('-android'))">
+    <Error Condition="'@(ReferencePath->WithMetadataValue('Filename','Xamarin.Firebase.Sessions'))' != ''"
+           Text="Xamarin.Firebase.Sessions ist jetzt referenziert und nutzt MultiProcessDataStore. libdatastore_shared_counter.so darf dann NICHT mehr entfernt werden - Target _HeimatplatzStripUnusedDataStoreNativeLib deaktivieren und die Play-16-KB-Warnung neu bewerten." />
+    <ItemGroup>
+      <AndroidNativeLibrary Remove="@(AndroidNativeLibrary)"
+                            Condition="'%(Filename)' == 'libdatastore_shared_counter'" />
+    </ItemGroup>
+  </Target>
   <!-- Android 13+ Themed Icons: Der Resizetizer (10.0.x) verdrahtet die Monochrome-Ebene der
        generierten Adaptive-Icon-XMLs hart auf das Foreground-Asset (appiconfg = opaker Kreis,
        als Themed Icon also nur ein einfarbiger Blob). Bis dotnet/maui#22543 umgesetzt ist,
