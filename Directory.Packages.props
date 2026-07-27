@@ -39,6 +39,11 @@
     <PackageVersion Include="Shiny.Hosting.Maui" Version="$(ShinyPushVersion)" />
     <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0017" />
     <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.12.26368.2" />
+    <!-- Native MapLibre-Karte (Community-Binding TechIdiots-LLC/MaplibreNativeMAUI, BSD-2).
+         Handlers-Paket MUSS explizit mit: das Hauptpaket (native Libs + Geometry)
+         deklariert es nicht als Dependency, enthaelt aber weder Control noch Handler. -->
+    <PackageVersion Include="MapLibreNative.Maui" Version="4.5.0" />
+    <PackageVersion Include="MapLibreNative.Maui.Handlers" Version="4.5.0" />
     <!-- Localization (rein deutsch, Strings aus .resx via Shiny-Generator) -->
     <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Shiny.Extensions.Localization.Generator" Version="2.0.1" />

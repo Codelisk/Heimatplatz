@@ -123,6 +123,18 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- MapLibre-Spike (Wegwerf-Evaluierung, bewusst ohne Localization -
+                 Karte + Seite fliegen nach der Binding-Entscheidung wieder raus) -->
+            <Border Style="{StaticResource Card}" AutomationId="Debug_MapLibreSpikeCard">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="MapLibre nativ (Spike)" Style="{StaticResource CardTitle}" />
+                    <Button Text="Native Karte öffnen"
+                            Command="{Binding OpenMapLibreSpikeCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            AutomationId="Debug_OpenMapLibreSpike" />
+                </VerticalStackLayout>
+            </Border>
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

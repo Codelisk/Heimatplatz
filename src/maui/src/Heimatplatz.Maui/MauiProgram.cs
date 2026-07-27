@@ -47,6 +47,9 @@ public static class MauiProgram
             .UseShiny()
             .UseShinyShell(x => x.AddGeneratedMaps())
             .UseShinyControls()
+            // Native MapLibre-Karte (Community-Binding, kein UseX-Extension-Point)
+            .ConfigureMauiHandlers(handlers =>
+                handlers.AddHandler(typeof(MapLibreNative.Maui.Handlers.MapLibreMap), typeof(MapLibreNative.Maui.Handlers.MapLibreMapHandler)))
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("SchibstedGrotesk-Regular.ttf", "SansRegular");

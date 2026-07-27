@@ -124,6 +124,10 @@
     <PackageReference Include="Shiny.Hosting.Maui" />
     <PackageReference Include="Shiny.Push" />
     <PackageReference Include="Shiny.Notifications" />
+    <!-- Native MapLibre-Karte (Vector-Tiles/PMTiles + Papier-Stil wie im Web);
+         Handlers-Paket noetig, das Hauptpaket liefert nur native Libs + Geometry -->
+    <PackageReference Include="MapLibreNative.Maui" />
+    <PackageReference Include="MapLibreNative.Maui.Handlers" />
   </ItemGroup>
   <!-- MAUI DevFlow (Debug-only Runtime-Automation/-Diagnose) -->
   <ItemGroup>
