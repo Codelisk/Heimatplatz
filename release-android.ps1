@@ -17,6 +17,11 @@
 #
 # Track waehlen (Default: production aus cake/appsettings.json):
 #   ./release-android.ps1 -Track internal
+#
+# Der Track bestimmt den Auslieferungskanal des Binaries (docs/app-channels.md):
+# alles ausser "production" baut mit Entwicklerwerkzeugen (Flyout "Debug" mit
+# API-Umschalter Test/Produktion). Ein so gebautes Bundle darf NICHT ueber die
+# Play-Konsole nach production promotet werden - fuer Production neu bauen.
 
 param(
     [switch]$MetadataOnly,

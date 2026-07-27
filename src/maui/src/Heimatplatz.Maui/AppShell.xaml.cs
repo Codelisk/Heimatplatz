@@ -1,4 +1,6 @@
+using Heimatplatz.Maui.Core.Build;
 using Heimatplatz.Maui.Core.Handlers;
+using Heimatplatz.Maui.Features.Debug.Services;
 using Heimatplatz.Maui.Localization;
 using Shiny;
 
@@ -16,29 +18,38 @@ public partial class AppShell : ShinyShell
     /// </summary>
     internal static string? LastKnownLocation { get; private set; }
 
+    private readonly IApiEndpointService apiEndpoints;
+
     public AppShellStringsLocalized Loc { get; }
 
-    public AppShell(AppShellStringsLocalized loc)
+    public AppShell(AppShellStringsLocalized loc, IApiEndpointService apiEndpoints)
     {
         Loc = loc;
+        this.apiEndpoints = apiEndpoints;
         // Shell ist ihr eigener BindingContext: XAML bindet Titel/Links auf Loc.*
         BindingContext = this;
         InitializeComponent();
 
-#if DEBUG
-        // Debug-Werkzeuge (z.B. API-Umschalter) nur in Entwicklungs-Builds im Flyout
-        Items.Add(new ShellContent
+        // Debug-Werkzeuge (API-Umschalter, Test-Anmeldungen) in Entwicklungs- UND
+        // internen Test-Builds (Play-Test-Tracks, TestFlight) - in der Store-Version
+        // fehlt der Eintrag und damit jeder Weg auf die Seite.
+        if (AppChannels.AreDeveloperToolsEnabled)
         {
-            Title = Loc.DebugTitle,
-            Icon = "icon_bug.png",
-            Route = "Debug",
-            ContentTemplate = new DataTemplate(typeof(Features.Debug.Presentation.DebugPage))
-        });
-#endif
+            Items.Add(new ShellContent
+            {
+                Title = Loc.DebugTitle,
+                Icon = "icon_bug.png",
+                Route = "Debug",
+                ContentTemplate = new DataTemplate(typeof(Features.Debug.Presentation.DebugPage))
+            });
+        }
 
         BuildFlyoutEntries();
 
         VersionLabel.Text = Loc.VersionFormat(AppInfo.Current.VersionString);
+        UpdateEnvironmentBadge();
+
+        // Das Abo auf Endpunktwechsel haengt an Loaded/Unloaded (siehe OnShellLoaded)
 
         // Tablet bleibt beim ueberlagernden Drawer. Erst auf wirklich breiten
         // Desktop-Fenstern wird die Navigation dauerhaft sichtbar; Phones bleiben
@@ -48,9 +59,50 @@ public partial class AppShell : ShinyShell
         Unloaded += OnShellUnloaded;
     }
 
+    /// <summary>
+    /// Beschriftet die Umgebungs-Pille der Flyout-Fusszeile mit Kanal und aktiver API
+    /// (z.B. "TestFlight · Test-API"). In Store-Builds bleibt sie unsichtbar - dort gibt
+    /// es weder Umschalter noch etwas zu unterscheiden.
+    /// </summary>
+    private void UpdateEnvironmentBadge()
+    {
+        // EnvironmentBadge existiert erst nach InitializeComponent - OnPropertyChanged
+        // feuert aber schon davor (BindingContext-Zuweisung)
+        if (!AppChannels.AreDeveloperToolsEnabled || EnvironmentBadge is null)
+            return;
+
+        var activeEndpoint = ApiEndpoints.GetKindForUrl(apiEndpoints.CurrentUrl);
+        EnvironmentBadgeLabel.Text = $"{AppChannels.DisplayName} · {ApiEndpoints.GetDisplayName(activeEndpoint)}";
+        EnvironmentBadge.IsVisible = true;
+    }
+
+    /// <summary>Endpunktwechsel auf der Debug-Seite: Pille sofort nachziehen</summary>
+    private void OnApiEndpointChanged(object? sender, EventArgs e) =>
+        Dispatcher.Dispatch(UpdateEnvironmentBadge);
+
+    /// <summary>
+    /// Zweiter Aufhaenger fuer die Pille: das Oeffnen des Flyouts. Deckt Zustaende ab,
+    /// die ohne Wechsel-Ereignis entstehen (z.B. Env-Override beim Start).
+    /// </summary>
+    protected override void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    {
+        base.OnPropertyChanged(propertyName);
+
+        if (propertyName == nameof(FlyoutIsPresented) && FlyoutIsPresented)
+            UpdateEnvironmentBadge();
+    }
+
     private void OnShellLoaded(object? sender, EventArgs e)
     {
         WindowsShellBackButton.Apply(this);
+
+        // Abo nach einem Unloaded/Loaded-Zyklus wiederherstellen (idempotent)
+        if (AppChannels.AreDeveloperToolsEnabled)
+        {
+            apiEndpoints.EndpointChanged -= OnApiEndpointChanged;
+            apiEndpoints.EndpointChanged += OnApiEndpointChanged;
+            UpdateEnvironmentBadge();
+        }
 
         if (observedWindow == Window)
         {
@@ -74,6 +126,11 @@ public partial class AppShell : ShinyShell
             observedWindow.PropertyChanged -= OnWindowPropertyChanged;
 
         observedWindow = null;
+
+        // Der Endpunkt-Service ist ein Singleton und wuerde die Shell sonst ueber ein
+        // Android-Activity-Recreate hinaus am Leben halten
+        if (AppChannels.AreDeveloperToolsEnabled)
+            apiEndpoints.EndpointChanged -= OnApiEndpointChanged;
     }
 
     private void OnWindowPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

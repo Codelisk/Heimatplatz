@@ -11,7 +11,15 @@ public class BuildContext : FrostingContext
     public string CsprojPath { get; }
     public string ApplicationId { get; }
 
+    /// <summary>
+    /// Auslieferungskanal des App-Builds (Development|Internal|Production, siehe
+    /// src/maui/src/Heimatplatz.Maui/Core/Build/AppChannels.cs). Steuert, ob die App
+    /// die Entwicklerwerkzeuge (Flyout "Debug", API-Umschalter) freischaltet.
+    /// </summary>
+    public string AppChannel { get; }
+
     // Android settings
+    public string AndroidReleaseTrack { get; }
     public string AndroidPackageName { get; }
     public string AndroidKeystorePath { get; }
     public string AndroidKeystorePassword { get; }
@@ -65,6 +73,21 @@ public class BuildContext : FrostingContext
         ApplicationId = GetConfigValue("Project:ApplicationId", "com.heimatplatz.app");
 
         // Android settings (prefer env vars, fallback to config)
+        // Track kommt aus appsettings.json oder der Env-Var Android__Release__Track
+        // (release-android.ps1 -Track ...), die AddEnvironmentVariables mit einliest.
+        AndroidReleaseTrack = Configuration["Android:Release:Track"] ?? "internal";
+
+        // Play liefert dieselbe AAB an jeden Track aus - ein Binary kennt seinen Track
+        // zur Laufzeit also nicht. Der Kanal wird deshalb hier festgelegt: alles ausser
+        // dem Production-Track ist eine interne Auslieferung und bekommt die
+        // Entwicklerwerkzeuge. HEIMATPLATZ_CHANNEL uebersteuert das bei Bedarf
+        // (z.B. bewusster Production-Build fuer eine Track-Promotion).
+        AppChannel = Environment.GetEnvironmentVariable("HEIMATPLATZ_CHANNEL") is { Length: > 0 } explicitChannel
+            ? explicitChannel
+            : AndroidReleaseTrack.Equals("production", StringComparison.OrdinalIgnoreCase)
+                ? "Production"
+                : "Internal";
+
         AndroidPackageName = GetConfigValue("Android:PackageName", "ANDROID_PACKAGE_NAME");
         var keystorePath = GetConfigValue("Android:KeystorePath", "ANDROID_KEYSTORE_PATH");
         AndroidKeystorePath = string.IsNullOrEmpty(keystorePath) ? string.Empty : Path.GetFullPath(Path.Combine(BuildDirectory, keystorePath));

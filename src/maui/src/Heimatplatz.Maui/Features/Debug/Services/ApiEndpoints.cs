@@ -1,3 +1,5 @@
+using Heimatplatz.Maui.Core.Build;
+
 namespace Heimatplatz.Maui.Features.Debug.Services;
 
 /// <summary>Waehlbare API-Endpunkte des Debug-Umschalters</summary>
@@ -28,7 +30,10 @@ public static class ApiEndpoints
     /// <summary>Konfigurationsschluessel der Base-URL des generierten Shiny.Mediator OpenAPI-Clients</summary>
     public const string MediatorHttpConfigKey = "Mediator:Http:Heimatplatz.Maui.ApiClient.Generated.*";
 
-    /// <summary>Preferences-Schluessel der Debug-Auswahl ("Development"|"Test"|"Production", nur DEBUG-Builds)</summary>
+    /// <summary>
+    /// Preferences-Schluessel der Endpunkt-Auswahl ("Development"|"Test"|"Production").
+    /// Nur in Builds mit Entwicklerwerkzeugen beschrieben und gelesen (siehe <see cref="AppChannels"/>).
+    /// </summary>
     public const string EndpointPreferenceKey = "debug_api_endpoint";
 
     /// <summary>
@@ -48,7 +53,8 @@ public static class ApiEndpoints
 
     /// <summary>
     /// Plattform-Default solange nie umgeschaltet wurde: Android-Debug lokal,
-    /// alle anderen Plattformen Produktion.
+    /// alle anderen Plattformen Produktion. Interne Test-Builds starten bewusst
+    /// ebenfalls auf Produktion - der Tester schaltet bewusst um.
     /// </summary>
     public static ApiEndpointKind GetDefaultEndpoint()
     {
@@ -59,6 +65,14 @@ public static class ApiEndpoints
 #endif
     }
 
+    /// <summary>
+    /// True, wenn die lokale Entwicklungs-API waehlbar ist. Auf einem TestFlight-
+    /// oder Play-Test-Geraet gibt es keinen Host hinter localhost - die Option
+    /// waere dort nur eine Falle.
+    /// </summary>
+    public static bool IsDevelopmentEndpointAvailable =>
+        AppChannels.Current == AppChannelKind.Development;
+
     /// <summary>Base-URL zum gewaehlten Endpunkt</summary>
     public static string GetUrl(ApiEndpointKind kind) => kind switch
     {
@@ -67,9 +81,42 @@ public static class ApiEndpoints
         _ => ProductionUrl
     };
 
-    /// <summary>Persistierte Debug-Auswahl aus den Preferences (Fallback: Plattform-Default)</summary>
+    /// <summary>Kurzname des Endpunkts fuer Diagnoseanzeigen (Flyout-Fusszeile, Debug-Seite)</summary>
+    public static string GetDisplayName(ApiEndpointKind kind) => kind switch
+    {
+        ApiEndpointKind.Development => "Entwicklungs-API",
+        ApiEndpointKind.Test => "Test-API",
+        _ => "Produktions-API"
+    };
+
+    /// <summary>Endpunkt-Art zu einer Base-URL (fuer die Anzeige der effektiv aktiven URL)</summary>
+    public static ApiEndpointKind GetKindForUrl(string? url) => url switch
+    {
+        null or "" => ApiEndpointKind.Production,
+        _ when url.Equals(TestUrl, StringComparison.OrdinalIgnoreCase) => ApiEndpointKind.Test,
+        _ when url.Equals(ProductionUrl, StringComparison.OrdinalIgnoreCase) => ApiEndpointKind.Production,
+        _ => ApiEndpointKind.Development
+    };
+
+    /// <summary>
+    /// Persistierte Auswahl aus den Preferences (Fallback: Plattform-Default).
+    ///
+    /// Fail-closed: Ohne Entwicklerwerkzeuge gilt immer Produktion, und eine noch
+    /// gespeicherte Auswahl wird verworfen. Das ist der iOS-Pfad, der wirklich
+    /// vorkommt: Ein Tester stellt in TestFlight auf Test, bekommt spaeter das
+    /// Store-Update ueber dieselbe Installation - ohne dieses Aufraeumen wuerde
+    /// die Endkundenversion weiter gegen die Test-API sprechen.
+    /// </summary>
     public static ApiEndpointKind GetSelectedEndpoint()
     {
+        if (!AppChannels.AreDeveloperToolsEnabled)
+        {
+            if (Preferences.Default.ContainsKey(EndpointPreferenceKey))
+                Preferences.Default.Remove(EndpointPreferenceKey);
+
+            return ApiEndpointKind.Production;
+        }
+
         var value = Preferences.Default.Get(EndpointPreferenceKey, string.Empty);
         return Enum.TryParse<ApiEndpointKind>(value, out var kind) ? kind : GetDefaultEndpoint();
     }

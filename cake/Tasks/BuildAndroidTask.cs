@@ -29,6 +29,13 @@ public sealed class BuildAndroidTask : FrostingTask<BuildContext>
         // Use AAB format for Google Play Store
         msBuildSettings.Properties["AndroidPackageFormat"] = new[] { "aab" };
 
+        // Auslieferungskanal: Test-Tracks (internal/alpha/beta) bekommen die
+        // Entwicklerwerkzeuge (Flyout "Debug" mit API-Umschalter), der Production-Track
+        // nicht. Play kann die AAB nicht pro Track unterscheiden - deshalb faellt die
+        // Entscheidung hier beim Build.
+        context.Information($"Track '{context.AndroidReleaseTrack}' -> Auslieferungskanal '{context.AppChannel}'");
+        msBuildSettings.Properties["HeimatplatzChannel"] = new[] { context.AppChannel };
+
         // Add signing properties if keystore is configured
         if (!string.IsNullOrEmpty(context.AndroidKeystorePath) && File.Exists(context.AndroidKeystorePath))
         {

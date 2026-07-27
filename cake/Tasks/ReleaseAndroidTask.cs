@@ -45,6 +45,16 @@ public sealed class ReleaseAndroidTask : FrostingTask<BuildContext>
         var (displayVersion, versionCode) = ReadVersion(context);
         context.Information($"Releasing v{displayVersion} (versionCode {versionCode}) to track '{track}'");
 
+        // Der Kanal steckt fest im Binary (Play kann eine AAB nicht pro Track variieren).
+        // Ein Test-Bundle darf deshalb NIE per Play-Promotion nach production wandern -
+        // dort wuerde der API-Umschalter beim Endkunden landen.
+        if (!track.Equals("production", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Warning(
+                $"Bundle wird mit Auslieferungskanal '{context.AppChannel}' gebaut (Entwicklerwerkzeuge aktiv). " +
+                "Nicht in den Production-Track promoten - fuer Production mit -Track production neu bauen.");
+        }
+
         // 2. Store-Texte via Claude CLI (inkl. Release-Notes fuer versionCode)
         context.Information("--- Step 2/6: Store texts (Claude CLI) ---");
         AndroidStoreTextsTask.RunCore(context, versionCode);
