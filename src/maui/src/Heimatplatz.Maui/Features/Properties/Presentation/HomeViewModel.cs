@@ -109,9 +109,11 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     public partial bool IsRefreshing { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowCachedDataNotice))]
     public partial bool IsShowingCachedData { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowCachedDataNotice))]
     public partial bool IsEmpty { get; set; }
 
     /// <summary>
@@ -123,11 +125,27 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     [NotifyPropertyChangedFor(nameof(HasLoadError))]
     [NotifyPropertyChangedFor(nameof(HasNoLoadError))]
     [NotifyPropertyChangedFor(nameof(ShowRegularEmptyState))]
+    [NotifyPropertyChangedFor(nameof(ShowCachedDataNotice))]
     public partial string? LoadErrorMessage { get; set; }
 
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
 
     public bool HasNoLoadError => !HasLoadError;
+
+    /// <summary>
+    /// "Zuletzt gespeicherter Stand" nur zeigen, wenn auch wirklich etwas Gespeichertes
+    /// in der Liste steht. <see cref="IsShowingCachedData"/> meldet lediglich, dass das
+    /// Backend nicht erreichbar ist - der Hinweis liegt aber im CollectionView-Header und
+    /// wurde deshalb auch ueber dem leeren Fehlerzustand gerendert. Der Nutzer las dann
+    /// gleichzeitig "angezeigt wird der zuletzt gespeicherte Stand" und "Diese Inhalte
+    /// wurden noch nicht lokal gespeichert", ohne dass eine Liste da war.
+    ///
+    /// Bewusst NICHT an <see cref="HasNoLoadError"/> gekoppelt: bleibt bei einem
+    /// Backend-Ausfall ein zuvor geladener Stand sichtbar, ist zwar eine Fehlermeldung
+    /// gesetzt, der Hinweis ueber der Liste ist dann aber genau richtig (die
+    /// Fehlermeldung selbst steckt in der EmptyView und bleibt in dem Fall unsichtbar).
+    /// </summary>
+    public bool ShowCachedDataNotice => IsShowingCachedData && !IsEmpty;
 
     /// <summary>
     /// "Keine Treffer" nur zeigen, wenn weder ein Fehler ansteht noch geladen wird -
@@ -1293,13 +1311,16 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
                 {
                     ReplaceProperties(visibleItemsBeforeLoad);
                     _totalCount = totalCountBeforeLoad;
-                    IsEmpty = false;
-                    UpdatePaginationState();
                 }
                 else
                 {
                     _totalCount = 0;
                 }
+
+                // Ergebniszahl auch im Fehlerfall nachfuehren. Vorher blieb IsEmpty auf
+                // dem Stand von davor (beim ersten Laden also false), wodurch der
+                // Cache-Hinweis ueber dem leeren Fehlerzustand stehen blieb.
+                UpdateResultCount();
                 LoadErrorMessage = _loc.LoadErrorFormat(PropertyCollectionViewModelBase.GetErrorHint(ex));
             }
             return null;

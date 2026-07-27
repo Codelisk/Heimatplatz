@@ -87,7 +87,7 @@
                                     Stroke="{AppThemeBinding Light=#D98200, Dark=#F2A93B}"
                                     BackgroundColor="{AppThemeBinding Light=#FFF4E5, Dark=#352A1D}"
                                     StrokeShape="RoundRectangle 8"
-                                    IsVisible="{Binding IsShowingCachedData}"
+                                    IsVisible="{Binding ShowCachedDataNotice}"
                                     AutomationId="Home_CachedDataNotice">
                                 <Label Text="{Binding Loc.CachedDataNotice}"
                                        FontSize="12.5"

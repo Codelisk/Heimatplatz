@@ -37,11 +37,20 @@ public partial class HomePage : ShinyContentPage
     {
         InitializeComponent();
 
+        // Die drei kurzen Auswahl-Sheets bemessen sich am Inhalt statt an einem festen
+        // Anteil der Bildschirmhoehe. Feste Anteile waren auf 800-dp-Geraeten zu knapp:
+        // das Typ-Sheet brauchte ~556 px, bekam bei 0.36 aber nur ~455 px - "Fertig" war
+        // beim Oeffnen abgeschnitten und erst nach Scrollen bedienbar (dasselbe traf die
+        // letzte Sortier-Option). FitContent misst den Inhalt und rechnet den Detent
+        // selbst aus, bleibt also unabhaengig von Geraetegroesse und Schriftskalierung.
+        SortPanel.FitContent = true;
+        TypePanel.FitContent = true;
+        AgePanel.FitContent = true;
+
+        // Das Ort-Panel bleibt bei einem festen Anteil: seine Liste ist beliebig lang
+        // und scrollt selbst - am Inhalt bemessen waere es immer bildschirmfuellend.
         // Detents im Code-Behind ERSETZEN statt ergaenzen: XAML-Detents addieren zu den
         // Defaults (Quarter/Half/Full), wodurch Panels am kleinsten Detent oeffnen wuerden.
-        SortPanel.Detents = new ObservableCollection<DetentValue> { new(0.62), DetentValue.Full };
-        TypePanel.Detents = new ObservableCollection<DetentValue> { new(0.36), DetentValue.Half };
-        AgePanel.Detents = new ObservableCollection<DetentValue> { new(0.42), DetentValue.Half };
         OrtPanel.Detents = new ObservableCollection<DetentValue> { new(0.75), DetentValue.Full };
     }
 
