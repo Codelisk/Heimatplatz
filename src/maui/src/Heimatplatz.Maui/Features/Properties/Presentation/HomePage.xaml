@@ -274,8 +274,12 @@
             <!-- Schwebende Karte-Pille: bewusst dezenter als die Web-Pille -
                  Glas-Optik wie die Foto-Action-Buttons der Zettel (X/Blockieren),
                  transparentes Grau + feine Kontur statt Vollton mit Schatten.
-                 Oeffnet die Vollbild-Kartenansicht mit den aktuellen Filtern. -->
-            <Border HorizontalOptions="Center"
+                 Oeffnet die Vollbild-Kartenansicht mit den aktuellen Filtern.
+                 Faehrt zusammen mit der Filter-Chip-Zeile weg (Code-Behind
+                 TransitionChipBar) - beide gehoeren zur Suchoberflaeche und
+                 sollen beim Lesen der Liste aus dem Weg sein. -->
+            <Border x:Name="MapPill"
+                    HorizontalOptions="Center"
                     VerticalOptions="End"
                     Margin="0,0,0,20"
                     Padding="20,0"
