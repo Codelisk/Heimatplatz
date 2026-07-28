@@ -459,13 +459,16 @@ public partial class PropertyMapPage : ContentPage
 
     private void ZoomToStamp(IMapLibreMapController controller, Services.MapStamp stamp)
     {
-        // Web: fitBounds(padding 72, maxZoom 12.5) auf die Pins des Bezirks
+        // Web: fitBounds(padding 72, maxZoom 12.5) auf die Pins des Bezirks.
+        // Untergrenze PinMinZoom: der logische Viewport ist am Handy kleiner als
+        // im Web (UiScale) - ein Fit knapp unter der Pin-Schwelle zeigt sonst
+        // wieder nur den Stempel, und der naechste Tap aendert nichts (Sackgasse).
         var pad = 72 * MapPixelScale;
         var camera = controller.CameraForLatLngs(stamp.PinPositions, pad, pad, pad, pad);
         if (double.IsNaN(camera.Zoom))
             return;
 
-        controller.EaseTo(camera.Lat, camera.Lon, Math.Min(camera.Zoom, MaxDistrictZoom), durationMs: 600);
+        controller.EaseTo(camera.Lat, camera.Lon, Math.Clamp(camera.Zoom, PinMinZoom, MaxDistrictZoom), durationMs: 600);
     }
 
     private void OnMapLoadFailed(string message)
