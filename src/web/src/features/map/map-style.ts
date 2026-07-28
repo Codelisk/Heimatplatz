@@ -69,7 +69,10 @@ function buildFlavor(dark: boolean) {
   const tone = dark ? DARK : LIGHT;
   return {
     ...base,
-    background: tone.paperDeep,
+    // Landton statt paperDeep: jenseits der Kachelabdeckung scheint der
+    // background durch - im Landton wirkt das als Papierrand statt als Kante
+    // (Hochformat-Handys zeigen bei "ganz OOE" mehr Flaeche als die Kacheln)
+    background: tone.paper,
     earth: tone.paper,
     water: tone.water,
     park_a: tone.park,

@@ -29,8 +29,12 @@ const outArg = process.argv.indexOf("--out");
 const outDir = outArg >= 0 ? process.argv[outArg + 1] : join(webRoot, "public", "tiles");
 const workDir = join(outDir, ".work");
 
-// Oberoesterreich + Rand (Nachbarregionen als Kontext beim Herauszoomen)
-const BBOX = "12.6,47.3,15.2,48.9";
+// Oberoesterreich + Rand (Nachbarregionen als Kontext beim Herauszoomen).
+// Die Box muss auch HOCHFORMAT-Viewports decken: ein Handy zeigt bei
+// "ganz OOE" ~2,6 Breitengrad - die alte Box (47.3-48.9) endete dann
+// sichtbar als flaches Band ober-/unterhalb der Karte. Deckt jetzt die
+// Kamera-MaxBounds (11.7,46.9-16.0,49.3) plus Marge ab.
+const BBOX = "11.6,46.6,16.1,49.5";
 const MAXZOOM = "14";
 const FONTS = ["Noto Sans Regular", "Noto Sans Medium", "Noto Sans Italic"];
 
