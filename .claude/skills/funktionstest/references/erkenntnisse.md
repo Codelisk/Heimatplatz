@@ -35,7 +35,9 @@ Produktentscheidungen aus der Abarbeitung frueherer Berichte. Wer eines dieser V
 - **Die MAUI-Karte ist seit 28.7. nativ (MapLibre), kein WebView mehr.** Befunde aus
   Berichten vor dem 28.7., die sich auf das `/karte-embed`-WebView beziehen, sind obsolet.
 - **ZV-Detailseite zeigt eine LASTEN-Karte** (28.7., zwischen Beschreibung und Datenblatt,
-  mit Summenzeile ab zwei bezifferten Posten). Soll-Verhalten.
+  mit Summenzeile ab zwei bezifferten Posten). Soll-Verhalten. Seit 28.7. auch im Web
+  (Property-Detailseite, vor dem Datenblatt; die ZV-Slug-Seite bewusst nicht — die
+  Auktions-API fuehrt keine Encumbrances).
 - **"Filter zuruecksetzen" gibt es NUR mobil** (28.7., Web). Der Button lebt bewusst nur
   im Mobile-Filter-Akkordeon (`MobileFilterPanel.astro`); am Desktop liegen alle Filter
   einzeln sichtbar in der Suchleiste, ein Sammel-Reset ist dort nicht gewollt.
@@ -83,6 +85,15 @@ Produktentscheidungen aus der Abarbeitung frueherer Berichte. Wer eines dieser V
 - **fullPage-Screenshots zeigen Scroll-Reveal-Sektionen als Leerflaeche** (28.7.):
   /makler sah nach "Ihre Vorteile" leer aus; nach echtem Scrollen war alles da.
   Erst scrollen (Reveal ausloesen), dann urteilen.
+- **Playwright-A11y-Snapshot verschluckt Button-Textinhalte** (28.7.): Die Bezirks-
+  Toggle-Buttons im OrtPicker erschienen namenlos, obwohl sie den Bezirksnamen als
+  Text enthalten (Accessible Name vorhanden). A11y-"Befunde" aus dem Snapshot immer
+  per textContent/aria-Attribut im DOM gegenpruefen, bevor sie in den Bericht gehen.
+- **URL-Sync der Suche kommt mit dem Initial-Refetch** (~300 ms nach Load,
+  PropertySearchApp:984): Wer die URL sofort nach dem Load prueft, sieht faelschlich
+  "Sortierung nicht in der URL". Eingeloggt ueberschreibt zudem der Server-
+  Praeferenz-Sync die localStorage-Werte — fuer Praeferenz-Tests vorher die Session
+  entfernen. (28.7. — H-02 war genau dieser Falschbefund)
 
 ## Werkzeug- und Bedien-Fallen
 
@@ -131,9 +142,8 @@ Produktentscheidungen aus der Abarbeitung frueherer Berichte. Wer eines dieser V
   Encoding): "Baugrundstueck in Wels" war angeblich nicht in der API-Liste, war es
   aber — bei Gegenproben Titel ausdrucken statt boolesche in-Checks. (28.7.)
 - **Sortierung persistiert als Filter-Preference** (`heimatplatz:filter-preferences`)
-  und wird beim Laden von `/` angewandt, die URL bekommt `?sort=` aber erst bei der
-  naechsten Interaktion nachgeschrieben — kein Bug, nur URL/Zustand-Divergenz
-  (als Hinweis gemeldet 28.7.).
+  und wird beim Laden von `/` angewandt; die URL zieht der Initial-Refetch wenige
+  hundert ms spaeter automatisch nach (siehe Falschbefund-Falle oben). (28.7.)
 
 ## Datenlage auf Test (Stand 28.7.)
 

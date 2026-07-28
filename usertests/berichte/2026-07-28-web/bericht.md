@@ -10,17 +10,19 @@
 ## Zusammenfassung
 Die Web-App ist in sehr gutem Zustand. Alle Kernflüsse funktionieren end-to-end und wurden per API-Gegenprobe verifiziert: Suche/Filter/Sortierung mit URL-Zustand, Karte (Split, Cluster→Bezirksfilter, Marker-Pille, präziser OÖ-Umriss), Detailseiten aller drei Objekttypen mit korrekter Feld-Sichtbarkeit, Auth komplett (Login/Registrieren/Reset/Session/Logout/Konto löschen), Favoriten/Blockieren, das komplette Inserieren (Fotos, Ansprechpartner, Original-URL, Veröffentlichen, Vorbefüllung beim Bearbeiten, Löschen mit Rückfrage), Feedback mit Bild-Anhang inkl. Intern-Antwort, Makler-Lead bis ins CRM, Intern-Moderation (Ausblenden/Einblenden). Der einzige nennenswerte Fehler: Im Intern-Feedback-Detail sind Bild-Anhänge kaputt (interner Docker-Hostname in der Bild-URL). Dazu eine fehlende Web/MAUI-Parität (Lasten-Sektion) und Kleinigkeiten.
 
-| Schwere | Anzahl |
-|---|---|
-| S1 Blocker | 0 |
-| S2 Schwer | 1 |
-| S3 Mittel | 1 |
-| S4 Kosmetik | 0 |
-| Hinweis/Frage | 3 |
+| Schwere | Anzahl | Stand nach Abarbeitung (28.7.) |
+|---|---|---|
+| S1 Blocker | 0 | — |
+| S2 Schwer | 1 | B-01 behoben (E2E nach API-Deploy) |
+| S3 Mittel | 1 | B-02 behoben + verifiziert |
+| S4 Kosmetik | 0 | B-03 zurückgezogen (bewusst so) |
+| Hinweis/Frage | 3 | H-01 behoben · H-02/H-03 als Falschbefunde zurückgezogen |
 
 ## Befunde
 
-### B-01 · S2 · Intern/Feedback — Bild-Anhänge im Detail kaputt (interner Docker-Host in der URL)
+### B-01 · S2 · BEHOBEN (28.7.) · Intern/Feedback — Bild-Anhänge im Detail kaputt (interner Docker-Host in der URL)
+**Fix:** `FeedbackMapping.GetBaseUrl` nutzt jetzt `GetPropertiesHandler.ResolveApiBaseUrl` (bevorzugt `Api:PublicBaseUrl`, Fallback Request-Host) — dasselbe Muster, mit dem die Property-Thumbnails im Intern-Bereich nachweislich funktionieren. Betrifft alle Feedback-Attachment-URLs (User + Admin). Build grün; E2E-Wirkung nach dem nächsten API-Deploy (Test), da lokal ohne `Api:PublicBaseUrl` weiter der Request-Host gilt.
+
 - **Schritte:** 1. Feedback mit Bild-Anhang über /feedback senden (als test.seller). 2. Auf test.heimatplatz.at `/intern/feedback/detail/?id=…` öffnen.
 - **Erwartet:** Bild-Anhang wird als Thumbnail angezeigt (wie im Nutzer-Thread `/feedback/anfrage`).
 - **Tatsächlich:** Kaputtes Bild. Die Bild-URL lautet `https://api-test:8080/api/images/local?path=…` — der **interne Docker-Servicename** statt `https://test-api.heimatplatz.at`. Zusätzlich blockt die CSP (`img-src` enthält den Host nicht); selbst ohne CSP wäre der Host im Browser nicht auflösbar.
@@ -29,7 +31,9 @@ Die Web-App ist in sehr gutem Zustand. Alle Kernflüsse funktionieren end-to-end
 - **Vermutete Stelle:** Intern-Feedback-Detail rendert die Attachment-URLs der Admin-API 1:1; die API baut sie aus ihrer eigenen (internen) Basis-URL. Nutzerseite betroffen? Nein — dort kommt die URL über die öffentliche Client-API-Basis.
 - **Reproduzierbar:** ja (jedes Laden der Seite; getestet am deployten Test-Stand)
 
-### B-02 · S3 · ZV-Detail Web — keine LASTEN-Sektion (Parität zur MAUI-App fehlt)
+### B-02 · S3 · BEHOBEN (28.7.) · ZV-Detail Web — keine LASTEN-Sektion (Parität zur MAUI-App fehlt)
+**Fix:** Lasten-Karte auf der Property-Detailseite VOR dem Datenblatt (wie MAUI), gleiche Regeln 1:1 (`getApiPropertyEncumbrances` in detail-sections.ts): Gläubiger-Zweitzeile nur wenn nicht im Titel, Gläubiger als Titel-Fallback, Summe „Gesamt" ab zwei bezifferten Posten. Verifiziert: „Haus in Traun" (Hypothek Bank Austria € 92.500 ohne Zweitzeile + Grundsteuer/Finanzamt € 2.500, Gesamt € 95.000, shots/34-lasten-karte-fix.jpeg), „Grundstück Enns" (Gesamt € 36.500), Nicht-ZV ohne Sektion. Die ZV-Slug-Seite bleibt ohne Lasten — die Auktions-API führt keine Encumbrances (auch MAUI liest sie nur aus dem Property-Spiegel).
+
 - **Schritte:** 1. ZV-Objekt mit Encumbrances öffnen, z. B. `/immobilien/angebote/99f4a5c5-…` („Haus in Traun", TypeSpecificData enthält Hypothek € 92.500 + Grundsteuer € 2.500). 2. Auch `/zwangsversteigerungen/[slug]`-Seiten prüfen.
 - **Erwartet:** Lasten-Karte wie in der MAUI-App (seit 28.7., zwischen Beschreibung und Datenblatt, mit Summenzeile).
 - **Tatsächlich:** Web rendert nirgends Encumbrances — `grep Encumbrance|Lasten` über `src/web/src` trifft nur die Draft-Serialisierung (`Encumbrances: []` in PropertyStateScript.astro:2383). Käufer sehen die Lasten im Web gar nicht.
@@ -42,11 +46,11 @@ Der Sammel-Reset lebt bewusst nur im Mobile-Filter-Akkordeon (`MobileFilterPanel
 ### H-01 · BEHOBEN (28.7., Entscheidung Daniel) · ZV-Sticky-Leiste — Zustandstext „Edikt offen" entfernt
 Der Fallback („Edikt offen" bei fehlender Edikt-URL, Key `zv.edictPending`) war missverständlich — und ein praktisch toter Zweig: Der Edikte-Sync leitet die Edikt-URL IMMER aus der ExternalId ab (`ForeclosureAuctionSyncService.cs:419/465`), nur Test-Seeds haben keine. Fix: Fallback-Zweig entfernt — ohne URL wird in der Leiste nichts gerendert (`[slug].astro`), toter i18n-Key gelöscht (`foreclosures.ts`). Verifiziert: Linz-Auktion (ohne URL) zeigt nur Preis+Termin, Gmunden-Auktion (mit URL) weiterhin „Edikt ansehen".
 
-### H-02 · Hinweis · Suche — persistierte Sortierung erst bei Interaktion in der URL
-Die Sortierung wird über `heimatplatz:filter-preferences` persistiert und beim Laden von `/` angewandt, die URL bleibt aber zunächst leer; erst die nächste Interaktion (z. B. Favoriten-Klick) schreibt `?sort=…` per replaceState nach. Kurzzeitig divergieren URL und Listenzustand — kein Funktionsfehler, aber beim Link-Teilen geht die Sortierung verloren.
+### H-02 · ZURÜCKGEZOGEN (Falschbefund, 28.7.) · Suche — persistierte Sortierung „erst bei Interaktion" in der URL
+Kontrollierter Nachtest als sauberer Gast: Die gespeicherte Sortierung wird beim Laden angewandt UND die URL per Initial-Refetch (~300 ms, `PropertySearchApp.astro:984` → `updateUrl`) automatisch auf `?sort=…` nachgezogen. Die ursprüngliche Beobachtung war ein Timing-Artefakt: eingeloggt überschreibt der Server-Präferenz-Sync die lokalen Werte, und der URL-Wechsel fiel zufällig mit dem Favoriten-Klick zusammen. Kein Fehler.
 
-### H-03 · Hinweis · A11y — Bezirks-Aufklapp-Buttons im Ort-Picker ohne Accessible Name
-Die Chevron-Buttons je Bezirk haben keinen aria-label/Textinhalt (erst mit Auswahl-Badge bekommt der Button einen Namen, z. B. „Stadt Linz 1 ausgewählt"). Screenreader hören 18× nur „Button". Checkboxen sind korrekt beschriftet.
+### H-03 · ZURÜCKGEZOGEN (Falschbefund, 28.7.) · A11y — Bezirks-Aufklapp-Buttons „ohne Accessible Name"
+Die Toggle-Buttons enthalten den Bezirksnamen als Textinhalt (`OrtPicker.astro:132`) — der Accessible Name ist „Braunau", „Eferding" usw. (empirisch geprüft). Die leeren Button-Namen im Playwright-A11y-Snapshot waren ein Snapshot-Artefakt. Kein Fehler.
 
 ## Testdaten-Artefakte (KEINE Befunde — geprüft und entkräftet)
 - **ZV-Kanon-Canonical auf Test nicht prüfbar:** Seed-ZV-Properties haben keine Edikt-URL → `getForeclosureCanonicalPath` liefert null, canonical bleibt auf `/immobilien/angebote/…`. Auf Prod (Scraper setzt Edikt-URL) greift der Join. Code korrekt (property-mirror.ts:49).
