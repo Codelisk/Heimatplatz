@@ -16,12 +16,15 @@ public partial class PropertyMapPage : ContentPage
     private const float PinMinZoom = 9f;
     private const double MaxDistrictZoom = 12.5;
 
-    // OOE_BOUNDS / OOE_MAX_BOUNDS aus map-style.ts: Start-Ausschnitt und
-    // Pan-Begrenzung (OOE plus grosszuegiger Rand als Kontext)
+    // OOE_BOUNDS aus map-style.ts: Start-Ausschnitt. Die Kamera-Begrenzung nutzt
+    // DIESELBE Box - SetCameraTargetBounds beschraenkt (anders als maxBounds im
+    // Web) das Kamera-ZENTRUM, das darf Oberoesterreich nie verlassen. Was am
+    // Rand dahinter laege, ist seit 28.07.2026 ohnehin vollstaendig maskiert
+    // (Fokus nur auf OOE, hpmap-outside-dim deckt das Umland opak ab).
     private static readonly (double Lat, double Lon) OoeSw = (47.4611, 12.7492);
     private static readonly (double Lat, double Lon) OoeNe = (48.7726, 14.9922);
-    private static readonly LatLng MaxBoundsNe = new(49.3, 16.0);
-    private static readonly LatLng MaxBoundsSw = new(46.9, 11.7);
+    private static readonly LatLng MaxBoundsNe = new(48.7726, 14.9922);
+    private static readonly LatLng MaxBoundsSw = new(47.4611, 12.7492);
 
     // Papiertoene der Layer (Hex-Werte aus map-style.ts LIGHT/DARK)
     private static (string Paper, string Ink, string InkSoft) Tones(bool dark) => dark

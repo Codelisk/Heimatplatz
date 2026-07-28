@@ -13,7 +13,7 @@
  */
 
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
-import type { LayerSpecification, StyleSpecification } from "maplibre-gl";
+import type { LayerSpecification, StyleSpecification, SymbolLayerSpecification } from "maplibre-gl";
 import type { Feature, FeatureCollection, LineString, Polygon } from "geojson";
 import { DANUBE_WAYPOINTS, LAKES, OOE_OUTLINE, type LngLat } from "./ooe-geometry";
 
@@ -23,10 +23,16 @@ export const OOE_BOUNDS: [[number, number], [number, number]] = [
   [14.9922, 48.7726],
 ];
 
-/** Pan-Begrenzung: OÖ plus grosszuegiger Rand (Nachbarregionen bleiben Kontext). */
+/**
+ * Pan-Begrenzung: knapp um OÖ. Der Rand existiert nur, damit Viewports mit
+ * anderem Seitenverhaeltnis (Hochformat-Handys!) das ganze Land einpassen
+ * koennen - sichtbar ist dort ohnehin nur noch leeres Papier, das Umland wird
+ * seit 28.07.2026 vollstaendig maskiert (hpmap-outside-dim, Produktwunsch:
+ * Fokus ausschliesslich auf Oberoesterreich).
+ */
 export const OOE_MAX_BOUNDS: [[number, number], [number, number]] = [
-  [11.7, 46.9],
-  [16.0, 49.3],
+  [12.2, 46.9],
+  [15.5, 49.3],
 ];
 
 // Heimatplatz-Papiertoene (Hex-Naeherungen der oklch-Tokens aus starwind.css)
@@ -182,6 +188,50 @@ export function locationCirclePolygon(lng: number, lat: number, radiusMeters: nu
 /** Markenrot (Logo, themenunabhaengig) fuer Lage-Markierungen auf der Karte. */
 export const BRAND_RED = "#de2a2f";
 
+/**
+ * Konvertiert die deprecated Filter-Syntax der protomaps-Basemap-Layer
+ * (["==","kind","address"], ["in","kind","a","b"], ...) in Expression-Syntax,
+ * damit sie mit der within-Expression kombinierbar ist. Liefert null, wenn der
+ * Filter bereits eine Expression ist oder ein unbekannter Operator auftaucht -
+ * der Aufrufer nutzt ihn dann unveraendert.
+ */
+function legacyFilterToExpression(filter: unknown): unknown[] | null {
+  if (!Array.isArray(filter) || filter.length === 0) return null;
+  const [op, ...rest] = filter as [string, ...unknown[]];
+  const keyToGet = (key: unknown): unknown[] | null =>
+    typeof key !== "string" ? null : key === "$type" ? ["geometry-type"] : ["get", key];
+
+  switch (op) {
+    case "all":
+    case "any": {
+      const parts = rest.map((part) => legacyFilterToExpression(part));
+      return parts.every((part): part is unknown[] => part !== null) ? [op, ...parts] : null;
+    }
+    case "==":
+    case "!=":
+    case "<":
+    case "<=":
+    case ">":
+    case ">=": {
+      const get = keyToGet(rest[0]);
+      return get ? [op, get, rest[1]] : null;
+    }
+    case "in":
+    case "!in": {
+      const get = keyToGet(rest[0]);
+      if (!get) return null;
+      const inExpression = ["in", get, ["literal", rest.slice(1)]];
+      return op === "in" ? inExpression : ["!", inExpression];
+    }
+    case "has":
+      return typeof rest[0] === "string" ? ["has", rest[0]] : null;
+    case "!has":
+      return typeof rest[0] === "string" ? ["!", ["has", rest[0]]] : null;
+    default:
+      return null;
+  }
+}
+
 export type MapStyleOptions = {
   dark: boolean;
   /** PMTiles erreichbar? Ohne Tiles rendert der Stil die Papier-Fallback-Karte. */
@@ -208,14 +258,32 @@ export function buildMapStyle(options: MapStyleOptions): StyleSpecification {
       url: `pmtiles://${options.tilesUrl}`,
       attribution: "© <a href=\"https://openstreetmap.org/copyright\">OpenStreetMap</a>-Mitwirkende, <a href=\"https://protomaps.com\">Protomaps</a>",
     };
-    styleLayers.push(...basemapLayers("protomaps", buildFlavor(options.dark), { lang: "de" }));
 
-    // Umland dezent zuruecknehmen: der Aushang zeigt Oberoesterreich
+    // Harter OOE-Fokus (Produktwunsch 28.07.2026): ausserhalb der Landesgrenze
+    // ist NICHTS zu sehen. Zwei Mechanismen, weil einer nicht reicht:
+    //  1. Labels/POIs (Symbol-Layer) rendern in MapLibre in einem eigenen Pass
+    //     UEBER allen Flaechen - eine Deck-Maske kann sie nicht uebermalen.
+    //     Deshalb bekommt jeder Symbol-Layer einen within-Filter: nur Features
+    //     innerhalb des OOE-Umrisses werden ueberhaupt platziert.
+    //  2. Geometrie (Strassen, Wasser, Flaechen) deckt die opake Maske darunter ab.
+    // Die protomaps-Basemap-Filter sind noch Legacy-Syntax; within gibt es nur
+    // als Expression und mischen verbietet MapLibre - also erst konvertieren.
+    const ooePolygon = outlinePolygon();
+    const withinOoe = ["within", ooePolygon];
+    const basemap = basemapLayers("protomaps", buildFlavor(options.dark), { lang: "de" });
+    for (const layer of basemap) {
+      if (layer.type === "symbol") {
+        const existing = layer.filter === undefined ? null : (legacyFilterToExpression(layer.filter) ?? layer.filter);
+        layer.filter = (existing ? ["all", existing, withinOoe] : withinOoe) as SymbolLayerSpecification["filter"];
+      }
+    }
+    styleLayers.push(...basemap);
+
     styleLayers.push({
       id: "hpmap-outside-dim",
       type: "fill",
       source: "hpmap-outside",
-      paint: { "fill-color": tone.paper, "fill-opacity": 0.45 },
+      paint: { "fill-color": tone.paper, "fill-opacity": 1 },
     });
   } else {
     // Fallback: gezeichnete Papierkarte wie Phase 1, nur frei zoombar
