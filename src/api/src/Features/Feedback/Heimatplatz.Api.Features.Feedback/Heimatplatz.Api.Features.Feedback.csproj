@@ -24,6 +24,8 @@
     <ProjectReference Include="..\..\Auth\Heimatplatz.Api.Features.Auth\Heimatplatz.Api.Features.Auth.csproj" />
     <!-- FeedbackTeamRepliedEvent - der Push-Versand haengt im Notifications-Feature -->
     <ProjectReference Include="..\..\Notifications\Heimatplatz.Api.Features.Notifications.Contracts\Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
+    <!-- ResolveApiBaseUrl (browser-erreichbare Basis fuer Anhang-URLs) -->
+    <ProjectReference Include="..\..\Properties\Heimatplatz.Api.Features.Properties\Heimatplatz.Api.Features.Properties.csproj" />
   </ItemGroup>
 
   <ItemGroup>

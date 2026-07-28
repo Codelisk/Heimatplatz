@@ -1,6 +1,8 @@
 using Heimatplatz.Api.Features.Feedback.Contracts.Models;
 using Heimatplatz.Api.Features.Feedback.Data.Entities;
+using Heimatplatz.Api.Features.Properties.Handlers;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Heimatplatz.Api.Features.Feedback.Infrastructure;
 
@@ -13,13 +15,11 @@ internal static class FeedbackMapping
     /// <summary>Zielbreite der Bild-Vorschauen in Listen/Threads (wie Inserats-Karten)</summary>
     private const int ThumbnailWidth = 640;
 
-    public static string GetBaseUrl(IHttpContextAccessor httpContextAccessor)
-    {
-        var httpContext = httpContextAccessor.HttpContext
-            ?? throw new InvalidOperationException("HttpContext ist nicht verfuegbar.");
-
-        return $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
-    }
+    // Absolute Anhang-URLs muessen browser-erreichbar sein: bevorzugt Api:PublicBaseUrl
+    // statt Scheme+Host der Anfrage - der Astro-SSR-Server ruft die Admin-Endpoints ueber
+    // das interne Docker-Netz (http://api:8080) auf, dessen Host im Browser nicht aufloest.
+    public static string GetBaseUrl(IHttpContextAccessor httpContextAccessor, IConfiguration configuration) =>
+        GetPropertiesHandler.ResolveApiBaseUrl(httpContextAccessor, configuration);
 
     public static FeedbackAttachmentDto ToDto(FeedbackAttachment attachment, string baseUrl)
     {

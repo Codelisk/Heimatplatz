@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Feedback.Data.Entities;
 using Heimatplatz.Api.Features.Feedback.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Shiny;
 using Shiny.Mediator;
 
@@ -20,7 +21,8 @@ namespace Heimatplatz.Api.Features.Feedback.Handlers;
 [MediatorHttpGroup("/api/feedback")]
 public class GetFeedbackTicketHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration
 ) : IRequestHandler<GetFeedbackTicketRequest, GetFeedbackTicketResponse>
 {
     [MediatorHttpGet("/{TicketId}", OperationId = "GetFeedbackTicketDetail", RequiresAuthorization = true)]
@@ -42,7 +44,7 @@ public class GetFeedbackTicketHandler(
         if (ticket == null)
             throw new NotFoundException("Anfrage wurde nicht gefunden");
 
-        var baseUrl = FeedbackMapping.GetBaseUrl(httpContextAccessor);
+        var baseUrl = FeedbackMapping.GetBaseUrl(httpContextAccessor, configuration);
         var dto = new FeedbackTicketDetailDto(
             ticket.Id,
             ticket.Category,
