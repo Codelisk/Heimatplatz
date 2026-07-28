@@ -36,6 +36,10 @@ Produktentscheidungen aus der Abarbeitung frueherer Berichte. Wer eines dieser V
   Berichten vor dem 28.7., die sich auf das `/karte-embed`-WebView beziehen, sind obsolet.
 - **ZV-Detailseite zeigt eine LASTEN-Karte** (28.7., zwischen Beschreibung und Datenblatt,
   mit Summenzeile ab zwei bezifferten Posten). Soll-Verhalten.
+- **"Filter zuruecksetzen" gibt es NUR mobil** (28.7., Web). Der Button lebt bewusst nur
+  im Mobile-Filter-Akkordeon (`MobileFilterPanel.astro`); am Desktop liegen alle Filter
+  einzeln sichtbar in der Suchleiste, ein Sammel-Reset ist dort nicht gewollt.
+  Entscheidung Daniel 28.7. — nicht erneut als fehlend melden.
 
 ## Falschbefund-Fallen — pruefen, BEVOR ein Befund in den Bericht geht
 
@@ -68,6 +72,17 @@ Produktentscheidungen aus der Abarbeitung frueherer Berichte. Wer eines dieser V
 - **Der App-Zustand luegt, die API nicht:** Jede schreibende Aktion (Favorit, Blockieren,
   Anlegen, Loeschen) per API-Gegenprobe verifizieren, bevor "funktioniert" oder
   "funktioniert nicht" im Bericht steht. (27./28.7.)
+- **ZV-Kanon-Canonical ist auf Test NICHT pruefbar** (28.7.): Die Seed-ZV-Properties
+  (Haus in Traun, Grundstueck Enns) haben keine Edikt-URL, der Join in
+  `property-mirror.ts` liefert null → canonical bleibt auf `/immobilien/angebote/…`.
+  Kein Bug — auf Prod setzt der Scraper die Edikt-URL. Gehoert zur Falle-8-Familie.
+- **`textContent` enthaelt VERSTECKTE AuthGate-/Empty-State-Bloecke** (28.7.): Nach
+  erfolgreichem Feedback-Senden "zeigte" main.textContent das Login-Gate — das war der
+  per CSS versteckte Gast-Block. Sichtbarkeit immer ueber `offsetParent !== null`
+  pruefen, sonst Phantom-Befunde.
+- **fullPage-Screenshots zeigen Scroll-Reveal-Sektionen als Leerflaeche** (28.7.):
+  /makler sah nach "Ihre Vorteile" leer aus; nach echtem Scrollen war alles da.
+  Erst scrollen (Reveal ausloesen), dann urteilen.
 
 ## Werkzeug- und Bedien-Fallen
 
@@ -99,8 +114,26 @@ Produktentscheidungen aus der Abarbeitung frueherer Berichte. Wer eines dieser V
 
 ### Web
 
-- Bisher keine Erkenntnisse ueber `web.md` hinaus — dort stehen die CSP-/Override-/
-  Zaehler-Fallen. Neue Web-Erkenntnisse hier ergaenzen.
+- **Frischer Worktree: `src/web/public/tiles/` ist gitignored** — ohne Kopie aus dem
+  Haupt-Checkout 404t `oberoesterreich.pmtiles` und ALLE Karten bleiben leer
+  (Lage-Karte, Split-Karte). Vor dem Karten-Test kopieren. (28.7.)
+- **/karte-embed rendert ohne `?ansicht=karte` nur die Legende** — das ist der Vertrag
+  mit der MAUI-App (Param oeffnet die Karte), kein Bug. `theme=light|dark` uebersteuert
+  das gespeicherte Theme. (28.7.)
+- **/intern ist lokal nicht testbar** — die Seiten brauchen serverseitig
+  `ADMIN_API_KEY` (nur am Hetzner-Server gesetzt, IP-Schranke statt Login). Fuer
+  /intern gegen `test.heimatplatz.at` testen (Achtung: deployter Build ≠ Worktree-Stand). (28.7.)
+- **Playwright-MCP: `navigator.clipboard.readText()` haengt endlos** (Permission-Prompt,
+  Call musste gekillt werden) — nie aufrufen; Teilen-/Kopieren-Feedback stattdessen im
+  Code verifizieren. Datei-Uploads gehen nur aus den erlaubten Roots (Worktree bzw.
+  `.playwright-mcp/`) — Testdateien vorher dorthin kopieren. (28.7.)
+- **Umlaut-Titel in Bash/Python-Pipes vergleichen sich unzuverlaessig** (Windows-
+  Encoding): "Baugrundstueck in Wels" war angeblich nicht in der API-Liste, war es
+  aber — bei Gegenproben Titel ausdrucken statt boolesche in-Checks. (28.7.)
+- **Sortierung persistiert als Filter-Preference** (`heimatplatz:filter-preferences`)
+  und wird beim Laden von `/` angewandt, die URL bekommt `?sort=` aber erst bei der
+  naechsten Interaktion nachgeschrieben — kein Bug, nur URL/Zustand-Divergenz
+  (als Hinweis gemeldet 28.7.).
 
 ## Datenlage auf Test (Stand 28.7.)
 
@@ -115,3 +148,13 @@ Produktentscheidungen aus der Abarbeitung frueherer Berichte. Wer eines dieser V
   ("Grosses Baugrundstueck Muehlviertel"). Die Blockierung ist Voraussetzung fuer den
   Blockiert-Filter-Test — nicht dauerhaft aufheben.
 - **test.seller:** 3 Inserate, normalerweise keine Entwuerfe (`/api/property-drafts/` leer).
+- **Feedback-Threads von QA-Laeufen bleiben stehen** (Nutzer koennen nicht loeschen):
+  26.7. "Wunsch / Idee 1" und 28.7. "Problem-Meldung 1" (mit Intern-Testantwort,
+  Status Offen) — beide als "bitte ignorieren/loeschen" gekennzeichnet, nicht als
+  Datenmuell melden. (28.7.)
+- **test.buyer-Filtereinstellungen** wurden am 28.7. explizit auf die App-Defaults
+  gespeichert (Neueste, Haus+Grund, Privat+Makler, Zeitraum Alle) — gespeicherte
+  Prefs vorhanden, aber inhaltlich Default.
+- **"Haus in Traun" (ZV-Spiegel) hat ebenfalls Encumbrances** (Hypothek € 92.500 +
+  Grundsteuer € 2.500) — die Aussage "Grundstueck Enns als einziges" oben stimmt so
+  nicht mehr bzw. bezog sich auf die Auktions-Seite. (28.7.)
