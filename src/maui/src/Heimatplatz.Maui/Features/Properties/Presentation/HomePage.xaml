@@ -270,6 +270,38 @@
                 </Grid>
             </Grid>
 
+            <!-- "Neue Inserate"-Pille: der Delta-Sync ersetzt die sichtbare Liste nie
+                 selbst (das wuerde die Scroll-Position zerstoeren), sondern bietet den
+                 Refresh hier an. Sitzt unter der Chip-Zeile; Markenfarbe statt Glas-Optik,
+                 damit der Hinweis als Aktion auffaellt. -->
+            <Border HorizontalOptions="Center"
+                    VerticalOptions="Start"
+                    Margin="0,64,0,0"
+                    Padding="16,0"
+                    HeightRequest="36"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    IsVisible="{Binding HasNewListings}"
+                    SemanticProperties.Description="{Binding Loc.NewListingsPillSemantic}"
+                    AutomationId="Home_NewListingsPill">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ShowNewListingsCommand}" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                    <Label Text="↑"
+                           FontFamily="SansBold"
+                           FontSize="14"
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                    <Label Text="{Binding Loc.NewListingsPill}"
+                           FontFamily="SansBold"
+                           FontSize="14"
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                </HorizontalStackLayout>
+            </Border>
+
             <!-- Schwebende Karte-Pille: bewusst dezenter als die Web-Pille -
                  Glas-Optik wie die Foto-Action-Buttons der Zettel (X/Blockieren),
                  transparentes Grau + feine Kontur statt Vollton mit Schatten.

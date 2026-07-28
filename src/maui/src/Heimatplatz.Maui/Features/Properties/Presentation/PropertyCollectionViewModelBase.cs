@@ -246,8 +246,10 @@ public abstract partial class PropertyCollectionViewModelBase : ObservableObject
 
         if (evt.FullResync)
         {
-            if (!IsLoggedOut && !IsSellerBlocked)
-                _ = ReloadAsync();
+            // Nicht sofort neu laden: der ReplaceRange-Reset wuerde die Scroll-Position
+            // einer gerade sichtbaren Liste zerstoeren. Beim naechsten OnAppearing wird
+            // stattdessen frisch (am Cache vorbei) geladen.
+            _needsFreshReload = true;
             return;
         }
 

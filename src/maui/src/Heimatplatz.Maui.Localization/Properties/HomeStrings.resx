@@ -21,6 +21,12 @@
   <data name="MapPillSemantic" xml:space="preserve">
     <value>Kartenansicht der Suchergebnisse oeffnen</value>
   </data>
+  <data name="NewListingsPill" xml:space="preserve">
+    <value>Neue Inserate</value>
+  </data>
+  <data name="NewListingsPillSemantic" xml:space="preserve">
+    <value>Neue Inserate anzeigen und Liste aktualisieren</value>
+  </data>
   <data name="EmptyHint" xml:space="preserve">
     <value>Passen Sie Ihre Filter an, um mehr Immobilien zu sehen.</value>
   </data>

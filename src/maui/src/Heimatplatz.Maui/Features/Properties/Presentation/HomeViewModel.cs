@@ -112,6 +112,14 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     [NotifyPropertyChangedFor(nameof(ShowCachedDataNotice))]
     public partial bool IsShowingCachedData { get; set; }
 
+    /// <summary>
+    /// Der Delta-Sync hat neue Inserate gemeldet. Die sichtbare Liste wird bewusst
+    /// NICHT automatisch ersetzt (der ReplaceRange-Reset zerstoert die Scroll-Position) -
+    /// stattdessen bietet die "Neue Inserate"-Pille den Refresh an.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool HasNewListings { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowCachedDataNotice))]
     public partial bool IsEmpty { get; set; }
@@ -870,9 +878,10 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 
     /// <summary>
     /// Wendet die Aenderungen eines Immobilien-Delta-Syncs auf die sichtbare Liste an.
-    /// Geloeschte werden entfernt, geaenderte in-place ersetzt. Nur wenn neue Immobilien
-    /// dazugekommen sind, wird die aktuelle Seite einmal frisch geladen - ob eine neue
-    /// Immobilie zu den aktiven Filtern passt, entscheidet das Backend.
+    /// Geloeschte werden entfernt, geaenderte in-place ersetzt - beides erhaelt die
+    /// Scroll-Position. Neue Immobilien ersetzen die Liste NIE selbst: sie setzen nur
+    /// das Pillen-Flag, der Refresh passiert erst auf Tap (ob eine neue Immobilie zu
+    /// den aktiven Filtern passt, entscheidet dabei das Backend).
     /// </summary>
     private void ApplySyncedChanges(PropertyDataSyncedEvent evt)
     {
@@ -882,7 +891,7 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
 #endif
         if (evt.FullResync)
         {
-            _ = ReloadPropertiesAsync();
+            HasNewListings = true;
             return;
         }
 
@@ -913,14 +922,16 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         }
 
         if (evt.CreatedIds.Count > 0)
-            _ = SilentRefreshCurrentPageAsync();
+            HasNewListings = true;
     }
 
     /// <summary>
-    /// Laedt die aktuelle Seite still neu (ohne Busy-Overlay), z.B. wenn der Delta-Sync
-    /// neue Immobilien gemeldet hat. Laufende Ladevorgaenge haben Vorrang.
+    /// Tap auf die "Neue Inserate"-Pille: erst jetzt wird die aktuelle Seite frisch
+    /// geladen (ohne Busy-Overlay) und an den Listenanfang gescrollt. Laufende
+    /// Ladevorgaenge haben Vorrang - die Pille bleibt dann stehen.
     /// </summary>
-    private async Task SilentRefreshCurrentPageAsync()
+    [RelayCommand]
+    private async Task ShowNewListingsAsync()
     {
         if (IsBusy || IsRefreshing)
             return;
@@ -932,11 +943,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             {
                 ReplaceProperties(items);
                 UpdateResultCount();
+                ScrollToTopRequested?.Invoke(this, EventArgs.Empty);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "[HomePage] Stille Aktualisierung nach Sync fehlgeschlagen");
+            _logger.LogDebug(ex, "[HomePage] Aktualisierung ueber die Neue-Inserate-Pille fehlgeschlagen");
         }
     }
 
@@ -997,7 +1009,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     }
 
     private void ReplaceProperties(IEnumerable<PropertyListItemDto> items)
-        => Properties.ReplaceRange(items);
+    {
+        // Jeder vollstaendige Inhaltstausch (Reload, Seitenwechsel, Pull-to-Refresh,
+        // Pillen-Tap) erledigt den angebotenen Refresh gleich mit - Pille einziehen.
+        HasNewListings = false;
+        Properties.ReplaceRange(items);
+    }
 
     /// <summary>
     /// Baut den API-Request mit allen server-seitigen Filtern. Die Ort-Auswahl wird
