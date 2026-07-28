@@ -25,7 +25,7 @@
     <!-- App Identifier (identisch zur Uno-App) -->
     <ApplicationId>at.heimatplatz.app</ApplicationId>
     <!-- Versionen: werden beim Deploy von der Pipeline gesetzt (siehe Uno-App) -->
-    <ApplicationDisplayVersion>1.83.0</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>1.84.0</ApplicationDisplayVersion>
     <ApplicationVersion>84</ApplicationVersion>
     <!-- Emulator-Screenshot-Builds (Cake AndroidScreenshots): nur die Emulator-ABI.
 		     Eigene Property statt globalem RuntimeIdentifiers, weil globale MSBuild-Props

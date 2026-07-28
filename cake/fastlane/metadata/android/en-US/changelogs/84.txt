@@ -1,0 +1,7 @@
+• Completely new map: smooth gestures, crisp labels, clear focus on Upper Austria
+• Tap a district stamp to zoom straight into that district
+• New location picker: whole districts as a single chip, panel with search
+• Foreclosure auctions: registered encumbrances with total on the detail page
+• Save, block and share are now at the top right of the photo
+• Remove favorites without a confirmation, lists update instantly
+• Swiping through photos works while they are still loading
