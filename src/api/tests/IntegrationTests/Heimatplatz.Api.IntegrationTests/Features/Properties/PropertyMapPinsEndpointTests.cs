@@ -18,7 +18,7 @@ namespace Heimatplatz.Api.IntegrationTests.Features.Properties;
 /// End-to-End-Tests der Kartenansicht (GET /api/properties/map-pins):
 /// - nur Treffer MIT Koordinaten werden Pins, der Rest zaehlt als WithoutCoordinates
 /// - ungenaue Lagen (IsLocationExact=false) werden serverseitig gestreut,
-///   exakte (ZV-Edikte) bleiben punktgenau
+///   exakte (Nutzer-Opt-in "Genau") bleiben punktgenau; ZV bleibt bewusst ungefaehr
 /// - der Endpoint teilt die Filterlogik mit der Listen-Suche (PropertyQueryFilters)
 /// </summary>
 [TestFixture]

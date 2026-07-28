@@ -943,7 +943,8 @@ for (const region of regions) {
       clusterElBySlug = new Map();
 
       // Preis-Schilder (einzelne Inserate). Punkt = gestreute Umgebungslage,
-      // kleines Pin-Symbol = echte Adresse (Anbieter-Wahl "Genau" bzw. ZV-Edikt)
+      // kleines Pin-Symbol = echte Adresse (Nutzer-Opt-in "Genau"; ZV bleibt
+      // bewusst ungefaehr - Produktentscheidung 28.07.2026)
       for (const pin of pins) {
         const el = document.createElement("button");
         el.type = "button";

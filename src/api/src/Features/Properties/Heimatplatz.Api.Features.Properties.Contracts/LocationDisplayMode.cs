@@ -15,7 +15,11 @@ public enum LocationDisplayMode
     /// <summary>Umgebungskreis mit serverseitiger Streuung (Standard fuer Nutzer-Inserate)</summary>
     Approximate = 0,
 
-    /// <summary>Punktgenauer Pin (ZV-Edikte mit oeffentlicher Adresse; Nutzer-Opt-in)</summary>
+    /// <summary>
+    /// Punktgenauer Pin (Nutzer-Opt-in "Genau"). Zwangsversteigerungen bleiben
+    /// BEWUSST auf Approximate (Produktentscheidung 28.07.2026) - der ZV-Sync
+    /// setzt Exact nicht.
+    /// </summary>
     Exact = 1,
 
     /// <summary>Keine Kartenanzeige - das Inserat erscheint weder auf der Suchkarte noch mit Mini-Karte</summary>
