@@ -61,13 +61,14 @@ const locationData = {
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       async function initMap() {
-        const [maplibreModule, pmtilesModule, styleModule] = await Promise.all([
-          import("maplibre-gl"),
+        // maplibre kommt ueber den Loader (setzt die v6-Worker-URL, s. maplibre-loader)
+        const [loaderModule, pmtilesModule, styleModule] = await Promise.all([
+          import("@/features/map/maplibre-loader"),
           import("pmtiles"),
           import("@/features/map/map-style"),
           import("maplibre-gl/dist/maplibre-gl.css"),
         ]);
-        const maplibre = maplibreModule;
+        const maplibre = await loaderModule.loadMaplibre();
 
         const protocol = new pmtilesModule.Protocol();
         maplibre.addProtocol("pmtiles", protocol.tile);

@@ -679,13 +679,14 @@ for (const region of regions) {
     async function ensureMap(): Promise<void> {
       if (mapInitPromise) return mapInitPromise;
       mapInitPromise = (async () => {
-        const [maplibreModule, pmtilesModule, styleModule] = await Promise.all([
-          import("maplibre-gl"),
+        // maplibre kommt ueber den Loader (setzt die v6-Worker-URL, s. maplibre-loader)
+        const [loaderModule, pmtilesModule, styleModule] = await Promise.all([
+          import("@/features/map/maplibre-loader"),
           import("pmtiles"),
           import("@/features/map/map-style"),
           import("maplibre-gl/dist/maplibre-gl.css"),
         ]);
-        maplibre = maplibreModule;
+        maplibre = await loaderModule.loadMaplibre();
 
         const protocol = new pmtilesModule.Protocol();
         maplibre.addProtocol("pmtiles", protocol.tile);
