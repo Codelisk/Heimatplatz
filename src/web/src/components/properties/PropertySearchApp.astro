@@ -516,7 +516,7 @@ const ortRegions = await fetchOrtRegions();
       return firstImage;
     }
 
-    return "/favicon.svg";
+    return "/kein-foto.svg";
   }
 
   function applyImageFallback(image: HTMLImageElement) {
@@ -524,7 +524,7 @@ const ortRegions = await fetchOrtRegions();
     image.dataset.fallbackApplied = "true";
     image.removeAttribute("srcset");
     image.removeAttribute("sizes");
-    image.src = image.dataset.fallbackImage || "/favicon.svg";
+    image.src = image.dataset.fallbackImage || "/kein-foto.svg";
   }
 
   function createApiCard(property: ApiProperty, verifiedImages: VerifiedImageMap) {
@@ -549,7 +549,7 @@ const ortRegions = await fetchOrtRegions();
     image.loading = "lazy";
     image.decoding = "async";
     image.className = "h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]";
-    image.dataset.fallbackImage = "/favicon.svg";
+    image.dataset.fallbackImage = "/kein-foto.svg";
     image.dataset.smartImage = "";
     image.addEventListener("error", () => applyImageFallback(image));
     image.src = responsiveImage.src;

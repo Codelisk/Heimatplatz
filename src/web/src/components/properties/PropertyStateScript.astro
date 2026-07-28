@@ -1890,7 +1890,7 @@
       image.className = "h-full w-full object-cover";
       image.loading = "lazy";
       image.addEventListener("error", () => {
-        image.src = "/favicon.svg";
+        image.src = "/kein-foto.svg";
       }, { once: true });
 
       const remove = document.createElement("button");
@@ -2156,8 +2156,8 @@
     image.className = "h-full w-full object-cover";
     image.alt = property.Title;
     image.loading = "lazy";
-    const responsiveImage = getResponsiveImage(property.ImageUrls?.[0] || "/favicon.svg");
-    image.dataset.fallbackImage = "/favicon.svg";
+    const responsiveImage = getResponsiveImage(property.ImageUrls?.[0] || "/kein-foto.svg");
+    image.dataset.fallbackImage = "/kein-foto.svg";
     image.dataset.smartImage = "";
     image.addEventListener("error", () => applyFallbackImage(image));
     image.src = responsiveImage.src;
@@ -2989,7 +2989,7 @@
     image.dataset.fallbackApplied = "true";
     image.removeAttribute("srcset");
     image.removeAttribute("sizes");
-    image.src = image.dataset.fallbackImage || "/favicon.svg";
+    image.src = image.dataset.fallbackImage || "/kein-foto.svg";
   }
 
   function bindFallbackImages() {
@@ -3011,7 +3011,12 @@
     if (!parent) return;
 
     const source = image.currentSrc || image.src;
-    const isFallbackLogo = source.endsWith("/favicon.svg");
+    // Der gezeichnete Foto-Platzhalter ist als vollflaechiges Motiv angelegt -
+    // object-cover behalten, weder einpassen noch Backdrop erzeugen
+    if (source.endsWith("/kein-foto.svg")) {
+      image.dataset.smartImageApplied = "true";
+      return;
+    }
     const frameWidth = parent.getBoundingClientRect().width;
     // Hochformat nur dort einpassen, wo das ganze Bild zaehlt (Galerie der
     // Detailseite, data-smart-image="fit"). Im Kartenraster wird wie ueberall
@@ -3019,17 +3024,11 @@
     // nach Fehler aus, obwohl das Foto nur hochkant ist (WEB-B06).
     const isPortrait = image.naturalHeight > image.naturalWidth && image.dataset.smartImage === "fit";
     const wouldUpscale = frameWidth > 0 && image.naturalWidth < frameWidth * 0.75;
-    if (!isFallbackLogo && !isPortrait && !wouldUpscale) return;
+    if (!isPortrait && !wouldUpscale) return;
 
     image.dataset.smartImageApplied = "true";
     image.classList.remove("object-cover");
     image.classList.add("object-contain");
-
-    if (isFallbackLogo) {
-      // Logo-Platzhalter nie beschneiden oder weichzeichnen, nur verkleinert zentrieren
-      image.classList.add("p-8", "opacity-70");
-      return;
-    }
 
     parent.classList.add("relative", "isolate", "overflow-hidden");
     const backdrop = document.createElement("div");

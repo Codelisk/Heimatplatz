@@ -14,7 +14,7 @@ interface Props {
   title: string;
 }
 
-const FALLBACK_IMAGE = "/favicon.svg";
+const FALLBACK_IMAGE = "/kein-foto.svg";
 
 const { images, title } = Astro.props;
 
@@ -37,10 +37,12 @@ const remainingCount = items.length - 3;
 {
   !hasImages && (
     <div class="overflow-hidden rounded-xl bg-muted">
+      {/* Der gezeichnete Platzhalter ist ein vollflaechiges Motiv - randlos
+          zuschneiden statt wie frueher das Logo eingepasst abzudunkeln */}
       <img
         src={FALLBACK_IMAGE}
         alt={title}
-        class="h-[320px] w-full object-contain p-10 opacity-70 sm:h-[460px]"
+        class="h-[320px] w-full object-cover sm:h-[460px]"
         loading="eager"
         decoding="async"
       />
@@ -215,7 +217,7 @@ const remainingCount = items.length - 3;
 <script>
   type GalleryItem = { thumb: string; full: string; alt: string };
 
-  const FALLBACK_IMAGE = "/favicon.svg";
+  const FALLBACK_IMAGE = "/kein-foto.svg";
 
   function initGallery(root: HTMLElement) {
     const itemsJson = root.querySelector("[data-gallery-items]")?.textContent;

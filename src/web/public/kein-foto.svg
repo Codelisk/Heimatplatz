@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400" role="img" aria-label="Kein Foto vorhanden">
+  <!-- Vollflaechiger Foto-Platzhalter im Logo-Stil (flat-freundlich-clean):
+       Alpen-Szene aus der Logo-Palette, das fehlende Objekt als gestrichelte
+       Haus-Silhouette, dazu der rote KEIN-FOTO-Stempel der Anschlagtafel.
+       Wichtige Motive bleiben zentriert, damit object-cover-Zuschnitte
+       (Kartenraster 2:1, Galerie-Leerzustand) nichts Wesentliches kappen. -->
+
+  <!-- Himmel -->
+  <rect width="800" height="400" fill="#d5ebe6"/>
+  <circle cx="140" cy="92" r="52" fill="#fbe7b2" opacity=".65"/>
+  <circle cx="140" cy="92" r="32" fill="#f5c95e"/>
+
+  <!-- Wolken -->
+  <path fill="#ffffff" d="M540 98c3-14 14-22 28-22 10 0 18 4 24 12 4-3 10-4 15-4 11 0 21 7 24 18h-91Z"/>
+  <path fill="#ffffff" opacity=".9" d="M268 70c2-10 10-16 20-16 7 0 13 3 17 9 3-2 7-3 11-3 8 0 15 5 17 13h-65Z"/>
+
+  <!-- Bergsilhouetten -->
+  <path fill="#efe4cc" d="M40 268 148 140q7-9 14 0l104 128Z"/>
+  <path fill="#ffffff" d="m124 178 24-29q7-8 14 0l23 31-17-9-13 13-13-13Z"/>
+  <path fill="#e2d4b7" d="M470 268 612 100q8-10 16 0l134 168Z"/>
+  <path fill="#ffffff" d="m585 140 27-33q8-10 16 0l29 38-20-11-16 15-16-15Z"/>
+
+  <!-- Huegel -->
+  <path fill="#bcd489" d="M0 262q170-46 400-18 230 28 400-8v164H0Z"/>
+  <path fill="#a5c96e" d="M0 300q210-48 430-14 190 30 370 0v114H0Z"/>
+
+  <!-- Tannen -->
+  <path fill="#4d8a4b" d="m93 236 21 38h-11l19 34H64l19-34H72Z"/>
+  <rect x="87" y="306" width="11" height="18" rx="4" fill="#8a5f3f"/>
+  <path fill="#5e9b5a" d="m648 240 19 34h-10l17 30h-52l17-30h-10Z"/>
+  <rect x="643" y="302" width="10" height="16" rx="4" fill="#8a5f3f"/>
+
+  <!-- Wiese im Vordergrund -->
+  <path fill="#f0d998" d="M0 330q220-44 800-10v80H0Z"/>
+  <path d="M70 364q260-30 500-14" fill="none" stroke="#e5c377" stroke-width="9" stroke-linecap="round"/>
+  <path d="M180 388q240-24 500-12" fill="none" stroke="#e5c377" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- Gestrichelte Haus-Silhouette: hier fehlt das Foto -->
+  <g stroke="#9f1519" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <path fill="#ffffff" fill-opacity=".55" stroke-dasharray="16 12"
+      d="M330 332V258h-18l88-88 88 88h-18v74Z"/>
+    <circle cx="400" cy="228" r="15" fill="none" stroke-dasharray="9 8"/>
+  </g>
+
+  <!-- Stempel: leicht oberhalb der Bildmitte-Basis, damit er im Kartenraster
+       nicht mit den Chip-Overlays am unteren Bildrand kollidiert -->
+  <g transform="translate(414 300) rotate(-6)">
+    <rect x="-112" y="-28" width="224" height="56" rx="10" fill="#fff8ea" fill-opacity=".92" stroke="#9f1519" stroke-width="5"/>
+    <rect x="-103" y="-19" width="206" height="38" rx="6" fill="none" stroke="#9f1519" stroke-width="2.5"/>
+    <text x="0" y="9" text-anchor="middle" fill="#9f1519" font-family="ui-sans-serif, system-ui, 'Segoe UI', Arial, sans-serif" font-size="26" font-weight="800" letter-spacing="5">KEIN FOTO</text>
+  </g>
+</svg>

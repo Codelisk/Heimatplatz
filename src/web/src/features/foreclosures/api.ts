@@ -54,7 +54,7 @@ type ForeclosureAuctionResponse = {
 };
 
 export const FORECLOSURE_BUILD_LIMIT = 128;
-const FALLBACK_AUCTION_IMAGE = "/favicon.svg";
+const FALLBACK_AUCTION_IMAGE = "/kein-foto.svg";
 
 // Achtung: die Label fliessen ueber getForeclosureAuctionSlug in URLs ein —
 // Wert-Aenderungen in i18n/de/foreclosures.ts aendern also Slugs!

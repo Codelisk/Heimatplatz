@@ -74,7 +74,7 @@ type SearchOptions = {
 };
 
 export const API_PROPERTY_LIST_LIMIT = 96;
-const FALLBACK_PROPERTY_IMAGE = "/favicon.svg";
+const FALLBACK_PROPERTY_IMAGE = "/kein-foto.svg";
 
 export function getApiPropertyPath(propertyOrId: ApiProperty | string) {
   const id = typeof propertyOrId === "string" ? propertyOrId : propertyOrId.Id;
