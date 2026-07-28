@@ -7,6 +7,7 @@ using Heimatplatz.Api.Features.Feedback.Infrastructure;
 using Heimatplatz.Api.Features.Feedback.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Shiny;
 using Shiny.Mediator;
 
@@ -21,7 +22,8 @@ namespace Heimatplatz.Api.Features.Feedback.Handlers;
 public class AddFeedbackMessageHandler(
     AppDbContext dbContext,
     IFeedbackAttachmentService attachmentService,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration
 ) : IRequestHandler<AddFeedbackMessageRequest, AddFeedbackMessageResponse>
 {
     [MediatorHttpPost("/messages", OperationId = "AddFeedbackMessage", RequiresAuthorization = true)]
@@ -58,7 +60,7 @@ public class AddFeedbackMessageHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var baseUrl = FeedbackMapping.GetBaseUrl(httpContextAccessor);
+        var baseUrl = FeedbackMapping.GetBaseUrl(httpContextAccessor, configuration);
         return new AddFeedbackMessageResponse(FeedbackMapping.ToDto(message, baseUrl));
     }
 }

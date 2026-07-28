@@ -3,6 +3,7 @@ using Heimatplatz.Api.Features.Feedback.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Feedback.Infrastructure;
 using Heimatplatz.Api.Features.Feedback.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Shiny;
 using Shiny.Mediator;
 
@@ -16,7 +17,8 @@ namespace Heimatplatz.Api.Features.Feedback.Handlers;
 [MediatorHttpGroup("/api/feedback")]
 public class UploadFeedbackAttachmentHandler(
     IFeedbackAttachmentService attachmentService,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IConfiguration configuration
 ) : IRequestHandler<UploadFeedbackAttachmentRequest, UploadFeedbackAttachmentResponse>
 {
     [MediatorHttpPost("/attachments", OperationId = "UploadFeedbackAttachment", RequiresAuthorization = true)]
@@ -28,7 +30,7 @@ public class UploadFeedbackAttachmentHandler(
         var saved = await attachmentService.SaveBase64Async(
             request.FileName, request.ContentType, request.Base64Data, cancellationToken);
 
-        var baseUrl = FeedbackMapping.GetBaseUrl(httpContextAccessor);
+        var baseUrl = FeedbackMapping.GetBaseUrl(httpContextAccessor, configuration);
         return new UploadFeedbackAttachmentResponse(
             $"{baseUrl}{saved.RelativeUrl}",
             saved.Kind,
