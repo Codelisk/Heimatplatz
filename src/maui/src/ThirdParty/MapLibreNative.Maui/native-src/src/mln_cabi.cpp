@@ -1532,16 +1532,22 @@ int mbgl_map_is_panning(mbgl_map_t* map) noexcept {
 mbgl_status_t mbgl_map_move_by(mbgl_map_t* map, double dx, double dy, int64_t duration_ms) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_move_by: null handle");
     try {
+        auto* m = map_ptr(map);
         mbgl::AnimationOptions anim;
         if (duration_ms > 0) anim.duration = mbgl::Duration(std::chrono::milliseconds(duration_ms));
-        map_ptr(map)->map->moveBy({dx, dy}, anim);
+        m->map->moveBy({ dx / m->pixelRatio, dy / m->pixelRatio }, anim);
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
 }
 
 mbgl_status_t mbgl_map_rotate_by(mbgl_map_t* map, double x0, double y0, double x1, double y1) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_rotate_by: null handle");
-    try { map_ptr(map)->map->rotateBy({x0, y0}, {x1, y1}); return MBGL_OK; }
+    try {
+        auto* m = map_ptr(map);
+        m->map->rotateBy({ x0 / m->pixelRatio, y0 / m->pixelRatio },
+                         { x1 / m->pixelRatio, y1 / m->pixelRatio });
+        return MBGL_OK;
+    }
     catch (const std::exception& e) { return set_native_error(e); }
 }
 

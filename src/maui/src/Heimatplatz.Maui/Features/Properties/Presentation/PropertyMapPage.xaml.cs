@@ -57,19 +57,15 @@ public partial class PropertyMapPage : ContentPage
     {
         InitializeComponent();
 
-        // Karten-Metrik fuers Handy anheben: die Style-px der geteilten Karte
-        // sind auf Desktop-Betrachtung ausgelegt (Ortsnamen 11-12px) - am
-        // Telefon ergibt das nur ~1.7mm Texthoehe (nachgemessen am S24,
-        // 450dpi). Google/Apple rendern Kartenlabels am Handy deutlich
-        // groesser, deshalb Phone/Tablet-Baseline 1.3; UiScale skaliert die
-        // GESAMTE Stilmetrik (Text, Pins, Linien) ueber die Pixeldichte
-        // hinaus. Obendrauf die OS-Schriftskalierung (Samsung
-        // "Schriftgroesse", Dynamic Type, Windows-Textskalierung), damit
-        // Kartentext wie der restliche App-Text mitwaechst. Muss vor der
-        // Handler-Erstellung stehen - wird nur einmal beim Aufbau der
-        // Plattform-View gelesen.
-        var uiScaleBaseline = DeviceInfo.Idiom == DeviceIdiom.Desktop ? 1.0 : 1.3;
-        Map.UiScale = Math.Clamp(uiScaleBaseline * SystemFontScale(), 1.0, 1.7);
+        // Seit dem pixelRatio-Fix im Binding rendert die Karte 1:1 wie die
+        // mobile Astro-Faltkarte (gleiche Style-px, gleiche Proportionen,
+        // gleiche Zoom-Semantik) - das ist die Referenz. UiScale nur noch fuer
+        // die OS-Schriftskalierung (Samsung "Schriftgroesse", Dynamic Type,
+        // Windows-Textskalierung), damit Kartentext wie der restliche App-Text
+        // mitwaechst; gedeckelt, weil der Faktor die GESAMTE Stilmetrik
+        // skaliert. Muss vor der Handler-Erstellung stehen - wird nur einmal
+        // beim Aufbau der Plattform-View gelesen.
+        Map.UiScale = Math.Clamp(SystemFontScale(), 1.0, 1.5);
 
         Map.MapReadyCommand = new Command(OnMapReady);
 
@@ -238,9 +234,16 @@ public partial class PropertyMapPage : ContentPage
         var pad = 24 * MapPixelScale;
         var camera = controller.CameraForLatLngs([OoeSw, OoeNe], pad, pad, pad, pad);
         if (double.IsNaN(camera.Zoom))
+        {
             controller.JumpTo(48.12, 13.87, 7.3); // Fallback: OOE-Mitte
-        else
-            controller.JumpTo(camera.Lat, camera.Lon, camera.Zoom);
+            return;
+        }
+
+        // Rauszoomen endet am Ganz-OOE-Blick: dahinter laege nur leeres Papier
+        // (Umland ist maskiert). Dynamisch statt fixem XAML-MinZoom, weil der
+        // Fit-Zoom vom Seitenverhaeltnis des Viewports abhaengt.
+        controller.SetMinMaxZoomPreference(camera.Zoom, Map.MaxZoom);
+        controller.JumpTo(camera.Lat, camera.Lon, camera.Zoom);
     }
 
     private void AddPinSourcesAndLayers(IMapLibreMapController controller, PropertyMapViewModel vm)
