@@ -246,7 +246,11 @@ export function buildMapStyle(options: MapStyleOptions): StyleSpecification {
   const tone = options.dark ? DARK : LIGHT;
 
   const sources: StyleSpecification["sources"] = {
-    "hpmap-outline": { type: "geojson", data: outlinePolygon() },
+    "hpmap-outline": {
+      type: "geojson",
+      data: outlinePolygon(),
+      attribution: "Grenzen: <a href=\"https://www.statistik.at\">Statistik Austria</a> (CC BY 4.0)",
+    },
     "hpmap-outside": { type: "geojson", data: outsideMask() },
   };
 
