@@ -111,9 +111,6 @@
   <data name="LocationCaption" xml:space="preserve">
     <value>Wählen Sie die Orte aus, für die Sie Benachrichtigungen erhalten möchten. Leer = alle Orte.</value>
   </data>
-  <data name="LocationSearchPlaceholder" xml:space="preserve">
-    <value>Ort oder PLZ suchen...</value>
-  </data>
   <data name="InfoText" xml:space="preserve">
     <value>Ihre Einstellungen werden automatisch gespeichert. Sie erhalten eine Benachrichtigung, sobald eine neue Immobilie Ihren Filtereinstellungen entspricht.</value>
   </data>

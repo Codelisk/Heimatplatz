@@ -60,41 +60,11 @@
   <data name="OrtSectionTitle" xml:space="preserve">
     <value>ORTE</value>
   </data>
-  <data name="OrtPanelTitle" xml:space="preserve">
-    <value>Orte auswählen</value>
-  </data>
-  <data name="ResetButton" xml:space="preserve">
-    <value>Zurücksetzen</value>
-  </data>
-  <data name="OrtSearchPlaceholder" xml:space="preserve">
-    <value>Gemeinde oder PLZ suchen</value>
-  </data>
-  <data name="OrtFieldNone" xml:space="preserve">
-    <value>Ort auswählen</value>
-  </data>
-  <data name="OrtFieldManyFormat" xml:space="preserve">
-    <value>{0} Orte ausgewählt</value>
-  </data>
   <data name="AllOrte" xml:space="preserve">
     <value>Alle Orte</value>
   </data>
   <data name="OrteCountFormat" xml:space="preserve">
     <value>{0} Orte</value>
-  </data>
-  <data name="BezirkAllFormat" xml:space="preserve">
-    <value>{0} (alle)</value>
-  </data>
-  <data name="Apply" xml:space="preserve">
-    <value>Übernehmen</value>
-  </data>
-  <data name="ApplyAllOrte" xml:space="preserve">
-    <value>Übernehmen (alle Orte)</value>
-  </data>
-  <data name="ApplyOneOrt" xml:space="preserve">
-    <value>Übernehmen (1 Ort)</value>
-  </data>
-  <data name="ApplyManyOrteFormat" xml:space="preserve">
-    <value>Übernehmen ({0} Orte)</value>
   </data>
   <data name="ObjektCountOne" xml:space="preserve">
     <value>1 Objekt</value>
@@ -107,8 +77,5 @@
   </data>
   <data name="ResetAllFilters" xml:space="preserve">
     <value>Alle Filter zurücksetzen</value>
-  </data>
-  <data name="SelectedCountFormat" xml:space="preserve">
-    <value>{0} ausgewählt</value>
   </data>
 </root>

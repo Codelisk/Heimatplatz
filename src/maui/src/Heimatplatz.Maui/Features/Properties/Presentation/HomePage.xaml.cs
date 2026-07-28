@@ -55,11 +55,7 @@ public partial class HomePage : ShinyContentPage
         TypePanel.FitContent = true;
         AgePanel.FitContent = true;
 
-        // Das Ort-Panel bleibt bei einem festen Anteil: seine Liste ist beliebig lang
-        // und scrollt selbst - am Inhalt bemessen waere es immer bildschirmfuellend.
-        // Detents im Code-Behind ERSETZEN statt ergaenzen: XAML-Detents addieren zu den
-        // Defaults (Quarter/Half/Full), wodurch Panels am kleinsten Detent oeffnen wuerden.
-        OrtPanel.Detents = new ObservableCollection<DetentValue> { new(0.75), DetentValue.Full };
+        // Das Ort-Panel (OrtAuswahlPanel) bringt seine Detents selbst mit.
     }
 
     protected override void OnBindingContextChanged()

@@ -5,10 +5,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
     xmlns:presentation="clr-namespace:Heimatplatz.Maui.Features.Notifications.Presentation"
-    xmlns:locations="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
+    xmlns:propcontrols="clr-namespace:Heimatplatz.Maui.Features.Properties.Controls"
+    xmlns:shiny="http://shiny.net/maui/controls"
     x:DataType="presentation:NotificationSettingsViewModel"
     Title="{Binding Loc.PageTitle}">
 
+  <Grid>
     <ScrollView>
         <Grid x:Name="NotificationRoot"
               appcontrols:ResponsiveLayout.IsEnabled="True">
@@ -353,87 +355,7 @@
                                     Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
 
-                            <!-- Ausgewaehlte Orte als Chips mit Entfernen-X -->
-                            <FlexLayout
-                                BindableLayout.ItemsSource="{Binding SelectedOrte}"
-                                Wrap="Wrap"
-                                JustifyContent="Start"
-                                IsVisible="{Binding HasSelectedOrte}"
-                                AutomationId="NotificationSettings_OrtListe">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="x:String">
-                                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                                StrokeThickness="0"
-                                                StrokeShape="RoundRectangle 14"
-                                                Padding="10,5"
-                                                Margin="0,0,6,6">
-                                            <HorizontalStackLayout Spacing="6">
-                                                <Label Text="{Binding .}"
-                                                       FontSize="12"
-                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
-                                                       VerticalOptions="Center" />
-                                                <Label Text="✕"
-                                                       FontSize="12"
-                                                       TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
-                                                       VerticalOptions="Center">
-                                                    <Label.GestureRecognizers>
-                                                        <TapGestureRecognizer Command="{Binding RemoveOrtCommand, Source={RelativeSource AncestorType={x:Type presentation:NotificationSettingsViewModel}}, x:DataType=presentation:NotificationSettingsViewModel}"
-                                                                              CommandParameter="{Binding .}" />
-                                                    </Label.GestureRecognizers>
-                                                </Label>
-                                            </HorizontalStackLayout>
-                                        </Border>
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
-                            </FlexLayout>
-
-                            <!-- Ort-Suche -->
-                            <Border StrokeThickness="1"
-                                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                                    StrokeShape="RoundRectangle 10"
-                                    Padding="12,0">
-                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                    <Label Grid.Column="0"
-                                           Text="🔍"
-                                           FontSize="13"
-                                           VerticalOptions="Center"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                                    <Entry Grid.Column="1"
-                                           Text="{Binding OrtSearchText}"
-                                           Placeholder="{Binding Loc.LocationSearchPlaceholder}"
-                                           StyleClass="borderless"
-                                           AutomationId="NotificationSettings_OrtSearch" />
-                                </Grid>
-                            </Border>
-
-                            <!-- Vorschlaege -->
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding OrtSuggestions}"
-                                                 IsVisible="{Binding HasOrtSuggestions}"
-                                                 Spacing="0">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="locations:LocationGemeindeDto">
-                                        <Border StrokeThickness="1"
-                                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                                StrokeShape="RoundRectangle 4"
-                                                Padding="8,10"
-                                                Margin="0,0,0,2">
-                                            <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding AddOrtCommand, Source={RelativeSource AncestorType={x:Type presentation:NotificationSettingsViewModel}}, x:DataType=presentation:NotificationSettingsViewModel}"
-                                                                      CommandParameter="{Binding .}" />
-                                            </Border.GestureRecognizers>
-                                            <Label FontSize="13"
-                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}">
-                                                <Label.Text>
-                                                    <MultiBinding StringFormat="{}{0} ({1})">
-                                                        <Binding Path="Name" />
-                                                        <Binding Path="PostalCode" />
-                                                    </MultiBinding>
-                                                </Label.Text>
-                                            </Label>
-                                        </Border>
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
-                            </VerticalStackLayout>
+                            <propcontrols:OrtAuswahlFeld BindingContext="{Binding Ort}" />
                         </VerticalStackLayout>
                     </Border>
 
@@ -452,4 +374,9 @@
             </VerticalStackLayout>
         </Grid>
     </ScrollView>
+
+    <shiny:OverlayHost>
+      <propcontrols:OrtAuswahlPanel BindingContext="{Binding Ort}" />
+    </shiny:OverlayHost>
+  </Grid>
 </ContentPage>

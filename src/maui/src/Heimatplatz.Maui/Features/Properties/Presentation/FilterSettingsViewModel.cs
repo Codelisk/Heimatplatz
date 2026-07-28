@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Heimatplatz.Maui.Features.Auth;
@@ -28,7 +27,6 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     private bool _isSyncing;
     private bool _preferencesLoaded;
     private Task? _preferencesLoadTask;
-    private Task? _ortTreeLoadTask;
     private CancellationTokenSource? _saveDebounceCts;
     private CancellationTokenSource? _resultCountRefreshCts;
     private AgeFilter _selectedAgeFilter = AgeFilter.Alle;
@@ -42,7 +40,8 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         ILocationService locationService,
         IMediator mediator,
         ILogger<FilterSettingsViewModel> logger,
-        FilterSettingsStringsLocalized loc)
+        FilterSettingsStringsLocalized loc,
+        OrtAuswahlViewModel ort)
     {
         _authService = authService;
         _filterPreferencesService = filterPreferencesService;
@@ -51,6 +50,8 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         _mediator = mediator;
         _logger = logger;
         Loc = loc;
+        Ort = ort;
+        Ort.SelectionApplied += OnOrtSelectionApplied;
 
         AgeFilterOptions = [loc.AgeOptionAll, loc.AgeOptionDay, loc.AgeOptionWeek, loc.AgeOptionMonth, loc.AgeOptionYear];
 
@@ -64,9 +65,6 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         SelectedPageSize = PageSizePreference.Get();
         FilterSummary = string.Empty;
         ResultCountText = loc.ObjektCountFormat(0);
-        OrtPanelSearchText = string.Empty;
-        OrtPanelSearchResults = [];
-        OrtPanelApplyText = loc.Apply;
         _isSyncing = false;
 
         _filterStateService.FilterStateChanged += OnFilterStateChanged;
@@ -80,6 +78,9 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
 
     /// <summary>Lokalisierte Texte fuer XAML-Bindings (Loc.Key)</summary>
     public FilterSettingsStringsLocalized Loc { get; }
+
+    /// <summary>Geteilte Ort-Auswahl (Panel + Chips + Feld); die Seite bindet die Controls daran</summary>
+    public OrtAuswahlViewModel Ort { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSellerFilterVisible))]
@@ -122,45 +123,15 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     [ObservableProperty]
     public partial string ResultCountText { get; set; }
 
-    public ObservableCollection<string> SelectedOrte { get; } = [];
-    public ObservableCollection<OrtChip> OrtChips { get; } = [];
-    public ObservableCollection<OrtBezirkItem> OrtBezirke { get; } = [];
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedOrte))]
-    [NotifyPropertyChangedFor(nameof(OrtFieldLabel))]
-    public partial int SelectedOrteCount { get; set; }
-
-    public bool HasSelectedOrte => SelectedOrteCount > 0;
-
-    public string OrtFieldLabel => SelectedOrteCount switch
-    {
-        0 => Loc.OrtFieldNone,
-        1 => SelectedOrte[0],
-        _ => Loc.OrtFieldManyFormat(SelectedOrteCount)
-    };
-
-    [ObservableProperty]
-    public partial bool IsOrtPanelOpen { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsOrtPanelSearchActive))]
-    [NotifyPropertyChangedFor(nameof(IsOrtPanelBrowseVisible))]
-    public partial string OrtPanelSearchText { get; set; }
-
-    [ObservableProperty]
-    public partial List<OrtGemeindeItem> OrtPanelSearchResults { get; set; }
-
-    [ObservableProperty]
-    public partial string OrtPanelApplyText { get; set; }
-
-    public bool IsOrtPanelSearchActive => OrtPanelSearchText.Trim().Length >= 2;
-    public bool IsOrtPanelBrowseVisible => !IsOrtPanelSearchActive;
-
     public void OnAppearing()
     {
         SyncFiltersFromService();
         UpdateResultCount();
+
+        // Bezirk-Baum schon vor dem ersten Oeffnen des Panels laden: ohne ihn kann
+        // die Chip-Zeile eine Bezirksauswahl nicht als solche erkennen und zerfaellt
+        // beim Betreten der Seite in einen Chip je Gemeinde.
+        _ = Ort.EnsureTreeAsync();
 
         if (_authService.IsAuthenticated && !_filterStateService.HasSessionState)
             _ = LoadFilterPreferencesAsync();
@@ -208,7 +179,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
             SelectedAgeFilterIndex = (int)state.SelectedAgeFilter;
             _selectedSort = state.SelectedSort;
             _excludedSellerSourceIds = state.ExcludedSellerSourceIds.ToList();
-            ReplaceSelectedOrte(state.SelectedOrte);
+            Ort.SetSelection(state.SelectedOrte);
             UpdateFilterSummary();
         }
         finally
@@ -252,7 +223,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
                 SelectedAgeFilterIndex = (int)preferences.SelectedAgeFilter;
                 _selectedSort = preferences.SelectedSort;
                 _excludedSellerSourceIds = preferences.ExcludedSellerSourceIds.ToList();
-                ReplaceSelectedOrte(preferences.SelectedOrte);
+                Ort.SetSelection(preferences.SelectedOrte);
             }
             finally
             {
@@ -394,7 +365,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
                 IsGrundstueckSelected,
                 IsZwangsversteigerungSelected,
                 _selectedAgeFilter,
-                SelectedOrte.ToList(),
+                Ort.SelectedOrte.ToList(),
                 IsPrivateSelected,
                 IsBrokerSelected,
                 _excludedSellerSourceIds,
@@ -468,7 +439,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         {
             await Task.Delay(800, token);
             var preferences = new FilterPreferencesDto(
-                SelectedOrte.ToList(),
+                Ort.SelectedOrte.ToList(),
                 _selectedAgeFilter,
                 IsHausSelected,
                 IsGrundstueckSelected,
@@ -501,9 +472,10 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
             parts.Add(IsPrivateSelected ? Loc.SellerPrivate : Loc.SellerBroker);
         if (_selectedAgeFilter != AgeFilter.Alle)
             parts.Add(AgeFilterOptions[(int)_selectedAgeFilter]);
-        parts.Add(SelectedOrteCount == 0
+        var orte = Ort.SelectedOrte;
+        parts.Add(orte.Count == 0
             ? Loc.AllOrte
-            : SelectedOrteCount == 1 ? SelectedOrte[0] : Loc.OrteCountFormat(SelectedOrteCount));
+            : orte.Count == 1 ? orte[0] : Loc.OrteCountFormat(orte.Count));
 
         FilterSummary = string.Join(" · ", parts);
     }
@@ -537,193 +509,20 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         IsBrokerSelected = true;
         _selectedAgeFilter = AgeFilter.Alle;
         SelectedAgeFilterIndex = (int)AgeFilter.Alle;
-        ReplaceSelectedOrte([]);
+        Ort.SetSelection([]);
         _isSyncing = false;
         PublishFilters();
     }
 
-    [RelayCommand]
-    private async Task OpenOrtPanelAsync()
-    {
-        await EnsureOrtTreeAsync();
-        OrtPanelSearchText = string.Empty;
-        OrtPanelSearchResults = [];
-        SyncOrtPanelFromSelection();
-        UpdateOrtPanelApplyText();
-        IsOrtPanelOpen = true;
-    }
-
-    private Task EnsureOrtTreeAsync()
-    {
-        if (OrtBezirke.Count > 0)
-            return Task.CompletedTask;
-        if (_ortTreeLoadTask is { IsCompleted: false })
-            return _ortTreeLoadTask;
-
-        _ortTreeLoadTask = BuildOrtTreeAsync();
-        return _ortTreeLoadTask;
-    }
-
-    private async Task BuildOrtTreeAsync()
-    {
-        var locations = await _locationService.GetLocationsAsync();
-        var bezirke = locations
-            .SelectMany(bl => bl.Bezirke)
-            .OrderBy(bz => bz.Name, StringComparer.CurrentCulture)
-            .Select(bz =>
-            {
-                var gemeinden = bz.Gemeinden
-                    .OrderBy(g => g.Name, StringComparer.CurrentCulture)
-                    .Select(g => new OrtGemeindeItem { Name = g.Name, PostalCode = g.PostalCode })
-                    .ToList();
-                var bezirk = new OrtBezirkItem
-                {
-                    Name = bz.Name,
-                    Gemeinden = gemeinden,
-                    CountLabelFormatter = count => Loc.SelectedCountFormat(count)
-                };
-                foreach (var gemeinde in gemeinden)
-                    gemeinde.Bezirk = bezirk;
-                return bezirk;
-            });
-
-        OrtBezirke.Clear();
-        foreach (var bezirk in bezirke)
-            OrtBezirke.Add(bezirk);
-        RebuildOrtChips();
-    }
-
-    private void SyncOrtPanelFromSelection()
-    {
-        var selected = SelectedOrte.ToHashSet();
-        foreach (var bezirk in OrtBezirke)
-        {
-            foreach (var gemeinde in bezirk.Gemeinden)
-                gemeinde.IsSelected = selected.Contains(gemeinde.Name);
-            bezirk.RefreshSelectedCount();
-            bezirk.IsExpanded = bezirk.HasSelection && !bezirk.IsAllSelected;
-        }
-    }
-
-    partial void OnOrtPanelSearchTextChanged(string value)
-    {
-        var search = value.Trim();
-        if (search.Length < 2)
-        {
-            OrtPanelSearchResults = [];
-            return;
-        }
-
-        OrtPanelSearchResults = OrtBezirke
-            .SelectMany(b => b.Gemeinden)
-            .Where(g => g.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
-                     || g.PostalCode.StartsWith(search, StringComparison.OrdinalIgnoreCase))
-            .Take(30)
-            .ToList();
-    }
-
-    [RelayCommand]
-    private void ToggleBezirkExpanded(OrtBezirkItem bezirk)
-        => bezirk.IsExpanded = !bezirk.IsExpanded;
-
-    [RelayCommand]
-    private void ToggleBezirkSelection(OrtBezirkItem bezirk)
-    {
-        var target = !bezirk.IsAllSelected;
-        foreach (var gemeinde in bezirk.Gemeinden)
-            gemeinde.IsSelected = target;
-        bezirk.RefreshSelectedCount();
-        UpdateOrtPanelApplyText();
-    }
-
-    [RelayCommand]
-    private void ToggleOrtGemeinde(OrtGemeindeItem gemeinde)
-    {
-        gemeinde.IsSelected = !gemeinde.IsSelected;
-        gemeinde.Bezirk?.RefreshSelectedCount();
-        UpdateOrtPanelApplyText();
-    }
-
-    [RelayCommand]
-    private void ResetOrtPanel()
-    {
-        foreach (var bezirk in OrtBezirke)
-        {
-            foreach (var gemeinde in bezirk.Gemeinden)
-                gemeinde.IsSelected = false;
-            bezirk.SelectedCount = 0;
-        }
-        UpdateOrtPanelApplyText();
-    }
-
-    [RelayCommand]
-    private void ApplyOrtPanel()
-    {
-        var names = OrtBezirke
-            .SelectMany(b => b.Gemeinden)
-            .Where(g => g.IsSelected)
-            .Select(g => g.Name)
-            .ToList();
-        ReplaceSelectedOrte(names);
-        IsOrtPanelOpen = false;
-        PublishFilters();
-    }
-
-    [RelayCommand]
-    private void RemoveOrtChip(OrtChip chip)
-    {
-        var toRemove = chip.Orte.ToHashSet();
-        ReplaceSelectedOrte(SelectedOrte.Where(o => !toRemove.Contains(o)).ToList());
-        PublishFilters();
-    }
-
-    private void ReplaceSelectedOrte(IEnumerable<string> orte)
-    {
-        SelectedOrte.Clear();
-        foreach (var ort in orte)
-            SelectedOrte.Add(ort);
-        SelectedOrteCount = SelectedOrte.Count;
-        OnPropertyChanged(nameof(OrtFieldLabel));
-        RebuildOrtChips();
-    }
-
-    private void RebuildOrtChips()
-    {
-        OrtChips.Clear();
-        var remaining = SelectedOrte.ToHashSet();
-
-        foreach (var bezirk in OrtBezirke)
-        {
-            if (bezirk.Gemeinden.Count == 0 || !bezirk.Gemeinden.All(g => remaining.Contains(g.Name)))
-                continue;
-
-            OrtChips.Add(new OrtChip(Loc.BezirkAllFormat(bezirk.Name), bezirk.Gemeinden.Select(g => g.Name).ToList()));
-            foreach (var gemeinde in bezirk.Gemeinden)
-                remaining.Remove(gemeinde.Name);
-        }
-
-        foreach (var ort in SelectedOrte)
-        {
-            if (remaining.Remove(ort))
-                OrtChips.Add(new OrtChip(ort, [ort]));
-        }
-    }
-
-    private void UpdateOrtPanelApplyText()
-    {
-        var count = OrtBezirke.Sum(b => b.Gemeinden.Count(g => g.IsSelected));
-        OrtPanelApplyText = count switch
-        {
-            0 => Loc.ApplyAllOrte,
-            1 => Loc.ApplyOneOrt,
-            _ => Loc.ApplyManyOrteFormat(count)
-        };
-    }
+    /// <summary>Der Benutzer hat die Ort-Auswahl geaendert (Übernehmen oder Chip-✕)</summary>
+    private void OnOrtSelectionApplied(object? sender, EventArgs e)
+        => PublishFilters();
 
     public void Dispose()
     {
         _saveDebounceCts?.Cancel();
         _resultCountRefreshCts?.Cancel();
+        Ort.SelectionApplied -= OnOrtSelectionApplied;
         _filterStateService.FilterStateChanged -= OnFilterStateChanged;
         _filterStateService.ResultCountChanged -= OnResultCountChanged;
         _authService.AuthenticationStateChanged -= OnAuthenticationStateChanged;

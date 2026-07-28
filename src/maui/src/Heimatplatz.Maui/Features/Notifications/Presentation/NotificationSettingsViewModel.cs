@@ -4,7 +4,7 @@ using Heimatplatz.Features.Notifications.Contracts.Interfaces;
 using Heimatplatz.Features.Notifications.Contracts.Models;
 using Heimatplatz.Maui.Features.Auth;
 using Heimatplatz.Maui.Features.Notifications.Services;
-using Heimatplatz.Maui.Features.Properties.Services;
+using Heimatplatz.Maui.Features.Properties.Presentation;
 using Heimatplatz.Maui.Localization.Notifications;
 using Microsoft.Extensions.Logging;
 using Shiny;
@@ -21,7 +21,6 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 {
     private readonly INotificationService _notificationService;
     private readonly IPushNotificationInitializer _pushNotificationInitializer;
-    private readonly ILocationService _locationService;
     private readonly IAuthService _authService;
     private readonly INavigator _navigator;
     private readonly ILogger<NotificationSettingsViewModel> _logger;
@@ -32,30 +31,25 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     private bool _suppressEnabledChange;
     private bool _restoringRequiredSelection;
 
-    // Gemeinden fuer die Ort-Suche (cached vom LocationService)
-    private List<LocationGemeindeDto> _municipalities = [];
-    private bool _suppressSearch;
-
     public NotificationSettingsViewModel(
         INotificationService notificationService,
         IPushNotificationInitializer pushNotificationInitializer,
-        ILocationService locationService,
         IAuthService authService,
         INavigator navigator,
         ILogger<NotificationSettingsViewModel> logger,
-        NotificationSettingsStringsLocalized loc)
+        NotificationSettingsStringsLocalized loc,
+        OrtAuswahlViewModel ort)
     {
         Loc = loc;
         _notificationService = notificationService;
         _pushNotificationInitializer = pushNotificationInitializer;
-        _locationService = locationService;
         _authService = authService;
         _navigator = navigator;
         _logger = logger;
 
-        SelectedOrte = [];
-        OrtSearchText = string.Empty;
-        OrtSuggestions = [];
+        Ort = ort;
+        Ort.SelectionApplied += OnOrtSelectionApplied;
+
         // Vorauswahl wie der API-Default: die gespeicherten Suchfilter. "Alle
         // neuen Objekte" wuerde auch ueber Zwangsversteigerungen benachrichtigen,
         // die ueberall ein ausdrueckliches Opt-in brauchen.
@@ -133,20 +127,8 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     // Custom filter visibility
     public bool IsCustomFilterVisible => FilterMode == NotificationFilterMode.Custom;
 
-    // Custom filter: Orte (Suche wie im Home-Filter, Auswahl als Chips)
-    [ObservableProperty]
-    public partial List<string> SelectedOrte { get; set; }
-
-    public bool HasSelectedOrte => SelectedOrte.Count > 0;
-
-    [ObservableProperty]
-    public partial string OrtSearchText { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasOrtSuggestions))]
-    public partial List<LocationGemeindeDto> OrtSuggestions { get; set; }
-
-    public bool HasOrtSuggestions => OrtSuggestions.Count > 0;
+    /// <summary>Geteilte Ort-Auswahl (Panel + Chips + Feld); die Seite bindet die Controls daran</summary>
+    public OrtAuswahlViewModel Ort { get; }
 
     // Custom filter: PropertyType
     [ObservableProperty]
@@ -178,7 +160,10 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         }
 
         _ = LoadPreferencesAsync();
-        _ = LoadMunicipalitiesAsync();
+
+        // Bezirk-Baum schon vor dem ersten Oeffnen des Panels laden: ohne ihn kann die
+        // Chip-Zeile eine Bezirksauswahl nicht erkennen und zerfaellt in Einzel-Chips.
+        _ = Ort.EnsureTreeAsync();
     }
 
     /// <summary>
@@ -187,20 +172,11 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
     [RelayCommand]
     private Task GoToLoginAsync() => _navigator.NavigateTo("Login", relativeNavigation: false);
 
-    private async Task LoadMunicipalitiesAsync()
+    /// <summary>Der Benutzer hat die Ort-Auswahl geaendert (Übernehmen oder Chip-✕)</summary>
+    private void OnOrtSelectionApplied(object? sender, EventArgs e)
     {
-        // Bereits geladen - Gemeinde-Liste aendert sich zur Laufzeit nicht
-        if (_municipalities.Count > 0)
-            return;
-
-        try
-        {
-            _municipalities = await _locationService.GetAllMunicipalitiesAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Gemeinden fuer die Ort-Suche konnten nicht geladen werden");
-        }
+        if (_isLoading) return;
+        _ = SavePreferencesAsync();
     }
 
     public void OnDisappearing()
@@ -254,61 +230,6 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         if (_isLoading) return;
         FilterMode = NotificationFilterMode.Custom;
         _ = SavePreferencesAsync();
-    }
-
-    partial void OnSelectedOrteChanged(List<string> value)
-    {
-        OnPropertyChanged(nameof(HasSelectedOrte));
-        if (_isLoading) return;
-        _ = SavePreferencesAsync();
-    }
-
-    partial void OnOrtSearchTextChanged(string value)
-    {
-        if (_suppressSearch) return;
-
-        if (string.IsNullOrWhiteSpace(value) || value.Length < 2)
-        {
-            OrtSuggestions = [];
-            return;
-        }
-
-        var search = value.Trim();
-        OrtSuggestions = _municipalities
-            .Where(m => (m.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
-                      || m.PostalCode.StartsWith(search, StringComparison.OrdinalIgnoreCase))
-                     && !SelectedOrte.Contains(m.Name))
-            .Take(15)
-            .ToList();
-    }
-
-    /// <summary>
-    /// Fuegt einen Ort zur Auswahl hinzu (neue Liste, damit Auto-Save ausgeloest wird)
-    /// </summary>
-    [RelayCommand]
-    private void AddOrt(LocationGemeindeDto gemeinde)
-    {
-        if (!SelectedOrte.Contains(gemeinde.Name))
-        {
-            SelectedOrte = [.. SelectedOrte, gemeinde.Name];
-        }
-
-        _suppressSearch = true;
-        OrtSearchText = string.Empty;
-        _suppressSearch = false;
-        OrtSuggestions = [];
-    }
-
-    /// <summary>
-    /// Entfernt einen Ort aus der Auswahl (neue Liste, damit Auto-Save ausgeloest wird)
-    /// </summary>
-    [RelayCommand]
-    private void RemoveOrt(string ort)
-    {
-        if (SelectedOrte.Contains(ort))
-        {
-            SelectedOrte = SelectedOrte.Where(o => o != ort).ToList();
-        }
     }
 
     partial void OnIsHausSelectedChanged(bool value)
@@ -408,7 +329,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
             IsFilterModeSameAsSearch = preferences.FilterMode == NotificationFilterMode.SameAsSearch;
             IsFilterModeCustom = preferences.FilterMode == NotificationFilterMode.Custom;
 
-            SelectedOrte = preferences.Locations.ToList();
+            Ort.SetSelection(preferences.Locations);
             IsHausSelected = preferences.IsHausSelected;
             IsGrundstueckSelected = preferences.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
@@ -443,12 +364,6 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
                 reconcileDisabledPermission = true;
             }
 #endif
-
-            // Verlassene Ort-Suche zuruecksetzen (Seite ist ein gecachtes Shell-Root)
-            _suppressSearch = true;
-            OrtSearchText = string.Empty;
-            _suppressSearch = false;
-            OrtSuggestions = [];
         }
         catch (Exception ex)
         {
@@ -583,7 +498,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         var success = await _notificationService.UpdatePreferencesAsync(
             IsEnabled,
             FilterMode,
-            SelectedOrte,
+            Ort.SelectedOrte.ToList(),
             IsHausSelected,
             IsGrundstueckSelected,
             IsZwangsversteigerungSelected,

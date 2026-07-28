@@ -8,7 +8,7 @@ namespace Heimatplatz.Maui.Controls;
 /// schneller Tap auf "Fertig" oder eine Auswahl konnte deshalb ein sichtbar
 /// offenes Panel mit IsOpen=false zuruecklassen.
 /// </summary>
-public sealed class ReliableFloatingPanel : ShinyFloatingPanel
+public class ReliableFloatingPanel : ShinyFloatingPanel
 {
     public static readonly BindableProperty RequestedIsOpenProperty = BindableProperty.Create(
         nameof(RequestedIsOpen),
