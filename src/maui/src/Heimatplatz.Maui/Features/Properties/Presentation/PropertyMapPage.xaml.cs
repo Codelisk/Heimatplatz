@@ -45,6 +45,16 @@ public partial class PropertyMapPage : ContentPage
     public PropertyMapPage()
     {
         InitializeComponent();
+
+        // Systemschriftgroesse (Samsung "Schriftgroesse" etc.) auf die Karte
+        // uebertragen: MapLibre multipliziert Style-px nur mit der Pixeldichte,
+        // nicht mit der OS-Schriftskalierung - Kartentext wirkt sonst kleiner
+        // als der restliche App-Text, der per FontAutoScaling mitwaechst.
+        // Gedeckelt, weil der Faktor die gesamte Stilmetrik skaliert (auch
+        // Linien, Icons, Pins). Muss vor der Handler-Erstellung stehen - der
+        // Wert wird nur einmal beim Aufbau der Plattform-View gelesen.
+        Map.UiScale = Math.Clamp(SystemFontScale(), 1.0, 1.3);
+
         Map.MapReadyCommand = new Command(OnMapReady);
 
         // Wie die HomePage-Sheets: FitContent misst den Inhalt selbst - ohne
@@ -53,6 +63,21 @@ public partial class PropertyMapPage : ContentPage
     }
 
     private PropertyMapViewModel? Vm => BindingContext as PropertyMapViewModel;
+
+    /// <summary>OS-Schriftskalierungsfaktor der Plattform (1.0 = Standard).</summary>
+    private static double SystemFontScale()
+    {
+#if ANDROID
+        return Android.App.Application.Context.Resources?.Configuration?.FontScale ?? 1.0;
+#elif IOS || MACCATALYST
+        // Dynamic Type: bevorzugte Body-Groesse relativ zum Standard (17pt)
+        return UIKit.UIFont.PreferredBody.PointSize / 17.0;
+#elif WINDOWS
+        return new global::Windows.UI.ViewManagement.UISettings().TextScaleFactor;
+#else
+        return 1.0;
+#endif
+    }
 
     private void OnMapReady()
     {

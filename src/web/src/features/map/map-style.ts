@@ -232,6 +232,61 @@ function legacyFilterToExpression(filter: unknown): unknown[] | null {
   }
 }
 
+/** Zoom-Interpolation (linear) als text-size/icon-size-Expression. */
+const growWithZoom = (...stops: [zoom: number, size: number][]): unknown[] => [
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  ...stops.flat(),
+];
+
+/** Groessen-Weiche der Ortsnamen: klein/gross nach population_rank (Struktur wie protomaps). */
+const rankSize = (threshold: number, small: number, big: number): unknown[] => [
+  "case",
+  ["<", ["get", "population_rank"], threshold], small,
+  [">=", ["get", "population_rank"], threshold], big,
+  0,
+];
+
+/**
+ * Lesbarkeits-Fix: die protomaps-Basemap deckelt viele Label-Groessen bei
+ * fixen 8-12px (Desktop-Annahme) - beim Hineinzoomen wachsen Strassennamen,
+ * Ortsnamen kleiner Gemeinden (population_rank < 8, also fast alle in OOE)
+ * und POIs nicht mit und bleiben am Handy winzig. Etablierte Styles (Mapbox
+ * Streets, Google) lassen Labels ueber den ganzen Zoombereich interpolieren.
+ * Deshalb hier: text-size der bekannten Deckel-Layer durch weiterwachsende
+ * Kurven ersetzen. Die Endstops liegen bei z16, weil beide Karten (Web und
+ * MAUI) bei maxZoom 16.5 enden - dahinter haelt interpolate den letzten Wert.
+ * Werte in Style-px; die native Karte multipliziert mit der Geraetedichte.
+ * places_locality spiegelt die population_rank-Schwellen der Basemap
+ * (@protomaps/basemaps) - bei einem Paket-Update abgleichen.
+ */
+const BASEMAP_TEXT_SIZE_OVERRIDES: Record<string, unknown[]> = {
+  places_locality: [
+    "interpolate", ["linear"], ["zoom"],
+    2, rankSize(13, 8, 13),
+    4, rankSize(13, 10, 15),
+    6, rankSize(12, 11, 17),
+    8, rankSize(11, 11, 18),
+    10, rankSize(9, 12, 20),
+    13, rankSize(8, 14, 22),
+    16, rankSize(8, 19, 26),
+  ],
+  roads_labels_major: growWithZoom([11, 12], [16, 17]),
+  roads_labels_minor: growWithZoom([15, 13], [16.5, 16]),
+  water_waterway_label: growWithZoom([13, 12], [16, 15]),
+  water_label_lakes: growWithZoom([3, 10], [6, 12], [10, 12], [16, 16]),
+  // POIs starten in der Basemap erst bei z17 zu wachsen - unterhalb unserer
+  // maxZoom-Grenze waeren sie sonst IMMER 10px
+  pois: growWithZoom([13, 10.5], [16, 14]),
+  roads_shields: growWithZoom([11, 8], [16, 11]),
+};
+
+/** Strassenschilder: Sprite muss im selben Verhaeltnis wie der Text wachsen. */
+const BASEMAP_ICON_SIZE_OVERRIDES: Record<string, unknown[]> = {
+  roads_shields: growWithZoom([11, 0.8], [16, 1.1]),
+};
+
 export type MapStyleOptions = {
   dark: boolean;
   /** PMTiles erreichbar? Ohne Tiles rendert der Stil die Papier-Fallback-Karte. */
@@ -279,6 +334,16 @@ export function buildMapStyle(options: MapStyleOptions): StyleSpecification {
       if (layer.type === "symbol") {
         const existing = layer.filter === undefined ? null : (legacyFilterToExpression(layer.filter) ?? layer.filter);
         layer.filter = (existing ? ["all", existing, withinOoe] : withinOoe) as SymbolLayerSpecification["filter"];
+
+        const textSize = BASEMAP_TEXT_SIZE_OVERRIDES[layer.id];
+        const iconSize = BASEMAP_ICON_SIZE_OVERRIDES[layer.id];
+        if (textSize || iconSize) {
+          layer.layout = {
+            ...layer.layout,
+            ...(textSize ? { "text-size": textSize } : {}),
+            ...(iconSize ? { "icon-size": iconSize } : {}),
+          } as SymbolLayerSpecification["layout"];
+        }
       }
     }
     styleLayers.push(...basemap);
