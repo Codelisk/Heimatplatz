@@ -38,18 +38,47 @@ Daneben faellt eine wiederkehrende Layout-Schwaeche auf: in den Bottom-Sheets is
 
 ## Nachtrag 27.07. — behobene Befunde
 
-Im Anschluss an den Testlauf wurden die beiden **kartenunabhaengigen** S3-Befunde behoben und am
-Emulator nachverifiziert. **B-03 (Karte) bleibt bewusst offen** — die Kartenansicht steht als Ganzes
-zur Disposition (moeglicher Wechsel auf ein natives Kartensteuerelement), ein Fix am WebView waere
-vermutlich Wegwerfarbeit. Auch **B-01** bleibt offen und wird zusammen mit der Kartenentscheidung
-geloest.
+Alle Befunde sind abgearbeitet. In einer ersten Runde die beiden kartenunabhaengigen S3-Befunde,
+danach die Kartenumstellung (eigene Session) und zuletzt die S4-Runde. Ein Befund (B-06) hat sich
+bei genauerem Hinsehen als Fehldeutung herausgestellt und wurde zurueckgezogen statt „repariert".
 
 | Befund | Status | Aenderung |
 |---|---|---|
+| **B-01** blockierte Objekte auf der Karte | ✅ behoben | Die Kartenansicht wurde auf ein natives MapLibre-Steuerelement umgestellt (`70cd6ac`). Die Pins laufen jetzt ueber `mediator.Request` — dieselbe authentifizierte Pipeline wie die Liste, damit greift der Blockier-Filter serverseitig. |
 | **B-02** Sheets schneiden die Primaeraktion ab | ✅ behoben + verifiziert | `HomePage.xaml.cs`: Sortier-, Typ- und Zeitraum-Sheet auf `FitContent = true` statt fester Detent-Anteile |
+| **B-03** Karte ohne Ladeanzeige | ⚪ hinfaellig | Beschrieb das Verhalten des Karten-WebViews, den es nicht mehr gibt. Am nativen Steuerelement nicht nachgeprueft. |
 | **B-04** widerspruechliche Offline-Meldungen | ✅ behoben + verifiziert | `HomeViewModel.cs` + `HomePage.xaml`: neues `ShowCachedDataNotice`, `UpdateResultCount()` auch im Fehlerpfad |
-| **B-01** blockierte Objekte auf der Karte | offen | wartet auf die Kartenentscheidung |
-| **B-03** Karte ohne Ladeanzeige | offen | wartet auf die Kartenentscheidung |
+| **B-05** „Kopiert!" erscheint doppelt | ✅ behoben + verifiziert | `PropertyDetailViewModel.cs` + `.xaml`: eigener Kanal `ShareFeedback`/`HasShareFeedback` fuer den Teilen-Knopf, `CopyFeedback` bleibt der Kontaktleiste |
+| **B-06** linker Pfeil im Bildbetrachter angeschnitten | ❌ kein Befund | Fehldeutung im Testlauf: der Knopf lag ueber einer sehr dunklen Bildpartie und verschmolz optisch mit dem schwarzen Hintergrund. Die Raender sind im Code symmetrisch (je 14), auf hellen Bildern sind beide Pfeile vollstaendige Kreise. |
+| **B-07** Bildbetrachter deckt die Titelleiste nicht ab | ✅ behoben + verifiziert | `Shell.NavBarIsVisible` an das neue `IsNavBarVisible` gebunden — die Leiste verschwindet, solange die Lightbox offen ist |
+| **B-08** fehlender Umlaut in „pruefen" | ✅ behoben + verifiziert | `PropertyMapStrings.resx:25` |
+| **B-09** Trefferzahl hinter der Karten-Pille | ✅ behoben + verifiziert | `HomePage.xaml`: unterer Footer-Freiraum von 20 auf 72 (Pille ist 40 hoch + 20 Abstand) |
+| **B-10** irrefuehrende Meldung bei leerem Titel | ✅ behoben + verifiziert | Neue Meldung `ValidationTitleRequired`, Leer- und Zu-kurz-Fall getrennt geprueft |
+
+Damit sind **alle Befunde erledigt** — 8 behoben, 1 als Fehldeutung zurueckgezogen, 1 hinfaellig.
+Offen bleiben nur die 7 Hinweise/Fragen (Design-Entscheidungen) und die 2 einmaligen Beobachtungen.
+
+### Nachverifikation der S4-Fixes am Geraet
+
+Die zweite Fix-Runde wurde auf dem **physischen Geraet** nachgeprueft (Galaxy S24 Ultra,
+SM-S928B, 1080×2340 @ dpi 450 = 384×832 dp) — also auf einer anderen Groesse als der
+Emulator der ersten Runde, was besonders fuer die layoutabhaengigen Fixes aussagekraeftig ist:
+
+| Pruefpunkt | Ergebnis |
+|---|---|
+| Typ-Sheet „Fertig" | vollstaendig, `T=1952 B=2104` bei 2340 Bildschirmhoehe |
+| Sortier-Sheet, alle 8 Optionen | vollstaendig, letzte endet bei `2104` |
+| Trefferzahl vs. Karten-Pille | „11 Objekte" `1949–2003`, Pille `2036–2149` — kein Ueberlapp |
+| „Kopiert!" nach Kopieren in der Kontaktleiste | nur **einmal**, in der Kontaktleiste; unter der Adresse nichts mehr |
+| Bildbetrachter | Titelleiste ausgeblendet, kehrt nach Zurueck-Taste **und** X-Knopf zurueck |
+| Karte offline | „Bitte **prüfen** Sie Ihre Verbindung" |
+| Startseite offline mit Cache | Liste **und** Hinweis, kein Fehlerzustand |
+| Startseite wieder online | kein Hinweis, Liste laedt |
+| Wizard: leerer Titel | „Bitte geben Sie einen Titel für Ihr Inserat ein." |
+| Wizard: Titel „Haus" | „Titel muss mindestens 10 Zeichen lang sein" |
+
+Screenshots: `shots/dev-01-*` bis `shots/dev-10-*` (Geraet), `shots/s4-01-*` bis `shots/s4-08-*` (Emulator).
+Der beim Validierungstest entstandene Entwurf wurde wieder geloescht — die Test-Daten bleiben sauber.
 
 ### B-02 — Nachweis
 

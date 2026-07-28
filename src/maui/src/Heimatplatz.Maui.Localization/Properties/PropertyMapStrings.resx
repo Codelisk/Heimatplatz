@@ -22,7 +22,7 @@
     <value>Keine Verbindung</value>
   </data>
   <data name="OfflineHint" xml:space="preserve">
-    <value>Die Kartenansicht braucht eine Internetverbindung. Bitte pruefen Sie Ihre Verbindung und versuchen Sie es erneut.</value>
+    <value>Die Kartenansicht braucht eine Internetverbindung. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.</value>
   </data>
   <data name="LoadFailedTitle" xml:space="preserve">
     <value>Karte konnte nicht geladen werden</value>

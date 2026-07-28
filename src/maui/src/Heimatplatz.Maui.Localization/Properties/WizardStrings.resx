@@ -246,6 +246,9 @@
   <data name="VideosCount" xml:space="preserve">
     <value>{0} Videos</value>
   </data>
+  <data name="ValidationTitleRequired" xml:space="preserve">
+    <value>Bitte geben Sie einen Titel für Ihr Inserat ein.</value>
+  </data>
   <data name="ValidationTitleTooShort" xml:space="preserve">
     <value>Titel muss mindestens 10 Zeichen lang sein</value>
   </data>

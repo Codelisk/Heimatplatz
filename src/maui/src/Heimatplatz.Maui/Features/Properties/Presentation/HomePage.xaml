@@ -139,9 +139,12 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                     <CollectionView.Footer>
+                        <!-- Unterer Freiraum haelt die Trefferzahl frei von der schwebenden
+                             Karten-Pille (40 hoch + 20 Abstand): sie stand sonst genau dahinter
+                             und war am Listenende nur halb lesbar. -->
                         <Grid ColumnDefinitions="Auto,*,Auto"
                               ColumnSpacing="10"
-                              Padding="12,12,12,20"
+                              Padding="12,12,12,72"
                               IsVisible="{Binding HasResults}"
                               AutomationId="Home_Pagination">
                             <Button Grid.Column="0"

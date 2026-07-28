@@ -8,6 +8,7 @@
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.PropertyDetailPage"
              x:DataType="vm:PropertyDetailViewModel"
              appcontrols:DeferredFlyoutLock.IsEnabled="True"
+             Shell.NavBarIsVisible="{Binding IsNavBarVisible}"
              Title="{Binding Title}">
 
     <!-- Single-Cell-Grid: Der Kontakt-Footer liegt als Bottom-Sheet UEBER dem Inhalt.
@@ -369,10 +370,12 @@
                                    FontSize="13"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
-                            <Label Text="{Binding CopyFeedback}"
+                            <!-- Nur die Teilen-Rueckmeldung: "Kopiert!" der Kontaktleiste
+                                 hat ihre eigene Anzeige unten im Kontakt-Panel -->
+                            <Label Text="{Binding ShareFeedback}"
                                    FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                   IsVisible="{Binding HasCopyFeedback}" />
+                                   IsVisible="{Binding HasShareFeedback}" />
                         </VerticalStackLayout>
 
                         <!-- Kernfakten auf einen Blick -->

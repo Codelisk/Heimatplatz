@@ -84,11 +84,24 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     [ObservableProperty]
     public partial bool HasContactPerson { get; set; }
 
+    /// <summary>Rueckmeldung der Kontaktleiste ("Kopiert!") - nur dort sichtbar.</summary>
     [ObservableProperty]
     public partial string? CopyFeedback { get; set; }
 
     [ObservableProperty]
     public partial bool HasCopyFeedback { get; set; }
+
+    /// <summary>
+    /// Rueckmeldung des Teilen-Knopfs im Kopfbereich. Bewusst getrennt von
+    /// <see cref="CopyFeedback"/>: beide Stellen haengen sonst an derselben Property
+    /// und leuchten gleichzeitig auf - "Kopiert!" stand dann auch unter der Adresse,
+    /// wo gar nichts kopiert wurde.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? ShareFeedback { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasShareFeedback { get; set; }
 
     [ObservableProperty]
     public partial bool IsAuthenticated { get; set; }
@@ -262,10 +275,18 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     /// <summary>Pfeile im Vollbild-Viewer: nur offen UND mehrere Bilder (kombiniert, da WinUI verschachtelte IsVisible-Bindings nicht malt)</summary>
     public bool ShowViewerNavigation => IsImageViewerOpen && HasMultipleImages;
 
+    /// <summary>
+    /// Navigationsleiste ausblenden, solange die Lightbox offen ist. Der Viewer liegt
+    /// im Seiteninhalt und damit unterhalb der Titelleiste - ohne das hier blieben
+    /// Zurueck-Pfeil und Inseratstitel ueber dem abgedunkelten Vollbild stehen.
+    /// </summary>
+    public bool IsNavBarVisible => !IsImageViewerOpen;
+
     partial void OnIsImageViewerOpenChanged(bool value)
     {
         OnPropertyChanged(nameof(ShowContactFooter));
         OnPropertyChanged(nameof(ShowViewerNavigation));
+        OnPropertyChanged(nameof(IsNavBarVisible));
 
         if (value)
             EnsureFullImageCached();
@@ -1340,11 +1361,11 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         var result = await _shareService.ShareLinkAsync(Property.Title, propertyUrl, description);
         if (result == ShareResult.SharedNatively)
         {
-            await ShowCopyFeedbackAsync(_loc.SharedFeedback, 2000);
+            await ShowShareFeedbackAsync(_loc.SharedFeedback, 2000);
         }
         else if (result == ShareResult.CopiedToClipboard)
         {
-            await ShowCopyFeedbackAsync(_loc.CopiedToClipboardFeedback, 2000);
+            await ShowShareFeedbackAsync(_loc.CopiedToClipboardFeedback, 2000);
         }
     }
 
@@ -1444,6 +1465,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         await Launcher.Default.OpenAsync(new Uri(OriginalListingUrl));
     }
 
+    /// <summary>Rueckmeldung in der Kontaktleiste - dort stehen die Kopieren-Knoepfe.</summary>
     private async Task ShowCopyFeedbackAsync(string message, int durationMs)
     {
         CopyFeedback = message;
@@ -1451,6 +1473,16 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
         await Task.Delay(durationMs);
         CopyFeedback = null;
         HasCopyFeedback = false;
+    }
+
+    /// <summary>Rueckmeldung im Kopfbereich - dort sitzt der Teilen-Knopf.</summary>
+    private async Task ShowShareFeedbackAsync(string message, int durationMs)
+    {
+        ShareFeedback = message;
+        HasShareFeedback = true;
+        await Task.Delay(durationMs);
+        ShareFeedback = null;
+        HasShareFeedback = false;
     }
 
     #endregion

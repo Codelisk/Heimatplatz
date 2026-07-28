@@ -137,7 +137,15 @@ public partial class PropertyWizardViewModel
     /// <summary>Spiegelt die CreateProperty-Serverregeln (Ranges), Meldungen wie im Web.</summary>
     private bool ValidateDetails()
     {
-        if (string.IsNullOrWhiteSpace(Titel) || Titel.Trim().Length < 10)
+        // Leeres Feld und zu kurzer Titel getrennt melden: "mindestens 10 Zeichen"
+        // ist verwirrend, wenn ueberhaupt nichts eingegeben wurde.
+        if (string.IsNullOrWhiteSpace(Titel))
+        {
+            ErrorMessage = Loc.ValidationTitleRequired;
+            return false;
+        }
+
+        if (Titel.Trim().Length < 10)
         {
             ErrorMessage = Loc.ValidationTitleTooShort;
             return false;
