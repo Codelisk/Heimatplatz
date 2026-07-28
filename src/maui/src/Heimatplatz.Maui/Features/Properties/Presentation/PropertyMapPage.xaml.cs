@@ -335,7 +335,11 @@ public partial class PropertyMapPage : ContentPage
             {
                 ["icon-image"] = ChipImageExpression(),
                 ["icon-text-fit"] = "both",
-                ["icon-text-fit-padding"] = new object[] { 5.5, 10, 5.5, 10 },
+                // Asymmetrisch (oben 3.5 / unten 7.5): die Zeilenbox des 1.4x
+                // skalierten Bullets traegt oben Luft auf - symmetrisches Padding
+                // laesst Preis+Punkt sichtbar nach unten sacken (Browser-Iteration
+                // mit identischer Render-Engine, s. map-verify-Testseite).
+                ["icon-text-fit-padding"] = new object[] { 3.5, 10, 7.5, 10 },
                 // Typ-Punkt als Bullet U+2022: das Basis-Noto-Sans der Glyph-PBFs
                 // enthaelt KEIN U+25CF (Geometric Shapes = Noto Sans Symbols) -
                 // damit rendert "●" schlicht gar nicht. font-scale pumpt das

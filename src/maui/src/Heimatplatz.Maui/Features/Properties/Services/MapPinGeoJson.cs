@@ -135,10 +135,12 @@ internal static class MapPinGeoJson
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    // Entzerrung wie im Web: 3 Iterationen, Mindestabstand 46px, auf der
-    // Uebersichts-Zoomstufe der frisch eingepassten Karte projiziert.
+    // Entzerrung wie im Web: 3 Iterationen auf der Uebersichts-Zoomstufe der
+    // frisch eingepassten Karte projiziert. Mindestabstand 52px: volle Stempel
+    // (Count >= 20) sind 48px + Strich gross - mit den frueheren 46px kuessten
+    // sich benachbarte Grossstempel bei vielen Eintraegen (Stresstest 28.07).
     private const double ReferenceZoom = 7.3;
-    private const double MinDistancePixels = 46;
+    private const double MinDistancePixels = 52;
 
     private static List<MapStamp> Declutter(List<MapStamp> stamps)
     {

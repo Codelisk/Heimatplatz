@@ -1063,7 +1063,9 @@ for (const region of regions) {
             const dx = projected[j].x - projected[i].x;
             const dy = projected[j].y - projected[i].y;
             const distance = Math.hypot(dx, dy);
-            const minDistance = 46;
+            // 52: volle Stempel (>=20 Treffer) sind 48px gross - mit 46 kuessten
+            // sich benachbarte Grossstempel bei vielen Eintraegen
+            const minDistance = 52;
             if (distance > 0 && distance < minDistance) {
               const push = (minDistance - distance) / 2;
               projected[i].x -= (dx / distance) * push;
