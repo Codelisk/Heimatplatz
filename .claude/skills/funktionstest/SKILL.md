@@ -64,7 +64,12 @@ Das Inventar ist die Checkliste — am Ende muss jede Zeile ein Ergebnis haben.
 
 ### Phase 2 — Umgebung aufsetzen
 
-Jetzt die passende Referenz lesen und die dort beschriebene Umgebung herstellen:
+**Zuerst `references/erkenntnisse.md` lesen — immer, fuer jede Plattform.** Das ist das
+lebende Gedaechtnis aller bisherigen Laeufe: bewusste Produktentscheidungen (die NICHT
+erneut als Befund gemeldet werden duerfen), Falschbefund-Fallen und Werkzeug-Fallen.
+Ein Lauf, der diese Datei ueberspringt, wiederholt teure Fehler frueherer Laeufe.
+
+Danach die passende Plattform-Referenz lesen und die dort beschriebene Umgebung herstellen:
 
 - Web → `references/web.md`
 - MAUI → `references/maui.md`
@@ -194,11 +199,36 @@ Im Chat kurz und ehrlich zusammenfassen — nicht den ganzen Bericht ausschuette
 Ehrlich bleiben: wenn ein Bereich uebersprungen wurde, steht das drin. Kein "alles gruen",
 wenn nicht alles angesehen wurde.
 
+### Phase 6 — Erkenntnisse zurueckschreiben
+
+Nach dem Melden `references/erkenntnisse.md` aktualisieren — das ist Teil des Auftrags,
+nicht optional. Hinein gehoert ausschliesslich Wiederverwendbares:
+
+- **Falschbefund-Fallen:** alles, was in diesem Lauf beinahe (oder tatsaechlich) als Bug
+  gemeldet worden waere und keiner war — mit dem Prueftrick, der es entlarvt hat
+- **Werkzeug-Fallen:** Stolpersteine der Testwerkzeuge selbst (adb, Emulator, Dumps,
+  Browser), die Zeit gekostet haben
+- **Produktentscheidungen:** wenn der Auftraggeber bei der Abarbeitung "passt so" zu
+  einem gemeldeten Verhalten sagt, wandert es in die "Bewusst so"-Liste — damit es
+  kein spaeterer Lauf erneut meldet
+- **Datenlage-Aenderungen:** wenn sich die Test-DB relevant veraendert hat
+  (neue/geloeschte Referenzobjekte, Testbenutzer-Zustaende)
+
+**Nicht** hinein gehoeren die Befunde selbst (die stehen im Bericht) oder Einmaliges ohne
+Wiederverwendungswert. Bestehende Eintraege schaerfen statt Duplikate anhaengen,
+Ueberholtes loeschen (z.B. Fallen zu inzwischen ersetzten Komponenten), Eintraege datieren.
+
+Wer spaeter **Befunde eines Berichts abarbeitet**, pflegt die Datei ebenfalls: als
+Falschbefund zurueckgezogene Punkte und "passt so"-Entscheidungen gehoeren sofort hinein.
+
 ---
 
 ## Referenzen
 
+- `references/erkenntnisse.md` — **Pflichtlektuere vor jedem Lauf**: lebendes Gedaechtnis
+  aller Laeufe (bewusste Entscheidungen, Falschbefund- und Werkzeug-Fallen, Datenlage);
+  wird in Phase 6 von jedem Lauf gepflegt
 - `references/web.md` — Astro-Web: Setup, Routen, Testbenutzer, CSP-/Override-Fallen
-- `references/maui.md` — MAUI: Emulator, Build, DevFlow, API-Umschalter, Fallen
+- `references/maui.md` — MAUI: Geraet/Emulator, Build, DevFlow, API-Umschalter, Fallen
 - `usertests/PropertyDetailPage_Testfaelle.md` — vorhandene Feld-Sichtbarkeits-Testfaelle je Objekttyp
 - `usertests/` — Playwright-Setup (Achtung: `baseURL` zeigt auf die **API** `:5292`, nicht auf das Web)

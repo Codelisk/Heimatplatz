@@ -6,9 +6,17 @@ App-ID `at.heimatplatz.app`, TFMs `net10.0-android`, `-ios`, `-maccatalyst`, `-w
 
 | Ziel | Wann | Wie |
 |---|---|---|
-| **Android-Emulator** (Standard) | echter Funktionstest — Touch, Gesten, Zurueck-Taste, Berechtigungen, Offline | siehe unten |
+| **Physisches Geraet** (erste Wahl, wenn angesteckt) | echter Funktionstest; ausserdem Push, Kamera, echte Performance | `adb devices -l` — Daniels S24 Ultra ist `R5CX33VK3YV` (1080×2340 @ dpi 450 = 384×832 dp); `adb reverse tcp:19223 tcp:19223` fuer den DevFlow-Broker |
+| **Android-Emulator** | wenn kein Geraet haengt — Touch, Gesten, Zurueck-Taste, Berechtigungen, Offline | siehe unten |
 | **Windows/WinUI** | schneller Zwischencheck einzelner Seiten | `src/maui/.claude/skills/verify/SKILL.md` — fertiges Build-/DevFlow-Rezept |
-| **Physisches Geraet** | Push, Kamera, echte Performance | `adb reverse tcp:19223 tcp:19223` fuer den DevFlow-Broker |
+
+**Geraete-Vorsicht:** Das angesteckte Geraet ist Daniels privates Telefon und kann waehrend
+des Tests **parallel bedient** werden (von ihm selbst oder einer anderen Session). Deshalb:
+UI-Dump immer unmittelbar vor dem Tap im selben Schritt, vorher pruefen, dass die erwartete
+Seite vorne ist, bei unerklaerlichem Ansichtswechsel abbrechen statt weiterklicken — und
+niemals auf Koordinaten aus einem aelteren Dump tippen (ein Fehl-Tap landete so schon in
+einer fremden App). Schreibende Aktionen serverseitig gegenpruefen; Offline-Tests
+(`svc wifi/data disable`) danach SOFORT wieder aktivieren.
 
 **WinUI ist kein Ersatz fuer einen Funktionstest** — dort gibt es eigene Layout- und
 Input-Eigenheiten (CarouselView-Verzerrung, Overlay-Clipping, Tap-Probleme), die auf Android
@@ -26,6 +34,12 @@ Am 26.7. zeigte die App `349 000 €` statt `€ 289.000` — der Fehler steckte
 Worktree, `master` war korrekt. Laeuft schon ein Emulator, der einer anderen Session gehoeren
 koennte: **eigenen Emulator auf eigenem Port** starten (`emulator -avd <name> -port 5556`;
 dieselbe AVD kann nicht zweimal laufen). Bei mehreren Geraeten immer `adb -s <serial>`.
+
+Emulator-Start-Fallen: `emulator.exe ... | Select-Object -First N` **killt den Emulator**
+(Pipeline schliesst) — nur per `Start-Process` mit `-RedirectStandardOutput` in eine Logdatei
+starten. Eine AVD kann von einem haengenden qemu-Prozess gesperrt sein (dann scheitert auch
+`-read-only`); gleichwertiger Ausweg: eigenen frischen Build per `adb uninstall` + install
+auf einen bereits laufenden Emulator bringen — das sichert die Code-Herkunft genauso.
 
 **2. Laeuft gerade die Release-/Screenshot-Pipeline?**
 `AndroidScreenshots` (release-android.ps1) kapert einen laufenden Emulator, deinstalliert den
