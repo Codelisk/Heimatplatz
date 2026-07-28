@@ -6,7 +6,7 @@
     <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
 	  <ShinyMediatorVersion>6.8.0</ShinyMediatorVersion>
 	  <ShinyExtensionsVersion>5.1.4</ShinyExtensionsVersion>
-    <ShinyDocumentDbVersion>12.1.0</ShinyDocumentDbVersion>
+    <ShinyDocumentDbVersion>12.2.2</ShinyDocumentDbVersion>
     <ShinyPushVersion>5.4.0-beta-0074</ShinyPushVersion>
     <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
@@ -32,12 +32,12 @@
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.90" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Shiny.Maui.Shell" Version="6.3.2" />
-    <PackageVersion Include="Shiny.Maui.Controls" Version="1.0.1-beta-0148" />
+    <PackageVersion Include="Shiny.Maui.Controls" Version="1.0.1-beta-0149" />
     <PackageVersion Include="Shiny.Extensions.MauiHosting" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Extensions.Serialization" Version="$(ShinyExtensionsVersion)" />
     <PackageVersion Include="Shiny.Mediator.Maui" Version="$(ShinyMediatorVersion)" />
     <PackageVersion Include="Shiny.Hosting.Maui" Version="$(ShinyPushVersion)" />
-    <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0017" />
+    <PackageVersion Include="Shiny.Speech" Version="3.0.0-beta-0018" />
     <PackageVersion Include="Microsoft.Maui.DevFlow.Agent" Version="0.1.0-preview.12.26368.2" />
     <!-- Localization (rein deutsch, Strings aus .resx via Shiny-Generator) -->
     <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
@@ -67,14 +67,14 @@
     <PackageVersion Include="Google.Apis.SearchConsole.v1" Version="1.74.0.3847" />
 
     <!-- PDF image extraction (foreclosure appraisal fallback) -->
-    <PackageVersion Include="PdfPig" Version="0.1.15" />
+    <PackageVersion Include="PdfPig" Version="0.1.16-alpha-20260717-5ee5c" />
 
     <!-- API packages -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.16.16" />
-    <PackageVersion Include="SkiaSharp" Version="4.150.1" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
+    <PackageVersion Include="SkiaSharp" Version="4.151.0-rc.1.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.151.0-rc.1.1" />
 
     <!-- Resilience + OpenTelemetry (Telemetrie geht in die eigene DB, kein OTLP-Export) -->
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="$(MicrosoftExtensionsVersion)" />
@@ -96,8 +96,8 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
 
     <!-- Background-Jobs (TickerQ, EF-Core-Store im AppDbContext) -->
-    <PackageVersion Include="TickerQ" Version="10.4.0" />
-    <PackageVersion Include="TickerQ.EntityFrameworkCore" Version="10.4.0" />
+    <PackageVersion Include="TickerQ" Version="10.4.1-beta" />
+    <PackageVersion Include="TickerQ.EntityFrameworkCore" Version="10.4.1-beta" />
 
     <!-- Entity Framework -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftVersion)" />
