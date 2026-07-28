@@ -26,7 +26,7 @@ import {
   isCourtForeclosure,
   type ApiContact,
 } from "@/features/properties/live-api";
-import { getApiPriceFact, getApiPropertyDetailSections } from "@/features/properties/detail-sections";
+import { getApiPriceFact, getApiPropertyDetailSections, getApiPropertyEncumbrances } from "@/features/properties/detail-sections";
 import { getForeclosureCanonicalPath } from "@/features/foreclosures/property-mirror";
 import { getDisplayTitle } from "@/features/properties/format";
 import { t } from "@/i18n";
@@ -95,6 +95,9 @@ const originalUrl = contactCards.find((contact) => contact.OriginalListingUrl)?.
 const primaryEmail = contactCards.find((contact) => contact.Email)?.Email;
 const primaryPhone = contactCards.find((contact) => contact.Phone)?.Phone;
 const detailSections = getApiPropertyDetailSections(property);
+// Lasten (Grundbuch-C-Blatt): fuer Bieter kaufentscheidend, deshalb VOR dem
+// Datenblatt - gleiche Karte und Regeln wie in der MAUI-App (Lasten-Paritaet).
+const encumbrances = isForeclosure ? getApiPropertyEncumbrances(property) : { items: [], totalText: null };
 ---
 
 <BaseLayout
@@ -194,6 +197,31 @@ const detailSections = getApiPropertyDetailSections(property);
             </div>
           ))}
         </dl>
+
+        {encumbrances.items.length > 0 && (
+          <section class="mt-8" aria-labelledby="api-encumbrances">
+            <h2 id="api-encumbrances" class="text-sm font-bold uppercase text-muted-foreground">{t("detail.sectionEncumbrances")}</h2>
+            <div class="mt-4 rounded-lg border border-border bg-card p-4">
+              <dl class="divide-y divide-border">
+                {encumbrances.items.map((item) => (
+                  <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2 text-sm">
+                    <dt>
+                      <span class="font-medium">{item.description}</span>
+                      {item.creditor && <span class="block text-muted-foreground">{item.creditor}</span>}
+                    </dt>
+                    <dd class="text-right font-medium">{item.amountText}</dd>
+                  </div>
+                ))}
+              </dl>
+              {encumbrances.totalText && (
+                <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-t border-border pt-2 text-sm">
+                  <span class="text-muted-foreground">{t("detail.encumbranceTotal")}</span>
+                  <span class="text-right font-bold">{encumbrances.totalText}</span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {detailSections.length > 0 && (
           <section class="mt-8" aria-labelledby="api-details">

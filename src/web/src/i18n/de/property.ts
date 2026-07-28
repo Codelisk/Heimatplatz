@@ -52,6 +52,10 @@ export const property = {
   "detail.sectionAuction": "Versteigerung",
   "detail.sectionCosts": "Kosten",
 
+  // Lasten-Karte (Grundbuch-C-Blatt) - Beschriftungen wie in der MAUI-App
+  "detail.sectionEncumbrances": "Lasten",
+  "detail.encumbranceTotal": "Gesamt",
+
   // Detail-Sektionen: Zeilen-Labels
   "detail.labelPurchasePrice": "Kaufpreis",
   "detail.labelEstimatedValue": "Schätzwert",

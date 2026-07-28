@@ -182,6 +182,63 @@ export function getApiPriceFact(property: ApiProperty): DetailItem {
   return { label, value: price ? formatMoney(price) : t("property.priceOpen") };
 }
 
+export type EncumbranceItem = {
+  description: string;
+  creditor: string | null;
+  amountText: string | null;
+};
+
+export type EncumbranceDisplay = {
+  items: EncumbranceItem[];
+  /** Summe aller bezifferten Posten - erst ab zwei Beträgen, sonst stünde dieselbe Zahl doppelt da */
+  totalText: string | null;
+};
+
+/**
+ * Lasten (Grundbuch-C-Blatt) für die Lasten-Karte - Anzeige-Regeln wie in der
+ * MAUI-App (ForeclosureDetailViewModel.ParseEncumbrances): Gläubiger entfällt als
+ * Zweitzeile, wenn die Bezeichnung ihn schon enthält ("Hypothek Bank Austria"
+ * braucht kein zweites "Bank Austria" darunter); ohne Bezeichnung springt der
+ * Gläubiger als Titel ein; ganz leere Einträge entfallen.
+ */
+export function getApiPropertyEncumbrances(property: ApiProperty): EncumbranceDisplay {
+  const data = readTypeSpecificData(property);
+  const raw = data.Encumbrances;
+  const items: EncumbranceItem[] = [];
+  let total = 0;
+  let amountCount = 0;
+
+  if (Array.isArray(raw)) {
+    for (const entry of raw) {
+      if (!entry || typeof entry !== "object") continue;
+      const record = entry as Record<string, unknown>;
+      const description = typeof record.Description === "string" ? record.Description.trim() : "";
+      const creditor = typeof record.Creditor === "string" ? record.Creditor.trim() : "";
+      const amount = numberValue(record.Amount);
+
+      const title = description || creditor;
+      if (!title) continue;
+
+      const showCreditor = creditor !== "" && !title.toLowerCase().includes(creditor.toLowerCase());
+      if (amount) {
+        total += amount;
+        amountCount++;
+      }
+
+      items.push({
+        description: title,
+        creditor: showCreditor ? creditor : null,
+        amountText: amount ? formatMoney(amount) : null,
+      });
+    }
+  }
+
+  return {
+    items,
+    totalText: amountCount >= 2 ? formatMoney(total) : null,
+  };
+}
+
 export function getApiPropertyDetailSections(property: ApiProperty): PropertyDetailSection[] {
   const data = readTypeSpecificData(property);
   const sections = new Map<string, DetailItem[]>();
