@@ -255,7 +255,7 @@ const primaryFacts = [
           <span class="block truncate text-sm font-semibold">{getAuctionPriceLabel(auction)}</span>
           <span class="mt-0.5 block truncate text-xs text-muted-foreground">{t("zv.dateShort", { date: formatAuctionDateShort(auction.AuctionDate) })}</span>
         </span>
-        {auction.EdictUrl ? (
+        {auction.EdictUrl && (
           <a
             class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-accent"
             href={auction.EdictUrl}
@@ -265,10 +265,6 @@ const primaryFacts = [
             {t("zv.viewEdict")}
             <ExternalLinkIcon class="size-4" aria-hidden="true" />
           </a>
-        ) : (
-          <span class="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-muted-foreground">
-            {t("zv.edictPending")}
-          </span>
         )}
       </div>
     </section>

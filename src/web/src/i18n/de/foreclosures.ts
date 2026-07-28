@@ -52,7 +52,6 @@ export const foreclosures = {
   "zv.quickAccess": "Schnellzugriff",
   "zv.dateShort": "Termin: {date}",
   "zv.viewEdict": "Edikt ansehen",
-  "zv.edictPending": "Edikt offen",
 
   // Dokument-Links
   "zv.docEdict": "Edikt",
