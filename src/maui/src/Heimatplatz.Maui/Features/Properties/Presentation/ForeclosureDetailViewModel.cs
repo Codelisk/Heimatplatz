@@ -138,6 +138,22 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     [ObservableProperty]
     public partial List<PropertyDetailSection> DetailSections { get; set; }
 
+    // === Lasten (Grundbuch-C-Blatt) ===
+
+    /// <summary>Eingetragene Lasten mit Betrag und Glaeubiger - eigene Karte statt Key-Value-Zeilen</summary>
+    [ObservableProperty]
+    public partial List<EncumbranceDisplayItem> EncumbranceItems { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasEncumbrances { get; set; }
+
+    /// <summary>Summe aller bezifferten Lasten - nur bei mehreren Posten sinnvoll</summary>
+    [ObservableProperty]
+    public partial string? EncumbranceTotalText { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasEncumbranceTotal { get; set; }
+
     /// <summary>Kernfakten als Kacheln direkt unter dem Kopf (auf einen Blick)</summary>
     [ObservableProperty]
     public partial List<StatTileItem> StatTiles { get; set; }
@@ -435,6 +451,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
         TypeBadgeColor = Color.FromArgb("#DE2A2F");
         DetailSections = [];
         StatTiles = [];
+        EncumbranceItems = [];
         CourtName = string.Empty;
         IsAuthenticated = authService.IsAuthenticated;
     }
@@ -726,6 +743,10 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             DetailSections = [];
             StatTiles = [];
             HasStatTiles = false;
+            EncumbranceItems = [];
+            HasEncumbrances = false;
+            EncumbranceTotalText = null;
+            HasEncumbranceTotal = false;
             Description = null;
             HasDescription = false;
             HasDocuments = false;
@@ -871,6 +892,9 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             HasCourtName = true;
         }
         AddJsonString(items, data, "FileNumber", _loc.LabelFileNumber, PropertyDataCategory.Rechtliches);
+
+        // --- LASTEN (C-Blatt) - eigene Karte mit Glaeubiger-Zweitzeile und Summe ---
+        ParseEncumbrances(data);
 
         // --- FLÄCHEN ---
         AddJsonDecimalArea(items, data, "TotalArea", _loc.LabelTotalArea, PropertyDataCategory.Flaechen);
@@ -1035,6 +1059,67 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     {
         if (data.HasValue && data.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var val))
             items.Add(new PropertyDetailItem(label, PropertyDisplay.Price(val), category, highlighted));
+    }
+
+    /// <summary>
+    /// Liest die eingetragenen Lasten (Encumbrances) fuer die Lasten-Karte. Der
+    /// Glaeubiger entfaellt als Zweitzeile, wenn die Bezeichnung ihn schon enthaelt
+    /// ("Hypothek Bank Austria" braucht kein zweites "Bank Austria" darunter).
+    /// Die Summe erscheint erst ab zwei bezifferten Posten - bei einem einzigen
+    /// stuende dieselbe Zahl nur doppelt da.
+    /// </summary>
+    private void ParseEncumbrances(JsonElement? data)
+    {
+        var result = new List<EncumbranceDisplayItem>();
+        decimal total = 0;
+        var amountCount = 0;
+
+        if (data.HasValue &&
+            data.Value.TryGetProperty("Encumbrances", out var array) &&
+            array.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var entry in array.EnumerateArray())
+            {
+                if (entry.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                var description = entry.TryGetProperty("Description", out var d) && d.ValueKind == JsonValueKind.String
+                    ? d.GetString()
+                    : null;
+                var creditor = entry.TryGetProperty("Creditor", out var c) && c.ValueKind == JsonValueKind.String
+                    ? c.GetString()
+                    : null;
+                decimal? amount = entry.TryGetProperty("Amount", out var a) && a.ValueKind == JsonValueKind.Number && a.TryGetDecimal(out var value) && value > 0
+                    ? value
+                    : null;
+
+                // Ohne Bezeichnung springt der Glaeubiger als Titel ein; ganz leere Eintraege entfallen
+                var title = !string.IsNullOrWhiteSpace(description) ? description.Trim()
+                    : !string.IsNullOrWhiteSpace(creditor) ? creditor.Trim()
+                    : null;
+                if (title is null)
+                    continue;
+
+                var showCreditor = !string.IsNullOrWhiteSpace(creditor) &&
+                    !title.Contains(creditor.Trim(), StringComparison.OrdinalIgnoreCase);
+
+                if (amount is { } amt)
+                {
+                    total += amt;
+                    amountCount++;
+                }
+
+                result.Add(new EncumbranceDisplayItem(
+                    title,
+                    showCreditor ? creditor!.Trim() : null,
+                    amount is { } val ? PropertyDisplay.Price(val) : null));
+            }
+        }
+
+        EncumbranceItems = result;
+        HasEncumbrances = result.Count > 0;
+        HasEncumbranceTotal = amountCount >= 2;
+        EncumbranceTotalText = amountCount >= 2 ? PropertyDisplay.Price(total) : null;
     }
 
     private static void AddJsonDecimalArea(List<PropertyDetailItem> items, JsonElement? data, string propertyName, string label, PropertyDataCategory category)

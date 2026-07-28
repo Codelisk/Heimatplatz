@@ -31,7 +31,8 @@
                 <Border IsVisible="{Binding HasError}"
                         Style="{StaticResource ErrorBanner}">
                     <Label Text="{Binding ErrorMessage}"
-                           Style="{StaticResource ErrorBannerText}" />
+                           Style="{StaticResource ErrorBannerText}"
+                           AutomationId="Login_ErrorMessage" />
                 </Border>
 
                 <!-- Form Fields -->
@@ -43,6 +44,7 @@
                                Style="{StaticResource FieldLabel}" />
                         <Border Style="{StaticResource BoxedField}">
                             <Entry x:Name="EmailEntry"
+                                   AutomationId="Login_Email"
                                    Style="{StaticResource BoxedFieldEntry}"
                                    StyleClass="borderless"
                                    Text="{Binding Email}"
@@ -59,6 +61,7 @@
                                Style="{StaticResource FieldLabel}" />
                         <Border Style="{StaticResource BoxedField}">
                             <Entry x:Name="PasswortEntry"
+                                   AutomationId="Login_Password"
                                    Style="{StaticResource BoxedFieldEntry}"
                                    StyleClass="borderless"
                                    Text="{Binding Passwort}"
@@ -68,6 +71,7 @@
                                    ReturnCommand="{Binding LoginCommand}" />
                         </Border>
                         <Button Text="{Binding Loc.ForgotPasswordLink}"
+                                AutomationId="Login_ForgotPassword"
                                 Command="{Binding GoToForgotPasswordCommand}"
                                 Style="{StaticResource LinkButton}"
                                 FontSize="13"
@@ -78,6 +82,7 @@
 
                 <!-- Login Button -->
                 <Button Text="{Binding Loc.LoginButton}"
+                        AutomationId="Login_Submit"
                         Command="{Binding LoginCommand}"
                         Style="{StaticResource PrimaryButton}" />
 
@@ -88,6 +93,7 @@
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
                            VerticalOptions="Center" />
                     <Button Text="{Binding Loc.RegisterLink}"
+                            AutomationId="Login_GoToRegister"
                             Command="{Binding GoToRegisterCommand}"
                             Style="{StaticResource LinkButton}"
                             FontSize="14" />

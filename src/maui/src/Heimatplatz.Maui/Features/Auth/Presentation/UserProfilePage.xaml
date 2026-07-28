@@ -48,6 +48,8 @@
         </Grid>
     </Shell.TitleView>
 
+    <!-- Grid-Wurzel: die Theme-Einblendung liegt UEBER dem Inhalt, nicht in ihm -->
+    <Grid>
     <ScrollView>
         <VerticalStackLayout x:Name="ProfilePageLayout"
                              Spacing="0">
@@ -487,5 +489,37 @@
 
         </VerticalStackLayout>
     </ScrollView>
+
+    <!-- Kurzeinblendung des Design-Modus nach einem Tipp auf den Umschalter.
+         Der erste Schritt (System -> Hell) aendert bei hellem System-Theme nur
+         das Symbol - die Pille macht den Wechsel trotzdem sichtbar. Gleiche
+         dunkle Glass-Optik wie der Umschalter selbst; sie schwebt oben mittig
+         ueber dem roten Hero und wird vom Code-Behind ein- und ausgeblendet. -->
+    <Border x:Name="ThemeModeToast"
+            IsVisible="False"
+            Opacity="0"
+            InputTransparent="True"
+            HorizontalOptions="Center"
+            VerticalOptions="Start"
+            Margin="0,16,0,0"
+            Padding="15,8"
+            BackgroundColor="{StaticResource GlassPillBackground}"
+            Stroke="{StaticResource GlassPillStroke}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 18"
+            AutomationId="Profile_ThemeModeToast">
+        <HorizontalStackLayout Spacing="8">
+            <Image Source="{Binding ThemeIcon}"
+                   WidthRequest="15"
+                   HeightRequest="15"
+                   VerticalOptions="Center" />
+            <Label Text="{Binding ThemeModeLabel}"
+                   FontSize="12.5"
+                   FontFamily="SansSemibold"
+                   VerticalOptions="Center"
+                   TextColor="{StaticResource White}" />
+        </HorizontalStackLayout>
+    </Border>
+    </Grid>
 
 </ContentPage>

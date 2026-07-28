@@ -147,6 +147,12 @@
   <data name="LabelCourt" xml:space="preserve">
     <value>Gericht</value>
   </data>
+  <data name="SectionEncumbrances" xml:space="preserve">
+    <value>Lasten</value>
+  </data>
+  <data name="EncumbranceTotal" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
   <data name="LabelFileNumber" xml:space="preserve">
     <value>Aktenzeichen</value>
   </data>

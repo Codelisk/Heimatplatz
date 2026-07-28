@@ -240,6 +240,18 @@ Wird als Umgebungsproblem eingestuft, nicht als App-Befund.
 
 ## Hinweise und Fragen (keine Bugs)
 
+> **Nachtrag 28.07. — Entscheidungen getroffen und umgesetzt** (verifiziert am Galaxy S24 Ultra):
+>
+> | Hinweis | Entscheidung | Umsetzung |
+> |---|---|---|
+> | **H-01** Rueckfrage beim Favoriten-Entfernen | Rueckfrage entfernen | `FavoritesViewModel.ConfirmBeforeRemove => false` — entfernt jetzt wie die Blockiert-Seite ohne Dialog (Server-Gegenprobe 4→3, Testdaten danach wiederhergestellt) |
+> | **H-02** Lasten auf der ZV-Detailseite | einbauen | Eigene „Lasten"-Karte zwischen Beschreibung und Datenblatt: Bezeichnung mit Glaeubiger-Zweitzeile (entfaellt, wenn schon im Namen enthalten), Betraege rechtsbuendig, Summe unter Haarlinie ab zwei bezifferten Posten. `shots/h-03-lasten-karte.png` |
+> | **H-03** „GEBÄUDE" bei ZV-Grundstueck | passt so | keine Aenderung |
+> | **H-04** Flyout-Eintrag unter der Falz | nicht machen | keine Aenderung |
+> | **H-05** Theme-Umschalter ohne sichtbare Wirkung | Modusnamen einblenden | Glass-Pille mit Icon + „Design: hell/dunkel/System" schwebt nach jedem Tipp kurz ueber dem Hero (Fade-in 140 ms, 1,2 s stehen, Fade-out 320 ms); nur bei echtem Tipp, nicht beim Seitenaufbau. `shots/h-09-…` (hell) / `h-10-…` (dunkel) |
+> | **H-06** Gericht doppelt | ist okay so | keine Aenderung |
+> | **H-07** AutomationIds auf Auth-Seiten | machen | 16 IDs auf Anmelden (`Login_*`), Registrieren (`Register_*`) und Passwort vergessen (`ForgotPassword_*`); am Geraet per UI-Dump verifiziert |
+
 - **H-01 — Favorit entfernen fragt nach, Blockierung aufheben nicht.** Auf der Favoriten-Seite erscheint „Favorit entfernen? / Möchten Sie ‚…' wirklich aus Ihren Favoriten entfernen?" mit Nein/Ja; auf der Blockiert-Seite wird ohne Rueckfrage entfernt. Im Code ist das bewusst so (`PropertyCollectionViewModelBase.ConfirmBeforeRemove => true`, nur `BlockedViewModel` ueberschreibt auf `false`). Angesichts der Vorgabe „keine Rueckfragen bei umkehrbaren Aktionen" waere Gleichbehandlung konsequenter — beides ist mit einem Tipp wiederherstellbar. Screenshot: `shots/37-favorit-entfernen.png`
 - **H-02 — ZV-Detail zeigt die Lasten nicht.** Die API liefert zu „Grundstück Enns" `Encumbrances` (Hypothek Bank Austria € 34.000, Grundsteuer € 2.500). Auf der Detailseite kommen sie an keiner Stelle vor. Fuer ZV-Interessenten ist das eine wesentliche Information — bewusst dem Edikt ueberlassen oder Luecke?
 - **H-03 — ZV-Grundstueck zeigt einen Abschnitt „GEBÄUDE".** Bei „Grundstück Enns" erscheint „GEBÄUDE / Zustand: Renovierungsbedürftig", obwohl es ein Grundstueck ohne Bebauung ist. Ursache sind die **Seed-Daten** (`BuildingArea: 0`, aber `BuildingCondition: "Renovierungsbedürftig"`); die App gibt nur wieder, was sie bekommt. Fix entweder in den Seed-Daten oder durch Ausblenden des Abschnitts bei `BuildingArea = 0`.

@@ -32,7 +32,8 @@
                 <Border IsVisible="{Binding HasError}"
                         Style="{StaticResource ErrorBanner}">
                     <Label Text="{Binding ErrorMessage}"
-                           Style="{StaticResource ErrorBannerText}" />
+                           Style="{StaticResource ErrorBannerText}"
+                           AutomationId="Register_ErrorMessage" />
                 </Border>
 
                 <!-- Form Fields -->
@@ -47,6 +48,7 @@
                                    Style="{StaticResource FieldLabel}" />
                             <Border Style="{StaticResource BoxedField}">
                                 <Entry x:Name="VornameEntry"
+                                       AutomationId="Register_FirstName"
                                        Style="{StaticResource BoxedFieldEntry}"
                                        StyleClass="borderless"
                                        Text="{Binding Vorname}"
@@ -62,6 +64,7 @@
                                    Style="{StaticResource FieldLabel}" />
                             <Border Style="{StaticResource BoxedField}">
                                 <Entry x:Name="NachnameEntry"
+                                       AutomationId="Register_LastName"
                                        Style="{StaticResource BoxedFieldEntry}"
                                        StyleClass="borderless"
                                        Text="{Binding Nachname}"
@@ -78,6 +81,7 @@
                                Style="{StaticResource FieldLabel}" />
                         <Border Style="{StaticResource BoxedField}">
                             <Entry x:Name="EmailEntry"
+                                   AutomationId="Register_Email"
                                    Style="{StaticResource BoxedFieldEntry}"
                                    StyleClass="borderless"
                                    Text="{Binding Email}"
@@ -94,6 +98,7 @@
                                Style="{StaticResource FieldLabel}" />
                         <Border Style="{StaticResource BoxedField}">
                             <Entry x:Name="PasswortEntry"
+                                   AutomationId="Register_Password"
                                    Style="{StaticResource BoxedFieldEntry}"
                                    StyleClass="borderless"
                                    Text="{Binding Passwort}"
@@ -110,6 +115,7 @@
                                Style="{StaticResource FieldLabel}" />
                         <Border Style="{StaticResource BoxedField}">
                             <Entry x:Name="PasswortBestaetigungEntry"
+                                   AutomationId="Register_PasswordConfirm"
                                    Style="{StaticResource BoxedFieldEntry}"
                                    StyleClass="borderless"
                                    Text="{Binding PasswortBestaetigung}"
@@ -131,6 +137,7 @@
                                        Style="{StaticResource Caption}" />
                             </VerticalStackLayout>
                             <Switch Grid.Column="1"
+                                    AutomationId="Register_WantsToSell"
                                     IsToggled="{Binding WantsToSell, Mode=TwoWay}"
                                     VerticalOptions="Center" />
                         </Grid>
@@ -219,6 +226,7 @@
                                        Style="{StaticResource FieldLabel}" />
                                 <Border Style="{StaticResource BoxedField}">
                                     <Entry Style="{StaticResource BoxedFieldEntry}"
+                                           AutomationId="Register_CompanyName"
                                            StyleClass="borderless"
                                            Text="{Binding CompanyName}"
                                            Placeholder="{Binding Loc.CompanyNamePlaceholder}" />
@@ -231,6 +239,7 @@
 
                 <!-- Register Button -->
                 <Button Text="{Binding Loc.RegisterButton}"
+                        AutomationId="Register_Submit"
                         Command="{Binding RegisterCommand}"
                         Style="{StaticResource PrimaryButton}" />
 
@@ -241,6 +250,7 @@
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
                            VerticalOptions="Center" />
                     <Button Text="{Binding Loc.LoginLink}"
+                            AutomationId="Register_GoToLogin"
                             Command="{Binding GoToLoginCommand}"
                             Style="{StaticResource LinkButton}"
                             FontSize="14" />

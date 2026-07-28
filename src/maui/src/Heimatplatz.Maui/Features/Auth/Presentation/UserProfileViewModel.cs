@@ -251,6 +251,15 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     }
 
     /// <summary>
+    /// Die Seite blendet daraufhin kurz den Modusnamen ein. Noetig, weil ein
+    /// Wechsel nicht immer sichtbar ist: System -&gt; Hell aendert bei hellem
+    /// System-Theme nur das Symbol - der Nutzer tippte sonst ins Leere.
+    /// Bewusst ein Ereignis (kein Zustand): nur ein echter Tipp zeigt die
+    /// Einblendung, das Wiederherstellen beim Seitenaufbau nicht.
+    /// </summary>
+    public event EventHandler? ThemeModeToastRequested;
+
+    /// <summary>
     /// Schaltet den Design-Modus im Zyklus System -&gt; Hell -&gt; Dunkel weiter.
     /// Die Seiten aktualisieren sich ueber ihre AppThemeBindings von selbst.
     /// </summary>
@@ -259,6 +268,7 @@ public partial class UserProfileViewModel : ObservableObject, IPageLifecycleAwar
     {
         _themeService.CycleMode();
         UpdateThemeDisplay();
+        ThemeModeToastRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void UpdateThemeDisplay()

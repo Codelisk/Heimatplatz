@@ -31,13 +31,13 @@ public partial class FavoritesViewModel(
     // Merken/Entfernen auf der Detailseite zieht diese Liste nach
     protected override PropertyStatusKind? StatusKind => PropertyStatusKind.Favorite;
 
+    // Entfernen ist mit einem Tipp umkehrbar - wie beim Aufheben einer Blockierung
+    // keine Rueckfrage (Dialoge nur vor Destruktivem, z.B. Inserat loeschen)
+    protected override bool ConfirmBeforeRemove => false;
+
     protected override string LoadingMessage => loc.LoadingMessage;
     protected override string RemovingMessage => loc.RemovingMessage;
-    protected override string RemoveConfirmTitle => loc.RemoveConfirmTitle;
     protected override string RemoveErrorTitle => loc.RemoveErrorTitle;
-
-    protected override string GetRemoveConfirmMessage(PropertyListItemDto property)
-        => loc.RemoveConfirmMessageFormat(property.Title);
 
     protected override string GetRemoveErrorMessage(string errorDetails)
         => loc.RemoveErrorMessageFormat(errorDetails);
