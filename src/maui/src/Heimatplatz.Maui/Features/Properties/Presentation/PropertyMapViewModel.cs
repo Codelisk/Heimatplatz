@@ -32,11 +32,36 @@ public partial class PropertyMapViewModel(
 {
     private List<PropertyMapPinDto> _pins = [];
     private IReadOnlyList<MapStamp> _stamps = [];
+    private IReadOnlyDictionary<Guid, string> _districtByMunicipality = new Dictionary<Guid, string>();
     private PropertyMapPinDto? _selectedPin;
     private string? _lastFingerprint;
     private bool _openingListing;
+    private double _overviewZoom = MapPinGeoJson.DefaultOverviewZoom;
 
     public PropertyMapStringsLocalized Loc => loc;
+
+    /// <summary>
+    /// Tatsaechliche Zoomstufe des Uebersichts-Blicks; die Seite meldet sie,
+    /// sobald die Karten-View steht. Die Stempel-Entzerrung rechnet in
+    /// Bildschirm-Pixeln und braucht deshalb die ECHTE Stufe - sie haengt vom
+    /// Viewport ab (Hochformat, Querformat, Tablet). Aendert sie sich nach dem
+    /// Laden (Geraetedrehung), werden die Stempel neu entzerrt.
+    /// </summary>
+    public void SetOverviewZoom(double zoom)
+    {
+        if (double.IsNaN(zoom) || Math.Abs(zoom - _overviewZoom) < 0.05)
+            return;
+
+        _overviewZoom = zoom;
+        if (_pins.Count > 0)
+            RebuildStamps();
+    }
+
+    private void RebuildStamps()
+    {
+        _stamps = MapPinGeoJson.GroupIntoStamps(_pins, _districtByMunicipality, loc.OtherRegion, _overviewZoom);
+        StampGeoJson = MapPinGeoJson.BuildStampFeatureCollection(_stamps);
+    }
 
     // ── Karten-/Ladezustaende (Overlays wie beim frueheren WebView) ──────────
     [ObservableProperty]
@@ -170,9 +195,8 @@ public partial class PropertyMapViewModel(
             _pins = response.Pins?.ToList() ?? [];
             _lastFingerprint = fingerprint;
 
-            var districtByMunicipality = await BuildDistrictMapAsync(cancellationToken);
-            _stamps = MapPinGeoJson.GroupIntoStamps(_pins, districtByMunicipality, loc.OtherRegion);
-            StampGeoJson = MapPinGeoJson.BuildStampFeatureCollection(_stamps);
+            _districtByMunicipality = await BuildDistrictMapAsync(cancellationToken);
+            RebuildStamps();
             ExactPinGeoJson = MapPinGeoJson.BuildPinFeatureCollection(_pins.Where(p => !p.IsApproximate));
             ApproxPinGeoJson = MapPinGeoJson.BuildPinFeatureCollection(_pins.Where(p => p.IsApproximate));
 

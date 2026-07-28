@@ -175,6 +175,12 @@ public partial class PropertyMapPage : ContentPage
             if (_controller is not { } controller)
                 return;
 
+            // Vor dem Pin-Aufbau: die Stempel-Entzerrung rechnet in Bildschirm-
+            // Pixeln und braucht die ECHTE Uebersichts-Zoomstufe (haengt am
+            // Viewport). Die Kamera-Mathematik braucht nur die Kartengroesse,
+            // funktioniert also schon vor dem fertigen Stil.
+            vm.SetOverviewZoom(OverviewCamera(controller).Zoom);
+
             // Pins parallel zum Stil-Aufbau laden (unabhaengige Wege)
             var pinsTask = vm.EnsurePinsAsync(cancellationToken);
 
@@ -229,10 +235,17 @@ public partial class PropertyMapPage : ContentPage
         return false;
     }
 
-    private void FitOverview(IMapLibreMapController controller)
+    /// <summary>Kamera des Ganz-OOE-Blicks (Landesbox in den Viewport eingepasst).</summary>
+    private (double Lat, double Lon, double Zoom) OverviewCamera(IMapLibreMapController controller)
     {
         var pad = 24 * MapPixelScale;
         var camera = controller.CameraForLatLngs([OoeSw, OoeNe], pad, pad, pad, pad);
+        return (camera.Lat, camera.Lon, camera.Zoom);
+    }
+
+    private void FitOverview(IMapLibreMapController controller)
+    {
+        var camera = OverviewCamera(controller);
         if (double.IsNaN(camera.Zoom))
         {
             controller.JumpTo(48.12, 13.87, 7.3); // Fallback: OOE-Mitte

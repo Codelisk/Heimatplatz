@@ -74,10 +74,17 @@ internal static class MapPinGeoJson
     /// auf der Uebersichts-Zoomstufe: die Stempel sind nur bis Zoom 9 sichtbar,
     /// die Abweichung bei anderen Zoomstufen bleibt unsichtbar klein.
     /// </summary>
+    /// <param name="overviewZoom">
+    /// Tatsaechliche Zoomstufe des Uebersichts-Blicks. MUSS uebergeben werden,
+    /// wenn sie vom Default abweicht: die Entzerrung rechnet in Bildschirm-
+    /// Pixeln, ein zu hoher Referenzwert schiebt die Stempel zu wenig
+    /// auseinander und sie ueberlappen (Hochformat-Handy, 28.07.2026).
+    /// </param>
     public static IReadOnlyList<MapStamp> GroupIntoStamps(
         IEnumerable<PropertyMapPinDto> pins,
         IReadOnlyDictionary<Guid, string> districtByMunicipality,
-        string otherRegionName)
+        string otherRegionName,
+        double overviewZoom = DefaultOverviewZoom)
     {
         var groups = new Dictionary<string, List<PropertyMapPinDto>>();
         foreach (var pin in pins)
@@ -100,7 +107,7 @@ internal static class MapPinGeoJson
                 g.Value.Select(p => (p.Latitude, p.Longitude)).ToList()))
             .ToList();
 
-        return Declutter(stamps);
+        return Declutter(stamps, overviewZoom);
     }
 
     public static string BuildStampFeatureCollection(IReadOnlyList<MapStamp> stamps)
@@ -139,15 +146,16 @@ internal static class MapPinGeoJson
     // frisch eingepassten Karte projiziert. Mindestabstand 52px: volle Stempel
     // (Count >= 20) sind 48px + Strich gross - mit den frueheren 46px kuessten
     // sich benachbarte Grossstempel bei vielen Eintraegen (Stresstest 28.07).
-    private const double ReferenceZoom = 7.3;
+    /// <summary>Nur Rueckfall - der echte Wert kommt vom Kamera-Fit der Seite.</summary>
+    public const double DefaultOverviewZoom = 7.3;
     private const double MinDistancePixels = 52;
 
-    private static List<MapStamp> Declutter(List<MapStamp> stamps)
+    private static List<MapStamp> Declutter(List<MapStamp> stamps, double overviewZoom)
     {
         if (stamps.Count < 2)
             return stamps;
 
-        var projected = stamps.Select(s => Project(s.Lat, s.Lon)).ToArray();
+        var projected = stamps.Select(s => Project(s.Lat, s.Lon, overviewZoom)).ToArray();
         for (var iteration = 0; iteration < 3; iteration++)
         {
             for (var i = 0; i < projected.Length; i++)
@@ -170,24 +178,24 @@ internal static class MapPinGeoJson
         return stamps
             .Select((stamp, index) =>
             {
-                var (lat, lon) = Unproject(projected[index].X, projected[index].Y);
+                var (lat, lon) = Unproject(projected[index].X, projected[index].Y, overviewZoom);
                 return stamp with { Lat = lat, Lon = lon };
             })
             .ToList();
     }
 
-    private static (double X, double Y) Project(double lat, double lon)
+    private static (double X, double Y) Project(double lat, double lon, double zoom)
     {
-        var worldSize = 512 * Math.Pow(2, ReferenceZoom);
+        var worldSize = 512 * Math.Pow(2, zoom);
         var x = (lon + 180) / 360 * worldSize;
         var latRad = lat * Math.PI / 180;
         var y = (1 - Math.Log(Math.Tan(latRad) + 1 / Math.Cos(latRad)) / Math.PI) / 2 * worldSize;
         return (x, y);
     }
 
-    private static (double Lat, double Lon) Unproject(double x, double y)
+    private static (double Lat, double Lon) Unproject(double x, double y, double zoom)
     {
-        var worldSize = 512 * Math.Pow(2, ReferenceZoom);
+        var worldSize = 512 * Math.Pow(2, zoom);
         var lon = x / worldSize * 360 - 180;
         var n = Math.PI - 2 * Math.PI * y / worldSize;
         var lat = 180 / Math.PI * Math.Atan(0.5 * (Math.Exp(n) - Math.Exp(-n)));
