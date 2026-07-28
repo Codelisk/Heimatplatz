@@ -106,6 +106,9 @@
     <ProjectReference Include="..\Heimatplatz.Maui.ApiClient\Heimatplatz.Maui.ApiClient.csproj" />
     <!-- Deutsche UI-Texte (eigenes Projekt: *Localized-Typen als Assembly-Referenz, s. dort README) -->
     <ProjectReference Include="..\Heimatplatz.Maui.Localization\Heimatplatz.Maui.Localization.csproj" />
+    <!-- Native MapLibre-Karte: gevendorter Binding-Quellcode (ThirdParty, Stand v4.5.0,
+         BSD-2, s. README dort) statt NuGet - zieht MapLibreNative.Maui transitiv mit -->
+    <ProjectReference Include="..\ThirdParty\MapLibreNative.Maui.Handlers\MapLibreNative.Maui.Handlers.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" />
@@ -124,10 +127,6 @@
     <PackageReference Include="Shiny.Hosting.Maui" />
     <PackageReference Include="Shiny.Push" />
     <PackageReference Include="Shiny.Notifications" />
-    <!-- Native MapLibre-Karte (Vector-Tiles/PMTiles + Papier-Stil wie im Web);
-         Handlers-Paket noetig, das Hauptpaket liefert nur native Libs + Geometry -->
-    <PackageReference Include="MapLibreNative.Maui" />
-    <PackageReference Include="MapLibreNative.Maui.Handlers" />
   </ItemGroup>
   <!-- MAUI DevFlow (Debug-only Runtime-Automation/-Diagnose) -->
   <ItemGroup>

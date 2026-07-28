@@ -92,7 +92,10 @@ Heimatplatz/
 │           ├── Heimatplatz.Maui/                  # Hauptprojekt (Single-Project, kein Feature-Split)
 │           │   ├── Core/                          # DeepLink, Startup etc.
 │           │   └── Features/{Name}/               # Configuration, Handlers, Presentation, Services
-│           └── Heimatplatz.Maui.ApiClient/        # Generierter OpenAPI-Client (eigenes Projekt, s.u.)
+│           ├── Heimatplatz.Maui.ApiClient/        # Generierter OpenAPI-Client (eigenes Projekt, s.u.)
+│           └── ThirdParty/                        # Gevendorter Fremdcode (MapLibre-Binding, BSD-2);
+│                                                  #   eigene Directory.*.props: kein CPM, Warnungen
+│                                                  #   keine Fehler - Details in den READMEs dort
 ```
 
 > `*` = `Heimatplatz` Namespace-Prefix

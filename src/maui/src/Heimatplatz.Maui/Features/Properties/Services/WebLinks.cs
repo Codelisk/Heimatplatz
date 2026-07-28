@@ -15,15 +15,6 @@ public static class WebLinks
     public static Uri ListingUrl(string apiBaseUrl, Guid propertyId)
         => new($"{WebBaseFor(apiBaseUrl)}/immobilien/angebote/{propertyId}");
 
-    /// <summary>
-    /// Vollbild-Kartenansicht (/karte-embed) im Web-Pendant des API-Endpunkts -
-    /// die App zeigt sie im WebView, damit Karte, Papier-Stil und Interaktion
-    /// exakt der Web-Faltkarte entsprechen. <paramref name="query"/> kommt aus
-    /// <see cref="MapEmbedLink.BuildQuery"/>.
-    /// </summary>
-    public static Uri MapEmbedUrl(string apiBaseUrl, string query)
-        => new($"{WebBaseFor(apiBaseUrl)}/karte-embed?{query}");
-
     internal static string WebBaseFor(string apiBaseUrl)
     {
         // Produktion nur bei der echten Prod-API; Test-API und lokale Entwicklung

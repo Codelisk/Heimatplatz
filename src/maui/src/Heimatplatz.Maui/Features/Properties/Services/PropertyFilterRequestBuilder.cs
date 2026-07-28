@@ -84,16 +84,79 @@ internal static class PropertyFilterRequestBuilder
 
         if (state.SelectedAgeFilter != AgeFilter.Alle)
         {
-            request.CreatedAfter = state.SelectedAgeFilter switch
-            {
-                AgeFilter.EinTag => DateTimeOffset.UtcNow.AddDays(-1),
-                AgeFilter.EineWoche => DateTimeOffset.UtcNow.AddDays(-7),
-                AgeFilter.EinMonat => DateTimeOffset.UtcNow.AddMonths(-1),
-                AgeFilter.EinJahr => DateTimeOffset.UtcNow.AddYears(-1),
-                _ => DateTimeOffset.MinValue
-            };
+            request.CreatedAfter = ResolveCreatedAfter(state.SelectedAgeFilter);
         }
 
         return request;
     }
+
+    /// <summary>
+    /// Gleiche Filterquelle fuer die Kartenansicht: /api/properties/map-pins nutzt
+    /// serverseitig exakt dieselben PropertyQueryFilters wie die Trefferliste -
+    /// hier duerfen Karte und Liste deshalb ebenfalls nicht auseinanderlaufen.
+    /// </summary>
+    public static async Task<GetPropertyMapPinsHttpRequest> BuildMapPinsAsync(
+        FilterState state,
+        ILocationService locationService,
+        ILogger logger,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetPropertyMapPinsHttpRequest();
+
+        var propertyTypes = new List<string>();
+        if (state.IsHausSelected) propertyTypes.Add("House");
+        if (state.IsGrundstueckSelected) propertyTypes.Add("Land");
+        if (state.IsZwangsversteigerungSelected) propertyTypes.Add("Foreclosure");
+        if (propertyTypes.Count is > 0 and < 3)
+            request.PropertyTypesJson = JsonSerializer.Serialize(propertyTypes);
+
+        var sellerTypes = new List<string>();
+        if (state.IsPrivateSelected) sellerTypes.Add("Private");
+        if (state.IsBrokerSelected)
+        {
+            sellerTypes.Add("Broker");
+            sellerTypes.Add("PropertyManager");
+        }
+        if (state.IsPrivateSelected != state.IsBrokerSelected)
+            request.SellerTypesJson = JsonSerializer.Serialize(sellerTypes);
+
+        if (state.ExcludedSellerSourceIds.Count > 0)
+            request.ExcludedSellerSourceIdsJson = JsonSerializer.Serialize(state.ExcludedSellerSourceIds);
+
+        if (state.SelectedOrte.Count > 0)
+        {
+            var selectedNames = state.SelectedOrte.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var municipalities = await locationService.GetAllMunicipalitiesAsync(cancellationToken);
+            var municipalityIds = municipalities
+                .Where(m => selectedNames.Contains(m.Name))
+                .Select(m => m.Id)
+                .ToList();
+
+            if (municipalityIds.Count == 0)
+            {
+                logger.LogWarning(
+                    "Ort-Filter aktiv, aber keine Gemeinde-Ids aufloesbar ({Orte})",
+                    string.Join(", ", state.SelectedOrte));
+                municipalityIds = [Guid.Empty];
+            }
+
+            request.MunicipalityIdsJson = JsonSerializer.Serialize(municipalityIds);
+        }
+
+        if (state.SelectedAgeFilter != AgeFilter.Alle)
+        {
+            request.CreatedAfter = ResolveCreatedAfter(state.SelectedAgeFilter);
+        }
+
+        return request;
+    }
+
+    private static DateTimeOffset ResolveCreatedAfter(AgeFilter ageFilter) => ageFilter switch
+    {
+        AgeFilter.EinTag => DateTimeOffset.UtcNow.AddDays(-1),
+        AgeFilter.EineWoche => DateTimeOffset.UtcNow.AddDays(-7),
+        AgeFilter.EinMonat => DateTimeOffset.UtcNow.AddMonths(-1),
+        AgeFilter.EinJahr => DateTimeOffset.UtcNow.AddYears(-1),
+        _ => DateTimeOffset.MinValue
+    };
 }

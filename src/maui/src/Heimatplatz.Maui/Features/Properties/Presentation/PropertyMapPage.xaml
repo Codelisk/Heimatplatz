@@ -2,20 +2,75 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
+             xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
+             xmlns:shiny="http://shiny.net/maui/controls"
+             xmlns:maplibre="clr-namespace:MapLibreNative.Maui.Handlers;assembly=MapLibreNative.Maui.Handlers"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.PropertyMapPage"
              x:DataType="vm:PropertyMapViewModel"
              Title="{Binding Loc.PageTitle}"
              BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}">
 
     <Grid>
-        <!-- Web-Faltkarte (/karte-embed): identische Optik und Interaktion wie im
-             Web. Detail-Links faengt OnWebViewNavigating ab -> native Detailseite. -->
-        <WebView x:Name="MapWebView"
-                 Source="{Binding MapSource}"
-                 Navigating="OnWebViewNavigating"
-                 Navigated="OnWebViewNavigated"
-                 BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
-                 AutomationId="PropertyMap_WebView" />
+        <!-- Native MapLibre-Karte: gleicher Papier-Stil und PMTiles wie die
+             Web-Faltkarte (exportierte Style-JSONs, MapStyleProvider), Pins ueber
+             den authentifizierten API-Client. Layer/Kamera im Code-Behind. -->
+        <maplibre:MapLibreMap x:Name="Map"
+                              MinZoom="6.3"
+                              MaxZoom="16.5"
+                              RotateGesturesEnabled="False"
+                              TiltGesturesEnabled="False"
+                              ShowGpsControl="False"
+                              NavigationControlPosition="BottomLeft"
+                              AttributionControlPosition="BottomRight"
+                              AutomationId="PropertyMap_Map" />
+
+        <!-- Kartusche: Trefferzahl oben links (Web: .hpmap-cartouche) -->
+        <Border IsVisible="{Binding HasCount}"
+                InputTransparent="True"
+                HorizontalOptions="Start"
+                VerticalOptions="Start"
+                Margin="12"
+                Padding="12,7"
+                StrokeShape="RoundRectangle 10"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource ZettelFrameDark}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
+            <Label Text="{Binding CountText}"
+                   FontFamily="SansMedium"
+                   FontSize="12.5"
+                   AutomationId="PropertyMap_Count" />
+        </Border>
+
+        <!-- Hinweiszeile (Treffer ohne Koordinaten / Pin-Deckel) unten mittig -->
+        <Border IsVisible="{Binding HasNote}"
+                InputTransparent="True"
+                HorizontalOptions="Center"
+                VerticalOptions="End"
+                Margin="48,0,48,14"
+                Padding="12,6"
+                StrokeShape="RoundRectangle 10"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                Opacity="0.92">
+            <Label Text="{Binding NoteText}"
+                   Style="{StaticResource Caption}"
+                   HorizontalTextAlignment="Center"
+                   AutomationId="PropertyMap_Note" />
+        </Border>
+
+        <!-- Keine Treffer mit Koordinaten -->
+        <Border IsVisible="{Binding ShowEmpty}"
+                InputTransparent="True"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Padding="16,10"
+                StrokeShape="RoundRectangle 10"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
+            <Label Text="{Binding Loc.MapEmpty}"
+                   Style="{StaticResource Caption}"
+                   AutomationId="PropertyMap_Empty" />
+        </Border>
 
         <!-- Offline-Zustand: Karte ist das einzige reine Online-Feature der App -->
         <Grid BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}"
@@ -55,7 +110,7 @@
             </VerticalStackLayout>
         </Grid>
 
-        <!-- Lade-Overlay bis das Embed steht (danach uebernimmt die Falt-Animation) -->
+        <!-- Lade-Overlay bis Stil und Pins stehen -->
         <Grid Style="{StaticResource BusyOverlay}"
               IsVisible="{Binding IsLoading}">
             <Border Style="{StaticResource BusyCard}">
@@ -68,5 +123,65 @@
                 </VerticalStackLayout>
             </Border>
         </Grid>
+
+        <!-- Mini-Zettel: Sheet beim Pin-Tap (Web: hpmap-popup/Bottom-Sheet).
+             Auf einer normalen ContentPage MUSS das FloatingPanel in einem
+             OverlayHost stecken - direkt im Grid oeffnet es nie sichtbar. -->
+        <shiny:OverlayHost>
+        <appcontrols:ReliableFloatingPanel x:Name="PinSheet"
+                                           RequestedIsOpen="{Binding IsPinSheetOpen, Mode=TwoWay}"
+                                           MaximumWidthRequest="460"
+                                           HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
+                                           PanelCornerRadius="14"
+                                           PanelBackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
+            <VerticalStackLayout Padding="20,10,20,16" Spacing="10">
+                <Border IsVisible="{Binding SheetHasImage}"
+                        HeightRequest="150"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 10"
+                        AutomationId="PropertyMap_SheetImage">
+                    <Image Source="{Binding SheetImageUrl}" Aspect="AspectFill" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenSelectedPinCommand}" />
+                    </Border.GestureRecognizers>
+                </Border>
+
+                <Label Text="{Binding SheetTitle}"
+                       Style="{StaticResource CardTitle}"
+                       MaxLines="2"
+                       LineBreakMode="TailTruncation"
+                       AutomationId="PropertyMap_SheetTitle" />
+                <Label Text="{Binding SheetLocation}"
+                       Style="{StaticResource Caption}"
+                       AutomationId="PropertyMap_SheetLocation" />
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <Label Text="{Binding SheetPrice}"
+                               Style="{StaticResource BodyStrong}"
+                               FontSize="17"
+                               AutomationId="PropertyMap_SheetPrice" />
+                        <!-- ZV-Countdown in Markenrot (themenunabhaengig wie die Typ-Badges) -->
+                        <Label Text="{Binding SheetCountdown}"
+                               IsVisible="{Binding SheetHasCountdown}"
+                               TextColor="#DE2A2F"
+                               FontFamily="SansMedium"
+                               FontSize="12.5"
+                               AutomationId="PropertyMap_SheetCountdown" />
+                        <Label Text="{Binding Loc.ApproxHint}"
+                               IsVisible="{Binding SheetShowApprox}"
+                               Style="{StaticResource Caption}"
+                               AutomationId="PropertyMap_SheetApprox" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1"
+                            Text="{Binding Loc.OpenListing}"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding OpenSelectedPinCommand}"
+                            VerticalOptions="End"
+                            AutomationId="PropertyMap_SheetOpen" />
+                </Grid>
+            </VerticalStackLayout>
+        </appcontrols:ReliableFloatingPanel>
+        </shiny:OverlayHost>
     </Grid>
 </ContentPage>

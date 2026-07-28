@@ -33,4 +33,34 @@
   <data name="Retry" xml:space="preserve">
     <value>Erneut versuchen</value>
   </data>
+  <data name="TrefferFormat" xml:space="preserve">
+    <value>{0} Inserate auf der Karte</value>
+  </data>
+  <data name="MapEmpty" xml:space="preserve">
+    <value>Keine Treffer mit Kartenposition.</value>
+  </data>
+  <data name="NoteWithoutCoordsFormat" xml:space="preserve">
+    <value>{0} Treffer ohne Kartenposition erscheinen nur in der Liste.</value>
+  </data>
+  <data name="NoteTruncatedFormat" xml:space="preserve">
+    <value>Es werden die neuesten {0} Pins gezeigt.</value>
+  </data>
+  <data name="ApproxHint" xml:space="preserve">
+    <value>Ungefähre Lage</value>
+  </data>
+  <data name="OpenListing" xml:space="preserve">
+    <value>Inserat öffnen</value>
+  </data>
+  <data name="AuctionToday" xml:space="preserve">
+    <value>Versteigerung heute</value>
+  </data>
+  <data name="AuctionTomorrow" xml:space="preserve">
+    <value>Versteigerung morgen</value>
+  </data>
+  <data name="AuctionInDaysFormat" xml:space="preserve">
+    <value>Versteigerung in {0} Tagen</value>
+  </data>
+  <data name="OtherRegion" xml:space="preserve">
+    <value>Weitere Orte</value>
+  </data>
 </root>

@@ -1,0 +1,16 @@
+<Project>
+  <!-- Kette zu src/maui/Directory.Build.props erhalten (Intermediate-Pfad, NoWarn etc.) -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+  <PropertyGroup>
+    <!-- Vendor-Code (MaplibreNativeMAUI) baut upstream nicht warnungsfrei - die
+         Repo-Regel "Warnungen sind Fehler" gilt hier nicht, sonst muessten wir
+         fremden Code umschreiben und jedes Update neu flicken. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <!-- MUSS mit Microsoft.Maui.Controls in Directory.Packages.props uebereinstimmen:
+         die Vendor-csprojs referenzieren $(MauiVersion); weicht sie von der App ab,
+         kollidieren die WinUI-Ressourcen beider Staende (PRI277 Resources.xbf). -->
+    <MauiVersion>10.0.90</MauiVersion>
+  </PropertyGroup>
+</Project>

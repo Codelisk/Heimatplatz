@@ -4,6 +4,7 @@ using Heimatplatz.Maui.Features.AppUpdate.Configuration;
 using Heimatplatz.Maui.Features.Auth.Infrastructure;
 using Heimatplatz.Maui.Features.Debug.Services;
 using Heimatplatz.Maui.Features.Notifications.Configuration;
+using Heimatplatz.Maui.Features.Properties.Configuration;
 using Heimatplatz.Maui.Features.Telemetry.Configuration;
 using Heimatplatz.Maui.Localization;
 using Heimatplatz.Maui.Offline;
@@ -153,6 +154,7 @@ public static class MauiProgram
 #endif
 
         // Features
+        builder.Services.AddPropertiesFeature();
         builder.Services.AddNotificationsFeature();
         builder.Services.AddAppUpdateFeature();
         builder.Services.AddDeepLinkFeature();

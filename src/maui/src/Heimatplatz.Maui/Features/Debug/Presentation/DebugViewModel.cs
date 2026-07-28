@@ -30,7 +30,6 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
     private readonly IApiEndpointService _apiEndpoints;
     private readonly IAuthService _authService;
     private readonly IMediator _mediator;
-    private readonly INavigator _navigator;
     private readonly ILogger<DebugViewModel> _logger;
 
     /// <summary>
@@ -45,7 +44,6 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
         IApiEndpointService apiEndpoints,
         IAuthService authService,
         IMediator mediator,
-        INavigator navigator,
         ILogger<DebugViewModel> logger,
         DebugStringsLocalized loc)
     {
@@ -53,7 +51,6 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
         _apiEndpoints = apiEndpoints;
         _authService = authService;
         _mediator = mediator;
-        _navigator = navigator;
         _logger = logger;
 
         _initializing = true;
@@ -183,9 +180,6 @@ public partial class DebugViewModel : ObservableObject, IPageLifecycleAware
 
     [RelayCommand]
     private Task LoginAsPropertyManagerAsync() => LoginAsAsync(PropertyManagerEmail, Loc.RolePropertyManager);
-
-    [RelayCommand]
-    private Task OpenMapLibreSpikeAsync() => _navigator.NavigateTo<MapLibreSpikeViewModel>();
 
     partial void OnIsDevelopmentSelectedChanged(bool value)
     {

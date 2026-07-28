@@ -1,0 +1,8 @@
+<Project>
+  <!-- Vendor-Code (1:1 aus TechIdiots-LLC/MaplibreNativeMAUI) behaelt seine eigenen
+       Paketversionen - die zentrale Versionsverwaltung des Repos greift hier nicht,
+       damit die Original-csproj-Dateien unveraendert bleiben koennen. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

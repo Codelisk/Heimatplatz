@@ -12,7 +12,8 @@
     "validate": "npm run check && npm run build",
     "preview": "astro preview",
     "astro": "astro",
-    "map-tiles": "node scripts/fetch-map-tiles.mjs"
+    "map-tiles": "node scripts/fetch-map-tiles.mjs",
+    "map-styles": "node scripts/export-native-map-styles.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.0.2",
