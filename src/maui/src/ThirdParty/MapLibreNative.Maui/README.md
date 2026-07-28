@@ -20,6 +20,11 @@ Handlers-Projekt.
 - `android-arm64`/`android-x64` (libmln-cabi.so): **selbst gebaut am 28.07.2026**
   mit 16-KB-Page-Size (LOAD p_align 0x4000, behebt XA0141/Play-Blocker) und
   per llvm-strip gestrippt (6-7 MB statt 112 MB unstripped wie upstream).
+  Enthaelt zusaetzlich den **pixelRatio-Fix** (siehe Abweichung 4) — die
+  Android-Binaries sind damit die einzigen mit korrekter Textskalierung auf
+  High-DPI-Geraeten; win/ios/maccatalyst-Binaries haben weiterhin das
+  Upstream-Verhalten (dort faellt es kaum auf, weil der Faktor ~1 ist bzw.
+  iOS ungenutzt).
 
 Das csproj bindet die Binaries ueber Existenz-Bedingungen ein — genau dafuer ist
 der `native/`-Ordner upstream vorgesehen.
@@ -51,6 +56,18 @@ dann kann der Eigenbau beim naechsten Update wieder entfallen.
    Assembly-Identitaet, die Handlers binden nur an diese GL-Basis).
 3. `../../ThirdParty/Directory.Packages.props` schaltet die zentrale
    Paketversionsverwaltung fuer den Vendor-Code ab (Original-Versionen bleiben).
+4. **pixelRatio-Fix in `native-src/src/mln_cabi.cpp` (28.07.2026):** Upstream
+   uebergibt die PHYSISCHE Framebuffer-Groesse als mbgl-Map-Groesse. mbgl
+   erwartet dort aber LOGISCHE px (physisch ÷ pixelRatio) — die Verletzung
+   liess Text/Icons mit Faktor 1 rendern (auf einem 450-dpi-Handy unlesbar
+   winzig), waehrend Kreise/Linien mit dem pixelRatio skalierten, und verschob
+   die Zoom-Skala um +log2(pixelRatio) (~+1.5) gegenueber dem Web. Der Fix:
+   `CabiMap` merkt sich den pixelRatio, Map-Groessen werden geteilt
+   (Frontend/Viewport bleibt physisch), und ALLE Screen-Koordinaten der C-API
+   (Gesten-Anker, moveBy, latLngForPixel, pixelForLatLng, Query-Punkt/-Box,
+   Kamera-Paddings) konvertieren an der ABI-Grenze — die Managed-Seite spricht
+   weiterhin physische px. Gehoert upstream gemeldet; bis dahin bei jedem
+   Update erneut anwenden und die Android-Binaries neu bauen.
 
 ## Update-Prozess
 

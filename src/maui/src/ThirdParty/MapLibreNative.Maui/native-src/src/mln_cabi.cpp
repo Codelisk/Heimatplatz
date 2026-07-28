@@ -235,7 +235,20 @@ struct CabiMap {
     std::unique_ptr<CabiMapObserver>      observer;
     std::unique_ptr<PlatformFrontend>     frontend;
     std::unique_ptr<mbgl::Map>            map;
+    // mbgl invariant: the map's "size" is in LOGICAL pixels; the framebuffer is
+    // size × pixelRatio. The C API surface stays in PHYSICAL pixels (what the
+    // platform views/gestures naturally produce) and converts at this boundary.
+    // Violating this (physical size + ratio > 1) makes mbgl render text/icons
+    // at 1x while circles/lines scale with the ratio — unreadably small labels
+    // on high-density phones.
+    float                                 pixelRatio = 1.0f;
 };
+
+/* Physical framebuffer size → logical map size (never below 1×1). */
+static mbgl::Size logical_size(mbgl::Size physical, float ratio) {
+    return { std::max(1u, static_cast<uint32_t>(std::lround(physical.width  / ratio))),
+             std::max(1u, static_cast<uint32_t>(std::lround(physical.height / ratio))) };
+}
 
 /* ─── Casting helpers ───────────────────────────────────────────────────────── */
 /* The public handle types are opaque pointers to forward-declared structs.
@@ -342,6 +355,7 @@ static mbgl_map_t* map_create_impl(
         cabi_map->observer  = std::make_unique<CabiMapObserver>();
         cabi_map->observer->fn = observer;
         cabi_map->observer->ud = observer_userdata;
+        cabi_map->pixelRatio = (pixel_ratio > 0.0f) ? pixel_ratio : 1.0f;
 
         mbgl::ResourceOptions resOpts;
         if (cache_path) resOpts.withCachePath(cache_path);
@@ -353,7 +367,7 @@ static mbgl_map_t* map_create_impl(
         mapOpts.withMapMode(mbgl::MapMode::Continuous)
                .withConstrainMode(mbgl::ConstrainMode::HeightOnly)
                .withViewportMode(mbgl::ViewportMode::Default)
-               .withSize(cabi_fe->getSize())
+               .withSize(logical_size(cabi_fe->getSize(), cabi_map->pixelRatio))
                .withPixelRatio(pixel_ratio);
 
         cabi_map->map = std::make_unique<mbgl::Map>(
@@ -423,8 +437,8 @@ mbgl_status_t mbgl_map_set_size(mbgl_map_t* map, int width_px, int height_px) no
     try {
         mbgl::Size sz{ static_cast<uint32_t>(width_px), static_cast<uint32_t>(height_px) };
         auto* m = map_ptr(map);
-        m->map->setSize(sz);
-        m->frontend->setSize(sz);
+        m->map->setSize(logical_size(sz, m->pixelRatio));
+        m->frontend->setSize(sz);   // framebuffer/viewport stays physical
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
 }
@@ -532,7 +546,7 @@ mbgl_status_t mbgl_map_on_scroll(mbgl_map_t* map, double delta, double cx, doubl
         double zoom = m->map->getCameraOptions().zoom.value_or(0.0) + delta * 0.5;
         mbgl::CameraOptions cam;
         cam.zoom   = std::max(0.0, std::min(22.0, zoom));
-        cam.anchor = mbgl::ScreenCoordinate{ cx, cy };
+        cam.anchor = mbgl::ScreenCoordinate{ cx / m->pixelRatio, cy / m->pixelRatio };
         m->map->jumpTo(cam);
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
@@ -545,7 +559,7 @@ mbgl_status_t mbgl_map_on_double_tap(mbgl_map_t* map, double x, double y) noexce
         double zoom = m->map->getCameraOptions().zoom.value_or(0.0) + 1.0;
         mbgl::CameraOptions cam;
         cam.zoom   = zoom;
-        cam.anchor = mbgl::ScreenCoordinate{ x, y };
+        cam.anchor = mbgl::ScreenCoordinate{ x / m->pixelRatio, y / m->pixelRatio };
         mbgl::AnimationOptions anim{ mbgl::Duration(std::chrono::milliseconds(300)) };
         m->map->easeTo(cam, anim);
         return MBGL_OK;
@@ -557,14 +571,19 @@ static thread_local mbgl::ScreenCoordinate s_panAnchor;
 
 mbgl_status_t mbgl_map_on_pan_start(mbgl_map_t* map, double x, double y) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_on_pan_start: null handle");
-    s_panStart  = map_ptr(map)->map->getCameraOptions();
-    s_panAnchor = { x, y };
+    auto* m = map_ptr(map);
+    s_panStart  = m->map->getCameraOptions();
+    s_panAnchor = { x / m->pixelRatio, y / m->pixelRatio };
     return MBGL_OK;
 }
 
 mbgl_status_t mbgl_map_on_pan_move(mbgl_map_t* map, double dx, double dy) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_on_pan_move: null handle");
-    try { map_ptr(map)->map->moveBy(mbgl::ScreenCoordinate{dx, dy}); return MBGL_OK; }
+    try {
+        auto* m = map_ptr(map);
+        m->map->moveBy(mbgl::ScreenCoordinate{ dx / m->pixelRatio, dy / m->pixelRatio });
+        return MBGL_OK;
+    }
     catch (const std::exception& e) { return set_native_error(e); }
 }
 
@@ -582,7 +601,7 @@ mbgl_status_t mbgl_map_on_pinch(mbgl_map_t* map, double scale_factor, double cx,
         double zoom = m->map->getCameraOptions().zoom.value_or(0.0) + std::log2(scale_factor);
         mbgl::CameraOptions cam;
         cam.zoom   = std::max(0.0, std::min(22.0, zoom));
-        cam.anchor = mbgl::ScreenCoordinate{ cx, cy };
+        cam.anchor = mbgl::ScreenCoordinate{ cx / m->pixelRatio, cy / m->pixelRatio };
         m->map->jumpTo(cam);
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
@@ -865,13 +884,15 @@ mbgl_status_t mbgl_map_fly_to(mbgl_map_t* map, double lat, double lon,
 static mbgl::CameraOptions padded_camera(double lat, double lon,
                                          double zoom, double bearing, double pitch,
                                          double pad_top, double pad_left,
-                                         double pad_bottom, double pad_right) {
+                                         double pad_bottom, double pad_right,
+                                         float pixel_ratio) {
     mbgl::CameraOptions cam;
     cam.center = mbgl::LatLng{ lat, lon };
     if (!std::isnan(zoom))    cam.zoom    = zoom;
     if (!std::isnan(bearing)) cam.bearing = bearing;
     if (!std::isnan(pitch))   cam.pitch   = pitch;
-    cam.padding = mbgl::EdgeInsets{ pad_top, pad_left, pad_bottom, pad_right };
+    cam.padding = mbgl::EdgeInsets{ pad_top / pixel_ratio, pad_left / pixel_ratio,
+                                    pad_bottom / pixel_ratio, pad_right / pixel_ratio };
     return cam;
 }
 
@@ -882,8 +903,9 @@ mbgl_status_t mbgl_map_jump_to_padded(mbgl_map_t* map,
                                         double pad_bottom, double pad_right) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_jump_to_padded: null handle");
     try {
-        map_ptr(map)->map->jumpTo(padded_camera(lat, lon, zoom, bearing, pitch,
-                                                pad_top, pad_left, pad_bottom, pad_right));
+        auto* m = map_ptr(map);
+        m->map->jumpTo(padded_camera(lat, lon, zoom, bearing, pitch,
+                                     pad_top, pad_left, pad_bottom, pad_right, m->pixelRatio));
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
 }
@@ -897,8 +919,9 @@ mbgl_status_t mbgl_map_ease_to_padded(mbgl_map_t* map,
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_ease_to_padded: null handle");
     try {
         mbgl::AnimationOptions anim{ mbgl::Duration(std::chrono::milliseconds(duration_ms)) };
-        map_ptr(map)->map->easeTo(padded_camera(lat, lon, zoom, bearing, pitch,
-                                                pad_top, pad_left, pad_bottom, pad_right), anim);
+        auto* m = map_ptr(map);
+        m->map->easeTo(padded_camera(lat, lon, zoom, bearing, pitch,
+                                     pad_top, pad_left, pad_bottom, pad_right, m->pixelRatio), anim);
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
 }
@@ -912,8 +935,9 @@ mbgl_status_t mbgl_map_fly_to_padded(mbgl_map_t* map,
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_fly_to_padded: null handle");
     try {
         mbgl::AnimationOptions anim{ mbgl::Duration(std::chrono::milliseconds(duration_ms)) };
-        map_ptr(map)->map->flyTo(padded_camera(lat, lon, zoom, bearing, pitch,
-                                               pad_top, pad_left, pad_bottom, pad_right), anim);
+        auto* m = map_ptr(map);
+        m->map->flyTo(padded_camera(lat, lon, zoom, bearing, pitch,
+                                    pad_top, pad_left, pad_bottom, pad_right, m->pixelRatio), anim);
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
 }
@@ -927,10 +951,12 @@ mbgl_status_t mbgl_map_get_camera(mbgl_map_t* map,
                                     double* out_pitch) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_get_camera: null handle");
     try {
+        auto* m = map_ptr(map);
         std::optional<mbgl::EdgeInsets> padding;
         if (pad_top != 0 || pad_left != 0 || pad_bottom != 0 || pad_right != 0)
-            padding = mbgl::EdgeInsets{ pad_top, pad_left, pad_bottom, pad_right };
-        auto cam = map_ptr(map)->map->getCameraOptions(padding);
+            padding = mbgl::EdgeInsets{ pad_top / m->pixelRatio, pad_left / m->pixelRatio,
+                                        pad_bottom / m->pixelRatio, pad_right / m->pixelRatio };
+        auto cam = m->map->getCameraOptions(padding);
         if (out_lat)     *out_lat     = cam.center  ? cam.center->latitude()  : 0.0;
         if (out_lon)     *out_lon     = cam.center  ? cam.center->longitude() : 0.0;
         if (out_zoom)    *out_zoom    = cam.zoom    ? *cam.zoom    : 0.0;
@@ -945,12 +971,13 @@ mbgl_status_t mbgl_map_scale_by(mbgl_map_t* map, double scale,
                                   int64_t duration_ms) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_scale_by: null handle");
     try {
+        auto* m = map_ptr(map);
         std::optional<mbgl::ScreenCoordinate> anchor;
         if (!std::isnan(anchor_x) && !std::isnan(anchor_y))
-            anchor = mbgl::ScreenCoordinate{ anchor_x, anchor_y };
+            anchor = mbgl::ScreenCoordinate{ anchor_x / m->pixelRatio, anchor_y / m->pixelRatio };
         mbgl::AnimationOptions anim;
         if (duration_ms > 0) anim.duration = mbgl::Duration(std::chrono::milliseconds(duration_ms));
-        map_ptr(map)->map->scaleBy(scale, anchor, anim);
+        m->map->scaleBy(scale, anchor, anim);
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
 }
@@ -987,10 +1014,12 @@ mbgl_status_t mbgl_map_camera_for_bounds(mbgl_map_t* map,
                                           double* out_pitch) noexcept {
     if (!map) return set_error(MBGL_INVALID_ARG, "mbgl_map_camera_for_bounds: null handle");
     try {
+        auto* m = map_ptr(map);
         auto bounds  = mbgl::LatLngBounds::hull(mbgl::LatLng{ lat_sw, lon_sw },
                                                 mbgl::LatLng{ lat_ne, lon_ne });
-        mbgl::EdgeInsets padding{ pad_top, pad_left, pad_bottom, pad_right };
-        auto cam = map_ptr(map)->map->cameraForLatLngBounds(bounds, padding);
+        mbgl::EdgeInsets padding{ pad_top / m->pixelRatio, pad_left / m->pixelRatio,
+                                  pad_bottom / m->pixelRatio, pad_right / m->pixelRatio };
+        auto cam = m->map->cameraForLatLngBounds(bounds, padding);
         if (out_lat)     *out_lat     = cam.center  ? cam.center->latitude()  : 0.0;
         if (out_lon)     *out_lon     = cam.center  ? cam.center->longitude() : 0.0;
         if (out_zoom)    *out_zoom    = cam.zoom    ? *cam.zoom    : 0.0;
@@ -1003,15 +1032,17 @@ mbgl_status_t mbgl_map_camera_for_bounds(mbgl_map_t* map,
 void mbgl_map_pixel_for_latlng(mbgl_map_t* map, double lat, double lon,
                                 double* out_x, double* out_y) noexcept {
     if (!map || !out_x || !out_y) return;
-    auto sc = map_ptr(map)->map->pixelForLatLng(mbgl::LatLng{ lat, lon });
-    *out_x = sc.x;
-    *out_y = sc.y;
+    auto* m = map_ptr(map);
+    auto sc = m->map->pixelForLatLng(mbgl::LatLng{ lat, lon });
+    *out_x = sc.x * m->pixelRatio;
+    *out_y = sc.y * m->pixelRatio;
 }
 
 void mbgl_map_latlng_for_pixel(mbgl_map_t* map, double x, double y,
                                 double* out_lat, double* out_lon) noexcept {
     if (!map || !out_lat || !out_lon) return;
-    auto ll = map_ptr(map)->map->latLngForPixel(mbgl::ScreenCoordinate{ x, y });
+    auto* m = map_ptr(map);
+    auto ll = m->map->latLngForPixel(mbgl::ScreenCoordinate{ x / m->pixelRatio, y / m->pixelRatio });
     *out_lat = ll.latitude();
     *out_lon = ll.longitude();
 }
@@ -1127,7 +1158,8 @@ char* mbgl_map_query_rendered_features_at_point(mbgl_map_t* map, double x, doubl
         mbgl::RenderedQueryOptions opts;
         auto ids = split_layer_ids(layer_ids);
         if (!ids.empty()) opts.layerIDs = ids;
-        auto features = renderer->queryRenderedFeatures(mbgl::ScreenCoordinate{ x, y }, opts);
+        auto features = renderer->queryRenderedFeatures(
+            mbgl::ScreenCoordinate{ x / m->pixelRatio, y / m->pixelRatio }, opts);
         return features_to_json(std::move(features));
     } catch (...) { return nullptr; }
 }
@@ -1144,7 +1176,8 @@ char* mbgl_map_query_rendered_features_in_box(mbgl_map_t* map,
         mbgl::RenderedQueryOptions opts;
         auto ids = split_layer_ids(layer_ids);
         if (!ids.empty()) opts.layerIDs = ids;
-        mbgl::ScreenBox box{ { x1, y1 }, { x2, y2 } };
+        mbgl::ScreenBox box{ { x1 / m->pixelRatio, y1 / m->pixelRatio },
+                             { x2 / m->pixelRatio, y2 / m->pixelRatio } };
         auto features = renderer->queryRenderedFeatures(box, opts);
         return features_to_json(std::move(features));
     } catch (...) { return nullptr; }
@@ -1630,8 +1663,10 @@ mbgl_status_t mbgl_map_camera_for_latlngs(mbgl_map_t* map,
         pts.reserve(static_cast<size_t>(count));
         for (int i = 0; i < count; ++i)
             pts.emplace_back(latlngs[i * 2], latlngs[i * 2 + 1]);
-        mbgl::EdgeInsets padding{ pad_top, pad_left, pad_bottom, pad_right };
-        auto cam = map_ptr(map)->map->cameraForLatLngs(pts, padding);
+        auto* m = map_ptr(map);
+        mbgl::EdgeInsets padding{ pad_top / m->pixelRatio, pad_left / m->pixelRatio,
+                                  pad_bottom / m->pixelRatio, pad_right / m->pixelRatio };
+        auto cam = m->map->cameraForLatLngs(pts, padding);
         if (out_lat)     *out_lat     = cam.center ? cam.center->latitude()  : kNaN;
         if (out_lon)     *out_lon     = cam.center ? cam.center->longitude() : kNaN;
         if (out_zoom)    *out_zoom    = cam.zoom.value_or(kNaN);
@@ -1652,10 +1687,11 @@ mbgl_status_t mbgl_map_pixels_for_latlngs(mbgl_map_t* map,
         pts.reserve(static_cast<size_t>(count));
         for (int i = 0; i < count; ++i)
             pts.emplace_back(latlngs[i * 2], latlngs[i * 2 + 1]);
-        auto pixels = map_ptr(map)->map->pixelsForLatLngs(pts);
+        auto* m = map_ptr(map);
+        auto pixels = m->map->pixelsForLatLngs(pts);
         for (size_t i = 0; i < pixels.size(); ++i) {
-            out_xy[i * 2]     = pixels[i].x;
-            out_xy[i * 2 + 1] = pixels[i].y;
+            out_xy[i * 2]     = pixels[i].x * m->pixelRatio;
+            out_xy[i * 2 + 1] = pixels[i].y * m->pixelRatio;
         }
         return MBGL_OK;
     } catch (const std::exception& e) { return set_native_error(e); }
@@ -1666,11 +1702,12 @@ mbgl_status_t mbgl_map_latlngs_for_pixels(mbgl_map_t* map,
                                            double* out_ll) noexcept {
     if (!map || !xy || !out_ll) return set_error(MBGL_INVALID_ARG, "mbgl_map_latlngs_for_pixels: null arg");
     try {
+        auto* m = map_ptr(map);
         std::vector<mbgl::ScreenCoordinate> pts;
         pts.reserve(static_cast<size_t>(count));
         for (int i = 0; i < count; ++i)
-            pts.emplace_back(xy[i * 2], xy[i * 2 + 1]);
-        auto latlngs = map_ptr(map)->map->latLngsForPixels(pts);
+            pts.emplace_back(xy[i * 2] / m->pixelRatio, xy[i * 2 + 1] / m->pixelRatio);
+        auto latlngs = m->map->latLngsForPixels(pts);
         for (size_t i = 0; i < latlngs.size(); ++i) {
             out_ll[i * 2]     = latlngs[i].latitude();
             out_ll[i * 2 + 1] = latlngs[i].longitude();

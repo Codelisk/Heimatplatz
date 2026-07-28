@@ -31,9 +31,20 @@ public partial class PropertyMapPage : ContentPage
         ? ("#221f1b", "#e6e1d8", "#a79d8f")
         : ("#f6f1e3", "#3a332d", "#6b6053");
 
-    // Typ-Farben wie die Foto-Badges (themenunabhaengig): Haus, Grund, ZV=Markenrot
-    private static object[] TypeColorExpression() =>
-        ["match", new object[] { "get", "typ" }, "grund", "#33854A", "zv", "#DE2A2F", "#2F6E9E"];
+    // Typ-Farben wie die Foto-Badges (themenunabhaengig): Haus, Grund, ZV=Markenrot.
+    // Der Punkt im ZV-Chip ist papierweiss, weil der Chip selbst markenrot ist (Web:
+    // .hpmap-pin--zv), der Preistext dort ebenso.
+    private static object[] ChipDotColorExpression() =>
+        ["match", new object[] { "get", "typ" }, "grund", "#33854A", "zv", "#F6F1E3", "#2F6E9E"];
+
+    private static object[] ChipTextColorExpression(string ink) =>
+        ["match", new object[] { "get", "typ" }, "zv", "#FFFFFF", ink];
+
+    private static object[] ChipImageExpression() =>
+        ["match", new object[] { "get", "typ" }, "zv", "hp-chip-zv", "hp-chip"];
+
+    private static object[] RealPinImageExpression() =>
+        ["match", new object[] { "get", "typ" }, "grund", "hp-realpin-grund", "zv", "hp-realpin-zv", "hp-realpin-haus"];
 
     private IMapLibreMapController? _controller;
     private readonly TaskCompletionSource _mapReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -46,14 +57,19 @@ public partial class PropertyMapPage : ContentPage
     {
         InitializeComponent();
 
-        // Systemschriftgroesse (Samsung "Schriftgroesse" etc.) auf die Karte
-        // uebertragen: MapLibre multipliziert Style-px nur mit der Pixeldichte,
-        // nicht mit der OS-Schriftskalierung - Kartentext wirkt sonst kleiner
-        // als der restliche App-Text, der per FontAutoScaling mitwaechst.
-        // Gedeckelt, weil der Faktor die gesamte Stilmetrik skaliert (auch
-        // Linien, Icons, Pins). Muss vor der Handler-Erstellung stehen - der
-        // Wert wird nur einmal beim Aufbau der Plattform-View gelesen.
-        Map.UiScale = Math.Clamp(SystemFontScale(), 1.0, 1.3);
+        // Karten-Metrik fuers Handy anheben: die Style-px der geteilten Karte
+        // sind auf Desktop-Betrachtung ausgelegt (Ortsnamen 11-12px) - am
+        // Telefon ergibt das nur ~1.7mm Texthoehe (nachgemessen am S24,
+        // 450dpi). Google/Apple rendern Kartenlabels am Handy deutlich
+        // groesser, deshalb Phone/Tablet-Baseline 1.3; UiScale skaliert die
+        // GESAMTE Stilmetrik (Text, Pins, Linien) ueber die Pixeldichte
+        // hinaus. Obendrauf die OS-Schriftskalierung (Samsung
+        // "Schriftgroesse", Dynamic Type, Windows-Textskalierung), damit
+        // Kartentext wie der restliche App-Text mitwaechst. Muss vor der
+        // Handler-Erstellung stehen - wird nur einmal beim Aufbau der
+        // Plattform-View gelesen.
+        var uiScaleBaseline = DeviceInfo.Idiom == DeviceIdiom.Desktop ? 1.0 : 1.3;
+        Map.UiScale = Math.Clamp(uiScaleBaseline * SystemFontScale(), 1.0, 1.7);
 
         Map.MapReadyCommand = new Command(OnMapReady);
 
@@ -63,6 +79,13 @@ public partial class PropertyMapPage : ContentPage
     }
 
     private PropertyMapViewModel? Vm => BindingContext as PropertyMapViewModel;
+
+    /// <summary>
+    /// Physische Bildschirm-px pro Style-px der Karte (Geraetedichte × UiScale).
+    /// Die Controller-API nimmt physische px entgegen; Paddings und Tap-Toleranzen
+    /// hier sind aber in Web-/Style-px gedacht (Parity mit der Astro-Faltkarte).
+    /// </summary>
+    private double MapPixelScale => DeviceDisplay.MainDisplayInfo.Density * Map.UiScale;
 
     /// <summary>OS-Schriftskalierungsfaktor der Plattform (1.0 = Standard).</summary>
     private static double SystemFontScale()
@@ -212,7 +235,8 @@ public partial class PropertyMapPage : ContentPage
 
     private void FitOverview(IMapLibreMapController controller)
     {
-        var camera = controller.CameraForLatLngs([OoeSw, OoeNe], 24, 24, 24, 24);
+        var pad = 24 * MapPixelScale;
+        var camera = controller.CameraForLatLngs([OoeSw, OoeNe], pad, pad, pad, pad);
         if (double.IsNaN(camera.Zoom))
             controller.JumpTo(48.12, 13.87, 7.3); // Fallback: OOE-Mitte
         else
@@ -283,18 +307,22 @@ public partial class PropertyMapPage : ContentPage
             }, maxZoom: PinMinZoom);
         }
 
-        // ── Einzel-Pins (ab Zoom 9) ────────────────────────────────────────────
-        // Ungefaehre Lage: Typ-Punkt + schwebendes Preis-Schild (Web: .hpmap-pin)
+        // ── Einzel-Pins (ab Zoom 9) im Web-Look (Astro .hpmap-pin/.hpmap-realpin) ──
+        // Sprites zuerst: nach jedem Style-Reset (Theme-Wechsel) sind die Images
+        // weg; AddImage ersetzt Bestehendes still, daher bei jedem Aufbau setzen.
+        RegisterPinSprites(controller, dark);
+
+        // Ungefaehre Lage: Preis-Chip (Papier-Pille + Typ-Punkt + Preis) zentriert
+        // auf der Position - wie das Web-Preis-Schild. Der unsichtbare Circle-Layer
+        // darunter ist NUR Tap-Fänger: Symbol-Layer mit minZoom liefern im
+        // Query-Pfad des Bindings keine Treffer (Query-Zoom-Bug, s. Kommentar bei
+        // den Stempeln), Circle-Layer ohne Zoom-Grenzen schon.
         if (!existingLayers.Contains("hp-pin-approx-dot"))
         {
             controller.AddCircleLayer("hp-pin-approx-dot", "hp-pins-approx", null, null, new Dictionary<string, object?>
             {
-                ["circle-radius"] = 5.5,
-                ["circle-color"] = TypeColorExpression(),
-                ["circle-opacity"] = new object[] { "step", new object[] { "zoom" }, 0, PinMinZoom, 1 },
-                ["circle-stroke-color"] = paper,
-                ["circle-stroke-width"] = 1.4,
-                ["circle-stroke-opacity"] = new object[] { "step", new object[] { "zoom" }, 0, PinMinZoom, 1 },
+                ["circle-radius"] = 20,
+                ["circle-opacity"] = 0,
             }, enableInteraction: true);
         }
 
@@ -302,31 +330,73 @@ public partial class PropertyMapPage : ContentPage
         {
             controller.AddSymbolLayer("hp-pin-approx-price", "hp-pins-approx", null, null, new Dictionary<string, object?>
             {
-                ["text-field"] = new object[] { "get", "preis" },
+                ["icon-image"] = ChipImageExpression(),
+                ["icon-text-fit"] = "both",
+                ["icon-text-fit-padding"] = new object[] { 5.5, 10, 5.5, 10 },
+                // Typ-Punkt als Bullet U+2022: das Basis-Noto-Sans der Glyph-PBFs
+                // enthaelt KEIN U+25CF (Geometric Shapes = Noto Sans Symbols) -
+                // damit rendert "●" schlicht gar nicht. font-scale pumpt das
+                // Bullet auf Web-Punktgroesse auf.
+                ["text-field"] = new object[]
+                {
+                    "format",
+                    "• ", new Dictionary<string, object?>
+                    {
+                        ["text-color"] = ChipDotColorExpression(),
+                        ["font-scale"] = 1.4,
+                    },
+                    new object[] { "get", "preis" }, new Dictionary<string, object?>(),
+                },
                 ["text-font"] = new object[] { "Noto Sans Medium" },
-                ["text-size"] = 12,
-                ["text-anchor"] = "bottom",
-                ["text-offset"] = new object[] { 0, -0.7 },
-                ["text-color"] = ink,
-                ["text-halo-color"] = paper,
-                ["text-halo-width"] = 1.8,
+                ["text-size"] = 12.5,
+                ["text-color"] = ChipTextColorExpression(ink),
             }, minZoom: PinMinZoom, enableInteraction: true);
         }
 
-        // Punktgenaue Lage: kraeftiger Punkt mit weissem Ring (Web: Tropfen-Pin);
-        // Preis und Details kommen wie im Web erst beim Antippen
+        // Punktgenaue Lage: echter Karten-Pin (Tropfen) in der Typ-Farbe, Spitze
+        // auf der Adresse (Web: .hpmap-realpin); Preis kommt beim Antippen.
+        // Gleiches Muster: unsichtbarer Tap-Fänger + Sprite-Layer darueber.
         if (!existingLayers.Contains("hp-pin-exact-dot"))
         {
             controller.AddCircleLayer("hp-pin-exact-dot", "hp-pins-exact", null, null, new Dictionary<string, object?>
             {
-                ["circle-radius"] = 7.5,
-                ["circle-color"] = TypeColorExpression(),
-                ["circle-opacity"] = new object[] { "step", new object[] { "zoom" }, 0, PinMinZoom, 1 },
-                ["circle-stroke-color"] = "#ffffff",
-                ["circle-stroke-width"] = 2,
-                ["circle-stroke-opacity"] = new object[] { "step", new object[] { "zoom" }, 0, PinMinZoom, 1 },
+                ["circle-radius"] = 22,
+                ["circle-opacity"] = 0,
+                // Der Tropfen ankert mit der Spitze unten - der Tap-Fänger muss
+                // den Pin-KOERPER (oberhalb der Koordinate) abdecken
+                ["circle-translate"] = new object[] { 0, -14 },
             }, enableInteraction: true);
         }
+
+        if (!existingLayers.Contains("hp-pin-exact-pin"))
+        {
+            controller.AddSymbolLayer("hp-pin-exact-pin", "hp-pins-exact", null, null, new Dictionary<string, object?>
+            {
+                ["icon-image"] = RealPinImageExpression(),
+                ["icon-anchor"] = "bottom",
+                ["icon-allow-overlap"] = true,
+            }, minZoom: PinMinZoom);
+        }
+    }
+
+    /// <summary>
+    /// Rastert die Pin-Sprites (Preis-Chip hell/dunkel/ZV, Tropfen-Pin je Typ) und
+    /// registriert sie im Stil. Pure-C#-SDF-Raster statt Plattform-Canvas, damit
+    /// derselbe Code auf Android/Windows/iOS laeuft und keine Abhaengigkeit dazukommt.
+    /// </summary>
+    private static void RegisterPinSprites(IMapLibreMapController controller, bool dark)
+    {
+        var (chipFill, chipFrame) = dark ? ("#2B2723", "#7A756C") : ("#FBF7EC", "#A89D8C");
+        controller.AddSpriteImage("hp-chip", PinSprites.ChipWidth, PinSprites.ChipHeight,
+            PinSprites.Chip(chipFill, chipFrame), PinSprites.Ratio);
+        controller.AddSpriteImage("hp-chip-zv", PinSprites.ChipWidth, PinSprites.ChipHeight,
+            PinSprites.Chip("#DE2A2F", "#DE2A2F"), PinSprites.Ratio);
+        controller.AddSpriteImage("hp-realpin-haus", PinSprites.PinSize, PinSprites.PinSize,
+            PinSprites.Teardrop("#2F6E9E"), PinSprites.Ratio);
+        controller.AddSpriteImage("hp-realpin-grund", PinSprites.PinSize, PinSprites.PinSize,
+            PinSprites.Teardrop("#33854A"), PinSprites.Ratio);
+        controller.AddSpriteImage("hp-realpin-zv", PinSprites.PinSize, PinSprites.PinSize,
+            PinSprites.Teardrop("#DE2A2F"), PinSprites.Ratio);
     }
 
     /// <summary>Tap-Aufloesung: Einzel-Pins vor Stempeln, sonst Sheet schliessen.</summary>
@@ -367,12 +437,12 @@ public partial class PropertyMapPage : ContentPage
     }
 
     /// <summary>
-    /// Erste Feature-Property im Tap-Umkreis (14px Toleranz - die Punkte sind
-    /// bewusst klein, ein punktgenauer Query wuerde Touch-Taps oft verfehlen).
+    /// Erste Feature-Property im Tap-Umkreis (14 Style-px Toleranz - die Punkte
+    /// sind bewusst klein, ein punktgenauer Query wuerde Touch-Taps oft verfehlen).
     /// </summary>
-    private static string? FirstFeatureProperty(IMapLibreMapController controller, double x, double y, string layerId, string property)
+    private string? FirstFeatureProperty(IMapLibreMapController controller, double x, double y, string layerId, string property)
     {
-        const double tolerance = 14;
+        var tolerance = 14 * MapPixelScale;
         var json = controller.QueryRenderedFeaturesInBox(x - tolerance, y - tolerance, x + tolerance, y + tolerance, layerId);
         if (string.IsNullOrEmpty(json))
             return null;
@@ -387,10 +457,11 @@ public partial class PropertyMapPage : ContentPage
         }
     }
 
-    private static void ZoomToStamp(IMapLibreMapController controller, Services.MapStamp stamp)
+    private void ZoomToStamp(IMapLibreMapController controller, Services.MapStamp stamp)
     {
         // Web: fitBounds(padding 72, maxZoom 12.5) auf die Pins des Bezirks
-        var camera = controller.CameraForLatLngs(stamp.PinPositions, 72, 72, 72, 72);
+        var pad = 72 * MapPixelScale;
+        var camera = controller.CameraForLatLngs(stamp.PinPositions, pad, pad, pad, pad);
         if (double.IsNaN(camera.Zoom))
             return;
 
@@ -416,5 +487,125 @@ public partial class PropertyMapPage : ContentPage
             action();
         else
             MainThread.BeginInvokeOnMainThread(action);
+    }
+
+    /// <summary>
+    /// Mini-SDF-Rasterizer fuer die Pin-Sprites (plattformneutral, keine
+    /// Canvas-Abhaengigkeit). Alle Bitmaps sind 4x ueberabgetastet (Ratio) und
+    /// werden von MapLibre ueber den Sprite-pixelRatio auf Style-px skaliert;
+    /// Ausgabe ist premultipliziertes RGBA (mbgl-Konvention).
+    /// </summary>
+    private static class PinSprites
+    {
+        public const float Ratio = 4f;
+        public const int ChipWidth = 320;   // 80 Style-px (icon-text-fit streckt auf den Preistext)
+        public const int ChipHeight = 104;  // 26 Style-px wie das Web-Preis-Schild
+        public const int PinSize = 152;     // 38 Style-px wie .hpmap-realpin
+
+        /// <summary>Papier-Pille mit Rahmen (Web: .hpmap-pin, radius 999).</summary>
+        public static byte[] Chip(string fillHex, string frameHex)
+        {
+            var fill = ParseHex(fillHex);
+            var frame = ParseHex(frameHex);
+            const double margin = 4, border = 5;
+            const double bx = ChipWidth / 2.0 - margin, by = ChipHeight / 2.0 - margin;
+            var radius = by; // volle Pille
+
+            var pixels = new byte[ChipWidth * ChipHeight * 4];
+            for (var y = 0; y < ChipHeight; y++)
+            for (var x = 0; x < ChipWidth; x++)
+            {
+                var px = Math.Abs(x + 0.5 - ChipWidth / 2.0) - bx + radius;
+                var py = Math.Abs(y + 0.5 - ChipHeight / 2.0) - by + radius;
+                var sd = Math.Min(Math.Max(px, py), 0)
+                         + Length(Math.Max(px, 0), Math.Max(py, 0)) - radius;
+
+                var alpha = Coverage(sd);
+                var fillMix = Coverage(sd + border); // innen Fuellung, aussen Rahmenband
+                WritePixel(pixels, (y * ChipWidth + x) * 4, Mix(frame, fill, fillMix), alpha);
+            }
+
+            return pixels;
+        }
+
+        /// <summary>Tropfen-Pin mit weissem Saum und weissem Kern (Web: .hpmap-realpin-SVG).</summary>
+        public static byte[] Teardrop(string fillHex)
+        {
+            var fill = ParseHex(fillHex);
+            var white = (R: 255.0, G: 255.0, B: 255.0);
+            const double cx = 76, cy = 60, radius = 48, holeRadius = 17, outline = 4;
+            const double tipX = 76, tipY = 146;
+
+            // Tangenten-Dreieck Kreis->Spitze (Tropfenform als Kreis+Dreieck-Union)
+            var d = Length(tipX - cx, tipY - cy);
+            var cosB = radius / d;
+            var sinB = Math.Sqrt(1 - cosB * cosB);
+            var (tax, tay) = (cx - radius * sinB, cy + radius * cosB);
+            var (tbx, tby) = (cx + radius * sinB, cy + radius * cosB);
+
+            var pixels = new byte[PinSize * PinSize * 4];
+            for (var y = 0; y < PinSize; y++)
+            for (var x = 0; x < PinSize; x++)
+            {
+                double px = x + 0.5, py = y + 0.5;
+                var sdCircle = Length(px - cx, py - cy) - radius;
+                var sd = Math.Min(sdCircle, SdTriangle(px, py, tipX, tipY, tax, tay, tbx, tby));
+
+                var alpha = Coverage(sd - outline);          // weisser Saum aussen
+                var fillMix = Coverage(sd);                  // Typ-Farbe innen
+                var holeMix = Coverage(Length(px - cx, py - cy) - holeRadius);
+
+                var color = Mix(white, fill, fillMix);
+                color = Mix(color, white, holeMix);
+                WritePixel(pixels, (y * PinSize + x) * 4, color, alpha);
+            }
+
+            return pixels;
+        }
+
+        private static double Coverage(double sd) => Math.Clamp(0.5 - sd / 1.5, 0, 1);
+
+        private static double Length(double x, double y) => Math.Sqrt(x * x + y * y);
+
+        private static (double R, double G, double B) ParseHex(string hex) =>
+            (Convert.ToInt32(hex.Substring(1, 2), 16),
+             Convert.ToInt32(hex.Substring(3, 2), 16),
+             Convert.ToInt32(hex.Substring(5, 2), 16));
+
+        private static (double R, double G, double B) Mix(
+            (double R, double G, double B) a, (double R, double G, double B) b, double t) =>
+            (a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t);
+
+        private static void WritePixel(byte[] pixels, int offset, (double R, double G, double B) color, double alpha)
+        {
+            pixels[offset] = (byte)Math.Round(color.R * alpha);
+            pixels[offset + 1] = (byte)Math.Round(color.G * alpha);
+            pixels[offset + 2] = (byte)Math.Round(color.B * alpha);
+            pixels[offset + 3] = (byte)Math.Round(alpha * 255);
+        }
+
+        /// <summary>Vorzeichenbehaftete Distanz zum Dreieck (Inigo Quilez).</summary>
+        private static double SdTriangle(double px, double py,
+            double ax, double ay, double bx, double by, double cx, double cy)
+        {
+            var (e0x, e0y) = (bx - ax, by - ay);
+            var (e1x, e1y) = (cx - bx, cy - by);
+            var (e2x, e2y) = (ax - cx, ay - cy);
+            var (v0x, v0y) = (px - ax, py - ay);
+            var (v1x, v1y) = (px - bx, py - by);
+            var (v2x, v2y) = (px - cx, py - cy);
+
+            var t0 = Math.Clamp((v0x * e0x + v0y * e0y) / (e0x * e0x + e0y * e0y), 0, 1);
+            var t1 = Math.Clamp((v1x * e1x + v1y * e1y) / (e1x * e1x + e1y * e1y), 0, 1);
+            var t2 = Math.Clamp((v2x * e2x + v2y * e2y) / (e2x * e2x + e2y * e2y), 0, 1);
+            var (q0x, q0y) = (v0x - e0x * t0, v0y - e0y * t0);
+            var (q1x, q1y) = (v1x - e1x * t1, v1y - e1y * t1);
+            var (q2x, q2y) = (v2x - e2x * t2, v2y - e2y * t2);
+
+            var s = Math.Sign(e0x * e2y - e0y * e2x);
+            var dx = Math.Min(Math.Min(q0x * q0x + q0y * q0y, q1x * q1x + q1y * q1y), q2x * q2x + q2y * q2y);
+            var dy = Math.Min(Math.Min(s * (v0x * e0y - v0y * e0x), s * (v1x * e1y - v1y * e1x)), s * (v2x * e2y - v2y * e2x));
+            return -Math.Sqrt(dx) * Math.Sign(dy);
+        }
     }
 }
