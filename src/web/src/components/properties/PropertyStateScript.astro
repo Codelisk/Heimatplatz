@@ -1595,6 +1595,46 @@
     });
   }
 
+  // ---- Auto-Speichern der Suchleisten-Filter (Startseite) ----
+  // PropertySearchApp meldet jede Filteraenderung als fertigen
+  // SaveUserFilterPreferencesRequest-Payload. Der Stand landet sofort lokal
+  // UND im Pending-Slot: navigiert der Nutzer weg, bevor der gebuendelte
+  // Konto-Sync feuert, spielt syncPendingPreference ihn beim naechsten
+  // Seitenaufruf nach (und das GET ueberschreibt ihn nicht). Gaeste bleiben
+  // pending, bis der naechste Login den Stand ans Konto uebernimmt.
+  let searchFilterSyncTimer: number | null = null;
+
+  function bindSearchFilterPersistence() {
+    document.addEventListener("filter-preferences-changed", (event) => {
+      const preferences = (event as CustomEvent<Record<string, unknown>>).detail;
+      if (!preferences) return;
+
+      const config = getPreferenceConfig("filters");
+      writeJson(config.storageKey, preferences);
+      writeJson(config.pendingKey, preferences);
+
+      if (!readSession()) return;
+
+      if (searchFilterSyncTimer !== null) window.clearTimeout(searchFilterSyncTimer);
+      // Debounce buendelt schnelle Chip-Toggles zu einem Request
+      searchFilterSyncTimer = window.setTimeout(() => {
+        searchFilterSyncTimer = null;
+        apiRequest(config.endpoint, { method: config.method, body: preferences, authRequired: true })
+          .then(() => {
+            // Pending nur raeumen, wenn nicht inzwischen ein neuerer Stand wartet
+            const pendingNow = readJson<Record<string, unknown>>(config.pendingKey);
+            if (JSON.stringify(pendingNow) === JSON.stringify(preferences)) {
+              window.localStorage.removeItem(config.pendingKey);
+            }
+          })
+          .catch((error) => {
+            // Pending bleibt liegen - der naechste Seitenaufruf synct nach
+            console.warn("[Heimatplatz] Filter-Sync fehlgeschlagen", error);
+          });
+      }, 800);
+    });
+  }
+
   function refreshActionButtons() {
     const favorites = new Set(readArray(STORAGE_KEYS.favorites));
     const blocked = new Set(readArray(STORAGE_KEYS.blocked));
@@ -4200,6 +4240,7 @@
     applySavedPreferences();
     bindNotificationPreferenceVisibility();
     bindPreferenceForms();
+    bindSearchFilterPersistence();
     loadRemotePreferences();
     bindRegisterRoleFields();
     bindImagePickers();

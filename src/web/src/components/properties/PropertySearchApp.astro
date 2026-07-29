@@ -284,6 +284,7 @@ const ortRegions = await fetchOrtRegions();
     SelectedOrtes?: string[];
     SelectedAgeFilter?: number | string;
     SelectedSort?: number | string;
+    ExcludedSellerSourceIds?: string[];
   };
 
   function readStoredFilterPreferences(): StoredFilterPreferences | null {
@@ -737,6 +738,45 @@ const ortRegions = await fetchOrtRegions();
     history.replaceState(null, "", url);
   }
 
+  // Aktive Suchleisten-Filter als Suchprofil persistieren: der Payload entspricht
+  // SaveUserFilterPreferencesRequest (wie das Formular /filter-einstellungen).
+  // PropertyStateScript uebernimmt Speicherung und Konto-Sync - angemeldet per
+  // POST /api/auth/filter-preferences, als Gast lokal mit Login-Uebernahme.
+  const AGE_TO_STORED: Record<string, number> = { day: 1, week: 2, month: 3, year: 4 };
+  const SORT_TO_STORED: Record<string, number> = {
+    newest: 0,
+    oldest: 1,
+    "price-asc": 2,
+    "price-desc": 3,
+    "area-desc": 4,
+    "area-asc": 5,
+    "postal-asc": 6,
+    "postal-desc": 7,
+  };
+
+  function persistFilterPreferences() {
+    const types = getActiveTypes();
+    const sellers = getActiveSellers();
+    // Broker-Ausschluesse verwaltet nur MAUI - vorhandenen Stand mitschreiben
+    // statt ihn beim Chip-Toggle stillschweigend zu leeren.
+    const stored = readStoredFilterPreferences();
+    document.dispatchEvent(new CustomEvent<StoredFilterPreferences>("filter-preferences-changed", {
+      detail: {
+        SelectedOrtes: Array.from(selectedOrtSlugs),
+        SelectedAgeFilter: AGE_TO_STORED[getAgeValue()] ?? 0,
+        IsHausSelected: types.includes("house"),
+        IsGrundstueckSelected: types.includes("land"),
+        IsZwangsversteigerungSelected: types.includes("foreclosure"),
+        IsPrivateSelected: sellers.includes("private"),
+        IsBrokerSelected: sellers.includes("agent"),
+        ExcludedSellerSourceIds: Array.isArray(stored?.ExcludedSellerSourceIds)
+          ? stored.ExcludedSellerSourceIds.map((item) => String(item))
+          : [],
+        SelectedSort: SORT_TO_STORED[sort?.value ?? "newest"] ?? 0,
+      },
+    }));
+  }
+
   let refreshTimer: number | undefined;
   let abortController: AbortController | null = null;
 
@@ -866,12 +906,14 @@ const ortRegions = await fetchOrtRegions();
     // triggert syncState, aber kein erneutes emitChange, daher keine Endlosschleife.
     const api = (window as any).setOrtPickerValues;
     if (typeof api === "function") api("region", Array.from(selectedOrtSlugs));
+    persistFilterPreferences();
     scheduleRefresh(true);
   });
   ageControls.forEach((control) => {
     control.addEventListener("change", () => {
       filtersTouched = true;
       setSelectValue(ageControls, control.value);
+      persistFilterPreferences();
       scheduleRefresh(true);
     });
   });
@@ -886,6 +928,7 @@ const ortRegions = await fetchOrtRegions();
         selectedTypes.add(value);
       }
       updateFilterChips();
+      persistFilterPreferences();
       scheduleRefresh(true);
     });
   });
@@ -900,11 +943,13 @@ const ortRegions = await fetchOrtRegions();
         selectedSellers.add(value);
       }
       updateFilterChips();
+      persistFilterPreferences();
       scheduleRefresh(true);
     });
   });
   sort?.addEventListener("change", () => {
     filtersTouched = true;
+    persistFilterPreferences();
     scheduleRefresh(true);
   });
   prevPage?.addEventListener("click", () => {
@@ -935,6 +980,7 @@ const ortRegions = await fetchOrtRegions();
       SELLER_VALUES.forEach((seller) => selectedSellers.add(seller));
       if (sort) sort.value = "newest";
       updateFilterChips();
+      persistFilterPreferences();
       scheduleRefresh(true);
     });
   });
