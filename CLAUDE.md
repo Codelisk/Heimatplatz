@@ -1,5 +1,20 @@
 # Heimatplatz
 
+## Agent-Kontext
+
+Diese Datei ist die gemeinsame fachliche und architektonische Regelbasis fuer Claude und
+Codex. Codex wird ueber `AGENTS.md` auf diese Regeln verwiesen.
+
+- Claude-Skills liegen unter `.claude/skills/`.
+- Codex-Skills liegen unter `.codex/skills/`.
+- Inhaltlich gemeinsame Skills muessen in beiden Verzeichnissen vorhanden sein.
+- Agent-spezifisches Skill-Frontmatter darf abweichen: Claude nutzt zusaetzlich
+  `auto_invoke` und `triggers`; Codex bildet die Ausloeser in `description` ab.
+- Web/Astro-Aufgaben nutzen `astro-ai-development`.
+- Vollstaendige manuelle QA-Laeufe nutzen `funktionstest`.
+- Lokalisierungsaufgaben mit `Shiny.Extensions.Localization.Generator` nutzen `localizegen`.
+- MAUI-/Shiny-Aufgaben nutzen den jeweils fachlich passenden `shiny-*` Skill.
+
 ## Technische Details
 
 - **Sprache:** C# latest
