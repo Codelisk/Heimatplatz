@@ -421,7 +421,7 @@ public sealed class MbglMap : IDisposable
         fixed (double* ptr = flat)
         {
             NativeMethods.MapCameraForLatLngs(Handle, ptr, points.Count,
-                padTop, padLeft, padBottom, padRight,
+                L(padTop), L(padLeft), L(padBottom), L(padRight),
                 out double lat, out double lon,
                 out double zoom, out double bearing, out double pitch);
             return new CameraResult(lat, lon, zoom, bearing, pitch);
@@ -443,7 +443,7 @@ public sealed class MbglMap : IDisposable
             NativeMethods.MapPixelsForLatLngs(Handle, inPtr, points.Count, outPtr);
         var result = new (double X, double Y)[points.Count];
         for (int i = 0; i < points.Count; i++)
-            result[i] = (outXy[i * 2], outXy[i * 2 + 1]);
+            result[i] = (P(outXy[i * 2]), P(outXy[i * 2 + 1]));
         return result;
     }
 
@@ -453,8 +453,8 @@ public sealed class MbglMap : IDisposable
         var flat = new double[pixels.Count * 2];
         for (int i = 0; i < pixels.Count; i++)
         {
-            flat[i * 2]     = pixels[i].X;
-            flat[i * 2 + 1] = pixels[i].Y;
+            flat[i * 2]     = L(pixels[i].X);
+            flat[i * 2 + 1] = L(pixels[i].Y);
         }
         var outLl = new double[pixels.Count * 2];
         fixed (double* inPtr = flat, outPtr = outLl)
