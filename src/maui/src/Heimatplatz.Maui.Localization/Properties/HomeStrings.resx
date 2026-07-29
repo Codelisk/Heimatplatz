@@ -15,11 +15,8 @@
   <data name="EmptyTitle" xml:space="preserve">
     <value>Keine Treffer</value>
   </data>
-  <data name="MapPill" xml:space="preserve">
+  <data name="MapToolbar" xml:space="preserve">
     <value>Karte</value>
-  </data>
-  <data name="MapPillSemantic" xml:space="preserve">
-    <value>Kartenansicht der Suchergebnisse oeffnen</value>
   </data>
   <data name="NewListingsPill" xml:space="preserve">
     <value>Neue Inserate</value>

@@ -1271,8 +1271,8 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
         => _navigator.NavigateTo<FilterSettingsViewModel>();
 
     /// <summary>
-    /// Oeffnet die Vollbild-Kartenansicht (Karte-Pille). Die aktuellen Filter
-    /// nimmt die Karte selbst aus dem FilterStateService mit.
+    /// Oeffnet die Vollbild-Kartenansicht (Karte-Symbol rechts oben in der Navbar).
+    /// Die aktuellen Filter nimmt die Karte selbst aus dem FilterStateService mit.
     /// </summary>
     [RelayCommand]
     private Task OpenMapAsync()

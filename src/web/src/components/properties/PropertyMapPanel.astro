@@ -1,5 +1,4 @@
 ---
-import MapIcon from "@tabler/icons/outline/map-2.svg";
 import { fetchOrtRegions } from "@/features/locations/live-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
@@ -16,7 +15,9 @@ import { t } from "@/i18n";
  * .hpsplit-Grids in PropertySearchApp - sie klappt seitlich von 0 auf ~47%
  * Breite auf, klebt sticky unter der Suchleiste und nutzt die volle Resthoehe
  * (Airbnb-Muster; Baymard: Karte NEBEN der Liste). Unter lg oeffnet sie als
- * Vollbild-Overlay mit Bottom-Sheet und schwebender Karte-Pille.
+ * Vollbild-Overlay mit Bottom-Sheet; geoeffnet wird sie ueber den Karte-Button
+ * rechts oben in der Suchleiste (Desktop) bzw. in der sticky Filterzeile
+ * (MobileFilterPanel) - beide tragen data-map-toggle.
  *
  * Interaktion: Bezirks-Cluster (Stempel) bis Zoom ~9, darueber Preis-Schilder.
  * Stempel-Klick zoomt auf den Bezirk UND setzt den bestehenden Region-Filter
@@ -93,12 +94,6 @@ for (const region of regions) {
     {/* Mini-Zettel als Bottom-Sheet (mobil) - Inhalt kommt aus buildPopupContent */}
     <div class="hpmap-bottomsheet lg:hidden" data-map-bottomsheet aria-live="polite"></div>
   </div>
-
-  {/* Schwebende Karte-Pille (mobil, Airbnb-Muster) - verschwindet bei offener Karte */}
-  <button type="button" class="hpmap-pill lg:hidden" data-map-pill aria-controls="property-map" aria-expanded="false">
-    <MapIcon class="size-4" aria-hidden="true" />
-    {t("search.mapToggle")}
-  </button>
 </section>
 <script is:inline type="application/json" data-municipality-region-map set:html={jsonForScriptTag(municipalityRegionMap)} />
 
@@ -405,30 +400,6 @@ for (const region of regions) {
   }
   .hpmap-note { margin: 0.6rem 0 0; text-align: center; font-size: 0.78rem; color: var(--muted-foreground); }
 
-  /* Schwebende Karte-Pille (mobil): dunkle Pille unten mittig, verschwindet
-     bei offener Karte. bg/fg invertiert = passt sich beiden Themes an. */
-  .hpmap-pill {
-    position: fixed;
-    bottom: max(1.25rem, env(safe-area-inset-bottom));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 40;
-    /* Anzeige kommt aus der max-lg-Media-Query unten - ein display hier wuerde
-       das lg:hidden-Utility bei gleicher Spezifitaet per Quellreihenfolge schlagen */
-    display: none;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.65rem 1.35rem;
-    border-radius: 999px;
-    background: var(--foreground);
-    color: var(--background);
-    font-size: 0.9rem;
-    font-weight: 700;
-    box-shadow: 0 10px 26px -10px oklch(0 0 0 / 55%);
-    cursor: pointer;
-  }
-  .hpmap-stage.open .hpmap-pill { display: none; }
-
   /* Vollbild-Schliessen (mobil) - Anzeige nur in der max-lg-Media-Query */
   .hpmap-close {
     position: absolute;
@@ -530,8 +501,6 @@ for (const region of regions) {
 
   /* Mobil/Tablet (< lg): offene Karte als Vollbild-Overlay statt Inline-Panel */
   @media (max-width: 1023.98px) {
-    .hpmap-pill { display: inline-flex; }
-    .hpmap-stage.open .hpmap-pill { display: none; }
     .hpmap-close { display: grid; }
     .hpmap-stage.open .hpmap-collapse {
       position: fixed;
@@ -584,10 +553,12 @@ for (const region of regions) {
   import type { Map as MapLibreMap, Marker as MapLibreMarker, Popup as MapLibrePopup } from "maplibre-gl";
 
   const stage = document.querySelector<HTMLElement>("[data-map-stage]");
-  const toggle = document.querySelector<HTMLButtonElement>("[data-map-toggle]");
+  // Mehrere Toggles moeglich: Desktop-Suchleiste (PropertySearchApp) und die
+  // mobile Filterzeile (MobileFilterPanel) tragen beide data-map-toggle
+  const toggles = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-map-toggle]"));
   const glContainer = stage?.querySelector<HTMLElement>("[data-map-gl]");
 
-  if (stage && toggle && glContainer) {
+  if (stage && toggles.length > 0 && glContainer) {
     const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
     // Tiles/Assets von der eigenen Origin (Caddy liefert PMTiles per Range-Request);
     // ohne hinterlegte Datei rendert map-style.ts die Papier-Fallback-Karte
@@ -602,7 +573,6 @@ for (const region of regions) {
     const cartoucheCount = stage.querySelector<HTMLElement>("[data-map-cartouche-count]")!;
     const backBtn = stage.querySelector<HTMLButtonElement>("[data-map-back]")!;
     const closeBtn = stage.querySelector<HTMLButtonElement>("[data-map-close]")!;
-    const pillBtn = stage.querySelector<HTMLButtonElement>("[data-map-pill]")!;
     const bottomSheet = stage.querySelector<HTMLElement>("[data-map-bottomsheet]")!;
     // Unter lg: Vollbild-Overlay + Bottom-Sheet statt Inline-Panel + Popup
     const mobileQuery = window.matchMedia("(max-width: 1023.98px)");
@@ -1231,12 +1201,17 @@ for (const region of regions) {
       history.replaceState(null, "", url);
     }
 
+    function syncToggleState(open: boolean) {
+      toggles.forEach((button) => {
+        button.setAttribute("aria-pressed", String(open));
+        button.setAttribute("aria-expanded", String(open));
+      });
+    }
+
     function openMap() {
       if (isOpen) return;
       isOpen = true;
-      toggle!.setAttribute("aria-pressed", "true");
-      toggle!.setAttribute("aria-expanded", "true");
-      pillBtn.setAttribute("aria-expanded", "true");
+      syncToggleState(true);
       stage!.classList.add("open");
       // Vollbild-Overlay (mobil): Seite dahinter nicht mitscrollen lassen
       if (mobileQuery.matches) document.documentElement.classList.add("hpmap-lock");
@@ -1277,9 +1252,7 @@ for (const region of regions) {
     function closeMap() {
       if (!isOpen) return;
       isOpen = false;
-      toggle!.setAttribute("aria-pressed", "false");
-      toggle!.setAttribute("aria-expanded", "false");
-      pillBtn.setAttribute("aria-expanded", "false");
+      syncToggleState(false);
       if (mode === "bezirk") zoomToOverview(true);
       stage!.classList.remove("open", "folding", "unfolded");
       document.documentElement.classList.remove("hpmap-lock");
@@ -1288,8 +1261,7 @@ for (const region of regions) {
       updateAnsichtParam(false);
     }
 
-    toggle.addEventListener("click", () => (isOpen ? closeMap() : openMap()));
-    pillBtn.addEventListener("click", openMap);
+    toggles.forEach((button) => button.addEventListener("click", () => (isOpen ? closeMap() : openMap())));
     closeBtn.addEventListener("click", closeMap);
 
     // Breakpoint-Wechsel bei offener Karte: Scroll-Lock/Gesten nur im Vollbild-Modus

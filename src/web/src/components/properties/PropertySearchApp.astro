@@ -87,8 +87,8 @@ const ortRegions = await fetchOrtRegions();
       {/* Kartenansicht: Toggle-Chip mit gleicher aria-pressed-Sprache wie die
           Filter-Chips - die Faltkarte (PropertyMapPanel) klappt als rechte
           Split-Spalte neben der Trefferliste auf, die Liste bleibt sichtbar */}
-      {/* Unter lg uebernimmt die schwebende Karte-Pille (PropertyMapPanel) -
-          der Toolbar-Chip wuerde dort nur Platz in der engen Leiste kosten */}
+      {/* Unter lg uebernimmt der gleiche Toggle-Chip rechts oben in der sticky
+          Filterzeile (MobileFilterPanel) - beide tragen data-map-toggle */}
       <button
         type="button"
         class="hidden shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-input bg-muted px-2.5 py-1.5 text-sm font-semibold text-foreground transition-colors aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground lg:inline-flex"

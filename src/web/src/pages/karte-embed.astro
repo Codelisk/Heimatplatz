@@ -99,9 +99,8 @@ const mapQuery = buildPropertySearchQuery(searchState, ortSlugMap);
   body.karte-embed .hpmap-canvas { height: 100%; border-radius: 0; }
   body.karte-embed .hpmap-maplibre { height: 100%; aspect-ratio: auto; }
   body.karte-embed .hpmap-note { display: none; }
-  /* Schliessen uebernimmt die App (nativer Back/X) - Web-X und Pille weg */
+  /* Schliessen uebernimmt die App (nativer Back/X) - Web-X weg */
   body.karte-embed .hpmap-close { display: none !important; }
-  body.karte-embed .hpmap-pill { display: none !important; }
   /* Android-WebView-Compositing-Falle: die Falt-Animation hinterlaesst am
      Geraet einen eingefrorenen Flap-Schatten-Layer unter der Kartusche
      (grauer Verlaufs-Block; im CDP-Software-Render nicht reproduzierbar).

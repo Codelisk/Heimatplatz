@@ -46,6 +46,20 @@
         </Grid>
     </Shell.TitleView>
 
+    <!-- Karte dauerhaft rechts oben in der Navbar (ersetzt die fruehere schwebende
+         Pille unten - dort kollidierte sie mit Browser-/System-Overlays und war
+         beim Lesen der Liste im Weg). Priority 1 haelt das Symbol am rechten Rand:
+         das dynamische Filter-Symbol (Code-Behind, erscheint nur bei weggescrollter
+         Chip-Zeile) wird mit Priority 0 davor einsortiert, die Karte springt nie. -->
+    <shiny:ShinyContentPage.ToolbarItems>
+        <ToolbarItem Text="{Binding Loc.MapToolbar}"
+                     IconImageSource="icon_map.png"
+                     Order="Primary"
+                     Priority="1"
+                     Command="{Binding OpenMapCommand}"
+                     AutomationId="Home_Toolbar_Map" />
+    </shiny:ShinyContentPage.ToolbarItems>
+
     <shiny:ShinyContentPage.PageContent>
         <Grid>
 
@@ -141,12 +155,9 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                     <CollectionView.Footer>
-                        <!-- Unterer Freiraum haelt die Trefferzahl frei von der schwebenden
-                             Karten-Pille (40 hoch + 20 Abstand): sie stand sonst genau dahinter
-                             und war am Listenende nur halb lesbar. -->
                         <Grid ColumnDefinitions="Auto,*,Auto"
                               ColumnSpacing="10"
-                              Padding="12,12,12,72"
+                              Padding="12,12,12,24"
                               IsVisible="{Binding HasResults}"
                               AutomationId="Home_Pagination">
                             <Button Grid.Column="0"
@@ -302,48 +313,6 @@
                            FontSize="14"
                            VerticalOptions="Center"
                            TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-                </HorizontalStackLayout>
-            </Border>
-
-            <!-- Schwebende Karte-Pille: bewusst dezenter als die Web-Pille -
-                 Glas-Optik wie die Foto-Action-Buttons der Zettel (X/Blockieren),
-                 transparentes Grau + feine Kontur statt Vollton mit Schatten.
-                 Oeffnet die Vollbild-Kartenansicht mit den aktuellen Filtern.
-                 Faehrt zusammen mit der Filter-Chip-Zeile weg (Code-Behind
-                 TransitionChipBar) - beide gehoeren zur Suchoberflaeche und
-                 sollen beim Lesen der Liste aus dem Weg sein. -->
-            <Border x:Name="MapPill"
-                    HorizontalOptions="Center"
-                    VerticalOptions="End"
-                    Margin="0,0,0,20"
-                    Padding="20,0"
-                    HeightRequest="40"
-                    Stroke="{StaticResource GlassPillStroke}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 20"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource GlassPillBackground}, Dark={StaticResource GlassPillBackgroundDark}}"
-                    SemanticProperties.Description="{Binding Loc.MapPillSemantic}"
-                    AutomationId="Home_MapPill">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding OpenMapCommand}" />
-                </Border.GestureRecognizers>
-                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                    <!-- Tabler map-2 (wie im Web) als Vektor-Path, Strichstaerke
-                         auf 16px-Rendering angepasst (2 * 16/24) -->
-                    <Path Data="M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v7.5 M9 4v13 M15 7v5.5 M21.121 20.121a3 3 0 1 0 -4.242 0c.418 .419 1.125 1.045 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879 M19 18v.01"
-                          Stroke="{StaticResource White}"
-                          StrokeThickness="1.4"
-                          StrokeLineCap="Round"
-                          StrokeLineJoin="Round"
-                          Aspect="Uniform"
-                          WidthRequest="16"
-                          HeightRequest="16"
-                          VerticalOptions="Center" />
-                    <Label Text="{Binding Loc.MapPill}"
-                           FontFamily="SansBold"
-                           FontSize="14"
-                           VerticalOptions="Center"
-                           TextColor="{StaticResource White}" />
                 </HorizontalStackLayout>
             </Border>
 

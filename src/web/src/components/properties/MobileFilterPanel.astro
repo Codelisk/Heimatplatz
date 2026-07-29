@@ -1,6 +1,7 @@
 ---
 import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
 import FilterIcon from "@tabler/icons/outline/filter.svg";
+import MapIcon from "@tabler/icons/outline/map-2.svg";
 import { NativeSelect } from "@/components/starwind/native-select";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
 import { fetchOrtRegions } from "@/features/locations/live-api";
@@ -10,21 +11,42 @@ import { t } from "@/i18n";
 const ortRegions = await fetchOrtRegions();
 ---
 
-<section class="border-b border-border bg-background lg:hidden" data-mobile-filter>
-  <button
-    class="group grid min-h-11 w-full grid-cols-[1fr_auto] items-center px-3 text-left"
-    type="button"
-    data-mobile-filter-toggle
-    aria-expanded="false"
-  >
-    <span class="flex items-center gap-2 text-sm font-semibold">
-      <FilterIcon class="size-4" aria-hidden="true" />
-      {t("search.filterToggle")}
-    </span>
-    {/* Die Trefferzahl steht direkt darunter als Stempel in der Suchleiste -
-        hier bleibt nur der Aufklapp-Indikator */}
-    <ChevronDownIcon class="size-4 text-muted-foreground transition-transform duration-200 group-aria-expanded:rotate-180" aria-hidden="true" />
-  </button>
+{/* Sticky unter dem Header (h-14): Filter UND Karte bleiben beim Scrollen
+    greifbar - die fruehere schwebende Karte-Pille unten kollidierte mit den
+    Nach-oben-Buttons mancher Mobil-Browser (z.B. Samsung Internet). */}
+<section
+  class="sticky top-14 z-30 border-b border-border bg-background supports-[backdrop-filter]:bg-background/85 supports-[backdrop-filter]:backdrop-blur-md lg:hidden"
+  data-mobile-filter
+>
+  <div class="flex items-center gap-2 pr-3">
+    <button
+      class="group flex min-h-11 min-w-0 flex-1 items-center gap-2 px-3 text-left"
+      type="button"
+      data-mobile-filter-toggle
+      aria-expanded="false"
+    >
+      <span class="flex items-center gap-2 text-sm font-semibold">
+        <FilterIcon class="size-4" aria-hidden="true" />
+        {t("search.filterToggle")}
+      </span>
+      {/* Aufklapp-Indikator direkt am Label - rechts sitzt jetzt der Karte-Button */}
+      <ChevronDownIcon class="size-4 text-muted-foreground transition-transform duration-200 group-aria-expanded:rotate-180" aria-hidden="true" />
+    </button>
+    {/* Kartenansicht rechts oben in der Leiste: gleicher Toggle-Chip wie in der
+        Desktop-Suchleiste (PropertySearchApp), gleiche aria-pressed-Sprache -
+        oeffnet die Vollbild-Faltkarte (PropertyMapPanel) */}
+    <button
+      type="button"
+      class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-input bg-muted px-2.5 py-1.5 text-sm font-semibold text-foreground transition-colors aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+      data-map-toggle
+      aria-pressed="false"
+      aria-expanded="false"
+      aria-controls="property-map"
+    >
+      <MapIcon class="size-4" aria-hidden="true" />
+      {t("search.mapToggle")}
+    </button>
+  </div>
 
   <form action="/" method="get" class="hidden px-3 pb-3" data-mobile-filter-body>
     <div class="grid grid-cols-2 gap-2">

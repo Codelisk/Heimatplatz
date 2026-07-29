@@ -10,14 +10,6 @@ namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
 public partial class HomePage : ShinyContentPage
 {
-    /// <summary>
-    /// Weg der Karte-Pille beim Ausblenden: Hoehe (40) + Aussenabstand (20) aus
-    /// dem XAML, plus Reserve fuer die Kontur. Zusaetzlich wird ausgeblendet -
-    /// reines Verschieben reicht nicht, weil das Seiten-Overlay nicht auf jeder
-    /// Plattform an der Unterkante clippt.
-    /// </summary>
-    private const double MapPillHiddenOffset = 76;
-
     private bool _chipBarHidden;
     private double? _chipBarAnimationTarget;
     private ToolbarItem? _filterToolbarItem;
@@ -29,7 +21,9 @@ public partial class HomePage : ShinyContentPage
     /// <summary>
     /// Filter-Symbol rechts oben: erscheint nur, solange die Chip-Zeile weggescrollt
     /// ist, und holt sie per Tap zurueck. ToolbarItem kennt kein IsVisible, daher
-    /// wird es dynamisch hinzugefuegt/entfernt. Text kommt aus dem Loc des ViewModels
+    /// wird es dynamisch hinzugefuegt/entfernt - per Insert(0) und Priority 0 immer
+    /// LINKS vom permanenten Karte-Symbol (XAML, Priority 1), damit die Karte beim
+    /// Ein-/Ausblenden des Filters nicht springt. Text kommt aus dem Loc des ViewModels
     /// (Fallback DI-Resolve, falls das Item vor dem BindingContext erzeugt wird).
     /// </summary>
     private ToolbarItem FilterToolbarItem => _filterToolbarItem ??= new ToolbarItem
@@ -37,6 +31,7 @@ public partial class HomePage : ShinyContentPage
         Text = (_viewModel?.Loc ?? IPlatformApplication.Current?.Services.GetRequiredService<HomeStringsLocalized>())?.FilterToolbar ?? string.Empty,
         IconImageSource = "icon_filter.png",
         Order = ToolbarItemOrder.Primary,
+        Priority = 0,
         AutomationId = "Home_Toolbar_Filter",
         Command = new Command(ShowChipBar)
     };
@@ -255,18 +250,6 @@ public partial class HomePage : ShinyContentPage
 
     private void HideChipBar() => TransitionChipBar(hide: true);
 
-    /// <summary>
-    /// Endzustand der Karte-Pille ohne Animation setzen. IsVisible ist dabei
-    /// load-bearing: eine nur durchsichtige Pille faengt weiterhin Taps ab und
-    /// wuerde am unteren Listenrand ins Leere fuehren.
-    /// </summary>
-    private void SnapMapPill(bool hide)
-    {
-        MapPill.TranslationY = hide ? MapPillHiddenOffset : 0d;
-        MapPill.Opacity = hide ? 0 : 1;
-        MapPill.IsVisible = !hide;
-    }
-
     private void OnFilterChipBarMetricsChanged(object? sender, EventArgs e) =>
         Dispatcher.Dispatch(UpdateFilterOverflowHint);
 
@@ -306,14 +289,7 @@ public partial class HomePage : ShinyContentPage
         if (_chipBarHidden == hide &&
             (_chipBarAnimationTarget == target ||
              (_chipBarAnimationTarget is null && FilterChipBarSurface.TranslationY == target)))
-        {
-            // Selbstheilung nur im Ruhezustand: eine abgebrochene Animation
-            // (Wegnavigieren) kann die Pille halb verschoben zurueckgelassen
-            // haben. Waehrend einer laufenden Animation NICHT eingreifen.
-            if (_chipBarAnimationTarget is null)
-                SnapMapPill(hide);
             return;
-        }
 
         _chipBarHidden = hide;
         _chipBarAnimationTarget = target;
@@ -322,15 +298,9 @@ public partial class HomePage : ShinyContentPage
         {
             ToolbarItems.Remove(FilterToolbarItem);
             FilterChipBarHost.IsVisible = true;
-            MapPill.IsVisible = true;
         }
 
-        // Pille laeuft parallel und in die Gegenrichtung (nach unten aus dem Bild)
-        var pillTask = MapPill.TranslateToAsync(0, hide ? MapPillHiddenOffset : 0d, 160, hide ? Easing.CubicIn : Easing.CubicOut);
-        var pillFadeTask = MapPill.FadeToAsync(hide ? 0 : 1, 160);
-
         var canceled = await FilterChipBarSurface.TranslateToAsync(0, target, 160, hide ? Easing.CubicIn : Easing.CubicOut);
-        await Task.WhenAll(pillTask, pillFadeTask);
 
         if (_chipBarAnimationTarget == target)
             _chipBarAnimationTarget = null;
@@ -343,7 +313,6 @@ public partial class HomePage : ShinyContentPage
         // Endzustand festnageln - Animationsreste (Bruchpixel) machen die Zeile auf
         // iOS unscharf.
         FilterChipBarSurface.TranslationY = target;
-        SnapMapPill(hide);
 
         if (hide)
         {
@@ -357,8 +326,9 @@ public partial class HomePage : ShinyContentPage
             FilterChipBarHost.IsVisible = false;
 #endif
 
+            // Insert(0): links vom permanenten Karte-Symbol (XAML), s. FilterToolbarItem
             if (!ToolbarItems.Contains(FilterToolbarItem))
-                ToolbarItems.Add(FilterToolbarItem);
+                ToolbarItems.Insert(0, FilterToolbarItem);
         }
     }
 }
