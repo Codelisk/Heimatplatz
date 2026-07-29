@@ -89,8 +89,10 @@ public partial class PropertyMapPage : ContentPage
 #if ANDROID
         return Android.App.Application.Context.Resources?.Configuration?.FontScale ?? 1.0;
 #elif IOS || MACCATALYST
-        // Dynamic Type: bevorzugte Body-Groesse relativ zum Standard (17pt)
-        return UIKit.UIFont.PreferredBody.PointSize / 17.0;
+        // Dynamic Type: bevorzugte Body-Groesse relativ zum Standard (17pt);
+        // PreferredBody ist im Binding nullable annotiert
+        var body = UIKit.UIFont.PreferredBody;
+        return body is null ? 1.0 : body.PointSize / 17.0;
 #elif WINDOWS
         return new global::Windows.UI.ViewManagement.UISettings().TextScaleFactor;
 #else
