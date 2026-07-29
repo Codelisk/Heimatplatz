@@ -15,8 +15,12 @@ Handlers-Projekt.
 
 ## Native Binaries (`native/`)
 
-- `win-x64`/`win-arm64` (mln-cabi.dll), `ios` (XCFramework), `maccatalyst` (.a):
+- `win-x64`/`win-arm64` (mln-cabi.dll), `maccatalyst` (.a):
   **unveraendert aus den 4.5.0-NuGet-Paketen** uebernommen.
+- `ios` (XCFramework, Device+Simulator): **selbst gebaut am 29.07.2026** via
+  Codemagic-Workflow `ios-native-maplibre` (codemagic.yaml) - maplibre-native
+  @ 08579ca7 + native-src-Wrapper, Metal, inkl. **pixelRatio-Fix** (Abweichung 4);
+  damit rendert iOS identisch zu Android und braucht keine Kompensation mehr.
 - `android-arm64`/`android-x64` (libmln-cabi.so): **selbst gebaut am 28.07.2026**
   mit 16-KB-Page-Size (LOAD p_align 0x4000, behebt XA0141/Play-Blocker) und
   per llvm-strip gestrippt (6-7 MB statt 112 MB unstripped wie upstream).
@@ -67,7 +71,8 @@ dann kann der Eigenbau beim naechsten Update wieder entfallen.
    (Gesten-Anker, moveBy, latLngForPixel, pixelForLatLng, Query-Punkt/-Box,
    Kamera-Paddings) konvertieren an der ABI-Grenze — die Managed-Seite spricht
    weiterhin physische px. Gehoert upstream gemeldet; bis dahin bei jedem
-   Update erneut anwenden und die Android-Binaries neu bauen.
+   Update erneut anwenden und die Android- UND iOS-Binaries neu bauen
+   (iOS: Codemagic-Workflow `ios-native-maplibre`, s. codemagic.yaml).
 5. **iOS-AOT-sichere Callbacks (29.07.2026):** Upstream uebergibt den Render-
    Callback (`MbglFrontend`) und den Map-Observer (`MbglMap`) als Delegates —
    Delegate-Marshalling native→managed erzeugt den Reverse-Wrapper erst zur
@@ -84,11 +89,13 @@ dann kann der Eigenbau beim naechsten Update wieder entfallen.
    KEINE Touch-Gesten implementiert (nur Overlay-Buttons; die Click-Events
    feuerten nie). Der MaciOS-Controller hat jetzt Pan/Pinch/Tap/DoubleTap/
    LongPress-Recognizer, die dieselben C-ABI-Primitiven fuettern wie Windows.
-   Weil das iOS-Binary noch der Upstream-Stand OHNE Abweichung 4 ist (erwartet
-   LOGISCHE px), rechnet `MbglMap` mit `compatPixelRatio` (nur von MaciOS
-   gesetzt) alle Screen-px-Ein-/Ausgaben an der ABI-Grenze um. **Sobald das
-   iOS-Binary mit dem pixelRatio-Fix neu gebaut wird, compatPixelRatio auf 1.0
-   setzen — sonst wird doppelt konvertiert!**
+   Die `compatPixelRatio`-Umrechnung in `MbglMap` (fuer Binaries OHNE den
+   Abweichung-4-Fix, die LOGISCHE px erwarten) ist seit dem iOS-Eigenbau
+   (29.07.) NUR NOCH fuer MacCatalyst aktiv - dessen `.a` ist weiter der
+   Upstream-Stand. Wird auch MacCatalyst neu gebaut, dort ebenfalls auf 1.0
+   stellen (MapLibreMapController.MaciOS.cs) und die MacCatalyst-Sonderwerte
+   des Preis-Chips (PropertyMapPage) entfernen — sonst wird doppelt
+   konvertiert!
 
 ## Update-Prozess
 

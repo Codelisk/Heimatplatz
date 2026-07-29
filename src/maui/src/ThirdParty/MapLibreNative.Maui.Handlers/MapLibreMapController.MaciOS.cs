@@ -510,11 +510,12 @@ public class MapLibreMapController : IMapLibreMapController
             TryInitialize(w, h);
             return;
         }
-        // REIHENFOLGE: Das Upstream-iOS-Binary setzt in mbgl_map_set_size Map
-        // UND Frontend/Drawable gemeinsam - der (kompensierte) logische
-        // Map-SetSize wuerde das Metal-Drawable sonst auf logische px
-        // schrumpfen (halbe Aufloesung, sichtbar unscharf). Deshalb erst die
-        // Map, DANACH das Frontend physisch - so bleibt das Drawable scharf.
+        // REIHENFOLGE: Das Upstream-Binary (heute nur noch MacCatalyst) setzt
+        // in mbgl_map_set_size Map UND Frontend/Drawable gemeinsam - der
+        // (kompensierte) logische Map-SetSize wuerde das Metal-Drawable sonst
+        // auf logische px schrumpfen (halbe Aufloesung, sichtbar unscharf).
+        // Deshalb erst die Map, DANACH das Frontend physisch; mit dem gefixten
+        // iOS-Binary ist die Reihenfolge egal (dort sind beide getrennt).
         _map?.SetSize(w, h);
         _frontend.SetSize(w, h);
         _map?.TriggerRepaint();
@@ -547,16 +548,20 @@ public class MapLibreMapController : IMapLibreMapController
 
         // Persistent tile/resource cache (mbgl's default is :memory:), shared
         // with MbglOfflineManager via MbglCache.DefaultPath.
-        // compatPixelRatio: das iOS-Binary ist noch der Upstream-Stand OHNE den
-        // pixelRatio-Fix (Vendor-README Abweichung 4) und erwartet LOGISCHE px -
-        // der MbglMap-Wrapper rechnet damit alle Screen-px an der ABI-Grenze um
-        // (Map-Groesse, Gesten, Queries, Paddings). AUF 1.0 setzen, sobald das
-        // iOS-Binary mit dem Fix neu gebaut ist!
+        // compatPixelRatio: das iOS-XCFramework ist seit 29.7. selbst gebaut und
+        // enthaelt den pixelRatio-Fix (Vendor-README Abweichung 4) - iOS braucht
+        // KEINE Kompensation mehr. Nur MacCatalyst laeuft weiter auf dem
+        // Upstream-.a (erwartet logische px) und behaelt die Umrechnung.
+#if MACCATALYST
+        var compatPixelRatio = _pixelRatio;
+#else
+        const float compatPixelRatio = 1.0f;
+#endif
         _map = new MbglMap(_frontend, _runLoop,
                            cachePath: MbglCache.DefaultPath,
                            pixelRatio: _pixelRatio,
                            observer: OnMapObserverEvent,
-                           compatPixelRatio: _pixelRatio);
+                           compatPixelRatio: compatPixelRatio);
         _map.SetSize(w, h);
         // Upstream-Binary koppelt map_set_size an das Frontend/Drawable - nach
         // dem (logischen) Map-SetSize das Drawable zurueck auf physisch

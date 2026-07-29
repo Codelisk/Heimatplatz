@@ -350,13 +350,12 @@ public partial class PropertyMapPage : ContentPage
             // Bullets traegt oben Luft auf - symmetrisches Padding laesst
             // Preis+Punkt sichtbar nach unten sacken (Browser-Iteration mit
             // identischer Render-Engine, s. map-verify-Testseite).
-            // iOS/MacCatalyst (aelterer Upstream-Core im gevendorten Binary)
-            // richtet gemischt skalierte Abschnitte an der OBERKANTE statt der
-            // Baseline aus: der Punkt ritt umso hoeher, je groesser font-scale.
-            // Deshalb dort kleinerer Punkt (weniger Hebel) + Padding-Mittelwert
-            // aus den Geraete-Iterationen 29.7. (3.5=zu tief, 1.5=zu hoch).
-            // Gesamthoehe (11) und Chip-Proportion bleiben ueberall identisch.
-#if IOS || MACCATALYST
+            // iOS rendert seit dem Binary-Eigenbau (29.7.) mit demselben Core
+            // wie Android und braucht KEINE Sonderwerte mehr. Nur MacCatalyst
+            // laeuft noch auf dem aelteren Upstream-Core, der gemischt skalierte
+            // Abschnitte an der Oberkante statt der Baseline ausrichtet -
+            // kleinerer Punkt (weniger Hebel) + Padding aus den Iterationen 29.7.
+#if MACCATALYST
             object[] chipPadding = [2.5, 10, 8.5, 10];
             const double bulletScale = 1.2;
 #else
