@@ -62,6 +62,101 @@ workflows:
           success: true
           failure: true
 
+  # Baut libmln-cabi.xcframework (Device+Simulator) aus maplibre-native @ dem
+  # v4.5.0-Pin plus unserem gevendorten C-ABI-Wrapper (native-src/, enthaelt den
+  # pixelRatio-Fix, Vendor-README Abweichung 4). Repliziert Upstreams
+  # native-apple.yml-Rezept. Das Artefakt wird heruntergeladen und ersetzt
+  # native/ios/libmln-cabi.xcframework im Repo - danach kann compatPixelRatio
+  # fuer iOS auf 1.0 (Abweichung 6).
+  ios-native-maplibre:
+    name: iOS - MapLibre C-ABI Eigenbau (xcframework)
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      xcode: 26.6
+    scripts:
+      - name: Clone maplibre-native @ v4.5.0-Pin
+        script: |
+          set -e
+          MLN_PIN=08579ca76d35785605257921619f08d33dac4ac0
+          mkdir -p "$CM_BUILD_DIR/mln-build/dependencies"
+          git clone --filter=blob:none https://github.com/maplibre/maplibre-native.git \
+            "$CM_BUILD_DIR/mln-build/dependencies/maplibre-native"
+          cd "$CM_BUILD_DIR/mln-build/dependencies/maplibre-native"
+          git checkout "$MLN_PIN"
+          git -c submodule.fetchJobs=8 submodule update --init --recursive
+
+      - name: Build-Baum zusammensetzen (Wrapper mit pixelRatio-Fix)
+        script: |
+          set -e
+          cd "$CM_BUILD_DIR/mln-build"
+          cp -R "$CM_BUILD_DIR/src/maui/src/ThirdParty/MapLibreNative.Maui/native-src" native
+          cat > CMakeLists.txt <<'EOF'
+          cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+          project(maplibre-maui LANGUAGES CXX C OBJC OBJCXX)
+          set(MAPLIBRE_NATIVE_DIR "${CMAKE_CURRENT_LIST_DIR}/dependencies/maplibre-native"
+              CACHE PATH "Path to maplibre-native source tree")
+          add_subdirectory("${MAPLIBRE_NATIVE_DIR}" "${CMAKE_BINARY_DIR}/maplibre-native")
+          add_subdirectory(native)
+          EOF
+
+      - name: iOS-Device-Slice (arm64) bauen
+        script: |
+          set -e
+          cd "$CM_BUILD_DIR/mln-build"
+          cmake -B build-ios -G Xcode \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_SYSROOT=iphoneos \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 \
+            -DMLN_WITH_METAL=ON
+          cmake --build build-ios --target mln-cabi --config Release
+          mkdir -p out/ios-arm64
+          ALL_LIBS=$(find build-ios -name "*.a" -type f | sort)
+          libtool -static -o out/ios-arm64/libmln-cabi.a $ALL_LIBS
+          strip -S out/ios-arm64/libmln-cabi.a
+          ls -lh out/ios-arm64/libmln-cabi.a
+
+      - name: iOS-Simulator-Slice (arm64) bauen
+        script: |
+          set -e
+          cd "$CM_BUILD_DIR/mln-build"
+          cmake -B build-sim -G Xcode \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 \
+            -DMLN_WITH_METAL=ON
+          cmake --build build-sim --target mln-cabi --config Release
+          mkdir -p out/ios-arm64-simulator
+          ALL_LIBS=$(find build-sim -name "*.a" -type f | sort)
+          libtool -static -o out/ios-arm64-simulator/libmln-cabi.a $ALL_LIBS
+          strip -S out/ios-arm64-simulator/libmln-cabi.a
+          ls -lh out/ios-arm64-simulator/libmln-cabi.a
+
+      - name: XCFramework bauen und packen
+        script: |
+          set -e
+          cd "$CM_BUILD_DIR/mln-build"
+          xcodebuild -create-xcframework \
+            -library out/ios-arm64/libmln-cabi.a \
+            -library out/ios-arm64-simulator/libmln-cabi.a \
+            -output out/libmln-cabi.xcframework
+          cd out
+          zip -r libmln-cabi.xcframework.zip libmln-cabi.xcframework
+          ls -lh libmln-cabi.xcframework.zip
+
+    artifacts:
+      - mln-build/out/libmln-cabi.xcframework.zip
+
+    publishing:
+      email:
+        recipients:
+          - info@vorleistung.at
+        notify:
+          success: true
+          failure: true
+
   ios-screenshots:
     name: iOS - App Store Screenshots
     max_build_duration: 120
