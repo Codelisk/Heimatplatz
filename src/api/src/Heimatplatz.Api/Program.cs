@@ -329,6 +329,9 @@ app.UseAuthorization();
 // (Telemetrie-Anreicherung fuer Spans und Logs)
 app.UseTelemetryEnrichment();
 
+// ETag/304 fuer Stammdaten-Routen (Orte, Impressum, Datenschutz, Kontakt)
+app.UseMiddleware<StammdatenConditionalGetMiddleware>();
+
 app.MapEndpoints();
 
 // Health-Endpoint fuer Monitoring, Azure-Probes und Integrationstests: prueft die DB-Erreichbarkeit

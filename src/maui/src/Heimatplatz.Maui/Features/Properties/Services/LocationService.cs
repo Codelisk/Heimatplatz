@@ -125,4 +125,9 @@ public class LocationService(
             .SelectMany(bz => bz.Gemeinden)
             .ToList();
     }
+
+    // Gutartige Race: Faellt ein Zugriff zwischen Invalidierung und das Persistieren
+    // der neuen Antwort im Mediator-Cache, landet noch einmal der alte Stand im
+    // Speicher - exakt der Zustand, den es ohne Invalidierung dauerhaft gaebe.
+    public void InvalidateCache() => _cachedLocations = null;
 }

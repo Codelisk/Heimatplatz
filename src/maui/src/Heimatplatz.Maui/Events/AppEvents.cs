@@ -13,3 +13,10 @@ public record LogoutRequestedEvent : IEvent;
 /// Wird vom LoginViewModel publiziert und von verschiedenen Features gehandled.
 /// </summary>
 public record UserLoggedInEvent(Guid UserId, string Email) : IEvent;
+
+/// <summary>
+/// Publiziert vom StammdatenConditionalGetHandler, wenn ein Stammdaten-Endpoint
+/// eine inhaltlich geaenderte Antwort geliefert hat (neuer ETag). Konsumenten
+/// verwerfen darauf ihre In-Memory-Kopien (z.B. LocationService).
+/// </summary>
+public record StammdatenChangedEvent(string Path) : IEvent;

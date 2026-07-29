@@ -21,6 +21,12 @@ public interface ILocationService
     /// Liefert alle Gemeinden flach aus der Location-Hierarchie.
     /// </summary>
     Task<List<LocationGemeindeDto>> GetAllMunicipalitiesAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Verwirft die In-Memory-Kopie der Location-Hierarchie; der naechste Zugriff
+    /// laedt neu ueber den Mediator (StammdatenChangedEvent-Reaktion).
+    /// </summary>
+    void InvalidateCache();
 }
 
 /// <summary>

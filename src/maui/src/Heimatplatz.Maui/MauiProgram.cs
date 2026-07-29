@@ -148,6 +148,15 @@ public static class MauiProgram
         // Generierte OpenAPI-HTTP-Handler (Shiny.Mediator MediatorHttp, Projekt Heimatplatz.Maui.ApiClient)
         builder.Services.AddApiClientFeature();
 
+        // Conditional GET (ETag/304) fuer Stammdaten-Endpoints: Shinys BaseHttpRequestHandler
+        // nutzt den UNBENANNTEN Factory-Client, deshalb haengt der Handler am Default-Client
+        // (trifft nur Mediator-HTTP-Calls, typisierte Clients wie MapStyleProvider nicht).
+        // Welche Pfade betroffen sind, entscheidet die Allowlist im Handler selbst.
+        builder.Services.AddSingleton<Http.ConditionalGetStore>();
+        builder.Services.AddTransient<Http.StammdatenConditionalGetHandler>();
+        builder.Services.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName)
+            .AddHttpMessageHandler<Http.StammdatenConditionalGetHandler>();
+
 #if ANDROID || IOS
         // Shiny.Speech: Speech-to-Text fuer das Diktat der KI-gestuetzten Inseratserstellung (Phones)
         builder.Services.AddSpeechToText();

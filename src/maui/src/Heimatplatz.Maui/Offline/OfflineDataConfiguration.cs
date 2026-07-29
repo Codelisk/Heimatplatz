@@ -14,6 +14,11 @@ internal static class OfflineDataConfiguration
     // Immobilien-Requests werden vom PropertySyncService per Delta-Sync aktuell gehalten
     // (nur Geaendertes wird nachgeladen) - die Refresh-Fenster hier sind nur noch das
     // Sicherheitsnetz, falls der Sync laengere Zeit nicht laufen konnte.
+    //
+    // Stammdaten (Locations, Imprint, PrivacyPolicy) revalidieren per Conditional GET
+    // (StammdatenConditionalGetHandler): der Hintergrund-Refresh kostet bei
+    // unveraendertem Stand nur einen 304-Roundtrip ohne Body. RefreshAfterSeconds
+    // ist dort also die Revalidierungs-Frequenz, nicht die Neuladen-Frequenz.
     private static readonly (string Request, int RefreshAfterSeconds)[] Requests =
     [
         ("GetPropertiesHttpRequest", 900),
@@ -24,12 +29,8 @@ internal static class OfflineDataConfiguration
         ("GetUserFilterPreferencesHttpRequest", 60),
         ("GetNotificationPreferencesHttpRequest", 60),
         ("GetLocationsHttpRequest", 86_400),
-        ("GetSellerSourcesHttpRequest", 3_600),
-        ("GetImprintHttpRequest", 86_400),
-        ("GetPrivacyPolicyHttpRequest", 86_400),
-        ("GetForeclosureAuctionsHttpRequest", 300),
-        ("GetForeclosureAuctionByIdHttpRequest", 300),
-        ("GetForeclosureAuctionChangesHttpRequest", 300)
+        ("GetImprintHttpRequest", 3_600),
+        ("GetPrivacyPolicyHttpRequest", 3_600)
     ];
 
     public static void AddTo(IDictionary<string, string?> values)
