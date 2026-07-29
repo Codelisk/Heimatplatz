@@ -80,6 +80,15 @@ dann kann der Eigenbau beim naechsten Update wieder entfallen.
    Delegate-Callbacks (LogFn, HttpProvider, Offline*) sind auf iOS derzeit
    unbenutzt — vor einer Nutzung dort genauso umbauen! Bei Updates erneut
    anwenden.
+6. **iOS-Gesten + pixelRatio-Kompensation (29.07.2026):** Upstream hat auf iOS
+   KEINE Touch-Gesten implementiert (nur Overlay-Buttons; die Click-Events
+   feuerten nie). Der MaciOS-Controller hat jetzt Pan/Pinch/Tap/DoubleTap/
+   LongPress-Recognizer, die dieselben C-ABI-Primitiven fuettern wie Windows.
+   Weil das iOS-Binary noch der Upstream-Stand OHNE Abweichung 4 ist (erwartet
+   LOGISCHE px), rechnet `MbglMap` mit `compatPixelRatio` (nur von MaciOS
+   gesetzt) alle Screen-px-Ein-/Ausgaben an der ABI-Grenze um. **Sobald das
+   iOS-Binary mit dem pixelRatio-Fix neu gebaut wird, compatPixelRatio auf 1.0
+   setzen — sonst wird doppelt konvertiert!**
 
 ## Update-Prozess
 

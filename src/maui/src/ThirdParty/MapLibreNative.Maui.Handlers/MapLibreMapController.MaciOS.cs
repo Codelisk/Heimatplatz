@@ -186,7 +186,150 @@ public class MapLibreMapController : IMapLibreMapController
         BuildNavigationPanel();
         BuildGpsPanel();
 
+        BuildGestureRecognizers();
+
         RepositionOverlays();
+    }
+
+    // -- Touch-Gesten -----------------------------------------------------------
+    // Upstream hat auf iOS KEINE Gesten implementiert (nur Overlay-Buttons);
+    // Pan/Pinch/Tap/DoubleTap/LongPress fuettern hier dieselben C-ABI-Primitiven
+    // wie die Pointer-Events auf Windows - Koordinaten in physischen px
+    // (Punkte x Screen-Scale), die Umrechnung passiert im MbglMap-Wrapper.
+
+    private UIView? _metalView;
+    private UIPanGestureRecognizer   _panGesture       = null!;
+    private UIPinchGestureRecognizer _pinchGesture     = null!;
+    private UITapGestureRecognizer   _tapGesture       = null!;
+    private UITapGestureRecognizer   _doubleTapGesture = null!;
+    private UILongPressGestureRecognizer _longPressGesture = null!;
+    private nfloat _lastPinchScale = 1;
+
+    private static double ScreenScale => UIScreen.MainScreen.Scale;
+
+    private void BuildGestureRecognizers()
+    {
+        // Nur Touches auf der Kartenflaeche (Container/MTKView) - die Overlay-
+        // Buttons, Attribution etc. behalten ihre eigene Interaktion
+        bool OnMapSurface(UIGestureRecognizer _, UITouch touch) =>
+            ReferenceEquals(touch.View, View) || ReferenceEquals(touch.View, _metalView);
+
+        _panGesture = new UIPanGestureRecognizer(HandlePan)
+        {
+            MinimumNumberOfTouches = 1,
+            MaximumNumberOfTouches = 2,
+            ShouldReceiveTouch = OnMapSurface,
+            ShouldRecognizeSimultaneously = (_, other) => ReferenceEquals(other, _pinchGesture)
+        };
+        _pinchGesture = new UIPinchGestureRecognizer(HandlePinch)
+        {
+            ShouldReceiveTouch = OnMapSurface,
+            ShouldRecognizeSimultaneously = (_, other) => ReferenceEquals(other, _panGesture)
+        };
+        _doubleTapGesture = new UITapGestureRecognizer(HandleDoubleTap)
+        {
+            NumberOfTapsRequired = 2,
+            ShouldReceiveTouch = OnMapSurface
+        };
+        _tapGesture = new UITapGestureRecognizer(HandleTap)
+        {
+            ShouldReceiveTouch = OnMapSurface
+        };
+        // Einzel-Tap wartet den Doppel-Tap ab (Standard-Karten-Verhalten)
+        _tapGesture.RequireGestureRecognizerToFail(_doubleTapGesture);
+        _longPressGesture = new UILongPressGestureRecognizer(HandleLongPress)
+        {
+            ShouldReceiveTouch = OnMapSurface
+        };
+
+        View.AddGestureRecognizer(_panGesture);
+        View.AddGestureRecognizer(_pinchGesture);
+        View.AddGestureRecognizer(_doubleTapGesture);
+        View.AddGestureRecognizer(_tapGesture);
+        View.AddGestureRecognizer(_longPressGesture);
+    }
+
+    private void HandlePan(UIPanGestureRecognizer gesture)
+    {
+        if (_map == null)
+            return;
+
+        var scale = ScreenScale;
+        switch (gesture.State)
+        {
+            case UIGestureRecognizerState.Began:
+                var start = gesture.LocationInView(View);
+                _map.OnPanStart(start.X * scale, start.Y * scale);
+                break;
+
+            case UIGestureRecognizerState.Changed:
+                var t = gesture.TranslationInView(View);
+                if (t.X == 0 && t.Y == 0)
+                    return;
+                _map.OnPanMove(t.X * scale, t.Y * scale);
+                gesture.SetTranslation(CGPoint.Empty, View);
+                break;
+
+            case UIGestureRecognizerState.Ended:
+            case UIGestureRecognizerState.Cancelled:
+            case UIGestureRecognizerState.Failed:
+                _map.OnPanEnd();
+                break;
+        }
+    }
+
+    private void HandlePinch(UIPinchGestureRecognizer gesture)
+    {
+        if (_map == null)
+            return;
+
+        switch (gesture.State)
+        {
+            case UIGestureRecognizerState.Began:
+                _lastPinchScale = gesture.Scale;
+                break;
+
+            case UIGestureRecognizerState.Changed:
+                if (gesture.Scale <= 0 || _lastPinchScale <= 0)
+                    return;
+                // Das C-ABI erwartet den inkrementellen Faktor pro Frame
+                var factor = gesture.Scale / _lastPinchScale;
+                _lastPinchScale = gesture.Scale;
+                var centre = gesture.LocationInView(View);
+                _map.OnPinch(factor, centre.X * ScreenScale, centre.Y * ScreenScale);
+                break;
+        }
+    }
+
+    private void HandleTap(UITapGestureRecognizer gesture)
+    {
+        if (_map == null || gesture.State != UIGestureRecognizerState.Ended)
+            return;
+
+        var p = gesture.LocationInView(View);
+        double x = p.X * ScreenScale, y = p.Y * ScreenScale;
+        var (lat, lon) = _map.LatLngForPixel(x, y);
+        OnMapClickReceived?.Invoke(new LatLng(lat, lon), x, y);
+    }
+
+    private void HandleDoubleTap(UITapGestureRecognizer gesture)
+    {
+        if (_map == null || gesture.State != UIGestureRecognizerState.Ended)
+            return;
+
+        var p = gesture.LocationInView(View);
+        _map.OnDoubleTap(p.X * ScreenScale, p.Y * ScreenScale);
+    }
+
+    private void HandleLongPress(UILongPressGestureRecognizer gesture)
+    {
+        if (_map == null || gesture.State != UIGestureRecognizerState.Began)
+            return;
+
+        var p = gesture.LocationInView(View);
+        double x = p.X * ScreenScale, y = p.Y * ScreenScale;
+        var (lat, lon) = _map.LatLngForPixel(x, y);
+        OnMapLongClickReceived?.Invoke(new LatLng(lat, lon), x, y);
     }
 
     // -- Navigation + GPS panel construction -----------------------------------
@@ -387,9 +530,9 @@ public class MapLibreMapController : IMapLibreMapController
         var nativeViewPtr = _frontend.GetNativeView();
         if (nativeViewPtr != IntPtr.Zero)
         {
-            var metalView = ObjCRuntime.Runtime.GetNSObject<UIView>(nativeViewPtr)!;
-            metalView.Frame = View.Bounds;
-            View.InsertSubview(metalView, 0);
+            _metalView = ObjCRuntime.Runtime.GetNSObject<UIView>(nativeViewPtr)!;
+            _metalView.Frame = View.Bounds;
+            View.InsertSubview(_metalView, 0);
         }
         // Keep the attribution overlays on top of the metal view.
         View.BringSubviewToFront(_attrView);
@@ -399,10 +542,16 @@ public class MapLibreMapController : IMapLibreMapController
 
         // Persistent tile/resource cache (mbgl's default is :memory:), shared
         // with MbglOfflineManager via MbglCache.DefaultPath.
+        // compatPixelRatio: das iOS-Binary ist noch der Upstream-Stand OHNE den
+        // pixelRatio-Fix (Vendor-README Abweichung 4) und erwartet LOGISCHE px -
+        // der MbglMap-Wrapper rechnet damit alle Screen-px an der ABI-Grenze um
+        // (Map-Groesse, Gesten, Queries, Paddings). AUF 1.0 setzen, sobald das
+        // iOS-Binary mit dem Fix neu gebaut ist!
         _map = new MbglMap(_frontend, _runLoop,
                            cachePath: MbglCache.DefaultPath,
                            pixelRatio: _pixelRatio,
-                           observer: OnMapObserverEvent);
+                           observer: OnMapObserverEvent,
+                           compatPixelRatio: _pixelRatio);
         _map.SetSize(w, h);
 
         if (!string.IsNullOrEmpty(_styleString))
@@ -514,10 +663,14 @@ public class MapLibreMapController : IMapLibreMapController
     }
     public void SetCompassEnabled(bool v)                     { }
     public void SetRotateGesturesEnabled(bool v)              { }
-    public void SetScrollGesturesEnabled(bool v)              { }
+    public void SetScrollGesturesEnabled(bool v)              { if (_panGesture is not null) _panGesture.Enabled = v; }
     public void SetTiltGesturesEnabled(bool v)                { }
     public void SetTrackCameraPosition(bool v)                { }
-    public void SetZoomGesturesEnabled(bool v)                { }
+    public void SetZoomGesturesEnabled(bool v)
+    {
+        if (_pinchGesture is not null) _pinchGesture.Enabled = v;
+        if (_doubleTapGesture is not null) _doubleTapGesture.Enabled = v;
+    }
     public void SetMyLocationEnabled(bool v)                  { }
     public void SetMyLocationTrackingMode(int v)              { }
     public void SetMyLocationRenderMode(int v)                { }

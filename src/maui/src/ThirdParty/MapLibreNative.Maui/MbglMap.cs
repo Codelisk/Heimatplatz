@@ -17,6 +17,19 @@ public sealed class MbglMap : IDisposable
     // Haelt den managed Observer fuer das native Callback-Userdata am Leben
     private GCHandle _observerHandle;
 
+    // Kompensation fuer native Binaries OHNE den pixelRatio-Fix (Vendor-README
+    // Abweichung 4): Das gefixte C-ABI (Android/Windows) erwartet PHYSISCHE px
+    // und teilt intern durch pixelRatio; das Upstream-Binary (aktuell iOS)
+    // erwartet direkt LOGISCHE mbgl-px. Mit compatPixelRatio > 1 rechnet dieser
+    // Wrapper alle Screen-px-Ein-/Ausgaben an der Grenze um, damit die
+    // Controller einheitlich physische px sprechen. AUF 1.0 ZURUECKSETZEN,
+    // sobald das iOS-Binary mit dem Fix neu gebaut ist - sonst wird doppelt
+    // konvertiert!
+    private readonly double _compatPx = 1.0;
+
+    private double L(double physicalPx) => physicalPx / _compatPx;   // physisch -> ABI
+    private double P(double abiPx) => abiPx * _compatPx;             // ABI -> physisch
+
     // iOS-AOT-sicher: statisches UnmanagedCallersOnly-Trampolin statt
     // Delegate-Marshalling (Begruendung siehe MbglFrontend.RenderTrampoline)
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -43,8 +56,11 @@ public sealed class MbglMap : IDisposable
         float   pixelRatio = 1.0f,
         Action<string, string?>? observer = null,
         string? apiKey = null,
-        ulong   maxCacheSizeBytes = 0)
+        ulong   maxCacheSizeBytes = 0,
+        float   compatPixelRatio = 1.0f)
     {
+        _compatPx = compatPixelRatio > 0 ? compatPixelRatio : 1.0;
+
         IntPtr observerFnPtr = IntPtr.Zero;
         IntPtr observerUserdata = IntPtr.Zero;
         if (observer != null)
@@ -84,7 +100,9 @@ public sealed class MbglMap : IDisposable
     public void SetStyleJson(string json) => NativeMethods.MapSetStyleJson(Handle, json);
 
     public void SetSize(int widthPx, int heightPx)
-        => NativeMethods.MapSetSize(Handle, widthPx, heightPx);
+        => NativeMethods.MapSetSize(Handle,
+            Math.Max(1, (int)Math.Round(L(widthPx))),
+            Math.Max(1, (int)Math.Round(L(heightPx))));
 
     public void JumpTo(double lat, double lon, double zoom, double bearing = 0, double pitch = 0)
         => NativeMethods.MapJumpTo(Handle, lat, lon, zoom, bearing, pitch);
@@ -103,25 +121,25 @@ public sealed class MbglMap : IDisposable
     public void JumpTo(double lat, double lon, double zoom, double bearing, double pitch,
                        double padTop, double padLeft, double padBottom, double padRight)
         => NativeMethods.MapJumpToPadded(Handle, lat, lon, zoom, bearing, pitch,
-                                         padTop, padLeft, padBottom, padRight);
+                                         L(padTop), L(padLeft), L(padBottom), L(padRight));
 
     public void EaseTo(double lat, double lon, double zoom, double bearing, double pitch,
                        double padTop, double padLeft, double padBottom, double padRight,
                        long durationMs)
         => NativeMethods.MapEaseToPadded(Handle, lat, lon, zoom, bearing, pitch,
-                                         padTop, padLeft, padBottom, padRight, durationMs);
+                                         L(padTop), L(padLeft), L(padBottom), L(padRight), durationMs);
 
     public void FlyTo(double lat, double lon, double zoom, double bearing, double pitch,
                       double padTop, double padLeft, double padBottom, double padRight,
                       long durationMs)
         => NativeMethods.MapFlyToPadded(Handle, lat, lon, zoom, bearing, pitch,
-                                        padTop, padLeft, padBottom, padRight, durationMs);
+                                        L(padTop), L(padLeft), L(padBottom), L(padRight), durationMs);
 
     /// <summary>Reads the full camera state in one call, optionally offset by edge padding.</summary>
     public CameraResult GetCamera(double padTop = 0, double padLeft = 0,
                                   double padBottom = 0, double padRight = 0)
     {
-        NativeMethods.MapGetCamera(Handle, padTop, padLeft, padBottom, padRight,
+        NativeMethods.MapGetCamera(Handle, L(padTop), L(padLeft), L(padBottom), L(padRight),
             out var lat, out var lon, out var zoom, out var bearing, out var pitch);
         return new CameraResult(lat, lon, zoom, bearing, pitch);
     }
@@ -130,7 +148,7 @@ public sealed class MbglMap : IDisposable
     /// optionally about a screen anchor point (NaN = viewport centre).</summary>
     public void ScaleBy(double scale, double anchorX = double.NaN, double anchorY = double.NaN,
                         long durationMs = 0)
-        => NativeMethods.MapScaleBy(Handle, scale, anchorX, anchorY, durationMs);
+        => NativeMethods.MapScaleBy(Handle, scale, L(anchorX), L(anchorY), durationMs);
 
     /// <summary>Set geographic constraints and zoom/pitch limits.
     /// Pass <see cref="double.NaN"/> for any parameter to leave it unconstrained.</summary>
@@ -149,7 +167,7 @@ public sealed class MbglMap : IDisposable
                         double padBottom = 0, double padRight = 0)
     {
         NativeMethods.MapCameraForBounds(Handle, latSw, lonSw, latNe, lonNe,
-            padTop, padLeft, padBottom, padRight,
+            L(padTop), L(padLeft), L(padBottom), L(padRight),
             out var lat, out var lon, out var zoom, out var bearing, out var pitch);
         return (lat, lon, zoom, bearing, pitch);
     }
@@ -157,12 +175,12 @@ public sealed class MbglMap : IDisposable
     public (double X, double Y) PixelForLatLng(double lat, double lon)
     {
         NativeMethods.MapPixelForLatLng(Handle, lat, lon, out var x, out var y);
-        return (x, y);
+        return (P(x), P(y));
     }
 
     public (double Lat, double Lon) LatLngForPixel(double x, double y)
     {
-        NativeMethods.MapLatLngForPixel(Handle, x, y, out var lat, out var lon);
+        NativeMethods.MapLatLngForPixel(Handle, L(x), L(y), out var lat, out var lon);
         return (lat, lon);
     }
 
@@ -174,7 +192,7 @@ public sealed class MbglMap : IDisposable
     /// <param name="layerIds">Optional comma-separated layer IDs to restrict the query.</param>
     public string? QueryRenderedFeaturesAtPoint(double x, double y, string? layerIds = null)
     {
-        var ptr = NativeMethods.MapQueryRenderedFeaturesAtPoint(Handle, x, y, layerIds);
+        var ptr = NativeMethods.MapQueryRenderedFeaturesAtPoint(Handle, L(x), L(y), layerIds);
         if (ptr == IntPtr.Zero) return null;
         var result = Marshal.PtrToStringUTF8(ptr);
         NativeMethods.FreeString(ptr);
@@ -185,7 +203,7 @@ public sealed class MbglMap : IDisposable
     public string? QueryRenderedFeaturesInBox(double x1, double y1, double x2, double y2,
                                                string? layerIds = null)
     {
-        var ptr = NativeMethods.MapQueryRenderedFeaturesInBox(Handle, x1, y1, x2, y2, layerIds);
+        var ptr = NativeMethods.MapQueryRenderedFeaturesInBox(Handle, L(x1), L(y1), L(x2), L(y2), layerIds);
         if (ptr == IntPtr.Zero) return null;
         var result = Marshal.PtrToStringUTF8(ptr);
         NativeMethods.FreeString(ptr);
@@ -260,17 +278,17 @@ public sealed class MbglMap : IDisposable
     public void SetMaxZoom(double zoom) => NativeMethods.MapSetMaxZoom(Handle, zoom);
 
     public void OnScroll(double delta, double cx, double cy)
-        => NativeMethods.MapOnScroll(Handle, delta, cx, cy);
+        => NativeMethods.MapOnScroll(Handle, delta, L(cx), L(cy));
     public void OnDoubleTap(double x, double y)
-        => NativeMethods.MapOnDoubleTap(Handle, x, y);
+        => NativeMethods.MapOnDoubleTap(Handle, L(x), L(y));
     public void OnPanStart(double x, double y)
-        => NativeMethods.MapOnPanStart(Handle, x, y);
+        => NativeMethods.MapOnPanStart(Handle, L(x), L(y));
     public void OnPanMove(double dx, double dy)
-        => NativeMethods.MapOnPanMove(Handle, dx, dy);
+        => NativeMethods.MapOnPanMove(Handle, L(dx), L(dy));
     public void OnPanEnd()
         => NativeMethods.MapOnPanEnd(Handle);
     public void OnPinch(double scaleFactor, double cx, double cy)
-        => NativeMethods.MapOnPinch(Handle, scaleFactor, cx, cy);
+        => NativeMethods.MapOnPinch(Handle, scaleFactor, L(cx), L(cy));
 
     public void TriggerRepaint() => NativeMethods.MapTriggerRepaint(Handle);
     public void CancelTransitions() => NativeMethods.MapCancelTransitions(Handle);
@@ -331,10 +349,10 @@ public sealed class MbglMap : IDisposable
     public bool IsPanning  => NativeMethods.MapIsPanning(Handle) != 0;
 
     public void MoveBy(double dx, double dy, long durationMs = 0)
-        => NativeMethods.MapMoveBy(Handle, dx, dy, durationMs);
+        => NativeMethods.MapMoveBy(Handle, L(dx), L(dy), durationMs);
 
     public void RotateBy(double x0, double y0, double x1, double y1)
-        => NativeMethods.MapRotateBy(Handle, x0, y0, x1, y1);
+        => NativeMethods.MapRotateBy(Handle, L(x0), L(y0), L(x1), L(y1));
 
     public void PitchBy(double deltaDegrees, long durationMs = 0)
         => NativeMethods.MapPitchBy(Handle, deltaDegrees, durationMs);
