@@ -1,6 +1,7 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Admin.Services;
 using Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
+using Heimatplatz.Api.Features.Marketing.Contracts.Models;
 using Heimatplatz.Api.Features.Marketing.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Shiny;
@@ -30,6 +31,21 @@ public class SaveMarketingTemplateHandler(
 
         if (string.IsNullOrWhiteSpace(request.Body))
             return new SaveMarketingTemplateResponse(false, null, "Bitte einen Text angeben.");
+
+        // Tippfehler in Platzhaltern ({fimra}) sollen beim Speichern auffallen, nicht erst
+        // in der Kundenmail - die Platzhalter-Menge ist bewusst geschlossen
+        var unknown = MarketingTemplatePlaceholders
+            .FindTokens(request.Subject + "\n" + request.Body)
+            .Where(t => !t.IsKnown)
+            .Select(t => t.Raw)
+            .Distinct()
+            .ToList();
+        if (unknown.Count > 0)
+        {
+            return new SaveMarketingTemplateResponse(false, null,
+                $"Unbekannte Platzhalter: {string.Join(", ", unknown)}. " +
+                $"Erlaubt sind: {string.Join(" ", MarketingTemplatePlaceholders.All)}");
+        }
 
         var set = dbContext.Set<MarketingEmailTemplate>();
 

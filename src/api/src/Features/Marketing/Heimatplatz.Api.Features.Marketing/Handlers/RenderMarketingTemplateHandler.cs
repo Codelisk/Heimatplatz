@@ -34,15 +34,22 @@ public class RenderMarketingTemplateHandler(
             return new RenderMarketingTemplateResponse(false, null, null, "Vorlage nicht gefunden.");
 
         MarketingContact? contact = null;
+        var warnings = new List<string>();
         if (request.ContactId is { } contactId)
         {
             contact = await dbContext.Set<MarketingContact>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == contactId, cancellationToken);
+
+            // Bewusst kein harter Fehler: der Entwurf ist trotzdem brauchbar, aber der
+            // Nutzer muss wissen, dass die Platzhalter ohne Kontaktdaten gerendert wurden
+            if (contact is null)
+                warnings.Add("Der verknüpfte Kontakt wurde nicht gefunden – die Platzhalter wurden ohne Kontaktdaten befüllt.");
         }
 
         var rendered = renderer.Render(template, contact);
+        warnings.AddRange(rendered.Warnings);
 
-        return new RenderMarketingTemplateResponse(true, rendered.Subject, rendered.Body, null);
+        return new RenderMarketingTemplateResponse(true, rendered.Subject, rendered.Body, null, warnings);
     }
 }

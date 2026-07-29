@@ -16,6 +16,20 @@ public enum MarketingContactType
 }
 
 /// <summary>
+/// Anrede der Ansprechperson. Bewusst deutsche Member-Namen: der JsonStringEnumConverter
+/// serialisiert die Namen als Text und das Web zeigt sie direkt an - eine
+/// Mr/Mrs-Uebersetzungsschicht waere nur eine weitere Fehlerquelle.
+/// Unknown = nicht gepflegt (z.B. Firmenpool-Kontakte) - die Anrede-Floskel faellt dann
+/// auf die geschlechtsneutrale Form zurueck (MarketingTemplateRenderer).
+/// </summary>
+public enum MarketingSalutation
+{
+    Unknown = 0,
+    Herr = 1,
+    Frau = 2
+}
+
+/// <summary>
 /// Bearbeitungsstatus eines Kontakts im Marketing-Funnel.
 /// Automatische Uebergaenge: Versand setzt Lead/ToContact->Contacted, eingehende Antwort
 /// setzt Lead/ToContact/Contacted/FollowUp->Replied; alles Weitere pflegt der Nutzer manuell.

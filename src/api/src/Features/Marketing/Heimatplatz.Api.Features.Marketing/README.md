@@ -81,10 +81,29 @@ Migrations liegen in BEIDEN Provider-Sets (`Core.Data/Migrations` SQLite,
 
 ## Vorlagen-Platzhalter
 
-`MarketingTemplateRenderer` ersetzt aus dem Kontakt: `{anrede}` (mit Ansprechpartner
-"Guten Tag {Name}", sonst "Sehr geehrte Damen und Herren" - das Geschlecht ist im
-Firmenbuch nicht bekannt), `{firma}`, `{name}`, `{ort}`. Ersetzung passiert
-serverseitig (Backend-First); der eingesetzte Text bleibt im Editor aenderbar.
+`MarketingTemplateRenderer` ersetzt aus dem Kontakt: `{anrede}`, `{firma}`, `{name}`,
+`{ort}` (geschlossene Menge in `MarketingTemplatePlaceholders`, case- und
+leerraumtolerant). Ersetzung passiert serverseitig (Backend-First); der eingesetzte
+Text bleibt im Editor aenderbar.
+
+Die Anrede wird deterministisch aus den strukturierten Kontaktfeldern
+(`Salutation`/`Title`/`FirstName`/`LastName`) gebaut:
+
+| Datenlage | Ergebnis |
+|-----------|----------|
+| Nachname + Herr/Frau | "Sehr geehrter Herr Mag. Kaindl" / "Sehr geehrte Frau ..." |
+| Nachname, Anrede unbekannt | "Guten Tag DI Anton Schwarzmayr" (neutral, immer korrekt) |
+| nur Alt-Freitext `Name` | gleiche Regeln mit dem vollen Namen |
+| keine Ansprechperson | "Sehr geehrte Damen und Herren" |
+
+Fail-closed-Kette gegen kaputte Kundenmails:
+
+1. **Vorlage speichern**: unbekannte Platzhalter (`{fimra}`) -> Fehler.
+2. **Einsetzen** (`/templates/render`): Platzhalter ohne Wert werden NICHT stumm leer
+   ersetzt - sie bleiben sichtbar im Text stehen, `Warnings` in der Response.
+3. **Versand** (`/email/send`): verbliebene `{wort}`-Tokens in Betreff/Text -> Fehler
+   (zusaetzlich zur UI-Sperre auf der Schreiben-Seite).
+
 Die Signatur ist NICHT Teil der Vorlage (kommt beim Versand aus dem Impressum).
 
 ## Ablauf

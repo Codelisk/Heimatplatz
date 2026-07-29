@@ -8,6 +8,7 @@ import type {
   MarketingActivityType,
   MarketingContactStatus,
   MarketingContactType,
+  MarketingSalutation,
 } from "@/lib/server/admin-api";
 
 export const CONTACT_TYPES: MarketingContactType[] = [
@@ -35,6 +36,19 @@ export const CONTACT_STATUSES: MarketingContactStatus[] = [
 ];
 
 export const ACTIVITY_TYPES: MarketingActivityType[] = ["Call", "Note", "Meeting"];
+
+export const SALUTATIONS: MarketingSalutation[] = ["Unknown", "Herr", "Frau"];
+
+export function salutationLabel(salutation: MarketingSalutation | string): string {
+  switch (salutation) {
+    case "Herr":
+      return t("intern.mkFieldSalutationHerr");
+    case "Frau":
+      return t("intern.mkFieldSalutationFrau");
+    default:
+      return t("intern.mkFieldSalutationNone");
+  }
+}
 
 export function contactTypeLabel(type: MarketingContactType | string): string {
   switch (type) {

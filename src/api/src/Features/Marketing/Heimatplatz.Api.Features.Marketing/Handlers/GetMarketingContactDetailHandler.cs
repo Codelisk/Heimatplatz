@@ -29,7 +29,8 @@ public class GetMarketingContactDetailHandler(
             .AsNoTracking()
             .Where(c => c.Id == request.Id)
             .Select(c => new MarketingContactDto(
-                c.Id, c.Email, c.Name, c.Company, c.Phone, c.City, c.ContactType, c.Status,
+                c.Id, c.Email, c.Name, c.Salutation, c.Title, c.FirstName, c.LastName,
+                c.Company, c.Phone, c.City, c.ContactType, c.Status,
                 c.Notes, c.Source, c.FirmenbuchFnr, c.NextFollowUpAt,
                 c.LastContactedAt, c.LastReplyAt, c.CreatedAt,
                 c.Emails.Count, c.InboundEmails.Count))

@@ -29,10 +29,13 @@ Posteingang und Auswertung.
 | `SetMarketingInboundReadRequest` | Gelesen-Markierung |
 | `SubmitBrokerLeadRequest` | OEFFENTLICHE Makler-Anfrage der `/makler/`-Seite (Concierge-Onboarding); `Fax` ist ein Honeypot-Feld |
 
-DTOs: `MarketingContactDto` (E-Mail optional, `City`/`FirmenbuchFnr`/`NextFollowUpAt`),
+DTOs: `MarketingContactDto` (E-Mail optional, strukturierte Ansprechperson
+`Salutation`/`Title`/`FirstName`/`LastName` + zusammengesetzter `Name`,
+`City`/`FirmenbuchFnr`/`NextFollowUpAt`),
 `MarketingEmailDto`, `MarketingInboundEmailDto`, `MarketingActivityDto`,
 `MarketingTemplateDto` (+ `MarketingTemplatePlaceholders`), `MarketingLeadDto`.
-Enums (`MarketingEnums.cs`): `MarketingContactType`, `MarketingContactStatus`
+Enums (`MarketingEnums.cs`): `MarketingContactType`, `MarketingSalutation`
+(deutsche Member-Namen Herr/Frau - Anrede ist ein Domaenenwort), `MarketingContactStatus`
 (inkl. `ToContact`/`FollowUp`), `MarketingActivityType`, `MarketingEmailStatus` -
 serialisiert per globalem JsonStringEnumConverter als Enum-NAMEN-Strings;
 das Web vergleicht Strings, nie Zahlen.

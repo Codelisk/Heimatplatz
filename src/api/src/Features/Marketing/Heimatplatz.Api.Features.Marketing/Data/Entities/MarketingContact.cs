@@ -18,7 +18,25 @@ public class MarketingContact : BaseEntity
     /// </summary>
     public string? Email { get; set; }
 
+    /// <summary>
+    /// Anzeigename der Ansprechperson. Wird beim Speichern aus Titel/Vorname/Nachname
+    /// zusammengesetzt, sofern Namensteile gepflegt sind; sonst Alt-Bestand/Freitext
+    /// (z.B. automatisch angelegte Kontakte aus dem Versand).
+    /// </summary>
     public string? Name { get; set; }
+
+    /// <summary>
+    /// Herr/Frau/unbekannt - Grundlage fuer die deterministische Anrede-Floskel im
+    /// MarketingTemplateRenderer ("Sehr geehrter Herr ..." statt geratener Formen).
+    /// </summary>
+    public MarketingSalutation Salutation { get; set; } = MarketingSalutation.Unknown;
+
+    /// <summary>Akademischer Titel wie "Mag." oder "DI" - erscheint in der Anrede vor dem Nachnamen</summary>
+    public string? Title { get; set; }
+
+    public string? FirstName { get; set; }
+
+    public string? LastName { get; set; }
 
     public string? Company { get; set; }
 

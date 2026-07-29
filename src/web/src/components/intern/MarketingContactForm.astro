@@ -9,8 +9,10 @@ import type { MarketingContact } from "@/lib/server/admin-api";
 import {
   CONTACT_STATUSES,
   CONTACT_TYPES,
+  SALUTATIONS,
   contactStatusLabel,
   contactTypeLabel,
+  salutationLabel,
 } from "@/lib/intern/marketing-labels";
 
 interface Props {
@@ -21,6 +23,13 @@ interface Props {
 
 const { contact = null, redirect } = Astro.props;
 
+// Alt-Bestand: Ansprechpartner nur als Freitext-Name gespeichert (vor der Umstellung
+// auf strukturierte Anrede-Felder). Der Freitext wird als Hinweis angezeigt und als
+// hidden-Feld mitgeschickt, damit er beim Speichern nicht verloren geht - erst
+// ausgefuellte Namensfelder ersetzen ihn (Server-Regel im SaveMarketingContactHandler).
+const hasStructuredName = Boolean(contact?.Title || contact?.FirstName || contact?.LastName);
+const legacyName = !hasStructuredName ? (contact?.Name ?? "") : "";
+
 const inputClass =
   "w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
 ---
@@ -29,14 +38,73 @@ const inputClass =
   {contact && <input type="hidden" name="id" value={contact.Id} />}
   <input type="hidden" name="redirect" value={redirect} />
 
+  <input type="hidden" name="name" value={legacyName} />
+
+  <fieldset class="rounded-md border border-border p-3">
+    <legend class="px-1 text-sm font-medium">{t("intern.mkFieldName")}</legend>
+    <div class="grid gap-4 sm:grid-cols-4">
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="font-medium">{t("intern.mkFieldSalutation")}</span>
+        <select name="salutation" data-hook="salutation" class={inputClass}>
+          {SALUTATIONS.map((salutation) => (
+            <option
+              value={salutation}
+              selected={(contact?.Salutation ?? "Unknown") === salutation}
+            >
+              {salutationLabel(salutation)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="font-medium">{t("intern.mkFieldTitle")}</span>
+        <input
+          type="text"
+          name="title"
+          data-hook="title"
+          value={contact?.Title ?? ""}
+          placeholder={t("intern.mkFieldTitlePlaceholder")}
+          class={inputClass}
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="font-medium">{t("intern.mkFieldFirstName")}</span>
+        <input
+          type="text"
+          name="firstName"
+          data-hook="first-name"
+          value={contact?.FirstName ?? ""}
+          class={inputClass}
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="font-medium">{t("intern.mkFieldLastName")}</span>
+        <input
+          type="text"
+          name="lastName"
+          data-hook="last-name"
+          value={contact?.LastName ?? ""}
+          class={inputClass}
+        />
+      </label>
+    </div>
+
+    {legacyName && (
+      <p class="mt-2 text-xs leading-5 text-muted-foreground">
+        {t("intern.mkLegacyNameHint", { name: legacyName })}
+      </p>
+    )}
+
+    <p class="mt-2 text-xs text-muted-foreground">
+      {t("intern.mkSalutationPreviewLabel")}
+      <span class="font-medium" data-hook="salutation-preview" data-legacy-name={legacyName}></span>
+    </p>
+  </fieldset>
+
   <div class="grid gap-4 sm:grid-cols-2">
     <label class="flex flex-col gap-1 text-sm">
       <span class="font-medium">{t("intern.mkFieldEmailOptional")}</span>
       <input type="email" name="email" value={contact?.Email ?? ""} class={inputClass} />
-    </label>
-    <label class="flex flex-col gap-1 text-sm">
-      <span class="font-medium">{t("intern.mkFieldName")}</span>
-      <input type="text" name="name" value={contact?.Name ?? ""} class={inputClass} />
     </label>
     <label class="flex flex-col gap-1 text-sm">
       <span class="font-medium">{t("intern.mkFieldCompany")}</span>
@@ -85,3 +153,53 @@ const inputClass =
     <Button type="submit" variant="default">{t("intern.mkSave")}</Button>
   </div>
 </form>
+
+<script>
+  // Live-Vorschau der Anrede-Floskel. Spiegelt bewusst die (trivial gehaltene) Regel aus
+  // MarketingTemplateRenderer.BuildSalutation - massgeblich beim Versand bleibt der
+  // Server, die Vorschau macht Pflegefehler nur sofort sichtbar.
+  function joinNonEmpty(...parts: (string | null | undefined)[]): string {
+    return parts
+      .map((p) => p?.trim() ?? "")
+      .filter((p) => p.length > 0)
+      .join(" ");
+  }
+
+  for (const preview of document.querySelectorAll<HTMLElement>(
+    '[data-hook="salutation-preview"]',
+  )) {
+    const form = preview.closest("form");
+    if (!form) continue;
+
+    const field = (name: string) =>
+      form.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-hook="${name}"]`);
+    const salutation = field("salutation");
+    const title = field("title");
+    const firstName = field("first-name");
+    const lastName = field("last-name");
+    const legacyName = preview.dataset.legacyName?.trim() ?? "";
+
+    function update() {
+      const formalName = joinNonEmpty(title?.value, lastName?.value) || legacyName;
+      const fullName = joinNonEmpty(title?.value, firstName?.value, lastName?.value) || legacyName;
+
+      let text: string;
+      if (!formalName) {
+        text = "Sehr geehrte Damen und Herren";
+      } else if (salutation?.value === "Herr") {
+        text = `Sehr geehrter Herr ${formalName}`;
+      } else if (salutation?.value === "Frau") {
+        text = `Sehr geehrte Frau ${formalName}`;
+      } else {
+        text = `Guten Tag ${fullName}`;
+      }
+      preview.textContent = ` ${text},`;
+    }
+
+    for (const input of [salutation, title, firstName, lastName]) {
+      input?.addEventListener("input", update);
+      input?.addEventListener("change", update);
+    }
+    update();
+  }
+</script>

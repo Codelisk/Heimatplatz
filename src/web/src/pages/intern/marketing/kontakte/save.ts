@@ -20,7 +20,13 @@ export const POST: APIRoute = async ({ request }) => {
       Id: id,
       // Adresse ist optional - Firmenpool-Kontakte haben zunaechst keine
       Email: form.get("email")?.toString() || null,
+      // Name = Alt-Bestand-Freitext (hidden-Feld); die strukturierten Felder gewinnen
+      // serverseitig, sobald eines gefuellt ist
       Name: form.get("name")?.toString() || null,
+      Salutation: form.get("salutation")?.toString() || "Unknown",
+      Title: form.get("title")?.toString() || null,
+      FirstName: form.get("firstName")?.toString() || null,
+      LastName: form.get("lastName")?.toString() || null,
       Company: form.get("company")?.toString() || null,
       Phone: form.get("phone")?.toString() || null,
       City: form.get("city")?.toString() || null,

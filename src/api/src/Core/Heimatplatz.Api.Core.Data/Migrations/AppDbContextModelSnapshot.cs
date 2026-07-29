@@ -897,8 +897,16 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<long?>("LastContactedAt")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
 
                     b.Property<long?>("LastReplyAt")
                         .HasColumnType("INTEGER");
@@ -918,12 +926,19 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Salutation")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Source")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
 
                     b.Property<long?>("UpdatedAt")
                         .HasColumnType("INTEGER");

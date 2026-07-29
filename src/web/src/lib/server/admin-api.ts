@@ -117,6 +117,9 @@ export type MarketingContactStatus =
 
 export type MarketingActivityType = "Note" | "Call" | "StatusChange" | "FollowUp" | "Meeting";
 
+// Deutsche Enum-Namen (Anrede ist ein deutsches Domaenenwort, keine Mr/Mrs-Uebersetzung)
+export type MarketingSalutation = "Unknown" | "Herr" | "Frau";
+
 export type MarketingEmailStatus = "Sent" | "LoggedOnly" | "DeliveryFailed";
 
 export type MarketingStats = {
@@ -142,7 +145,12 @@ export type MarketingStats = {
 export type MarketingContact = {
   Id: string;
   Email: string | null;
+  /** Anzeigename: aus Titel/Vorname/Nachname zusammengesetzt bzw. Alt-Bestand */
   Name: string | null;
+  Salutation: MarketingSalutation;
+  Title: string | null;
+  FirstName: string | null;
+  LastName: string | null;
   Company: string | null;
   Phone: string | null;
   City: string | null;
@@ -299,6 +307,8 @@ export type MarketingRenderTemplateResponse = {
   Subject: string | null;
   Body: string | null;
   Error: string | null;
+  /** Nicht befuellbare Platzhalter, Anrede-Fallback etc. - Platzhalter bleiben dann im Text */
+  Warnings: string[] | null;
 };
 
 export type MarketingActivityResponse = {

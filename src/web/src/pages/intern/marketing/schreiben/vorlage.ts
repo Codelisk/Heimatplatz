@@ -34,6 +34,9 @@ export const POST: APIRoute = async ({ request }) => {
     subject: result.Subject,
     body: result.Body,
     error: result.Error,
+    // Nicht befuellbare Platzhalter bleiben im Text stehen - die Hinweise dazu zeigt
+    // die Schreiben-Seite als Warnbox an
+    warnings: result.Warnings ?? [],
   });
 };
 

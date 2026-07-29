@@ -21,6 +21,10 @@ public class MarketingContactConfiguration : IEntityTypeConfiguration<MarketingC
             .HasFilter("\"Email\" IS NOT NULL");
 
         builder.Property(x => x.Name).HasMaxLength(200);
+        builder.Property(x => x.Title).HasMaxLength(50);
+        builder.Property(x => x.FirstName).HasMaxLength(100);
+        builder.Property(x => x.LastName).HasMaxLength(100);
+        builder.Property(x => x.Salutation).IsRequired();
         builder.Property(x => x.Company).HasMaxLength(200);
         builder.Property(x => x.Phone).HasMaxLength(50);
         builder.Property(x => x.City).HasMaxLength(100);

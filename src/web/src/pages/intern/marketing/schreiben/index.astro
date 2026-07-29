@@ -193,6 +193,22 @@ const inputClass =
           {t("intern.marketingPlaceholderWarning")}
         </div>
 
+        <div
+          class="hidden rounded-md border border-amber-300 bg-amber-50 p-3 text-sm font-medium text-amber-900 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+          data-hook="leftover-warning"
+          role="alert"
+        >
+        </div>
+
+        <div
+          class="hidden rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+          data-hook="template-warnings"
+          role="alert"
+        >
+          <p class="font-medium">{t("intern.marketingTemplateWarnings")}</p>
+          <ul class="mt-1 list-disc pl-5" data-hook="template-warnings-list"></ul>
+        </div>
+
         <div class="flex flex-col gap-1 text-sm">
           <span class="font-medium text-muted-foreground">{t("intern.marketingSignatureLabel")}</span>
           <pre
@@ -265,23 +281,58 @@ const inputClass =
   const bannerOk = hook<HTMLDivElement>("banner-ok");
   const bannerError = hook<HTMLDivElement>("banner-error");
   const placeholderWarning = hook<HTMLDivElement>("placeholder-warning");
+  const leftoverWarning = hook<HTMLDivElement>("leftover-warning");
+  const templateWarnings = hook<HTMLDivElement>("template-warnings");
+  const templateWarningsList = hook<HTMLUListElement>("template-warnings-list");
 
   // Kennzeichnet Texte, die die Generierung ohne konfigurierten KI-Anbieter liefert.
   // Der Server verweigert deren Versand ohnehin - die UI warnt schon vorab und
   // sperrt den Senden-Button, solange der Marker im Textfeld steht.
   const PLACEHOLDER_MARKERS = ["[PLATZHALTER OHNE KI]", "Mock-Text ohne KI"];
 
+  // Nicht befuellte Vorlagen-Platzhalter bleiben seit dem Renderer-Umbau sichtbar im
+  // Entwurf stehen ({firma} etc.) - gleiche Token-Regel wie serverseitig
+  // (MarketingTemplatePlaceholders): {wort}, nur Buchstaben, Leerraum/Gross-Klein egal.
+  // Der Server blockiert solche Entwuerfe ohnehin, die UI warnt vorab.
+  const TOKEN_PATTERN = /\{\s*[a-zA-ZÄÖÜäöüß]{2,40}\s*\}/g;
+
   function bodyHasPlaceholder(): boolean {
     return PLACEHOLDER_MARKERS.some((marker) => body.value.includes(marker));
+  }
+
+  function findLeftoverTokens(): string[] {
+    const found = `${subject.value}\n${body.value}`.match(TOKEN_PATTERN) ?? [];
+    return [...new Set(found.map((token) => token.replace(/\s+/g, "")))];
   }
 
   function updatePlaceholderState() {
     const hasPlaceholder = bodyHasPlaceholder();
     placeholderWarning.classList.toggle("hidden", !hasPlaceholder);
-    sendButton.disabled = hasPlaceholder;
+
+    const leftover = findLeftoverTokens();
+    leftoverWarning.classList.toggle("hidden", leftover.length === 0);
+    if (leftover.length > 0) {
+      leftoverWarning.textContent = t("intern.marketingLeftoverPlaceholders", {
+        list: leftover.join(", "),
+      });
+    }
+
+    sendButton.disabled = hasPlaceholder || leftover.length > 0;
+  }
+
+  function showTemplateWarnings(warnings: string[]) {
+    templateWarningsList.replaceChildren(
+      ...warnings.map((warning) => {
+        const item = document.createElement("li");
+        item.textContent = warning;
+        return item;
+      }),
+    );
+    templateWarnings.classList.toggle("hidden", warnings.length === 0);
   }
 
   body.addEventListener("input", updatePlaceholderState);
+  subject.addEventListener("input", updatePlaceholderState);
 
   function showBanner(target: HTMLDivElement, other: HTMLDivElement, message: string, contactId?: string | null) {
     target.textContent = message;
@@ -359,6 +410,7 @@ const inputClass =
 
       subject.value = result.subject ?? "";
       body.value = result.body ?? "";
+      showTemplateWarnings(result.warnings ?? []);
       updatePlaceholderState();
       draftSection.scrollIntoView({ behavior: "smooth", block: "start" });
     } finally {
@@ -437,6 +489,15 @@ const inputClass =
     // Doppelter Boden zum disabled-Button: Platzhaltertext blockt der Server ohnehin.
     if (bodyHasPlaceholder()) {
       showBanner(bannerError, bannerOk, t("intern.marketingPlaceholderWarning"));
+      return;
+    }
+    const leftover = findLeftoverTokens();
+    if (leftover.length > 0) {
+      showBanner(
+        bannerError,
+        bannerOk,
+        t("intern.marketingLeftoverPlaceholders", { list: leftover.join(", ") }),
+      );
       return;
     }
     const copyLines = [

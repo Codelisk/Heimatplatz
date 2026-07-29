@@ -28,10 +28,17 @@ public class SaveMarketingContactHandler(
     {
         accessGuard.EnsureAuthorized();
 
+        // Anzeigename aus den strukturierten Teilen; der Freitext-Name aus dem Request ist
+        // nur noch Alt-Bestand-Fallback (z.B. automatisch angelegte Versand-Kontakte)
+        var title = NullIfEmpty(request.Title);
+        var firstName = NullIfEmpty(request.FirstName);
+        var lastName = NullIfEmpty(request.LastName);
+        var displayName = JoinNonEmpty(title, firstName, lastName) ?? NullIfEmpty(request.Name);
+
         // Mindestens ein identifizierendes Merkmal (WEB-005): voellig leere Kontakte
         // wurden gespeichert und erschienen als "keine E-Mail / Unbekannt"
         if (NullIfEmpty(request.Email) is null
-            && NullIfEmpty(request.Name) is null
+            && displayName is null
             && NullIfEmpty(request.Company) is null)
         {
             return new SaveMarketingContactResponse(false, null, "Mindestens E-Mail, Name oder Firma muss angegeben werden.");
@@ -75,7 +82,11 @@ public class SaveMarketingContactHandler(
         }
 
         contact.Email = normalizedEmail;
-        contact.Name = NullIfEmpty(request.Name);
+        contact.Name = displayName;
+        contact.Salutation = request.Salutation;
+        contact.Title = title;
+        contact.FirstName = firstName;
+        contact.LastName = lastName;
         contact.Company = NullIfEmpty(request.Company);
         contact.Phone = NullIfEmpty(request.Phone);
         contact.City = NullIfEmpty(request.City);
@@ -101,4 +112,10 @@ public class SaveMarketingContactHandler(
 
     private static string? NullIfEmpty(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? JoinNonEmpty(params string?[] parts)
+    {
+        var joined = string.Join(' ', parts.Where(p => p is not null));
+        return joined.Length == 0 ? null : joined;
+    }
 }

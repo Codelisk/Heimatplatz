@@ -8273,6 +8273,10 @@
           "Id",
           "Email",
           "Name",
+          "Salutation",
+          "Title",
+          "FirstName",
+          "LastName",
           "Company",
           "Phone",
           "City",
@@ -8301,6 +8305,27 @@
             ]
           },
           "Name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Salutation": {
+            "$ref": "#/components/schemas/MarketingSalutation"
+          },
+          "Title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "FirstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LastName": {
             "type": [
               "null",
               "string"
@@ -8618,6 +8643,13 @@
             ]
           }
         }
+      },
+      "MarketingSalutation": {
+        "enum": [
+          "Unknown",
+          "Herr",
+          "Frau"
+        ]
       },
       "MarketingTemplateDto": {
         "required": [
@@ -9719,6 +9751,15 @@
               "null",
               "string"
             ]
+          },
+          "Warnings": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -9903,6 +9944,27 @@
             "$ref": "#/components/schemas/MarketingContactStatus"
           },
           "Notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Salutation": {
+            "$ref": "#/components/schemas/MarketingSalutation"
+          },
+          "Title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "FirstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LastName": {
             "type": [
               "null",
               "string"

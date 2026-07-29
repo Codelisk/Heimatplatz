@@ -55,6 +55,20 @@ public class SendMarketingEmailHandler(
             return new SendMarketingEmailResponse(false, smtpConfigured,
                 "Der Text ist ein Platzhalter-Entwurf ohne KI und kann nicht versendet werden. Bitte KI-Anbieter konfigurieren oder den Text vollständig ersetzen.");
 
+        // Doppelter Boden zur UI-Sperre: nicht befuellte Vorlagen-Platzhalter bleiben seit
+        // dem Renderer-Umbau sichtbar im Text stehen - so eine Mail darf nie rausgehen.
+        // Bewusst ALLE {wort}-Tokens blockieren (auch unbekannte): in einer deutschen
+        // Geschaeftsmail gibt es kein legitimes {wort}.
+        var leftoverTokens = MarketingTemplatePlaceholders
+            .FindTokens(request.Subject + "\n" + request.Body)
+            .Select(t => t.Raw)
+            .Distinct()
+            .ToList();
+        if (leftoverTokens.Count > 0)
+            return new SendMarketingEmailResponse(false, smtpConfigured,
+                $"Im Entwurf stehen noch Platzhalter: {string.Join(", ", leftoverTokens)}. " +
+                "Bitte ersetzen oder den Kontakt vervollständigen und die Vorlage neu einsetzen.");
+
         string? ccAddress = null;
         if (!string.IsNullOrWhiteSpace(request.CcEmail))
         {

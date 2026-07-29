@@ -7,9 +7,15 @@ import { formatInternDate } from "@/lib/intern/marketing-labels";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
 
-// Die Platzhalter-Liste stammt aus MarketingTemplatePlaceholders (API) - hier gespiegelt,
-// weil sie nur als Hilfetext dient und die Ersetzung serverseitig passiert.
-const PLACEHOLDERS = ["{anrede}", "{firma}", "{name}", "{ort}"];
+// Die Platzhalter-Liste stammt aus MarketingTemplatePlaceholders (API) - hier gespiegelt
+// fuer Hilfetext, Einfuege-Chips und die Vor-Submit-Pruefung; die Ersetzung und die
+// massgebliche Validierung passieren serverseitig.
+const PLACEHOLDERS = [
+  { token: "{anrede}", hint: t("intern.mkTplPhAnrede") },
+  { token: "{firma}", hint: t("intern.mkTplPhFirma") },
+  { token: "{name}", hint: t("intern.mkTplPhName") },
+  { token: "{ort}", hint: t("intern.mkTplPhOrt") },
+];
 
 const editId = Astro.url.searchParams.get("id") ?? "";
 const action = Astro.url.searchParams.get("action");
@@ -119,14 +125,29 @@ const inputClass =
       <h2 class="text-base font-semibold">
         {editing ? t("intern.mkTplEditHeading") : t("intern.mkTplNewHeading")}
       </h2>
-      <p class="mt-1 text-sm text-muted-foreground">
-        {t("intern.mkTplPlaceholderHint", { list: PLACEHOLDERS.join("  ") })}
-      </p>
+      <p class="mt-1 text-sm text-muted-foreground">{t("intern.mkTplPlaceholderHint")}</p>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {PLACEHOLDERS.map((placeholder) => (
+          <button
+            type="button"
+            data-insert-placeholder={placeholder.token}
+            title={placeholder.hint}
+            class="rounded-md border border-border bg-muted px-2 py-1 font-mono text-xs hover:border-foreground/40"
+          >
+            {placeholder.token}
+          </button>
+        ))}
+      </div>
+      <ul class="mt-2 list-disc pl-5 text-xs leading-5 text-muted-foreground">
+        {PLACEHOLDERS.map((placeholder) => <li>{placeholder.hint}</li>)}
+        <li>{t("intern.mkTplPlaceholderRule")}</li>
+      </ul>
 
       <form
         method="POST"
         action="/intern/marketing/vorlagen/speichern"
         class="mt-4 flex flex-col gap-4"
+        data-hook="template-form"
       >
         {editing && <input type="hidden" name="id" value={editing.Id} />}
 
@@ -204,10 +225,63 @@ const inputClass =
 </BaseLayout>
 
 <script>
+  import { t } from "@/i18n";
+
   // Loeschen nur nach Rueckfrage - der Text kommt aus data-confirm (i18n, SSR-gerendert)
   for (const form of document.querySelectorAll<HTMLFormElement>("form[data-confirm]")) {
     form.addEventListener("submit", (event) => {
       if (!window.confirm(form.dataset.confirm ?? "")) event.preventDefault();
     });
   }
+
+  const templateForm = document.querySelector<HTMLFormElement>('[data-hook="template-form"]');
+  const subjectInput = templateForm?.querySelector<HTMLInputElement>('input[name="subject"]');
+  const bodyInput = templateForm?.querySelector<HTMLTextAreaElement>('textarea[name="body"]');
+
+  // Chips fuegen den Platzhalter an der Schreibmarke ein - Tippfehler entstehen erst
+  // gar nicht. Zuletzt fokussiertes Feld gewinnt, Default ist der Text.
+  let lastFocused: HTMLInputElement | HTMLTextAreaElement | null = null;
+  for (const field of [subjectInput, bodyInput]) {
+    field?.addEventListener("focus", () => {
+      lastFocused = field;
+    });
+  }
+
+  for (const chip of document.querySelectorAll<HTMLButtonElement>("[data-insert-placeholder]")) {
+    chip.addEventListener("click", () => {
+      const token = chip.dataset.insertPlaceholder ?? "";
+      const target = lastFocused ?? bodyInput;
+      if (!target || !token) return;
+
+      const start = target.selectionStart ?? target.value.length;
+      const end = target.selectionEnd ?? target.value.length;
+      target.value = target.value.slice(0, start) + token + target.value.slice(end);
+      target.focus();
+      target.setSelectionRange(start + token.length, start + token.length);
+    });
+  }
+
+  // Vor-Submit-Pruefung auf unbekannte Platzhalter: der Server lehnt sie ebenfalls ab,
+  // aber beim PRG-Redirect einer NEUEN Vorlage gingen die Eingaben verloren - deshalb
+  // schon hier abfangen. Gleiche Token-Regel wie MarketingTemplatePlaceholders (API).
+  const KNOWN = new Set(["{anrede}", "{firma}", "{name}", "{ort}"]);
+  templateForm?.addEventListener("submit", (event) => {
+    const text = `${subjectInput?.value ?? ""}\n${bodyInput?.value ?? ""}`;
+    const unknown = [
+      ...new Set(
+        (text.match(/\{\s*[a-zA-ZÄÖÜäöüß]{2,40}\s*\}/g) ?? [])
+          .map((token) => token.replace(/\s+/g, "").toLowerCase())
+          .filter((token) => !KNOWN.has(token)),
+      ),
+    ];
+    if (unknown.length > 0) {
+      event.preventDefault();
+      window.alert(
+        t("intern.mkTplUnknownPlaceholder", {
+          list: unknown.join(", "),
+          allowed: [...KNOWN].join(" "),
+        }),
+      );
+    }
+  });
 </script>

@@ -179,6 +179,9 @@ export const intern = {
   "intern.marketingSendFailed": "Versand fehlgeschlagen: {error}",
   "intern.marketingPlaceholderWarning":
     "Platzhaltertext ohne KI – kann nicht versendet werden. KI-Anbieter konfigurieren oder Text ersetzen.",
+  "intern.marketingTemplateWarnings": "Hinweise beim Einsetzen der Vorlage:",
+  "intern.marketingLeftoverPlaceholders":
+    "Im Entwurf stehen noch Platzhalter ({list}) – vor dem Versand ersetzen oder den Kontakt vervollständigen und die Vorlage neu einsetzen.",
   "intern.marketingValidationRecipient": "Bitte eine gültige Empfänger-E-Mail-Adresse eingeben.",
   "intern.marketingValidationCc": "Bitte eine gültige CC-E-Mail-Adresse eingeben (oder das Feld leer lassen).",
   "intern.marketingValidationBcc": "Bitte eine gültige BCC-E-Mail-Adresse eingeben (oder das Feld leer lassen).",
@@ -295,7 +298,16 @@ export const intern = {
   "intern.mkTplTitle": "E-Mail-Vorlagen",
   "intern.mkTplIntro":
     "Textbausteine für den Versand. Die Platzhalter werden beim Schreiben aus dem Kontakt befüllt und bleiben danach änderbar. Die Signatur kommt wie immer aus den Kontakt-Stammdaten und gehört nicht in die Vorlage.",
-  "intern.mkTplPlaceholderHint": "Platzhalter: {list}",
+  "intern.mkTplPlaceholderHint": "Platzhalter (Klick fügt an der Schreibmarke ein):",
+  "intern.mkTplPhAnrede":
+    "{anrede} – komplette Anredezeile, z. B. „Sehr geehrter Herr Mag. Kaindl“; ohne gepflegte Ansprechperson automatisch „Sehr geehrte Damen und Herren“",
+  "intern.mkTplPhFirma": "{firma} – Firmenname des Kontakts",
+  "intern.mkTplPhName": "{name} – voller Name der Ansprechperson (Titel Vorname Nachname)",
+  "intern.mkTplPhOrt": "{ort} – Ort des Kontakts",
+  "intern.mkTplPlaceholderRule":
+    "Platzhalter ohne Wert werden beim Einsetzen nicht stumm gelöscht – sie bleiben sichtbar im Text stehen und blockieren den Versand. Tippfehler wie {fimra} lehnt das Speichern ab.",
+  "intern.mkTplUnknownPlaceholder":
+    "Unbekannte Platzhalter: {list}. Erlaubt sind: {allowed}",
   "intern.mkTplEmpty": "Noch keine Vorlagen angelegt.",
   "intern.mkTplLoadFailed":
     "Vorlagen konnten nicht geladen werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
@@ -351,6 +363,17 @@ export const intern = {
   "intern.mkFieldEmail": "E-Mail",
   "intern.mkFieldEmailOptional": "E-Mail (optional)",
   "intern.mkFieldName": "Ansprechpartner",
+  "intern.mkFieldSalutation": "Anrede",
+  "intern.mkFieldSalutationNone": "– unbekannt –",
+  "intern.mkFieldSalutationHerr": "Herr",
+  "intern.mkFieldSalutationFrau": "Frau",
+  "intern.mkFieldTitle": "Titel",
+  "intern.mkFieldTitlePlaceholder": "Mag., DI, …",
+  "intern.mkFieldFirstName": "Vorname",
+  "intern.mkFieldLastName": "Nachname",
+  "intern.mkLegacyNameHint":
+    "Bisher als Freitext gespeichert: „{name}“ – sobald oben Namensfelder ausgefüllt werden, ersetzt das den Freitext.",
+  "intern.mkSalutationPreviewLabel": "Anrede in E-Mails:",
   "intern.mkFieldCompany": "Firma",
   "intern.mkFieldPhone": "Telefon",
   "intern.mkFieldCity": "Ort",
