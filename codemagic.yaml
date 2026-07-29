@@ -100,6 +100,13 @@ workflows:
           add_subdirectory(native)
           EOF
 
+      - name: Bazel bereitstellen (darwin.cmake von maplibre-native braucht es)
+        script: |
+          set -e
+          brew install bazelisk
+          cd "$CM_BUILD_DIR/mln-build/dependencies/maplibre-native"
+          bazel --version
+
       - name: iOS-Device-Slice (arm64) bauen
         script: |
           set -e
