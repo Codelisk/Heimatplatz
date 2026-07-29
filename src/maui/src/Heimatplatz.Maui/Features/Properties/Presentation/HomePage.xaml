@@ -80,10 +80,13 @@
                                  Platzhalter beim Pull-to-Refresh unter der Chip-Zeile hervorwandert. -->
                             <BoxView HeightRequest="56"
                                      Color="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
-                            <Border Margin="12,4,12,12"
+                            <!-- Unten ohne Margin: die Liste setzt zwischen Header und
+                                 erster Karte bereits VerticalItemSpacing (20) - sonst
+                                 klafft die doppelte Luecke. -->
+                            <Border Margin="12,4,12,0"
                                     Padding="12,9"
                                     StrokeThickness="1"
-                                    Stroke="{AppThemeBinding Light=#D98200, Dark=#F2A93B}"
+                                    Stroke="{AppThemeBinding Light=#D98200, Dark={StaticResource PrimaryDark}}"
                                     BackgroundColor="{AppThemeBinding Light=#FFF4E5, Dark=#352A1D}"
                                     StrokeShape="RoundRectangle 8"
                                     IsVisible="{Binding ShowCachedDataNotice}"

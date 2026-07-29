@@ -93,10 +93,10 @@
             <!-- Bottom-Padding reserviert Platz fuer die eingeklappte Kontakt-Leiste -->
             <VerticalStackLayout Spacing="0" Padding="0,0,0,96">
 
-                <Border Margin="12,10,12,0"
+                <Border Margin="12,10,12,12"
                         Padding="12,9"
                         StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light=#D98200, Dark=#F2A93B}"
+                        Stroke="{AppThemeBinding Light=#D98200, Dark={StaticResource PrimaryDark}}"
                         BackgroundColor="{AppThemeBinding Light=#FFF4E5, Dark=#352A1D}"
                         StrokeShape="RoundRectangle 8"
                         IsVisible="{Binding IsShowingCachedData}"
