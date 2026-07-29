@@ -414,11 +414,27 @@ public class MapLibreMapController : IMapLibreMapController
         OnMapReadyReceived?.Invoke(new Map(null));
     }
 
+    private int _renderScheduled;
+
     private void OnRender()
     {
-        // Dispatch to main thread � Metal command buffers must be committed there.
-        MainThread.BeginInvokeOnMainThread(() =>
+        // Metal command buffers muessen am Main-Thread committed werden - aber
+        // NICHT inline: MainThread.BeginInvokeOnMainThread fuehrt am Main-Thread
+        // sofort aus, und der Render-Callback feuert hier AUF dem Main-Thread
+        // aus [MTKView draw] heraus. Inline-Rendern triggert draw -> Callback ->
+        // draw endlos rekursiv bis zum Stack Overflow (TestFlight-Crash 1.86.0,
+        // EXC_BAD_ACCESS/KERN_PROTECTION_FAILURE). Deshalb echtes asynchrones
+        // Einreihen auf die Main-Queue; das Flag koalesziert mehrere Callbacks
+        // zu einem Frame pro RunLoop-Umlauf (Muster wie _renderNeedsUpdate auf
+        // Android/Windows).
+        if (Interlocked.Exchange(ref _renderScheduled, 1) == 1)
+            return;
+
+        CoreFoundation.DispatchQueue.MainQueue.DispatchAsync(() =>
         {
+            // Vor dem Render zuruecksetzen: Callbacks waehrend Render() planen
+            // damit den naechsten Frame statt verschluckt zu werden
+            Interlocked.Exchange(ref _renderScheduled, 0);
             _frontend?.Render();
             _runLoop?.RunOnce();
         });
