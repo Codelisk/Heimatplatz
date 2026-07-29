@@ -354,7 +354,15 @@ public partial class PropertyMapPage : ContentPage
                 // skalierten Bullets traegt oben Luft auf - symmetrisches Padding
                 // laesst Preis+Punkt sichtbar nach unten sacken (Browser-Iteration
                 // mit identischer Render-Engine, s. map-verify-Testseite).
+                // iOS/MacCatalyst (Upstream-Core im gevendorten Binary) traegt
+                // noch MEHR Luft oben auf - staerkere Asymmetrie hebt Preis+Punkt
+                // in die Mitte, Gesamthoehe (11) und damit die Chip-Proportion
+                // bleiben identisch. Am Geraet abgestimmt 29.7.
+#if IOS || MACCATALYST
+                ["icon-text-fit-padding"] = new object[] { 1.5, 10, 9.5, 10 },
+#else
                 ["icon-text-fit-padding"] = new object[] { 3.5, 10, 7.5, 10 },
+#endif
                 // Typ-Punkt als Bullet U+2022: das Basis-Noto-Sans der Glyph-PBFs
                 // enthaelt KEIN U+25CF (Geometric Shapes = Noto Sans Symbols) -
                 // damit rendert "●" schlicht gar nicht. font-scale pumpt das
