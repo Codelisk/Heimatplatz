@@ -99,6 +99,19 @@
     <Color x:Key="WarningBannerBackgroundDark">#332B1B</Color>
     <Color x:Key="WarningBannerForeground">#6B5320</Color>
     <Color x:Key="WarningBannerForegroundDark">#E5C687</Color>
+    <!-- Offline-Hinweis ("zuletzt gespeicherter Stand"): eigene Keys, damit der
+         Hinweis nicht an den Fehler-Tokens haengt - offline ist kein Fehler.
+         Dark liegt in der Rot-Familie (Kundenwunsch 29.07.) und folgt der
+         Banner-Staffelung Flaeche -> Rand -> Text ueber die Helligkeit
+         (L* ~17 / 53 / 79, gleicher Buntton) statt ueber die Saettigung.
+         Das CTA-Rot bleibt hier bewusst aussen vor: vollgesaettigt als
+         1px-Kontur wirkt der Hinweis wie ein Button. -->
+    <Color x:Key="OfflineNoticeBackground">#FFF4E5</Color>
+    <Color x:Key="OfflineNoticeBackgroundDark">#3B211D</Color>
+    <Color x:Key="OfflineNoticeStroke">#D98200</Color>
+    <Color x:Key="OfflineNoticeStrokeDark">#C25048</Color>
+    <Color x:Key="OfflineNoticeForeground">#211816</Color>
+    <Color x:Key="OfflineNoticeForegroundDark">#EBAFA5</Color>
     <Color x:Key="FavoriteRed">#DE2A2F</Color>
 
     <Color x:Key="White">White</Color>

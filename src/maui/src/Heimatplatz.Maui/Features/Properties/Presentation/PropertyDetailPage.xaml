@@ -93,18 +93,12 @@
             <!-- Bottom-Padding reserviert Platz fuer die eingeklappte Kontakt-Leiste -->
             <VerticalStackLayout Spacing="0" Padding="0,0,0,96">
 
-                <Border Margin="12,10,12,12"
-                        Padding="12,9"
-                        StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light=#D98200, Dark={StaticResource PrimaryDark}}"
-                        BackgroundColor="{AppThemeBinding Light=#FFF4E5, Dark=#352A1D}"
-                        StrokeShape="RoundRectangle 8"
+                <Border Style="{StaticResource OfflineNotice}"
+                        Margin="12,10,12,12"
                         IsVisible="{Binding IsShowingCachedData}"
                         AutomationId="Detail_CachedDataNotice">
                     <Label Text="{Binding Loc.CachedDataNotice}"
-                           FontSize="12.5"
-                           LineBreakMode="WordWrap"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                           Style="{StaticResource OfflineNoticeText}" />
                 </Border>
 
                 <Grid x:Name="DetailLeadGrid"

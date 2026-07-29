@@ -704,6 +704,23 @@
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource SuccessBannerForeground}, Dark={StaticResource SuccessBannerForegroundDark}}" />
     </Style>
 
+    <!-- Offline-Hinweis: gleiches Banner-Muster, aber mit Kontur - er liegt
+         zwischen Karten bzw. ueber dem Detail-Hero und braucht eine Kante,
+         um sich von diesen Flaechen abzusetzen. -->
+    <Style x:Key="OfflineNotice" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource OfflineNoticeBackground}, Dark={StaticResource OfflineNoticeBackgroundDark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource OfflineNoticeStroke}, Dark={StaticResource OfflineNoticeStrokeDark}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+        <Setter Property="Padding" Value="14,10" />
+    </Style>
+
+    <Style x:Key="OfflineNoticeText" TargetType="Label">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OfflineNoticeForeground}, Dark={StaticResource OfflineNoticeForegroundDark}}" />
+    </Style>
+
     <!-- Busy-Overlay: dunkler Scrim + Karte mit Spinner -->
     <Style x:Key="BusyOverlay" TargetType="Grid">
         <Setter Property="BackgroundColor" Value="{StaticResource ScrimColor}" />

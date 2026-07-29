@@ -97,18 +97,12 @@
                             <!-- Unten ohne Margin: die Liste setzt zwischen Header und
                                  erster Karte bereits VerticalItemSpacing (20) - sonst
                                  klafft die doppelte Luecke. -->
-                            <Border Margin="12,4,12,0"
-                                    Padding="12,9"
-                                    StrokeThickness="1"
-                                    Stroke="{AppThemeBinding Light=#D98200, Dark={StaticResource PrimaryDark}}"
-                                    BackgroundColor="{AppThemeBinding Light=#FFF4E5, Dark=#352A1D}"
-                                    StrokeShape="RoundRectangle 8"
+                            <Border Style="{StaticResource OfflineNotice}"
+                                    Margin="12,4,12,0"
                                     IsVisible="{Binding ShowCachedDataNotice}"
                                     AutomationId="Home_CachedDataNotice">
                                 <Label Text="{Binding Loc.CachedDataNotice}"
-                                       FontSize="12.5"
-                                       LineBreakMode="WordWrap"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                       Style="{StaticResource OfflineNoticeText}" />
                             </Border>
                         </VerticalStackLayout>
                     </CollectionView.Header>
