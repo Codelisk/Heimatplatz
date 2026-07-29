@@ -1,6 +1,7 @@
 ﻿/**
  * MbglFrontend.cs — Typed wrapper around mbgl_frontend_t.
  */
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace MapLibreNative.Maui;
@@ -33,9 +34,28 @@ public sealed class MbglFrontend : IDisposable
     /// </summary>
     internal void TransferOwnership() => _ownershipTransferred = true;
 
-    // Prevent the delegate from being collected
-    private readonly NativeMethods.RenderFn _renderDelegate;
     private readonly Action _renderCallback;
+
+    // Haelt diese Instanz fuer den nativen Render-Callback erreichbar (userdata)
+    private GCHandle _selfHandle;
+
+    // iOS laeuft AOT-only (kein JIT): Delegate-Marshalling native->managed
+    // erzeugt den Reverse-Wrapper erst zur Laufzeit und wirft dort eine
+    // ExecutionEngineException. Ein statisches UnmanagedCallersOnly-Trampolin
+    // mit GCHandle-Userdata ist auf allen Plattformen AOT-sicher.
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+    private static void RenderTrampoline(IntPtr userdata)
+    {
+        try
+        {
+            if (GCHandle.FromIntPtr(userdata).Target is MbglFrontend frontend)
+                frontend._renderCallback();
+        }
+        catch
+        {
+            // Exceptions duerfen die native Grenze nie ueberqueren
+        }
+    }
 
     /// <param name="surfaceHandle">Platform-specific surface: HDC (Windows), ANativeWindow* (Android), CAMetalLayer* (Apple)</param>
     /// <param name="glContext">WGL context (Windows) or null (Android/Apple)</param>
@@ -52,15 +72,24 @@ public sealed class MbglFrontend : IDisposable
         Action onRender)
     {
         _renderCallback = onRender;
-        _renderDelegate = _ => _renderCallback();
+        _selfHandle = GCHandle.Alloc(this);
+
+        IntPtr renderFnPtr;
+        unsafe
+        {
+            renderFnPtr = (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, void>)&RenderTrampoline;
+        }
 
         Handle = NativeMethods.FrontendCreateGl(
             surfaceHandle, glContext,
             widthPx, heightPx, pixelRatio,
-            _renderDelegate, IntPtr.Zero);
+            renderFnPtr, GCHandle.ToIntPtr(_selfHandle));
 
         if (Handle == IntPtr.Zero)
+        {
+            _selfHandle.Free();
             throw new InvalidOperationException("mbgl_frontend_create_gl returned null.");
+        }
     }
 
     /// <summary>
@@ -80,6 +109,12 @@ public sealed class MbglFrontend : IDisposable
 
     public void Dispose()
     {
+        // Nach mbgl_map_destroy ruft die native Seite den Render-Callback nicht
+        // mehr - das Userdata-GCHandle kann unabhaengig von der Ownership-
+        // Uebergabe freigegeben werden.
+        if (_selfHandle.IsAllocated)
+            _selfHandle.Free();
+
         // If MbglMap took ownership, mbgl_map_destroy already freed this pointer.
         // Do not call mbgl_frontend_destroy — that would be a double-free.
         if (!_ownershipTransferred && Handle != IntPtr.Zero)

@@ -68,6 +68,18 @@ dann kann der Eigenbau beim naechsten Update wieder entfallen.
    Kamera-Paddings) konvertieren an der ABI-Grenze — die Managed-Seite spricht
    weiterhin physische px. Gehoert upstream gemeldet; bis dahin bei jedem
    Update erneut anwenden und die Android-Binaries neu bauen.
+5. **iOS-AOT-sichere Callbacks (29.07.2026):** Upstream uebergibt den Render-
+   Callback (`MbglFrontend`) und den Map-Observer (`MbglMap`) als Delegates —
+   Delegate-Marshalling native→managed erzeugt den Reverse-Wrapper erst zur
+   Laufzeit (JIT) und crasht auf iOS (AOT-only) mit `ExecutionEngineException`
+   beim Oeffnen der Karte. Umgebaut auf statische
+   `[UnmanagedCallersOnly]`-Trampoline + Funktionspointer (`IntPtr` in
+   `NativeMethods.FrontendCreateGl`/`MapCreate`/`MapCreate2`) mit
+   GCHandle-Userdata; die Controller (MaciOS/Android) rufen jetzt
+   `_frontend?.Dispose()` fuer die GCHandle-Freigabe. Die uebrigen
+   Delegate-Callbacks (LogFn, HttpProvider, Offline*) sind auf iOS derzeit
+   unbenutzt — vor einer Nutzung dort genauso umbauen! Bei Updates erneut
+   anwenden.
 
 ## Update-Prozess
 

@@ -89,6 +89,12 @@ public static partial class NativeMethods
 #endif
 
     // ── Callbacks ─────────────────────────────────────────────────────────────
+    // MapObserverFn/RenderFn dokumentieren nur noch die C-ABI-Signaturen: die
+    // Callbacks werden als UnmanagedCallersOnly-Funktionspointer (IntPtr)
+    // uebergeben, nicht mehr als Delegates. Delegate-Marshalling in Richtung
+    // native->managed braucht einen zur Laufzeit generierten Wrapper (JIT) und
+    // crasht auf iOS (AOT-only) mit ExecutionEngineException - siehe die
+    // Trampoline in MbglFrontend/MbglMap.
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void MapObserverFn(
         [MarshalAs(UnmanagedType.LPUTF8Str)] string  eventName,
@@ -144,8 +150,8 @@ public static partial class NativeMethods
         int    widthPx,
         int    heightPx,
         float  pixelRatio,
-        RenderFn renderCallback,
-        IntPtr   renderUserdata);
+        IntPtr renderCallback,   // UnmanagedCallersOnly-Funktionspointer (RenderFn-Signatur)
+        IntPtr renderUserdata);
 
     [LibraryImport(Lib, EntryPoint = "mbgl_frontend_destroy")]
     public static partial MbglStatus FrontendDestroy(IntPtr fe);
@@ -168,7 +174,7 @@ public static partial class NativeMethods
         string? cachePath,
         string? assetPath,
         float   pixelRatio,
-        MapObserverFn? observer,
+        IntPtr  observer,        // UnmanagedCallersOnly-Funktionspointer (MapObserverFn-Signatur) oder Zero
         IntPtr  observerUserdata);
 
     /// <summary>Extended map factory: adds an API key and a maximum disk-cache size
@@ -183,7 +189,7 @@ public static partial class NativeMethods
         string? apiKey,
         ulong   maxCacheSizeBytes,
         float   pixelRatio,
-        MapObserverFn? observer,
+        IntPtr  observer,        // UnmanagedCallersOnly-Funktionspointer (MapObserverFn-Signatur) oder Zero
         IntPtr  observerUserdata);
 
     [LibraryImport(Lib, EntryPoint = "mbgl_map_destroy")]

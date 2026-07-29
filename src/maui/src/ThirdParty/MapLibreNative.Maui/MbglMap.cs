@@ -4,6 +4,7 @@
  * Lifetime: must be disposed on the same thread as its MbglRunLoop.
  * The MbglFrontend must outlive the MbglMap.
  */
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace MapLibreNative.Maui;
@@ -13,8 +14,26 @@ public sealed class MbglMap : IDisposable
 {
     internal IntPtr Handle { get; private set; }
 
-    // Keep a GC handle to the native delegate so it isn't collected
+    // Haelt den managed Observer fuer das native Callback-Userdata am Leben
     private GCHandle _observerHandle;
+
+    // iOS-AOT-sicher: statisches UnmanagedCallersOnly-Trampolin statt
+    // Delegate-Marshalling (Begruendung siehe MbglFrontend.RenderTrampoline)
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+    private static void ObserverTrampoline(IntPtr eventNamePtr, IntPtr detailPtr, IntPtr userdata)
+    {
+        try
+        {
+            if (GCHandle.FromIntPtr(userdata).Target is Action<string, string?> observer)
+                observer(
+                    Marshal.PtrToStringUTF8(eventNamePtr) ?? string.Empty,
+                    Marshal.PtrToStringUTF8(detailPtr));
+        }
+        catch
+        {
+            // Exceptions duerfen die native Grenze nie ueberqueren
+        }
+    }
 
     public MbglMap(
         MbglFrontend frontend,
@@ -26,11 +45,16 @@ public sealed class MbglMap : IDisposable
         string? apiKey = null,
         ulong   maxCacheSizeBytes = 0)
     {
-        NativeMethods.MapObserverFn? nativeObserver = null;
+        IntPtr observerFnPtr = IntPtr.Zero;
+        IntPtr observerUserdata = IntPtr.Zero;
         if (observer != null)
         {
-            nativeObserver = (eventName, detail, _) => observer(eventName, detail);
-            _observerHandle = GCHandle.Alloc(nativeObserver);
+            _observerHandle = GCHandle.Alloc(observer);
+            observerUserdata = GCHandle.ToIntPtr(_observerHandle);
+            unsafe
+            {
+                observerFnPtr = (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, IntPtr, IntPtr, void>)&ObserverTrampoline;
+            }
         }
 
         Handle = apiKey is null && maxCacheSizeBytes == 0
@@ -38,13 +62,13 @@ public sealed class MbglMap : IDisposable
                 frontend.Handle, runLoop.Handle,
                 cachePath, assetPath,
                 pixelRatio,
-                nativeObserver, IntPtr.Zero)
+                observerFnPtr, observerUserdata)
             : NativeMethods.MapCreate2(
                 frontend.Handle, runLoop.Handle,
                 cachePath, assetPath,
                 apiKey, maxCacheSizeBytes,
                 pixelRatio,
-                nativeObserver, IntPtr.Zero);
+                observerFnPtr, observerUserdata);
 
         if (Handle == IntPtr.Zero)
             throw new InvalidOperationException("mbgl_map_create returned null.");
