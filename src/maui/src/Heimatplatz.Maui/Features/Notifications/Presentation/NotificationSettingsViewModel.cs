@@ -352,15 +352,18 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 
 #if ANDROID
             // CheckStatusAsync zeigt keinen Systemdialog. Ist die Android-
-            // Berechtigung blockiert, darf die App nicht weiterhin "aktiv"
-            // behaupten und korrigiert auch die Serverpraeferenz.
+            // Berechtigung nicht erteilt, darf die App nicht weiterhin "aktiv"
+            // behaupten und korrigiert auch die Serverpraeferenz. Aber KEINE
+            // "blockiert"-Warnung anzeigen: CheckStatusAsync liefert auch bei
+            // nie angefragter Berechtigung (Neuinstallation, Android-Auto-Reset)
+            // "Denied" - dann kommt beim Aktivieren ganz normal der Systemdialog.
+            // Die Warnung zeigt erst ApplyPushFailure nach einem tatsaechlich
+            // abgelehnten Aktivierungsversuch.
             if (preferences.IsEnabled &&
                 OperatingSystem.IsAndroidVersionAtLeast(33) &&
                 await Permissions.CheckStatusAsync<Permissions.PostNotifications>() != PermissionStatus.Granted)
             {
                 IsEnabled = false;
-                PushStatusMessage = Loc.PermissionBlocked;
-                CanOpenSystemSettings = true;
                 reconcileDisabledPermission = true;
             }
 #endif
