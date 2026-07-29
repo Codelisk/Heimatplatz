@@ -510,8 +510,13 @@ public class MapLibreMapController : IMapLibreMapController
             TryInitialize(w, h);
             return;
         }
-        _frontend.SetSize(w, h);
+        // REIHENFOLGE: Das Upstream-iOS-Binary setzt in mbgl_map_set_size Map
+        // UND Frontend/Drawable gemeinsam - der (kompensierte) logische
+        // Map-SetSize wuerde das Metal-Drawable sonst auf logische px
+        // schrumpfen (halbe Aufloesung, sichtbar unscharf). Deshalb erst die
+        // Map, DANACH das Frontend physisch - so bleibt das Drawable scharf.
         _map?.SetSize(w, h);
+        _frontend.SetSize(w, h);
         _map?.TriggerRepaint();
     }
 
@@ -553,6 +558,10 @@ public class MapLibreMapController : IMapLibreMapController
                            observer: OnMapObserverEvent,
                            compatPixelRatio: _pixelRatio);
         _map.SetSize(w, h);
+        // Upstream-Binary koppelt map_set_size an das Frontend/Drawable - nach
+        // dem (logischen) Map-SetSize das Drawable zurueck auf physisch
+        // (Details siehe OnViewResized)
+        _frontend.SetSize(w, h);
 
         if (!string.IsNullOrEmpty(_styleString))
         {
