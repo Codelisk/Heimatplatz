@@ -35,6 +35,9 @@ Hauptprojekt fuer das Properties (Immobilien) Feature.
   und liefert fuer Created/Updated die aktuellen `PropertyListItemDto`-Daten mit. Ohne `Since`
   oder ausserhalb der 30-Tage-Retention: `FullResyncRequired=true`. Antwort enthaelt `Watermark`
   als naechstes `Since`. SQLite filtert in-memory (DateTimeOffset nicht uebersetzbar), Postgres in SQL.
+  `Since` wird tolerant gelesen (`TryParseSince`): Aeltere MAUI-Staende senden das Zonen-Plus
+  unkodiert, es kommt als Leerzeichen an - ohne diese Reparatur bekaemen sie bei **jedem**
+  Sync `FullResyncRequired=true` (Delta-Sync tot, App zeigt dauerhaft "Neue Inserate").
 
 ### Infrastructure
 - `PropertyChangeRetentionWorker` - loescht Journal-Eintraege aelter als 30 Tage (taeglich)

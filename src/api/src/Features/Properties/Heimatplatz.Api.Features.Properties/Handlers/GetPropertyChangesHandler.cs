@@ -47,11 +47,7 @@ public class GetPropertyChangesHandler(
 
         // Ohne Since (Erstlauf), bei unlesbarem Wert oder mit Stand ausserhalb der
         // Aufbewahrung ist kein vollstaendiges Delta moeglich -> Client laedt komplett neu
-        if (!DateTimeOffset.TryParse(
-                request.Since,
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.RoundtripKind,
-                out var since) ||
+        if (!TryParseSince(request.Since, out var since) ||
             since < now - RetentionPeriod)
         {
             return new GetPropertyChangesResponse
@@ -185,6 +181,55 @@ public class GetPropertyChangesHandler(
             FullResyncRequired = false,
             Changes = changes
         };
+    }
+
+    /// <summary>
+    /// Liest das Wasserzeichen des Clients. Zusaetzlich zum ISO-Roundtrip-Format wird
+    /// ein Wert repariert, dessen Zonen-Plus unterwegs verloren ging: Der generierte
+    /// Shiny-HTTP-Client haengt Query-Werte unkodiert an die URL, das "+" aus
+    /// "...+00:00" kommt serverseitig also als Leerzeichen an. Ohne diese Reparatur
+    /// meldet der Endpunkt jedem betroffenen Client bei JEDEM Sync einen Voll-Refresh
+    /// (Delta-Sync faellt komplett aus, Clients zeigen dauerhaft "Neue Inserate").
+    /// </summary>
+    public static bool TryParseSince(string? raw, out DateTimeOffset since)
+    {
+        since = default;
+        if (string.IsNullOrWhiteSpace(raw))
+            return false;
+
+        if (DateTimeOffset.TryParse(
+                raw,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind,
+                out since))
+            return true;
+
+        return DateTimeOffset.TryParse(
+            RestoreLostZoneSign(raw),
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.RoundtripKind,
+            out since);
+    }
+
+    /// <summary>
+    /// Macht aus einem abschliessenden " HH:mm" wieder "+HH:mm" (URL-Dekodierung von "+").
+    /// </summary>
+    private static string RestoreLostZoneSign(string value)
+    {
+        if (value.Length < 6)
+            return value;
+
+        var tail = value.AsSpan(value.Length - 6);
+        var isLostPlus = tail[0] == ' ' &&
+                         char.IsAsciiDigit(tail[1]) &&
+                         char.IsAsciiDigit(tail[2]) &&
+                         tail[3] == ':' &&
+                         char.IsAsciiDigit(tail[4]) &&
+                         char.IsAsciiDigit(tail[5]);
+
+        return isLostPlus
+            ? string.Concat(value.AsSpan(0, value.Length - 6), "+", value.AsSpan(value.Length - 5))
+            : value;
     }
 
     private static DateTimeOffset Max(DateTimeOffset a, DateTimeOffset b) => a > b ? a : b;

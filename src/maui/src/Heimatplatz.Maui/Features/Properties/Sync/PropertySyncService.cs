@@ -370,15 +370,37 @@ public sealed class PropertySyncService(
 
     private static string? LoadWatermark(string preferenceKey)
     {
-        // Roundtrip-ISO-String ("O"), wird unveraendert als Since-Parameter gesendet -
-        // DateTimeOffset-Query-Parameter wuerde der generierte Client kulturabhaengig
-        // serialisieren (Server kann das nicht binden)
         var raw = Preferences.Default.Get<string?>(preferenceKey, null);
-        return string.IsNullOrWhiteSpace(raw) ? null : raw;
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+
+        // Aeltere App-Staende haben "+00:00" gespeichert - beim Lesen auf die
+        // URL-sichere Z-Form normalisieren, sonst bliebe der Delta-Sync bis zum
+        // naechsten Voll-Refresh kaputt (siehe FormatWatermark)
+        return DateTimeOffset.TryParse(
+            raw,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind,
+            out var parsed)
+            ? FormatWatermark(parsed)
+            : null;
     }
 
     private static void SaveWatermark(string preferenceKey, DateTimeOffset watermark)
-        => Preferences.Default.Set(preferenceKey, watermark.ToString("O", CultureInfo.InvariantCulture));
+        => Preferences.Default.Set(preferenceKey, FormatWatermark(watermark));
+
+    /// <summary>
+    /// ISO-8601 in UTC mit "Z" statt "+00:00". Bewusst nicht das Roundtrip-Format "O":
+    /// der generierte Shiny-HTTP-Client haengt Query-Werte unkodiert an die URL, ein "+"
+    /// kaeme serverseitig als Leerzeichen an. Der Server koennte Since dann nicht parsen
+    /// und wuerde bei jedem Sync einen Voll-Refresh melden (Pille "Neue Inserate" bei
+    /// jedem App-Start, Caches werden dabei jedes Mal verworfen).
+    ///
+    /// Bewusst string statt DateTimeOffset im Contract: DateTimeOffset-Query-Parameter
+    /// serialisiert der Generator zusaetzlich kulturabhaengig.
+    /// </summary>
+    private static string FormatWatermark(DateTimeOffset value)
+        => value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
 
     public void Dispose()
     {

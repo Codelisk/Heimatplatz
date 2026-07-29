@@ -58,6 +58,11 @@ lokalen Caches gezielt, statt Listen neu zu laden:
   Detail-ViewModels patchen ihre sichtbaren Listen in-place.
 - Watermark liegt pro API-Endpunkt in Preferences; `FullResyncRequired` (erster Lauf oder Stand
   aelter als die 30-Tage-Journal-Retention) verwirft alle Immobilien-Caches.
+- **Watermark-Format: UTC mit `Z`, niemals `+00:00`** (`FormatWatermark`). Der generierte
+  OpenAPI-Client haengt Query-Werte unkodiert an die URL - ein `+` kommt serverseitig als
+  Leerzeichen an, `Since` ist dann unlesbar und der Server meldet bei jedem Sync einen
+  Voll-Refresh (Pille "Neue Inserate" bei jedem App-Start). Gleiche Falle wie bei
+  `CreatedAfter`, das der `AggregatingHttpRequestDecorator` nachtraeglich repariert.
 
 Die `RefreshAfterSeconds` der Immobilien-Requests (900 s) sind dadurch nur noch Sicherheitsnetz.
 
