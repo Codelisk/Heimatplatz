@@ -346,23 +346,28 @@ public partial class PropertyMapPage : ContentPage
 
         if (!existingLayers.Contains("hp-pin-approx-price"))
         {
+            // Asymmetrisches Padding (oben < unten): die Zeilenbox des skalierten
+            // Bullets traegt oben Luft auf - symmetrisches Padding laesst
+            // Preis+Punkt sichtbar nach unten sacken (Browser-Iteration mit
+            // identischer Render-Engine, s. map-verify-Testseite).
+            // iOS/MacCatalyst (aelterer Upstream-Core im gevendorten Binary)
+            // richtet gemischt skalierte Abschnitte an der OBERKANTE statt der
+            // Baseline aus: der Punkt ritt umso hoeher, je groesser font-scale.
+            // Deshalb dort kleinerer Punkt (weniger Hebel) + Padding-Mittelwert
+            // aus den Geraete-Iterationen 29.7. (3.5=zu tief, 1.5=zu hoch).
+            // Gesamthoehe (11) und Chip-Proportion bleiben ueberall identisch.
+#if IOS || MACCATALYST
+            object[] chipPadding = [2.5, 10, 8.5, 10];
+            const double bulletScale = 1.2;
+#else
+            object[] chipPadding = [3.5, 10, 7.5, 10];
+            const double bulletScale = 1.4;
+#endif
             controller.AddSymbolLayer("hp-pin-approx-price", "hp-pins-approx", null, null, new Dictionary<string, object?>
             {
                 ["icon-image"] = ChipImageExpression(),
                 ["icon-text-fit"] = "both",
-                // Asymmetrisch (oben 3.5 / unten 7.5): die Zeilenbox des 1.4x
-                // skalierten Bullets traegt oben Luft auf - symmetrisches Padding
-                // laesst Preis+Punkt sichtbar nach unten sacken (Browser-Iteration
-                // mit identischer Render-Engine, s. map-verify-Testseite).
-                // iOS/MacCatalyst (Upstream-Core im gevendorten Binary) traegt
-                // noch MEHR Luft oben auf - staerkere Asymmetrie hebt Preis+Punkt
-                // in die Mitte, Gesamthoehe (11) und damit die Chip-Proportion
-                // bleiben identisch. Am Geraet abgestimmt 29.7.
-#if IOS || MACCATALYST
-                ["icon-text-fit-padding"] = new object[] { 1.5, 10, 9.5, 10 },
-#else
-                ["icon-text-fit-padding"] = new object[] { 3.5, 10, 7.5, 10 },
-#endif
+                ["icon-text-fit-padding"] = chipPadding,
                 // Typ-Punkt als Bullet U+2022: das Basis-Noto-Sans der Glyph-PBFs
                 // enthaelt KEIN U+25CF (Geometric Shapes = Noto Sans Symbols) -
                 // damit rendert "●" schlicht gar nicht. font-scale pumpt das
@@ -373,7 +378,7 @@ public partial class PropertyMapPage : ContentPage
                     "• ", new Dictionary<string, object?>
                     {
                         ["text-color"] = ChipDotColorExpression(),
-                        ["font-scale"] = 1.4,
+                        ["font-scale"] = bulletScale,
                     },
                     new object[] { "get", "preis" }, new Dictionary<string, object?>(),
                 },
