@@ -1,0 +1,7 @@
+• New: “Location & surroundings” – a map of its own on every detail page
+• Listing: the live preview shows right away how visitors see your location
+• Open the map via the icon at the top right – smoother gestures, more stable
+• Filters are remembered without an account and carried over when you sign in
+• New listings no longer push the list away – a pill offers to load them
+• Notifications: removed the false “blocked” warning
+• Less data usage, polish for the design

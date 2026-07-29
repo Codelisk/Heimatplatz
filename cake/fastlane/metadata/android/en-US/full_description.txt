@@ -1,10 +1,10 @@
 Heimatplatz is your real estate platform for Upper Austria. Find houses, building plots and foreclosure auctions – clear, fast and without detours.
 
 DISCOVER PROPERTIES
-Browse current listings from all over Upper Austria. Filter by property type, time period and location – either single municipalities or whole districts at once. Sort by price, area or recency – and find exactly what suits you.
+Browse current listings from all over Upper Austria. Filter by property type, time period and location – either single municipalities or whole districts at once. Sort by price, area or recency – and find exactly what suits you. Heimatplatz remembers your filters automatically.
 
 MAP VIEW
-Take a look at your search as a map: district stamps show at a glance where how many properties are located – tap one to zoom straight into that district. Zoom in and the stamps turn into price signs right at the location. Tap one to open the mini note with photo and key facts – from there you get to the full listing in a single step. Your filters from the list apply on the map just the same.
+Take a look at your search as a map: district stamps show at a glance where how many properties are located – tap one to zoom straight into that district. Zoom in and the stamps turn into price signs right at the location. Tap one to open the mini note with photo and key facts – from there you get to the full listing in a single step. Your filters from the list apply on the map just the same. And every listing has a map of its own under “Location & surroundings”.
 
 FORECLOSURE AUCTIONS
 If you like, Heimatplatz shows you current auctions from the official Austrian edict database – simply enable them in the filter. With appraised value, minimum bid, auction date, the registered encumbrances and court information, you have all the details at a glance. Right in the list you can see how many days are left until the auction.
@@ -16,7 +16,7 @@ FAVORITES & NOTIFICATIONS
 Save interesting properties as favorites. Enable push notifications for your preferred locations and get informed immediately when new properties go online.
 
 LIST YOUR OWN PROPERTY – ALL ON ONE PAGE
-Want to sell? You design your listing right in the view it will later appear in: photos, key facts, location and price, description – all on one page. Your draft is saved automatically – pause any time and continue later. For the description, AI can help if you like: type a few keywords or simply dictate them – you review the finished text, adjust it and publish. Your photos are kept in full original quality. You decide for yourself how precisely your property appears on the map: pin-point exact, only roughly within a circle, or not at all. If you like, you can name a dedicated contact person with their own contact details for your listing. Manage your ads conveniently in your personal area.
+Want to sell? You design your listing right in the view it will later appear in: photos, key facts, location and price, description – all on one page. Your draft is saved automatically – pause any time and continue later. For the description, AI can help if you like: type a few keywords or simply dictate them – you review the finished text, adjust it and publish. Your photos are kept in full original quality. You decide for yourself how precisely your property appears on the map: pin-point exact, only roughly within a circle, or not at all – with a live preview. If you like, you can name a dedicated contact person with their own contact details for your listing. Manage your ads conveniently in your personal area.
 
 DIRECT LINE TO OUR TEAM
 Questions, ideas or a problem? Reach out to our team right from the app – as text, with photos or simply as a voice message. You get the reply right in the app and are notified as soon as it arrives.
@@ -27,7 +27,9 @@ Heimatplatz is built on data minimization. You can browse anonymously without cr
 FEATURES AT A GLANCE
 • Property search with extensive filters
 • Pick locations by whole districts or single municipalities
+• Filters are remembered automatically
 • Map view with district stamps and price signs
+• Location & surroundings: a map of its own in every listing
 • Foreclosure auctions with encumbrances, court data and a countdown to the auction date
 • AI help for your listing description – from keywords or dictation
 • Push notifications for new properties
