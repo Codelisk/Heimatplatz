@@ -133,7 +133,8 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         // beim Betreten der Seite in einen Chip je Gemeinde.
         _ = Ort.EnsureTreeAsync();
 
-        if (_authService.IsAuthenticated && !_filterStateService.HasSessionState)
+        // Auch fuer Gaeste laden: der Service liefert dann den lokalen Spiegel
+        if (!_filterStateService.HasSessionState)
             _ = LoadFilterPreferencesAsync();
     }
 
@@ -425,9 +426,6 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
 
     private void ScheduleAutoSave()
     {
-        if (!_authService.IsAuthenticated)
-            return;
-
         _saveDebounceCts?.Cancel();
         _saveDebounceCts = new CancellationTokenSource();
         _ = AutoSaveAfterDelayAsync(_saveDebounceCts.Token);

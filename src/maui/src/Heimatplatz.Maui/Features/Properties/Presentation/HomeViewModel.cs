@@ -375,9 +375,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
             _ = ReloadPropertiesAsync();
         }
 
+        // Auch fuer Gaeste laden: der Service liefert dann den lokalen Spiegel
+        // (Gast-Filter ueberleben App-Starts, wie im Web via localStorage)
+        _ = LoadFilterPreferencesAsync();
+
         if (_authService.IsAuthenticated)
         {
-            _ = LoadFilterPreferencesAsync();
             _ = _propertyStatusService.EnsureLoadedAsync();
         }
     }
@@ -703,13 +706,12 @@ public partial class HomeViewModel : ObservableObject, IPageLifecycleAware, IDis
     }
 
     /// <summary>
-    /// Speichert die Filtereinstellungen nach kurzer Verzoegerung (Debounce) server-seitig,
-    /// damit sie ueber App-Starts hinweg erhalten bleiben.
+    /// Speichert die Filtereinstellungen nach kurzer Verzoegerung (Debounce),
+    /// damit sie ueber App-Starts hinweg erhalten bleiben - angemeldet server-seitig,
+    /// als Gast lokal (Login-Uebernahme uebernimmt der FilterPreferencesService).
     /// </summary>
     private void ScheduleAutoSave()
     {
-        if (!_authService.IsAuthenticated) return;
-
         _saveDebounceCts?.Cancel();
         _saveDebounceCts = new CancellationTokenSource();
         _ = AutoSaveAfterDelayAsync(_saveDebounceCts.Token);
