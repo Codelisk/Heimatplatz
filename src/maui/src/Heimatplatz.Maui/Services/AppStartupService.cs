@@ -36,6 +36,14 @@ public class AppStartupService(
         // Crash-Reports des letzten Laufs melden (fire-and-forget, fail-open)
         _ = telemetrySender.SendPendingCrashReportsAsync();
 
+#if IOS
+        // MetricKit liefert native Crash-Diagnosen erst KURZ NACH dem Start -
+        // nach dem Persistieren den Upload direkt anstossen statt auf den
+        // uebernaechsten App-Start zu warten
+        Features.Telemetry.Services.NativeCrashReporter.OnReportsPersisted =
+            () => _ = telemetrySender.SendPendingCrashReportsAsync();
+#endif
+
         // Immobilien-Delta-Sync: haelt die lokalen Caches aktuell, solange die App laeuft
         propertySync.Start();
 

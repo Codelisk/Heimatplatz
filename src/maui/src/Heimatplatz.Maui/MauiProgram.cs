@@ -36,6 +36,11 @@ public static class MauiProgram
         // So frueh wie moeglich: Crash-Hooks persistieren unbehandelte Exceptions
         // in die Preferences, gemeldet wird beim naechsten Start (AppStartupService)
         Features.Telemetry.Services.CrashReporter.RegisterGlobalHandlers();
+#if IOS
+        // Native Crashes (SIGSEGV & Co.) via MetricKit - Payloads kommen kurz
+        // nach dem App-Start und landen im selben CrashReportStore-Flow
+        Features.Telemetry.Services.NativeCrashReporter.Register();
+#endif
 
         // Muss vor dem ersten Store-Zugriff laufen (Screenshot-Runs im Simulator)
         Core.Screenshots.ScreenshotMode.TryOverrideSecureStore();
