@@ -41,6 +41,8 @@ public class PropertyLocationMapView : ContentView
     }
 
     private readonly Grid _mapHost = new();
+    private readonly Grid _loadingOverlay;
+    private readonly ActivityIndicator _loadingIndicator;
     private MapLibreMap? _map;
     private IMapLibreMapController? _controller;
     private readonly TaskCompletionSource _mapReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -69,6 +71,24 @@ public class PropertyLocationMapView : ContentView
             (Color)Application.Current.Resources["SurfaceAlt"],
             (Color)Application.Current.Resources["SurfaceAltDark"]);
         Content = frame;
+
+        // Ladezustand ueber der Karte: die native GL-Flaeche ist bis zum ersten
+        // Stil-Render schwarz - solange deckt Papierton + Spinner sie ab
+        _loadingIndicator = new ActivityIndicator
+        {
+            IsRunning = true,
+            WidthRequest = 28,
+            HeightRequest = 28,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Center,
+        };
+        _loadingIndicator.SetAppThemeColor(ActivityIndicator.ColorProperty,
+            (Color)Application.Current.Resources["Gray500"],
+            (Color)Application.Current.Resources["Gray300"]);
+        _loadingOverlay = new Grid { Children = { _loadingIndicator } };
+        _loadingOverlay.SetAppThemeColor(BackgroundColorProperty,
+            (Color)Application.Current.Resources["SurfaceAlt"],
+            (Color)Application.Current.Resources["SurfaceAltDark"]);
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -136,6 +156,7 @@ public class PropertyLocationMapView : ContentView
         };
         _map.MapReadyCommand = new Command(OnMapReady);
         _mapHost.Children.Add(_map);
+        _mapHost.Children.Add(_loadingOverlay); // ueber der Karte, bis der Stil steht
 
         // Stil laedt parallel zum Aufbau der Plattform-View (InitializeAsync
         // wartet intern auf MapReady)
@@ -176,6 +197,13 @@ public class PropertyLocationMapView : ContentView
         _initCts = new CancellationTokenSource();
         var cancellationToken = _initCts.Token;
 
+        // Neuer Anlauf nach frueherem Fehlschlag: Spinner wieder zeigen
+        if (_loadingOverlay.Parent is not null && !_loadingIndicator.IsRunning)
+        {
+            _loadingIndicator.IsVisible = true;
+            _loadingIndicator.IsRunning = true;
+        }
+
         try
         {
             if (ResolveService<IMapStyleProvider>() is not { } styleProvider)
@@ -196,10 +224,14 @@ public class PropertyLocationMapView : ContentView
             }
 
             if (!await WaitForStyleReadyAsync(controller, cancellationToken))
+            {
+                StopLoadingIndicator();
                 return;
+            }
 
             _styleReady = true;
             ApplyLocation(controller);
+            HideLoadingOverlay();
         }
         catch (OperationCanceledException)
         {
@@ -209,6 +241,7 @@ public class PropertyLocationMapView : ContentView
         {
             // Die Lage-Karte ist Komfort: still scheitern (Rahmen bleibt leer),
             // die Seite selbst funktioniert ohne sie vollstaendig
+            StopLoadingIndicator();
             ResolveService<ILogger<PropertyLocationMapView>>()
                 ?.LogWarning(ex, "[LocationMap] Mini-Karte konnte nicht aufgebaut werden");
         }
@@ -221,6 +254,26 @@ public class PropertyLocationMapView : ContentView
                 _ = InitializeAsync();
             }
         }
+    }
+
+    /// <summary>Karte ist sichtbar: das Lade-Overlay wird nicht mehr gebraucht.</summary>
+    private void HideLoadingOverlay()
+    {
+        if (_loadingOverlay.Parent is null)
+            return;
+
+        _loadingIndicator.IsRunning = false;
+        _mapHost.Children.Remove(_loadingOverlay);
+    }
+
+    /// <summary>
+    /// Stil kam nicht (offline/Fehler): Spinner stoppen, aber der Papierton
+    /// bleibt liegen und deckt die schwarze GL-Flaeche weiter ab.
+    /// </summary>
+    private void StopLoadingIndicator()
+    {
+        _loadingIndicator.IsRunning = false;
+        _loadingIndicator.IsVisible = false;
     }
 
     /// <summary>

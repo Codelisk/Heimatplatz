@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Heimatplatz.Api.IntegrationTests.Infrastructure;
 
@@ -7,9 +9,13 @@ namespace Heimatplatz.Api.IntegrationTests.Infrastructure;
 /// API-Testhost mit einer eigenen temporaeren SQLite-Datei.
 /// Damit lassen sich Provider-spezifische Fehler testen, die EF InMemory nicht abbildet.
 /// Ueber <paramref name="extraSettings"/> koennen Tests zusaetzliche Konfiguration
-/// setzen (z.B. Admin:ApiKey fuer die /api/admin-Endpoints).
+/// setzen (z.B. Admin:ApiKey fuer die /api/admin-Endpoints); ueber
+/// <paramref name="configureTestServices"/> lassen sich Services durch Fakes
+/// ersetzen (z.B. IPropertyGeocoder ohne echtes Nominatim).
 /// </summary>
-public sealed class SqliteWebApplicationFactory<TProgram>(IDictionary<string, string>? extraSettings = null)
+public sealed class SqliteWebApplicationFactory<TProgram>(
+    IDictionary<string, string>? extraSettings = null,
+    Action<IServiceCollection>? configureTestServices = null)
     : WebApplicationFactory<TProgram>
     where TProgram : class
 {
@@ -34,6 +40,11 @@ public sealed class SqliteWebApplicationFactory<TProgram>(IDictionary<string, st
             {
                 builder.UseSetting(key, value);
             }
+        }
+
+        if (configureTestServices != null)
+        {
+            builder.ConfigureTestServices(configureTestServices);
         }
     }
 

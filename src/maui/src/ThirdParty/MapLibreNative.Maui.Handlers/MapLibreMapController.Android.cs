@@ -1678,9 +1678,14 @@ public class MapLibreMapController : IMapLibreMapController
             // once it exceeds touch slop; only near-stationary taps (e.g. the
             // +/- buttons) are unaffected. Claim the touch stream for the
             // duration of the gesture and release it once all pointers are up.
+            // Cooperative mode (scroll gestures disabled, e.g. an embedded mini
+            // map inside a scrolling page): a single-finger drag belongs to the
+            // surrounding scroll container, so leave interception enabled and
+            // only claim the stream for multi-touch (pinch/rotate/tilt).
             v?.Parent?.RequestDisallowInterceptTouchEvent(
                 e.ActionMasked != MotionEventActions.Up &&
-                e.ActionMasked != MotionEventActions.Cancel);
+                e.ActionMasked != MotionEventActions.Cancel &&
+                (c._scrollGesturesEnabled || e.PointerCount >= 2));
 
             // Feed every event to the single-finger detector (pan/fling/tap/double-tap).
             c._gestureDetector.OnTouchEvent(e);

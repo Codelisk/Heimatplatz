@@ -120,6 +120,10 @@
   <data name="LocationPreviewExactFallback" xml:space="preserve">
     <value>Die Adresse konnte nur ungefähr gefunden werden – Besucher sehen den Umgebungskreis.</value>
   </data>
+  <data name="LocationPreviewError" xml:space="preserve">
+    <value>Die Adresse konnte gerade nicht geprüft werden – neuer Versuch, sobald wieder eine Verbindung besteht.</value>
+    <comment>Leerzustand der Lage-Vorschau nach fehlgeschlagenem Geocoding (z.B. offline)</comment>
+  </data>
   <data name="YearBuiltLabel" xml:space="preserve">
     <value>Baujahr</value>
   </data>

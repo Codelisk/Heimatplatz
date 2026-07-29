@@ -165,6 +165,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
             ErrorMessage = Loc.SellerAccountRequired;
 
         SubscribeDictation();
+        SubscribeGeocodeRetry();
 
         _ = Ort.EnsureLoadedAsync();
 
@@ -190,6 +191,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
             _ = _dictation.StopAsync();
 
         UnsubscribeDictation();
+        UnsubscribeGeocodeRetry();
 
         // Offene Geocode-Vorschau abbrechen (reiner Anzeige-Komfort)
         _geocodePreviewCts?.Cancel();

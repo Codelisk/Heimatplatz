@@ -131,10 +131,14 @@ public class UpdatePropertyHandler(
             property.LocationDisplay = request.LocationDisplay.Value;
         }
 
-        // Koordinaten nachziehen: bei geaenderter Adresse oder wenn noch keine da sind.
+        // Koordinaten nachziehen: bei geaenderter Adresse, wenn noch keine da sind oder
+        // wenn "Genau" gewaehlt ist, die gespeicherten Koordinaten aber nur ungefaehr
+        // aufgeloest wurden - sonst bliebe map-pins trotz Exact beim Umgebungskreis.
         // Schlaegt das Geocoding bei geaenderter Adresse fehl, werden die alten
         // Koordinaten verworfen - ein falscher Pin waere schlechter als keiner.
-        if (addressChanged || property.Latitude == null)
+        var exactRequestedButNotResolved =
+            property.LocationDisplay == LocationDisplayMode.Exact && !property.IsLocationExact;
+        if (addressChanged || property.Latitude == null || exactRequestedButNotResolved)
         {
             var geocodeResult = await propertyGeocoder.GeocodeAsync(
                 property.Address,

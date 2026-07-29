@@ -982,7 +982,7 @@
                                               WidthRequest="26"
                                               HeightRequest="26"
                                               HorizontalOptions="Center" />
-                                        <Label Text="{Binding Loc.LocationPreviewEmpty}"
+                                        <Label Text="{Binding PreviewEmptyText}"
                                                Style="{StaticResource Caption}"
                                                HorizontalTextAlignment="Center"
                                                HorizontalOptions="Center" />

@@ -23,6 +23,7 @@ public partial class PropertyWizardViewModel
     private CancellationTokenSource? _geocodePreviewCts;
     private string? _lastGeocodeKey;
     private (double Lat, double Lon, bool IsExact)? _previewCoords;
+    private bool _geocodePreviewFailed;
 
     /// <summary>Position der Vorschau-Karte (null = keine aufloesbare Adresse).</summary>
     [ObservableProperty]
@@ -31,6 +32,10 @@ public partial class PropertyWizardViewModel
     /// <summary>Leerzustand-Overlay: noch kein Ort gewaehlt bzw. Adresse nicht aufloesbar.</summary>
     [ObservableProperty]
     public partial bool IsPreviewEmpty { get; set; }
+
+    /// <summary>Text im Leerzustand-Overlay (Standard bzw. Geocode-Fehlerhinweis).</summary>
+    [ObservableProperty]
+    public partial string? PreviewEmptyText { get; set; }
 
     /// <summary>Verborgen-Overlay (Modus "Nicht anzeigen") - die Karte darunter bleibt unangetastet.</summary>
     [ObservableProperty]
@@ -43,7 +48,25 @@ public partial class PropertyWizardViewModel
     private void InitializeLocationPreview()
     {
         IsPreviewEmpty = true;
+        PreviewEmptyText = Loc.LocationPreviewEmpty;
         PreviewNoteText = Loc.LocationPreviewNote;
+    }
+
+    /// <summary>Netzrueckkehr: eine fehlgeschlagene Geocode-Vorschau automatisch neu versuchen.</summary>
+    private void SubscribeGeocodeRetry() =>
+        Connectivity.Current.ConnectivityChanged += OnConnectivityChangedForGeocode;
+
+    private void UnsubscribeGeocodeRetry() =>
+        Connectivity.Current.ConnectivityChanged -= OnConnectivityChangedForGeocode;
+
+    private void OnConnectivityChangedForGeocode(object? sender, ConnectivityChangedEventArgs e)
+    {
+        if (!_geocodePreviewFailed || e.NetworkAccess != NetworkAccess.Internet)
+            return;
+
+        // Event kann von einem Hintergrund-Thread kommen; der Debounce-Pfad
+        // endet in ObservableProperty-Setzern (UI-Bindings)
+        MainThread.BeginInvokeOnMainThread(ScheduleGeocodePreview);
     }
 
     /// <summary>Startet den Geocode-Debounce neu (Adress- oder Ort-Aenderung).</summary>
@@ -74,6 +97,7 @@ public partial class PropertyWizardViewModel
         var resolved = ResolvePreviewCity();
         if (resolved is null)
         {
+            _geocodePreviewFailed = false;
             _previewCoords = null;
             _lastGeocodeKey = null;
             RenderLocationPreview();
@@ -106,6 +130,7 @@ public partial class PropertyWizardViewModel
             if (cancellationToken.IsCancellationRequested)
                 return; // veraltete Antwort - eine neuere Eingabe laeuft bereits
 
+            _geocodePreviewFailed = false;
             _lastGeocodeKey = key;
             _previewCoords = response is { Latitude: not null, Longitude: not null }
                 ? (response.Latitude.Value, response.Longitude.Value, response.IsExact)
@@ -114,7 +139,18 @@ public partial class PropertyWizardViewModel
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogDebug(ex, "[PropertyWizard] Geocode-Vorschau fehlgeschlagen - Vorschau ist Komfort, kein Fehlerzustand");
+            if (cancellationToken.IsCancellationRequested)
+                return; // veraltete Anfrage - eine neuere Eingabe laeuft bereits
+
+            _logger.LogDebug(ex, "[PropertyWizard] Geocode-Vorschau fehlgeschlagen - Fehlerzustand anzeigen, Retry bei Netzrueckkehr");
+
+            // Der alte Pin gehoert zur vorherigen Eingabe - stehen lassen waere
+            // irrefuehrend. Key zuruecksetzen, damit der Retry (Netzrueckkehr
+            // oder naechste Eingabe) dieselbe Adresse erneut geocodiert.
+            _geocodePreviewFailed = true;
+            _previewCoords = null;
+            _lastGeocodeKey = null;
+            RenderLocationPreview();
         }
     }
 
@@ -136,6 +172,7 @@ public partial class PropertyWizardViewModel
         {
             IsPreviewEmpty = true;
             PreviewLocation = null;
+            PreviewEmptyText = _geocodePreviewFailed ? Loc.LocationPreviewError : Loc.LocationPreviewEmpty;
             PreviewNoteText = Loc.LocationPreviewNote;
             return;
         }
