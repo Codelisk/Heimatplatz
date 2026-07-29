@@ -1,6 +1,7 @@
-• Neu: Kartenansicht – deine Suche als Karte, von Bezirks-Stempeln über Preis-Schilder direkt ins Inserat
-• Zwangsversteigerungen: Schon in der Liste siehst du im Foto, wann versteigert wird – heute, morgen oder in wie vielen Tagen
-• Beim Inserieren wählst du, wie genau deine Lage erscheint: genau, ungefähr oder gar nicht
-• Detailseiten öffnen sofort, Fotos laden schneller
-• Benachrichtigungen aktivieren klappt jetzt zuverlässig
-• Feinschliff an Formularen, Preisen und Texten
+• Karte komplett neu: flüssige Gesten, scharfe Beschriftung, klarer Fokus auf Oberösterreich
+• Ein Tipp auf einen Bezirks-Stempel zoomt direkt in den Bezirk
+• Ortsauswahl neu: ganze Bezirke als ein Chip, Panel mit Suche
+• Zwangsversteigerungen: eingetragene Lasten samt Summe auf der Detailseite
+• Merken, Blockieren und Teilen jetzt oben rechts auf dem Foto
+• Favoriten entfernen ohne Rückfrage, Listen ziehen sofort nach
+• Durch Fotos wischen klappt auch während des Ladens
