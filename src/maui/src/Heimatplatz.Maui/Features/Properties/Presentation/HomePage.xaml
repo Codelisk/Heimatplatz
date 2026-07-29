@@ -286,9 +286,14 @@
 
             <!-- "Neue Inserate"-Pille: der Delta-Sync ersetzt die sichtbare Liste nie
                  selbst (das wuerde die Scroll-Position zerstoeren), sondern bietet den
-                 Refresh hier an. Sitzt unter der Chip-Zeile; Markenfarbe statt Glas-Optik,
-                 damit der Hinweis als Aktion auffaellt. -->
-            <Border HorizontalOptions="Center"
+                 Refresh hier an. Markenfarbe statt Glas-Optik, damit der Hinweis als
+                 Aktion auffaellt; der Zettel-Schatten (implizite Ressource, hier enger)
+                 hebt sie von den Karten ab. Dockt immer am sichtbaren Seitenkopf an:
+                 unter der Chip-Zeile bzw. - wenn die weggescrollt ist - unter der
+                 Navbar (TranslationY laeuft in TransitionChipBar mit, Einblenden
+                 animiert OnNewListingsPillPropertyChanged im Code-Behind). -->
+            <Border x:Name="NewListingsPill"
+                    HorizontalOptions="Center"
                     VerticalOptions="Start"
                     Margin="0,64,0,0"
                     Padding="16,0"
@@ -299,6 +304,9 @@
                     IsVisible="{Binding HasNewListings}"
                     SemanticProperties.Description="{Binding Loc.NewListingsPillSemantic}"
                     AutomationId="Home_NewListingsPill">
+                <Border.Shadow>
+                    <Shadow Radius="14" Offset="0,5" />
+                </Border.Shadow>
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding ShowNewListingsCommand}" />
                 </Border.GestureRecognizers>

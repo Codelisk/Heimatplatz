@@ -51,6 +51,32 @@ public partial class HomePage : ShinyContentPage
         AgePanel.FitContent = true;
 
         // Das Ort-Panel (OrtAuswahlPanel) bringt seine Detents selbst mit.
+
+        // Einblenden der "Neue Inserate"-Pille animieren (IsVisible ist gebunden,
+        // ein Trigger im XAML kann den Startzustand vor dem Sichtbarwerden nicht setzen)
+        NewListingsPill.PropertyChanged += OnNewListingsPillPropertyChanged;
+    }
+
+    /// <summary>
+    /// Laesst die Pille beim Erscheinen kurz aufwachsen statt hart aufzupoppen.
+    /// Bewusst Scale/Opacity statt TranslationY - das nutzt das Andocken an die
+    /// Chip-Zeile (siehe <see cref="TransitionChipBar"/>), beides darf sich nicht
+    /// in die Quere kommen.
+    /// </summary>
+    private async void OnNewListingsPillPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(IsVisible) || !NewListingsPill.IsVisible)
+            return;
+
+        NewListingsPill.Opacity = 0;
+        NewListingsPill.Scale = 0.85;
+        await Task.WhenAll(
+            NewListingsPill.FadeToAsync(1, 180, Easing.CubicOut),
+            NewListingsPill.ScaleToAsync(1, 180, Easing.CubicOut));
+
+        // Endzustand festnageln (abgebrochene Animationen hinterlassen Bruchwerte)
+        NewListingsPill.Opacity = 1;
+        NewListingsPill.Scale = 1;
     }
 
     protected override void OnBindingContextChanged()
@@ -284,6 +310,12 @@ public partial class HomePage : ShinyContentPage
         // dem ersten Layout-Pass gueltig.
         var target = hide ? -(FilterChipBarHost.HeightRequest + 8) : 0d;
 
+        // Die "Neue Inserate"-Pille dockt am sichtbaren Seitenkopf an: unter den Chips
+        // (Margin 64 = Chip-Zeile 56 + Abstand 8) bzw. nach deren Wegscrollen unter der
+        // Navbar - sie faehrt um die Chip-Hoehe mit, der 8er-Abstand bleibt. Ohne das
+        // schwebte sie nach dem Ausblenden der Chips frei ueber den Karten.
+        var pillTarget = hide ? -FilterChipBarHost.HeightRequest : 0d;
+
         // Kein Neustart, wenn das Ziel erreicht ist oder eine Animation dorthin
         // laeuft - Scrolled feuert am Listenanfang fuer jedes Delta erneut.
         if (_chipBarHidden == hide &&
@@ -300,6 +332,12 @@ public partial class HomePage : ShinyContentPage
             FilterChipBarHost.IsVisible = true;
         }
 
+        // Unsichtbar reicht Setzen: die Pille erbt die Position beim Erscheinen
+        if (NewListingsPill.IsVisible)
+            _ = NewListingsPill.TranslateToAsync(0, pillTarget, 160, hide ? Easing.CubicIn : Easing.CubicOut);
+        else
+            NewListingsPill.TranslationY = pillTarget;
+
         var canceled = await FilterChipBarSurface.TranslateToAsync(0, target, 160, hide ? Easing.CubicIn : Easing.CubicOut);
 
         if (_chipBarAnimationTarget == target)
@@ -313,6 +351,7 @@ public partial class HomePage : ShinyContentPage
         // Endzustand festnageln - Animationsreste (Bruchpixel) machen die Zeile auf
         // iOS unscharf.
         FilterChipBarSurface.TranslationY = target;
+        NewListingsPill.TranslationY = pillTarget;
 
         if (hide)
         {
