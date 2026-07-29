@@ -140,6 +140,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
         InitializeDetailsStep();
         InitializeLocationPriceStep();
+        InitializeLocationPreview();
         InitializeDescriptionStep();
         InitializeContactStep();
 
@@ -190,6 +191,9 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
         UnsubscribeDictation();
 
+        // Offene Geocode-Vorschau abbrechen (reiner Anzeige-Komfort)
+        _geocodePreviewCts?.Cancel();
+
         // Offene Aenderungen sofort sichern (der Debounce-Timer wuerde sonst verpuffen)
         FlushAutoSave();
 
@@ -208,6 +212,13 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
         RefreshEditorState();
         ScheduleAutoSave();
+
+        // Lage-Vorschau: Adress-Aenderungen geocodieren neu (debounced), der
+        // Anzeige-Modus rendert nur um (wie die Radio-Handler im Web-Editor)
+        if (name == nameof(Adresse))
+            ScheduleGeocodePreview();
+        else if (name == nameof(SelectedLocationDisplay))
+            RenderLocationPreview();
     }
 
     private void OnOrtPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -217,6 +228,7 @@ public partial class PropertyWizardViewModel : ObservableObject, IPageLifecycleA
 
         RefreshEditorState();
         ScheduleAutoSave();
+        ScheduleGeocodePreview();
     }
 
     /// <summary>Speichert den Entwurf nach kurzer Tipp-Pause (jede Eingabe startet den Timer neu).</summary>

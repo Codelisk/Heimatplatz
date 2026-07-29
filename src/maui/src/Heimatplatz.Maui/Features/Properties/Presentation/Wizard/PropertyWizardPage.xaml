@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:propcontrols="clr-namespace:Heimatplatz.Maui.Features.Properties.Controls"
              xmlns:services="clr-namespace:Heimatplatz.Maui.Features.Properties.Services"
              xmlns:wizard="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation.Wizard"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.Wizard.PropertyWizardPage"
@@ -510,209 +511,6 @@
                             </Border>
                         </FlexLayout>
 
-                        <!-- Quellenkarte: editierbar - sitzt an derselben Stelle wie die
-                             Quellenkarte der Detailansicht (Link zum Originalinserat) -->
-                        <Border Style="{StaticResource Card}"
-                                Padding="14"
-                                Margin="16,0"
-                                MaximumWidthRequest="768"
-                                HorizontalOptions="Fill">
-                            <Grid ColumnDefinitions="44,*"
-                                  ColumnSpacing="12">
-                                <Border Grid.Column="0"
-                                        WidthRequest="44"
-                                        HeightRequest="44"
-                                        Padding="11"
-                                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
-                                        Stroke="Transparent"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 22"
-                                        VerticalOptions="Center">
-                                    <Image Source="{AppThemeBinding Light=icon_external_link.png, Dark=icon_external_link_white.png}"
-                                           Aspect="AspectFit" />
-                                </Border>
-
-                                <VerticalStackLayout Grid.Column="1"
-                                                     Spacing="4">
-                                    <Label Text="{Binding Loc.SourceSectionLabel}"
-                                           Style="{StaticResource StatTileLabel}" />
-                                    <Border Style="{StaticResource WysFieldTight}">
-                                        <Entry Style="{StaticResource WysEntry}"
-                                               StyleClass="borderless"
-                                               Text="{Binding OriginalListingUrl}"
-                                               Keyboard="Url"
-                                               Placeholder="{Binding Loc.OriginalUrlPlaceholder}"
-                                               FontSize="13"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                                               SemanticProperties.Description="{Binding Loc.OriginalUrlEntrySemantic}"
-                                               AutomationId="Wizard_OriginalUrlEntry" />
-                                    </Border>
-                                    <Label Text="{Binding Loc.OriginalUrlHint}"
-                                           Style="{StaticResource Caption}" />
-                                </VerticalStackLayout>
-                            </Grid>
-                        </Border>
-
-                        <!-- Lage-Anzeige: Der Anbieter entscheidet, wie genau die Karte
-                             sein Inserat zeigt (Pendant zum Web-Editor "Lage & Umgebung",
-                             MAUI bewusst ohne Live-Kartenvorschau) -->
-                        <Border Style="{StaticResource Card}"
-                                Padding="16,12"
-                                Margin="16,0"
-                                MaximumWidthRequest="768"
-                                HorizontalOptions="Fill">
-                            <VerticalStackLayout Spacing="12" RadioButtonGroup.GroupName="WizardLocationDisplay">
-                                <VerticalStackLayout Spacing="2">
-                                    <Label Text="{Binding Loc.LocationDisplaySectionHeader}"
-                                           Style="{StaticResource SectionHeader}" />
-                                    <Label Text="{Binding Loc.LocationDisplayIntro}"
-                                           Style="{StaticResource Caption}" />
-                                </VerticalStackLayout>
-
-                                <Grid ColumnDefinitions="Auto,*"
-                                      ColumnSpacing="12"
-                                      AutomationId="Wizard_LocationApprox"
-                                      SemanticProperties.Description="{Binding Loc.LocationApproxTitle}">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding SelectLocationDisplayCommand}"
-                                                              CommandParameter="Approximate" />
-                                    </Grid.GestureRecognizers>
-                                    <RadioButton IsChecked="{Binding IsLocationApproximate, Mode=TwoWay}"
-                                                 GroupName="WizardLocationDisplay"
-                                                 VerticalOptions="Center" />
-                                    <VerticalStackLayout Grid.Column="1" Spacing="2" InputTransparent="True">
-                                        <Label Text="{Binding Loc.LocationApproxTitle}"
-                                               Style="{StaticResource BodyStrong}" />
-                                        <Label Text="{Binding Loc.LocationApproxHint}"
-                                               Style="{StaticResource Caption}" />
-                                    </VerticalStackLayout>
-                                </Grid>
-
-                                <Grid ColumnDefinitions="Auto,*"
-                                      ColumnSpacing="12"
-                                      AutomationId="Wizard_LocationExact"
-                                      SemanticProperties.Description="{Binding Loc.LocationExactTitle}">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding SelectLocationDisplayCommand}"
-                                                              CommandParameter="Exact" />
-                                    </Grid.GestureRecognizers>
-                                    <RadioButton IsChecked="{Binding IsLocationExact, Mode=TwoWay}"
-                                                 GroupName="WizardLocationDisplay"
-                                                 VerticalOptions="Center" />
-                                    <VerticalStackLayout Grid.Column="1" Spacing="2" InputTransparent="True">
-                                        <Label Text="{Binding Loc.LocationExactTitle}"
-                                               Style="{StaticResource BodyStrong}" />
-                                        <Label Text="{Binding Loc.LocationExactHint}"
-                                               Style="{StaticResource Caption}" />
-                                    </VerticalStackLayout>
-                                </Grid>
-
-                                <Grid ColumnDefinitions="Auto,*"
-                                      ColumnSpacing="12"
-                                      AutomationId="Wizard_LocationHidden"
-                                      SemanticProperties.Description="{Binding Loc.LocationHiddenTitle}">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding SelectLocationDisplayCommand}"
-                                                              CommandParameter="Hidden" />
-                                    </Grid.GestureRecognizers>
-                                    <RadioButton IsChecked="{Binding IsLocationHidden, Mode=TwoWay}"
-                                                 GroupName="WizardLocationDisplay"
-                                                 VerticalOptions="Center" />
-                                    <VerticalStackLayout Grid.Column="1" Spacing="2" InputTransparent="True">
-                                        <Label Text="{Binding Loc.LocationHiddenTitle}"
-                                               Style="{StaticResource BodyStrong}" />
-                                        <Label Text="{Binding Loc.LocationHiddenHint}"
-                                               Style="{StaticResource Caption}" />
-                                    </VerticalStackLayout>
-                                </Grid>
-                            </VerticalStackLayout>
-                        </Border>
-
-                        <!-- Anbieter & Kontakt: Anbieter-Zeile read-only aus dem Profil
-                             (wie die Anbieter-Sidebar im Web-Editor), darunter optional
-                             ein zusaetzlicher Ansprechpartner (zweiter Kontakt am Inserat) -->
-                        <Border Style="{StaticResource Card}"
-                                Padding="16,12"
-                                Margin="16,0"
-                                MaximumWidthRequest="768"
-                                HorizontalOptions="Fill">
-                            <VerticalStackLayout Spacing="10">
-                                <Label Text="{Binding Loc.ContactSectionHeader}"
-                                       Style="{StaticResource SectionHeader}" />
-
-                                <VerticalStackLayout Spacing="2">
-                                    <Label Text="{Binding Loc.SellerRowLabel}"
-                                           Style="{StaticResource StatTileLabel}" />
-                                    <Label Text="{Binding SellerPreviewName}"
-                                           FontFamily="SansSemibold"
-                                           FontSize="14"
-                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                                           AutomationId="Wizard_SellerPreviewName" />
-                                    <Label Text="{Binding Loc.SellerFromProfileHint}"
-                                           Style="{StaticResource Caption}" />
-                                </VerticalStackLayout>
-
-                                <Button Text="{Binding Loc.ContactAddButton}"
-                                        Style="{StaticResource SecondaryButton}"
-                                        FontSize="13"
-                                        IsVisible="{Binding IsContactPersonHidden}"
-                                        Command="{Binding AddContactPersonCommand}"
-                                        AutomationId="Wizard_ContactAddButton" />
-
-                                <VerticalStackLayout Spacing="8"
-                                                     IsVisible="{Binding IsContactPersonVisible}">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0"
-                                               Text="{Binding Loc.ContactSectionLabel}"
-                                               Style="{StaticResource StatTileLabel}"
-                                               VerticalOptions="Center" />
-                                        <Button Grid.Column="1"
-                                                Text="{Binding Loc.ContactRemoveButton}"
-                                                Style="{StaticResource LinkButton}"
-                                                FontSize="12"
-                                                Command="{Binding RemoveContactPersonCommand}"
-                                                AutomationId="Wizard_ContactRemoveButton" />
-                                    </Grid>
-
-                                    <Border Style="{StaticResource WysFieldTight}">
-                                        <Entry Style="{StaticResource WysEntry}"
-                                               StyleClass="borderless"
-                                               Text="{Binding ContactName}"
-                                               Placeholder="{Binding Loc.ContactNamePlaceholder}"
-                                               FontSize="13"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                                               SemanticProperties.Description="{Binding Loc.ContactNameEntrySemantic}"
-                                               AutomationId="Wizard_ContactNameEntry" />
-                                    </Border>
-                                    <Border Style="{StaticResource WysFieldTight}">
-                                        <Entry Style="{StaticResource WysEntry}"
-                                               StyleClass="borderless"
-                                               Text="{Binding ContactEmail}"
-                                               Keyboard="Email"
-                                               Placeholder="{Binding Loc.ContactEmailPlaceholder}"
-                                               FontSize="13"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                                               SemanticProperties.Description="{Binding Loc.ContactEmailEntrySemantic}"
-                                               AutomationId="Wizard_ContactEmailEntry" />
-                                    </Border>
-                                    <Border Style="{StaticResource WysFieldTight}">
-                                        <Entry Style="{StaticResource WysEntry}"
-                                               StyleClass="borderless"
-                                               Text="{Binding ContactPhone}"
-                                               Keyboard="Telephone"
-                                               Placeholder="{Binding Loc.ContactPhonePlaceholder}"
-                                               FontSize="13"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                                               SemanticProperties.Description="{Binding Loc.ContactPhoneEntrySemantic}"
-                                               AutomationId="Wizard_ContactPhoneEntry" />
-                                    </Border>
-
-                                    <Label Text="{Binding Loc.ContactPublicHint}"
-                                           Style="{StaticResource Caption}" />
-                                </VerticalStackLayout>
-                            </VerticalStackLayout>
-                        </Border>
-
                         <!-- Gebaeude-Karte (wie die Datentabelle der Detailansicht) -->
                         <Border Style="{StaticResource Card}"
                                 Padding="16,12"
@@ -1044,6 +842,318 @@
                                 </VerticalStackLayout>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
+
+                        <!-- Lage & Umgebung: an derselben Stelle wie im veroeffentlichten
+                             Inserat (WYSIWYG, Web: PropertyLocationPreview) - Wahlkarten
+                             Ungefaehr/Genau/Verborgen plus Live-Kartenvorschau via
+                             /api/properties/geocode-preview (debounced im VM) -->
+                        <VerticalStackLayout Spacing="10"
+                                             Padding="16,0"
+                                             MaximumWidthRequest="800"
+                                             HorizontalOptions="Fill">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding Loc.LocationDisplaySectionHeader}"
+                                       Style="{StaticResource SectionHeader}" />
+                                <Label Text="{Binding Loc.LocationDisplayIntro}"
+                                       Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+
+                            <!-- Wahlkarten wie die Beschreibungs-Modi: Markenrot-Rahmen
+                                 markiert die Auswahl (Web: .hploc-option) -->
+                            <Grid>
+                                <Border Style="{StaticResource Card}" Padding="14,10">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsLocationApproximate}" Value="True">
+                                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="StrokeThickness" Value="2" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Loc.LocationApproxTitle}"
+                                               Style="{StaticResource BodyStrong}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsLocationApproximate}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Text="{Binding Loc.LocationApproxHint}"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <!-- Unsichtbarer Button statt TapGestureRecognizer (WinUI/DevFlow) -->
+                                <Button Text=""
+                                        BackgroundColor="Transparent"
+                                        BorderWidth="0"
+                                        CornerRadius="10"
+                                        Command="{Binding SelectLocationDisplayCommand}"
+                                        CommandParameter="Approximate"
+                                        SemanticProperties.Description="{Binding Loc.LocationApproxTitle}"
+                                        AutomationId="Wizard_LocationApprox" />
+                            </Grid>
+
+                            <Grid>
+                                <Border Style="{StaticResource Card}" Padding="14,10">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsLocationExact}" Value="True">
+                                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="StrokeThickness" Value="2" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Loc.LocationExactTitle}"
+                                               Style="{StaticResource BodyStrong}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsLocationExact}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Text="{Binding Loc.LocationExactHint}"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Button Text=""
+                                        BackgroundColor="Transparent"
+                                        BorderWidth="0"
+                                        CornerRadius="10"
+                                        Command="{Binding SelectLocationDisplayCommand}"
+                                        CommandParameter="Exact"
+                                        SemanticProperties.Description="{Binding Loc.LocationExactTitle}"
+                                        AutomationId="Wizard_LocationExact" />
+                            </Grid>
+
+                            <Grid>
+                                <Border Style="{StaticResource Card}" Padding="14,10">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsLocationHidden}" Value="True">
+                                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Setter Property="StrokeThickness" Value="2" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Loc.LocationHiddenTitle}"
+                                               Style="{StaticResource BodyStrong}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsLocationHidden}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Text="{Binding Loc.LocationHiddenHint}"
+                                               Style="{StaticResource Caption}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Button Text=""
+                                        BackgroundColor="Transparent"
+                                        BorderWidth="0"
+                                        CornerRadius="10"
+                                        Command="{Binding SelectLocationDisplayCommand}"
+                                        CommandParameter="Hidden"
+                                        SemanticProperties.Description="{Binding Loc.LocationHiddenTitle}"
+                                        AutomationId="Wizard_LocationHidden" />
+                            </Grid>
+
+                            <!-- Live-Vorschau: exakt die Mini-Karte der Detailseite; die
+                                 Overlays decken sie im Leer-/Verborgen-Zustand ab (Web:
+                                 .hploc-overlay auf dem muted-Ton) -->
+                            <Grid>
+                                <propcontrols:PropertyLocationMapView Location="{Binding PreviewLocation}"
+                                                                      HeightRequest="220"
+                                                                      AutomationId="Wizard_LocationPreviewMap" />
+
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource ZettelFrameDark}}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 10"
+                                        IsVisible="{Binding IsPreviewEmpty}"
+                                        AutomationId="Wizard_LocationPreviewEmpty">
+                                    <VerticalStackLayout Spacing="8"
+                                                         Padding="24,0"
+                                                         HorizontalOptions="Center"
+                                                         VerticalOptions="Center">
+                                        <!-- Tabler map-pin als Geometrie (kein passendes Icon-Asset) -->
+                                        <Path Data="M9 11a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"
+                                              Stroke="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                              StrokeThickness="1.6"
+                                              StrokeLineCap="Round"
+                                              StrokeLineJoin="Round"
+                                              Aspect="Uniform"
+                                              WidthRequest="26"
+                                              HeightRequest="26"
+                                              HorizontalOptions="Center" />
+                                        <Label Text="{Binding Loc.LocationPreviewEmpty}"
+                                               Style="{StaticResource Caption}"
+                                               HorizontalTextAlignment="Center"
+                                               HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource ZettelFrame}, Dark={StaticResource ZettelFrameDark}}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 10"
+                                        IsVisible="{Binding IsPreviewHidden}"
+                                        AutomationId="Wizard_LocationPreviewHidden">
+                                    <VerticalStackLayout Spacing="8"
+                                                         Padding="24,0"
+                                                         HorizontalOptions="Center"
+                                                         VerticalOptions="Center">
+                                        <!-- Tabler eye-off als Geometrie -->
+                                        <Path Data="M10.585 10.587a2 2 0 0 0 2.829 2.828 M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-3.6 0 -6.6 -2 -9 -6c1.272 -2.12 2.712 -3.678 4.32 -4.674m2.86 -1.146a9.055 9.055 0 0 1 1.82 -.18c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87 M3 3l18 18"
+                                              Stroke="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                              StrokeThickness="1.6"
+                                              StrokeLineCap="Round"
+                                              StrokeLineJoin="Round"
+                                              Aspect="Uniform"
+                                              WidthRequest="26"
+                                              HeightRequest="26"
+                                              HorizontalOptions="Center" />
+                                        <Label Text="{Binding Loc.LocationPreviewHiddenTitle}"
+                                               Style="{StaticResource BodyStrong}"
+                                               HorizontalTextAlignment="Center"
+                                               HorizontalOptions="Center" />
+                                        <Label Text="{Binding Loc.LocationPreviewHiddenText}"
+                                               Style="{StaticResource Caption}"
+                                               HorizontalTextAlignment="Center"
+                                               HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <Label Text="{Binding PreviewNoteText}"
+                                   Style="{StaticResource Caption}"
+                                   AutomationId="Wizard_LocationPreviewNote" />
+                        </VerticalStackLayout>
+
+                        <!-- Anbieter & Kontakt: Anbieter-Zeile read-only aus dem Profil
+                             (wie die Anbieter-Sidebar im Web-Editor), darunter optional
+                             ein zusaetzlicher Ansprechpartner (zweiter Kontakt am Inserat) -->
+                        <Border Style="{StaticResource Card}"
+                                Padding="16,12"
+                                Margin="16,0"
+                                MaximumWidthRequest="768"
+                                HorizontalOptions="Fill">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="{Binding Loc.ContactSectionHeader}"
+                                       Style="{StaticResource SectionHeader}" />
+
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="{Binding Loc.SellerRowLabel}"
+                                           Style="{StaticResource StatTileLabel}" />
+                                    <Label Text="{Binding SellerPreviewName}"
+                                           FontFamily="SansSemibold"
+                                           FontSize="14"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                           AutomationId="Wizard_SellerPreviewName" />
+                                    <Label Text="{Binding Loc.SellerFromProfileHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+
+                                <Button Text="{Binding Loc.ContactAddButton}"
+                                        Style="{StaticResource SecondaryButton}"
+                                        FontSize="13"
+                                        IsVisible="{Binding IsContactPersonHidden}"
+                                        Command="{Binding AddContactPersonCommand}"
+                                        AutomationId="Wizard_ContactAddButton" />
+
+                                <VerticalStackLayout Spacing="8"
+                                                     IsVisible="{Binding IsContactPersonVisible}">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Loc.ContactSectionLabel}"
+                                               Style="{StaticResource StatTileLabel}"
+                                               VerticalOptions="Center" />
+                                        <Button Grid.Column="1"
+                                                Text="{Binding Loc.ContactRemoveButton}"
+                                                Style="{StaticResource LinkButton}"
+                                                FontSize="12"
+                                                Command="{Binding RemoveContactPersonCommand}"
+                                                AutomationId="Wizard_ContactRemoveButton" />
+                                    </Grid>
+
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding ContactName}"
+                                               Placeholder="{Binding Loc.ContactNamePlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.ContactNameEntrySemantic}"
+                                               AutomationId="Wizard_ContactNameEntry" />
+                                    </Border>
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding ContactEmail}"
+                                               Keyboard="Email"
+                                               Placeholder="{Binding Loc.ContactEmailPlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.ContactEmailEntrySemantic}"
+                                               AutomationId="Wizard_ContactEmailEntry" />
+                                    </Border>
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding ContactPhone}"
+                                               Keyboard="Telephone"
+                                               Placeholder="{Binding Loc.ContactPhonePlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.ContactPhoneEntrySemantic}"
+                                               AutomationId="Wizard_ContactPhoneEntry" />
+                                    </Border>
+
+                                    <Label Text="{Binding Loc.ContactPublicHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Quellenkarte: editierbar - sitzt an derselben Stelle wie die
+                             Quellenkarte der Detailansicht (Link zum Originalinserat;
+                             im Web-Editor Teil der Anbieter-Sidebar) -->
+                        <Border Style="{StaticResource Card}"
+                                Padding="14"
+                                Margin="16,0"
+                                MaximumWidthRequest="768"
+                                HorizontalOptions="Fill">
+                            <Grid ColumnDefinitions="44,*"
+                                  ColumnSpacing="12">
+                                <Border Grid.Column="0"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        Padding="11"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
+                                        Stroke="Transparent"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 22"
+                                        VerticalOptions="Center">
+                                    <Image Source="{AppThemeBinding Light=icon_external_link.png, Dark=icon_external_link_white.png}"
+                                           Aspect="AspectFit" />
+                                </Border>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="{Binding Loc.SourceSectionLabel}"
+                                           Style="{StaticResource StatTileLabel}" />
+                                    <Border Style="{StaticResource WysFieldTight}">
+                                        <Entry Style="{StaticResource WysEntry}"
+                                               StyleClass="borderless"
+                                               Text="{Binding OriginalListingUrl}"
+                                               Keyboard="Url"
+                                               Placeholder="{Binding Loc.OriginalUrlPlaceholder}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               SemanticProperties.Description="{Binding Loc.OriginalUrlEntrySemantic}"
+                                               AutomationId="Wizard_OriginalUrlEntry" />
+                                    </Border>
+                                    <Label Text="{Binding Loc.OriginalUrlHint}"
+                                           Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>

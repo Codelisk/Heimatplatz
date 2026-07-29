@@ -40,6 +40,14 @@ public partial class MunicipalitySearchModel : ObservableObject
     /// <summary>Suchfeld nur zeigen solange kein Ort gewaehlt ist - es ist genau EIN Ort waehlbar.</summary>
     public bool HasNoSelectedOrt => !HasSelectedOrt;
 
+    /// <summary>
+    /// Aufgeloeste Daten der gewaehlten Gemeinde (Name/PLZ, z.B. fuer die
+    /// Geocode-Vorschau) - null solange nichts gewaehlt oder die Liste noch
+    /// nicht geladen ist.
+    /// </summary>
+    public LocationGemeindeDto? FindSelectedGemeinde() =>
+        SelectedGemeindeId is { } id ? _municipalities.FirstOrDefault(m => m.Id == id) : null;
+
     public MunicipalitySearchModel(ILocationService locationService, ILogger logger)
     {
         _locationService = locationService;

@@ -138,6 +138,17 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     [ObservableProperty]
     public partial List<PropertyDetailSection> DetailSections { get; set; }
 
+    // === Lage & Umgebung (Mini-Karte wie die Web-Detailseite) ===
+
+    [ObservableProperty]
+    public partial Controls.LocationMapPoint? LocationMapPoint { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasLocationMap { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowLocationApproxHint { get; set; }
+
     // === Lasten (Grundbuch-C-Blatt) ===
 
     /// <summary>Eingetragene Lasten mit Betrag und Glaeubiger - eigene Karte statt Key-Value-Zeilen</summary>
@@ -579,6 +590,7 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             {
                 Property = response.Property;
                 _logger.LogInformation("[ForeclosureDetail] Property loaded: {Title}", Property.Title);
+                _ = LoadLocationPinAsync(propertyId);
             }
             else if (_internet.IsAvailable)
             {
@@ -642,6 +654,37 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
             busyCts.Dispose();
             IsBusy = false;
             BusyMessage = null;
+        }
+    }
+
+    /// <summary>
+    /// Pin fuer die Mini-Karte "Lage &amp; Umgebung" - bewusst ueber den map-pins-
+    /// Endpoint statt des Detail-DTOs (wie das Web): ZV-Edikte bleiben serverseitig
+    /// bewusst ungefaehr (Privacy-Jitter), der Hinweistext verweist auf die
+    /// Objektangaben des Edikts. Kein Pin blendet die Sektion komplett aus.
+    /// </summary>
+    private async Task LoadLocationPinAsync(Guid propertyId)
+    {
+        try
+        {
+            var (_, response) = await _mediator.Request(new GetPropertyMapPinsHttpRequest { PropertyId = propertyId });
+            var pin = response?.Pins?.FirstOrDefault(p => p.Id == propertyId);
+            if (pin is null)
+            {
+                HasLocationMap = false;
+                LocationMapPoint = null;
+                return;
+            }
+
+            LocationMapPoint = new Controls.LocationMapPoint(pin.Latitude, pin.Longitude, !pin.IsApproximate);
+            ShowLocationApproxHint = pin.IsApproximate;
+            HasLocationMap = true;
+        }
+        catch (Exception ex)
+        {
+            // Die Lage-Karte ist Komfort: ohne Pin bleibt die Sektion einfach aus
+            _logger.LogDebug(ex, "[ForeclosureDetail] Lage-Pin nicht ladbar - Sektion bleibt ausgeblendet");
+            HasLocationMap = false;
         }
     }
 

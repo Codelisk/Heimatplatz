@@ -32,6 +32,80 @@ internal static class MapPinGeoJson
         _ => "haus",
     };
 
+    /// <summary>Leere FeatureCollection: blendet eine Quelle aus, ohne Layer abzubauen.</summary>
+    public const string EmptyFeatureCollection = """{"type":"FeatureCollection","features":[]}""";
+
+    /// <summary>Einzelner Punkt - Quelle des Punkt-Pins der Lage-Karte (Detail/Editor-Vorschau).</summary>
+    public static string BuildSinglePoint(double latitude, double longitude)
+    {
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            writer.WriteStartObject();
+            writer.WriteString("type", "FeatureCollection");
+            writer.WriteStartArray("features");
+            writer.WriteStartObject();
+            writer.WriteString("type", "Feature");
+            writer.WriteStartObject("geometry");
+            writer.WriteString("type", "Point");
+            writer.WriteStartArray("coordinates");
+            writer.WriteNumberValue(longitude);
+            writer.WriteNumberValue(latitude);
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            writer.WriteStartObject("properties");
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    /// <summary>
+    /// Umgebungskreis der Lage-Karte als Polygon-Ring (Web: locationCirclePolygon
+    /// in map-style.ts, 48 Segmente) - ungefaehre Lagen zeigen ihn mit 300 m Radius.
+    /// </summary>
+    public static string BuildLocationCircle(double latitude, double longitude, double radiusMeters)
+    {
+        const int segments = 48;
+        // Meter -> Grad wie im Web: 1 Grad Laenge = 111320 m x cos(Breite), 1 Grad Breite = 110540 m
+        var lonScale = 111_320 * Math.Cos(latitude * Math.PI / 180);
+
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            writer.WriteStartObject();
+            writer.WriteString("type", "FeatureCollection");
+            writer.WriteStartArray("features");
+            writer.WriteStartObject();
+            writer.WriteString("type", "Feature");
+            writer.WriteStartObject("geometry");
+            writer.WriteString("type", "Polygon");
+            writer.WriteStartArray("coordinates");
+            writer.WriteStartArray();
+            for (var i = 0; i <= segments; i++)
+            {
+                var theta = (double)(i % segments) / segments * 2 * Math.PI;
+                writer.WriteStartArray();
+                writer.WriteNumberValue(longitude + radiusMeters * Math.Cos(theta) / lonScale);
+                writer.WriteNumberValue(latitude + radiusMeters * Math.Sin(theta) / 110_540);
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            writer.WriteStartObject("properties");
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
     /// <summary>FeatureCollection der Einzel-Pins (exact ODER approx, je nach Filter des Aufrufers).</summary>
     public static string BuildPinFeatureCollection(IEnumerable<PropertyMapPinDto> pins)
     {

@@ -246,4 +246,10 @@ Standort: {1}</value>
   <data name="CachedDataNotice" xml:space="preserve">
     <value>Offline – angezeigt wird der zuletzt gespeicherte Stand.</value>
   </data>
+  <data name="LocationSectionHeader" xml:space="preserve">
+    <value>LAGE &amp; UMGEBUNG</value>
+  </data>
+  <data name="LocationApproxHint" xml:space="preserve">
+    <value>Ungefähre Lage laut Edikt – Details zum Standort finden Sie in den Objektangaben.</value>
+  </data>
 </root>

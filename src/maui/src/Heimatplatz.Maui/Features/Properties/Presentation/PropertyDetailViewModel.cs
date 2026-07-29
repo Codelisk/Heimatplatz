@@ -148,6 +148,16 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
     public partial List<PropertyDetailSection> DetailSections { get; set; }
 
     /// <summary>Kernfakten als Kacheln direkt unter dem Kopf (auf einen Blick)</summary>
+    // ── Lage & Umgebung (Mini-Karte wie die Web-Detailseite) ────────────────
+    [ObservableProperty]
+    public partial Controls.LocationMapPoint? LocationMapPoint { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasLocationMap { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowLocationApproxHint { get; set; }
+
     [ObservableProperty]
     public partial List<StatTileItem> StatTiles { get; set; }
 
@@ -646,6 +656,7 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             {
                 Property = response.Property;
                 _logger.LogInformation("[PropertyDetail] Property loaded: {Title}", Property.Title);
+                _ = LoadLocationPinAsync(propertyId);
             }
             else if (_internet.IsAvailable)
             {
@@ -709,6 +720,38 @@ public partial class PropertyDetailViewModel : ObservableObject, IPageLifecycleA
             busyCts.Dispose();
             IsBusy = false;
             BusyMessage = null;
+        }
+    }
+
+    /// <summary>
+    /// Pin fuer die Mini-Karte "Lage &amp; Umgebung" - bewusst ueber den map-pins-
+    /// Endpoint statt des Detail-DTOs (wie das Web): der Privacy-Jitter fuer
+    /// ungefaehre Lagen bleibt serverseitig, exakte Koordinaten verlassen die API
+    /// nie. Kein Pin (LocationDisplay=Hidden oder keine Koordinaten) blendet die
+    /// Sektion komplett aus.
+    /// </summary>
+    private async Task LoadLocationPinAsync(Guid propertyId)
+    {
+        try
+        {
+            var (_, response) = await _mediator.Request(new GetPropertyMapPinsHttpRequest { PropertyId = propertyId });
+            var pin = response?.Pins?.FirstOrDefault(p => p.Id == propertyId);
+            if (pin is null)
+            {
+                HasLocationMap = false;
+                LocationMapPoint = null;
+                return;
+            }
+
+            LocationMapPoint = new Controls.LocationMapPoint(pin.Latitude, pin.Longitude, !pin.IsApproximate);
+            ShowLocationApproxHint = pin.IsApproximate;
+            HasLocationMap = true;
+        }
+        catch (Exception ex)
+        {
+            // Die Lage-Karte ist Komfort: ohne Pin bleibt die Sektion einfach aus
+            _logger.LogDebug(ex, "[PropertyDetail] Lage-Pin nicht ladbar - Sektion bleibt ausgeblendet");
+            HasLocationMap = false;
         }
     }
 

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:propcontrols="clr-namespace:Heimatplatz.Maui.Features.Properties.Controls"
              xmlns:shiny="http://shiny.net/maui/controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.PropertyDetailPage"
@@ -35,6 +36,7 @@
                             <Setter TargetName="DetailSummary" Property="Margin" Value="0" />
                             <Setter TargetName="DetailSummary" Property="Padding" Value="4,24" />
                             <Setter TargetName="DetailBody" Property="MaximumWidthRequest" Value="1100" />
+                            <Setter TargetName="DetailLocationMap" Property="HeightRequest" Value="340" />
                             <Setter TargetName="ContactFooter" Property="MaximumWidthRequest" Value="440" />
                             <Setter TargetName="ContactFooter" Property="HorizontalOptions" Value="End" />
                             <Setter TargetName="ContactFooter" Property="Margin" Value="0,0,24,24" />
@@ -55,6 +57,7 @@
                             <Setter TargetName="DetailSummary" Property="Margin" Value="0" />
                             <Setter TargetName="DetailSummary" Property="Padding" Value="8,28" />
                             <Setter TargetName="DetailBody" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="DetailLocationMap" Property="HeightRequest" Value="380" />
                             <Setter TargetName="ContactFooter" Property="MaximumWidthRequest" Value="460" />
                             <Setter TargetName="ContactFooter" Property="HorizontalOptions" Value="End" />
                             <Setter TargetName="ContactFooter" Property="Margin" Value="0,0,32,24" />
@@ -510,6 +513,26 @@
                                     </Border>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- Lage & Umgebung: Mini-Karte wie die Web-Detailseite. Der Pin
+                             kommt vom map-pins-Endpoint (serverseitiger Privacy-Jitter);
+                             ohne Pin (Hidden/keine Koordinaten) entfaellt die Sektion. -->
+                        <VerticalStackLayout Spacing="6"
+                                             Padding="16,0"
+                                             MaximumWidthRequest="900"
+                                             HorizontalOptions="Fill"
+                                             IsVisible="{Binding HasLocationMap}">
+                            <Label Text="{Binding Loc.LocationSectionHeader}"
+                                   Style="{StaticResource SectionHeader}" />
+                            <propcontrols:PropertyLocationMapView x:Name="DetailLocationMap"
+                                                                  Location="{Binding LocationMapPoint}"
+                                                                  HeightRequest="240"
+                                                                  AutomationId="Detail_LocationMap" />
+                            <Label Text="{Binding Loc.LocationApproxHint}"
+                                   Style="{StaticResource Caption}"
+                                   IsVisible="{Binding ShowLocationApproxHint}"
+                                   AutomationId="Detail_LocationApproxHint" />
                         </VerticalStackLayout>
                 </VerticalStackLayout>
             </VerticalStackLayout>

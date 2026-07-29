@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:appcontrols="clr-namespace:Heimatplatz.Maui.Controls"
              xmlns:models="clr-namespace:Heimatplatz.Maui.Features.Properties.Models"
+             xmlns:propcontrols="clr-namespace:Heimatplatz.Maui.Features.Properties.Controls"
              xmlns:shiny="http://shiny.net/maui/controls"
              xmlns:vm="clr-namespace:Heimatplatz.Maui.Features.Properties.Presentation"
              x:Class="Heimatplatz.Maui.Features.Properties.Presentation.ForeclosureDetailPage"
@@ -32,6 +33,7 @@
                             <Setter TargetName="ForeclosureSummary" Property="Margin" Value="0" />
                             <Setter TargetName="ForeclosureSummary" Property="Padding" Value="4,24" />
                             <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="1100" />
+                            <Setter TargetName="ForeclosureLocationMap" Property="HeightRequest" Value="340" />
                             <Setter TargetName="ForeclosureScrollContent" Property="Padding" Value="0,0,0,96" />
                             <Setter TargetName="CourtFooter" Property="Grid.Row" Value="0" />
                             <Setter TargetName="CourtFooter" Property="MaximumWidthRequest" Value="440" />
@@ -55,6 +57,7 @@
                             <Setter TargetName="ForeclosureSummary" Property="Margin" Value="0" />
                             <Setter TargetName="ForeclosureSummary" Property="Padding" Value="8,28" />
                             <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="ForeclosureLocationMap" Property="HeightRequest" Value="380" />
                             <Setter TargetName="ForeclosureScrollContent" Property="Padding" Value="0,0,0,96" />
                             <Setter TargetName="CourtFooter" Property="Grid.Row" Value="0" />
                             <Setter TargetName="CourtFooter" Property="MaximumWidthRequest" Value="460" />
@@ -619,6 +622,26 @@
                                     </Border>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- Lage & Umgebung: Mini-Karte wie die Web-Detailseite. ZV-Edikte
+                             bleiben serverseitig bewusst ungefaehr - der Hinweis verweist
+                             auf die Objektangaben; ohne Pin entfaellt die Sektion. -->
+                        <VerticalStackLayout Spacing="6"
+                                             Padding="16,0"
+                                             MaximumWidthRequest="900"
+                                             HorizontalOptions="Fill"
+                                             IsVisible="{Binding HasLocationMap}">
+                            <Label Text="{Binding Loc.LocationSectionHeader}"
+                                   Style="{StaticResource SectionHeader}" />
+                            <propcontrols:PropertyLocationMapView x:Name="ForeclosureLocationMap"
+                                                                  Location="{Binding LocationMapPoint}"
+                                                                  HeightRequest="240"
+                                                                  AutomationId="Foreclosure_LocationMap" />
+                            <Label Text="{Binding Loc.LocationApproxHint}"
+                                   Style="{StaticResource Caption}"
+                                   IsVisible="{Binding ShowLocationApproxHint}"
+                                   AutomationId="Foreclosure_LocationApproxHint" />
                         </VerticalStackLayout>
                 </VerticalStackLayout>
             </VerticalStackLayout>

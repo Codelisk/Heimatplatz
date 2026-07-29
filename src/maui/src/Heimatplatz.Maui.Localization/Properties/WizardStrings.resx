@@ -82,7 +82,7 @@
     <value>GEBÄUDE</value>
   </data>
   <data name="LocationDisplaySectionHeader" xml:space="preserve">
-    <value>LAGE-ANZEIGE</value>
+    <value>LAGE &amp; UMGEBUNG</value>
   </data>
   <data name="LocationDisplayIntro" xml:space="preserve">
     <value>Sie entscheiden, wie genau Ihr Inserat auf der Karte erscheint.</value>
@@ -104,6 +104,21 @@
   </data>
   <data name="LocationHiddenHint" xml:space="preserve">
     <value>Keine Karte im Inserat</value>
+  </data>
+  <data name="LocationPreviewEmpty" xml:space="preserve">
+    <value>Ort auswählen, um die Kartenvorschau zu sehen.</value>
+  </data>
+  <data name="LocationPreviewHiddenTitle" xml:space="preserve">
+    <value>Keine Kartenanzeige</value>
+  </data>
+  <data name="LocationPreviewHiddenText" xml:space="preserve">
+    <value>Das Inserat erscheint weder auf der Suchkarte noch mit Umgebungskarte.</value>
+  </data>
+  <data name="LocationPreviewNote" xml:space="preserve">
+    <value>So sehen Besucher die Lage Ihres Inserats.</value>
+  </data>
+  <data name="LocationPreviewExactFallback" xml:space="preserve">
+    <value>Die Adresse konnte nur ungefähr gefunden werden – Besucher sehen den Umgebungskreis.</value>
   </data>
   <data name="YearBuiltLabel" xml:space="preserve">
     <value>Baujahr</value>
