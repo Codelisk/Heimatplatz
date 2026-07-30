@@ -3021,6 +3021,36 @@
         }
       }
     },
+    "/api/admin/marketing/inbox/reply": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "ReplyMarketingInbound",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyMarketingInboundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplyMarketingInboundResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/contacts/save": {
       "post": {
         "tags": [
@@ -9936,6 +9966,44 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "ReplyMarketingInboundRequest": {
+        "required": [
+          "InboundEmailId",
+          "Body"
+        ],
+        "type": "object",
+        "properties": {
+          "InboundEmailId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Body": {
+            "type": "string"
+          }
+        }
+      },
+      "ReplyMarketingInboundResponse": {
+        "required": [
+          "Success",
+          "SmtpConfigured",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "SmtpConfigured": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -42,6 +42,15 @@ public class SmtpEmailSender(
         // negativ auffaellt.
         var messageId = MimeKit.Utils.MimeUtils.GenerateMessageId(fromMailbox.Domain);
         mime.MessageId = messageId;
+
+        // Antwort-Threading: In-Reply-To/References verketten die Mail beim Empfaenger
+        // mit dem bestehenden Verlauf. Die Ids kommen ohne spitze Klammern (so speichert
+        // sie der Posteingang-Sync), MimeKit ergaenzt sie beim Serialisieren.
+        if (!string.IsNullOrWhiteSpace(message.InReplyToMessageId))
+            mime.InReplyTo = message.InReplyToMessageId;
+        foreach (var reference in message.ReferenceMessageIds ?? [])
+            mime.References.Add(reference);
+
         mime.Body = new BodyBuilder
         {
             HtmlBody = message.HtmlBody,

@@ -564,6 +564,15 @@ export const intern = {
   "intern.mkInboxMarkUnread": "Als ungelesen markieren",
   "intern.mkInboxShowBody": "Nachricht anzeigen",
   "intern.mkInboxReadOk": "Markierung aktualisiert.",
+  "intern.mkInboxReplyShow": "Antworten",
+  "intern.mkInboxReplyPlaceholder": "Antwort an {name} schreiben …",
+  "intern.mkInboxReplyHint":
+    "Geht als Antwort im selben Verlauf an {address}. Die Heimatplatz-Signatur wird automatisch angehängt.",
+  "intern.mkInboxReplySend": "Antwort senden",
+  "intern.mkInboxReplyOk": "Antwort versendet.",
+  "intern.mkInboxReplySmtpOff":
+    "Antwort NICHT zugestellt: Es ist kein SMTP-Server konfiguriert (EMAIL_SMTP_* fehlt), die Mail wurde nur im API-Log ausgegeben.",
+  "intern.mkInboxReplyFailed": "Antwort fehlgeschlagen: {error}",
 
   // Analytics-Section (/intern/analytics)
   "intern.analyticsMetaTitle": "Intern – Analytics",

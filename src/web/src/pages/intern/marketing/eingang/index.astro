@@ -16,6 +16,10 @@ const page = Math.max(Number.parseInt(Astro.url.searchParams.get("page") ?? "0",
 const action = Astro.url.searchParams.get("action");
 const actionCount = Astro.url.searchParams.get("count");
 const actionError = Astro.url.searchParams.get("error");
+const smtpOff = Astro.url.searchParams.get("smtp") === "off";
+
+const replyInputClass =
+  "w-full rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
 
 const query = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
 if (unreadOnly) query.set("unreadOnly", "true");
@@ -77,6 +81,21 @@ const backQuery = unreadOnly ? "unread" : "";
     {action === "read" && (
       <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
         {t("intern.mkInboxReadOk")}
+      </div>
+    )}
+    {action === "replied" && !smtpOff && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkInboxReplyOk")}
+      </div>
+    )}
+    {action === "replied" && smtpOff && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkInboxReplySmtpOff")}
+      </div>
+    )}
+    {action === "replyfailed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkInboxReplyFailed", { error: actionError ?? "?" })}
       </div>
     )}
     {showNotConfigured && (
@@ -173,14 +192,49 @@ const backQuery = unreadOnly ? "unread" : "";
                     <p class="mt-2 whitespace-pre-wrap text-sm">{item.BodyText}</p>
                   </details>
                 )}
-                <form method="POST" action="/intern/marketing/eingang/read" class="mt-2">
-                  <input type="hidden" name="id" value={item.Id} />
-                  <input type="hidden" name="isRead" value={item.IsRead ? "false" : "true"} />
-                  <input type="hidden" name="back" value={backQuery} />
-                  <button type="submit" class="text-sm underline hover:no-underline">
-                    {item.IsRead ? t("intern.mkInboxMarkUnread") : t("intern.mkInboxMarkRead")}
-                  </button>
-                </form>
+                <div class="mt-2 flex flex-wrap items-center gap-4">
+                  <form method="POST" action="/intern/marketing/eingang/read">
+                    <input type="hidden" name="id" value={item.Id} />
+                    <input type="hidden" name="isRead" value={item.IsRead ? "false" : "true"} />
+                    <input type="hidden" name="back" value={backQuery} />
+                    <button type="submit" class="text-sm underline hover:no-underline">
+                      {item.IsRead ? t("intern.mkInboxMarkUnread") : t("intern.mkInboxMarkRead")}
+                    </button>
+                  </form>
+                </div>
+                {/* Antworten nur bei echten Rueckmeldungen - eine Antwort an
+                    mailer-daemon/postmaster (Bounce) laeuft ins Leere */}
+                {!item.IsBounce && (
+                  <details class="mt-2">
+                    <summary class="cursor-pointer text-sm text-muted-foreground">
+                      {t("intern.mkInboxReplyShow")}
+                    </summary>
+                    <form
+                      method="POST"
+                      action="/intern/marketing/eingang/antwort"
+                      class="mt-2 flex flex-col gap-2"
+                    >
+                      <input type="hidden" name="id" value={item.Id} />
+                      <input type="hidden" name="back" value={backQuery} />
+                      <textarea
+                        name="body"
+                        rows="6"
+                        required
+                        placeholder={t("intern.mkInboxReplyPlaceholder", {
+                          name: item.ContactName ?? item.FromName ?? item.FromAddress,
+                        })}
+                        class={replyInputClass}></textarea>
+                      <p class="text-xs leading-5 text-muted-foreground">
+                        {t("intern.mkInboxReplyHint", { address: item.FromAddress })}
+                      </p>
+                      <div>
+                        <Button type="submit" variant="default" size="sm">
+                          {t("intern.mkInboxReplySend")}
+                        </Button>
+                      </div>
+                    </form>
+                  </details>
+                )}
               </li>
             ))}
           </ul>

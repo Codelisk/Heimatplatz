@@ -275,6 +275,14 @@ export type MarketingSyncResponse = {
   Error: string | null;
 };
 
+/** Antwort auf eine Posteingang-Rueckmeldung (POST /api/admin/marketing/inbox/reply) */
+export type MarketingReplyResponse = {
+  Success: boolean;
+  /** false = kein SMTP konfiguriert, Mail wurde nur im API-Log ausgegeben */
+  SmtpConfigured: boolean;
+  Error: string | null;
+};
+
 // Firmenpool: aufrechte Firmenbuch-Firmen mit Immobilien-Namensbezug - live aus der
 // Firmenpool-API, Heimatplatz haelt keinen eigenen Firmenkatalog mehr.
 // ContactId gesetzt = bereits als Kontakt uebernommen (Schluessel ist die FNR).

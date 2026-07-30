@@ -12,6 +12,9 @@ namespace Heimatplatz.Api.Core.Email;
 /// sichtbar), BccAddress (optional) eine verdeckte Kopie (MailKit versteckt den
 /// Bcc-Header beim SMTP-Versand, in der Gesendet-Ordner-Kopie bleibt er sichtbar);
 /// genutzt von Marketing-Mails.
+/// InReplyToMessageId/ReferenceMessageIds (optional, Message-Ids OHNE spitze Klammern)
+/// machen die Mail zu einer echten Antwort: Mail-Clients haengen sie damit an den
+/// bestehenden Thread. Genutzt vom Antworten im Marketing-Posteingang.
 /// </summary>
 public record EmailMessage(
     string ToAddress,
@@ -20,7 +23,9 @@ public record EmailMessage(
     string TextBody,
     bool ArchiveToSentFolder = false,
     string? CcAddress = null,
-    string? BccAddress = null
+    string? BccAddress = null,
+    string? InReplyToMessageId = null,
+    IReadOnlyList<string>? ReferenceMessageIds = null
 );
 
 /// <summary>
