@@ -77,13 +77,17 @@ public class FirmenpoolApiClientTests : BaseApiUnitTest
             PageSize = 2,
             Status = "aufrecht",
             NameContainsAny = "immo,liegenschaft",
+            GewerbeContainsAny = "Immobilientreuhänder",
             ExcludeFnrs = "91180p"
         });
 
+        // Uri.ToString() zeigt Nicht-ASCII dekodiert ("ä"), auf der Leitung geht %C3%A4 raus;
+        // reservierte Zeichen wie das Komma (%2C) bleiben auch in der Anzeige kodiert.
         requests.Should().ContainSingle()
             .Which.Should().Be(
                 "https://firmenpool.test/api/firmenbuch/companies?Page=3&PageSize=2" +
-                "&Status=aufrecht&NameContainsAny=immo%2Cliegenschaft&ExcludeFnrs=91180p");
+                "&Status=aufrecht&NameContainsAny=immo%2Cliegenschaft" +
+                "&GewerbeContainsAny=Immobilientreuhänder&ExcludeFnrs=91180p");
 
         page.TotalCount.Should().Be(84585);
         page.Page.Should().Be(3);

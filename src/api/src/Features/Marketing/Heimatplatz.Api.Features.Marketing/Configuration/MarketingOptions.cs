@@ -49,6 +49,19 @@ public class MarketingLeadPoolOptions
         "makler",
         "wohnungseigentum"
     ];
+
+    /// <summary>
+    /// Schlagworte gegen den amtlichen Wortlaut der aktiven GISA-Gewerbeberechtigungen -
+    /// findet Immobilienfirmen, deren Name die Branche nicht verraet (z.B. "Konzeptmühle
+    /// GmbH" mit Immobilientreuhänder-Berechtigung). ODER-verknuepft mit den NameKeywords.
+    /// "Immobilientreuhänder" deckt laut GISA-Bestand alle drei Teilgewerbe ab
+    /// (Immobilienmakler, Immobilienverwalter, Bauträger) - Vorsicht bei Erweiterungen:
+    /// "makler" allein traefe auch Versicherungsmakler.
+    /// </summary>
+    public List<string> GewerbeKeywords { get; set; } =
+    [
+        "Immobilientreuhänder"
+    ];
 }
 
 /// <summary>

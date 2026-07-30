@@ -30,6 +30,7 @@ public class FirmenpoolApiClient(HttpClient httpClient, IOptions<FirmenpoolOptio
         AddIfSet(parameters, "Sitz", query.Sitz);
         AddIfSet(parameters, "Status", query.Status);
         AddIfSet(parameters, "NameContainsAny", query.NameContainsAny);
+        AddIfSet(parameters, "GewerbeContainsAny", query.GewerbeContainsAny);
         AddIfSet(parameters, "ExcludeFnrs", query.ExcludeFnrs);
 
         var url = $"{BaseUrl()}/api/firmenbuch/companies?{string.Join('&', parameters)}";

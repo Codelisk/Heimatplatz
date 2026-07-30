@@ -13,11 +13,12 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Marketing.Handlers;
 
 /// <summary>
-/// Firmenpool: aufrechte Firmen, deren Name auf die Immobilienbranche hindeutet - live aus
-/// der Firmenpool-API, Heimatplatz haelt keinen eigenen Firmenkatalog mehr. Schlagwort-,
-/// Orts- und Ausschlussfilter laufen serverseitig in der Quelle, damit Trefferzahl und
-/// Seitengrenzen exakt bleiben; nur der Uebernahme-Status (Kontakt-Verknuepfung ueber die
-/// Firmenbuchnummer) kommt aus der eigenen Datenbank dazu.
+/// Firmenpool: aufrechte Firmen, deren Name ODER aktive GISA-Gewerbeberechtigung auf die
+/// Immobilienbranche hindeutet - live aus der Firmenpool-API, Heimatplatz haelt keinen
+/// eigenen Firmenkatalog mehr. Schlagwort-, Gewerbe-, Orts- und Ausschlussfilter laufen
+/// serverseitig in der Quelle, damit Trefferzahl und Seitengrenzen exakt bleiben; nur der
+/// Uebernahme-Status (Kontakt-Verknuepfung ueber die Firmenbuchnummer) kommt aus der
+/// eigenen Datenbank dazu.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/admin/marketing")]
@@ -42,11 +43,8 @@ public class GetMarketingLeadPoolHandler(
             .Select(x => new { Fnr = x.FirmenbuchFnr!, x.Id, x.Status })
             .ToListAsync(cancellationToken);
 
-        var keywords = options.Value.LeadPool.NameKeywords
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .Select(k => k.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var keywords = Bereinigt(options.Value.LeadPool.NameKeywords);
+        var gewerbeKeywords = Bereinigt(options.Value.LeadPool.GewerbeKeywords);
 
         var page = Math.Max(request.Page, 0);
         var pageSize = Math.Clamp(request.PageSize, 1, 200);
@@ -60,6 +58,9 @@ public class GetMarketingLeadPoolHandler(
             Sitz = request.Sitz,
             Status = "aufrecht",
             NameContainsAny = string.Join(',', keywords),
+            // In der Quelle ODER-verknuepft mit NameContainsAny: erfasst Firmen mit
+            // Immobilientreuhänder-Gewerbe, deren Name die Branche nicht verraet.
+            GewerbeContainsAny = string.Join(',', gewerbeKeywords),
             ExcludeFnrs = request.OnlyOpen && uebernommen.Count > 0
                 ? string.Join(',', uebernommen.Select(u => u.Fnr))
                 : null
@@ -83,4 +84,10 @@ public class GetMarketingLeadPoolHandler(
             leads, result.TotalCount, pageSize, page,
             HasMore: (page + 1) * pageSize < result.TotalCount);
     }
+
+    private static List<string> Bereinigt(List<string> schlagworte) => schlagworte
+        .Where(k => !string.IsNullOrWhiteSpace(k))
+        .Select(k => k.Trim())
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToList();
 }

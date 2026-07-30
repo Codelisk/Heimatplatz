@@ -36,6 +36,14 @@ public record FirmenpoolCompanyQuery
     /// <summary>Kommaseparierte Schlagworte, der Name muss mindestens eines enthalten.</summary>
     public string? NameContainsAny { get; init; }
 
+    /// <summary>
+    /// Kommaseparierte Schlagworte gegen den amtlichen Wortlaut der aktiven
+    /// GISA-Gewerbeberechtigungen (z.B. "Immobilientreuhänder"). Zusammen mit
+    /// <see cref="NameContainsAny"/> gilt in der Quelle ODER: ein Treffer auf einer
+    /// der beiden Seiten genügt.
+    /// </summary>
+    public string? GewerbeContainsAny { get; init; }
+
     /// <summary>Kommaseparierte FNRs, die ausgeblendet werden (z.B. bereits uebernommene).</summary>
     public string? ExcludeFnrs { get; init; }
 }

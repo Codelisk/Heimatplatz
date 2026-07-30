@@ -10,9 +10,13 @@ Posteingang mit Rueckmeldungs-Zuordnung und Auswertungs-Kennzahlen.
 
 1. **Firmenpool** (`/lead-pool`): aufrechte Firmen aus dem Firmenbuch-Katalog
    (`Heimatplatz.Api.Features.Firmenbuch`), deren Name auf die Immobilienbranche
-   hindeutet (Schlagwortliste `Marketing:LeadPool:NameKeywords`, ohne Deploy
-   nachschaerfbar - das Firmenbuch fuehrt keine Branche). Auswahl -> `/lead-pool/add`
-   legt Kontakte mit Status `ToContact` an (idempotent ueber `FirmenbuchFnr`).
+   hindeutet (Schlagwortliste `Marketing:LeadPool:NameKeywords` - das Firmenbuch
+   fuehrt keine Branche) ODER die eine aktive GISA-Gewerbeberechtigung mit
+   passendem Wortlaut halten (`Marketing:LeadPool:GewerbeKeywords`, Default
+   "Immobilientreuhänder" - findet auch Firmen ohne Branchen-Namen wie die
+   "Konzeptmühle GmbH"). Beide Listen ohne Deploy nachschaerfbar.
+   Auswahl -> `/lead-pool/add` legt Kontakte mit Status `ToContact` an
+   (idempotent ueber `FirmenbuchFnr`).
 2. **Telefonat**: Der Kontakt hat zunaechst KEINE E-Mail (Firmenbuch fuehrt keine
    Kontaktdaten). Ueber `/contacts/activity` werden Anruf, Notiz, Wiedervorlage
    und Statuswechsel in einem Schritt festgehalten.

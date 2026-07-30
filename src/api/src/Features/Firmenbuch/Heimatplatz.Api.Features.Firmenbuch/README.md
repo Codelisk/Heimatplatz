@@ -15,6 +15,7 @@ Marketing-Feature.
 - **`IFirmenpoolApiClient`**
   - `GetCompaniesAsync(FirmenpoolCompanyQuery)`: Firmenliste mit serverseitigen Filtern
     (SearchText, Sitz kommasepariert/Teilstring, Status "aufrecht", NameContainsAny-Schlagworte,
+    GewerbeContainsAny-Schlagworte gegen den GISA-Wortlaut - mit NameContainsAny ODER-verknuepft,
     ExcludeFnrs) und exakter Trefferzahl/Paging (PageSize max. 200, Seiten 1-basiert).
   - `GetCompanyDetailAsync(fnr)`: voller Datensatz inkl. Adresse, Funktionaeren, Gewerben und
     Abschluss-Anzahl; `null` bei unbekannter FNR.
