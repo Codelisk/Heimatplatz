@@ -22,8 +22,9 @@ public class SmtpEmailSender(
     {
         var opts = options.Value;
 
+        var fromMailbox = new MailboxAddress(opts.FromName, opts.FromAddress);
         var mime = new MimeMessage();
-        mime.From.Add(new MailboxAddress(opts.FromName, opts.FromAddress));
+        mime.From.Add(fromMailbox);
         mime.To.Add(MailboxAddress.Parse(message.ToAddress));
         if (!string.IsNullOrWhiteSpace(message.CcAddress))
             mime.Cc.Add(MailboxAddress.Parse(message.CcAddress));
@@ -35,7 +36,11 @@ public class SmtpEmailSender(
 
         // Message-Id vor dem Versand fixieren: geht so auf die Leitung und taucht in
         // Antworten als In-Reply-To wieder auf (Reply-Zuordnung im Marketing-Posteingang).
-        var messageId = mime.MessageId ?? MimeKit.Utils.MimeUtils.GenerateMessageId();
+        // Domain explizit auf die Absenderdomain setzen - ohne sie faellt MimeKit auf den
+        // lokalen Hostnamen zurueck, im Container also die zufaellige Docker-Container-ID
+        // (z.B. "...@4be27ec84b46") statt einer echten Domain, was bei manchen Spamfiltern
+        // negativ auffaellt.
+        var messageId = MimeKit.Utils.MimeUtils.GenerateMessageId(fromMailbox.Domain);
         mime.MessageId = messageId;
         mime.Body = new BodyBuilder
         {
