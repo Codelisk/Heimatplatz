@@ -71,10 +71,19 @@ public class FirmenpoolApiClientTests : BaseApiUnitTest
     {
         var client = CreateClient(RealWorldResponse, out var requests);
 
-        var page = await client.GetCompaniesAsync(3, 2);
+        var page = await client.GetCompaniesAsync(new FirmenpoolCompanyQuery
+        {
+            Page = 3,
+            PageSize = 2,
+            Status = "aufrecht",
+            NameContainsAny = "immo,liegenschaft",
+            ExcludeFnrs = "91180p"
+        });
 
         requests.Should().ContainSingle()
-            .Which.Should().Be("https://firmenpool.test/api/firmenbuch/companies?Page=3&PageSize=2");
+            .Which.Should().Be(
+                "https://firmenpool.test/api/firmenbuch/companies?Page=3&PageSize=2" +
+                "&Status=aufrecht&NameContainsAny=immo%2Cliegenschaft&ExcludeFnrs=91180p");
 
         page.TotalCount.Should().Be(84585);
         page.Page.Should().Be(3);
@@ -105,11 +114,73 @@ public class FirmenpoolApiClientTests : BaseApiUnitTest
     {
         var client = CreateClient("Nicht freigegeben.", out _, HttpStatusCode.Forbidden);
 
-        var act = () => client.GetCompaniesAsync(1, 200);
+        var act = () => client.GetCompaniesAsync(new FirmenpoolCompanyQuery { Page = 1, PageSize = 200 });
 
         // 403 heisst hier: die eigene IP fehlt in der Caddy-Freischaltung des Firmenpools -
         // das soll den Lauf laut scheitern lassen, nicht als leere Seite durchrutschen.
         await act.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    private const string DetailResponse = """
+        {
+          "fnr": "359925b",
+          "name": "M & I Bau GmbH",
+          "status": null,
+          "euid": "ATBRA.359925-000",
+          "gegruendet": null,
+          "strasse": "Teststrasse",
+          "hausnummer": "12",
+          "plz": "4061",
+          "ort": "Pasching",
+          "staat": "AUT",
+          "sitz": "Pasching",
+          "rechtsformCode": "GES",
+          "rechtsformText": "Gesellschaft mit beschränkter Haftung",
+          "gerichtText": "Landesgericht Linz",
+          "handelsregisternummer": null,
+          "auszugStand": "2026-07-29T19:23:26.43687+00:00",
+          "abschluesseVorhanden": 14,
+          "funktionaere": [
+            { "name": "Ivica Marusic", "funktionCode": "GF", "funktionText": "GESCHÄFTSFÜHRER/IN (handelsrechtlich)", "seit": "2016-11-09", "aktiv": true }
+          ],
+          "gewerbe": [
+            { "gisaZahl": 15255228, "schluessel": "502", "wortlaut": "Baugewerbetreibender", "plz": "4061", "ort": "Pasching", "weitereStandorte": ["4020 Linz"], "aktiv": true }
+          ]
+        }
+        """;
+
+    [Test]
+    public async Task GetCompanyDetailAsync_mappt_Auszug_Funktionaere_und_Gewerbe()
+    {
+        var client = CreateClient(DetailResponse, out var requests);
+
+        var detail = await client.GetCompanyDetailAsync(" 359925b ");
+
+        requests.Should().ContainSingle()
+            .Which.Should().Be("https://firmenpool.test/api/firmenbuch/companies/359925b");
+
+        detail.Should().NotBeNull();
+        detail!.Name.Should().Be("M & I Bau GmbH");
+        detail.Euid.Should().Be("ATBRA.359925-000");
+        detail.Plz.Should().Be("4061");
+        detail.AbschluesseVorhanden.Should().Be(14);
+        detail.Funktionaere.Should().ContainSingle()
+            .Which.Should().Match<FirmenpoolOfficer>(f =>
+                f.Name == "Ivica Marusic" && f.Aktiv && f.Seit == new DateOnly(2016, 11, 9));
+        detail.Gewerbe.Should().ContainSingle()
+            .Which.WeitereStandorte.Should().ContainSingle("4020 Linz");
+    }
+
+    [Test]
+    public async Task GetCompanyDetailAsync_liefert_null_bei_unbekannter_Fnr()
+    {
+        // 404 ist ein normaler Fall (Tippfehler, Firma ausserhalb OOe) und darf den
+        // Aufrufer nicht mit einer Exception treffen.
+        var client = CreateClient("{}", out _, HttpStatusCode.NotFound);
+
+        var detail = await client.GetCompanyDetailAsync("999999x");
+
+        detail.Should().BeNull();
     }
 
     private static FirmenpoolApiClient CreateClient(

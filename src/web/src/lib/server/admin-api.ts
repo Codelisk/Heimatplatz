@@ -252,10 +252,10 @@ export type MarketingSyncResponse = {
   Error: string | null;
 };
 
-// Firmenpool: aufrechte Firmenbuch-Firmen mit Immobilien-Namensbezug.
-// ContactId gesetzt = bereits als Kontakt uebernommen.
+// Firmenpool: aufrechte Firmenbuch-Firmen mit Immobilien-Namensbezug - live aus der
+// Firmenpool-API, Heimatplatz haelt keinen eigenen Firmenkatalog mehr.
+// ContactId gesetzt = bereits als Kontakt uebernommen (Schluessel ist die FNR).
 export type MarketingLead = {
-  Id: string;
   Fnr: string;
   Name: string;
   Sitz: string | null;
@@ -270,6 +270,52 @@ export type MarketingLeadPoolPage = {
   PageSize: number;
   CurrentPage: number;
   HasMore: boolean;
+};
+
+// Firmenpool-Detailansicht: voller Firmendatensatz (Auszug, Funktionaere, Gewerbe)
+// live aus der Firmenpool-API. Company == null heisst: FNR dort unbekannt.
+export type MarketingLeadOfficer = {
+  Name: string;
+  FunktionText: string | null;
+  Seit: string | null;
+  Aktiv: boolean;
+};
+
+export type MarketingLeadTrade = {
+  GisaZahl: number;
+  Wortlaut: string | null;
+  Plz: string | null;
+  Ort: string | null;
+  WeitereStandorte: string[];
+  Aktiv: boolean;
+};
+
+export type MarketingLeadCompany = {
+  Fnr: string;
+  Name: string;
+  Status: string | null;
+  Euid: string | null;
+  Gegruendet: string | null;
+  Strasse: string | null;
+  Hausnummer: string | null;
+  Plz: string | null;
+  Ort: string | null;
+  Staat: string | null;
+  Sitz: string | null;
+  RechtsformCode: string | null;
+  RechtsformText: string | null;
+  GerichtText: string | null;
+  Handelsregisternummer: string | null;
+  AuszugStand: string | null;
+  AbschluesseVorhanden: number;
+  Funktionaere: MarketingLeadOfficer[];
+  Gewerbe: MarketingLeadTrade[];
+};
+
+export type MarketingLeadCompanyResponse = {
+  Company: MarketingLeadCompany | null;
+  ContactId: string | null;
+  ContactStatus: MarketingContactStatus | null;
 };
 
 export type MarketingAddLeadsResponse = {

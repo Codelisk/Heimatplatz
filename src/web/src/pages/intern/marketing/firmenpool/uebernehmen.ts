@@ -36,7 +36,9 @@ export const POST: APIRoute = async ({ request }) => {
 
   const result = await adminApiPost<MarketingAddLeadsResponse>(
     "/api/admin/marketing/lead-pool/add",
-    { FirmenbuchCompanyIds: ids },
+    // Die Auswahl-Werte sind Firmenbuchnummern - erst die Uebernahme materialisiert
+    // eine Firma aus der Firmenpool-API als Kontakt in der eigenen Datenbank.
+    { Fnrs: ids },
   );
 
   if (result?.Success) {

@@ -116,7 +116,6 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.Marketing.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.PropertyDrafts.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Telemetry.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
-        Heimatplatz.Api.Features.Firmenbuch.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.SearchConsole.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
 
         return app;

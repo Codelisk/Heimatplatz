@@ -1,6 +1,6 @@
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Admin.Services;
-using Heimatplatz.Api.Features.Firmenbuch.Data.Entities;
+using Heimatplatz.Api.Features.Firmenbuch.Services;
 using Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Marketing.Contracts.Models;
 using Heimatplatz.Api.Features.Marketing.Data.Entities;
@@ -11,18 +11,24 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Marketing.Handlers;
 
 /// <summary>
-/// Uebernimmt ausgewaehlte Firmenbuch-Firmen als Kontakte mit Status "Zu kontaktieren".
-/// Der Kontakt entsteht ohne E-Mail-Adresse - das Firmenbuch fuehrt keine Kontaktdaten,
-/// die kommen beim Telefonat dazu.
+/// Uebernimmt ausgewaehlte Firmenpool-Firmen als Kontakte mit Status "Zu kontaktieren".
+/// Je Firma wird der volle Datensatz live beim Firmenpool geholt - erst mit der Uebernahme
+/// entsteht ueberhaupt ein Datensatz in der Heimatplatz-Datenbank. Der Kontakt startet ohne
+/// E-Mail-Adresse (das Firmenbuch fuehrt keine Kontaktdaten); Adresse, Rechtsform und
+/// Geschaeftsfuehrung wandern in die Startnotiz.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/admin/marketing")]
 public class AddMarketingLeadsHandler(
     AppDbContext dbContext,
+    IFirmenpoolApiClient firmenpool,
     IAdminAccessGuard accessGuard
 ) : IRequestHandler<AddMarketingLeadsRequest, AddMarketingLeadsResponse>
 {
-    private const int MaxPerRequest = 500;
+    // Je Firma ein Live-Abruf beim Firmenpool (~200ms) - deshalb deutlich enger als die
+    // frueheren 500 aus Spiegel-Zeiten. Eine Poolseite (max. 200) uebersteigt das bewusst:
+    // Massenuebernahme in Etappen statt minutenlangem Request.
+    private const int MaxPerRequest = 50;
     private const string SourceName = "Firmenbuch";
 
     [MediatorHttpPost("/lead-pool/add", OperationId = "AddMarketingLeads")]
@@ -30,24 +36,21 @@ public class AddMarketingLeadsHandler(
     {
         accessGuard.EnsureAuthorized();
 
-        var ids = request.FirmenbuchCompanyIds?.Distinct().ToList() ?? [];
-        if (ids.Count == 0)
+        var fnrs = (request.Fnrs ?? [])
+            .Select(f => f?.Trim())
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .Select(f => f!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (fnrs.Count == 0)
             return new AddMarketingLeadsResponse(false, 0, 0, "Keine Firma ausgewaehlt.");
 
-        if (ids.Count > MaxPerRequest)
+        if (fnrs.Count > MaxPerRequest)
             return new AddMarketingLeadsResponse(false, 0, 0, $"Maximal {MaxPerRequest} Firmen pro Uebernahme.");
-
-        var companies = await dbContext.Set<FirmenbuchCompany>()
-            .AsNoTracking()
-            .Where(c => ids.Contains(c.Id))
-            .ToListAsync(cancellationToken);
-
-        if (companies.Count == 0)
-            return new AddMarketingLeadsResponse(false, 0, 0, "Die ausgewaehlten Firmen wurden nicht gefunden.");
 
         // Bereits uebernommene Firmenbuchnummern - macht die Uebernahme idempotent,
         // ohne pro Firma eine eigene Abfrage zu fahren
-        var fnrs = companies.Select(c => c.Fnr).ToList();
         var existing = await dbContext.Set<MarketingContact>()
             .Where(x => x.FirmenbuchFnr != null && fnrs.Contains(x.FirmenbuchFnr))
             .Select(x => x.FirmenbuchFnr!)
@@ -55,11 +58,24 @@ public class AddMarketingLeadsHandler(
 
         var now = DateTimeOffset.UtcNow;
         var added = 0;
+        var skipped = 0;
 
-        foreach (var company in companies)
+        foreach (var fnr in fnrs)
         {
-            if (existing.Contains(company.Fnr))
+            if (existing.Contains(fnr, StringComparer.OrdinalIgnoreCase))
+            {
+                skipped++;
                 continue;
+            }
+
+            var company = await firmenpool.GetCompanyDetailAsync(fnr, cancellationToken);
+            if (company is null)
+            {
+                // FNR dort unbekannt (Tippfehler, Firma ausserhalb OOe) - kein Abbruch,
+                // die uebrigen Firmen sollen trotzdem uebernommen werden.
+                skipped++;
+                continue;
+            }
 
             var contact = new MarketingContact
             {
@@ -67,7 +83,9 @@ public class AddMarketingLeadsHandler(
                 // Firmenname ist im Firmenbuch bis 500 Zeichen lang, das Kontaktfeld
                 // fasst 200 - abschneiden statt den Insert scheitern zu lassen
                 Company = Truncate(company.Name, 200),
-                City = Truncate(company.Sitz, 100),
+                City = Truncate(company.Ort ?? company.Sitz, 100),
+                // Kanonische FNR der Quelle, nicht die Eingabe - schuetzt den
+                // Unique-Index vor Schreibweisen-Dubletten
                 FirmenbuchFnr = company.Fnr,
                 ContactType = MarketingContactType.Broker,
                 Status = MarketingContactStatus.ToContact,
@@ -83,7 +101,7 @@ public class AddMarketingLeadsHandler(
         }
 
         if (added == 0)
-            return new AddMarketingLeadsResponse(true, 0, companies.Count, null);
+            return new AddMarketingLeadsResponse(true, 0, skipped, null);
 
         try
         {
@@ -99,11 +117,14 @@ public class AddMarketingLeadsHandler(
                 "Einige Firmen wurden gerade zeitgleich uebernommen. Bitte die Seite neu laden.");
         }
 
-        return new AddMarketingLeadsResponse(true, added, companies.Count - added, null);
+        return new AddMarketingLeadsResponse(true, added, skipped, null);
     }
 
-    /// <summary>Rechtsform und Firmenbuchnummer als Startnotiz - beides steht sonst nirgends am Kontakt.</summary>
-    private static string BuildNote(FirmenbuchCompany company)
+    /// <summary>
+    /// Startnotiz aus dem Firmenpool-Datensatz: FNR, Rechtsform, Gericht, Adresse und
+    /// aktive Geschaeftsfuehrung - nichts davon steht sonst am Kontakt.
+    /// </summary>
+    private static string BuildNote(FirmenpoolCompanyDetail company)
     {
         var parts = new List<string> { $"Firmenbuch: {company.Fnr}" };
 
@@ -112,6 +133,23 @@ public class AddMarketingLeadsHandler(
 
         if (!string.IsNullOrWhiteSpace(company.GerichtText))
             parts.Add(company.GerichtText);
+
+        var adresse = string.Join(" ", new[] { company.Strasse, company.Hausnummer }
+            .Where(x => !string.IsNullOrWhiteSpace(x)));
+        var ort = string.Join(" ", new[] { company.Plz, company.Ort }
+            .Where(x => !string.IsNullOrWhiteSpace(x)));
+        var anschrift = string.Join(", ", new[] { adresse, ort }.Where(x => x.Length > 0));
+        if (anschrift.Length > 0)
+            parts.Add(anschrift);
+
+        var geschaeftsfuehrung = company.Funktionaere
+            .Where(f => f.Aktiv)
+            .Select(f => f.Name)
+            .Distinct()
+            .Take(3)
+            .ToList();
+        if (geschaeftsfuehrung.Count > 0)
+            parts.Add($"GF: {string.Join(", ", geschaeftsfuehrung)}");
 
         return string.Join(" | ", parts);
     }

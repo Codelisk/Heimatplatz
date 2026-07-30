@@ -2781,6 +2781,36 @@
         }
       }
     },
+    "/api/admin/marketing/lead-pool/company/{Fnr}": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetMarketingLeadCompany",
+        "parameters": [
+          {
+            "name": "Fnr",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMarketingLeadCompanyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/lead-pool": {
       "get": {
         "tags": [
@@ -3703,132 +3733,6 @@
         }
       }
     },
-    "/api/firmenbuch/catalog/status": {
-      "get": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "GetFirmenbuchCatalogStatus",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetFirmenbuchCatalogStatusResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/firmenbuch/companies": {
-      "get": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "GetFirmenbuchCompanies",
-        "parameters": [
-          {
-            "name": "Page",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32",
-              "default": 1
-            }
-          },
-          {
-            "name": "PageSize",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32",
-              "default": 25
-            }
-          },
-          {
-            "name": "SearchText",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Sitz",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Status",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "RechtsformCode",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetFirmenbuchCompaniesResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/firmenbuch/catalog/sync": {
-      "post": {
-        "tags": [
-          "Heimatplatz.Api"
-        ],
-        "operationId": "TriggerFirmenbuchCatalogSync",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TriggerFirmenbuchCatalogSyncRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TriggerFirmenbuchCatalogSyncResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/admin/search-console/summary": {
       "get": {
         "tags": [
@@ -3962,15 +3866,14 @@
       },
       "AddMarketingLeadsRequest": {
         "required": [
-          "FirmenbuchCompanyIds"
+          "Fnrs"
         ],
         "type": "object",
         "properties": {
-          "FirmenbuchCompanyIds": {
+          "Fnrs": {
             "type": "array",
             "items": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         }
@@ -5208,82 +5111,6 @@
           }
         }
       },
-      "FirmenbuchCompanyDto": {
-        "required": [
-          "Id",
-          "Fnr",
-          "Name"
-        ],
-        "type": "object",
-        "properties": {
-          "Id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "Fnr": {
-            "type": "string"
-          },
-          "Name": {
-            "type": "string"
-          },
-          "Status": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "Sitz": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "RechtsformCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "RechtsformText": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "Rechtseigenschaft": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "GerichtCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "GerichtText": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "SourceOrtNr": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "FirstSeenAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "LastSeenAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "ForeclosureAuctionChangeDto": {
         "required": [
           "Id",
@@ -6151,83 +5978,6 @@
           }
         }
       },
-      "GetFirmenbuchCatalogStatusResponse": {
-        "type": "object",
-        "properties": {
-          "TotalCompanies": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "ActiveCompanies": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "ByStatus": {
-            "type": "object",
-            "additionalProperties": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32"
-            }
-          },
-          "LastSyncAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          }
-        }
-      },
-      "GetFirmenbuchCompaniesResponse": {
-        "required": [
-          "Companies"
-        ],
-        "type": "object",
-        "properties": {
-          "Companies": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FirmenbuchCompanyDto"
-            }
-          },
-          "TotalCount": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "Page": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "PageSize": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          }
-        }
-      },
       "GetForeclosureAuctionByIdResponse": {
         "type": "object",
         "properties": {
@@ -6527,6 +6277,43 @@
             "type": [
               "null",
               "string"
+            ]
+          }
+        }
+      },
+      "GetMarketingLeadCompanyResponse": {
+        "required": [
+          "Company",
+          "ContactId",
+          "ContactStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "Company": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingLeadCompanyDto"
+              }
+            ]
+          },
+          "ContactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "ContactStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
             ]
           }
         }
@@ -8591,9 +8378,146 @@
           }
         }
       },
+      "MarketingLeadCompanyDto": {
+        "required": [
+          "Fnr",
+          "Name",
+          "Status",
+          "Euid",
+          "Gegruendet",
+          "Strasse",
+          "Hausnummer",
+          "Plz",
+          "Ort",
+          "Staat",
+          "Sitz",
+          "RechtsformCode",
+          "RechtsformText",
+          "GerichtText",
+          "Handelsregisternummer",
+          "AuszugStand",
+          "AbschluesseVorhanden",
+          "Funktionaere",
+          "Gewerbe"
+        ],
+        "type": "object",
+        "properties": {
+          "Fnr": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Euid": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Gegruendet": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "Strasse": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Hausnummer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Plz": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Ort": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Staat": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Sitz": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RechtsformCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RechtsformText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "GerichtText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Handelsregisternummer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "AuszugStand": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "AbschluesseVorhanden": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Funktionaere": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingLeadOfficerDto"
+            }
+          },
+          "Gewerbe": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingLeadTradeDto"
+            }
+          }
+        }
+      },
       "MarketingLeadDto": {
         "required": [
-          "Id",
           "Fnr",
           "Name",
           "Sitz",
@@ -8603,10 +8527,6 @@
         ],
         "type": "object",
         "properties": {
-          "Id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "Fnr": {
             "type": "string"
           },
@@ -8641,6 +8561,84 @@
                 "$ref": "#/components/schemas/MarketingContactStatus"
               }
             ]
+          }
+        }
+      },
+      "MarketingLeadOfficerDto": {
+        "required": [
+          "Name",
+          "FunktionText",
+          "Seit",
+          "Aktiv"
+        ],
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "FunktionText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Seit": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "Aktiv": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MarketingLeadTradeDto": {
+        "required": [
+          "GisaZahl",
+          "Wortlaut",
+          "Plz",
+          "Ort",
+          "WeitereStandorte",
+          "Aktiv"
+        ],
+        "type": "object",
+        "properties": {
+          "GisaZahl": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "Wortlaut": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Plz": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Ort": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "WeitereStandorte": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Aktiv": {
+            "type": "boolean"
           }
         }
       },
@@ -10841,26 +10839,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "TriggerFirmenbuchCatalogSyncRequest": {
-        "type": "object",
-        "properties": {
-          "OrtNr": {
-            "type": "string",
-            "default": "4"
-          }
-        }
-      },
-      "TriggerFirmenbuchCatalogSyncResponse": {
-        "type": "object",
-        "properties": {
-          "Messages": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },

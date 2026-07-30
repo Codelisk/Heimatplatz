@@ -294,7 +294,7 @@ const hasActiveFilters = Boolean(search || ortSelection.length > 0 || !onlyOpen)
                   <input
                     type="checkbox"
                     name="ids"
-                    value={lead.Id}
+                    value={lead.Fnr}
                     disabled={lead.ContactId !== null}
                     aria-label={t("intern.mkPoolSelectCompany", { company: lead.Name })}
                     class="size-4 shrink-0 rounded border-input accent-primary disabled:opacity-35"

@@ -1,7 +1,6 @@
-using System.Linq.Expressions;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Features.Admin.Services;
-using Heimatplatz.Api.Features.Firmenbuch.Data.Entities;
+using Heimatplatz.Api.Features.Firmenbuch.Services;
 using Heimatplatz.Api.Features.Marketing.Configuration;
 using Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
 using Heimatplatz.Api.Features.Marketing.Contracts.Models;
@@ -14,14 +13,17 @@ using Shiny.Mediator;
 namespace Heimatplatz.Api.Features.Marketing.Handlers;
 
 /// <summary>
-/// Firmenpool: aufrechte Firmen aus dem Firmenbuch-Katalog, deren Name auf die
-/// Immobilienbranche hindeutet. Zeigt pro Firma, ob sie bereits als Kontakt uebernommen
-/// wurde (Verknuepfung ueber die Firmenbuchnummer).
+/// Firmenpool: aufrechte Firmen, deren Name auf die Immobilienbranche hindeutet - live aus
+/// der Firmenpool-API, Heimatplatz haelt keinen eigenen Firmenkatalog mehr. Schlagwort-,
+/// Orts- und Ausschlussfilter laufen serverseitig in der Quelle, damit Trefferzahl und
+/// Seitengrenzen exakt bleiben; nur der Uebernahme-Status (Kontakt-Verknuepfung ueber die
+/// Firmenbuchnummer) kommt aus der eigenen Datenbank dazu.
 /// </summary>
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 [MediatorHttpGroup("/api/admin/marketing")]
 public class GetMarketingLeadPoolHandler(
     AppDbContext dbContext,
+    IFirmenpoolApiClient firmenpool,
     IOptions<MarketingOptions> options,
     IAdminAccessGuard accessGuard
 ) : IRequestHandler<GetMarketingLeadPoolRequest, GetMarketingLeadPoolResponse>
@@ -31,130 +33,54 @@ public class GetMarketingLeadPoolHandler(
     {
         accessGuard.EnsureAuthorized();
 
-        // Status == null bedeutet im Katalog "aufrecht" - geloeschte Firmen sind als
-        // Kontakt wertlos und bleiben komplett aussen vor.
-        var query = dbContext.Set<FirmenbuchCompany>()
+        // Uebernommene Firmen samt Kontakt-Status - nur Pool-Uebernahmen tragen eine FNR,
+        // die Menge bleibt also klein. Sie dient beidem: dem Ausschlussfilter (OnlyOpen)
+        // und der Status-Anzeige je Treffer.
+        var uebernommen = await dbContext.Set<MarketingContact>()
             .AsNoTracking()
-            .Where(c => c.Status == null)
-            .Where(BranchNameFilter());
+            .Where(x => x.FirmenbuchFnr != null)
+            .Select(x => new { Fnr = x.FirmenbuchFnr!, x.Id, x.Status })
+            .ToListAsync(cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(request.Search))
-        {
-            var search = request.Search.Trim().ToLowerInvariant();
-            query = query.Where(c => c.Name.ToLower().Contains(search) || c.Fnr == search);
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Sitz))
-        {
-            query = query.Where(SitzFilter(request.Sitz));
-        }
-
-        // Uebernommene Firmen haengen ueber die Firmenbuchnummer am Kontakt
-        var taken = dbContext.Set<MarketingContact>()
-            .AsNoTracking()
-            .Where(x => x.FirmenbuchFnr != null);
-
-        if (request.OnlyOpen)
-            query = query.Where(c => !taken.Any(x => x.FirmenbuchFnr == c.Fnr));
-
-        var total = await query.CountAsync(cancellationToken);
+        var keywords = options.Value.LeadPool.NameKeywords
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => k.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         var page = Math.Max(request.Page, 0);
         var pageSize = Math.Clamp(request.PageSize, 1, 200);
 
-        // Die Uebernahme-Info (Kontakt-Id + Status) in EINER korrelierten Unterabfrage holen,
-        // nicht je Feld eine eigene
-        var rows = await query
-            .OrderBy(c => c.Name)
-            .ThenBy(c => c.Id)
-            .Skip(page * pageSize)
-            .Take(pageSize)
-            .Select(c => new
-            {
-                c.Id,
-                c.Fnr,
-                c.Name,
-                c.Sitz,
-                c.RechtsformText,
-                Taken = taken
-                    .Where(x => x.FirmenbuchFnr == c.Fnr)
-                    .Select(x => new { x.Id, x.Status })
-                    .FirstOrDefault()
-            })
-            .ToListAsync(cancellationToken);
+        var result = await firmenpool.GetCompaniesAsync(new FirmenpoolCompanyQuery
+        {
+            // Firmenpool zaehlt Seiten 1-basiert, dieser Endpoint historisch 0-basiert
+            Page = page + 1,
+            PageSize = pageSize,
+            SearchText = string.IsNullOrWhiteSpace(request.Search) ? null : request.Search.Trim(),
+            Sitz = request.Sitz,
+            Status = "aufrecht",
+            NameContainsAny = string.Join(',', keywords),
+            ExcludeFnrs = request.OnlyOpen && uebernommen.Count > 0
+                ? string.Join(',', uebernommen.Select(u => u.Fnr))
+                : null
+        }, cancellationToken);
 
-        var leads = rows
-            .Select(r => new MarketingLeadDto(
-                r.Id, r.Fnr, r.Name, r.Sitz, r.RechtsformText,
-                r.Taken?.Id,
-                r.Taken is null ? null : r.Taken.Status))
+        var kontaktByFnr = uebernommen
+            .GroupBy(u => u.Fnr, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        var leads = result.Items
+            .Select(item =>
+            {
+                kontaktByFnr.TryGetValue(item.Fnr, out var kontakt);
+                return new MarketingLeadDto(
+                    item.Fnr, item.Name, item.Sitz, item.RechtsformText,
+                    kontakt?.Id, kontakt?.Status);
+            })
             .ToList();
 
         return new GetMarketingLeadPoolResponse(
-            leads, total, pageSize, page, HasMore: (page + 1) * pageSize < total);
-    }
-
-    /// <summary>
-    /// Namensfilter auf die Immobilienbranche: "Name enthaelt eines der Schlagworte".
-    /// Das Firmenbuch fuehrt keine Branche, deshalb ist der Name die einzige Handhabe.
-    /// Die OR-Kette wird als Ausdrucksbaum gebaut, weil EF eine lokale Liste in
-    /// keywords.Any(k => name.Contains(k)) nicht nach SQL uebersetzt.
-    /// Leere Schlagwortliste = kein Filter.
-    /// </summary>
-    private Expression<Func<FirmenbuchCompany, bool>> BranchNameFilter()
-    {
-        var keywords = options.Value.LeadPool.NameKeywords
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .Select(k => k.Trim().ToLowerInvariant())
-            .Distinct()
-            .ToList();
-
-        if (keywords.Count == 0)
-            return _ => true;
-
-        var company = Expression.Parameter(typeof(FirmenbuchCompany), "c");
-        var lowerName = Expression.Call(
-            Expression.Property(company, nameof(FirmenbuchCompany.Name)),
-            typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!);
-        var contains = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
-
-        var body = keywords
-            .Select(k => (Expression)Expression.Call(lowerName, contains, Expression.Constant(k)))
-            .Aggregate(Expression.OrElse);
-
-        return Expression.Lambda<Func<FirmenbuchCompany, bool>>(body, company);
-    }
-
-    /// <summary>
-    /// Der Astro-OrtPicker kann wie auf der Startseite mehrere Gemeinden liefern.
-    /// Die Werte kommen kommasepariert an und werden als ODER-Filter auf den
-    /// Firmenbuch-Sitz angewendet. Ein einzelner Wert bleibt abwaertskompatibel.
-    /// </summary>
-    private static Expression<Func<FirmenbuchCompany, bool>> SitzFilter(string rawSitz)
-    {
-        var sitze = rawSitz
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(x => x.ToLowerInvariant())
-            .Distinct()
-            .ToList();
-
-        if (sitze.Count == 0)
-            return _ => true;
-
-        var company = Expression.Parameter(typeof(FirmenbuchCompany), "c");
-        var sitzProperty = Expression.Property(company, nameof(FirmenbuchCompany.Sitz));
-        var hasSitz = Expression.NotEqual(sitzProperty, Expression.Constant(null, typeof(string)));
-        var lowerSitz = Expression.Call(
-            sitzProperty,
-            typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!);
-        var contains = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
-
-        var matchesAnySitz = sitze
-            .Select(sitz => (Expression)Expression.Call(lowerSitz, contains, Expression.Constant(sitz)))
-            .Aggregate(Expression.OrElse);
-
-        return Expression.Lambda<Func<FirmenbuchCompany, bool>>(
-            Expression.AndAlso(hasSitz, matchesAnySitz),
-            company);
+            leads, result.TotalCount, pageSize, page,
+            HasMore: (page + 1) * pageSize < result.TotalCount);
     }
 }
