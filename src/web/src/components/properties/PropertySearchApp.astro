@@ -52,6 +52,44 @@ const ortRegions = await fetchOrtRegions();
 >
 </div>
 <script is:inline type="application/json" data-ort-slug-map set:html={jsonForScriptTag(ortSlugMap)} />
+<script is:inline>
+  // Direkt beim Parsen (vor dem ersten Paint) entscheiden: weichen die im
+  // localStorage gespeicherten Filter vom SSR-Stand (nur URL-Parameter) ab,
+  // wuerde kurz die ungefilterte Trefferliste aufblitzen, bis das gebuendelte
+  // Such-Script refetcht. Dann die SSR-Treffer verbergen (CSS unten) - das
+  // Such-Script blendet sie nach dem gefilterten Fetch (oder bei Gleichstand
+  // sofort) wieder ein. Ohne gespeicherte Filter passiert hier nichts.
+  (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const raw = window.localStorage.getItem("heimatplatz:filter-preferences");
+      if (!raw) return;
+      const prefs = JSON.parse(raw);
+      if (!prefs || typeof prefs !== "object") return;
+      // Spiegel der Initial-Logik im Such-Script: URL-Parameter gewinnen immer,
+      // gespeicherte Werte zaehlen nur, wo sie vom Standard abweichen. Im
+      // Zweifel lieber nicht verbergen - das Such-Script vergleicht exakt.
+      const types = [
+        prefs.IsHausSelected !== false ? "house" : "",
+        prefs.IsGrundstueckSelected !== false ? "land" : "",
+        prefs.IsZwangsversteigerungSelected === true ? "foreclosure" : "",
+      ].filter(Boolean);
+      const differs =
+        (!params.has("type") && types.length > 0 && types.join(",") !== "house,land")
+        || (!params.has("seller") && (prefs.IsPrivateSelected === false) !== (prefs.IsBrokerSelected === false))
+        || (!params.has("age") && Number(prefs.SelectedAgeFilter ?? 0) > 0)
+        || (!params.has("region") && Array.isArray(prefs.SelectedOrtes) && prefs.SelectedOrtes.some((ort) => String(ort).trim()))
+        || (!params.has("sort") && Number(prefs.SelectedSort ?? 0) > 0);
+      if (!differs) return;
+      document.documentElement.setAttribute("data-search-pending", "");
+      // Failsafe: laeuft das Such-Script nie (JS-Fehler, Bundle blockiert),
+      // nach kurzer Zeit wenigstens den SSR-Stand zeigen statt gar nichts.
+      window.setTimeout(() => document.documentElement.removeAttribute("data-search-pending"), 4000);
+    } catch {
+      // localStorage gesperrt/kaputt: SSR-Stand normal anzeigen
+    }
+  })();
+</script>
 
 {/* Suchleiste: Desktop-Filter links, Treffer-Stempel + Sortierung rechts.
     Ab lg klebt sie unter dem Header (Filter bleiben beim Scrollen greifbar);
@@ -140,6 +178,11 @@ const ortRegions = await fetchOrtRegions();
     <div class="mx-auto grid max-w-7xl gap-4 @2xl:grid-cols-2 @6xl:grid-cols-3" data-property-grid>
       {apiProperties.map((property) => <ApiPropertyCard property={property} />)}
     </div>
+    {/* Nur sichtbar, solange das Inline-Script oben die SSR-Treffer verbirgt
+        (data-search-pending am <html>) - danach uebernimmt data-live-status */}
+    <p class="mx-auto hidden max-w-7xl py-16 text-center text-sm text-muted-foreground" data-search-pending-hint>
+      {t("search.loading")}
+    </p>
     <p class="mx-auto mt-4 hidden max-w-7xl text-sm text-muted-foreground" data-live-status></p>
     <p
       class:list={["mx-auto max-w-7xl py-16 text-center text-sm text-muted-foreground", total !== 0 && "hidden"]}
@@ -180,6 +223,29 @@ const ortRegions = await fetchOrtRegions();
   </section>
   <PropertyMapPanel />
 </div>
+
+<style is:global>
+  /* Gespeicherte Filter weichen vom SSR-Stand ab (data-search-pending am <html>,
+     gesetzt vom Inline-Script oben): SSR-Treffer, Trefferzahl und Paging
+     verbergen, bis der gefilterte Refetch steht - sonst blitzt kurz die
+     ungefilterte Liste auf. Trefferzahl nur visibility, damit die Suchleiste
+     nicht springt. */
+  html[data-search-pending] [data-property-grid],
+  html[data-search-pending] [data-empty-state],
+  html[data-search-pending] [data-pagination],
+  html[data-search-pending] [data-live-status] {
+    display: none;
+  }
+
+  html[data-search-pending] [data-result-count],
+  html[data-search-pending] [data-mobile-result-count] {
+    visibility: hidden;
+  }
+
+  html[data-search-pending] [data-search-pending-hint] {
+    display: block;
+  }
+</style>
 
 <script>
   import { getResponsiveImage } from "@/lib/images";
@@ -445,6 +511,12 @@ const ortRegions = await fetchOrtRegions();
     if (sellerType === "Broker" || sellerType === 2) return t("card.sellerAgent");
     if (sellerType === "PropertyManager" || sellerType === 3) return t("card.sellerManager");
     return t("card.sellerPrivate");
+  }
+
+  // Hebt das Verbergen der SSR-Treffer wieder auf (das Inline-Script oben setzt
+  // data-search-pending, wenn gespeicherte Filter vom SSR-Stand abweichen)
+  function revealSearchResults() {
+    document.documentElement.removeAttribute("data-search-pending");
   }
 
   function setLiveStatus(message: string, visible = true) {
@@ -840,9 +912,13 @@ const ortRegions = await fetchOrtRegions();
       updateResultMeta();
       updateUrl();
       setLiveStatus("", false);
+      revealSearchResults();
     } catch {
       if (controller.signal.aborted) return;
       setLiveStatus(t("search.loadError"));
+      // Fetch fehlgeschlagen (offline/API weg): lieber den SSR-Stand zeigen
+      // als eine dauerhaft leere Seite
+      revealSearchResults();
     }
   }
 
@@ -1023,11 +1099,22 @@ const ortRegions = await fetchOrtRegions();
   updateResultMeta();
   // Initialen Query auch ohne Refetch melden - die Kartenansicht braucht ihn,
   // sobald sie geoeffnet wird (bei Refetch folgt gleich ein zweiter Dispatch)
-  announceQuery(buildPropertySearchQuery(getSearchState(), ortSlugMap));
+  const initialQuery = buildPropertySearchQuery(getSearchState(), ortSlugMap);
+  announceQuery(initialQuery);
   // Refetch, wenn der effektive Initial-Zustand (URL + gespeicherte Praeferenzen)
   // vom SSR-Zustand (nur URL) abweicht - oder eine Session existiert: SSR laeuft
   // ohne Token, erst der authentifizierte Fetch filtert blockierte Immobilien aus.
-  if (buildPropertySearchQuery(getSearchState(), ortSlugMap) !== (config?.dataset.ssrQuery ?? "") || readAccessToken()) {
-    scheduleRefresh();
+  if (initialQuery !== (config?.dataset.ssrQuery ?? "")) {
+    // Ohne Debounce: das Inline-Script verbirgt die SSR-Treffer bereits,
+    // jede weitere Wartezeit verlaengert nur die Ladeanzeige.
+    void refresh();
+  } else {
+    // Das Inline-Script prueft konservativer als der exakte Query-Vergleich
+    // (z.B. gespeicherte Orte, die auf keine Gemeinde aufloesen): Gleichstand
+    // heisst, der SSR-Stand ist bereits korrekt - sofort zeigen. Der Token-
+    // Refetch (blockierte Inserate) laeuft wie bisher unsichtbar im Hintergrund
+    // ueber der sichtbaren Liste.
+    revealSearchResults();
+    if (readAccessToken()) scheduleRefresh();
   }
 </script>
