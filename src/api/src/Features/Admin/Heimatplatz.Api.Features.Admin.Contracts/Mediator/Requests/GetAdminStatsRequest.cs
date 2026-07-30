@@ -13,7 +13,6 @@ public record GetAdminStatsResponse(
     int NewUsers30Days,
     int TotalProperties,
     int UserProperties,
-    int NewUserProperties7Days,
     int ForeclosureProperties,
     int HiddenProperties
 );
