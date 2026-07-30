@@ -39,6 +39,7 @@ public class GetAdminStatsHandler(
             NewUsers30Days: await users.CountAsync(u => u.CreatedAt >= since30Days, cancellationToken),
             TotalProperties: await properties.CountAsync(cancellationToken),
             UserProperties: await properties.CountAsync(p => p.Type != PropertyType.Foreclosure, cancellationToken),
+            NewUserProperties7Days: await properties.CountAsync(p => p.Type != PropertyType.Foreclosure && p.CreatedAt >= since7Days, cancellationToken),
             ForeclosureProperties: await properties.CountAsync(p => p.Type == PropertyType.Foreclosure, cancellationToken),
             HiddenProperties: await properties.CountAsync(p => p.IsHidden, cancellationToken)
         );

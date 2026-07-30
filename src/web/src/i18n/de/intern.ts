@@ -39,6 +39,49 @@ export const intern = {
   "intern.navAnalyticsDescription":
     "Rybbit-Traffic-Dashboard öffnen und Suchperformance-Kennzahlen aus der Google Search Console einsehen.",
 
+  // Dashboard: Aufgabenliste ("Zu erledigen")
+  "intern.dashSummaryNone": "Alles erledigt – nichts offen.",
+  "intern.dashSummaryOne": "1 Aufgabe offen.",
+  "intern.dashSummaryMany": "{count} Aufgaben offen.",
+  "intern.dashTodoHeading": "Zu erledigen",
+  "intern.dashTodoEmpty":
+    "Nichts offen – alle Rückmeldungen beantwortet, keine Fälligkeiten.",
+  "intern.dashTodoLoadFailed":
+    "Aufgaben konnten nicht ermittelt werden. Ist die API erreichbar und ADMIN_API_KEY gesetzt?",
+  "intern.dashTodoFbUnreadOne": "1 ungelesene Rückmeldung im Feedback",
+  "intern.dashTodoFbUnread": "{count} ungelesene Rückmeldungen im Feedback",
+  "intern.dashTodoMailUnreadOne": "1 ungelesene E-Mail-Antwort im Posteingang",
+  "intern.dashTodoMailUnread": "{count} ungelesene E-Mail-Antworten im Posteingang",
+  "intern.dashTodoFbOpenOne": "1 offene Feedback-Anfrage",
+  "intern.dashTodoFbOpen": "{count} offene Feedback-Anfragen",
+  "intern.dashTodoDueOne": "1 fällige Wiedervorlage im CRM",
+  "intern.dashTodoDue": "{count} fällige Wiedervorlagen im CRM",
+  "intern.dashTodoToContactOne": "1 Kontakt wartet auf Erstansprache",
+  "intern.dashTodoToContact": "{count} Kontakte warten auf Erstansprache",
+  "intern.dashTodoSyncStale": "Edikte-Sync ist älter als 24 Stunden",
+  "intern.dashTodoSyncNever": "Edikte-Sync wurde noch nie ausgeführt",
+
+  // Dashboard: Bereichskacheln mit Live-Badges
+  "intern.dashAreasHeading": "Bereiche",
+  "intern.dashBadgeUnread": "{count} ungelesen",
+  "intern.dashBadgeOpen": "{count} offen",
+  "intern.dashBadgeDue": "{count} fällig",
+  "intern.dashBadgeToContact": "{count} zu kontaktieren",
+  "intern.dashBadgeNew7": "+{count} in 7 Tagen",
+  "intern.dashBadgeHidden": "{count} ausgeblendet",
+  "intern.dashCardQuiet": "Nichts Neues",
+  "intern.dashScClicks28": "{count} Klicks in 28 Tagen",
+  "intern.dashScNotConfigured": "Search Console noch nicht angebunden.",
+
+  // Dashboard: Aktivitäts-Feed
+  "intern.dashFeedHeading": "Zuletzt passiert",
+  "intern.dashFeedEmpty": "Noch keine Aktivität sichtbar.",
+  "intern.dashFeedKindUser": "Neuer Nutzer",
+  "intern.dashFeedKindProperty": "Neues Inserat",
+  "intern.dashFeedKindFeedback": "Feedback",
+  "intern.dashFeedKindMail": "E-Mail-Antwort",
+  "intern.dashJustNow": "gerade eben",
+
   // Edikte-Sync (Zwangsversteigerungen)
   "intern.syncTriggered":
     "Sync wurde gestartet und läuft im Hintergrund (Scraping mit Verzögerung pro Edikt - je nach Anzahl ein bis wenige Minuten). Lade diese Seite in 1-2 Minuten neu, um das Ergebnis zu sehen.",

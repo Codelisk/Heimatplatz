@@ -3,7 +3,18 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import { getServerApiBaseUrl } from "@/lib/server/api-base";
-import { adminApiGet, type AdminStats } from "@/lib/server/admin-api";
+import {
+  adminApiGet,
+  type AdminFeedbackStats,
+  type AdminFeedbackTicketsPage,
+  type AdminPropertiesPage,
+  type AdminStats,
+  type AdminUsersPage,
+  type MarketingInboxPage,
+  type MarketingStats,
+  type SearchConsoleSummary,
+} from "@/lib/server/admin-api";
+import { formatInternDay } from "@/lib/intern/marketing-labels";
 
 // Erreichbarkeit ist bereits durch Caddy auf IP-Ebene beschraenkt (siehe
 // deploy/hetzner/Caddyfile, @internBlocked auf /intern*) - kein weiterer Check noetig,
@@ -27,10 +38,43 @@ async function fetchSyncStatus(): Promise<SyncStatus | null> {
   }
 }
 
-const [status, stats] = await Promise.all([
+// Fan-out auf die bestehenden Admin-Endpoints - das Dashboard aggregiert nur die Anzeige,
+// alle Kennzahlen kommen aus der API. Der Inbox-Abruf stoesst denselben gedrosselten
+// IMAP-Sync an wie /intern/marketing/eingang/ (max. alle 5 Minuten), damit auch der
+// Posteingang beim Dashboard-Aufruf aktuell ist.
+const FEED_PAGE = "page=0&pageSize=6";
+const [
+  status,
+  stats,
+  fbStats,
+  fbLatest,
+  mkStats,
+  inboxLatest,
+  latestUsers,
+  latestProperties,
+  searchConsole,
+] = await Promise.all([
   fetchSyncStatus(),
   adminApiGet<AdminStats>("/api/admin/stats"),
+  adminApiGet<AdminFeedbackStats>("/api/admin/feedback/stats"),
+  adminApiGet<AdminFeedbackTicketsPage>(`/api/admin/feedback?${FEED_PAGE}`),
+  adminApiGet<MarketingStats>("/api/admin/marketing/stats"),
+  adminApiGet<MarketingInboxPage>(`/api/admin/marketing/inbox?${FEED_PAGE}`),
+  adminApiGet<AdminUsersPage>(`/api/admin/users?${FEED_PAGE}`),
+  // Groessere Seite als der Feed braucht: aus derselben Antwort wird unten die
+  // "+X in 7 Tagen"-Kennzahl gezaehlt (die Stats-API fuehrt sie nicht)
+  adminApiGet<AdminPropertiesPage>("/api/admin/properties?source=user&page=0&pageSize=20"),
+  adminApiGet<SearchConsoleSummary>("/api/admin/search-console/summary"),
 ]);
+
+// Neue Nutzer-Inserate der letzten 7 Tage aus der neuesten-zuerst sortierten Liste;
+// bei mehr als 20 Neuen in 7 Tagen zaehlt die Stichprobe zu wenig - fuer die
+// Dashboard-Anzeige verschmerzbar.
+const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+const newUserProperties7Days = (latestProperties?.Properties ?? []).filter(
+  (property) => new Date(property.CreatedAt).getTime() >= sevenDaysAgoMs,
+).length;
+
 const triggered = Astro.url.searchParams.get("triggered") === "1";
 const triggerFailed = Astro.url.searchParams.get("triggered") === "0";
 // Laeuft gerade ein Sync, wird der Start-Button deaktiviert - der Server ignoriert
@@ -46,17 +90,323 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
-const statEntries = stats
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("de-AT").format(value);
+}
+
+// Relative Zeit fuer Feed und Kachel-Vorschauen ("vor 2 Stunden"); aelter als
+// 30 Tage faellt auf das Datum zurueck.
+const relativeFormat = new Intl.RelativeTimeFormat("de-AT", { numeric: "auto" });
+function formatRelative(value: string): string {
+  const diffMinutes = Math.round((Date.now() - new Date(value).getTime()) / 60_000);
+  if (diffMinutes < 1) return t("intern.dashJustNow");
+  if (diffMinutes < 60) return relativeFormat.format(-diffMinutes, "minute");
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours < 24) return relativeFormat.format(-diffHours, "hour");
+  const diffDays = Math.round(diffHours / 24);
+  if (diffDays <= 30) return relativeFormat.format(-diffDays, "day");
+  return formatInternDay(value);
+}
+
+// --- Aufgabenliste: alles, was auf eine Reaktion wartet, mit Deep-Link dorthin ---
+type TodoTone = "urgent" | "due" | "info";
+type Todo = { tone: TodoTone; label: string; href: string };
+
+const todos: Todo[] = [];
+
+if (fbStats && fbStats.UnreadFromUser > 0) {
+  todos.push({
+    tone: "urgent",
+    href: "/intern/feedback/",
+    label:
+      fbStats.UnreadFromUser === 1
+        ? t("intern.dashTodoFbUnreadOne")
+        : t("intern.dashTodoFbUnread", { count: fbStats.UnreadFromUser }),
+  });
+}
+if (mkStats && mkStats.UnreadReplies > 0) {
+  todos.push({
+    tone: "urgent",
+    href: "/intern/marketing/eingang/?filter=unread",
+    label:
+      mkStats.UnreadReplies === 1
+        ? t("intern.dashTodoMailUnreadOne")
+        : t("intern.dashTodoMailUnread", { count: mkStats.UnreadReplies }),
+  });
+}
+if (fbStats && fbStats.Open > 0) {
+  todos.push({
+    tone: "due",
+    href: "/intern/feedback/?status=Open",
+    label:
+      fbStats.Open === 1
+        ? t("intern.dashTodoFbOpenOne")
+        : t("intern.dashTodoFbOpen", { count: fbStats.Open }),
+  });
+}
+if (mkStats && mkStats.FollowUpDue > 0) {
+  todos.push({
+    tone: "due",
+    href: "/intern/marketing/kontakte/?faellig=1",
+    label:
+      mkStats.FollowUpDue === 1
+        ? t("intern.dashTodoDueOne")
+        : t("intern.dashTodoDue", { count: mkStats.FollowUpDue }),
+  });
+}
+if (mkStats && mkStats.ToContact > 0) {
+  todos.push({
+    tone: "info",
+    href: "/intern/marketing/kontakte/?status=ToContact",
+    label:
+      mkStats.ToContact === 1
+        ? t("intern.dashTodoToContactOne")
+        : t("intern.dashTodoToContact", { count: mkStats.ToContact }),
+  });
+}
+if (status && !syncRunning) {
+  const lastSyncAge = status.LastSyncAt ? Date.now() - new Date(status.LastSyncAt).getTime() : null;
+  if (lastSyncAge === null) {
+    todos.push({ tone: "info", href: "#edikte-sync", label: t("intern.dashTodoSyncNever") });
+  } else if (lastSyncAge > 24 * 60 * 60 * 1000) {
+    todos.push({ tone: "info", href: "#edikte-sync", label: t("intern.dashTodoSyncStale") });
+  }
+}
+
+const toneRank: Record<TodoTone, number> = { urgent: 0, due: 1, info: 2 };
+todos.sort((a, b) => toneRank[a.tone] - toneRank[b.tone]);
+// Beide Quellen weg = Aufgaben nicht ermittelbar (statt faelschlich "alles erledigt")
+const todoSourcesFailed = !fbStats && !mkStats;
+
+const hasUrgent = todos.some((todo) => todo.tone === "urgent");
+const hasDue = todos.some((todo) => todo.tone === "due");
+const summaryDotClass = hasUrgent ? "bg-red-600" : hasDue ? "bg-amber-500" : "bg-emerald-500";
+const summaryText = todoSourcesFailed
+  ? t("intern.dashTodoLoadFailed")
+  : todos.length === 0
+    ? t("intern.dashSummaryNone")
+    : todos.length === 1
+      ? t("intern.dashSummaryOne")
+      : t("intern.dashSummaryMany", { count: todos.length });
+
+const todoDotClass: Record<TodoTone, string> = {
+  urgent: "bg-red-600",
+  due: "bg-amber-500",
+  info: "bg-muted-foreground/40",
+};
+
+// --- Aktivitaets-Feed: neueste Ereignisse aller Bereiche, zeitlich gemischt ---
+type FeedKind = "user" | "property" | "feedback" | "mail";
+type FeedItem = {
+  kind: FeedKind;
+  at: string;
+  title: string;
+  meta: string | null;
+  href: string;
+  unread: boolean;
+};
+
+const feed: FeedItem[] = [];
+for (const user of latestUsers?.Users ?? []) {
+  feed.push({
+    kind: "user",
+    at: user.CreatedAt,
+    title: user.FullName || user.Email,
+    meta: user.Email,
+    href: `/intern/nutzer/?q=${encodeURIComponent(user.Email)}`,
+    unread: false,
+  });
+}
+for (const property of latestProperties?.Properties ?? []) {
+  feed.push({
+    kind: "property",
+    at: property.CreatedAt,
+    title: property.Title,
+    meta: property.MunicipalityName,
+    href: `/intern/immobilien/?q=${encodeURIComponent(property.Title)}`,
+    unread: false,
+  });
+}
+for (const ticket of fbLatest?.Tickets ?? []) {
+  feed.push({
+    kind: "feedback",
+    at: ticket.LastMessageAt,
+    title: ticket.Subject,
+    meta: ticket.UserName ?? ticket.UserEmail,
+    href: `/intern/feedback/detail/?id=${ticket.Id}`,
+    unread: ticket.HasUnreadFromUser,
+  });
+}
+for (const mail of inboxLatest?.Items ?? []) {
+  feed.push({
+    kind: "mail",
+    at: mail.ReceivedAt,
+    title: mail.Subject ?? mail.FromAddress,
+    meta: mail.FromName ?? mail.FromAddress,
+    href: "/intern/marketing/eingang/",
+    unread: !mail.IsRead,
+  });
+}
+feed.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+const feedItems = feed.slice(0, 10);
+
+const feedKindLabel: Record<FeedKind, string> = {
+  user: t("intern.dashFeedKindUser"),
+  property: t("intern.dashFeedKindProperty"),
+  feedback: t("intern.dashFeedKindFeedback"),
+  mail: t("intern.dashFeedKindMail"),
+};
+
+// --- Bereichskacheln: Live-Badges + Vorschau der neuesten Eintraege ---
+type BadgeTone = "urgent" | "due" | "new" | "muted";
+type Badge = { text: string; tone: BadgeTone; href?: string };
+type Preview = { title: string; meta: string; href: string; unread?: boolean };
+type AreaCard = {
+  href: string;
+  title: string;
+  description: string;
+  badges: Badge[];
+  previews: Preview[];
+  note?: string;
+  // Live-Bereiche zeigen "Nichts Neues", Konfigurations-Bereiche bleiben chip-frei
+  quietChip: boolean;
+};
+
+const badgeToneClass: Record<BadgeTone, string> = {
+  urgent: "bg-red-600 text-white",
+  due: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  new: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+  muted: "bg-muted text-muted-foreground",
+};
+
+const feedbackBadges: Badge[] = [];
+if (fbStats && fbStats.UnreadFromUser > 0)
+  feedbackBadges.push({ tone: "urgent", text: t("intern.dashBadgeUnread", { count: fbStats.UnreadFromUser }) });
+if (fbStats && fbStats.Open > 0)
+  feedbackBadges.push({ tone: "due", text: t("intern.dashBadgeOpen", { count: fbStats.Open }) });
+
+const marketingBadges: Badge[] = [];
+if (mkStats && mkStats.UnreadReplies > 0)
+  marketingBadges.push({ tone: "urgent", text: t("intern.dashBadgeUnread", { count: mkStats.UnreadReplies }) });
+if (mkStats && mkStats.FollowUpDue > 0)
+  marketingBadges.push({ tone: "due", text: t("intern.dashBadgeDue", { count: mkStats.FollowUpDue }) });
+if (mkStats && mkStats.ToContact > 0)
+  marketingBadges.push({ tone: "muted", text: t("intern.dashBadgeToContact", { count: mkStats.ToContact }) });
+
+const propertyBadges: Badge[] = [];
+if (newUserProperties7Days > 0)
+  propertyBadges.push({ tone: "new", text: t("intern.dashBadgeNew7", { count: newUserProperties7Days }) });
+if (stats && stats.HiddenProperties > 0)
+  propertyBadges.push({
+    tone: "muted",
+    text: t("intern.dashBadgeHidden", { count: stats.HiddenProperties }),
+    href: "/intern/immobilien/?status=hidden",
+  });
+
+const userBadges: Badge[] = [];
+if (stats && stats.NewUsers7Days > 0)
+  userBadges.push({ tone: "new", text: t("intern.dashBadgeNew7", { count: stats.NewUsers7Days }) });
+
+const areaCards: AreaCard[] = [
+  {
+    href: "/intern/feedback/",
+    title: t("intern.navFeedback"),
+    description: t("intern.navFeedbackDescription"),
+    badges: feedbackBadges,
+    previews: (fbLatest?.Tickets ?? []).slice(0, 2).map((ticket) => ({
+      title: ticket.Subject,
+      meta: formatRelative(ticket.LastMessageAt),
+      href: `/intern/feedback/detail/?id=${ticket.Id}`,
+      unread: ticket.HasUnreadFromUser,
+    })),
+    quietChip: true,
+  },
+  {
+    href: "/intern/marketing/",
+    title: t("intern.navMarketing"),
+    description: t("intern.navMarketingDescription"),
+    badges: marketingBadges,
+    previews: (inboxLatest?.Items ?? []).slice(0, 2).map((mail) => ({
+      title: mail.Subject ?? mail.FromAddress,
+      meta: formatRelative(mail.ReceivedAt),
+      href: "/intern/marketing/eingang/",
+      unread: !mail.IsRead,
+    })),
+    quietChip: true,
+  },
+  {
+    href: "/intern/immobilien/",
+    title: t("intern.navProperties"),
+    description: t("intern.navPropertiesDescription"),
+    badges: propertyBadges,
+    previews: (latestProperties?.Properties ?? []).slice(0, 2).map((property) => ({
+      title: property.Title,
+      meta: `${property.MunicipalityName} · ${formatRelative(property.CreatedAt)}`,
+      href: `/intern/immobilien/?q=${encodeURIComponent(property.Title)}`,
+    })),
+    quietChip: true,
+  },
+  {
+    href: "/intern/nutzer/",
+    title: t("intern.navUsers"),
+    description: t("intern.navUsersDescription"),
+    badges: userBadges,
+    previews: (latestUsers?.Users ?? []).slice(0, 2).map((user) => ({
+      title: user.FullName || user.Email,
+      meta: formatRelative(user.CreatedAt),
+      href: `/intern/nutzer/?q=${encodeURIComponent(user.Email)}`,
+    })),
+    quietChip: true,
+  },
+  {
+    href: "/intern/analytics/",
+    title: t("intern.navAnalytics"),
+    description: t("intern.navAnalyticsDescription"),
+    badges: [],
+    previews: [],
+    note:
+      searchConsole && searchConsole.Enabled
+        ? t("intern.dashScClicks28", { count: formatNumber(searchConsole.ClicksTotal) })
+        : searchConsole
+          ? t("intern.dashScNotConfigured")
+          : undefined,
+    quietChip: false,
+  },
+  {
+    href: "/intern/kontakt/",
+    title: t("intern.navContact"),
+    description: t("intern.navContactDescription"),
+    badges: [],
+    previews: [],
+    quietChip: false,
+  },
+];
+
+// --- Kennzahlen-Leiste ---
+const statTiles = stats
   ? [
-      { label: t("intern.statsTotalUsers"), value: stats.TotalUsers },
-      { label: t("intern.statsNewUsers7"), value: stats.NewUsers7Days },
-      { label: t("intern.statsNewUsers30"), value: stats.NewUsers30Days },
-      { label: t("intern.statsTotalProperties"), value: stats.TotalProperties },
-      { label: t("intern.statsUserProperties"), value: stats.UserProperties },
-      { label: t("intern.statsForeclosures"), value: stats.ForeclosureProperties },
-      { label: t("intern.statsHidden"), value: stats.HiddenProperties },
+      {
+        label: t("intern.statsTotalUsers"),
+        value: stats.TotalUsers,
+        delta: stats.NewUsers7Days > 0 ? t("intern.dashBadgeNew7", { count: stats.NewUsers7Days }) : null,
+      },
+      {
+        label: t("intern.statsUserProperties"),
+        value: stats.UserProperties,
+        delta:
+          newUserProperties7Days > 0
+            ? t("intern.dashBadgeNew7", { count: newUserProperties7Days })
+            : null,
+      },
+      { label: t("intern.statsForeclosures"), value: stats.ForeclosureProperties, delta: null },
+      { label: t("intern.statsHidden"), value: stats.HiddenProperties, delta: null },
     ]
   : [];
+
+const today = new Intl.DateTimeFormat("de-AT", {
+  dateStyle: "full",
+  timeZone: "Europe/Vienna",
+}).format(new Date());
 ---
 
 <BaseLayout
@@ -65,11 +415,15 @@ const statEntries = stats
   canonicalPath="/intern/"
   noindex
 >
-  <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold">{t("intern.title")}</h1>
-    <p class="mt-3 text-sm leading-6 text-muted-foreground">
-      {t("intern.intro")}
-    </p>
+  <section class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <header>
+      <p class="text-sm text-muted-foreground">{today}</p>
+      <h1 class="mt-1 text-3xl font-bold">{t("intern.title")}</h1>
+      <p class="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+        <span class={`inline-block size-2 shrink-0 rounded-full ${summaryDotClass}`} aria-hidden="true"></span>
+        {summaryText}
+      </p>
+    </header>
 
     {triggered && (
       <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
@@ -77,126 +431,232 @@ const statEntries = stats
       </div>
     )}
     {triggerFailed && (
-      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
         {t("intern.syncFailed")}
       </div>
     )}
-    <section class="mt-8 rounded-lg border border-border bg-card p-5">
-      <h2 class="text-base font-semibold">{t("intern.statsHeading")}</h2>
 
-      {stats ? (
-        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
-          {statEntries.map((entry) => (
-            <div>
-              <dt class="text-muted-foreground">{entry.label}</dt>
-              <dd class="text-lg font-semibold">{entry.value}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        <p class="mt-4 text-sm text-muted-foreground">{t("intern.statsLoadFailed")}</p>
-      )}
-    </section>
+    {stats ? (
+      <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {statTiles.map((tile) => (
+          <div class="rounded-lg border border-border bg-card p-4">
+            <dt class="text-xs text-muted-foreground">{tile.label}</dt>
+            <dd class="mt-1 flex flex-wrap items-baseline gap-2">
+              <span class="text-2xl font-bold">{formatNumber(tile.value)}</span>
+              {tile.delta && (
+                <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                  {tile.delta}
+                </span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    ) : (
+      <p class="mt-6 text-sm text-muted-foreground">{t("intern.statsLoadFailed")}</p>
+    )}
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2">
-      <a
-        href="/intern/nutzer/"
-        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
-      >
-        <h2 class="text-base font-semibold">{t("intern.navUsers")}</h2>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          {t("intern.navUsersDescription")}
-        </p>
-      </a>
-      <a
-        href="/intern/immobilien/"
-        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
-      >
-        <h2 class="text-base font-semibold">{t("intern.navProperties")}</h2>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          {t("intern.navPropertiesDescription")}
-        </p>
-      </a>
-      <a
-        href="/intern/marketing/"
-        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
-      >
-        <h2 class="text-base font-semibold">{t("intern.navMarketing")}</h2>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          {t("intern.navMarketingDescription")}
-        </p>
-      </a>
-      <a
-        href="/intern/feedback/"
-        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
-      >
-        <h2 class="text-base font-semibold">{t("intern.navFeedback")}</h2>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          {t("intern.navFeedbackDescription")}
-        </p>
-      </a>
-      <a
-        href="/intern/analytics/"
-        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
-      >
-        <h2 class="text-base font-semibold">{t("intern.navAnalytics")}</h2>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          {t("intern.navAnalyticsDescription")}
-        </p>
-      </a>
-      <a
-        href="/intern/kontakt/"
-        class="rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted"
-      >
-        <h2 class="text-base font-semibold">{t("intern.navContact")}</h2>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          {t("intern.navContactDescription")}
-        </p>
-      </a>
+    <div class="mt-8 grid items-start gap-8 lg:grid-cols-3">
+      <div class="space-y-8 lg:col-span-2">
+        <section class="rounded-lg border border-border bg-card">
+          <h2 class="border-b border-border px-5 py-3 text-base font-semibold">
+            {t("intern.dashTodoHeading")}
+          </h2>
+
+          {todoSourcesFailed ? (
+            <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.dashTodoLoadFailed")}</p>
+          ) : todos.length === 0 ? (
+            <p class="flex items-center gap-2 px-5 py-6 text-sm text-muted-foreground">
+              <span class="inline-block size-2 shrink-0 rounded-full bg-emerald-500" aria-hidden="true"></span>
+              {t("intern.dashTodoEmpty")}
+            </p>
+          ) : (
+            <ul class="divide-y divide-border">
+              {todos.map((todo) => (
+                <li>
+                  <a
+                    href={todo.href}
+                    class="flex items-center gap-3 px-5 py-3.5 text-sm transition-colors hover:bg-muted"
+                  >
+                    <span
+                      class={`inline-block size-2 shrink-0 rounded-full ${todoDotClass[todo.tone]}`}
+                      aria-hidden="true"
+                    ></span>
+                    <span class="min-w-0 flex-1 font-medium">{todo.label}</span>
+                    <span class="text-muted-foreground" aria-hidden="true">&rarr;</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <h2 class="text-base font-semibold">{t("intern.dashAreasHeading")}</h2>
+          <div class="mt-3 grid gap-4 sm:grid-cols-2">
+            {areaCards.map((card) => (
+              <div class="flex flex-col rounded-lg border border-border bg-card p-5">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-base font-semibold">
+                    <a href={card.href} class="underline-offset-2 hover:underline">{card.title}</a>
+                  </h3>
+                  {card.badges.map((badge) =>
+                    badge.href ? (
+                      <a
+                        href={badge.href}
+                        class={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeToneClass[badge.tone]}`}
+                      >
+                        {badge.text}
+                      </a>
+                    ) : (
+                      <span class={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeToneClass[badge.tone]}`}>
+                        {badge.text}
+                      </span>
+                    ),
+                  )}
+                  {card.quietChip && card.badges.length === 0 && (
+                    <span class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      {t("intern.dashCardQuiet")}
+                    </span>
+                  )}
+                </div>
+                <p class="mt-2 text-sm leading-6 text-muted-foreground">{card.description}</p>
+                {card.note && <p class="mt-3 text-sm font-medium">{card.note}</p>}
+                {card.previews.length > 0 && (
+                  <ul class="mt-3 space-y-1 border-t border-border pt-3">
+                    {card.previews.map((preview) => (
+                      <li>
+                        <a
+                          href={preview.href}
+                          class="group flex items-baseline gap-2 text-sm"
+                        >
+                          {preview.unread && (
+                            <span
+                              class="inline-block size-1.5 shrink-0 translate-y-[-1px] rounded-full bg-red-600"
+                              aria-hidden="true"
+                            ></span>
+                          )}
+                          <span class="min-w-0 flex-1 truncate underline-offset-2 group-hover:underline">
+                            {preview.title}
+                          </span>
+                          <span class="shrink-0 text-xs text-muted-foreground">{preview.meta}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-8">
+        <section class="rounded-lg border border-border bg-card">
+          <h2 class="border-b border-border px-5 py-3 text-base font-semibold">
+            {t("intern.dashFeedHeading")}
+          </h2>
+
+          {feedItems.length === 0 ? (
+            <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.dashFeedEmpty")}</p>
+          ) : (
+            <ul class="divide-y divide-border">
+              {feedItems.map((item) => (
+                <li>
+                  <a href={item.href} class="flex gap-3 px-5 py-3 transition-colors hover:bg-muted">
+                    <span
+                      class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
+                      aria-hidden="true"
+                    >
+                      {item.kind === "user" && (
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="8" r="4" />
+                          <path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" />
+                        </svg>
+                      )}
+                      {item.kind === "property" && (
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 11l9-7 9 7" />
+                          <path d="M5 9.5V20h14V9.5" />
+                        </svg>
+                      )}
+                      {item.kind === "feedback" && (
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21 12a8 8 0 0 1-8 8H4l2.5-2.9A8 8 0 1 1 21 12Z" />
+                        </svg>
+                      )}
+                      {item.kind === "mail" && (
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="5" width="18" height="14" rx="2" />
+                          <path d="m3 7 9 6 9-6" />
+                        </svg>
+                      )}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="flex items-center gap-1.5">
+                        {item.unread && (
+                          <span class="inline-block size-1.5 shrink-0 rounded-full bg-red-600" aria-hidden="true"></span>
+                        )}
+                        <span class="block truncate text-sm font-medium">{item.title}</span>
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-muted-foreground">
+                        {feedKindLabel[item.kind]}
+                        {item.meta && ` · ${item.meta}`}
+                        {` · ${formatRelative(item.at)}`}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section id="edikte-sync" class="rounded-lg border border-border bg-card p-5">
+          <h2 class="text-base font-semibold">{t("intern.syncHeading")}</h2>
+
+          {status ? (
+            <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt class="text-xs text-muted-foreground">{t("intern.lastSync")}</dt>
+                <dd class="mt-0.5 font-medium">{formatDate(status.LastSyncAt)}</dd>
+              </div>
+              <div>
+                <dt class="text-xs text-muted-foreground">{t("intern.activeAuctions")}</dt>
+                <dd class="mt-0.5 font-medium">{status.TotalActiveAuctions}</dd>
+              </div>
+              <div>
+                <dt class="text-xs text-muted-foreground">{t("intern.removedAuctions")}</dt>
+                <dd class="mt-0.5 font-medium">{status.TotalRemovedAuctions}</dd>
+              </div>
+              <div>
+                <dt class="text-xs text-muted-foreground">{t("intern.totalChanges")}</dt>
+                <dd class="mt-0.5 font-medium">{status.TotalChanges}</dd>
+              </div>
+            </dl>
+          ) : (
+            <p class="mt-4 text-sm text-muted-foreground">{t("intern.statusLoadFailed")}</p>
+          )}
+
+          {syncRunning && (
+            <p class="mt-4 text-sm font-medium text-amber-700 dark:text-amber-300">
+              {t("intern.syncRunning")}
+            </p>
+          )}
+
+          <form method="POST" action="/intern/sync" class="mt-5">
+            <Button type="submit" variant="default" disabled={syncRunning}>
+              {t("intern.startSync")}
+            </Button>
+          </form>
+
+          <p class="mt-3 text-xs leading-5 text-muted-foreground">
+            {t("intern.syncExplainer")}
+          </p>
+        </section>
+
+        <p class="px-1 text-xs leading-5 text-muted-foreground">{t("intern.intro")}</p>
+      </aside>
     </div>
-
-    <section class="mt-8 rounded-lg border border-border bg-card p-5">
-      <h2 class="text-base font-semibold">{t("intern.syncHeading")}</h2>
-
-      {status ? (
-        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt class="text-muted-foreground">{t("intern.lastSync")}</dt>
-            <dd class="font-medium">{formatDate(status.LastSyncAt)}</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground">{t("intern.activeAuctions")}</dt>
-            <dd class="font-medium">{status.TotalActiveAuctions}</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground">{t("intern.removedAuctions")}</dt>
-            <dd class="font-medium">{status.TotalRemovedAuctions}</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground">{t("intern.totalChanges")}</dt>
-            <dd class="font-medium">{status.TotalChanges}</dd>
-          </div>
-        </dl>
-      ) : (
-        <p class="mt-4 text-sm text-muted-foreground">{t("intern.statusLoadFailed")}</p>
-      )}
-
-      {syncRunning && (
-        <p class="mt-4 text-sm font-medium text-amber-700 dark:text-amber-300">
-          {t("intern.syncRunning")}
-        </p>
-      )}
-
-      <form method="POST" action="/intern/sync" class="mt-6">
-        <Button type="submit" variant="default" disabled={syncRunning}>
-          {t("intern.startSync")}
-        </Button>
-      </form>
-
-      <p class="mt-3 text-xs leading-5 text-muted-foreground">
-        {t("intern.syncExplainer")}
-      </p>
-    </section>
-
   </section>
 </BaseLayout>
