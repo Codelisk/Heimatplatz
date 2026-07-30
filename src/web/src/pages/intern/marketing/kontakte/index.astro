@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import MarketingContactForm from "@/components/intern/MarketingContactForm.astro";
+import MarketingQuickActions from "@/components/intern/MarketingQuickActions.astro";
 import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import { adminApiGet, type MarketingContactsPage } from "@/lib/server/admin-api";
@@ -16,6 +17,8 @@ import {
 } from "@/lib/intern/marketing-labels";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
+// Akquise-Cockpit: Pipeline-Chips mit Zaehlern statt Status-Dropdown, dazu
+// Ein-Klick-Aktionen (MarketingQuickActions) direkt an jeder Zeile.
 
 const PAGE_SIZE = 50;
 
@@ -36,6 +39,10 @@ if (dueOnly) query.set("dueOnly", "true");
 const data = await adminApiGet<MarketingContactsPage>(`/api/admin/marketing/contacts?${query}`);
 const totalPages = data ? Math.max(Math.ceil(data.Total / data.PageSize), 1) : 1;
 
+const statusCounts = new Map((data?.StatusCounts ?? []).map((entry) => [entry.Status, entry.Count]));
+const allCount = [...statusCounts.values()].reduce((sum, count) => sum + count, 0);
+const dueCount = data?.DueCount ?? 0;
+
 const selectClass =
   "rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40";
 
@@ -50,12 +57,49 @@ function pageLink(target: number) {
   return qs ? `/intern/marketing/kontakte/?${qs}` : "/intern/marketing/kontakte/";
 }
 
-function composeLink(email: string | null, name: string | null, contactId: string) {
-  const params = new URLSearchParams({ contactId });
-  if (email) params.set("email", email);
-  if (name) params.set("name", name);
-  return `/intern/marketing/schreiben/?${params}`;
+/** Chip-Link: Suche/Typ bleiben erhalten, Status/Faellig sind exklusiv, Seite beginnt vorn */
+function chipLink(target: { status?: string; due?: boolean }) {
+  const params = new URLSearchParams();
+  if (search) params.set("q", search);
+  if (typeFilter) params.set("type", typeFilter);
+  if (target.status) params.set("status", target.status);
+  if (target.due) params.set("faellig", "1");
+  const qs = params.toString();
+  return qs ? `/intern/marketing/kontakte/?${qs}` : "/intern/marketing/kontakte/";
 }
+
+// Pipeline-Chips: Alle + Faellig vorn, danach der Funnel in Arbeitsreihenfolge.
+// Status ohne Kontakte werden ausgeblendet (ausser gerade aktiv) - kuerzere Leiste.
+const chips = [
+  {
+    href: chipLink({}),
+    label: t("intern.mkContactsChipAll"),
+    count: allCount,
+    active: !statusFilter && !dueOnly,
+    alert: false,
+  },
+  {
+    href: chipLink({ due: true }),
+    label: t("intern.mkContactsChipDue"),
+    count: dueCount,
+    active: dueOnly,
+    alert: dueCount > 0,
+  },
+  ...CONTACT_STATUSES.map((status) => ({
+    href: chipLink({ status }),
+    label: contactStatusLabel(status),
+    count: statusCounts.get(status) ?? 0,
+    active: statusFilter === status,
+    alert: false,
+  })),
+].filter((chip) => chip.count > 0 || chip.active || chip.label === t("intern.mkContactsChipAll"));
+
+const chipBase = "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors";
+const chipActive = "border-transparent bg-primary text-primary-foreground";
+const chipIdle = "border-border bg-card hover:bg-muted";
+const chipAlert = "border-error/40 bg-card text-error hover:bg-error/10";
+
+const badgeBase = "rounded-full px-2 py-0.5 text-xs font-medium";
 ---
 
 <BaseLayout
@@ -64,7 +108,7 @@ function composeLink(email: string | null, name: string | null, contactId: strin
   canonicalPath="/intern/marketing/kontakte/"
   noindex
 >
-  <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+  <section class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
     <nav class="text-sm text-muted-foreground">
       <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
       <span aria-hidden="true"> / </span>
@@ -92,7 +136,14 @@ function composeLink(email: string | null, name: string | null, contactId: strin
       </div>
     )}
 
-    <form method="GET" action="/intern/marketing/kontakte/" class="mt-6 flex flex-wrap gap-2">
+    <form
+      method="GET"
+      action="/intern/marketing/kontakte/"
+      class="mt-6 flex flex-wrap gap-2"
+      data-autosubmit
+    >
+      {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
+      {dueOnly && <input type="hidden" name="faellig" value="1" />}
       <input
         type="search"
         name="q"
@@ -100,26 +151,29 @@ function composeLink(email: string | null, name: string | null, contactId: strin
         placeholder={t("intern.mkContactsSearchPlaceholder")}
         class="min-w-48 flex-1 rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
       />
-      <select name="status" aria-label={t("intern.mkContactsFilterStatusAria")} class={selectClass}>
-        <option value="" selected={!statusFilter}>{t("intern.mkContactsFilterStatusAll")}</option>
-        {CONTACT_STATUSES.map((status) => (
-          <option value={status} selected={statusFilter === status}>
-            {contactStatusLabel(status)}
-          </option>
-        ))}
-      </select>
       <select name="type" aria-label={t("intern.mkContactsFilterTypeAria")} class={selectClass}>
         <option value="" selected={!typeFilter}>{t("intern.mkContactsFilterTypeAll")}</option>
         {CONTACT_TYPES.map((type) => (
           <option value={type} selected={typeFilter === type}>{contactTypeLabel(type)}</option>
         ))}
       </select>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="faellig" value="1" checked={dueOnly} class="size-4" />
-        <span>{t("intern.mkContactsFilterDue")}</span>
-      </label>
-      <Button type="submit" variant="default">{t("intern.filterButton")}</Button>
+      <Button type="submit" variant="outline" size="sm">{t("intern.filterButton")}</Button>
     </form>
+
+    {data && (
+      <nav class="mt-4 flex flex-wrap gap-1.5" aria-label={t("intern.mkContactsFilterStatusAria")}>
+        {chips.map((chip) => (
+          <a
+            href={chip.href}
+            class={`${chipBase} ${chip.active ? chipActive : chip.alert ? chipAlert : chipIdle}`}
+            aria-current={chip.active ? "page" : undefined}
+          >
+            {chip.label}
+            <span class="text-xs tabular-nums opacity-70">{chip.count}</span>
+          </a>
+        ))}
+      </nav>
+    )}
 
     {!data && (
       <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
@@ -128,75 +182,73 @@ function composeLink(email: string | null, name: string | null, contactId: strin
     )}
 
     {data && (
-      <section class="mt-6 rounded-lg border border-border bg-card">
-        <p class="border-b border-border px-5 py-3 text-sm text-muted-foreground">
-          {data.Total === 1
-            ? t("intern.mkContactsTotalOne")
-            : t("intern.mkContactsTotal", { count: data.Total })}
-        </p>
-
+      <section class="mt-4 rounded-lg border border-border bg-card">
         {data.Contacts.length === 0 ? (
           <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.mkContactsEmpty")}</p>
         ) : (
           <ul class="divide-y divide-border">
-            {data.Contacts.map((contact) => (
-              <li class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div class="min-w-0">
-                  <p class="truncate font-medium">
-                    {contact.Company ?? contact.Name ?? contact.Email}
-                    {contact.Company && contact.Name && (
-                      <span class="text-muted-foreground"> · {contact.Name}</span>
-                    )}
-                  </p>
-                  <p class="mt-0.5 truncate text-sm text-muted-foreground">
-                    {[
-                      contact.Email ?? t("intern.mkContactsNoEmail"),
-                      contact.Phone,
-                      contact.City,
-                      contactTypeLabel(contact.ContactType),
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                  <p class="mt-1 text-xs text-muted-foreground">
-                    {t("intern.mkContactColLastContact")}: {formatInternDate(contact.LastContactedAt)}
-                    {" · "}
-                    {t("intern.mkContactColActivity")}: {contact.EmailCount} / {contact.ReplyCount}
-                    {contact.NextFollowUpAt && (
-                      <span
-                        class={isFollowUpDue(contact.NextFollowUpAt)
-                          ? "font-medium text-red-700 dark:text-red-300"
-                          : ""}
-                      >
+            {data.Contacts.map((contact) => {
+              const detailHref = `/intern/marketing/kontakte/detail/?id=${contact.Id}`;
+              const due = isFollowUpDue(contact.NextFollowUpAt);
+              return (
+                <li class="px-5 py-4 transition-colors hover:bg-muted/40" data-contact-row>
+                  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0" data-contact-info>
+                      <p class="truncate font-medium">
+                        {due && (
+                          <span
+                            class="mr-1.5 inline-block size-2 rounded-full bg-error align-middle"
+                            title={t("intern.mkContactsDueBadge")}
+                          />
+                        )}
+                        <a href={detailHref} class="hover:underline">
+                          {contact.Company ?? contact.Name ?? contact.Email}
+                        </a>
+                        {contact.Company && contact.Name && (
+                          <span class="font-normal text-muted-foreground"> · {contact.Name}</span>
+                        )}
+                      </p>
+                      <p class="mt-0.5 truncate text-sm text-muted-foreground">
+                        {[
+                          contact.Email ?? t("intern.mkContactsNoEmail"),
+                          contact.Phone,
+                          contact.City,
+                          contactTypeLabel(contact.ContactType),
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                      <p class="mt-1 text-xs text-muted-foreground">
+                        {t("intern.mkContactColLastContact")}: {formatInternDate(contact.LastContactedAt)}
                         {" · "}
-                        {t("intern.mkDetailNextFollowUp")}: {formatInternDay(contact.NextFollowUpAt)}
-                        {isFollowUpDue(contact.NextFollowUpAt) &&
-                          ` (${t("intern.mkContactsDueBadge")})`}
+                        {t("intern.mkContactColActivity")}: {contact.EmailCount} / {contact.ReplyCount}
+                        {contact.NextFollowUpAt && (
+                          <span class={due ? "font-medium text-error" : ""}>
+                            {" · "}
+                            {t("intern.mkDetailNextFollowUp")}: {formatInternDay(contact.NextFollowUpAt)}
+                            {due && ` (${t("intern.mkContactsDueBadge")})`}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end">
+                      <span data-status-badge class={`${badgeBase} ${contactStatusBadgeClass(contact.Status)}`}>
+                        {contactStatusLabel(contact.Status)}
                       </span>
-                    )}
-                  </p>
-                </div>
-                <div class="flex shrink-0 items-center gap-2">
-                  <span
-                    class={`rounded-full px-2 py-0.5 text-xs font-medium ${contactStatusBadgeClass(contact.Status)}`}
-                  >
-                    {contactStatusLabel(contact.Status)}
-                  </span>
-                  <a
-                    href={`/intern/marketing/kontakte/detail/?id=${contact.Id}`}
-                    class="text-sm underline hover:no-underline"
-                  >
-                    {t("intern.mkContactDetail")}
-                  </a>
-                  <a
-                    href={composeLink(contact.Email, contact.Name, contact.Id)}
-                    class="text-sm underline hover:no-underline"
-                  >
-                    {t("intern.mkContactWrite")}
-                  </a>
-                </div>
-              </li>
-            ))}
+                      <a
+                        href={detailHref}
+                        class="text-xs text-muted-foreground underline hover:no-underline"
+                      >
+                        {t("intern.mkContactDetail")}
+                      </a>
+                    </div>
+                  </div>
+                  <div class="mt-3">
+                    <MarketingQuickActions contact={contact} mode="row" />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
@@ -224,11 +276,25 @@ function composeLink(email: string | null, name: string | null, contactId: strin
       </nav>
     )}
 
-    <section class="mt-8 rounded-lg border border-border bg-card p-5">
-      <h2 class="text-base font-semibold">{t("intern.mkContactsNewHeading")}</h2>
-      <div class="mt-4">
+    <details class="group mt-8 rounded-lg border border-border bg-card">
+      <summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-base font-semibold select-none">
+        {t("intern.mkContactsNewHeading")}
+        <span aria-hidden="true" class="text-muted-foreground transition-transform group-open:rotate-180">
+          ▾
+        </span>
+      </summary>
+      <div class="border-t border-border p-5">
         <MarketingContactForm redirect="list" />
       </div>
-    </section>
+    </details>
   </section>
 </BaseLayout>
+
+<script>
+  // Typ-Wechsel filtert sofort - der Filtern-Button bleibt fuer die Suche per Maus
+  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-autosubmit]")) {
+    form.addEventListener("change", (event) => {
+      if (event.target instanceof HTMLSelectElement) form.requestSubmit();
+    });
+  }
+</script>

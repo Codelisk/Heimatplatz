@@ -41,11 +41,12 @@ enges Rate-Limit (5/min pro IP, Program.cs).
 | GET | `/email/signature` | `GetMarketingEmailSignatureHandler` |
 | POST | `/email/send` | `SendMarketingEmailHandler` |
 | GET | `/stats` | `GetMarketingStatsHandler` |
-| GET | `/contacts` | `GetMarketingContactsHandler` (Filter `dueOnly` = faellige Wiedervorlagen) |
+| GET | `/contacts` | `GetMarketingContactsHandler` (Filter `dueOnly` = faellige Wiedervorlagen; liefert `StatusCounts`/`DueCount` fuer die Pipeline-Chips) |
 | POST | `/contacts/save` | `SaveMarketingContactHandler` |
 | DELETE | `/contacts/{Id}` | `DeleteMarketingContactHandler` |
 | GET | `/contacts/detail` | `GetMarketingContactDetailHandler` (inkl. Aktivitaeten-Timeline) |
 | POST | `/contacts/activity` | `LogMarketingActivityHandler` (Anruf/Notiz/Termin + Status + Wiedervorlage) |
+| POST | `/contacts/quick` | `QuickMarketingContactActionHandler` (Ein-Klick-Akquise: Interessiert/Ablehnen mit Grund/Sperren/Wiedervorlage/Nicht erreicht/Rueckgaengig) |
 | GET | `/lead-pool` | `GetMarketingLeadPoolHandler` (Firmenbuch-Immobilienfirmen) |
 | POST | `/lead-pool/add` | `AddMarketingLeadsHandler` (uebernehmen als `ToContact`) |
 | GET | `/templates` | `GetMarketingTemplatesHandler` |

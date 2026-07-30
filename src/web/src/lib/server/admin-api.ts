@@ -167,12 +167,35 @@ export type MarketingContact = {
   ReplyCount: number;
 };
 
+/** Verteilung je Funnel-Status fuer die Pipeline-Chips (Status ohne Kontakte fehlen) */
+export type MarketingStatusCount = {
+  Status: MarketingContactStatus;
+  Count: number;
+};
+
 export type MarketingContactsPage = {
   Contacts: MarketingContact[];
   Total: number;
   PageSize: number;
   CurrentPage: number;
   HasMore: boolean;
+  /** Suche/Typ-Filter wirken auf die Zaehler, der Status-Filter bewusst nicht */
+  StatusCounts: MarketingStatusCount[];
+  DueCount: number;
+};
+
+/**
+ * Antwort der Akquise-Schnellaktion (/api/admin/marketing/contacts/quick).
+ * PreviousStatus/PreviousFollowUpAt tragen den Zustand vor der Aktion - Grundlage
+ * fuer das "Rueckgaengig" in der Kontaktliste (Action=Restore).
+ */
+export type MarketingQuickActionResponse = {
+  Success: boolean;
+  Error: string | null;
+  Status: MarketingContactStatus | null;
+  NextFollowUpAt: string | null;
+  PreviousStatus: MarketingContactStatus | null;
+  PreviousFollowUpAt: string | null;
 };
 
 export type MarketingEmail = {

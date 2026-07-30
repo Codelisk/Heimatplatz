@@ -24,5 +24,14 @@ public record GetMarketingContactsResponse(
     int Total,
     int PageSize,
     int CurrentPage,
-    bool HasMore
+    bool HasMore,
+    List<MarketingStatusCountDto> StatusCounts,
+    int DueCount
 );
+
+/// <summary>
+/// Anzahl Kontakte je Funnel-Status fuer die Pipeline-Chips der Kontaktliste.
+/// Suche/Typ-Filter wirken auf die Zaehler, der Status-Filter bewusst nicht -
+/// die Chips bleiben beim Umschalten stabil. Status ohne Kontakte fehlen in der Liste.
+/// </summary>
+public record MarketingStatusCountDto(MarketingContactStatus Status, int Count);

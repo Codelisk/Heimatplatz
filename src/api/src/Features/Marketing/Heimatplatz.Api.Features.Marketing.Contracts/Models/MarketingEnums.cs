@@ -74,6 +74,31 @@ public enum MarketingActivityType
     Meeting = 4
 }
 
+/// <summary>
+/// Schnellaktionen der Akquise-Arbeitsliste (QuickMarketingContactActionRequest) -
+/// jede Aktion ist ein Klick im Intern-Bereich, die Semantik liegt im Handler.
+/// </summary>
+public enum MarketingQuickAction
+{
+    /// <summary>Status auf Interessiert</summary>
+    Interested = 0,
+
+    /// <summary>Status auf Kein Interesse, mit Ablehngrund</summary>
+    Reject = 1,
+
+    /// <summary>Status auf Nicht kontaktieren (Sperrliste)</summary>
+    Block = 2,
+
+    /// <summary>Wiedervorlage setzen/verschieben</summary>
+    Snooze = 3,
+
+    /// <summary>Anrufversuch ohne Gespraech festhalten, optional neuer Termin</summary>
+    NotReached = 4,
+
+    /// <summary>Vorherigen Zustand wiederherstellen (Rueckgaengig)</summary>
+    Restore = 5
+}
+
 /// <summary>Helfer rund um <see cref="MarketingContactStatus"/>.</summary>
 public static class MarketingContactStatusExtensions
 {

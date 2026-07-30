@@ -25,32 +25,44 @@ public class GetMarketingContactsHandler(
     {
         accessGuard.EnsureAuthorized();
 
-        var query = dbContext.Set<MarketingContact>().AsNoTracking();
+        var filtered = dbContext.Set<MarketingContact>().AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             // ToLower() uebersetzt EF auf beiden Providern zu LOWER() - Postgres-LIKE
             // waere sonst case-sensitiv (E-Mail ist bereits normalisiert gespeichert)
             var search = request.Search.Trim().ToLowerInvariant();
-            query = query.Where(c =>
+            filtered = filtered.Where(c =>
                 (c.Email != null && c.Email.Contains(search)) ||
                 (c.Name != null && c.Name.ToLower().Contains(search)) ||
                 (c.Company != null && c.Company.ToLower().Contains(search)));
         }
 
+        if (Enum.TryParse<MarketingContactType>(request.ContactType, ignoreCase: true, out var type))
+            filtered = filtered.Where(c => c.ContactType == type);
+
+        var now = DateTimeOffset.UtcNow;
+
+        // Status/DueOnly erst nach den Zaehlern - die Pipeline-Chips zeigen die Verteilung
+        // ueber alle Status bei gleicher Suche/Typ-Einschraenkung und bleiben so beim
+        // Umschalten des Status-Filters stabil
+        var query = filtered;
+
         if (Enum.TryParse<MarketingContactStatus>(request.Status, ignoreCase: true, out var status))
             query = query.Where(c => c.Status == status);
 
-        if (Enum.TryParse<MarketingContactType>(request.ContactType, ignoreCase: true, out var type))
-            query = query.Where(c => c.ContactType == type);
-
         if (request.DueOnly)
-        {
-            var now = DateTimeOffset.UtcNow;
             query = query.Where(c => c.NextFollowUpAt != null && c.NextFollowUpAt <= now);
-        }
 
         var total = await query.CountAsync(cancellationToken);
+
+        var statusCounts = await filtered
+            .GroupBy(c => c.Status)
+            .Select(g => new MarketingStatusCountDto(g.Key, g.Count()))
+            .ToListAsync(cancellationToken);
+
+        var dueCount = await filtered
+            .CountAsync(c => c.NextFollowUpAt != null && c.NextFollowUpAt <= now, cancellationToken);
 
         var page = Math.Max(request.Page, 0);
         var pageSize = Math.Clamp(request.PageSize, 1, 200);
@@ -73,6 +85,7 @@ public class GetMarketingContactsHandler(
             .ToListAsync(cancellationToken);
 
         return new GetMarketingContactsResponse(
-            contacts, total, pageSize, page, HasMore: (page + 1) * pageSize < total);
+            contacts, total, pageSize, page, HasMore: (page + 1) * pageSize < total,
+            statusCounts, dueCount);
     }
 }

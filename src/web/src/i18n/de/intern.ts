@@ -410,6 +410,40 @@ export const intern = {
   "intern.mkContactConfirmDelete":
     "Diesen Kontakt samt Versand-Historie und Rückmeldungen endgültig löschen?",
 
+  // Akquise-Schnellaktionen (Kontaktliste + Detailseite)
+  "intern.mkQuickCall": "Anrufen",
+  "intern.mkQuickInterested": "Interessiert",
+  "intern.mkQuickNotReached": "Nicht erreicht",
+  "intern.mkQuickSnooze": "Wiedervorlage",
+  "intern.mkQuickReject": "Ablehnen",
+  "intern.mkQuickRetryHint": "Wieder versuchen:",
+  "intern.mkQuickNoNewDate": "Ohne neuen Termin festhalten",
+  "intern.mkQuickSnoozeTomorrow": "Morgen",
+  "intern.mkQuickSnoozeDays": "+{days} Tage",
+  "intern.mkQuickSnoozeWeek": "+1 Woche",
+  "intern.mkQuickSnoozeTwoWeeks": "+2 Wochen",
+  "intern.mkQuickSnoozeMonth": "+1 Monat",
+  "intern.mkQuickSnoozeSet": "Setzen",
+  "intern.mkQuickReasonNoInterest": "Kein Interesse",
+  "intern.mkQuickReasonNoNeed": "Aktuell kein Bedarf",
+  "intern.mkQuickReasonOtherPortal": "Nutzt anderes Portal",
+  "intern.mkQuickReasonWrongRegion": "Keine Objekte im Gebiet",
+  "intern.mkQuickReasonWrongTarget": "Passt nicht zur Zielgruppe",
+  "intern.mkQuickReasonCustomPlaceholder": "Eigener Grund …",
+  "intern.mkQuickBlockToggle": "Auf Sperrliste (nie wieder kontaktieren)",
+  "intern.mkQuickUndo": "Rückgängig",
+  "intern.mkQuickUndone": "Wiederhergestellt.",
+  "intern.mkQuickDoneInterested": "Als interessiert markiert.",
+  "intern.mkQuickDoneRejected": "Abgelehnt",
+  "intern.mkQuickDoneBlocked": "Gesperrt",
+  "intern.mkQuickDoneSnoozed": "Wiedervorlage: {date}",
+  "intern.mkQuickDoneNotReached": "Nicht erreicht festgehalten",
+  "intern.mkQuickFailed": "Aktion fehlgeschlagen: {error}",
+
+  // Pipeline-Chips der Kontaktliste
+  "intern.mkContactsChipAll": "Alle",
+  "intern.mkContactsChipDue": "Fällig",
+
   // Kontakt-Formular
   "intern.mkFieldEmail": "E-Mail",
   "intern.mkFieldEmailOptional": "E-Mail (optional)",

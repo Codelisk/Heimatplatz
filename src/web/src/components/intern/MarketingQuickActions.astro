@@ -1,0 +1,358 @@
+---
+/**
+ * Akquise-Schnellaktionen an der Kontaktzeile: Anrufen/Schreiben plus die vier
+ * Arbeitswege eines Telefonats - Interessiert (1 Klick), Nicht erreicht (+neuer
+ * Versuch), Wiedervorlage und Ablehnen mit Grund (2 Klicks). Die Menues sind
+ * <details>-Popover; das Script schickt die Aktion per fetch an kontakte/quick.ts
+ * und aktualisiert Badge + Ergebniszeile ohne Reload (mode="row") bzw. laedt die
+ * Detailseite neu (mode="detail"). Jede Aktion ist per "Rueckgaengig" umkehrbar.
+ */
+import { t } from "@/i18n";
+import type { MarketingContact } from "@/lib/server/admin-api";
+
+interface Props {
+  contact: MarketingContact;
+  mode: "row" | "detail";
+}
+
+const { contact, mode } = Astro.props;
+
+const composeParams = new URLSearchParams({ contactId: contact.Id });
+if (contact.Email) composeParams.set("email", contact.Email);
+if (contact.Name) composeParams.set("name", contact.Name);
+const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
+
+// Vorgefertigte Ablehngruende: haeufigste Telefonat-Ausgaenge zuerst, Freitext darunter
+const rejectReasons = [
+  t("intern.mkQuickReasonNoInterest"),
+  t("intern.mkQuickReasonNoNeed"),
+  t("intern.mkQuickReasonOtherPortal"),
+  t("intern.mkQuickReasonWrongRegion"),
+  t("intern.mkQuickReasonWrongTarget"),
+];
+
+const btn =
+  "inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium transition-colors hover:bg-muted";
+const btnSuccess =
+  "inline-flex h-8 items-center gap-1.5 rounded-md border border-success/40 bg-background px-2.5 text-xs font-medium text-success transition-colors hover:bg-success/10";
+const btnDanger =
+  "inline-flex h-8 items-center gap-1.5 rounded-md border border-error/40 bg-background px-2.5 text-xs font-medium text-error transition-colors hover:bg-error/10";
+const menu =
+  "absolute left-0 z-20 mt-1 w-64 rounded-lg border border-border bg-card p-1.5 shadow-lg";
+const menuItem =
+  "block w-full rounded px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-muted";
+const menuInput =
+  "min-w-0 flex-1 rounded-md border border-border bg-muted px-2 py-1 text-sm outline-none focus:border-foreground/40";
+const menuSetButton =
+  "shrink-0 rounded-md border border-border px-2.5 py-1 text-sm font-medium transition-colors hover:bg-muted";
+---
+
+<div
+  class="flex flex-wrap items-center gap-1.5"
+  data-quick
+  data-contact-id={contact.Id}
+  data-mode={mode}
+>
+  {contact.Phone && (
+    <a href={`tel:${contact.Phone.replaceAll(" ", "")}`} class={btn}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+      </svg>
+      {t("intern.mkQuickCall")}
+    </a>
+  )}
+
+  {contact.Email && (
+    <a href={composeHref} class={btn}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </svg>
+      {t("intern.mkContactWrite")}
+    </a>
+  )}
+
+  <button type="button" class={btnSuccess} data-quick-action="Interested">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+    {t("intern.mkQuickInterested")}
+  </button>
+
+  <details class="relative" data-quick-menu>
+    <summary class={`${btn} cursor-pointer list-none select-none`}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+        <line x1="22" x2="16" y1="2" y2="8" />
+        <line x1="16" x2="22" y1="2" y2="8" />
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+      </svg>
+      {t("intern.mkQuickNotReached")}
+      <span aria-hidden="true" class="text-muted-foreground">▾</span>
+    </summary>
+    <div class={menu}>
+      <p class="px-2.5 pt-1 pb-0.5 text-xs text-muted-foreground">{t("intern.mkQuickRetryHint")}</p>
+      <button type="button" class={menuItem} data-quick-action="NotReached" data-days="1" data-reason={t("intern.mkQuickNotReached")}>
+        {t("intern.mkQuickSnoozeTomorrow")}
+      </button>
+      <button type="button" class={menuItem} data-quick-action="NotReached" data-days="3" data-reason={t("intern.mkQuickNotReached")}>
+        {t("intern.mkQuickSnoozeDays", { days: 3 })}
+      </button>
+      <button type="button" class={menuItem} data-quick-action="NotReached" data-days="7" data-reason={t("intern.mkQuickNotReached")}>
+        {t("intern.mkQuickSnoozeWeek")}
+      </button>
+      <div class="mt-1 border-t border-border pt-1">
+        <button type="button" class={`${menuItem} text-muted-foreground`} data-quick-action="NotReached" data-reason={t("intern.mkQuickNotReached")}>
+          {t("intern.mkQuickNoNewDate")}
+        </button>
+      </div>
+    </div>
+  </details>
+
+  <details class="relative" data-quick-menu>
+    <summary class={`${btn} cursor-pointer list-none select-none`}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+        <rect width="18" height="18" x="3" y="4" rx="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      {t("intern.mkQuickSnooze")}
+      <span aria-hidden="true" class="text-muted-foreground">▾</span>
+    </summary>
+    <div class={menu}>
+      <button type="button" class={menuItem} data-quick-action="Snooze" data-days="1">
+        {t("intern.mkQuickSnoozeTomorrow")}
+      </button>
+      <button type="button" class={menuItem} data-quick-action="Snooze" data-days="3">
+        {t("intern.mkQuickSnoozeDays", { days: 3 })}
+      </button>
+      <button type="button" class={menuItem} data-quick-action="Snooze" data-days="7">
+        {t("intern.mkQuickSnoozeWeek")}
+      </button>
+      <button type="button" class={menuItem} data-quick-action="Snooze" data-days="14">
+        {t("intern.mkQuickSnoozeTwoWeeks")}
+      </button>
+      <button type="button" class={menuItem} data-quick-action="Snooze" data-days="30">
+        {t("intern.mkQuickSnoozeMonth")}
+      </button>
+      <div class="mt-1 flex items-center gap-1.5 border-t border-border px-1 pt-1.5 pb-0.5">
+        <input type="date" data-quick-date class={menuInput} />
+        <button type="button" class={menuSetButton} data-quick-action="Snooze" data-from-date>
+          {t("intern.mkQuickSnoozeSet")}
+        </button>
+      </div>
+    </div>
+  </details>
+
+  <details class="relative" data-quick-menu>
+    <summary class={`${btnDanger} cursor-pointer list-none select-none`}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </svg>
+      {t("intern.mkQuickReject")}
+      <span aria-hidden="true" class="opacity-70">▾</span>
+    </summary>
+    <div class={menu}>
+      {rejectReasons.map((reason) => (
+        <button type="button" class={menuItem} data-quick-action="Reject" data-reason={reason}>
+          {reason}
+        </button>
+      ))}
+      <div class="mt-1 flex items-center gap-1.5 border-t border-border px-1 pt-1.5 pb-0.5">
+        <input
+          type="text"
+          data-quick-reason-input
+          placeholder={t("intern.mkQuickReasonCustomPlaceholder")}
+          class={menuInput}
+        />
+        <button type="button" class={menuSetButton} data-quick-action="Reject" data-from-input>
+          {t("intern.mkQuickSnoozeSet")}
+        </button>
+      </div>
+      <label class="mt-1 flex cursor-pointer items-center gap-2 border-t border-border px-2.5 pt-2 pb-1 text-xs text-muted-foreground">
+        <input type="checkbox" data-quick-block class="size-3.5" />
+        <span>{t("intern.mkQuickBlockToggle")}</span>
+      </label>
+    </div>
+  </details>
+
+  <p class="hidden w-full text-sm" data-quick-result>
+    <span data-quick-result-text></span>
+    <button type="button" class="ml-1 underline hover:no-underline" data-quick-action="Restore">
+      {t("intern.mkQuickUndo")}
+    </button>
+  </p>
+</div>
+
+<script>
+  import { t } from "@/i18n";
+  import {
+    contactStatusBadgeClass,
+    contactStatusLabel,
+    formatInternDay,
+  } from "@/lib/intern/marketing-labels";
+  import type { MarketingQuickActionResponse } from "@/lib/server/admin-api";
+
+  const BADGE_BASE = "rounded-full px-2 py-0.5 text-xs font-medium";
+
+  async function send(
+    fields: Record<string, string>,
+  ): Promise<MarketingQuickActionResponse | null> {
+    try {
+      const response = await fetch("/intern/marketing/kontakte/quick", {
+        method: "POST",
+        body: new URLSearchParams(fields),
+      });
+      if (!response.ok) return null;
+      return (await response.json()) as MarketingQuickActionResponse;
+    } catch {
+      return null;
+    }
+  }
+
+  function resultText(
+    action: string,
+    reason: string,
+    resp: MarketingQuickActionResponse,
+  ): string {
+    switch (action) {
+      case "Interested":
+        return t("intern.mkQuickDoneInterested");
+      case "Reject":
+        return reason
+          ? `${t("intern.mkQuickDoneRejected")} – ${reason}`
+          : t("intern.mkQuickDoneRejected");
+      case "Block":
+        return reason
+          ? `${t("intern.mkQuickDoneBlocked")} – ${reason}`
+          : t("intern.mkQuickDoneBlocked");
+      case "Snooze":
+        return t("intern.mkQuickDoneSnoozed", { date: formatInternDay(resp.NextFollowUpAt) });
+      case "NotReached":
+        return resp.NextFollowUpAt
+          ? `${t("intern.mkQuickDoneNotReached")} – ${t("intern.mkQuickDoneSnoozed", { date: formatInternDay(resp.NextFollowUpAt) })}`
+          : t("intern.mkQuickDoneNotReached");
+      default:
+        return t("intern.mkQuickUndone");
+    }
+  }
+
+  function showResult(root: HTMLElement, text: string, ok: boolean, undoable: boolean): void {
+    const strip = root.querySelector<HTMLElement>("[data-quick-result]");
+    if (!strip) return;
+    strip.className = ok
+      ? "w-full text-sm text-muted-foreground"
+      : "w-full text-sm font-medium text-red-700 dark:text-red-300";
+    const textSpan = strip.querySelector<HTMLElement>("[data-quick-result-text]");
+    if (textSpan) textSpan.textContent = text;
+    const undo = strip.querySelector<HTMLElement>("[data-quick-action='Restore']");
+    if (undo) undo.hidden = !undoable;
+  }
+
+  function updateBadge(root: HTMLElement, status: string | null): void {
+    if (!status) return;
+    const badge = root
+      .closest<HTMLElement>("[data-contact-row]")
+      ?.querySelector<HTMLElement>("[data-status-badge]");
+    if (!badge) return;
+    badge.className = `${BADGE_BASE} ${contactStatusBadgeClass(status)}`;
+    badge.textContent = contactStatusLabel(status);
+  }
+
+  function setHandled(root: HTMLElement, handled: boolean): void {
+    root
+      .closest<HTMLElement>("[data-contact-row]")
+      ?.querySelector<HTMLElement>("[data-contact-info]")
+      ?.classList.toggle("opacity-50", handled);
+  }
+
+  async function runAction(button: HTMLElement, root: HTMLElement): Promise<void> {
+    let action = button.dataset.quickAction ?? "";
+    const menuRoot = button.closest<HTMLElement>("[data-quick-menu]");
+
+    let reason = button.dataset.reason ?? "";
+    if (button.hasAttribute("data-from-input")) {
+      reason = menuRoot?.querySelector<HTMLInputElement>("[data-quick-reason-input]")?.value.trim() ?? "";
+      if (!reason) return;
+    }
+
+    let date = "";
+    if (button.hasAttribute("data-from-date")) {
+      date = menuRoot?.querySelector<HTMLInputElement>("[data-quick-date]")?.value ?? "";
+      if (!date) return;
+    }
+
+    // Sperrlisten-Schalter im Ablehnen-Menue macht aus der Ablehnung ein Block
+    if (action === "Reject" && menuRoot?.querySelector<HTMLInputElement>("[data-quick-block]")?.checked)
+      action = "Block";
+
+    const fields: Record<string, string> = {
+      contactId: root.dataset.contactId ?? "",
+      action,
+    };
+    if (reason) fields.reason = reason;
+    if (date) fields.date = date;
+    if (button.dataset.days) fields.days = button.dataset.days;
+    if (action === "Restore") {
+      fields.restoreStatus = root.dataset.prevStatus ?? "";
+      fields.restoreFollowUp = root.dataset.prevFollowUp ?? "";
+    }
+
+    root.classList.add("pointer-events-none", "opacity-60");
+    const resp = await send(fields);
+    root.classList.remove("pointer-events-none", "opacity-60");
+
+    for (const open of root.querySelectorAll<HTMLDetailsElement>("details[open]")) open.open = false;
+
+    if (!resp?.Success) {
+      showResult(root, t("intern.mkQuickFailed", { error: resp?.Error ?? "API nicht erreichbar" }), false, false);
+      return;
+    }
+
+    if (root.dataset.mode === "detail") {
+      location.reload();
+      return;
+    }
+
+    if (action === "Restore") {
+      showResult(root, t("intern.mkQuickUndone"), true, false);
+      updateBadge(root, resp.Status);
+      setHandled(root, false);
+      return;
+    }
+
+    // Zustand vor der Aktion merken - Grundlage fuer "Rueckgaengig"
+    root.dataset.prevStatus = resp.PreviousStatus ?? "";
+    root.dataset.prevFollowUp = resp.PreviousFollowUpAt ?? "";
+
+    showResult(root, resultText(action, reason, resp), true, true);
+    updateBadge(root, resp.Status);
+    setHandled(root, true);
+  }
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    // Offene Popover schliessen, sobald ausserhalb geklickt wird
+    for (const open of document.querySelectorAll<HTMLDetailsElement>("details[data-quick-menu][open]")) {
+      if (!open.contains(target)) open.open = false;
+    }
+
+    const button = target.closest<HTMLElement>("[data-quick-action]");
+    const root = button?.closest<HTMLElement>("[data-quick]");
+    if (!button || !root) return;
+    void runAction(button, root);
+  });
+
+  // Enter im Freitext-Grund bzw. Datumsfeld loest den zugehoerigen Button aus
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    if (!input.matches("[data-quick-reason-input], [data-quick-date]")) return;
+    event.preventDefault();
+    input.parentElement?.querySelector<HTMLElement>("[data-quick-action]")?.click();
+  });
+</script>

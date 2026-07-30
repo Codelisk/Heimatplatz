@@ -2961,6 +2961,36 @@
         }
       }
     },
+    "/api/admin/marketing/contacts/quick": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "QuickMarketingContactAction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuickMarketingContactActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuickMarketingContactActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/templates/render": {
       "post": {
         "tags": [
@@ -6130,7 +6160,9 @@
           "Total",
           "PageSize",
           "CurrentPage",
-          "HasMore"
+          "HasMore",
+          "StatusCounts",
+          "DueCount"
         ],
         "type": "object",
         "properties": {
@@ -6166,6 +6198,20 @@
           },
           "HasMore": {
             "type": "boolean"
+          },
+          "StatusCounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingStatusCountDto"
+            }
+          },
+          "DueCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -8642,12 +8688,42 @@
           }
         }
       },
+      "MarketingQuickAction": {
+        "enum": [
+          "Interested",
+          "Reject",
+          "Block",
+          "Snooze",
+          "NotReached",
+          "Restore"
+        ]
+      },
       "MarketingSalutation": {
         "enum": [
           "Unknown",
           "Herr",
           "Frau"
         ]
+      },
+      "MarketingStatusCountDto": {
+        "required": [
+          "Status",
+          "Count"
+        ],
+        "type": "object",
+        "properties": {
+          "Status": {
+            "$ref": "#/components/schemas/MarketingContactStatus"
+          },
+          "Count": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
       },
       "MarketingTemplateDto": {
         "required": [
@@ -9477,6 +9553,108 @@
           },
           "CreatedAt": {
             "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QuickMarketingContactActionRequest": {
+        "required": [
+          "ContactId",
+          "Action"
+        ],
+        "type": "object",
+        "properties": {
+          "ContactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Action": {
+            "$ref": "#/components/schemas/MarketingQuickAction"
+          },
+          "Reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "FollowUpAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "RestoreStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
+            ]
+          },
+          "RestoreFollowUpAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "QuickMarketingContactActionResponse": {
+        "required": [
+          "Success",
+          "Error",
+          "Status",
+          "NextFollowUpAt",
+          "PreviousStatus",
+          "PreviousFollowUpAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
+            ]
+          },
+          "NextFollowUpAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "PreviousStatus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MarketingContactStatus"
+              }
+            ]
+          },
+          "PreviousFollowUpAt": {
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "date-time"
           }
         }

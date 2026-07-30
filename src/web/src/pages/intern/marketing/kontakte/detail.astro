@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import MarketingContactForm from "@/components/intern/MarketingContactForm.astro";
+import MarketingQuickActions from "@/components/intern/MarketingQuickActions.astro";
 import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import { adminApiGet, type MarketingContactDetail } from "@/lib/server/admin-api";
@@ -86,13 +87,6 @@ const timeline: TimelineEntry[] = [
       "rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground",
   })),
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-function composeLink(email: string | null, name: string | null, contactId: string) {
-  const params = new URLSearchParams({ contactId });
-  if (email) params.set("email", email);
-  if (name) params.set("name", name);
-  return `/intern/marketing/schreiben/?${params}`;
-}
 ---
 
 <BaseLayout
@@ -171,30 +165,23 @@ function composeLink(email: string | null, name: string | null, contactId: strin
           </p>
         )}
 
-        <div class="mt-4 flex flex-wrap items-center gap-2">
-          {contact.Email ? (
-            <Button href={composeLink(contact.Email, contact.Name, contact.Id)} variant="default">
-              {t("intern.mkContactWrite")}
-            </Button>
-          ) : (
-            <Button type="button" variant="default" disabled>
-              {t("intern.mkContactWrite")}
-            </Button>
-          )}
-          {!contact.Email && (
-            <span class="text-sm text-muted-foreground">
-              {t("intern.mkContactWriteNoEmail")}
-            </span>
-          )}
+        <div class="mt-4 flex flex-wrap items-start justify-between gap-3">
+          <MarketingQuickActions contact={contact} mode="detail" />
           <form
             method="POST"
             action="/intern/marketing/kontakte/delete"
             data-confirm={t("intern.mkContactConfirmDelete")}
+            class="shrink-0"
           >
             <input type="hidden" name="id" value={contact.Id} />
-            <Button type="submit" variant="outline">{t("intern.mkDelete")}</Button>
+            <Button type="submit" variant="outline" size="sm">{t("intern.mkDelete")}</Button>
           </form>
         </div>
+        {!contact.Email && (
+          <p class="mt-2 text-sm text-muted-foreground">
+            {t("intern.mkContactWriteNoEmail")}
+          </p>
+        )}
 
         <section class="mt-8 rounded-lg border border-border bg-card p-5">
           <h2 class="text-base font-semibold">{t("intern.mkActivityHeading")}</h2>
