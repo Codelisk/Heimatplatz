@@ -1,7 +1,7 @@
-• Karte komplett neu: flüssige Gesten, scharfe Beschriftung, klarer Fokus auf Oberösterreich
-• Ein Tipp auf einen Bezirks-Stempel zoomt direkt in den Bezirk
-• Ortsauswahl neu: ganze Bezirke als ein Chip, Panel mit Suche
-• Zwangsversteigerungen: eingetragene Lasten samt Summe auf der Detailseite
-• Merken, Blockieren und Teilen jetzt oben rechts auf dem Foto
-• Favoriten entfernen ohne Rückfrage, Listen ziehen sofort nach
-• Durch Fotos wischen klappt auch während des Ladens
+• Neu: „Lage & Umgebung“ – eigene Karte auf jeder Detailseite
+• Inserieren: Live-Vorschau zeigt sofort, wie Besucher deine Lage sehen
+• Karte jetzt über das Symbol oben rechts – flüssigere Gesten, stabileres Öffnen
+• Filter werden auch ohne Konto gemerkt und beim Anmelden übernommen
+• Neue Inserate schieben die Liste nicht mehr weg – eine Pille bietet das Laden an
+• Benachrichtigungen: falsche „Blockiert“-Warnung entfernt
+• Weniger Datenverbrauch, Feinschliff im Design
