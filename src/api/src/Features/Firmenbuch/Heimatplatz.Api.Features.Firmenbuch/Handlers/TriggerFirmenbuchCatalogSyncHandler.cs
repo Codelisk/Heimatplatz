@@ -17,7 +17,7 @@ namespace Heimatplatz.Api.Features.Firmenbuch.Handlers;
 public class TriggerFirmenbuchCatalogSyncHandler(
     IServiceScopeFactory scopeFactory,
     IHttpContextAccessor httpContextAccessor,
-    IOptions<FirmenbuchHvdOptions> options,
+    IOptions<FirmenpoolOptions> options,
     IHostEnvironment environment,
     ILogger<TriggerFirmenbuchCatalogSyncHandler> logger
 ) : IRequestHandler<TriggerFirmenbuchCatalogSyncRequest, TriggerFirmenbuchCatalogSyncResponse>
@@ -46,7 +46,9 @@ public class TriggerFirmenbuchCatalogSyncHandler(
             });
         }
 
-        var ortNr = request.OrtNr?.Trim() ?? string.Empty;
+        // request.OrtNr ist seit dem Umstieg auf den Firmenpool-Spiegel bedeutungslos (der
+        // raeumliche Umfang ergibt sich aus der Quelle); der Parameter bleibt nur fuer
+        // Wire-Kompatibilitaet bestehender Aufrufer im Vertrag.
 
         // Fire-and-forget wie beim Edikte-Sync: HTTP-Request kehrt sofort zurueck,
         // Fortschritt ist dank inkrementellem Speichern laufend ueber /catalog/status sichtbar.
@@ -56,10 +58,10 @@ public class TriggerFirmenbuchCatalogSyncHandler(
             {
                 using var scope = scopeFactory.CreateScope();
                 var syncService = scope.ServiceProvider.GetRequiredService<IFirmenbuchCatalogSyncService>();
-                var result = await syncService.SyncAsync(ortNr, CancellationToken.None);
+                var result = await syncService.SyncAsync(CancellationToken.None);
                 logger.LogInformation(
-                    "[FirmenbuchCatalog] Background sync completed: {Created} created, {Updated} updated, {Unchanged} unchanged, {Queries} queries, {Capped} capped, {Errors} errors",
-                    result.Created, result.Updated, result.Unchanged, result.QueriesExecuted, result.CappedPrefixes, result.Errors);
+                    "[FirmenbuchCatalog] Background sync completed: {Created} created, {Updated} updated, {Unchanged} unchanged, {Pages} pages, {Errors} errors",
+                    result.Created, result.Updated, result.Unchanged, result.PagesFetched, result.Errors);
             }
             catch (Exception ex)
             {
@@ -73,7 +75,7 @@ public class TriggerFirmenbuchCatalogSyncHandler(
 
         return Task.FromResult(new TriggerFirmenbuchCatalogSyncResponse
         {
-            Messages = [$"Sync started in background (OrtNr='{ortNr}')"]
+            Messages = ["Firmenpool-Spiegel im Hintergrund gestartet"]
         });
     }
 

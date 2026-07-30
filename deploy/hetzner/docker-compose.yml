@@ -47,6 +47,10 @@ services:
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       # Gleicher Key fuer den Firmenbuch-Katalog-Sync (TriggerFirmenbuchCatalogSyncHandler)
       Firmenbuch__Hvd__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      # Quelle des Firmenbuch-Katalogs: Firmenpool-API (eigener Spiegel auf dem
+      # aiconnector-Server; dessen Caddy laesst die Server-IP nur fuer lesende
+      # Firmendaten-Routen durch). Kein eigener SUCHEFIRMA-Crawl mehr.
+      Firmenbuch__Firmenpool__BaseUrl: https://static.91.18.104.178.clients.your-server.de
       # JustizOnline-IWG-Token (X-Api-Key gegen justizonline.gv.at/jop/api,
       # Firmenbuch-HVD u.a.). Ohne Wert bleiben JustizOnline-Abfragen deaktiviert.
       JustizOnline__IwgApiKey: ${JUSTIZONLINE_IWG_API_KEY:-}
@@ -114,6 +118,7 @@ services:
       Email__FrontendBaseUrl: https://${WEB_TEST_DOMAIN}
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       Firmenbuch__Hvd__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
+      Firmenbuch__Firmenpool__BaseUrl: https://static.91.18.104.178.clients.your-server.de
       JustizOnline__IwgApiKey: ${JUSTIZONLINE_IWG_API_KEY:-}
       Admin__ApiKey: ${ADMIN_API_KEY:-}
       Geocoding__Enabled: "true"

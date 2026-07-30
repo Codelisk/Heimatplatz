@@ -12,22 +12,21 @@ public static class ServiceCollectionExtensions
     {
         services.AddGeneratedServices();
 
-        services.Configure<FirmenbuchHvdOptions>(configuration.GetSection(FirmenbuchHvdOptions.SectionName));
+        services.Configure<FirmenpoolOptions>(configuration.GetSection(FirmenpoolOptions.SectionName));
 
-        // ApiKey-Fallback auf den zentralen JustizOnline-IWG-Zugriffstoken (JustizOnline:IwgApiKey,
-        // env JUSTIZONLINE_IWG_API_KEY) - der Feature-eigene Abschnitt bleibt als Override moeglich.
-        services.PostConfigure<FirmenbuchHvdOptions>(o =>
+        // SyncTriggerKey-Fallback auf den historischen HVD-Abschnitt (env
+        // Firmenbuch__Hvd__SyncTriggerKey) - so laeuft das bestehende Deployment ohne
+        // Umkonfiguration weiter; ein Wert im Firmenpool-Abschnitt uebersteuert ihn.
+        services.PostConfigure<FirmenpoolOptions>(o =>
         {
-            if (string.IsNullOrWhiteSpace(o.ApiKey))
-                o.ApiKey = configuration["JustizOnline:IwgApiKey"];
+            if (string.IsNullOrWhiteSpace(o.SyncTriggerKey))
+                o.SyncTriggerKey = configuration["Firmenbuch:Hvd:SyncTriggerKey"];
         });
 
-        // HttpClient fuer die amtliche FBW-HVD-Schnittstelle (dokumentiertes Rate-Limit mit
-        // sauberem HTTP 429 - AddStandardResilienceHandler faengt das ab)
-        services.AddHttpClient<IFirmenbuchHvdClient, FirmenbuchHvdClient>(client =>
+        services.AddHttpClient<IFirmenpoolApiClient, FirmenpoolApiClient>(client =>
         {
             client.Timeout = TimeSpan.FromSeconds(
-                configuration.GetValue($"{FirmenbuchHvdOptions.SectionName}:TimeoutSeconds", 30));
+                configuration.GetValue($"{FirmenpoolOptions.SectionName}:TimeoutSeconds", 60));
         })
         .AddStandardResilienceHandler();
 

@@ -1,24 +1,22 @@
 # Heimatplatz.Api.Features.Firmenbuch
 
-Zugriff auf die amtliche **FBW-WebServices (HVD)**-Schnittstelle des Bundesministeriums fuer
-Justiz (High Value Datasets des Firmenbuchs nach DVO (EU) 2023/138) sowie ein lokal
-gespeicherter **Firmenbuch-Katalog** (Firmenstammdaten, unabhaengig von einer Branche).
+Lokal gespeicherter **Firmenbuch-Katalog** (Firmenstammdaten, unabhaengig von einer Branche),
+gespiegelt aus der **Firmenpool-API** (eigenes Repo `AIRoutine/Firmenpool` - dessen Backend
+crawlt die amtliche FBW-HVD-Schnittstelle des BMJ selbst, pflegt den Bestand per Tages-Delta
+und haelt zusaetzlich Auszuege, Funktionaere, GISA-Gewerbe und Jahresabschluss-Kennzahlen).
+Heimatplatz crawlt die Justiz-Schnittstelle **nicht mehr selbst**.
 
 ## Zweck und Verantwortlichkeiten
 
-- **`FirmenbuchHvdClient`** (`IFirmenbuchHvdClient`): SOAP-1.2-Client fuer die FBW-WebServices
-  (`X-API-KEY`-Header = JustizOnline-IWG-Zugriffstoken). Operationen:
-  - `GetAuszugAsync(fnr)`: amtlicher Kurzauszug (EUID, Ersteintragungsdatum/DATERST,
-    Geschaeftsfuehrung samt Geburtsdatum).
-  - `SearchAsync(wortlaut, ortNr)`: `SUCHEFIRMA` mit Wildcards (`*muster*`) und
-    Orts-/Bezirks-/Bundesland-Einschraenkung (ORTNR 5-/3-/1-stellig, z.B. `4` = OOe).
-    Antwort ist auf 1000 Treffer gedeckelt (kein Flag - exakt 1000 = vermutlich abgeschnitten).
-- **`FirmenbuchCatalogSyncService`**: baut per adaptiver Praefix-Partitionierung
-  (`a*`, `b*`, ... - bei 1000er-Deckel wird der Praefix verfeinert: `aa*`, `ab*`, ...)
-  einen vollstaendigen Katalog aller Firmen eines Bundeslands auf und speichert ihn als
-  `FirmenbuchCompany` (inkl. geloeschter/historischer Firmen, Status wird mitgefuehrt).
-  Speichert inkrementell (je Suchanfrage) - Teilfortschritt ist sofort sichtbar, ein
-  Abbruch verliert nichts.
+- **`FirmenpoolApiClient`** (`IFirmenpoolApiClient`): duenner HTTP-Client fuer
+  `GET {BaseUrl}/api/firmenbuch/companies` (seitenweise, camelCase-JSON). Der Firmenpool-Caddy
+  laesst diese lesende Route nur fuer freigeschaltete IPs durch (Heimatplatz-Hetzner-Server,
+  Daniels Anschluss); Sync-Trigger und Dashboard des Firmenpools bleiben gesperrt.
+- **`FirmenbuchCatalogSyncService`**: zieht den kompletten Firmenpool-Katalog seitenweise ab
+  und upsertet per FNR in `FirmenbuchCompany` (inkl. geloeschter/historischer Firmen, Status
+  wird mitgefuehrt; `First-`/`LastSeenAt` sind die Sichtungszeitpunkte der QUELLE).
+  Speichert inkrementell (je Seite) - Teilfortschritt ist sofort sichtbar, ein Abbruch
+  verliert nichts. Eintraege werden nie geloescht.
 - Kein Seeding (reiner Spiegel amtlicher Daten).
 
 ## Oeffentliche APIs
@@ -29,17 +27,20 @@ GET  /api/firmenbuch/catalog/status   GetFirmenbuchCatalogStatusRequest    (Zaeh
 GET  /api/firmenbuch/companies        GetFirmenbuchCompaniesRequest        (Suche/Filter/Paging)
 ```
 
+`TriggerFirmenbuchCatalogSyncRequest.OrtNr` ist seit dem Umstieg bedeutungslos (der raeumliche
+Umfang ergibt sich aus der Quelle; der Firmenpool fuehrt derzeit Oberoesterreich) und bleibt
+nur fuer Wire-Kompatibilitaet im Vertrag.
+
 ## Konfiguration
 
-Abschnitt `Firmenbuch:Hvd` (`FirmenbuchHvdOptions`):
+Abschnitt `Firmenbuch:Firmenpool` (`FirmenpoolOptions`):
 
 | Feld | Default | Beschreibung |
 |------|---------|--------------|
-| `BaseUrl` | `https://justizonline.gv.at/jop/api/at.gv.justiz.fbw/ws` | |
-| `ApiKey` | `JustizOnline:IwgApiKey` | X-API-KEY; Default ist der zentrale JustizOnline-IWG-Token (PostConfigure-Fallback), hier setzbar als Override; ganz ohne Wert = Client deaktiviert |
-| `TimeoutSeconds` | `30` | |
-| `DelayBetweenRequestsMs` | `300` | Rate-Limit zwischen Requests (Gateway liefert bei Ueberlast HTTP 429, Resilience-Handler retryt) |
-| `SyncTriggerKey` | - | Shared-Key fuer `POST /api/firmenbuch/catalog/sync` (Header `X-Sync-Key`), fail-closed ausserhalb Development. In Prod auf denselben `SYNC_TRIGGER_KEY` gemappt wie der Edikte-Sync. |
+| `BaseUrl` | `https://static.91.18.104.178.clients.your-server.de` | Firmenpool-API (Uebergangsbetrieb auf dem aiconnector-Server) |
+| `TimeoutSeconds` | `60` | |
+| `PageSize` | `200` | Seitengroesse beim Abzug (Firmenpool deckelt bei 200) |
+| `SyncTriggerKey` | Fallback `Firmenbuch:Hvd:SyncTriggerKey` | Shared-Key fuer `POST /api/firmenbuch/catalog/sync` (Header `X-Sync-Key`), fail-closed ausserhalb Development. In Prod auf denselben `SYNC_TRIGGER_KEY` gemappt wie der Edikte-Sync (env `Firmenbuch__Hvd__SyncTriggerKey`, historischer Name). |
 
 ## Abhaengigkeiten
 
@@ -58,9 +59,5 @@ Sync ausloesen (erfordert `X-Sync-Key`):
 
 ```
 curl -X POST https://api.heimatplatz.at/api/firmenbuch/catalog/sync \
-  -H "X-Sync-Key: <SYNC_TRIGGER_KEY>" -H "Content-Type: application/json" \
-  -d '{"OrtNr":"4"}'
+  -H "X-Sync-Key: <SYNC_TRIGGER_KEY>" -H "Content-Type: application/json" -d '{}'
 ```
-
-`OrtNr` = 1-stellig Bundesland (4 = Oberoesterreich), 3-stellig Bezirk, 5-stellig Gemeinde,
-leer = ganz Oesterreich (dauert entsprechend laenger).
