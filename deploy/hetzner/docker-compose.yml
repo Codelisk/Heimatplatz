@@ -49,9 +49,6 @@ services:
       # laesst die Server-IP nur fuer lesende Firmendaten-Routen durch). Der Lead-Pool
       # fragt live dort an - Heimatplatz speichert selbst keine Firmenbuch-Daten mehr.
       Firmenbuch__Firmenpool__BaseUrl: https://static.91.18.104.178.clients.your-server.de
-      # JustizOnline-IWG-Token (X-Api-Key gegen justizonline.gv.at/jop/api,
-      # Firmenbuch-HVD u.a.). Ohne Wert bleiben JustizOnline-Abfragen deaktiviert.
-      JustizOnline__IwgApiKey: ${JUSTIZONLINE_IWG_API_KEY:-}
       # Shared-Key fuer die /api/admin-Endpoints des Intern-Bereichs (X-Admin-Key-Header,
       # siehe AdminAccessGuard). Ohne Key sind die Endpoints gesperrt (fail-closed).
       Admin__ApiKey: ${ADMIN_API_KEY:-}
@@ -116,7 +113,6 @@ services:
       Email__FrontendBaseUrl: https://${WEB_TEST_DOMAIN}
       ForeclosureAuctions__Scraping__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
       Firmenbuch__Firmenpool__BaseUrl: https://static.91.18.104.178.clients.your-server.de
-      JustizOnline__IwgApiKey: ${JUSTIZONLINE_IWG_API_KEY:-}
       Admin__ApiKey: ${ADMIN_API_KEY:-}
       Geocoding__Enabled: "true"
       PushNotifications__Apns__TeamId: ${APNS_TEAM_ID}
