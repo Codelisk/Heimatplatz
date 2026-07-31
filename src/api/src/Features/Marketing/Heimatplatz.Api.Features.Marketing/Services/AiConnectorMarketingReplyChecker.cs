@@ -21,10 +21,15 @@ public class AiConnectorMarketingReplyChecker(
     ILogger<AiConnectorMarketingReplyChecker> logger
 ) : IMarketingReplyChecker
 {
-    public async Task<MarketingReplyCheck> CheckAsync(string conversation, string draft, CancellationToken ct = default)
+    public async Task<MarketingReplyCheck> CheckAsync(
+        string conversation,
+        string draft,
+        string? instruction = null,
+        string? previousSuggestion = null,
+        CancellationToken ct = default)
     {
         var opts = options.Value.AiConnector;
-        var prompt = BuildPrompt(conversation, draft, opts.SectionPath);
+        var prompt = BuildPrompt(conversation, draft, instruction, previousSuggestion, opts.SectionPath);
 
         logger.LogInformation("[Marketing] Starte AiConnector-Entwurfspruefung im Workspace {WorkspaceId} (Section {SectionPath})",
             opts.WorkspaceId, opts.SectionPath);
@@ -56,7 +61,12 @@ public class AiConnectorMarketingReplyChecker(
         return check;
     }
 
-    private static string BuildPrompt(string conversation, string draft, string sectionPath)
+    private static string BuildPrompt(
+        string conversation,
+        string draft,
+        string? instruction,
+        string? previousSuggestion,
+        string sectionPath)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"Lies zuerst die Datei {sectionPath}/AGENTS.md in diesem Workspace (samt der dort");
@@ -88,6 +98,29 @@ public class AiConnectorMarketingReplyChecker(
         sb.AppendLine("   (Ton, Klarheit, fehlende Antwort auf eine Frage), schreibe deine komplette");
         sb.AppendLine("   Alternativ-Fassung (ohne Signatur/Grussformel-Namen). Ist der Entwurf gut,");
         sb.AppendLine("   ist suggestedText null - schlage nicht um des Vorschlags willen etwas vor.");
+        sb.AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(instruction))
+        {
+            sb.AppendLine();
+            sb.AppendLine("ZUSAETZLICH hat der Nutzer eine Anweisung fuer den Formulierungsvorschlag:");
+            sb.AppendLine("\"\"\"");
+            sb.AppendLine(instruction.Trim());
+            sb.AppendLine("\"\"\"");
+            if (!string.IsNullOrWhiteSpace(previousSuggestion))
+            {
+                sb.AppendLine();
+                sb.AppendLine("Bisheriger Vorschlag, den du gemaess der Anweisung ueberarbeiten sollst:");
+                sb.AppendLine("\"\"\"");
+                sb.AppendLine(previousSuggestion.Trim());
+                sb.AppendLine("\"\"\"");
+            }
+            sb.AppendLine();
+            sb.AppendLine("In diesem Fall MUSS suggestedText gesetzt sein (nie null): ueberarbeite den");
+            sb.AppendLine("bisherigen Vorschlag (bzw. den Entwurf, wenn keiner angegeben ist) so, dass die");
+            sb.AppendLine("Anweisung umgesetzt ist. fitsContext, contextNote und correctedText beziehen");
+            sb.AppendLine("sich weiterhin auf den urspruenglichen Entwurf.");
+        }
         sb.AppendLine();
 
         sb.AppendLine("contextNote: 1-2 kurze deutsche Saetze mit deiner Einschaetzung (bei fitsContext=false");

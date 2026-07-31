@@ -50,7 +50,8 @@ public class CheckMarketingReplyHandler(
         try
         {
             var conversation = await BuildConversationAsync(inbound, cancellationToken);
-            var check = await checker.CheckAsync(conversation, request.Draft, cancellationToken);
+            var check = await checker.CheckAsync(
+                conversation, request.Draft, request.Instruction, request.PreviousSuggestion, cancellationToken);
 
             return new CheckMarketingReplyResponse(
                 true, check.FitsContext, check.ContextNote, check.CorrectedText, check.SuggestedText, null);

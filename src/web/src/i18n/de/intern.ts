@@ -501,6 +501,8 @@ export const intern = {
   "intern.mkConvCheckApplied": "Übernommen",
   "intern.mkConvCheckUndo": "Rückgängig",
   "intern.mkConvCheckClose": "Prüfergebnis schließen",
+  "intern.mkConvCheckRefinePlaceholder": "Wunsch an die KI (z. B. kürzer, förmlicher, Termin vorschlagen) …",
+  "intern.mkConvCheckRefineSend": "Überarbeiten",
 
   // Zusatzadressen am Kontakt (weitere E-Mail-Adressen neben der Versand-Adresse)
   "intern.mkEmailsHeading": "Weitere E-Mail-Adressen",

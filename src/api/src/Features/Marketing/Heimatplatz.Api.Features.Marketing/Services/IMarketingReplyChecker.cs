@@ -21,9 +21,17 @@ public interface IMarketingReplyChecker
 {
     /// <summary>
     /// <paramref name="conversation"/> ist der vorbereitete Klartext-Verlauf
-    /// (Handler baut ihn aus Versand/Rueckmeldungen). Wirft
+    /// (Handler baut ihn aus Versand/Rueckmeldungen). Ist <paramref name="instruction"/>
+    /// gesetzt (Nutzer-Wunsch fuer die naechste Runde), MUSS das Ergebnis einen
+    /// SuggestedText enthalten, der <paramref name="previousSuggestion"/> (bzw. den
+    /// Entwurf) gemaess der Anweisung ueberarbeitet. Wirft
     /// TimeoutException/InvalidOperationException bei fehlgeschlagener Pruefung -
     /// der Handler uebersetzt das in eine Fehler-Response.
     /// </summary>
-    Task<MarketingReplyCheck> CheckAsync(string conversation, string draft, CancellationToken ct = default);
+    Task<MarketingReplyCheck> CheckAsync(
+        string conversation,
+        string draft,
+        string? instruction = null,
+        string? previousSuggestion = null,
+        CancellationToken ct = default);
 }

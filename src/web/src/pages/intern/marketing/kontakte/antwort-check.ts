@@ -17,6 +17,11 @@ export const POST: APIRoute = async ({ request }) => {
   const inboundEmailId =
     typeof payload?.inboundEmailId === "string" ? payload.inboundEmailId.trim() : "";
   const draft = typeof payload?.draft === "string" ? payload.draft.trim() : "";
+  // Ueberarbeitungs-Runde: Nutzer-Wunsch + der Vorschlag, auf den er sich bezieht
+  const instruction =
+    typeof payload?.instruction === "string" ? payload.instruction.trim() : "";
+  const previousSuggestion =
+    typeof payload?.previousSuggestion === "string" ? payload.previousSuggestion.trim() : "";
 
   if (!inboundEmailId || !draft) {
     return json({ ok: false, error: t("intern.mkConvCheckValidation") });
@@ -24,7 +29,12 @@ export const POST: APIRoute = async ({ request }) => {
 
   const result = await adminApiPost<MarketingReplyCheckResponse>(
     "/api/admin/marketing/inbox/reply-check",
-    { InboundEmailId: inboundEmailId, Draft: draft },
+    {
+      InboundEmailId: inboundEmailId,
+      Draft: draft,
+      Instruction: instruction || null,
+      PreviousSuggestion: previousSuggestion || null,
+    },
   );
 
   if (!result) {

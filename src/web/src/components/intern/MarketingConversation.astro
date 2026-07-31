@@ -257,6 +257,27 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
               </div>
             </div>
           ))}
+
+          {/* Naechste Runde: Wunsch an die KI - ueberarbeitet den angezeigten Vorschlag
+              (bzw. den Entwurf, wenn es noch keinen gibt). Enter loest die Runde aus,
+              das Script faengt ihn ab - sonst wuerde er die Antwort SENDEN. */}
+          <div class="mt-3 hidden border-t border-border pt-3" data-check-refine>
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder={t("intern.mkConvCheckRefinePlaceholder")}
+                class="min-w-0 flex-1 rounded-md border border-border bg-muted px-3 py-1.5 text-sm outline-none focus:border-foreground/40"
+                data-check-refine-input
+              />
+              <button
+                type="button"
+                class="shrink-0 rounded-md border border-border px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-60"
+                data-check-refine-btn
+                data-idle-label={t("intern.mkConvCheckRefineSend")}
+                data-running-label={t("intern.mkConvCheckRunning")}
+              >{t("intern.mkConvCheckRefineSend")}</button>
+            </div>
+          </div>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -410,6 +431,12 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
         return true;
       };
 
+      const refineRow = panel.querySelector<HTMLElement>("[data-check-refine]");
+      const refineInput =
+        refineRow?.querySelector<HTMLInputElement>("[data-check-refine-input]") ?? null;
+      const refineBtn =
+        refineRow?.querySelector<HTMLButtonElement>("[data-check-refine-btn]") ?? null;
+
       const showResult = (result: CheckResult | null, draft: string): void => {
         panel.classList.remove("hidden");
         if (!result?.ok) {
@@ -421,6 +448,7 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
           noIssues.classList.add("hidden");
           for (const block of panel.querySelectorAll("[data-check-block]"))
             block.classList.add("hidden");
+          refineRow?.classList.add("hidden");
           return;
         }
 
@@ -438,35 +466,81 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
         const hasCorrection = fillBlock("corrected", result.correctedText, draft);
         const hasSuggestion = fillBlock("suggested", result.suggestedText, draft);
         noIssues.classList.toggle("hidden", !result.fitsContext || hasCorrection || hasSuggestion);
+        refineRow?.classList.remove("hidden");
         panel.scrollIntoView({ block: "nearest" });
       };
 
-      checkBtn.addEventListener("click", async () => {
+      // Check und Ueberarbeitungs-Runde teilen sich den Aufruf; waehrend eine Runde
+      // laeuft, sind beide Ausloeser gesperrt und nur der ausloesende zeigt "Prüft …"
+      const setBusy = (busy: boolean, source: "check" | "refine"): void => {
+        checkBtn.disabled = busy;
+        btnLabel.textContent =
+          (busy && source === "check" ? checkBtn.dataset.runningLabel : checkBtn.dataset.idleLabel) ?? "";
+        if (refineBtn) {
+          refineBtn.disabled = busy;
+          refineBtn.textContent =
+            (busy && source === "refine" ? refineBtn.dataset.runningLabel : refineBtn.dataset.idleLabel) ?? "";
+        }
+      };
+
+      const performCheck = async (
+        extra: Record<string, string>,
+        source: "check" | "refine",
+      ): Promise<CheckResult | null> => {
         const draft = input.value.trim();
         if (!draft) {
           input.focus();
-          return;
+          return null;
         }
         const inboundEmailId =
           form.querySelector<HTMLInputElement>("input[name='inboundEmailId']")?.value ?? "";
 
-        checkBtn.disabled = true;
-        btnLabel.textContent = checkBtn.dataset.runningLabel ?? "";
+        setBusy(true, source);
         try {
           const response = await fetch("/intern/marketing/kontakte/antwort-check", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ inboundEmailId, draft }),
+            body: JSON.stringify({ inboundEmailId, draft, ...extra }),
           });
           const result = (await response.json().catch(() => null)) as CheckResult | null;
           showResult(result, draft);
+          return result;
         } catch {
           showResult(null, draft);
+          return null;
         } finally {
-          checkBtn.disabled = false;
-          btnLabel.textContent = checkBtn.dataset.idleLabel ?? "";
+          setBusy(false, source);
         }
-      });
+      };
+
+      checkBtn.addEventListener("click", () => void performCheck({}, "check"));
+
+      if (refineInput && refineBtn) {
+        const runRefine = async (): Promise<void> => {
+          const instruction = refineInput.value.trim();
+          if (!instruction) {
+            refineInput.focus();
+            return;
+          }
+          const suggestedBlock = panel.querySelector<HTMLElement>('[data-check-block="suggested"]');
+          const previousSuggestion =
+            suggestedBlock && !suggestedBlock.classList.contains("hidden")
+              ? (suggestedBlock.querySelector("[data-check-text]")?.textContent ?? "")
+              : "";
+          const result = await performCheck({ instruction, previousSuggestion }, "refine");
+          if (result?.ok) refineInput.value = "";
+        };
+
+        refineBtn.addEventListener("click", () => void runRefine());
+        // Enter startet die Runde - ohne preventDefault wuerde er das Antwort-Formular
+        // abschicken und die Mail SENDEN
+        refineInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            void runRefine();
+          }
+        });
+      }
     }
   }
 </script>

@@ -9,9 +9,17 @@ namespace Heimatplatz.Api.Features.Marketing.Contracts.Mediator.Requests;
 /// versendet und nichts gespeichert - reine Beratung. Die Eingangs-Mail liefert den
 /// Kontakt und damit den Verlauf als Pruefkontext.
 /// </summary>
+/// <param name="Instruction">
+/// Optionaler Nutzer-Wunsch fuer die naechste Runde ("kuerzer", "Telefontermin
+/// erwaehnen"): die KI MUSS dann einen Formulierungsvorschlag liefern, der den
+/// Wunsch umsetzt - Basis ist PreviousSuggestion (bzw. der Entwurf, wenn leer).
+/// </param>
+/// <param name="PreviousSuggestion">Der aktuell angezeigte Vorschlag, den die Anweisung ueberarbeiten soll</param>
 public record CheckMarketingReplyRequest(
     Guid InboundEmailId,
-    string Draft
+    string Draft,
+    string? Instruction = null,
+    string? PreviousSuggestion = null
 ) : IRequest<CheckMarketingReplyResponse>;
 
 /// <summary>
