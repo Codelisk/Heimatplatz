@@ -51,6 +51,8 @@ enges Rate-Limit (5/min pro IP, Program.cs).
 | GET | `/contacts/detail` | `GetMarketingContactDetailHandler` (inkl. Aktivitaeten-Timeline) |
 | POST | `/contacts/activity` | `LogMarketingActivityHandler` (Anruf/Notiz/Termin + Status + Wiedervorlage) |
 | POST | `/contacts/quick` | `QuickMarketingContactActionHandler` (Ein-Klick-Akquise: Interessiert/Ablehnen mit Grund/Sperren/Wiedervorlage/Nicht erreicht/Rueckgaengig) |
+| POST | `/contacts/emails/add` | `AddMarketingContactEmailHandler` (Zusatzadresse, unique ueber alle Kontakte) |
+| POST | `/contacts/emails/remove` | `RemoveMarketingContactEmailHandler` |
 | GET | `/lead-pool` | `GetMarketingLeadPoolHandler` (Firmenbuch-Immobilienfirmen) |
 | POST | `/lead-pool/add` | `AddMarketingLeadsHandler` (uebernehmen als `ToContact`) |
 | GET | `/templates` | `GetMarketingTemplatesHandler` |
@@ -80,6 +82,11 @@ enges Rate-Limit (5/min pro IP, Program.cs).
   Generierungs-Stichwoertern (Auswertung) und Status `Sent`/`LoggedOnly`.
 - `MarketingInboundEmail` - Rueckmeldungen aus dem Postfach; `MessageId` unique
   (Sync-Idempotenz), FKs auf Kontakt (Cascade) und beantwortete Mail (SetNull).
+- `MarketingContactEmail` - Zusatzadressen eines Kontakts (z.B. persoenliche
+  Adressen von Ansprechpartnern neben der office@-Versand-Adresse). `Email` unique
+  ueber alle Zusatzadressen; dass sie nicht zugleich Versand-Adresse eines Kontakts
+  ist, pruefen die Handler. Alle Kontakt-Lookups per Adresse (Versand-Upsert,
+  Makler-Anfrage, Posteingang) beruecksichtigen Zusatzadressen mit.
 
 Migrations liegen in BEIDEN Provider-Sets (`Core.Data/Migrations` SQLite,
 `Core.Data.Migrations.Postgres`), Demo-Kontakte im `MarketingSeeder` (IsDemoData).
@@ -131,11 +138,16 @@ Die Signatur ist NICHT Teil der Vorlage (kommt beim Versand aus dem Impressum).
    Historien-Zeile mit Message-Id.
 3. **Posteingang**: `MarketingInboxSyncService` ruft das Postfach per IMAP ab
    (MailKit, gleiche Zugangsdaten wie SMTP, `Email:ImapHost` leer = SmtpHost).
-   Uebernommen werden NUR Antworten auf Marketing-Mails (In-Reply-To/References)
-   oder Mails bekannter Kontakte - das restliche Postfach bleibt privat.
+   Uebernommen werden NUR (1) Antworten auf Marketing-Mails (In-Reply-To/References),
+   (2) Mails bekannter Kontakt-Adressen (Versand- oder Zusatzadresse) oder (3) Mails,
+   deren Absender-Domain eindeutig zu genau EINEM Kontakt gehoert (Domain-Fallback,
+   `MarketingInboundMatching`; oeffentliche Provider-Domains wie gmail/gmx sind ueber
+   `Marketing:Inbox:PublicEmailDomains` ausgenommen, mehrdeutige Domains matchen nie).
+   Beim Domain-Treffer wird die neue Absender-Adresse automatisch als Zusatzadresse
+   gelernt (Source "Posteingang"). Das restliche Postfach bleibt privat.
    Auto-Sync beim Oeffnen der Posteingang-Seite (5-Minuten-Drossel), manueller
    Sync ueber `/inbox/sync`. Eingehende Antworten setzen den Kontakt-Status
-   Lead/Contacted -> Replied.
+   Lead/ToContact/Contacted/FollowUp -> Replied.
 4. **Auswertung**: `/stats` liefert Kontakt-Funnel, Versand-/Antwort-Volumen
    (30 Tage), ungelesene Rueckmeldungen und die Antwortquote.
 

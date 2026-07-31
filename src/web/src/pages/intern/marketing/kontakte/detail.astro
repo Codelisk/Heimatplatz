@@ -126,6 +126,21 @@ const timeline: TimelineEntry[] = [
         {t("intern.mkContactActionFailed", { error: actionError ?? "?" })}
       </div>
     )}
+    {action === "emailadded" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkEmailsAddedOk")}
+      </div>
+    )}
+    {action === "emailremoved" && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkEmailsRemovedOk")}
+      </div>
+    )}
+    {action === "emailfailed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkEmailsFailed", { error: actionError ?? "?" })}
+      </div>
+    )}
 
     {!contact && (
       <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
@@ -196,6 +211,57 @@ const timeline: TimelineEntry[] = [
           <div class="mt-4">
             <MarketingContactForm contact={contact} redirect="detail" />
           </div>
+        </section>
+
+        <section class="mt-8 rounded-lg border border-border bg-card p-5">
+          <h2 class="text-base font-semibold">{t("intern.mkEmailsHeading")}</h2>
+          <p class="mt-1 text-sm text-muted-foreground">{t("intern.mkEmailsIntro")}</p>
+
+          {(detail?.AdditionalEmails ?? []).length === 0 ? (
+            <p class="mt-4 text-sm text-muted-foreground">{t("intern.mkEmailsEmpty")}</p>
+          ) : (
+            <ul class="mt-4 divide-y divide-border">
+              {(detail?.AdditionalEmails ?? []).map((entry) => (
+                <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <span class="text-sm">
+                    {entry.Email}
+                    <span class="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                      {entry.Source === "Posteingang"
+                        ? t("intern.mkEmailsSourceInbox")
+                        : t("intern.mkEmailsSourceManual")}
+                    </span>
+                  </span>
+                  <form
+                    method="POST"
+                    action="/intern/marketing/kontakte/email-remove"
+                    data-confirm={t("intern.mkEmailsConfirmRemove")}
+                  >
+                    <input type="hidden" name="contactId" value={contact.Id} />
+                    <input type="hidden" name="email" value={entry.Email} />
+                    <Button type="submit" variant="outline" size="sm">
+                      {t("intern.mkEmailsRemove")}
+                    </Button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form
+            method="POST"
+            action="/intern/marketing/kontakte/email-add"
+            class="mt-4 flex flex-wrap items-center gap-2"
+          >
+            <input type="hidden" name="contactId" value={contact.Id} />
+            <input
+              type="email"
+              name="email"
+              required
+              placeholder={t("intern.mkEmailsPlaceholder")}
+              class="w-full max-w-xs rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+            />
+            <Button type="submit" variant="outline" size="sm">{t("intern.mkEmailsAdd")}</Button>
+          </form>
         </section>
 
         <section class="mt-8 rounded-lg border border-border bg-card">

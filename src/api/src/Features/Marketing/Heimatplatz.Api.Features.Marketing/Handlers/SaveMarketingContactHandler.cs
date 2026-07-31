@@ -58,6 +58,15 @@ public class SaveMarketingContactHandler(
                 .AnyAsync(c => c.Email == normalizedEmail && c.Id != request.Id, cancellationToken);
             if (duplicate)
                 return new SaveMarketingContactResponse(false, null, "Ein Kontakt mit dieser E-Mail-Adresse existiert bereits.");
+
+            // Auch Zusatzadressen sind tabu - ausser es ist die eigene: dann wird sie zur
+            // Versand-Adresse befoerdert und die Zusatz-Zeile entfernt (keine Doppelfuehrung)
+            var additionalOwner = await dbContext.Set<MarketingContactEmail>()
+                .FirstOrDefaultAsync(a => a.Email == normalizedEmail, cancellationToken);
+            if (additionalOwner is not null && additionalOwner.ContactId != request.Id)
+                return new SaveMarketingContactResponse(false, null, "Diese Adresse ist bereits einem anderen Kontakt als Zusatzadresse zugeordnet.");
+            if (additionalOwner is not null)
+                dbContext.Set<MarketingContactEmail>().Remove(additionalOwner);
         }
 
         MarketingContact contact;

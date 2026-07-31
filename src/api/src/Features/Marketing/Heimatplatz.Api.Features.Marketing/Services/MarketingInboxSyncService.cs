@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Heimatplatz.Api.Core.Data;
 using Heimatplatz.Api.Core.Email;
+using Heimatplatz.Api.Features.Marketing.Configuration;
 using Heimatplatz.Api.Features.Marketing.Contracts.Models;
 using Heimatplatz.Api.Features.Marketing.Data.Entities;
 using MailKit;
@@ -18,8 +19,10 @@ namespace Heimatplatz.Api.Features.Marketing.Services;
 /// <summary>
 /// IMAP-Abruf via MailKit (gleiche Zugangsdaten wie SMTP, Hetzner-Webhosting-Mailbox).
 /// Betrachtet nur Mails der letzten 30 Tage und uebernimmt AUSSCHLIESSLICH:
-///  - Antworten auf versendete Marketing-Mails (In-Reply-To/References -> MessageId), oder
-///  - Mails von Adressen, die als Kontakt in der Datenbank stehen.
+///  - Antworten auf versendete Marketing-Mails (In-Reply-To/References -> MessageId),
+///  - Mails von Adressen, die an einem Kontakt stehen (Versand- oder Zusatzadresse), oder
+///  - Mails, deren Absender-Domain eindeutig zu genau einem Kontakt gehoert (kein
+///    oeffentlicher Mail-Provider) - die Adresse wird dabei als Zusatzadresse gelernt.
 /// Alles andere (allgemeines Postfach, eigene Mails, System-Mails) bleibt unangetastet -
 /// info@ ist auch das allgemeine Postfach des Betreibers.
 /// Idempotent ueber den Unique-Index auf MarketingInboundEmails.MessageId.
@@ -28,6 +31,7 @@ namespace Heimatplatz.Api.Features.Marketing.Services;
 public class MarketingInboxSyncService(
     AppDbContext dbContext,
     IOptions<EmailOptions> emailOptions,
+    IOptions<MarketingOptions> marketingOptions,
     ILogger<MarketingInboxSyncService> logger
 ) : IMarketingInboxSync
 {
@@ -88,6 +92,19 @@ public class MarketingInboxSyncService(
             .Where(c => c.Email != null)
             .Select(c => new { Email = c.Email!, c.Id })
             .ToDictionaryAsync(c => c.Email, c => c.Id, StringComparer.OrdinalIgnoreCase, ct);
+
+        // Zusatzadressen (persoenliche Adressen von Ansprechpartnern) zaehlen wie die
+        // Versand-Adresse
+        var additionalAddresses = await dbContext.Set<MarketingContactEmail>()
+            .Select(a => new { a.Email, a.ContactId })
+            .ToListAsync(ct);
+        foreach (var address in additionalAddresses)
+            contactsByEmail.TryAdd(address.Email, address.ContactId);
+
+        // Domain -> Kontakt fuer den Fallback bei unbekannten Absendern (Zuordnung 3)
+        var domainIndex = MarketingInboundMatching.BuildDomainIndex(
+            contactsByEmail.Select(kv => new KeyValuePair<string, Guid>(kv.Key, kv.Value)),
+            marketingOptions.Value.Inbox.PublicEmailDomains);
 
         var knownMessageIds = new HashSet<string>(
             await dbContext.Set<MarketingInboundEmail>().Select(i => i.MessageId).ToListAsync(ct),
@@ -194,8 +211,20 @@ public class MarketingInboxSyncService(
             if (!isBounce && contactId is null && isKnownContactSender)
                 contactId = senderContactId;
 
-            // Weder Antwort/Bounce zu unseren Mails noch bekannter Kontakt ->
-            // gehoert nicht in den Marketing-Eingang
+            // Zuordnung 3 (nur echte Mails): unbekannter Absender, dessen Domain eindeutig
+            // zu genau einem Kontakt gehoert - z.B. Ansprechpartner antwortet von seiner
+            // persoenlichen Adresse statt der angeschriebenen office@. Die Adresse wird
+            // unten als Zusatzadresse gelernt, damit sie kuenftig direkt trifft.
+            var learnedAddress = false;
+            if (contactId is null && !isBounceCandidate
+                && MarketingInboundMatching.TryResolveByDomain(fromNormalized, domainIndex, out var domainContactId))
+            {
+                contactId = domainContactId;
+                learnedAddress = true;
+            }
+
+            // Weder Antwort/Bounce zu unseren Mails noch (per Adresse oder Domain)
+            // bekannter Kontakt -> gehoert nicht in den Marketing-Eingang
             if (contactId is null)
                 continue;
 
@@ -254,8 +283,25 @@ public class MarketingInboxSyncService(
 
             if (contact.LastReplyAt is null || contact.LastReplyAt < receivedAt)
                 contact.LastReplyAt = receivedAt;
-            if (contact.Status is MarketingContactStatus.Lead or MarketingContactStatus.Contacted)
+            if (contact.Status is MarketingContactStatus.Lead or MarketingContactStatus.ToContact
+                or MarketingContactStatus.Contacted or MarketingContactStatus.FollowUp)
+            {
                 contact.Status = MarketingContactStatus.Replied;
+            }
+
+            // Neu gelernte Absender-Adresse als Zusatzadresse speichern - kuenftige Mails
+            // treffen dann direkt ueber die Adresse (Zuordnung 2, auch im selben Lauf)
+            if (learnedAddress && !contactsByEmail.ContainsKey(fromNormalized))
+            {
+                dbContext.Set<MarketingContactEmail>().Add(new MarketingContactEmail
+                {
+                    Id = Guid.NewGuid(),
+                    ContactId = contactId.Value,
+                    Email = fromNormalized.ToLowerInvariant(),
+                    Source = "Posteingang"
+                });
+                contactsByEmail[fromNormalized] = contactId.Value;
+            }
         }
 
         await client.DisconnectAsync(true, ct);

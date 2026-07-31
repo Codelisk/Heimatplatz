@@ -2469,6 +2469,36 @@
         }
       }
     },
+    "/api/admin/marketing/contacts/emails/add": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "AddMarketingContactEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMarketingContactEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketingContactEmailActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/lead-pool/add": {
       "post": {
         "tags": [
@@ -3034,6 +3064,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/QuickMarketingContactActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/marketing/contacts/emails/remove": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RemoveMarketingContactEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveMarketingContactEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketingContactEmailActionResponse"
                 }
               }
             }
@@ -3971,6 +4031,22 @@
                 "$ref": "#/components/schemas/FeedbackMessageDto"
               }
             ]
+          }
+        }
+      },
+      "AddMarketingContactEmailRequest": {
+        "required": [
+          "ContactId",
+          "Email"
+        ],
+        "type": "object",
+        "properties": {
+          "ContactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Email": {
+            "type": "string"
           }
         }
       },
@@ -6200,7 +6276,8 @@
           "Contact",
           "Emails",
           "Replies",
-          "Activities"
+          "Activities",
+          "AdditionalEmails"
         ],
         "type": "object",
         "properties": {
@@ -6230,6 +6307,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MarketingActivityDto"
+            }
+          },
+          "AdditionalEmails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarketingContactEmailDto"
             }
           }
         }
@@ -8343,6 +8426,52 @@
           }
         }
       },
+      "MarketingContactEmailActionResponse": {
+        "required": [
+          "Success",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MarketingContactEmailDto": {
+        "required": [
+          "Id",
+          "Email",
+          "Source",
+          "CreatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "MarketingContactStatus": {
         "enum": [
           "Lead",
@@ -9985,6 +10114,22 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "RemoveMarketingContactEmailRequest": {
+        "required": [
+          "ContactId",
+          "Email"
+        ],
+        "type": "object",
+        "properties": {
+          "ContactId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Email": {
+            "type": "string"
           }
         }
       },

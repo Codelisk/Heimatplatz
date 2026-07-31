@@ -20,6 +20,40 @@ public class MarketingOptions
 
     /// <summary>Einstellungen des Firmenpools (Lead-Quelle Firmenbuch)</summary>
     public MarketingLeadPoolOptions LeadPool { get; set; } = new();
+
+    /// <summary>Einstellungen des Posteingang-Syncs</summary>
+    public MarketingInboxOptions Inbox { get; set; } = new();
+}
+
+/// <summary>
+/// Posteingang-Sync: Zuordnung eingehender Mails zu Kontakten.
+/// </summary>
+public class MarketingInboxOptions
+{
+    /// <summary>
+    /// Domains oeffentlicher Mail-Provider. Der Domain-Fallback des Syncs ("Absender
+    /// unbekannt, aber Domain gehoert eindeutig zu einem Kontakt") ignoriert diese Domains
+    /// komplett - eine gmail.com-Adresse sagt nichts ueber die Firma aus. Die Liste ist
+    /// load-bearing: fehlt hier ein Provider und genau ein Kontakt nutzt ihn, wuerden
+    /// fremde Absender desselben Providers diesem Kontakt zugeordnet. Konfigurierbar,
+    /// damit sie ohne Deploy nachgeschaerft werden kann.
+    /// </summary>
+    public List<string> PublicEmailDomains { get; set; } =
+    [
+        "gmail.com", "googlemail.com",
+        "gmx.at", "gmx.net", "gmx.de", "gmx.ch",
+        "yahoo.com", "yahoo.de", "yahoo.at",
+        "hotmail.com", "hotmail.de", "hotmail.at",
+        "outlook.com", "outlook.de", "outlook.at",
+        "live.com", "live.de", "live.at", "msn.com",
+        "icloud.com", "me.com", "mac.com",
+        "aon.at", "a1.net", "drei.at", "tele2.at", "chello.at", "magenta.at",
+        "kabsi.at", "liwest.at", "aol.com",
+        "t-online.de", "web.de", "freenet.de",
+        "protonmail.com", "proton.me", "pm.me",
+        "tutanota.com", "tutamail.com", "posteo.de", "mailbox.org",
+        "zoho.com", "fastmail.com", "hey.com"
+    ];
 }
 
 /// <summary>

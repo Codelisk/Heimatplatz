@@ -73,6 +73,13 @@ public class MarketingContact : BaseEntity
 
     public ICollection<MarketingEmail> Emails { get; set; } = [];
 
+    /// <summary>
+    /// Zusaetzliche Adressen neben <see cref="Email"/> (der Versand-Adresse) - z.B.
+    /// persoenliche Adressen von Ansprechpartnern. Der Posteingang-Sync ordnet ueber
+    /// alle Adressen zu und lernt neue Absender einer bekannten Domain automatisch dazu.
+    /// </summary>
+    public ICollection<MarketingContactEmail> AdditionalEmails { get; set; } = [];
+
     public ICollection<MarketingInboundEmail> InboundEmails { get; set; } = [];
 
     public ICollection<MarketingActivity> Activities { get; set; } = [];

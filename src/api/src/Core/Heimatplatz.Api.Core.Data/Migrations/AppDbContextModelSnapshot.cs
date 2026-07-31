@@ -890,6 +890,40 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("MarketingContacts", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContactEmail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("MarketingContactEmails", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2099,6 +2133,17 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.Navigation("Contact");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContactEmail", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
+                        .WithMany("AdditionalEmails")
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contact");
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingEmail", b =>
                 {
                     b.HasOne("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", "Contact")
@@ -2273,6 +2318,8 @@ namespace Heimatplatz.Api.Core.Data.Migrations
             modelBuilder.Entity("Heimatplatz.Api.Features.Marketing.Data.Entities.MarketingContact", b =>
                 {
                     b.Navigation("Activities");
+
+                    b.Navigation("AdditionalEmails");
 
                     b.Navigation("Emails");
 

@@ -37,7 +37,7 @@ public class GetMarketingContactDetailHandler(
             .FirstOrDefaultAsync(cancellationToken);
 
         if (contact is null)
-            return new GetMarketingContactDetailResponse(null, [], [], []);
+            return new GetMarketingContactDetailResponse(null, [], [], [], []);
 
         var emails = await dbContext.Set<MarketingEmail>()
             .AsNoTracking()
@@ -68,6 +68,13 @@ public class GetMarketingContactDetailHandler(
                 a.StatusFrom, a.StatusTo, a.FollowUpAt, a.OccurredAt))
             .ToListAsync(cancellationToken);
 
-        return new GetMarketingContactDetailResponse(contact, emails, replies, activities);
+        var additionalEmails = await dbContext.Set<MarketingContactEmail>()
+            .AsNoTracking()
+            .Where(a => a.ContactId == request.Id)
+            .OrderBy(a => a.CreatedAt)
+            .Select(a => new MarketingContactEmailDto(a.Id, a.Email, a.Source, a.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+        return new GetMarketingContactDetailResponse(contact, emails, replies, activities, additionalEmails);
     }
 }

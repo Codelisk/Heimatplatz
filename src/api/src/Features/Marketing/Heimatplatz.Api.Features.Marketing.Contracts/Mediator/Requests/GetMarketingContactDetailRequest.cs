@@ -13,5 +13,6 @@ public record GetMarketingContactDetailResponse(
     MarketingContactDto? Contact,
     List<MarketingEmailDto> Emails,
     List<MarketingInboundEmailDto> Replies,
-    List<MarketingActivityDto> Activities
+    List<MarketingActivityDto> Activities,
+    List<MarketingContactEmailDto> AdditionalEmails
 );

@@ -130,8 +130,12 @@ public class SendMarketingEmailHandler(
             ? await dbContext.Set<MarketingContact>().FirstOrDefaultAsync(c => c.Id == contactId, cancellationToken)
             : null;
 
+        // Zusatzadressen zaehlen mit - ein Versand an die persoenliche Adresse eines
+        // Ansprechpartners darf keinen Dubletten-Kontakt neben der Firma anlegen
         contact ??= await dbContext.Set<MarketingContact>()
-            .FirstOrDefaultAsync(c => c.Email == normalizedEmail, cancellationToken);
+            .FirstOrDefaultAsync(
+                c => c.Email == normalizedEmail || c.AdditionalEmails.Any(a => a.Email == normalizedEmail),
+                cancellationToken);
 
         if (contact is null)
         {
@@ -154,7 +158,9 @@ public class SendMarketingEmailHandler(
             if (contact.Email is null)
             {
                 var emailTaken = await dbContext.Set<MarketingContact>()
-                    .AnyAsync(c => c.Email == normalizedEmail && c.Id != contact.Id, cancellationToken);
+                        .AnyAsync(c => c.Email == normalizedEmail && c.Id != contact.Id, cancellationToken)
+                    || await dbContext.Set<MarketingContactEmail>()
+                        .AnyAsync(a => a.Email == normalizedEmail && a.ContactId != contact.Id, cancellationToken);
                 if (!emailTaken)
                     contact.Email = normalizedEmail;
             }

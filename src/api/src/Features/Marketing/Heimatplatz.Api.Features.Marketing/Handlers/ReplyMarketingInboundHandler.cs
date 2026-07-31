@@ -116,7 +116,9 @@ public class ReplyMarketingInboundHandler(
         var now = DateTimeOffset.UtcNow;
 
         var contact = inbound.Contact
-            ?? await dbContext.Set<MarketingContact>().FirstOrDefaultAsync(c => c.Email == normalizedEmail, cancellationToken);
+            ?? await dbContext.Set<MarketingContact>().FirstOrDefaultAsync(
+                c => c.Email == normalizedEmail || c.AdditionalEmails.Any(a => a.Email == normalizedEmail),
+                cancellationToken);
 
         if (contact is null)
         {

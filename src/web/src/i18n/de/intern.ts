@@ -482,6 +482,21 @@ export const intern = {
   "intern.mkDetailFirmenbuch": "Firmenbuch",
   "intern.mkDetailNextFollowUp": "Wiedervorlage",
 
+  // Zusatzadressen am Kontakt (weitere E-Mail-Adressen neben der Versand-Adresse)
+  "intern.mkEmailsHeading": "Weitere E-Mail-Adressen",
+  "intern.mkEmailsIntro":
+    "Eingehende Mails dieser Adressen werden diesem Kontakt zugeordnet. Antwortet jemand von einer neuen Adresse der gleichen Firmen-Domain, lernt der Posteingang sie automatisch dazu.",
+  "intern.mkEmailsEmpty": "Keine weiteren Adressen hinterlegt.",
+  "intern.mkEmailsSourceInbox": "Automatisch gelernt",
+  "intern.mkEmailsSourceManual": "Manuell",
+  "intern.mkEmailsPlaceholder": "z. B. vorname.nachname@firma.at",
+  "intern.mkEmailsAdd": "Hinzufügen",
+  "intern.mkEmailsRemove": "Entfernen",
+  "intern.mkEmailsConfirmRemove": "Diese Adresse wirklich entfernen?",
+  "intern.mkEmailsAddedOk": "Die Adresse wurde hinzugefügt.",
+  "intern.mkEmailsRemovedOk": "Die Adresse wurde entfernt.",
+  "intern.mkEmailsFailed": "Adresse konnte nicht gespeichert werden: {error}",
+
   // Aktivitäts-Erfassung am Kontakt
   "intern.mkActivityHeading": "Schritt festhalten",
   "intern.mkActivityIntro":

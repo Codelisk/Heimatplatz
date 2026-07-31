@@ -64,8 +64,12 @@ public class SubmitBrokerLeadHandler(
             noteLines.Add(message);
         var note = string.Join("\n", noteLines);
 
+        // Zusatzadressen zaehlen mit - meldet sich ein Ansprechpartner ueber /makler/ mit
+        // seiner persoenlichen Adresse, gehoert die Anfrage zum bestehenden Firmen-Kontakt
         var contact = await dbContext.Set<MarketingContact>()
-            .FirstOrDefaultAsync(c => c.Email == normalizedEmail, cancellationToken);
+            .FirstOrDefaultAsync(
+                c => c.Email == normalizedEmail || c.AdditionalEmails.Any(a => a.Email == normalizedEmail),
+                cancellationToken);
 
         if (contact is null)
         {

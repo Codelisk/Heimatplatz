@@ -256,11 +256,26 @@ export type MarketingActivity = {
   OccurredAt: string;
 };
 
+/** Zusatzadresse eines Kontakts; Source "Manuell" oder "Posteingang" (automatisch gelernt) */
+export type MarketingContactAdditionalEmail = {
+  Id: string;
+  Email: string;
+  Source: string | null;
+  CreatedAt: string;
+};
+
 export type MarketingContactDetail = {
   Contact: MarketingContact | null;
   Emails: MarketingEmail[];
   Replies: MarketingInboundEmail[];
   Activities: MarketingActivity[];
+  AdditionalEmails: MarketingContactAdditionalEmail[];
+};
+
+/** Ergebnis von contacts/emails/add bzw. /remove */
+export type MarketingContactEmailActionResponse = {
+  Success: boolean;
+  Error: string | null;
 };
 
 export type MarketingSaveContactResponse = {
