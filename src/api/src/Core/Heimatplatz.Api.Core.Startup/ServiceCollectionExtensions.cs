@@ -11,6 +11,7 @@ using Heimatplatz.Api.Features.Feedback.Configuration;
 using Heimatplatz.Api.Features.Properties.Configuration;
 using Heimatplatz.Api.Features.ForeclosureAuctions.Configuration;
 using Heimatplatz.Api.Features.Notifications.Configuration;
+using Heimatplatz.Api.Features.OpenImmoImport.Configuration;
 using Heimatplatz.Api.Features.PropertyImport.Configuration;
 using Heimatplatz.Api.Features.AiListing.Configuration;
 using Heimatplatz.Api.Features.Marketing.Configuration;
@@ -88,6 +89,7 @@ public static class ServiceCollectionExtensions
         services.AddForeclosureAuctionsFeature(configuration);
         services.AddNotificationsFeature(configuration);
         services.AddPropertyImportFeature();
+        services.AddOpenImmoImportFeature(configuration);
         services.AddAiListingFeature(configuration);
         services.AddMarketingFeature(configuration);
         services.AddPropertyDraftsFeature(backgroundJobsEnabled);
@@ -112,6 +114,7 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.ForeclosureAuctions.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Notifications.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.PropertyImport.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
+        Heimatplatz.Api.Features.OpenImmoImport.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.AiListing.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Marketing.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.PropertyDrafts.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);

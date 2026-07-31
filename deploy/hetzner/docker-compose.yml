@@ -73,10 +73,21 @@ services:
       # Adress-Geocoding fuer die Kartenansicht (Nominatim, im Service auf
       # 1 Request/Sekunde gedrosselt). Opt-in: ohne Flag keine externen Requests.
       Geocoding__Enabled: "true"
+      # OpenImmo-Import (Justimmo-FTP-Feeds, z.B. Immobaer): der ftp-Container
+      # schreibt in openimmo_data, die API scannt die Drop-Ordner periodisch.
+      # State (Marker/Arbeitskopien) liegt BEWUSST ausserhalb der FTP-Chroots.
+      # Feed-Definition (Key/SourceName/SellerName/Bild-Allowlist) steht in
+      # appsettings.json - hier nur Pfade, Intervall und der Trigger-Key.
+      OpenImmoImport__IncomingRootPath: /data/openimmo/incoming
+      OpenImmoImport__StateRootPath: /data/openimmo/state
+      OpenImmoImport__ScanIntervalMinutes: "15"
+      OpenImmoImport__SyncTriggerKey: ${SYNC_TRIGGER_KEY:-}
     volumes:
       # Extrahierte Gutachten-Fotos und normale Property-Uploads muessen
       # Container-Rebuilds ueberleben.
       - api_uploads:/app/wwwroot/uploads
+      # OpenImmo-FTP-Drop-Ordner (geteilt mit dem ftp-Service)
+      - openimmo_data:/data/openimmo
       - ./secrets/apns-auth-key.p8:/run/secrets/apns-auth-key.p8:ro
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
       - ./secrets/search-console-service-account.json:/run/secrets/search-console-service-account.json:ro
@@ -179,6 +190,26 @@ services:
     expose:
       - "8080"
 
+  # FTP-Server fuer OpenImmo-Feeds (Justimmo pusht mehrmals taeglich den kompletten
+  # Objektbestand eines Maklers als OpenImmo-XML/ZIP). Ein USERS-Eintrag je Feed,
+  # chrooted ins jeweilige Home = Drop-Ordner unter /data/openimmo/incoming/{feed}.
+  # Passive Mode: ADDRESS muss die oeffentliche Server-IP sein, der Port-Range ist
+  # in UFW freigeschaltet (siehe README). Kein TLS (delfer/vsftpd kann keines) -
+  # falls Justimmo FTPS verlangt, auf stilliard/pure-ftpd wechseln.
+  ftp:
+    image: delfer/alpine-ftp-server
+    restart: unless-stopped
+    environment:
+      USERS: "immobaer|${OPENIMMO_FTP_PASSWORD_IMMOBAER:-disabled}|/data/openimmo/incoming/immobaer|1000"
+      ADDRESS: "128.140.33.238"
+      MIN_PORT: "21000"
+      MAX_PORT: "21010"
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    volumes:
+      - openimmo_data:/data/openimmo
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -228,3 +259,5 @@ volumes:
   api_test_uploads:
   caddy_data:
   caddy_config:
+  # OpenImmo-FTP-Feeds: incoming/{feed} (FTP-Homes) + state/{feed} (API-Marker)
+  openimmo_data:

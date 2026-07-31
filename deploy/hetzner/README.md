@@ -98,6 +98,35 @@ docker compose -f docker-compose.testdb.yml down -v   # loescht auch das Volume
 docker compose -f docker-compose.testdb.yml up -d
 ```
 
+## OpenImmo-FTP-Feeds (ftp in docker-compose.yml)
+
+Justimmo (Maklersoftware, erster Partner: Immobaer) pusht mehrmals taeglich den
+kompletten Objektbestand als OpenImmo-XML/ZIP per FTP. Der `ftp`-Container
+(delfer/alpine-ftp-server, vsftpd) nimmt die Dateien entgegen, die API scannt die
+Drop-Ordner alle 15 Minuten (`OpenImmoImport__ScanIntervalMinutes`, Feature-Doku in
+`src/api/src/Features/OpenImmoImport/.../README.md`).
+
+- **Volume `openimmo_data`**: `incoming/{feed}` = chrooted FTP-Home je Feed-User,
+  `state/{feed}` = Marker/Arbeitskopien der API (fuer FTP-User unsichtbar).
+- **Ports**: 21 (Control) + 21000-21010 (Passive Range) sind im Compose published.
+  UFW-Regeln analog zur Testdatenbank (5433) anlegen:
+  `ufw allow 21/tcp && ufw allow 21000:21010/tcp`. Achtung: Docker published Ports
+  landen in der DOCKER-iptables-Chain und koennen UFW umgehen - Verhalten wie beim
+  5433-Setup verifizieren.
+- **Passive Mode**: `ADDRESS` im Compose ist die oeffentliche Server-IP
+  (128.140.33.238) - bei Serverwechsel anpassen.
+- **Kein TLS**: das delfer-Image kann kein FTPS. Falls Justimmo FTPS unterstuetzt/
+  verlangt, auf `stilliard/pure-ftpd` wechseln (TLS=1 + Zertifikat mounten) - es
+  aendert sich nur der Compose-Block.
+- **Neuer Feed**: weiteren User in `USERS` (Pipe-getrennt anhaengen:
+  `user|pass|/data/openimmo/incoming/key|1000 user2|...`), Feed-Eintrag in
+  `appsettings.json` (`OpenImmoImport:Feeds`), Passwort in die Server-`.env`.
+- **Manueller Trigger**: `POST https://<API_DOMAIN>/api/openimmo-import/sync`
+  (Header `X-Sync-Key: <SYNC_TRIGGER_KEY>`, nur von HOME_IP), Status unter
+  `GET /api/openimmo-import/status`.
+- Benoetigte Variable in der Server-`.env`: `OPENIMMO_FTP_PASSWORD_IMMOBAER`
+  (`openssl rand -hex 24`).
+
 ## Datenuebernahme aus Azure SQL
 
 Noch nicht automatisiert. Die neue Postgres-Instanz startet leer (essentielle Referenzdaten wie Bundeslaender/Impressum werden per Seeder beim ersten Start automatisch angelegt, siehe `Database__EnableSeeding=false` in `docker-compose.yml` - das betrifft nur die Demo-/Test-Seeder, nicht die essentiellen). Ein Datenexport aus der bestehenden Azure-SQL-Produktionsdatenbank (echte Nutzer/Inserate) ist ein separater Schritt, der vor dem finalen Cutover geplant werden muss.

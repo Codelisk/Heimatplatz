@@ -19,6 +19,14 @@
 	}
 	respond @adminBlocked "Forbidden" 403
 
+	# OpenImmo-Import (Trigger + Status): wie der Edikte-Sync nur von HOME_IP
+	# erreichbar; die API prueft zusaetzlich den X-Sync-Key (fail-closed).
+	@openimmoBlocked {
+		path /api/openimmo-import*
+		not remote_ip {$HOME_IP}
+	}
+	respond @openimmoBlocked "Forbidden" 403
+
 	reverse_proxy api:8080
 }
 

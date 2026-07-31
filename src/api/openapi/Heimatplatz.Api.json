@@ -2389,6 +2389,56 @@
         }
       }
     },
+    "/api/openimmo-import/status": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetOpenImmoImportStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOpenImmoImportStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/openimmo-import/sync": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "TriggerOpenImmoImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerOpenImmoImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerOpenImmoImportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ai-listings/media": {
       "post": {
         "tags": [
@@ -6661,6 +6711,20 @@
           }
         }
       },
+      "GetOpenImmoImportStatusResponse": {
+        "type": "object",
+        "properties": {
+          "IsRunning": {
+            "type": "boolean"
+          },
+          "Feeds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenImmoFeedStatus"
+            }
+          }
+        }
+      },
       "GetPrivacyPolicyResponse": {
         "required": [
           "PrivacyPolicy"
@@ -8850,6 +8914,55 @@
           "SameAsSearch",
           "Custom"
         ]
+      },
+      "OpenImmoFeedStatus": {
+        "required": [
+          "FeedKey",
+          "SourceName"
+        ],
+        "type": "object",
+        "properties": {
+          "FeedKey": {
+            "type": "string"
+          },
+          "SourceName": {
+            "type": "string"
+          },
+          "LastImportAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "LastFileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LastFileWriteTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "LastResultSummary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PropertyCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
       },
       "PrivacyPolicyDto": {
         "required": [
@@ -11139,6 +11252,25 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "TriggerOpenImmoImportRequest": {
+        "type": "object",
+        "properties": {
+          "Force": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TriggerOpenImmoImportResponse": {
+        "type": "object",
+        "properties": {
+          "Started": {
+            "type": "boolean"
+          },
+          "Message": {
+            "type": "string"
           }
         }
       },
