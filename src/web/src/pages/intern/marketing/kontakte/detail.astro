@@ -1,13 +1,13 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import MarketingContactForm from "@/components/intern/MarketingContactForm.astro";
+import MarketingConversation from "@/components/intern/MarketingConversation.astro";
 import MarketingQuickActions from "@/components/intern/MarketingQuickActions.astro";
 import { Button } from "@/components/starwind/button";
 import { t } from "@/i18n";
 import { adminApiGet, type MarketingContactDetail } from "@/lib/server/admin-api";
 import MarketingActivityForm from "@/components/intern/MarketingActivityForm.astro";
 import {
-  activityTypeLabel,
   contactStatusBadgeClass,
   contactStatusLabel,
   contactTypeLabel,
@@ -17,11 +17,13 @@ import {
 } from "@/lib/intern/marketing-labels";
 
 // Zugriffsschutz: Caddy-IP-Sperre auf /intern* (deploy/hetzner/Caddyfile).
-// Kontakt-Detail: Stammdaten bearbeiten + Timeline (gesendet/empfangen).
+// Kontakt-Detail: Chat-Verlauf mit Antwort-Composer als Arbeitsflaeche, die
+// Verwaltungsformulare (Schritt, Stammdaten, Zusatzadressen) zusammengeklappt darunter.
 
 const id = Astro.url.searchParams.get("id") ?? "";
 const action = Astro.url.searchParams.get("action");
 const actionError = Astro.url.searchParams.get("error");
+const smtpOff = Astro.url.searchParams.get("smtp") === "off";
 
 const detail = id
   ? await adminApiGet<MarketingContactDetail>(
@@ -30,63 +32,8 @@ const detail = id
   : null;
 const contact = detail?.Contact ?? null;
 
-// Timeline: gesendete Mails + Rueckmeldungen zusammenfuehren, neueste zuerst
-// Kein ml-2 an den Badges: Der Abstand kommt vom " · "-Separator in der Timeline.
-const warnBadgeClass =
-  "rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
-const errorBadgeClass =
-  "rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-900 dark:bg-red-900/40 dark:text-red-200";
-
-type TimelineEntry = {
-  kind: "sent" | "reply" | "activity";
-  date: string;
-  subject: string;
-  body: string;
-  badge?: string;
-  badgeClass?: string;
-};
-const timeline: TimelineEntry[] = [
-  ...(detail?.Emails ?? []).map((email) => ({
-    kind: "sent" as const,
-    date: email.SentAt,
-    subject: email.Subject,
-    body: email.Body,
-    badge:
-      email.Status === "LoggedOnly"
-        ? t("intern.mkSentBadgeLoggedOnly")
-        : email.Status === "DeliveryFailed"
-          ? t("intern.mkSentBadgeFailed")
-          : undefined,
-    badgeClass: email.Status === "DeliveryFailed" ? errorBadgeClass : warnBadgeClass,
-  })),
-  ...(detail?.Replies ?? []).map((reply) => ({
-    kind: "reply" as const,
-    date: reply.ReceivedAt,
-    subject: reply.Subject ?? "",
-    body: reply.BodyText ?? "",
-    badge: reply.IsBounce ? t("intern.mkInboxBadgeBounce") : undefined,
-    badgeClass: errorBadgeClass,
-  })),
-  // Anrufe, Notizen, Statuswechsel und Termine - die Kopfzeile traegt die Aussage,
-  // der Text darunter ist die Gespraechsnotiz
-  ...(detail?.Activities ?? []).map((activity) => ({
-    kind: "activity" as const,
-    date: activity.OccurredAt,
-    subject:
-      activity.Type === "StatusChange"
-        ? t("intern.mkActivityStatusLine", {
-            from: activity.StatusFrom ? contactStatusLabel(activity.StatusFrom) : "–",
-            to: activity.StatusTo ? contactStatusLabel(activity.StatusTo) : "–",
-          })
-        : activity.FollowUpAt
-          ? t("intern.mkActivityFollowUpLine", { date: formatInternDay(activity.FollowUpAt) })
-          : activityTypeLabel(activity.Type),
-    body: activity.Notes ?? "",
-    badge: activityTypeLabel(activity.Type),
-    badgeClass:
-      "rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground",
-  })),
-].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+const sectionSummaryClass =
+  "flex cursor-pointer list-none items-center justify-between px-5 py-3 select-none";
 ---
 
 <BaseLayout
@@ -95,7 +42,7 @@ const timeline: TimelineEntry[] = [
   canonicalPath="/intern/marketing/kontakte/detail/"
   noindex
 >
-  <section class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
+  <section class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
     <nav class="text-sm text-muted-foreground">
       <a href="/intern/" class="hover:underline">{t("intern.title")}</a>
       <span aria-hidden="true"> / </span>
@@ -126,6 +73,21 @@ const timeline: TimelineEntry[] = [
         {t("intern.mkContactActionFailed", { error: actionError ?? "?" })}
       </div>
     )}
+    {action === "replied" && !smtpOff && (
+      <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
+        {t("intern.mkInboxReplyOk")}
+      </div>
+    )}
+    {action === "replied" && smtpOff && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkInboxReplySmtpOff")}
+      </div>
+    )}
+    {action === "replyfailed" && (
+      <div class="mt-6 rounded-lg border border-border bg-red-50 p-4 text-sm text-red-700">
+        {t("intern.mkInboxReplyFailed", { error: actionError ?? "?" })}
+      </div>
+    )}
     {action === "emailadded" && (
       <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-sm">
         {t("intern.mkEmailsAddedOk")}
@@ -148,7 +110,7 @@ const timeline: TimelineEntry[] = [
       </div>
     )}
 
-    {contact && (
+    {contact && detail && (
       <>
         <div class="mt-2 flex flex-wrap items-center gap-3">
           <h1 class="text-3xl font-bold">{contact.Name ?? contact.Email}</h1>
@@ -198,115 +160,95 @@ const timeline: TimelineEntry[] = [
           </p>
         )}
 
-        <section class="mt-8 rounded-lg border border-border bg-card p-5">
-          <h2 class="text-base font-semibold">{t("intern.mkActivityHeading")}</h2>
-          <p class="mt-1 text-sm text-muted-foreground">{t("intern.mkActivityIntro")}</p>
-          <div class="mt-4">
-            <MarketingActivityForm contact={contact} />
-          </div>
-        </section>
+        <MarketingConversation contact={contact} detail={detail} />
 
-        <section class="mt-8 rounded-lg border border-border bg-card p-5">
-          <h2 class="text-base font-semibold">{t("intern.mkContactsTitle")}</h2>
-          <div class="mt-4">
+        <details
+          class="group mt-6 rounded-lg border border-border bg-card"
+          open={action === "activityfailed"}
+        >
+          <summary class={sectionSummaryClass}>
+            <span class="text-base font-semibold">{t("intern.mkActivityHeading")}</span>
+            <span aria-hidden="true" class="text-muted-foreground transition-transform group-open:rotate-180">▾</span>
+          </summary>
+          <div class="border-t border-border p-5">
+            <p class="text-sm text-muted-foreground">{t("intern.mkActivityIntro")}</p>
+            <div class="mt-4">
+              <MarketingActivityForm contact={contact} />
+            </div>
+          </div>
+        </details>
+
+        <details
+          class="group mt-4 rounded-lg border border-border bg-card"
+          open={action === "failed"}
+        >
+          <summary class={sectionSummaryClass}>
+            <span class="text-base font-semibold">{t("intern.mkDetailSectionContactData")}</span>
+            <span aria-hidden="true" class="text-muted-foreground transition-transform group-open:rotate-180">▾</span>
+          </summary>
+          <div class="border-t border-border p-5">
             <MarketingContactForm contact={contact} redirect="detail" />
           </div>
-        </section>
+        </details>
 
-        <section class="mt-8 rounded-lg border border-border bg-card p-5">
-          <h2 class="text-base font-semibold">{t("intern.mkEmailsHeading")}</h2>
-          <p class="mt-1 text-sm text-muted-foreground">{t("intern.mkEmailsIntro")}</p>
+        <details
+          class="group mt-4 rounded-lg border border-border bg-card"
+          open={action === "emailfailed"}
+        >
+          <summary class={sectionSummaryClass}>
+            <span class="text-base font-semibold">{t("intern.mkEmailsHeading")}</span>
+            <span aria-hidden="true" class="text-muted-foreground transition-transform group-open:rotate-180">▾</span>
+          </summary>
+          <div class="border-t border-border p-5">
+            <p class="text-sm text-muted-foreground">{t("intern.mkEmailsIntro")}</p>
 
-          {(detail?.AdditionalEmails ?? []).length === 0 ? (
-            <p class="mt-4 text-sm text-muted-foreground">{t("intern.mkEmailsEmpty")}</p>
-          ) : (
-            <ul class="mt-4 divide-y divide-border">
-              {(detail?.AdditionalEmails ?? []).map((entry) => (
-                <li class="flex flex-wrap items-center justify-between gap-2 py-2">
-                  <span class="text-sm">
-                    {entry.Email}
-                    <span class="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                      {entry.Source === "Posteingang"
-                        ? t("intern.mkEmailsSourceInbox")
-                        : t("intern.mkEmailsSourceManual")}
+            {(detail.AdditionalEmails ?? []).length === 0 ? (
+              <p class="mt-4 text-sm text-muted-foreground">{t("intern.mkEmailsEmpty")}</p>
+            ) : (
+              <ul class="mt-4 divide-y divide-border">
+                {(detail.AdditionalEmails ?? []).map((entry) => (
+                  <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <span class="text-sm">
+                      {entry.Email}
+                      <span class="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                        {entry.Source === "Posteingang"
+                          ? t("intern.mkEmailsSourceInbox")
+                          : t("intern.mkEmailsSourceManual")}
+                      </span>
                     </span>
-                  </span>
-                  <form
-                    method="POST"
-                    action="/intern/marketing/kontakte/email-remove"
-                    data-confirm={t("intern.mkEmailsConfirmRemove")}
-                  >
-                    <input type="hidden" name="contactId" value={contact.Id} />
-                    <input type="hidden" name="email" value={entry.Email} />
-                    <Button type="submit" variant="outline" size="sm">
-                      {t("intern.mkEmailsRemove")}
-                    </Button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
+                    <form
+                      method="POST"
+                      action="/intern/marketing/kontakte/email-remove"
+                      data-confirm={t("intern.mkEmailsConfirmRemove")}
+                    >
+                      <input type="hidden" name="contactId" value={contact.Id} />
+                      <input type="hidden" name="email" value={entry.Email} />
+                      <Button type="submit" variant="outline" size="sm">
+                        {t("intern.mkEmailsRemove")}
+                      </Button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            )}
 
-          <form
-            method="POST"
-            action="/intern/marketing/kontakte/email-add"
-            class="mt-4 flex flex-wrap items-center gap-2"
-          >
-            <input type="hidden" name="contactId" value={contact.Id} />
-            <input
-              type="email"
-              name="email"
-              required
-              placeholder={t("intern.mkEmailsPlaceholder")}
-              class="w-full max-w-xs rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
-            />
-            <Button type="submit" variant="outline" size="sm">{t("intern.mkEmailsAdd")}</Button>
-          </form>
-        </section>
-
-        <section class="mt-8 rounded-lg border border-border bg-card">
-          <h2 class="border-b border-border px-5 py-3 text-base font-semibold">
-            {t("intern.mkDetailTimelineHeading")}
-          </h2>
-
-          {timeline.length === 0 ? (
-            <p class="px-5 py-6 text-sm text-muted-foreground">
-              {t("intern.mkDetailTimelineEmpty")}
-            </p>
-          ) : (
-            <ul class="divide-y divide-border">
-              {timeline.map((entry) => (
-                <li class="px-5 py-4">
-                  <p class="text-xs text-muted-foreground">
-                    {entry.kind === "sent" && t("intern.mkDetailSentPrefix")}
-                    {entry.kind === "reply" && t("intern.mkDetailReplyPrefix")}{" "}
-                    {formatInternDate(entry.date)}
-                    {entry.badge && (
-                      <>
-                        <span aria-hidden="true"> · </span>
-                        <span class={entry.badgeClass}>{entry.badge}</span>
-                      </>
-                    )}
-                  </p>
-                  <p class="mt-1 font-medium">{entry.subject}</p>
-                  {entry.body && entry.kind === "activity" && (
-                    <p class="mt-1 whitespace-pre-wrap text-sm">{entry.body}</p>
-                  )}
-                  {entry.body && entry.kind !== "activity" && (
-                    <details class="mt-1">
-                      <summary class="cursor-pointer text-sm text-muted-foreground">
-                        {entry.kind === "sent"
-                          ? t("intern.mkSentShowBody")
-                          : t("intern.mkInboxShowBody")}
-                      </summary>
-                      <p class="mt-2 whitespace-pre-wrap text-sm">{entry.body}</p>
-                    </details>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            <form
+              method="POST"
+              action="/intern/marketing/kontakte/email-add"
+              class="mt-4 flex flex-wrap items-center gap-2"
+            >
+              <input type="hidden" name="contactId" value={contact.Id} />
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder={t("intern.mkEmailsPlaceholder")}
+                class="w-full max-w-xs rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+              />
+              <Button type="submit" variant="outline" size="sm">{t("intern.mkEmailsAdd")}</Button>
+            </form>
+          </div>
+        </details>
       </>
     )}
   </section>

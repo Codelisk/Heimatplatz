@@ -135,6 +135,15 @@ export function formatInternDate(value: string | null | undefined): string {
   }).format(new Date(value));
 }
 
+/** Nur Uhrzeit - fuer den Chat-Verlauf, in dem das Datum schon als Tages-Trenner steht */
+export function formatInternTime(value: string | null | undefined): string {
+  if (!value) return "–";
+  return new Intl.DateTimeFormat("de-AT", {
+    timeStyle: "short",
+    timeZone: "Europe/Vienna",
+  }).format(new Date(value));
+}
+
 /** Nur Datum - fuer Wiedervorlage-Termine, bei denen die Uhrzeit nichts aussagt */
 export function formatInternDay(value: string | null | undefined): string {
   if (!value) return "–";

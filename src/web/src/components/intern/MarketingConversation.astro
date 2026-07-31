@@ -1,0 +1,285 @@
+---
+/**
+ * Chat-Verlauf eines Kontakts: gesendete Mails rechts (primary-getoent), empfangene
+ * Rueckmeldungen links, Aktivitaeten als zentrierte Systemzeilen - nach Tagen gruppiert,
+ * aelteste oben, der Container startet ans Ende gescrollt (neueste Nachricht sichtbar).
+ * Darunter der Antwort-Composer: schreibt ueber kontakte/antwort.ts eine echte Reply
+ * (Threading-Header) auf die juengste empfangene Nachricht; Strg+Enter sendet.
+ * Ohne empfangene Nachricht gibt es kein Antwortziel - dann fuehrt der Composer-Platz
+ * zur Erstansprache ueber "Schreiben".
+ */
+import { Button } from "@/components/starwind/button";
+import { t } from "@/i18n";
+import type { MarketingContact, MarketingContactDetail } from "@/lib/server/admin-api";
+import {
+  activityTypeLabel,
+  contactStatusLabel,
+  formatInternDay,
+  formatInternTime,
+} from "@/lib/intern/marketing-labels";
+
+interface Props {
+  contact: MarketingContact;
+  detail: MarketingContactDetail;
+}
+
+const { contact, detail } = Astro.props;
+
+const warnBadgeClass =
+  "rounded bg-amber-100 px-1.5 py-0.5 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
+const errorBadgeClass =
+  "rounded bg-red-100 px-1.5 py-0.5 text-red-900 dark:bg-red-900/40 dark:text-red-200";
+
+type Message = {
+  kind: "sent" | "reply" | "activity";
+  date: string;
+  subject: string;
+  body: string;
+  /** Absenderadresse an der Empfangs-Bubble, wenn sie von der Stammadresse abweicht */
+  meta?: string;
+  badge?: string;
+  badgeClass?: string;
+};
+
+const messages: Message[] = [
+  ...(detail.Emails ?? []).map((email) => ({
+    kind: "sent" as const,
+    date: email.SentAt,
+    subject: email.Subject,
+    body: email.Body,
+    badge:
+      email.Status === "LoggedOnly"
+        ? t("intern.mkSentBadgeLoggedOnly")
+        : email.Status === "DeliveryFailed"
+          ? t("intern.mkSentBadgeFailed")
+          : undefined,
+    badgeClass: email.Status === "DeliveryFailed" ? errorBadgeClass : warnBadgeClass,
+  })),
+  ...(detail.Replies ?? []).map((reply) => ({
+    kind: "reply" as const,
+    date: reply.ReceivedAt,
+    subject: reply.Subject ?? "",
+    body: reply.BodyText ?? "",
+    meta: reply.FromAddress !== contact.Email ? reply.FromAddress : undefined,
+    badge: reply.IsBounce ? t("intern.mkInboxBadgeBounce") : undefined,
+    badgeClass: errorBadgeClass,
+  })),
+  // Anrufe, Notizen, Statuswechsel und Termine - die Kopfzeile traegt die Aussage,
+  // der Text darunter ist die Gespraechsnotiz
+  ...(detail.Activities ?? []).map((activity) => ({
+    kind: "activity" as const,
+    date: activity.OccurredAt,
+    subject:
+      activity.Type === "StatusChange"
+        ? t("intern.mkActivityStatusLine", {
+            from: activity.StatusFrom ? contactStatusLabel(activity.StatusFrom) : "–",
+            to: activity.StatusTo ? contactStatusLabel(activity.StatusTo) : "–",
+          })
+        : activity.FollowUpAt
+          ? t("intern.mkActivityFollowUpLine", { date: formatInternDay(activity.FollowUpAt) })
+          : activityTypeLabel(activity.Type),
+    body: activity.Notes ?? "",
+    // Kein Badge am Statuswechsel - die Kopfzeile beginnt schon mit "Status:"
+    badge: activity.Type === "StatusChange" ? undefined : activityTypeLabel(activity.Type),
+  })),
+].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+// Tages-Trenner: vor der ersten Nachricht eines Tages eine Datumszeile einschieben
+type Row = { day: string } | { message: Message };
+const rows: Row[] = [];
+let currentDay = "";
+for (const message of messages) {
+  const day = formatInternDay(message.date);
+  if (day !== currentDay) {
+    rows.push({ day });
+    currentDay = day;
+  }
+  rows.push({ message });
+}
+
+// Antwortziel: juengste echte Rueckmeldung - eine Antwort an mailer-daemon/postmaster
+// (Bounce) laeuft ins Leere
+const replyTarget =
+  [...(detail.Replies ?? [])]
+    .filter((reply) => !reply.IsBounce)
+    .sort((a, b) => new Date(b.ReceivedAt).getTime() - new Date(a.ReceivedAt).getTime())[0] ??
+  null;
+
+const composeParams = new URLSearchParams({ contactId: contact.Id });
+if (contact.Email) composeParams.set("email", contact.Email);
+if (contact.Name) composeParams.set("name", contact.Name);
+const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
+---
+
+<section class="mt-6 overflow-hidden rounded-lg border border-border bg-card">
+  <h2 class="border-b border-border px-5 py-3 text-base font-semibold">
+    {t("intern.mkDetailTimelineHeading")}
+  </h2>
+
+  {messages.length === 0 ? (
+    <p class="px-5 py-6 text-sm text-muted-foreground">{t("intern.mkDetailTimelineEmpty")}</p>
+  ) : (
+    <div class="max-h-[34rem] overflow-y-auto px-4 py-4 sm:px-5" data-conv-thread>
+      <div class="flex flex-col gap-3">
+        {rows.map((row) =>
+          "day" in row ? (
+            <div class="my-1 flex items-center gap-3">
+              <span class="h-px flex-1 bg-border" aria-hidden="true"></span>
+              <span class="text-xs text-muted-foreground">{row.day}</span>
+              <span class="h-px flex-1 bg-border" aria-hidden="true"></span>
+            </div>
+          ) : row.message.kind === "activity" ? (
+            <div class="mx-auto w-full max-w-md text-center">
+              <p class="text-xs text-muted-foreground">
+                {row.message.badge && (
+                  <>
+                    <span class="rounded bg-muted px-1.5 py-0.5">{row.message.badge}</span>
+                    {" "}
+                  </>
+                )}
+                {row.message.subject}
+                <span aria-hidden="true"> · </span>{formatInternTime(row.message.date)}
+              </p>
+              {row.message.body && (
+                <p class="mt-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-left text-sm whitespace-pre-wrap">
+                  {row.message.body}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div class={`flex ${row.message.kind === "sent" ? "justify-end" : "justify-start"}`}>
+              <div
+                class={`max-w-[85%] rounded-lg px-3.5 py-2.5 ${
+                  row.message.kind === "sent"
+                    ? "rounded-br-sm border border-primary/25 bg-primary/10"
+                    : "rounded-bl-sm border border-border bg-muted"
+                }`}
+              >
+                <span class="sr-only">
+                  {row.message.kind === "sent"
+                    ? t("intern.mkDetailSentPrefix")
+                    : t("intern.mkDetailReplyPrefix")}
+                </span>
+                {row.message.subject && (
+                  <p class="text-sm font-semibold">{row.message.subject}</p>
+                )}
+                {row.message.body && (
+                  <>
+                    <p class="mt-1 text-sm whitespace-pre-wrap" data-conv-body>
+                      {row.message.body}
+                    </p>
+                    <button
+                      type="button"
+                      class="mt-1 hidden text-xs font-medium underline hover:no-underline"
+                      data-conv-toggle
+                      data-more={t("intern.mkConvShowMore")}
+                      data-less={t("intern.mkConvShowLess")}
+                    >
+                      {t("intern.mkConvShowMore")}
+                    </button>
+                  </>
+                )}
+                <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                  <span>{formatInternTime(row.message.date)}</span>
+                  {row.message.meta && <span>{row.message.meta}</span>}
+                  {row.message.badge && (
+                    <span class={row.message.badgeClass}>{row.message.badge}</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  )}
+
+  <div class="border-t border-border px-4 py-3 sm:px-5">
+    {replyTarget ? (
+      <form
+        method="POST"
+        action="/intern/marketing/kontakte/antwort"
+        class="flex flex-col gap-2"
+        data-conv-form
+      >
+        <input type="hidden" name="contactId" value={contact.Id} />
+        <input type="hidden" name="inboundEmailId" value={replyTarget.Id} />
+        <textarea
+          name="body"
+          rows="2"
+          required
+          placeholder={t("intern.mkInboxReplyPlaceholder", {
+            name: contact.Name ?? contact.Email ?? "?",
+          })}
+          class="max-h-48 w-full resize-none rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
+          data-conv-input></textarea>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <p class="text-xs leading-5 text-muted-foreground">
+            {t("intern.mkInboxReplyHint", { address: replyTarget.FromAddress })}
+            {" "}{t("intern.mkConvSendShortcut")}
+          </p>
+          <div class="flex shrink-0 items-center gap-3">
+            <a href={composeHref} class="text-xs underline hover:no-underline">
+              {t("intern.mkConvWriteNew")}
+            </a>
+            <Button type="submit" variant="default" size="sm">
+              {t("intern.mkInboxReplySend")}
+            </Button>
+          </div>
+        </div>
+      </form>
+    ) : (
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-muted-foreground">{t("intern.mkConvNoReplyTarget")}</p>
+        {contact.Email ? (
+          <Button href={composeHref} variant="default" size="sm">
+            {t("intern.mkConvWriteNew")}
+          </Button>
+        ) : (
+          <Button href={composeHref} variant="outline" size="sm">
+            {t("intern.mkConvWriteNew")}
+          </Button>
+        )}
+      </div>
+    )}
+  </div>
+</section>
+
+<script>
+  // Lange Nachrichten geclamped mit Umschalter (erst clampen, dann ans Ende scrollen -
+  // das Clampen aendert die Hoehen), Strg+Enter sendet, die Textarea waechst beim Tippen.
+  for (const toggle of document.querySelectorAll<HTMLButtonElement>("[data-conv-toggle]")) {
+    const body = toggle.previousElementSibling;
+    if (!(body instanceof HTMLElement)) continue;
+    body.classList.add("line-clamp-[10]");
+    if (body.scrollHeight <= body.clientHeight + 2) {
+      body.classList.remove("line-clamp-[10]");
+      continue;
+    }
+    toggle.classList.remove("hidden");
+    toggle.addEventListener("click", () => {
+      const clamped = body.classList.toggle("line-clamp-[10]");
+      toggle.textContent = (clamped ? toggle.dataset.more : toggle.dataset.less) ?? "";
+      if (clamped) body.scrollIntoView({ block: "nearest" });
+    });
+  }
+
+  const thread = document.querySelector<HTMLElement>("[data-conv-thread]");
+  if (thread) thread.scrollTop = thread.scrollHeight;
+
+  const form = document.querySelector<HTMLFormElement>("[data-conv-form]");
+  const input = form?.querySelector<HTMLTextAreaElement>("[data-conv-input]") ?? null;
+  if (form && input) {
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+    const grow = () => {
+      input.style.height = "auto";
+      input.style.height = `${Math.min(input.scrollHeight, 192)}px`;
+    };
+    input.addEventListener("input", grow);
+  }
+</script>

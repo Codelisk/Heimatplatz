@@ -481,6 +481,13 @@ export const intern = {
   "intern.mkDetailCreated": "Angelegt",
   "intern.mkDetailFirmenbuch": "Firmenbuch",
   "intern.mkDetailNextFollowUp": "Wiedervorlage",
+  "intern.mkDetailSectionContactData": "Stammdaten",
+  "intern.mkConvShowMore": "Mehr anzeigen",
+  "intern.mkConvShowLess": "Weniger anzeigen",
+  "intern.mkConvSendShortcut": "Strg+Enter sendet.",
+  "intern.mkConvWriteNew": "Neue E-Mail schreiben",
+  "intern.mkConvNoReplyTarget":
+    "Noch keine Rückmeldung vom Kontakt – eine Antwort im Verlauf ist erst nach einer empfangenen Nachricht möglich.",
 
   // Zusatzadressen am Kontakt (weitere E-Mail-Adressen neben der Versand-Adresse)
   "intern.mkEmailsHeading": "Weitere E-Mail-Adressen",
