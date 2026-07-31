@@ -213,6 +213,52 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
           })}
           class="max-h-48 w-full resize-none rounded-md border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-foreground/40"
           data-conv-input></textarea>
+
+        {/* Ergebnis des KI-Checks: bleibt unsichtbar bis zur ersten Pruefung, das
+            Script fuellt Urteil/Korrektur/Vorschlag und blendet nur Zutreffendes ein */}
+        <div class="hidden rounded-md border border-border bg-background p-3" data-check-panel>
+          <div class="flex items-start justify-between gap-3">
+            <p class="text-sm font-medium" data-check-verdict></p>
+            <button
+              type="button"
+              class="shrink-0 leading-none text-muted-foreground hover:text-foreground"
+              data-check-close
+              aria-label={t("intern.mkConvCheckClose")}
+            >✕</button>
+          </div>
+          <p class="mt-1 hidden text-sm text-muted-foreground" data-check-note></p>
+          <p class="mt-1 hidden text-sm text-muted-foreground" data-check-noissues>
+            {t("intern.mkConvCheckNoIssues")}
+          </p>
+          {["corrected", "suggested"].map((kind) => (
+            <div class="mt-3 hidden" data-check-block={kind}>
+              <p class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {kind === "corrected"
+                  ? t("intern.mkConvCheckCorrectedHeading")
+                  : t("intern.mkConvCheckSuggestedHeading")}
+              </p>
+              <p
+                class="mt-1 max-h-40 overflow-y-auto rounded-md border border-border bg-muted/50 px-3 py-2 text-sm whitespace-pre-wrap"
+                data-check-text
+              ></p>
+              <div class="mt-1.5 flex items-center gap-3">
+                <button
+                  type="button"
+                  class="text-xs font-medium underline hover:no-underline disabled:no-underline disabled:opacity-60"
+                  data-check-apply
+                  data-apply-label={t("intern.mkConvCheckApply")}
+                  data-applied-label={t("intern.mkConvCheckApplied")}
+                >{t("intern.mkConvCheckApply")}</button>
+                <button
+                  type="button"
+                  class="hidden text-xs text-muted-foreground underline hover:no-underline"
+                  data-check-undo
+                >{t("intern.mkConvCheckUndo")}</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div class="flex flex-wrap items-center justify-between gap-2">
           <p class="text-xs leading-5 text-muted-foreground">
             {t("intern.mkInboxReplyHint", { address: replyTarget.FromAddress })}
@@ -222,6 +268,19 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
             <a href={composeHref} class="text-xs underline hover:no-underline">
               {t("intern.mkConvWriteNew")}
             </a>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-conv-check-btn
+              data-idle-label={t("intern.mkConvCheck")}
+              data-running-label={t("intern.mkConvCheckRunning")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+              </svg>
+              <span data-check-btn-label>{t("intern.mkConvCheck")}</span>
+            </Button>
             <Button type="submit" variant="default" size="sm">
               {t("intern.mkInboxReplySend")}
             </Button>
@@ -246,6 +305,8 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
 </section>
 
 <script>
+  import { t } from "@/i18n";
+
   // Lange Nachrichten geclamped mit Umschalter (erst clampen, dann ans Ende scrollen -
   // das Clampen aendert die Hoehen), Strg+Enter sendet, die Textarea waechst beim Tippen.
   for (const toggle of document.querySelectorAll<HTMLButtonElement>("[data-conv-toggle]")) {
@@ -281,5 +342,131 @@ const composeHref = `/intern/marketing/schreiben/?${composeParams}`;
       input.style.height = `${Math.min(input.scrollHeight, 192)}px`;
     };
     input.addEventListener("input", grow);
+
+    // --- KI-Check: Entwurf gegen den Verlauf pruefen lassen (versendet nichts) ---
+    type CheckResult = {
+      ok: boolean;
+      fitsContext?: boolean;
+      contextNote?: string | null;
+      correctedText?: string | null;
+      suggestedText?: string | null;
+      error?: string | null;
+    };
+
+    const checkBtn = form.querySelector<HTMLButtonElement>("[data-conv-check-btn]");
+    const btnLabel = checkBtn?.querySelector<HTMLElement>("[data-check-btn-label]") ?? null;
+    const panel = form.querySelector<HTMLElement>("[data-check-panel]");
+    const verdict = panel?.querySelector<HTMLElement>("[data-check-verdict]") ?? null;
+    const note = panel?.querySelector<HTMLElement>("[data-check-note]") ?? null;
+    const noIssues = panel?.querySelector<HTMLElement>("[data-check-noissues]") ?? null;
+
+    if (checkBtn && btnLabel && panel && verdict && note && noIssues) {
+      panel
+        .querySelector("[data-check-close]")
+        ?.addEventListener("click", () => panel.classList.add("hidden"));
+
+      // Uebernehmen ersetzt den Entwurf (Rueckgaengig stellt den Stand davor wieder her) -
+      // einmalige Bindung, die Fuellung pro Check setzt nur Text und Button-Zustand zurueck
+      for (const block of panel.querySelectorAll<HTMLElement>("[data-check-block]")) {
+        const text = block.querySelector<HTMLElement>("[data-check-text]");
+        const apply = block.querySelector<HTMLButtonElement>("[data-check-apply]");
+        const undo = block.querySelector<HTMLButtonElement>("[data-check-undo]");
+        if (!text || !apply || !undo) continue;
+        let previousDraft = "";
+        apply.addEventListener("click", () => {
+          previousDraft = input.value;
+          input.value = text.textContent ?? "";
+          grow();
+          apply.disabled = true;
+          apply.textContent = apply.dataset.appliedLabel ?? "";
+          undo.classList.remove("hidden");
+          input.focus();
+        });
+        undo.addEventListener("click", () => {
+          input.value = previousDraft;
+          grow();
+          apply.disabled = false;
+          apply.textContent = apply.dataset.applyLabel ?? "";
+          undo.classList.add("hidden");
+          input.focus();
+        });
+      }
+
+      const fillBlock = (kind: string, value: string | null | undefined, draft: string): boolean => {
+        const block = panel.querySelector<HTMLElement>(`[data-check-block="${kind}"]`);
+        const text = block?.querySelector<HTMLElement>("[data-check-text]");
+        const apply = block?.querySelector<HTMLButtonElement>("[data-check-apply]");
+        const undo = block?.querySelector<HTMLButtonElement>("[data-check-undo]");
+        if (!block || !text || !apply || !undo) return false;
+        const trimmed = value?.trim() ?? "";
+        // Text, der dem Entwurf gleicht, ist keine Anmerkung
+        const show = trimmed.length > 0 && trimmed !== draft;
+        block.classList.toggle("hidden", !show);
+        if (!show) return false;
+        text.textContent = trimmed;
+        apply.disabled = false;
+        apply.textContent = apply.dataset.applyLabel ?? "";
+        undo.classList.add("hidden");
+        return true;
+      };
+
+      const showResult = (result: CheckResult | null, draft: string): void => {
+        panel.classList.remove("hidden");
+        if (!result?.ok) {
+          verdict.textContent = t("intern.mkConvCheckFailed", {
+            error: result?.error ?? "API nicht erreichbar",
+          });
+          verdict.className = "text-sm font-medium text-red-700 dark:text-red-300";
+          note.classList.add("hidden");
+          noIssues.classList.add("hidden");
+          for (const block of panel.querySelectorAll("[data-check-block]"))
+            block.classList.add("hidden");
+          return;
+        }
+
+        verdict.textContent = result.fitsContext
+          ? `✓ ${t("intern.mkConvCheckFits")}`
+          : `⚠ ${t("intern.mkConvCheckFitsNot")}`;
+        verdict.className = result.fitsContext
+          ? "text-sm font-medium text-success"
+          : "text-sm font-medium text-amber-700 dark:text-amber-300";
+
+        const noteText = result.contextNote?.trim() ?? "";
+        note.textContent = noteText;
+        note.classList.toggle("hidden", noteText.length === 0);
+
+        const hasCorrection = fillBlock("corrected", result.correctedText, draft);
+        const hasSuggestion = fillBlock("suggested", result.suggestedText, draft);
+        noIssues.classList.toggle("hidden", !result.fitsContext || hasCorrection || hasSuggestion);
+        panel.scrollIntoView({ block: "nearest" });
+      };
+
+      checkBtn.addEventListener("click", async () => {
+        const draft = input.value.trim();
+        if (!draft) {
+          input.focus();
+          return;
+        }
+        const inboundEmailId =
+          form.querySelector<HTMLInputElement>("input[name='inboundEmailId']")?.value ?? "";
+
+        checkBtn.disabled = true;
+        btnLabel.textContent = checkBtn.dataset.runningLabel ?? "";
+        try {
+          const response = await fetch("/intern/marketing/kontakte/antwort-check", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ inboundEmailId, draft }),
+          });
+          const result = (await response.json().catch(() => null)) as CheckResult | null;
+          showResult(result, draft);
+        } catch {
+          showResult(null, draft);
+        } finally {
+          checkBtn.disabled = false;
+          btnLabel.textContent = checkBtn.dataset.idleLabel ?? "";
+        }
+      });
+    }
   }
 </script>

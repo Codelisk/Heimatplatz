@@ -24,17 +24,19 @@ public static class ServiceCollectionExtensions
         // Referenzdaten - laeuft auch in Produktion, sonst waere die Vorlagen-Auswahl leer
         services.AddSeeder<MarketingTemplateSeeder>();
 
-        // E-Mail-Text-Provider je nach Konfiguration
+        // KI-Provider (Generierung + Entwurfs-Pruefung) je nach Konfiguration
         // (Mock = Dev-Platzhalter ohne KI, AiConnector = externer KI-Backend-Service)
         var options = configuration.GetSection(MarketingOptions.SectionName).Get<MarketingOptions>() ?? new MarketingOptions();
         if (string.Equals(options.Provider, "AiConnector", StringComparison.OrdinalIgnoreCase))
         {
             services.AddAiConnectorClient(configuration);
             services.AddScoped<IMarketingEmailGenerator, AiConnectorMarketingEmailGenerator>();
+            services.AddScoped<IMarketingReplyChecker, AiConnectorMarketingReplyChecker>();
         }
         else
         {
             services.AddScoped<IMarketingEmailGenerator, MockMarketingEmailGenerator>();
+            services.AddScoped<IMarketingReplyChecker, MockMarketingReplyChecker>();
         }
 
         return services;

@@ -298,6 +298,19 @@ export type MarketingReplyResponse = {
   Error: string | null;
 };
 
+/**
+ * KI-Pruefung eines Antwort-Entwurfs (POST /api/admin/marketing/inbox/reply-check).
+ * CorrectedText/SuggestedText null = nichts zu korrigieren bzw. kein Vorschlag.
+ */
+export type MarketingReplyCheckResponse = {
+  Success: boolean;
+  FitsContext: boolean;
+  ContextNote: string | null;
+  CorrectedText: string | null;
+  SuggestedText: string | null;
+  Error: string | null;
+};
+
 // Firmenpool: aufrechte Firmenbuch-Firmen mit Immobilien-Namensbezug - live aus der
 // Firmenpool-API, Heimatplatz haelt keinen eigenen Firmenkatalog mehr.
 // ContactId gesetzt = bereits als Kontakt uebernommen (Schluessel ist die FNR).

@@ -488,6 +488,19 @@ export const intern = {
   "intern.mkConvWriteNew": "Neue E-Mail schreiben",
   "intern.mkConvNoReplyTarget":
     "Noch keine Rückmeldung vom Kontakt – eine Antwort im Verlauf ist erst nach einer empfangenen Nachricht möglich.",
+  "intern.mkConvCheck": "KI-Check",
+  "intern.mkConvCheckRunning": "Prüft …",
+  "intern.mkConvCheckValidation": "Zum Prüfen zuerst einen Antwort-Text schreiben.",
+  "intern.mkConvCheckFailed": "KI-Check fehlgeschlagen: {error}",
+  "intern.mkConvCheckFits": "Passt zum Verlauf.",
+  "intern.mkConvCheckFitsNot": "Passt noch nicht ganz zum Verlauf.",
+  "intern.mkConvCheckNoIssues": "Keine Anmerkungen – Rechtschreibung und Formulierung passen.",
+  "intern.mkConvCheckCorrectedHeading": "Rechtschreibung & Grammatik",
+  "intern.mkConvCheckSuggestedHeading": "Formulierungsvorschlag",
+  "intern.mkConvCheckApply": "Übernehmen",
+  "intern.mkConvCheckApplied": "Übernommen",
+  "intern.mkConvCheckUndo": "Rückgängig",
+  "intern.mkConvCheckClose": "Prüfergebnis schließen",
 
   // Zusatzadressen am Kontakt (weitere E-Mail-Adressen neben der Versand-Adresse)
   "intern.mkEmailsHeading": "Weitere E-Mail-Adressen",
