@@ -98,6 +98,12 @@ public record OpenImmoListing
 
     /// <summary>verwaltung_techn/stand_vom (Property.SourceLastUpdated).</summary>
     public DateTimeOffset? StandVom { get; init; }
+
+    /// <summary>
+    /// Link zur Original-Detailseite des Anbieters (Justimmo: user_defined_simplefield
+    /// feldname="url") - Property.SourceUrl + Kontakt.OriginalListingUrl.
+    /// </summary>
+    public string? ExternalUrl { get; init; }
 }
 
 public record OpenImmoContact

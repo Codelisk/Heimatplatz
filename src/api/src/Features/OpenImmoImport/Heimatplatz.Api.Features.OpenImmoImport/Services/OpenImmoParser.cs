@@ -135,9 +135,23 @@ public class OpenImmoParser : IOpenImmoParser
         var verwaltungObjekt = El(immobilie, "verwaltung_objekt");
         var addressReleased = IsTruthy(Val(verwaltungObjekt, "objektadresse_freigeben"));
 
+        // Producer-Zusatzfelder: Justimmo liefert Objektlink und (bei fast allen
+        // Objekten) Geokoordinaten als user_defined_simplefield statt im Standard-Element
+        var userDefined = ReadUserDefinedFields(immobilie);
+
         var geokoordinaten = El(geo, "geokoordinaten");
-        var latitude = ParseDouble(geokoordinaten?.Attribute("breitengrad")?.Value);
-        var longitude = ParseDouble(geokoordinaten?.Attribute("laengengrad")?.Value);
+        var latitude = ParseDouble(geokoordinaten?.Attribute("breitengrad")?.Value)
+            ?? ParseDouble(userDefined.GetValueOrDefault("geokoordinaten_breitengrad"));
+        var longitude = ParseDouble(geokoordinaten?.Attribute("laengengrad")?.Value)
+            ?? ParseDouble(userDefined.GetValueOrDefault("geokoordinaten_laengengrad"));
+
+        var externalUrl = userDefined.GetValueOrDefault("url");
+        if (externalUrl != null
+            && !externalUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            && !externalUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            externalUrl = null;
+        }
 
         var flaechen = El(immobilie, "flaechen");
         var zustandAngaben = El(immobilie, "zustand_angaben");
@@ -177,8 +191,27 @@ public class OpenImmoParser : IOpenImmoParser
             Zoning = type == PropertyType.Land ? ParseZoning(El(kategorie, "objektart")) : null,
             Contact = ParseContact(El(immobilie, "kontaktperson")),
             Attachments = ParseAttachments(El(immobilie, "anhaenge")),
-            StandVom = ParseDateTimeOffset(Val(verwaltungTechn, "stand_vom"))
+            StandVom = ParseDateTimeOffset(Val(verwaltungTechn, "stand_vom")),
+            ExternalUrl = externalUrl
         };
+    }
+
+    /// <summary>
+    /// Alle user_defined_simplefield-Werte unterhalb einer immobilie (beliebige Tiefe,
+    /// erster Wert je feldname gewinnt).
+    /// </summary>
+    private static Dictionary<string, string> ReadUserDefinedFields(XElement immobilie)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var element in immobilie.Descendants().Where(e => e.Name.LocalName == "user_defined_simplefield"))
+        {
+            var name = element.Attribute("feldname")?.Value;
+            var value = element.Value?.Trim();
+            if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(value))
+                fields.TryAdd(name, value);
+        }
+
+        return fields;
     }
 
     /// <summary>

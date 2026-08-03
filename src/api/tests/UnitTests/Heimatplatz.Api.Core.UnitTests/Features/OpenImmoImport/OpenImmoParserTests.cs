@@ -131,6 +131,9 @@ public class OpenImmoParserTests
               <verwaltung_techn>
                 <objektnr_extern>EXT-77</objektnr_extern>
               </verwaltung_techn>
+              <user_defined_simplefield feldname="url">https://apps.justimmo.at/website/objekt/EXT-77</user_defined_simplefield>
+              <user_defined_simplefield feldname="geokoordinaten_breitengrad">47.91234</user_defined_simplefield>
+              <user_defined_simplefield feldname="geokoordinaten_laengengrad">13.79876</user_defined_simplefield>
             </immobilie>
             <immobilie>
               <objektkategorie>
@@ -253,6 +256,23 @@ public class OpenImmoParserTests
         haus.Street.Should().Be("Seeblickweg 3", "die Strasse wird geparst, aber erst der Sync entscheidet ueber die Anzeige");
         haus.Attachments.Should().ContainSingle().Which.Mode.Should().Be(OpenImmoAttachmentMode.Base64);
         haus.Attachments[0].Base64Content.Should().Be("QUJD");
+    }
+
+    [Test]
+    public void Parse_UserDefinedFelder_LiefernUrlUndKoordinatenFallback()
+    {
+        var haus = Parse(FullFixture).Listings.Single(l => l.SourceId == "EXT-77");
+
+        haus.ExternalUrl.Should().Be("https://apps.justimmo.at/website/objekt/EXT-77",
+            "Justimmo liefert den Objektlink als user_defined_simplefield");
+        haus.Latitude.Should().BeApproximately(47.91234, 0.00001,
+            "ohne Standard-geokoordinaten greifen die user_defined-Koordinaten");
+        haus.Longitude.Should().BeApproximately(13.79876, 0.00001);
+
+        // Standard-Element hat weiterhin Vorrang (Haus 1 hat beide Wege nicht noetig)
+        var haus1 = Parse(FullFixture).Listings.Single(l => l.SourceId == "OBID-001");
+        haus1.Latitude.Should().BeApproximately(48.16123, 0.00001);
+        haus1.ExternalUrl.Should().BeNull("Haus 1 hat kein url-Feld im Fixture");
     }
 
     [Test]

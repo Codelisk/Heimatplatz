@@ -351,6 +351,7 @@ public class OpenImmoPropertySyncService(
             LocationDisplay = listing.AddressReleased ? LocationDisplayMode.Exact : LocationDisplayMode.Approximate,
             SourceName = feed.SourceName,
             SourceId = listing.SourceId,
+            SourceUrl = listing.ExternalUrl,
             SourceLastUpdated = listing.StandVom,
             CreatedAt = now
         };
@@ -394,6 +395,7 @@ public class OpenImmoPropertySyncService(
         if (!property.ImageUrls.SequenceEqual(imageUrls))
             property.ImageUrls = imageUrls;
         property.LocationDisplay = listing.AddressReleased ? LocationDisplayMode.Exact : LocationDisplayMode.Approximate;
+        property.SourceUrl = listing.ExternalUrl;
         property.SourceLastUpdated = listing.StandVom;
         property.TypeSpecificData = BuildTypeSpecificJson(listing);
     }
@@ -443,6 +445,7 @@ public class OpenImmoPropertySyncService(
             Name = listing.Contact?.Name ?? feed.SellerName,
             Email = listing.Contact?.Email,
             Phone = listing.Contact?.Phone,
+            OriginalListingUrl = listing.ExternalUrl,
             SourceName = feed.SourceName,
             SourceId = listing.SourceId,
             DisplayOrder = 0,
@@ -465,7 +468,8 @@ public class OpenImmoPropertySyncService(
             && property.Contacts.Count == 1
             && existing.Name == desiredName
             && existing.Email == desiredEmail
-            && existing.Phone == desiredPhone)
+            && existing.Phone == desiredPhone
+            && existing.OriginalListingUrl == listing.ExternalUrl)
         {
             return false;
         }

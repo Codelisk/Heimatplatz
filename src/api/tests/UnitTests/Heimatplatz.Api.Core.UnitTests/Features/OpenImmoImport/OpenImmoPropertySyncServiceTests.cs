@@ -367,6 +367,37 @@ public class OpenImmoPropertySyncServiceTests
     }
 
     [Test]
+    public async Task Sync_ExternalUrl_LandetInSourceUrlUndKontakt()
+    {
+        var listing = CreateHausListing() with { ExternalUrl = "https://apps.justimmo.at/website/objekt/OBID-001" };
+        await CreateService().SyncAsync(_feed, FullSnapshot(listing), zip: null);
+        _dbContext.ChangeTracker.Clear();
+
+        var property = await _dbContext.Set<Property>().Include(p => p.Contacts)
+            .SingleAsync(p => p.SourceId == "OBID-001");
+        property.SourceUrl.Should().Be("https://apps.justimmo.at/website/objekt/OBID-001");
+        property.Contacts.Single().OriginalListingUrl.Should().Be("https://apps.justimmo.at/website/objekt/OBID-001");
+    }
+
+    [Test]
+    public async Task Sync_NachtraeglicheUrl_AktualisiertBestandskontakt()
+    {
+        // Bestand ohne URL (wie der Erst-Import vor dem url-Feld-Support)
+        var ohneUrl = CreateHausListing();
+        await CreateService().SyncAsync(_feed, FullSnapshot(ohneUrl), zip: null);
+        _dbContext.ChangeTracker.Clear();
+
+        var mitUrl = ohneUrl with { ExternalUrl = "https://apps.justimmo.at/website/objekt/OBID-001" };
+        var result = await CreateService().SyncAsync(_feed, FullSnapshot(mitUrl), zip: null);
+
+        result.Updated.Should().Be(1, "die neue URL muss als Aenderung erkannt werden");
+        _dbContext.ChangeTracker.Clear();
+        var property = await _dbContext.Set<Property>().Include(p => p.Contacts)
+            .SingleAsync(p => p.SourceId == "OBID-001");
+        property.Contacts.Single().OriginalListingUrl.Should().NotBeNull();
+    }
+
+    [Test]
     public async Task Sync_AdresseNichtFreigegeben_BleibtApproximateOhneStrasse()
     {
         var listing = CreateHausListing() with { AddressReleased = false };
