@@ -1312,7 +1312,7 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(4000)
+                        .HasMaxLength(8000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Features")

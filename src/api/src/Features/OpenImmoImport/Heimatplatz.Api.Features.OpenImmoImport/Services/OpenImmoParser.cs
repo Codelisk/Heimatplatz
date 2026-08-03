@@ -29,8 +29,8 @@ public interface IOpenImmoParser
 [Service(ApiService.Lifetime, TryAdd = ApiService.TryAdd)]
 public class OpenImmoParser : IOpenImmoParser
 {
-    /// <summary>Property.Description ist auf 4000 Zeichen begrenzt (PropertyConfiguration).</summary>
-    private const int MaxDescriptionLength = 4000;
+    /// <summary>Property.Description ist auf 8000 Zeichen begrenzt (PropertyConfiguration).</summary>
+    private const int MaxDescriptionLength = 8000;
 
     /// <summary>Property.Title ist auf 2000 Zeichen begrenzt (PropertyConfiguration).</summary>
     private const int MaxTitleLength = 2000;
@@ -286,7 +286,7 @@ public class OpenImmoParser : IOpenImmoParser
         return title.Length > MaxTitleLength ? title[..MaxTitleLength] : title;
     }
 
-    /// <summary>objektbeschreibung + lage + ausstatt_beschr, mit Leerzeilen verbunden, auf 4000 gekappt.</summary>
+    /// <summary>objektbeschreibung + lage + ausstatt_beschr, mit Leerzeilen verbunden, auf 8000 gekappt.</summary>
     private static string? BuildDescription(XElement? freitexte)
     {
         string?[] parts =

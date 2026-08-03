@@ -44,7 +44,7 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .HasMaxLength(500);
 
         builder.Property(p => p.Description)
-            .HasMaxLength(4000);
+            .HasMaxLength(8000);
 
         // JSON-Columns fuer Listen
         builder.Property(p => p.Features)

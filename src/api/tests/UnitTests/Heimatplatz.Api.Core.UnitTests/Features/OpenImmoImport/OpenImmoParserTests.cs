@@ -379,9 +379,9 @@ public class OpenImmoParserTests
     }
 
     [Test]
-    public void Parse_LangeBeschreibung_WirdAuf4000Gekappt()
+    public void Parse_LangeBeschreibung_WirdAuf8000Gekappt()
     {
-        var longText = new string('x', 5000);
+        var longText = new string('x', 9000);
         var xml = $"""
             <openimmo>
               <uebertragung umfang="VOLL"/>
@@ -402,7 +402,7 @@ public class OpenImmoParserTests
 
         var listing = Parse(xml).Listings.Single();
 
-        listing.Description.Should().HaveLength(4000);
+        listing.Description.Should().HaveLength(8000);
     }
 
     [Test]

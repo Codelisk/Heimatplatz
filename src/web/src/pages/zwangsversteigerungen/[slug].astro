@@ -6,6 +6,7 @@ import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import FileTextIcon from "@tabler/icons/outline/file-text.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import ShareIcon from "@tabler/icons/outline/share.svg";
+import DescriptionBlocks from "@/components/properties/DescriptionBlocks.astro";
 import ImageGallery from "@/components/properties/ImageGallery.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import {
@@ -152,7 +153,7 @@ const primaryFacts = [
           <h2 id="auction-object-description" class="text-sm font-bold uppercase text-muted-foreground">
             {t("zv.objectDescriptionHeading")}
           </h2>
-          <p class="mt-4 max-w-3xl whitespace-pre-line text-base leading-7">{auction.ObjectDescription}</p>
+          <DescriptionBlocks text={auction.ObjectDescription} class="mt-4 max-w-3xl text-base leading-7" />
         </section>
 
         <div class="mt-8 space-y-6">

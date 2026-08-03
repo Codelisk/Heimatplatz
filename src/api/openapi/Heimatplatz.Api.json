@@ -2529,6 +2529,36 @@
         }
       }
     },
+    "/api/admin/marketing/inbox/reply-check": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "CheckAdminMarketingReply",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckMarketingReplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckMarketingReplyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/marketing/contacts/{Id}": {
       "delete": {
         "tags": [
@@ -4497,6 +4527,77 @@
           "ExpiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "CheckMarketingReplyRequest": {
+        "required": [
+          "InboundEmailId",
+          "Draft"
+        ],
+        "type": "object",
+        "properties": {
+          "InboundEmailId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Draft": {
+            "type": "string"
+          },
+          "Instruction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PreviousSuggestion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CheckMarketingReplyResponse": {
+        "required": [
+          "Success",
+          "FitsContext",
+          "ContextNote",
+          "CorrectedText",
+          "SuggestedText",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "FitsContext": {
+            "type": "boolean"
+          },
+          "ContextNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CorrectedText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SuggestedText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -1,0 +1,27 @@
+---
+import { splitDescriptionBlocks } from "@/features/properties/description-blocks";
+
+interface Props {
+  text: string;
+  class?: string;
+}
+
+const { text, class: className } = Astro.props;
+const blocks = splitDescriptionBlocks(text);
+---
+
+<div class:list={["space-y-4", className]}>
+  {
+    blocks.map((block) =>
+      block.type === "list" ? (
+        <ul class="list-disc space-y-1 pl-5">
+          {block.items.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p class="whitespace-pre-line">{block.text}</p>
+      )
+    )
+  }
+</div>
