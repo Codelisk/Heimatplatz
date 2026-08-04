@@ -3952,6 +3952,136 @@
           }
         }
       }
+    },
+    "/api/admin/partners/delete": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "DeletePartner",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletePartnerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePartnerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/partners": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetAdminPartners",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAdminPartnersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/partners/save": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "SavePartner",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavePartnerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavePartnerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/partners/logo": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UploadPartnerLogo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPartnerLogoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPartnerLogoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partners": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPartners",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPartnersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5004,6 +5134,36 @@
           }
         }
       },
+      "DeletePartnerRequest": {
+        "required": [
+          "Id"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "DeletePartnerResponse": {
+        "required": [
+          "Success",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "DeletePropertyDraftResponse": {
         "required": [
           "Success"
@@ -6019,6 +6179,20 @@
           }
         }
       },
+      "GetAdminPartnersResponse": {
+        "required": [
+          "Partners"
+        ],
+        "type": "object",
+        "properties": {
+          "Partners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerDto"
+            }
+          }
+        }
+      },
       "GetAdminPropertiesResponse": {
         "required": [
           "Properties",
@@ -6905,6 +7079,20 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenImmoFeedStatus"
+            }
+          }
+        }
+      },
+      "GetPartnersResponse": {
+        "required": [
+          "Partners"
+        ],
+        "type": "object",
+        "properties": {
+          "Partners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerDto"
             }
           }
         }
@@ -9194,6 +9382,100 @@
           }
         }
       },
+      "PartnerDto": {
+        "required": [
+          "Id",
+          "Name",
+          "Category",
+          "Description",
+          "WebsiteUrl",
+          "LogoUrl",
+          "Region",
+          "PartnerSinceYear",
+          "SourceName",
+          "SellerName",
+          "DisplayOrder",
+          "IsVisible",
+          "ActiveListingCount"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Category": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "WebsiteUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LogoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Region": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PartnerSinceYear": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "SourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SellerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DisplayOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "IsVisible": {
+            "type": "boolean"
+          },
+          "ActiveListingCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "PrivacyPolicyDto": {
         "required": [
           "ResponsibleParty",
@@ -10674,6 +10956,120 @@
           }
         }
       },
+      "SavePartnerRequest": {
+        "required": [
+          "Id",
+          "Name",
+          "Category",
+          "Description",
+          "WebsiteUrl",
+          "LogoUrl",
+          "Region",
+          "PartnerSinceYear",
+          "SourceName",
+          "SellerName",
+          "DisplayOrder",
+          "IsVisible"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Category": {
+            "type": "string"
+          },
+          "Description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "WebsiteUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LogoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Region": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PartnerSinceYear": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "SourceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "SellerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DisplayOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "IsVisible": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SavePartnerResponse": {
+        "required": [
+          "Success",
+          "Error",
+          "Id"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "SavePropertyDraftRequest": {
         "type": "object",
         "properties": {
@@ -12138,6 +12534,42 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "UploadPartnerLogoRequest": {
+        "required": [
+          "Image"
+        ],
+        "type": "object",
+        "properties": {
+          "Image": {
+            "$ref": "#/components/schemas/Base64ImageData"
+          }
+        }
+      },
+      "UploadPartnerLogoResponse": {
+        "required": [
+          "Success",
+          "Error",
+          "LogoUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "LogoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

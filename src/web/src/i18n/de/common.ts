@@ -64,6 +64,7 @@ export const common = {
 
   "footer.tagline": "Immobilien in Oberösterreich – Häuser, Grundstücke, Zwangsversteigerungen.",
   "footer.legalAriaLabel": "Weitere Seiten und Rechtliches",
+  "footer.partners": "Partner",
   "footer.forBrokers": "Für Makler",
   "footer.imprint": "Impressum",
   "footer.privacy": "Datenschutz",

@@ -545,6 +545,47 @@ export type LegalUpdateResponse = {
   Error: string | null;
 };
 
+// Partner-Feature (/api/admin/partners) - Pflege der oeffentlichen /partner/-Seite.
+// Fachliche Fehler kommen wie bei Legal als Success=false + Error (HTTP 200).
+export type AdminPartner = {
+  Id: string;
+  Name: string;
+  /** PartnerCategories-Konstante: "Broker" | "DataSource" */
+  Category: string;
+  Description: string | null;
+  WebsiteUrl: string | null;
+  LogoUrl: string | null;
+  Region: string | null;
+  PartnerSinceYear: number | null;
+  SourceName: string | null;
+  SellerName: string | null;
+  DisplayOrder: number;
+  IsVisible: boolean;
+  /** Live-Zaehlung ueber Property.SourceName (nur sichtbare Inserate) */
+  ActiveListingCount: number;
+};
+
+export type AdminPartnersResponse = {
+  Partners: AdminPartner[];
+};
+
+export type PartnerSaveResponse = {
+  Success: boolean;
+  Error: string | null;
+  Id: string | null;
+};
+
+export type PartnerDeleteResponse = {
+  Success: boolean;
+  Error: string | null;
+};
+
+export type PartnerLogoUploadResponse = {
+  Success: boolean;
+  Error: string | null;
+  LogoUrl: string | null;
+};
+
 export async function adminApiGet<T>(pathWithQuery: string): Promise<T | null> {
   try {
     const response = await fetch(new URL(pathWithQuery, getServerApiBaseUrl()), {

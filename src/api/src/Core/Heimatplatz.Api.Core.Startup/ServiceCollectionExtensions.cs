@@ -16,6 +16,7 @@ using Heimatplatz.Api.Features.PropertyImport.Configuration;
 using Heimatplatz.Api.Features.AiListing.Configuration;
 using Heimatplatz.Api.Features.Marketing.Configuration;
 using Heimatplatz.Api.Features.PropertyDrafts.Configuration;
+using Heimatplatz.Api.Features.Partners.Configuration;
 using Heimatplatz.Api.Features.SearchConsole.Configuration;
 using Heimatplatz.Api.Features.Telemetry.Configuration;
 using Heimatplatz.Api.Features.Firmenbuch.Configuration;
@@ -97,6 +98,7 @@ public static class ServiceCollectionExtensions
         services.AddTelemetryFeature(configuration, backgroundJobsEnabled);
         services.AddFirmenbuchFeature(configuration);
         services.AddSearchConsoleFeature(configuration);
+        services.AddPartnersFeature();
 
         return services;
     }
@@ -120,6 +122,7 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.PropertyDrafts.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Telemetry.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.SearchConsole.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
+        Heimatplatz.Api.Features.Partners.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
 
         return app;
     }

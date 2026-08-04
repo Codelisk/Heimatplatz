@@ -31,6 +31,8 @@
     <Project Path="src/api/src/Features/Locations/Heimatplatz.Api.Features.Locations.Contracts/Heimatplatz.Api.Features.Locations.Contracts.csproj" />
     <Project Path="src/api/src/Features/Notifications/Heimatplatz.Api.Features.Notifications/Heimatplatz.Api.Features.Notifications.csproj" />
     <Project Path="src/api/src/Features/Notifications/Heimatplatz.Api.Features.Notifications.Contracts/Heimatplatz.Api.Features.Notifications.Contracts.csproj" />
+    <Project Path="src/api/src/Features/Partners/Heimatplatz.Api.Features.Partners/Heimatplatz.Api.Features.Partners.csproj" />
+    <Project Path="src/api/src/Features/Partners/Heimatplatz.Api.Features.Partners.Contracts/Heimatplatz.Api.Features.Partners.Contracts.csproj" />
     <Project Path="src/api/src/Features/Properties/Heimatplatz.Api.Features.Properties/Heimatplatz.Api.Features.Properties.csproj" />
     <Project Path="src/api/src/Features/Properties/Heimatplatz.Api.Features.Properties.Contracts/Heimatplatz.Api.Features.Properties.Contracts.csproj" />
     <Project Path="src/api/src/Features/PropertyDrafts/Heimatplatz.Api.Features.PropertyDrafts/Heimatplatz.Api.Features.PropertyDrafts.csproj" />

@@ -1,6 +1,6 @@
 # Konzept: Partner-Seite `/partner/`
 
-Stand: 03.08.2026 · Status: Entwurf (nicht umgesetzt)
+Stand: 04.08.2026 · Status: Umgesetzt (Phasen 1–3; Immobär-Eintrag über /intern/partner/ offen)
 
 ## 1. Ziel und Einordnung
 

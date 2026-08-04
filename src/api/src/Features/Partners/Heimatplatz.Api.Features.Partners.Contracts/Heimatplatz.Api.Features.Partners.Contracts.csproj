@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shiny.Mediator.Contracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Base64ImageData fuer den Logo-Upload (gleiche Upload-Form wie Inserats-Bilder) -->
+    <ProjectReference Include="..\..\Properties\Heimatplatz.Api.Features.Properties.Contracts\Heimatplatz.Api.Features.Properties.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

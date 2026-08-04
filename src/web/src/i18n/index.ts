@@ -18,6 +18,7 @@ import { foreclosures } from "./de/foreclosures";
 import { home } from "./de/home";
 import { intern } from "./de/intern";
 import { misc } from "./de/misc";
+import { partner } from "./de/partner";
 import { property } from "./de/property";
 
 export const de = {
@@ -32,6 +33,7 @@ export const de = {
   ...foreclosures,
   ...intern,
   ...misc,
+  ...partner,
 } as const;
 
 export type TranslationKey = keyof typeof de;

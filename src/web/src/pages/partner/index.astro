@@ -1,0 +1,242 @@
+---
+import ArrowRightIcon from "@tabler/icons/outline/arrow-right.svg";
+import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
+import {
+  fetchPartners,
+  PARTNER_CATEGORY_DATA_SOURCE,
+} from "@/features/partners/api";
+import { t } from "@/i18n";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { breadcrumbSchema } from "@/lib/seo";
+
+// Design laut docs/partner-seite-konzept.md: ruhig und hochwertig - Niveau der
+// Inserats-Karten (gerader Zettel-Schatten), bewusst OHNE die verspielten Extras
+// der Makler-Seite (keine Stempel, keine Schraeglagen, keine Reveal-Animationen).
+
+const partners = await fetchPartners();
+const listingsTotal = partners.reduce((sum, partner) => sum + partner.activeListingCount, 0);
+
+const categoryLabel = (category: string) =>
+  category === PARTNER_CATEGORY_DATA_SOURCE
+    ? t("partner.categoryDataSource")
+    : t("partner.categoryBroker");
+
+const listingsLabel = (count: number) =>
+  count === 1 ? t("partner.activeListingsOne") : t("partner.activeListings", { count });
+
+const pageUrl = new URL("/partner/", Astro.site).toString();
+
+const structuredData = [
+  breadcrumbSchema([
+    { name: "Heimatplatz", url: new URL("/", Astro.site).toString() },
+    { name: t("partner.title"), url: pageUrl },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: t("partner.title"),
+    itemListElement: partners.map((partner, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Organization",
+        name: partner.name,
+        ...(partner.websiteUrl ? { url: partner.websiteUrl } : {}),
+        ...(partner.logoUrl ? { logo: partner.logoUrl } : {}),
+        ...(partner.description ? { description: partner.description } : {}),
+      },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title={t("partner.metaTitle")}
+  description={t("partner.metaDescription")}
+  canonicalPath="/partner/"
+  structuredData={structuredData}
+>
+  {/* Hero im Markenpanel-Look von Auth-/Makler-Seite (gleicher Rot-Verlauf, gleiche
+      Haus-Linienzeichnung), aber ruhig: keine Einstiegs-Animationen, kein Siegel */}
+  <section class="relative overflow-hidden bg-[linear-gradient(160deg,#c9161c,#ee6a50)] text-white dark:bg-[linear-gradient(160deg,#bb0916,#1a0508)]">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="0.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="pointer-events-none absolute -right-24 -top-20 size-[34rem] text-white/[0.07]"
+      aria-hidden="true"
+    >
+      <path d="M3.5 12.5 12 5l8.5 7.5" />
+      <path d="M6.5 11.5V19h11v-7.5" />
+      <path d="M12 19v-4" />
+    </svg>
+
+    <div class="relative mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+      <p class="text-sm font-bold uppercase tracking-[0.14em] text-white/75">{t("partner.kicker")}</p>
+      <h1 class="mt-4 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+        {t("partner.title")}
+      </h1>
+      <p class="mt-5 max-w-xl text-base leading-7 text-white/85 sm:text-lg sm:leading-8">
+        {t("partner.intro")}
+      </p>
+      {
+        partners.length > 0 && (
+          <div class="mt-8 flex items-center gap-3 text-sm font-semibold text-white/90">
+            <span>
+              {partners.length === 1
+                ? t("partner.statsPartnersOne")
+                : t("partner.statsPartners", { count: partners.length })}
+            </span>
+            {listingsTotal > 0 && (
+              <>
+                <span class="size-1 rounded-full bg-white/55" aria-hidden="true" />
+                <span>{t("partner.statsListings", { count: listingsTotal })}</span>
+              </>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8">
+    <h2 class="section-title text-2xl font-bold sm:text-3xl">{t("partner.brokersHeading")}</h2>
+    <p class="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+      {t("partner.brokersSub")}
+    </p>
+
+    <div class="mt-8 grid gap-6 sm:grid-cols-2">
+      {
+        partners.map((partner) => (
+          <article class="partner-card flex flex-col overflow-hidden rounded-lg bg-card">
+            {/* Logos bleiben auch im Dark Mode auf hellem Feld - nie invertieren */}
+            {partner.logoUrl && (
+              <div class="grid h-24 place-items-center border-b border-border bg-white p-3">
+                <img
+                  src={partner.logoUrl}
+                  alt={t("partner.logoAlt", { name: partner.name })}
+                  class="max-h-full max-w-[60%] object-contain"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            <div class="flex flex-1 flex-col p-6">
+              <p class="text-xs font-bold uppercase tracking-[0.1em] text-primary">
+                {categoryLabel(partner.category)}
+                {partner.partnerSinceYear && (
+                  <span class="font-semibold normal-case tracking-normal text-muted-foreground">
+                    {" "}· {t("partner.since", { year: partner.partnerSinceYear })}
+                  </span>
+                )}
+              </p>
+              <h3 class="mt-2 text-xl font-extrabold tracking-tight">{partner.name}</h3>
+              {partner.region && <p class="mt-0.5 text-sm text-muted-foreground">{partner.region}</p>}
+              {partner.description && (
+                <p class="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{partner.description}</p>
+              )}
+              {partner.activeListingCount > 0 && (
+                <p class="mt-4 inline-flex items-center gap-2 text-sm font-semibold">
+                  <span class="size-2 rounded-full bg-primary" aria-hidden="true" />
+                  {listingsLabel(partner.activeListingCount)}
+                </p>
+              )}
+              <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                {partner.activeListingCount > 0 ? (
+                  <a
+                    href={`/?q=${encodeURIComponent(partner.sellerName || partner.name)}`}
+                    class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-accent"
+                  >
+                    {t("partner.viewListings")}
+                  </a>
+                ) : (
+                  <span />
+                )}
+                {partner.websiteUrl && (
+                  <a
+                    href={partner.websiteUrl}
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {t("partner.websiteLink")}
+                    <ExternalLinkIcon class="size-4" aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </article>
+        ))
+      }
+
+      {/* Platzhalter-Karte: fuellt die Luecke, solange die Liste kurz ist, und traegt
+          bei leerer Liste die ganze Sektion - Akquise statt leerer Seite */}
+      <article class="flex min-h-64 flex-col items-center justify-center gap-2 rounded-lg border-[1.5px] border-dashed border-border p-8 text-center">
+        <p class="text-lg font-extrabold tracking-tight">{t("partner.placeholderTitle")}</p>
+        <p class="max-w-72 text-sm leading-6 text-muted-foreground">{t("partner.placeholderText")}</p>
+        <a
+          href="/makler/"
+          class="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-accent"
+        >
+          {t("partner.placeholderCta")}
+        </a>
+      </article>
+    </div>
+
+    {/* Datenquellen: bewusst nicht als "Partner" etikettiert - die Justiz ist kein
+        Kooperationspartner, die Edikte sind oeffentliche Daten */}
+    <p class="mt-10 max-w-2xl border-l-[3px] border-border py-1 pl-4 text-sm leading-6 text-muted-foreground">
+      <strong class="font-bold text-foreground">{t("partner.transparencyLabel")}</strong>
+      {" "}{t("partner.transparencyText")}
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-4 pb-16 sm:px-6 lg:px-8">
+    <div class="partner-card flex flex-wrap items-center justify-between gap-5 rounded-lg bg-card px-8 py-8">
+      <div>
+        <h2 class="text-xl font-extrabold tracking-tight sm:text-2xl">{t("partner.ctaTitle")}</h2>
+        <p class="mt-1 max-w-md text-sm leading-6 text-muted-foreground">{t("partner.ctaText")}</p>
+      </div>
+      <a
+        href="/makler/"
+        class="group inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-accent"
+      >
+        {t("partner.ctaButton")}
+        <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Abschnitts-Titel mit rotem Unterstrich-Akzent (wie /makler/) */
+  .section-title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.5rem;
+  }
+
+  .section-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 2.5rem;
+    border-radius: 2px;
+    background: var(--primary);
+  }
+
+  /* Karten mit dem Zettel-Schatten der Inserats-Karten - gerade und ruhig,
+     Hover vertieft nur den Schatten (kein Anheben, keine Schraeglage) */
+  .partner-card {
+    box-shadow: var(--zettel-shadow);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .partner-card:hover {
+    box-shadow: var(--zettel-shadow-hover);
+  }
+</style>

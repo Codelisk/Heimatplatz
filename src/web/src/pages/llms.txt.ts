@@ -34,6 +34,7 @@ Heimatplatz ist eine deutschsprachige Web-App (de-AT). Zwangsversteigerungen bas
 
 - ${mdLink("Startseite und Immobiliensuche", "/")}: Suche mit Filtern nach Bezirk, Immobilientyp, Anbieter, Zeitraum und Sortierung.
 - ${mdLink("Immobilie inserieren", "/inserieren/")}: Inserat mit Fotos, Adresse, Preis und Kontaktdaten erstellen.
+- ${mdLink("Unsere Partner", "/partner/")}: regionale Makler-Partner, deren Objekte automatisch übernommen werden.
 - ${mdLink("Impressum", "/impressum/")}: Betreiber- und Kontaktangaben.
 - ${mdLink("Datenschutz", "/datenschutz/")}: Datenschutzerklärung.
 

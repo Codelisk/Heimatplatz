@@ -699,6 +699,11 @@ export const intern = {
   "intern.fbSourceWindows": "Windows",
   "intern.fbSourceUnknown": "Unbekannt",
 
+  // Partner (/intern/partner)
+  "intern.navPartners": "Partner",
+  "intern.navPartnersDescription":
+    "Partner der öffentlichen Partner-Seite pflegen – Logo, Beschreibung und Sichtbarkeit, wirkt sofort ohne Deploy.",
+
   // Kontaktdaten (/intern/kontakt)
   "intern.navContact": "Kontaktdaten",
   "intern.navContactDescription":

@@ -52,6 +52,8 @@
     <ProjectReference Include="..\..\Features\Firmenbuch\Heimatplatz.Api.Features.Firmenbuch\Heimatplatz.Api.Features.Firmenbuch.csproj" />
     <ProjectReference Include="..\..\Features\SearchConsole\Heimatplatz.Api.Features.SearchConsole\Heimatplatz.Api.Features.SearchConsole.csproj" />
     <ProjectReference Include="..\..\Features\SearchConsole\Heimatplatz.Api.Features.SearchConsole.Contracts\Heimatplatz.Api.Features.SearchConsole.Contracts.csproj" />
+    <ProjectReference Include="..\..\Features\Partners\Heimatplatz.Api.Features.Partners\Heimatplatz.Api.Features.Partners.csproj" />
+    <ProjectReference Include="..\..\Features\Partners\Heimatplatz.Api.Features.Partners.Contracts\Heimatplatz.Api.Features.Partners.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

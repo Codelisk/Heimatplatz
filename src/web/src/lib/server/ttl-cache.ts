@@ -55,6 +55,8 @@ export const TTL = {
   propertyDetail: 10_000,
   images: 60 * 60_000,
   legal: 10 * 60_000,
+  // Partner-Stammdaten wie legal: aendern sich selten, /intern/partner/ invalidiert direkt
+  partners: 10 * 60_000,
   // Bezirk/Gemeinde-Hierarchie aendert sich praktisch nie
   locations: 60 * 60_000,
 } as const;

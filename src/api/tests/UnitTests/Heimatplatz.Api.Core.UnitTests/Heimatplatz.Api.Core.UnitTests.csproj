@@ -27,5 +27,6 @@
     <ProjectReference Include="..\..\..\src\Features\Telemetry\Heimatplatz.Api.Features.Telemetry\Heimatplatz.Api.Features.Telemetry.csproj" />
     <ProjectReference Include="..\..\..\src\Features\Marketing\Heimatplatz.Api.Features.Marketing\Heimatplatz.Api.Features.Marketing.csproj" />
     <ProjectReference Include="..\..\..\src\Features\Legal\Heimatplatz.Api.Features.Legal\Heimatplatz.Api.Features.Legal.csproj" />
+    <ProjectReference Include="..\..\..\src\Features\Partners\Heimatplatz.Api.Features.Partners\Heimatplatz.Api.Features.Partners.csproj" />
   </ItemGroup>
 </Project>
