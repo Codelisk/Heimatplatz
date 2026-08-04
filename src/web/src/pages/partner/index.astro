@@ -11,10 +11,10 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { breadcrumbSchema } from "@/lib/seo";
 
 // Design laut docs/partner-seite-konzept.md, Blue-Ocean-Fassung (Kundenwunsch 4.8.):
-// redaktionelles Partnerverzeichnis im Regionalblatt-Stil. Vertrauen kommt aus
-// nachpruefbaren Fakten (Punktlinien-Datenzeilen mit Live-Werten, Stand-Datum)
-// statt aus Effekten; Rot bleibt reine Signalfarbe. Titelkopf mit Wappen,
-// Erklaerung als gerahmter Zeitungskasten, CTA als Anzeige mit Doppelrahmen.
+// redaktionelles Partnerverzeichnis im Regionalblatt-Stil, kraftvoll gesetzt -
+// grosse rote Verzeichnisnummern, Live-Inseratszahl als Ticker-Zahl am Eintrag,
+// Rubrik als schwarzer Balken. Vertrauen kommt aus nachpruefbaren Fakten
+// (Live-Zahlen, Stand-Datum) statt aus Effekten; einzige Animation sind Link-Hovers.
 
 const partners = await fetchPartners();
 const listingsTotal = partners.reduce((sum, partner) => sum + partner.activeListingCount, 0);
@@ -24,37 +24,17 @@ const categoryLabel = (category: string) =>
     ? t("partner.categoryDataSource")
     : t("partner.categoryBroker");
 
-// Datenzeilen je Eintrag (Label ......... Wert) - nur belegbare Angaben,
-// die Live-Inseratszahl ist der einzige hervorgehobene Wert (Signalfarbe)
-type FactRow = { label: string; value: string; highlight?: boolean };
-const factsFor = (partner: (typeof partners)[number]): FactRow[] =>
-  [
-    partner.partnerSinceYear
-      ? { label: t("partner.factSinceLabel"), value: String(partner.partnerSinceYear) }
-      : null,
-    partner.sourceName
-      ? { label: t("partner.factImportLabel"), value: t("partner.factImportValue") }
-      : null,
-    partner.activeListingCount > 0
-      ? {
-          label: t("partner.factListingsLabel"),
-          value: String(partner.activeListingCount),
-          highlight: true,
-        }
-      : null,
-  ].filter((row): row is FactRow => Boolean(row));
+// Meta-Zeile: Kategorie (rot) · Region · seit Jahr - alles Kleinkapitale
+const metaFor = (partner: (typeof partners)[number]) =>
+  [partner.region, partner.partnerSinceYear ? t("partner.metaSince", { year: partner.partnerSinceYear }) : null]
+    .filter(Boolean)
+    .join(" · ");
 
 // Stand-Datum der Datumszeile: Render-Zeitpunkt, die Zahlen dahinter kommen live
 const standDatum = new Intl.DateTimeFormat("de-AT", {
   dateStyle: "long",
   timeZone: "Europe/Vienna",
 }).format(new Date());
-
-const charter = [
-  { title: t("partner.charter1Title"), text: t("partner.charter1Text") },
-  { title: t("partner.charter2Title"), text: t("partner.charter2Text") },
-  { title: t("partner.charter3Title"), text: t("partner.charter3Text") },
-];
 
 const pageUrl = new URL("/partner/", Astro.site).toString();
 
@@ -91,7 +71,7 @@ const structuredData = [
   <div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
     {/* Titelkopf im Regionalblatt-Stil: dicke + duenne Linie, Wappen als Krone,
         grosser Titel (fluide Groesse - "Partnerverzeichnis" darf am Handy nicht
-        ueberlaufen), Datumszeile mit den nachpruefbaren Eckdaten */}
+        ueberlaufen), kraeftige Datumszeile mit den nachpruefbaren Eckdaten */}
     <header>
       <div class="border-t-2 border-foreground"></div>
       <div class="mt-[3px] border-t border-foreground"></div>
@@ -101,14 +81,14 @@ const structuredData = [
       <p class="mt-5 text-center text-[11px] font-bold uppercase tracking-[0.22em] text-primary sm:text-xs">
         {t("partner.kicker")}
       </p>
-      <h1 class="mx-auto mt-2 text-center text-[clamp(2.1rem,8.5vw,3.9rem)] font-extrabold leading-none tracking-tight">
+      <h1 class="mx-auto mt-2 text-center text-[clamp(2.2rem,9.5vw,4.4rem)] font-extrabold leading-none tracking-tight">
         {t("partner.title")}
       </h1>
 
-      <div class="mt-7 border-y border-foreground/60 py-2">
-        <p class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:justify-between sm:text-[11px]">
+      <div class="mt-7 border-y-2 border-foreground py-2">
+        <p class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-[10px] font-bold uppercase tracking-[0.14em] sm:justify-between sm:text-[11px]">
           <span>{t("partner.datelineStand", { date: standDatum })}</span>
-          <span class="hidden sm:inline">{t("partner.datelineRegion")}</span>
+          <span class="hidden text-muted-foreground sm:inline">{t("partner.datelineRegion")}</span>
           <span>
             {t("partner.datelinePartners", { count: partners.length })}
             {listingsTotal === 1 && ` · ${t("partner.datelineListingsOne")}`}
@@ -123,14 +103,17 @@ const structuredData = [
       </p>
     </header>
 
-    {/* Verzeichnis: nummerierte Eintraege mit Haarlinien und Punktlinien-Datenzeilen
-        wie im Druck - Fakten statt Kartenschmuck */}
-    <section class="mt-14" aria-labelledby="verzeichnis">
-      <div class="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-2">
-        <h2 id="verzeichnis" class="text-xs font-bold uppercase tracking-[0.22em]">
+    {/* Verzeichnis: grosse rote Nummern, Live-Inseratszahl als Ticker-Zahl -
+        Fakten statt Kartenschmuck */}
+    <section class="mt-12" aria-labelledby="verzeichnis">
+      <div class="flex items-end justify-between gap-4 border-b-2 border-foreground">
+        <h2
+          id="verzeichnis"
+          class="inline-block bg-foreground px-3 py-1.5 text-xs font-bold uppercase tracking-[0.22em] text-background"
+        >
           {t("partner.directoryHeading")}
         </h2>
-        <span class="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:inline">
+        <span class="hidden pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:inline">
           {t("partner.directoryColumn")}
         </span>
       </div>
@@ -146,59 +129,67 @@ const structuredData = [
       <ol class="divide-y divide-border">
         {
           partners.map((partner, index) => (
-            <li class="grid grid-cols-[2.4rem_minmax(0,1fr)] gap-x-3 py-10 sm:grid-cols-[3.2rem_minmax(0,1fr)] sm:gap-x-5">
+            <li class="grid grid-cols-[minmax(2.9rem,auto)_minmax(0,1fr)] gap-x-4 py-10 sm:grid-cols-[minmax(4rem,auto)_minmax(0,1fr)] sm:gap-x-6">
               <span
-                class="pt-1.5 font-mono text-base font-bold tabular-nums leading-none text-primary sm:text-lg"
+                class="mt-0.5 font-mono text-[2rem] font-extrabold leading-none tracking-tighter text-primary sm:text-[2.6rem]"
                 aria-hidden="true"
               >
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div class="min-w-0">
-                <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-                  <div class="min-w-0">
-                    <h3 class="text-2xl font-extrabold tracking-tight sm:text-[1.7rem]">{partner.name}</h3>
-                    <p class="mt-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground sm:text-[11px]">
+                <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+                  <div class="min-w-0 flex-1 basis-56">
+                    <h3 class="text-[1.65rem] font-extrabold leading-tight tracking-tight sm:text-3xl">
+                      {partner.name}
+                    </h3>
+                    <p class="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] sm:text-[11px]">
                       <span class="text-primary">{categoryLabel(partner.category)}</span>
-                      {partner.region && <span class="font-semibold"> · {partner.region}</span>}
+                      {metaFor(partner) && (
+                        <span class="font-semibold text-muted-foreground"> · {metaFor(partner)}</span>
+                      )}
                     </p>
                   </div>
-                  {/* Logo im Kontext des Eintrags statt in einer Logo-Wand; bleibt
-                      auch im Dark Mode auf hellem Feld - Logos nie invertieren */}
-                  {partner.logoUrl && (
-                    <img
-                      src={partner.logoUrl}
-                      alt={t("partner.logoAlt", { name: partner.name })}
-                      class="h-11 max-w-36 shrink-0 rounded-sm border border-border bg-white object-contain p-1.5"
-                      loading="lazy"
-                    />
+
+                  {/* Ticker-Zahl: die Live-Inseratszahl als groesster Wert des Eintrags */}
+                  {(partner.activeListingCount > 0 || partner.logoUrl) && (
+                    <div class="flex shrink-0 flex-col items-end gap-3">
+                      {partner.activeListingCount > 0 && (
+                        <span class="text-right">
+                          <span class="block text-[2.4rem] font-extrabold leading-none tracking-tight tabular-nums text-primary sm:text-5xl">
+                            {partner.activeListingCount}
+                          </span>
+                          <span class="mt-1 block text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground sm:text-[10px]">
+                            {partner.activeListingCount === 1
+                              ? t("partner.statListingsLabelOne")
+                              : t("partner.statListingsLabel")}
+                          </span>
+                        </span>
+                      )}
+                      {/* Logo im Kontext des Eintrags; bleibt auch im Dark Mode
+                          auf hellem Feld - Logos nie invertieren */}
+                      {partner.logoUrl && (
+                        <img
+                          src={partner.logoUrl}
+                          alt={t("partner.logoAlt", { name: partner.name })}
+                          class="h-10 max-w-32 rounded-sm border border-border bg-white object-contain p-1"
+                          loading="lazy"
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
 
                 {partner.description && (
-                  <p class="mt-3.5 max-w-prose text-[0.95rem] leading-7 text-muted-foreground">
+                  <p class="mt-4 max-w-prose text-[0.95rem] leading-7 text-muted-foreground">
                     {partner.description}
                   </p>
                 )}
 
-                {factsFor(partner).length > 0 && (
-                  <dl class="mt-5 max-w-md space-y-2">
-                    {factsFor(partner).map((row) => (
-                      <div class="flex items-baseline gap-2.5 text-sm">
-                        <dt class="shrink-0 text-muted-foreground">{row.label}</dt>
-                        <span class="leader" aria-hidden="true" />
-                        <dd class={`min-w-0 max-w-[60%] text-right tabular-nums ${row.highlight ? "font-extrabold text-primary" : "font-semibold"}`}>
-                          {row.value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
-
-                <p class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                <p class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[0.9rem]">
                   {partner.activeListingCount > 0 && (
                     <a
                       href={`/?q=${encodeURIComponent(partner.sellerName || partner.name)}`}
-                      class="group inline-flex items-center gap-1.5 font-bold text-primary underline-offset-4 hover:underline"
+                      class="group inline-flex items-center gap-1.5 font-extrabold text-primary underline-offset-4 hover:underline"
                     >
                       {t("partner.viewListings")}
                       <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
@@ -223,59 +214,41 @@ const structuredData = [
       </ol>
     </section>
 
-    {/* Partnerschafts-Erklaerung als gerahmter Zeitungskasten: drei ueberpruefbare
-        Zusagen statt Marketing-Floskeln; Punkt 3 traegt die Edikte-Transparenz mit */}
-    <section class="mt-12 border border-foreground/70 px-6 py-8 sm:px-9" aria-labelledby="erklaerung">
-      <h2 id="erklaerung" class="text-center text-xs font-bold uppercase tracking-[0.22em]">
-        {t("partner.charterHeading")}
-      </h2>
-      <div class="mx-auto mt-3 h-[3px] w-14 rounded-full bg-primary" aria-hidden="true"></div>
-
-      <div class="mt-7 grid gap-7 sm:grid-cols-3 sm:gap-6">
-        {
-          charter.map((item, index) => (
-            <div>
-              <p class="font-mono text-sm font-bold text-primary" aria-hidden="true">
-                §{index + 1}
-              </p>
-              <h3 class="mt-1.5 text-[0.95rem] font-extrabold leading-snug">{item.title}</h3>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p>
-            </div>
-          ))
-        }
-      </div>
-    </section>
-
     {/* CTA als klassische Zeitungsanzeige: doppelter Rahmen, "Anzeige in eigener Sache" */}
-    <aside class="mt-12 border-[3px] border-foreground p-1" aria-labelledby="anzeige">
-      <div class="border border-foreground px-6 py-9 text-center sm:px-10 sm:py-10">
-        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+    <aside class="mt-10 border-[3px] border-foreground p-1" aria-labelledby="anzeige">
+      <div class="border border-foreground px-6 py-10 text-center sm:px-10 sm:py-12">
+        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
           {t("partner.adKicker")}
         </p>
-        <h2 id="anzeige" class="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+        <h2 id="anzeige" class="mx-auto mt-3 max-w-xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
           {t("partner.adTitle")}
         </h2>
-        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+        <p class="mx-auto mt-4 max-w-md text-sm leading-6 text-muted-foreground sm:text-[0.95rem] sm:leading-7">
           {t("partner.adText")}
         </p>
         <a
           href="/makler/"
-          class="group mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-7 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-accent"
+          class="group mt-7 inline-flex items-center gap-2 rounded-md bg-primary px-8 py-3.5 text-base font-extrabold text-primary-foreground transition-colors hover:bg-primary-accent"
         >
           {t("partner.adButton")}
-          <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+          <ArrowRightIcon class="size-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
         </a>
       </div>
     </aside>
 
+    {/* Fussnote traegt die Edikte-Transparenz (frueher Teil der entfallenen Erklaerung) */}
+    <p class="mt-8 text-xs leading-5 text-muted-foreground">
+      {t("partner.footnote")}
+    </p>
+
     {/* Schlusslinie spiegelt den Titelkopf */}
-    <div class="mt-12 border-t border-foreground"></div>
+    <div class="mt-6 border-t border-foreground"></div>
     <div class="mt-[3px] border-t-2 border-foreground"></div>
   </div>
 </BaseLayout>
 
 <style>
-  /* Initiale im Lead: klassisches Zeitungs-Stilmittel, das einzige "Schmuck"-Element */
+  /* Initiale im Lead: klassisches Zeitungs-Stilmittel */
   .lead::first-letter {
     float: left;
     margin-right: 0.5rem;
@@ -283,15 +256,5 @@ const structuredData = [
     line-height: 0.85;
     font-weight: 800;
     color: var(--primary);
-  }
-
-  /* Punktlinien-Fuehrung (Label ......... Wert) wie im Druck: sitzt knapp ueber
-     der Baseline; leerer Span hat seine Baseline an der Unterkante, daher der
-     kleine Hochversatz */
-  .leader {
-    flex: 1 1 auto;
-    min-width: 1.5rem;
-    border-bottom: 2px dotted color-mix(in oklab, var(--foreground) 32%, transparent);
-    transform: translateY(-0.22em);
   }
 </style>

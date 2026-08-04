@@ -26,27 +26,18 @@ export const partner = {
   "partner.directoryColumn": "Zahlen live aus der Datenbank",
   "partner.categoryBroker": "Makler-Partner",
   "partner.categoryDataSource": "Datenquelle",
-  "partner.factSinceLabel": "Partner seit",
-  "partner.factImportLabel": "Datenübernahme",
-  "partner.factImportValue": "automatisch per OpenImmo",
-  "partner.factListingsLabel": "Aktive Inserate",
+  "partner.metaSince": "Seit {year}",
+  "partner.statListingsLabel": "aktive Inserate",
+  "partner.statListingsLabelOne": "aktives Inserat",
   "partner.viewListings": "Inserate ansehen",
   "partner.websiteLink": "Website",
   "partner.logoAlt": "Logo von {name}",
   "partner.emptyDirectory":
     "Das Verzeichnis ist noch jung – der erste Eintrag Ihres Betriebs könnte hier stehen.",
 
-  // --- Partnerschafts-Erklaerung ---
-  "partner.charterHeading": "Wofür unsere Partner stehen",
-  "partner.charter1Title": "Daten direkt vom Anbieter",
-  "partner.charter1Text":
-    "Objektdaten kommen unverändert vom Maklerbetrieb, werden automatisch übernommen und laufend aktualisiert – ohne Abschreiben, ohne Umwege.",
-  "partner.charter2Title": "Regional verankert",
-  "partner.charter2Text":
-    "Unsere Partner arbeiten in Oberösterreich und kennen die Orte, die sie verkaufen – keine anonymen Portalanbieter.",
-  "partner.charter3Title": "Klar gekennzeichnet",
-  "partner.charter3Text":
-    "Jedes Partner-Inserat nennt seine Herkunft. Zwangsversteigerungen stammen aus den öffentlichen Edikten der Justiz (edikte.justiz.gv.at) und sind keine Partner-Inserate.",
+  // --- Fussnote (Edikte-Transparenz) ---
+  "partner.footnote":
+    "Zwangsversteigerungen stammen aus den öffentlichen Edikten der österreichischen Justiz (edikte.justiz.gv.at) und sind keine Partner-Inserate.",
 
   // --- Anzeige in eigener Sache (CTA) ---
   "partner.adKicker": "Anzeige in eigener Sache",

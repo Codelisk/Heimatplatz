@@ -58,15 +58,14 @@ Karten. Pro Eintrag:
 | Name + Meta | Name groß, darunter "MAKLER-PARTNER · Region" klein-kapitalig | Partner-Datensatz |
 | Logo | klein rechts im Eintrag (Kontext statt Logo-Wand; auch im Dark Mode helles Feld) | Media-Pipeline, selbst gehostet |
 | Kurzbeschreibung | max-w-prose | Partner-Datensatz |
-| Faktenzeile | "Partner seit 2026 · Objekte werden automatisch übernommen · **45 aktive Inserate**" — nur belegbare Angaben, Zahl in Markenrot | PartnerSince, SourceName, Live-Count |
+| Ticker-Zahl | Live-Inseratszahl als größter Wert des Eintrags (große rote Ziffer + Label "AKTIVE INSERATE") rechts oben | Live-Count über SourceName |
 | Links | "Inserate ansehen →" (Suche mit SellerName via SearchText-Parameter) + "Website ↗" (extern, `rel=noopener`, bewusst **follow**) | Partner-Datensatz |
 
-### 2.3 Partnerschafts-Erklärung
-
-Drei überprüfbare Zusagen als §1–§3 statt Marketing-Floskeln: Daten direkt vom
-Anbieter (OpenImmo), regional verankert, klar gekennzeichnet. §3 trägt die
-Edikte-Transparenz gleich mit (Zwangsversteigerungen sind keine Partner-Inserate) —
-ein separater Datenquellen-Block entfällt.
+Nummern groß und rot (Verzeichnis-Charakter), Rubrik-Label als schwarzer Balken,
+Meta-Zeile "MAKLER-PARTNER · Region · Seit Jahr". Eine frühere
+Partnerschafts-Erklärung (§1–3) und die "Datenübernahme"-Zeile wurden am 4.8.
+auf Kundenwunsch entfernt — die Edikte-Transparenz steht seither als Fußnote
+über der Schlusslinie.
 
 ### 2.4 Abschluss-CTA: "Anzeige in eigener Sache"
 
