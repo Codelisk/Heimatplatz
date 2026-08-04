@@ -37,7 +37,7 @@ public class PartnersDemoSeeder(AppDbContext dbContext) : ISeeder
             {
                 Name = "Traunblick Immobilien",
                 Category = PartnerCategories.Broker,
-                Description = "Regionales Maklerbüro rund um den Traunsee. Überträgt seine Objekte automatisch per OpenImmo-Schnittstelle.",
+                Description = "Regionales Maklerbüro rund um den Traunsee mit Fokus auf Häuser und Seegrundstücke.",
                 WebsiteUrl = "https://www.example.com/traunblick",
                 Region = "Gmunden, Oberösterreich",
                 PartnerSinceYear = 2026,

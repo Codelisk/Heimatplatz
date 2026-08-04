@@ -42,10 +42,16 @@ Logos im Kontext statt als Wand, sichtbar gepflegte Aktualität (Stand-Datum).
 
 ### 2.1 Masthead (Zeitungs-Titelkopf)
 
-Keine Hero-Fläche. Dicke + dünne Haarlinie, zentrierter Kicker in Markenrot,
-großer Titel "Partnerverzeichnis", darunter eine **Datumszeile** zwischen
-Haarlinien: "Stand: {Datum} · Oberösterreich · N Partner · M aktive Inserate"
-(Zahlen live aus der API). Lead-Absatz mit roter Initiale (einziges Schmuck-Element).
+Keine Hero-Fläche. Dicke + dünne Haarlinie, Wappen als Krone, zentrierter Kicker
+in Markenrot, großer Titel, darunter eine **Datumszeile** zwischen Haarlinien:
+"Stand: {Datum} · Oberösterreich · N Makler · M aktive Inserate" (Zahlen live aus
+der API). Lead-Absatz mit roter Initiale (einziges Schmuck-Element).
+
+**Benennung (4.8. abends, Kundenwunsch):** Öffentlich heißt die Seite
+**"Maklerverzeichnis"** — bewusst KEIN "Partner"-Begriff (klingt nach offiziellem
+Partnerprogramm); es sind schlicht die regionalen Maklerbüros, deren Objekte auf
+Heimatplatz erscheinen. Ebenso keine technischen Details (OpenImmo o. ä.) in
+öffentlichen Texten. Route `/partner/`, Feature-/Intern-Namen bleiben unverändert.
 
 ### 2.2 Verzeichnis-Einträge (Kernstück)
 
