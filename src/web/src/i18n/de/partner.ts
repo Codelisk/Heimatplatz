@@ -1,46 +1,70 @@
 /**
- * Partner-Seite (/partner/) und Intern-Pflege (/intern/partner/).
- * Design-Richtung laut docs/partner-seite-konzept.md: ruhig, Niveau der Inserats-Karten.
+ * Partnerverzeichnis (/partner/), Partner-Nachweis auf Objekt-Detailseiten und
+ * Intern-Pflege (/intern/partner/).
+ *
+ * Design-Richtung laut docs/partner-seite-konzept.md (Blue-Ocean-Fassung):
+ * redaktionelles Verzeichnis im Regionalblatt-Stil - nachpruefbare Fakten statt
+ * Marketing, Rot nur als Signalfarbe, keine Effekt-Gimmicks.
  */
 export const partner = {
-  // --- Oeffentliche Seite ---
-  "partner.metaTitle": "Unsere Partner – regionale Makler auf Heimatplatz",
+  // --- Oeffentliche Seite: Masthead ---
+  "partner.metaTitle": "Partnerverzeichnis – regionale Makler auf Heimatplatz",
   "partner.metaDescription":
-    "Diese regionalen Makler und Partner arbeiten mit Heimatplatz zusammen. Ihre Objekte werden automatisch übernommen und laufend aktualisiert.",
-  "partner.kicker": "Gemeinsam für die Region",
-  "partner.title": "Unsere Partner",
-  "partner.intro":
-    "Hinter den Inseraten auf Heimatplatz stehen regionale Maklerinnen und Makler, die Oberösterreich kennen. Diese Partner vertrauen uns ihre Objekte an.",
-  "partner.statsPartnersLabel": "Partner",
-  "partner.statsListingsLabel": "aktive Inserate",
-  "partner.statsListingsLabelOne": "aktives Inserat",
-  "partner.brokersHeading": "Makler-Partner",
-  "partner.brokersSub":
-    "Alle Objekte unserer Partner werden automatisch übernommen und laufend aktualisiert – die Inseratszahl kommt live aus der Datenbank.",
+    "Das Partnerverzeichnis von Heimatplatz: regionale Maklerbetriebe aus Oberösterreich, deren Objekte automatisch übernommen und laufend aktualisiert werden.",
+  "partner.kicker": "Heimatplatz · Gemeinsam für die Region",
+  "partner.title": "Partnerverzeichnis",
+  "partner.datelineStand": "Stand: {date}",
+  "partner.datelineRegion": "Oberösterreich",
+  "partner.datelinePartners": "{count} Partner",
+  "partner.datelineListings": "{count} aktive Inserate",
+  "partner.datelineListingsOne": "1 aktives Inserat",
+  "partner.lead":
+    "Hinter den Inseraten auf Heimatplatz stehen regionale Maklerinnen und Makler, die ihre Gemeinden persönlich kennen. Dieses Verzeichnis führt alle Betriebe, die uns ihre Objekte anvertrauen – mit Zahlen direkt aus der Datenbank statt Werbeversprechen.",
+
+  // --- Verzeichnis-Eintraege ---
+  "partner.directoryHeading": "Makler-Partner",
   "partner.categoryBroker": "Makler-Partner",
   "partner.categoryDataSource": "Datenquelle",
-  "partner.sinceStampWord": "Partner seit",
-  "partner.activeListings": "{count} aktive Inserate",
-  "partner.activeListingsOne": "1 aktives Inserat",
+  "partner.factSince": "Partner seit {year}",
+  "partner.factAutoImport": "Objekte werden automatisch übernommen",
+  "partner.factListings": "{count} aktive Inserate",
+  "partner.factListingsOne": "1 aktives Inserat",
   "partner.viewListings": "Inserate ansehen",
   "partner.websiteLink": "Website",
   "partner.logoAlt": "Logo von {name}",
-  "partner.placeholderTitle": "Ihre Objekte auf Heimatplatz?",
-  "partner.placeholderText":
-    "Wir übernehmen Ihre Inserate automatisch – Sie gewinnen Sichtbarkeit in der Region und einen festen Platz auf dieser Seite.",
-  "partner.placeholderCta": "Partner werden",
-  "partner.transparencyLabel": "Transparenz:",
-  "partner.transparencyText":
-    "Zwangsversteigerungen stammen aus den öffentlichen Edikten der österreichischen Justiz (edikte.justiz.gv.at) und sind keine Partner-Inserate.",
-  "partner.ctaTitle": "Ihre Immobilien auf Heimatplatz?",
-  "partner.ctaText": "Kostenlos in der Startphase – Anbindung über OpenImmo oder direkt.",
-  "partner.ctaButton": "Werden Sie Partner",
+  "partner.emptyDirectory":
+    "Das Verzeichnis ist noch jung – der erste Eintrag Ihres Betriebs könnte hier stehen.",
+
+  // --- Partnerschafts-Erklaerung ---
+  "partner.charterHeading": "Wofür unsere Partner stehen",
+  "partner.charter1Title": "Daten direkt vom Anbieter",
+  "partner.charter1Text":
+    "Objektdaten kommen unverändert vom Maklerbetrieb, werden automatisch übernommen und laufend aktualisiert – ohne Abschreiben, ohne Umwege.",
+  "partner.charter2Title": "Regional verankert",
+  "partner.charter2Text":
+    "Unsere Partner arbeiten in Oberösterreich und kennen die Orte, die sie verkaufen – keine anonymen Portalanbieter.",
+  "partner.charter3Title": "Klar gekennzeichnet",
+  "partner.charter3Text":
+    "Jedes Partner-Inserat nennt seine Herkunft. Zwangsversteigerungen stammen aus den öffentlichen Edikten der Justiz (edikte.justiz.gv.at) und sind keine Partner-Inserate.",
+
+  // --- Anzeige in eigener Sache (CTA) ---
+  "partner.adKicker": "Anzeige in eigener Sache",
+  "partner.adTitle": "Ihre Objekte auf Heimatplatz?",
+  "partner.adText":
+    "Anbindung über OpenImmo oder direkt – kostenlos in der Startphase. Ihr Betrieb bekommt einen festen Eintrag in diesem Verzeichnis.",
+  "partner.adButton": "Partner werden",
+
+  // --- Partner-Nachweis auf Objekt-Detailseiten ---
+  "partner.detailBadgeTitle": "Heimatplatz-Partnerbetrieb",
+  "partner.detailBadgeSince": "Partner seit {year}",
+  "partner.detailBadgeText": "Objektdaten kommen automatisch vom Makler",
+  "partner.detailBadgeLink": "Zum Partnerverzeichnis",
 
   // --- Intern-Pflege ---
   "partner.internMetaTitle": "Partner verwalten",
   "partner.internTitle": "Partner",
   "partner.internIntro":
-    "Partner für die öffentliche Partner-Seite pflegen – Änderungen sind ohne Deploy sofort sichtbar.",
+    "Partner für das öffentliche Partnerverzeichnis pflegen – Änderungen sind ohne Deploy sofort sichtbar.",
   "partner.internSaved": "Partner gespeichert.",
   "partner.internDeleted": "Partner gelöscht.",
   "partner.internFailed": "Aktion fehlgeschlagen: {error}",
@@ -63,12 +87,12 @@ export const partner = {
   "partner.internFieldSinceYear": "Partner seit (Jahr)",
   "partner.internFieldSourceName": "Quellname des Feeds (Property.SourceName)",
   "partner.internFieldSourceNameHint":
-    "Verknüpft die Live-Inseratszahl – muss exakt dem SourceName des Import-Feeds entsprechen, z. B. immobaer.at. Leer = keine Zählung.",
+    "Verknüpft Live-Inseratszahl und Detailseiten-Nachweis – muss exakt dem SourceName des Import-Feeds entsprechen, z. B. immobaer.at. Leer = keine Zählung.",
   "partner.internFieldSellerName": "Anbietername in Inseraten",
   "partner.internFieldSellerNameHint":
     "Grundlage für den „Inserate ansehen“-Suchlink, z. B. Immobär Immobilien. Leer = Link nutzt den Partnernamen.",
   "partner.internFieldDisplayOrder": "Reihenfolge (niedrig = zuerst)",
-  "partner.internFieldVisible": "Auf der Partner-Seite sichtbar",
+  "partner.internFieldVisible": "Im Partnerverzeichnis sichtbar",
   "partner.internFieldLogo": "Logo hochladen (PNG/JPG)",
   "partner.internFieldLogoHint":
     "Wird selbst gehostet (kein Hotlink). Ein neues Logo ersetzt das bisherige.",

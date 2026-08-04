@@ -1,6 +1,7 @@
 ---
 import ArrowLeftIcon from "@tabler/icons/outline/arrow-left.svg";
 import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
+import RosetteDiscountCheckIcon from "@tabler/icons/outline/rosette-discount-check.svg";
 import CopyIcon from "@tabler/icons/outline/copy.svg";
 import ExternalLinkIcon from "@tabler/icons/outline/external-link.svg";
 import EyeOffIcon from "@tabler/icons/outline/eye-off.svg";
@@ -29,6 +30,7 @@ import {
 } from "@/features/properties/live-api";
 import { getApiPriceFact, getApiPropertyDetailSections, getApiPropertyEncumbrances } from "@/features/properties/detail-sections";
 import { getForeclosureCanonicalPath } from "@/features/foreclosures/property-mirror";
+import { fetchPartners } from "@/features/partners/api";
 import { getDisplayTitle } from "@/features/properties/format";
 import { t } from "@/i18n";
 import { breadcrumbSchema } from "@/lib/seo";
@@ -92,6 +94,24 @@ const mapPin = await fetchApiPropertyMapPin(property.Id);
 const contactCards: ApiContact[] = property.Contacts?.length
   ? property.Contacts
   : [{ Name: property.SellerName, SourceName: property.SourceName, Email: null, Phone: null }];
+// Partner-Nachweis: stammt das Objekt aus dem Feed eines gelisteten Partners
+// (exaktes SourceName-Match), zeigt der Anbieter-Kasten das Partnersiegel.
+// fetchPartners ist TTL-gecacht - kostet pro Render keinen extra API-Call.
+const partnerEntry = property.SourceName
+  ? (await fetchPartners()).find(
+      (partner) => partner.sourceName && partner.sourceName === property.SourceName
+    ) ?? null
+  : null;
+const partnerBadgeMeta = partnerEntry
+  ? [
+      partnerEntry.partnerSinceYear
+        ? t("partner.detailBadgeSince", { year: partnerEntry.partnerSinceYear })
+        : null,
+      t("partner.detailBadgeText"),
+    ]
+      .filter(Boolean)
+      .join(" · ")
+  : "";
 const originalUrl = contactCards.find((contact) => contact.OriginalListingUrl)?.OriginalListingUrl;
 const primaryEmail = contactCards.find((contact) => contact.Email)?.Email;
 const primaryPhone = contactCards.find((contact) => contact.Phone)?.Phone;
@@ -275,6 +295,21 @@ const encumbrances = isForeclosure ? getApiPropertyEncumbrances(property) : { it
           <p class="mt-2 text-sm text-muted-foreground">{sellerMeta}</p>
         )}
         <p class="mt-2 text-sm text-muted-foreground">{t("detail.updatedAt", { value: formatApiDate(property.CreatedAt) || t("detail.liveOffer") })}</p>
+        {partnerEntry && (
+          <a
+            href="/partner/"
+            class="group mt-3 flex items-start gap-2.5 rounded-md border border-primary/35 bg-primary/5 p-3 transition-colors hover:border-primary"
+          >
+            <RosetteDiscountCheckIcon class="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+            <span class="min-w-0 text-sm">
+              <span class="block font-bold">{t("partner.detailBadgeTitle")}</span>
+              <span class="block text-xs leading-5 text-muted-foreground">{partnerBadgeMeta}</span>
+              <span class="block text-xs font-semibold text-primary underline-offset-4 group-hover:underline">
+                {t("partner.detailBadgeLink")}
+              </span>
+            </span>
+          </a>
+        )}
         <div class="mt-5 space-y-3">
           {contactCards.map((contact) => (
             <div class="rounded-md bg-muted p-3 text-sm">

@@ -23,6 +23,8 @@ export type Partner = {
   logoUrl: string;
   region: string;
   partnerSinceYear: number | null;
+  /** Property.SourceName des Feeds (z.B. "immobaer.at") - Detailseiten matchen darueber */
+  sourceName: string;
   sellerName: string;
   activeListingCount: number;
 };
@@ -60,6 +62,7 @@ function normalizePartner(record: RawRecord): Partner | null {
     logoUrl: readString(record, "LogoUrl"),
     region: readString(record, "Region"),
     partnerSinceYear: readNumber(record, "PartnerSinceYear"),
+    sourceName: readString(record, "SourceName"),
     sellerName: readString(record, "SellerName"),
     activeListingCount: readNumber(record, "ActiveListingCount") ?? 0,
   };

@@ -24,57 +24,63 @@ die Makler-Seite bekommt einen Vertrauens-Verweis "Diese Partner sind schon dabe
 
 ## 2. Seitenaufbau
 
-**Design-Richtung: ruhig und hochwertig ("klassisch statt clever").** Die Seite
-übernimmt das Niveau der Inserats-Karten (Zettel-Schatten, gerade, klare Typografie),
-NICHT die verspielten Extras der Makler-Seite (keine schiefen Zettel, keine
-Stempel-Optik, keine Scroll-Reveal-Animationen). Partner sollen seriös präsentiert
-werden — die Seite ist Teil des Verkaufsarguments gegenüber Maklern.
+**Design-Richtung (final, 4.8.): Partnerverzeichnis im Regionalblatt-Stil —
+Blue-Ocean-Ansatz.** Nach zwei verworfenen Fassungen (ruhige Karten, dann
+Wow-Effekte) gilt: nicht auf den Faktoren konkurrieren, die jede Portal-Partnerseite
+bedient, sondern eigene schaffen. ERRC-Schema:
 
-### 2.1 Hero (Markenpanel-Look, ruhig)
+| | |
+|---|---|
+| **Eliminieren** | Karten-Grid, Logo-Wand, Effekt-Gimmicks (Stempel-Animationen, Countups, Schräglagen), rote Hero-Fläche |
+| **Reduzieren** | Farbeinsatz (Rot nur als Signal), Bewegung (nur Link-Hover), Marketing-Sprache |
+| **Steigern** | Nachprüfbare Fakten (Live-Zahl + "Stand"-Datum, OpenImmo-Automatik, Region, seit-Jahr), Typografie/Lesbarkeit (max-w-prose, klare Hierarchie) |
+| **Kreieren** | Verzeichnis-Metapher (Regionalblatt), Partnerschafts-Erklärung mit überprüfbaren Zusagen, CTA als "Anzeige in eigener Sache", Partner-Nachweis auf Objekt-Detailseiten |
 
-Gleicher Rot-Verlauf (`linear-gradient(160deg,#c9161c,#ee6a50)`, Dark-Variante wie
-Makler-Seite) und dezente Haus-Linienzeichnung als Wasserzeichen — aber ohne
-Einstiegs-Animationen und ohne Siegel-Stempel. Inhalte:
+Begründung aus der UX-Recherche (NN/g "Communicating Trustworthiness", Trust-Signal-
+Guides): Vertrauen entsteht durch spezifische, nachprüfbare Angaben statt Selbstlob,
+Logos im Kontext statt als Wand, sichtbar gepflegte Aktualität (Stand-Datum).
 
-- Kicker: "GEMEINSAM FÜR DIE REGION" (o. ä.)
-- Titel: "Unsere Partner"
-- Intro: 1–2 Sätze, warum Heimatplatz mit regionalen Maklern zusammenarbeitet
-- **Live-Zahlen als schlichte Zeile:** "N Partner · M aktive Inserate" — kommt aus
-  der API, nicht hartcodiert
+### 2.1 Masthead (Zeitungs-Titelkopf)
 
-### 2.2 Partner-Karten (Kernstück)
+Keine Hero-Fläche. Dicke + dünne Haarlinie, zentrierter Kicker in Markenrot,
+großer Titel "Partnerverzeichnis", darunter eine **Datumszeile** zwischen
+Haarlinien: "Stand: {Datum} · Oberösterreich · N Partner · M aktive Inserate"
+(Zahlen live aus der API). Lead-Absatz mit roter Initiale (einziges Schmuck-Element).
 
-Partner als gerade Karten mit dem etablierten Zettel-Schatten der Inserats-Karten
-(`--zettel-shadow`, Hover vertieft nur den Schatten). Pro Karte:
+### 2.2 Verzeichnis-Einträge (Kernstück)
+
+Partner als nummerierte redaktionelle Einträge (01, 02, …) mit Haarlinien statt
+Karten. Pro Eintrag:
 
 | Element | Inhalt | Quelle |
 |---|---|---|
-| Logo | helles Logo-Feld als Kartenkopf (auch im Dark Mode hell — Logos nie invertieren) | Media-Pipeline, selbst gehostet |
-| Meta-Zeile | "MAKLER-PARTNER · Partner seit 2026" (dezent, uppercase, Markenrot + muted) | Category-Enum + PartnerSince |
-| Name + Ort | "Immobär Immobilien" / "Innviertel, Oberösterreich" | Partner-Datensatz |
-| Kurzbeschreibung | 2–3 Sätze | Partner-Datensatz |
-| Live-Zeile | roter Punkt + "45 aktive Inserate" | API-Count über `Property.SourceName` |
-| Aktionen (durch Trennlinie abgesetzt) | Primär-Button "Inserate ansehen" (interne Suche) + Textlink "Website" (extern, `target=_blank rel=noopener`, bewusst **follow** — der Backlink ist Teil des Partner-Gegenwerts) | Partner-Datensatz |
+| Nummer | rote Mono-Ziffer | Reihenfolge |
+| Name + Meta | Name groß, darunter "MAKLER-PARTNER · Region" klein-kapitalig | Partner-Datensatz |
+| Logo | klein rechts im Eintrag (Kontext statt Logo-Wand; auch im Dark Mode helles Feld) | Media-Pipeline, selbst gehostet |
+| Kurzbeschreibung | max-w-prose | Partner-Datensatz |
+| Faktenzeile | "Partner seit 2026 · Objekte werden automatisch übernommen · **45 aktive Inserate**" — nur belegbare Angaben, Zahl in Markenrot | PartnerSince, SourceName, Live-Count |
+| Links | "Inserate ansehen →" (Suche mit SellerName via SearchText-Parameter) + "Website ↗" (extern, `rel=noopener`, bewusst **follow**) | Partner-Datensatz |
 
-"Inserate ansehen" verlinkt auf die Startsuche mit `SearchText=<SellerName>` (der
-`SearchText`-Parameter existiert bereits in `search-query.ts`). Kein neuer Filter nötig.
+### 2.3 Partnerschafts-Erklärung
 
-Solange nur ein Partner gelistet ist, füllt eine dezente Platzhalter-Karte
-(gestrichelter Rahmen, "Ihre Objekte auf Heimatplatz?" + Button zu `/makler/`) die
-Lücke im Grid — Akquise ohne leere Seite.
+Drei überprüfbare Zusagen als §1–§3 statt Marketing-Floskeln: Daten direkt vom
+Anbieter (OpenImmo), regional verankert, klar gekennzeichnet. §3 trägt die
+Edikte-Transparenz gleich mit (Zwangsversteigerungen sind keine Partner-Inserate) —
+ein separater Datenquellen-Block entfällt.
 
-### 2.3 Datenquellen-Abschnitt (optional, klein)
+### 2.4 Abschluss-CTA: "Anzeige in eigener Sache"
 
-Schlichter Transparenz-Hinweis unterhalb der Partner (linke Randlinie, muted):
-"Zwangsversteigerungen stammen aus den öffentlichen Edikten der Justiz
-(edikte.justiz.gv.at)." Bewusst als *Datenquelle* etikettiert, nicht als
-"Partner" — die Justiz ist kein Kooperationspartner.
+Klassische Zeitungsanzeige mit Doppelrahmen: Kicker "ANZEIGE IN EIGENER SACHE",
+"Ihre Objekte auf Heimatplatz?" + Button zu `/makler/`. Trägt bei leerem Verzeichnis
+die Seite. Kein zweites Lead-Formular — das Formular bleibt einzig auf `/makler/`.
 
-### 2.4 Abschluss-CTA
+### 2.5 Partner-Nachweis auf Objekt-Detailseiten
 
-Breites Karten-Panel: "Ihre Immobilien auf Heimatplatz? Werden Sie Partner." →
-Button zu `/makler/`. Kein zweites Lead-Formular — das Formular bleibt einzig auf
-`/makler/`.
+Im Anbieter-Kasten der Detailseite (`/immobilien/angebote/[id]`): stammt das Objekt
+aus dem Feed eines gelisteten Partners (exaktes `SourceName`-Match), erscheint ein
+Siegel-Block "Heimatplatz-Partnerbetrieb · Partner seit {Jahr} · Objektdaten kommen
+automatisch vom Makler" mit Link ins Verzeichnis. Vertrauen am Ort der
+Kaufentscheidung — dort, wo die Herkunftsfrage tatsächlich entsteht.
 
 ## 3. Datenhaltung — Empfehlung: eigenes Backend-Feature `Partners`
 
