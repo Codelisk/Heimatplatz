@@ -89,7 +89,9 @@ public static class PropertyQueryFilters
         if (roomsMin.HasValue)
             query = query.Where(p => p.Rooms >= roomsMin.Value);
 
-        // Volltextsuche serverseitig (ToLower().Contains uebersetzt auf allen Providern)
+        // Volltextsuche serverseitig (ToLower().Contains uebersetzt auf allen Providern).
+        // SellerName gehoert dazu: die Partnerverzeichnis-Links ("Inserate ansehen")
+        // suchen nach dem Anbieternamen, und der steht ohnehin sichtbar auf jeder Karte.
         if (!string.IsNullOrWhiteSpace(searchText))
         {
             var search = searchText.Trim().ToLower();
@@ -97,7 +99,8 @@ public static class PropertyQueryFilters
                 p.Title.ToLower().Contains(search) ||
                 (p.Description ?? "").ToLower().Contains(search) ||
                 p.Address.ToLower().Contains(search) ||
-                p.Municipality.Name.ToLower().Contains(search));
+                p.Municipality.Name.ToLower().Contains(search) ||
+                p.SellerName.ToLower().Contains(search));
         }
 
         // Anbieter-Ausschluss ueber die SellerSource-FK-Beziehung
