@@ -67,11 +67,16 @@ Karten. Pro Eintrag:
 | Ticker-Zahl | Live-Inseratszahl als größter Wert des Eintrags (große rote Ziffer + Label "AKTIVE INSERATE") rechts oben | Live-Count über SourceName |
 | Links | "Inserate ansehen →" (Suche mit SellerName via SearchText-Parameter) + "Website ↗" (extern, `rel=noopener`, bewusst **follow**) | Partner-Datensatz |
 
-Nummern groß und rot (Verzeichnis-Charakter), Rubrik-Label als schwarzer Balken,
-Meta-Zeile "MAKLER-PARTNER · Region · Seit Jahr". Eine frühere
+Nummern rot (Verzeichnis-Charakter), Rubrik-Label als schwarzer Balken,
+Meta-Zeile "MAKLERBÜRO · Region · Seit Jahr". Eine frühere
 Partnerschafts-Erklärung (§1–3) und die "Datenübernahme"-Zeile wurden am 4.8.
 auf Kundenwunsch entfernt — die Edikte-Transparenz steht seither als Fußnote
-über der Schlusslinie.
+unter dem Verzeichnis.
+
+**Layout (Ganzheits-Polish 4.8. spät):** Die Seite ist eine gebaute Zeitungsseite
+mit zwei Spalten — Hauptspalte = Verzeichnis (Rubrik, Einträge, Fußnote), sticky
+Randspalte = "In Zahlen"-Kasten (Punktlinien-Datenzeilen: Makler / Aktive Inserate /
+Stand) + die Anzeige in eigener Sache. Am Handy stapelt alles in Leserichtung.
 
 ### 2.4 Abschluss-CTA: "Anzeige in eigener Sache"
 

@@ -38,6 +38,12 @@ export const partner = {
   "partner.emptyDirectory":
     "Das Verzeichnis ist noch jung – der erste Eintrag Ihres Büros könnte hier stehen.",
 
+  // --- Randspalte: Zahlen-Kasten ---
+  "partner.railStatsHeading": "In Zahlen",
+  "partner.railStatsBrokers": "Makler",
+  "partner.railStatsListings": "Aktive Inserate",
+  "partner.railStatsStand": "Stand",
+
   // --- Fussnote (Edikte-Transparenz) ---
   "partner.footnote":
     "Zwangsversteigerungen stammen aus den öffentlichen Edikten der österreichischen Justiz (edikte.justiz.gv.at) und sind keine Partner-Inserate.",
