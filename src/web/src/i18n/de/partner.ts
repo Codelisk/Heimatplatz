@@ -23,12 +23,13 @@ export const partner = {
 
   // --- Verzeichnis-Eintraege ---
   "partner.directoryHeading": "Makler-Partner",
+  "partner.directoryColumn": "Zahlen live aus der Datenbank",
   "partner.categoryBroker": "Makler-Partner",
   "partner.categoryDataSource": "Datenquelle",
-  "partner.factSince": "Partner seit {year}",
-  "partner.factAutoImport": "Objekte werden automatisch übernommen",
-  "partner.factListings": "{count} aktive Inserate",
-  "partner.factListingsOne": "1 aktives Inserat",
+  "partner.factSinceLabel": "Partner seit",
+  "partner.factImportLabel": "Datenübernahme",
+  "partner.factImportValue": "automatisch per OpenImmo",
+  "partner.factListingsLabel": "Aktive Inserate",
   "partner.viewListings": "Inserate ansehen",
   "partner.websiteLink": "Website",
   "partner.logoAlt": "Logo von {name}",
