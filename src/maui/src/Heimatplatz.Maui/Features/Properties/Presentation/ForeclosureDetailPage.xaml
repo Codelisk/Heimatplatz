@@ -16,23 +16,29 @@
           appcontrols:ResponsiveLayout.IsEnabled="True">
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroupList>
+                <!-- Breite Fenster = EINE ruhige Mittelspalte (900/960) mit buendigen
+                     Fluchtlinien - identisches System wie PropertyDetailPage (dort
+                     auch die Begruendung zu fixer Summary-Spalte und Body-Breite). -->
                 <VisualStateGroup x:Name="WindowWidthStates">
                     <VisualState x:Name="Compact" />
                     <VisualState x:Name="Medium">
                         <VisualState.Setters>
-                            <Setter TargetName="ForeclosureLeadGrid" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="MaximumWidthRequest" Value="900" />
                             <Setter TargetName="ForeclosureLeadGrid" Property="Margin" Value="24,24,24,0" />
-                            <Setter TargetName="ForeclosureLeadGrid" Property="RowDefinitions" Value="420" />
-                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnDefinitions" Value="3*,2*" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="RowDefinitions" Value="380" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnDefinitions" Value="*,420" />
                             <Setter TargetName="ForeclosureLeadGrid" Property="ColumnSpacing" Value="20" />
                             <Setter TargetName="ForeclosureHero" Property="Grid.Row" Value="0" />
                             <Setter TargetName="ForeclosureHero" Property="Grid.Column" Value="0" />
-                            <Setter TargetName="ForeclosureHero" Property="HeightRequest" Value="420" />
+                            <Setter TargetName="ForeclosureHero" Property="HeightRequest" Value="380" />
                             <Setter TargetName="ForeclosureSummary" Property="Grid.Row" Value="0" />
                             <Setter TargetName="ForeclosureSummary" Property="Grid.Column" Value="1" />
                             <Setter TargetName="ForeclosureSummary" Property="Margin" Value="0" />
-                            <Setter TargetName="ForeclosureSummary" Property="Padding" Value="4,24" />
-                            <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="1100" />
+                            <Setter TargetName="ForeclosureSummary" Property="Padding" Value="4,20" />
+                            <Setter TargetName="SummaryContent" Property="VerticalOptions" Value="Center" />
+                            <Setter TargetName="SummaryHead" Property="MaximumWidthRequest" Value="372" />
+                            <Setter TargetName="SummaryTiles" Property="MaximumWidthRequest" Value="372" />
+                            <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="932" />
                             <Setter TargetName="ForeclosureLocationMap" Property="HeightRequest" Value="340" />
                             <Setter TargetName="ForeclosureScrollContent" Property="Padding" Value="0,0,0,96" />
                             <Setter TargetName="CourtFooter" Property="Grid.Row" Value="0" />
@@ -44,19 +50,22 @@
                     </VisualState>
                     <VisualState x:Name="Expanded">
                         <VisualState.Setters>
-                            <Setter TargetName="ForeclosureLeadGrid" Property="MaximumWidthRequest" Value="1200" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="MaximumWidthRequest" Value="960" />
                             <Setter TargetName="ForeclosureLeadGrid" Property="Margin" Value="32,28,32,0" />
-                            <Setter TargetName="ForeclosureLeadGrid" Property="RowDefinitions" Value="460" />
-                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnDefinitions" Value="3*,2*" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="RowDefinitions" Value="400" />
+                            <Setter TargetName="ForeclosureLeadGrid" Property="ColumnDefinitions" Value="*,450" />
                             <Setter TargetName="ForeclosureLeadGrid" Property="ColumnSpacing" Value="24" />
                             <Setter TargetName="ForeclosureHero" Property="Grid.Row" Value="0" />
                             <Setter TargetName="ForeclosureHero" Property="Grid.Column" Value="0" />
-                            <Setter TargetName="ForeclosureHero" Property="HeightRequest" Value="460" />
+                            <Setter TargetName="ForeclosureHero" Property="HeightRequest" Value="400" />
                             <Setter TargetName="ForeclosureSummary" Property="Grid.Row" Value="0" />
                             <Setter TargetName="ForeclosureSummary" Property="Grid.Column" Value="1" />
                             <Setter TargetName="ForeclosureSummary" Property="Margin" Value="0" />
-                            <Setter TargetName="ForeclosureSummary" Property="Padding" Value="8,28" />
-                            <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="1160" />
+                            <Setter TargetName="ForeclosureSummary" Property="Padding" Value="8,24" />
+                            <Setter TargetName="SummaryContent" Property="VerticalOptions" Value="Center" />
+                            <Setter TargetName="SummaryHead" Property="MaximumWidthRequest" Value="372" />
+                            <Setter TargetName="SummaryTiles" Property="MaximumWidthRequest" Value="372" />
+                            <Setter TargetName="ForeclosureBody" Property="MaximumWidthRequest" Value="992" />
                             <Setter TargetName="ForeclosureLocationMap" Property="HeightRequest" Value="380" />
                             <Setter TargetName="ForeclosureScrollContent" Property="Padding" Value="0,0,0,96" />
                             <Setter TargetName="CourtFooter" Property="Grid.Row" Value="0" />
@@ -348,10 +357,11 @@
                             </VisualStateGroup>
                         </VisualStateGroupList>
                     </VisualStateManager.VisualStateGroups>
-                    <VerticalStackLayout Spacing="16">
+                    <VerticalStackLayout x:Name="SummaryContent" Spacing="16">
 
                         <!-- Kopf: Mindestgebot/Schaetzwert (Serif, Markenrot), Titel, Adresse, Merken -->
-                        <VerticalStackLayout Spacing="6"
+                        <VerticalStackLayout x:Name="SummaryHead"
+                                             Spacing="6"
                                              Padding="16,0"
                                              MaximumWidthRequest="800"
                                              HorizontalOptions="Fill">
@@ -385,7 +395,8 @@
                         </VerticalStackLayout>
 
                         <!-- Kernfakten auf einen Blick: Termin, Schaetzwert, Gesamtflaeche -->
-                        <FlexLayout Wrap="Wrap"
+                        <FlexLayout x:Name="SummaryTiles"
+                                    Wrap="Wrap"
                                     JustifyContent="Start"
                                     Padding="16,0,8,0"
                                     MaximumWidthRequest="800"

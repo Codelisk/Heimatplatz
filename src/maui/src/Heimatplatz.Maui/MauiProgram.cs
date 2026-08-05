@@ -46,6 +46,7 @@ public static class MauiProgram
         Core.Screenshots.ScreenshotMode.TryOverrideSecureStore();
 
         Core.Handlers.BorderlessInputs.Register();
+        Core.Handlers.WindowsShellChrome.Register();
 
         var builder = MauiApp.CreateBuilder();
         builder

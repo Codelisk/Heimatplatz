@@ -13,7 +13,9 @@
 
     <Grid RowDefinitions="*,Auto">
 
-        <VerticalStackLayout Grid.Row="0" Padding="20,26,20,10" Spacing="0" VerticalOptions="Start">
+        <!-- MaximumWidthRequest: auf Tablet/Desktop bleibt der Kopf eine ruhige
+             Mittelspalte statt eines fensterbreiten Bandes (Composer unten ebenso) -->
+        <VerticalStackLayout Grid.Row="0" Padding="20,26,20,10" Spacing="0" VerticalOptions="Start" MaximumWidthRequest="840">
 
             <Border BackgroundColor="{Binding CategoryColor}"
                     StrokeThickness="0"
@@ -51,6 +53,7 @@
                                   Composer="{Binding Composer}"
                                   SendCommand="{Binding SendCommand}"
                                   Placeholder="{Binding Loc.MessagePlaceholder}"
+                                  MaximumWidthRequest="840"
                                   BackgroundColor="{AppThemeBinding Light={StaticResource Paper}, Dark={StaticResource OffBlack}}" />
 
     </Grid>

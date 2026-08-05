@@ -72,7 +72,9 @@
                             AutomationId="Feedback_TicketList">
 
                 <CollectionView.Header>
-                    <VerticalStackLayout Padding="16,18,16,4" Spacing="0">
+                    <!-- MaximumWidthRequest: auf Tablet/Desktop bleiben Kacheln und
+                         Zettel eine ruhige Mittelspalte statt fensterbreiter Baender -->
+                    <VerticalStackLayout Padding="16,18,16,4" Spacing="0" MaximumWidthRequest="840">
 
                         <Label Text="{Binding Loc.QuickStartTitle}"
                                Style="{StaticResource PageTitle}"
@@ -184,15 +186,14 @@
                                TextTransform="Uppercase"
                                Margin="2,26,0,12"
                                IsVisible="{Binding HasTickets}" />
-                    </VerticalStackLayout>
-                </CollectionView.Header>
 
-                <CollectionView.EmptyView>
-                    <Grid>
+                        <!-- Leer-/Fehler-/Ladezustand gehoert HIER in den Header statt in
+                             die EmptyView: die EmptyView legt sich ueber den gesamten
+                             CollectionView-Viewport und ueberlappte den Kopfbereich
+                             (Empty-Text mitten im Intro, auf allen Fenstergroessen). -->
                         <VerticalStackLayout Spacing="6"
                                              Padding="24,28"
                                              HorizontalOptions="Center"
-                                             VerticalOptions="Start"
                                              IsVisible="{Binding ShowEmptyState}">
                             <Label Text="{Binding Loc.EmptyTitle}" Style="{StaticResource EmptyStateTitle}" />
                             <Label Text="{Binding Loc.EmptyHint}" Style="{StaticResource EmptyStateHint}" MaximumWidthRequest="320" />
@@ -201,7 +202,6 @@
                         <VerticalStackLayout Spacing="12"
                                              Padding="24,28"
                                              HorizontalOptions="Center"
-                                             VerticalOptions="Start"
                                              IsVisible="{Binding HasLoadError}">
                             <Label Text="{Binding Loc.LoadFailedTitle}" Style="{StaticResource EmptyStateTitle}" />
                             <Button Text="{Binding Loc.Retry}"
@@ -213,15 +213,15 @@
                         <ActivityIndicator IsRunning="{Binding IsBusy}"
                                            IsVisible="{Binding IsBusy}"
                                            HorizontalOptions="Center"
-                                           VerticalOptions="Start"
                                            Margin="0,36,0,0" />
-                    </Grid>
-                </CollectionView.EmptyView>
+                    </VerticalStackLayout>
+                </CollectionView.Header>
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:FeedbackTicketListItem">
                         <!-- Anfrage als Zettel: Kategorie-Icon links, Status-Ampel unten -->
                         <Border Margin="16,0,16,12"
+                                MaximumWidthRequest="808"
                                 Padding="14,12"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
                                 Stroke="Transparent"

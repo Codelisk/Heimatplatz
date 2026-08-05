@@ -143,6 +143,54 @@ public class ThemeService(ILogger<ThemeService> logger) : IThemeService
                     ApplyNativeWindowTheme(nativeWindow);
             }
         }
+#elif WINDOWS
+        // WinUI zeichnet Titelleiste und native Controls nach dem RequestedTheme des
+        // Fenster-Roots - und das folgt ohne Sync dem SYSTEM-Theme, nicht dem
+        // UserAppTheme. Ergebnis: schwarze Titelleiste ueber der hellen App (bzw.
+        // umgekehrt). Deshalb das effektive App-Theme direkt auf den Root legen;
+        // die Markenfarben der Leiste kommen aus Platforms/Windows/App.xaml
+        // (WindowCaption*-ThemeDictionaries). Die Caption-Buttons (Min/Max/Schliessen)
+        // malt der AppWindow-TitleBar separat - dort ebenfalls nachziehen.
+        var dark = EffectiveTheme == AppTheme.Dark;
+        foreach (var mauiWindow in Application.Current?.Windows ?? [])
+        {
+            if (mauiWindow.Handler?.PlatformView is not Microsoft.UI.Xaml.Window nativeWindow)
+                continue;
+
+            if (nativeWindow.Content is Microsoft.UI.Xaml.FrameworkElement root)
+            {
+                root.RequestedTheme = Mode switch
+                {
+                    AppThemeMode.Light => Microsoft.UI.Xaml.ElementTheme.Light,
+                    AppThemeMode.Dark => Microsoft.UI.Xaml.ElementTheme.Dark,
+                    _ => Microsoft.UI.Xaml.ElementTheme.Default
+                };
+            }
+
+            if (nativeWindow.AppWindow?.TitleBar is { } titleBar)
+            {
+                var bar = dark
+                    ? global::Windows.UI.Color.FromArgb(255, 0x16, 0x10, 0x0D)
+                    : global::Windows.UI.Color.FromArgb(255, 0xF6, 0xEC, 0xD8);
+                var fg = dark
+                    ? global::Windows.UI.Color.FromArgb(255, 0xF3, 0xEA, 0xDF)
+                    : global::Windows.UI.Color.FromArgb(255, 0x21, 0x18, 0x16);
+                var hover = dark
+                    ? global::Windows.UI.Color.FromArgb(255, 0x2A, 0x21, 0x1C)
+                    : global::Windows.UI.Color.FromArgb(255, 0xEA, 0xDD, 0xC2);
+
+                titleBar.BackgroundColor = bar;
+                titleBar.InactiveBackgroundColor = bar;
+                titleBar.ForegroundColor = fg;
+                titleBar.InactiveForegroundColor = fg;
+                titleBar.ButtonBackgroundColor = bar;
+                titleBar.ButtonInactiveBackgroundColor = bar;
+                titleBar.ButtonForegroundColor = fg;
+                titleBar.ButtonInactiveForegroundColor = fg;
+                titleBar.ButtonHoverBackgroundColor = hover;
+                titleBar.ButtonHoverForegroundColor = fg;
+            }
+        }
 #endif
     }
 

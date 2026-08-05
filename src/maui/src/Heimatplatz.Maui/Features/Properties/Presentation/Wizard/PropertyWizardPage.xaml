@@ -41,8 +41,11 @@
             <!-- Bottom-Padding reserviert Platz fuer die Veroeffentlichen-Leiste -->
             <VerticalStackLayout Spacing="0" Padding="0,0,0,132">
 
-                <!-- Hero: Foto-Buehne wie die Detailansicht, nur editierbar -->
-                <Grid HeightRequest="300">
+                <!-- Hero: Foto-Buehne wie die Detailansicht, nur editierbar.
+                     MaximumWidthRequest haelt die Buehne auf Tablet/Desktop in der
+                     800er-Formular-Fluchtlinie statt fensterbreit (am Phone wirkungslos). -->
+                <Grid HeightRequest="300"
+                      MaximumWidthRequest="800">
                     <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceAlt}, Dark={StaticResource SurfaceAltDark}}"
                             StrokeThickness="0">
                         <Image Source="logo.png"

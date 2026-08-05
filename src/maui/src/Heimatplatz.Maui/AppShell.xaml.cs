@@ -30,6 +30,22 @@ public partial class AppShell : ShinyShell
         BindingContext = this;
         InitializeComponent();
 
+#if WINDOWS
+        // Die WinUI-Shell zeichnet ihre NavBar in die Titelzone des Fensters -
+        // ohne explizite Farbe bleibt dort ein schwarzer Systembalken ueber der
+        // Creme-App (Back-Pfeil weiss auf schwarz). Farben nur fuer Windows
+        // setzen: Android/iOS haben ihre eigene, bereits korrekte Leisten-Logik.
+        this.SetAppThemeColor(Shell.BackgroundColorProperty,
+            (Color)Application.Current!.Resources["Paper"],
+            (Color)Application.Current.Resources["OffBlack"]);
+        this.SetAppThemeColor(Shell.ForegroundColorProperty,
+            (Color)Application.Current.Resources["Gray900"],
+            (Color)Application.Current.Resources["White"]);
+        this.SetAppThemeColor(Shell.TitleColorProperty,
+            (Color)Application.Current.Resources["Gray900"],
+            (Color)Application.Current.Resources["White"]);
+#endif
+
         // Debug-Werkzeuge (API-Umschalter, Test-Anmeldungen) in Entwicklungs- UND
         // internen Test-Builds (Play-Test-Tracks, TestFlight) - in der Store-Version
         // fehlt der Eintrag und damit jeder Weg auf die Seite.
