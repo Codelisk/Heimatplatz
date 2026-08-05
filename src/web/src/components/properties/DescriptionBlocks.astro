@@ -1,13 +1,15 @@
 ---
-import { splitDescriptionBlocks } from "@/features/properties/description-blocks";
+import { splitDescriptionBlocks, type DescriptionBlock } from "@/features/properties/description-blocks";
 
 interface Props {
-  text: string;
+  text?: string;
+  /** Vorsegmentierte Bloecke (z.B. aus planDescriptionFold) statt Rohtext */
+  blocks?: DescriptionBlock[];
   class?: string;
 }
 
-const { text, class: className } = Astro.props;
-const blocks = splitDescriptionBlocks(text);
+const { text, blocks: presplit, class: className } = Astro.props;
+const blocks = presplit ?? splitDescriptionBlocks(text ?? "");
 ---
 
 <div class:list={["space-y-4", className]}>

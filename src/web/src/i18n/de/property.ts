@@ -30,6 +30,8 @@ export const property = {
   "detail.sectionDetails": "Details",
   "detail.sectionFeaturesHeading": "Ausstattung & Merkmale",
   "detail.sectionDescription": "Beschreibung",
+  "detail.descriptionUnfold": "Weiterlesen – ca. {minutes} Min. Lesezeit",
+  "detail.descriptionFold": "Zusammenfalten",
   "detail.sectionLocation": "Lage & Umgebung",
   "detail.locationApproxHint": "Ungefähre Lage – der genaue Standort wird zum Schutz der Anbieter nicht angezeigt.",
   "detail.locationApproxHintCourt": "Ungefähre Lage laut Edikt – Details zum Standort finden Sie in den Objektangaben.",

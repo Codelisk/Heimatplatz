@@ -9,7 +9,7 @@ import HeartIcon from "@tabler/icons/outline/heart.svg";
 import ShareIcon from "@tabler/icons/outline/share.svg";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ContactDock from "@/components/properties/ContactDock.astro";
-import DescriptionBlocks from "@/components/properties/DescriptionBlocks.astro";
+import FoldedDescription from "@/components/properties/FoldedDescription.astro";
 import ImageGallery from "@/components/properties/ImageGallery.astro";
 import PropertyLocationMap from "@/components/properties/PropertyLocationMap.astro";
 import { Button } from "@/components/starwind/button";
@@ -281,7 +281,7 @@ const encumbrances = isForeclosure ? getApiPropertyEncumbrances(property) : { it
         {description && (
           <section class="mt-8" aria-labelledby="api-description">
             <h2 id="api-description" class="text-sm font-bold uppercase text-muted-foreground">{t("detail.sectionDescription")}</h2>
-            <DescriptionBlocks text={description} class="mt-4 max-w-3xl text-base leading-7" />
+            <FoldedDescription text={description} class="mt-4 max-w-3xl text-base leading-7" />
           </section>
         )}
 

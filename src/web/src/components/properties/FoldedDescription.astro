@@ -1,0 +1,270 @@
+---
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import DescriptionBlocks from "@/components/properties/DescriptionBlocks.astro";
+import {
+  descriptionReadingMinutes,
+  planDescriptionFold,
+  splitDescriptionBlocks,
+} from "@/features/properties/description-blocks";
+import { t } from "@/i18n";
+
+/**
+ * Leporello-Falz fuer lange Beschreibungen.
+ *
+ * Vorbild ist das Leporello - die ziehharmonikagefaltete Papierbahn alter
+ * Souvenir-Postkartenhefte (benannt nach Leporellos entfaltbarem Register-
+ * Katalog in "Don Giovanni"). Lange Texte kommen "gefaltet" an: sichtbar ist
+ * nur der Vorspann, darunter liegt der Rest als angeschnittener Papierstapel.
+ * Der Stapel selbst ist die Affordance und der Aufklapp-Button; beim
+ * Entfalten klappen die verborgenen Abschnitte als Falz-Segmente nacheinander
+ * auf. Ohne JavaScript (und im Druck) ist der Text komplett ausgeklappt,
+ * fuer Suchmaschinen steht er immer vollstaendig im DOM.
+ */
+interface Props {
+  text: string;
+  class?: string;
+  /** Muss pro Seite eindeutig sein, wenn die Komponente mehrfach vorkommt */
+  id?: string;
+}
+
+const { text, class: className, id = "beschreibung-fortsetzung" } = Astro.props;
+const blocks = splitDescriptionBlocks(text);
+const { lead, rest } = planDescriptionFold(blocks);
+const folded = rest.length > 0;
+const unfoldLabel = t("detail.descriptionUnfold", { minutes: descriptionReadingMinutes(rest) });
+---
+
+{
+  !folded ? (
+    <DescriptionBlocks blocks={blocks} class={className} />
+  ) : (
+    <div class:list={["fold-root", className]} data-desc-fold>
+      <DescriptionBlocks blocks={lead} />
+
+      <div class="fold-rest" id={id} data-desc-fold-rest>
+        <div class="fold-rest-inner">
+          <div class="space-y-4 pt-4">
+            {rest.map((block, index) => (
+              <div class="fold-pleat" style={`--pleat: ${index}`}>
+                <DescriptionBlocks blocks={[block]} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="fold-stack"
+        aria-expanded="false"
+        aria-controls={id}
+        data-desc-fold-toggle
+      >
+        <span class="fold-cover">
+          <span data-desc-fold-label-more>{unfoldLabel}</span>
+          <span data-desc-fold-label-less hidden>{t("detail.descriptionFold")}</span>
+          <ChevronDownIcon class="fold-chevron size-4" aria-hidden="true" />
+        </span>
+        <span class="fold-strip fold-strip-1" aria-hidden="true"></span>
+        <span class="fold-strip fold-strip-2" aria-hidden="true"></span>
+      </button>
+    </div>
+  )
+}
+
+<style>
+  .fold-root {
+    scroll-margin-top: 5rem;
+  }
+
+  /* Ohne JS bleibt der Text ausgeklappt und der Stapel unsichtbar -
+     alles Falz-Verhalten haengt am data-desc-fold-ready des Scripts */
+  .fold-stack {
+    display: none;
+  }
+
+  [data-desc-fold-ready] .fold-stack {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .fold-stack:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* Oberster Falz des Stapels: traegt die Zeile im Stil einer Zeitungs-
+     Fortsetzungszeile ("Weiterlesen - noch 3 Abschnitte") */
+  .fold-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--card) 90%, white),
+      var(--card) 55%,
+      color-mix(in oklab, var(--card) 88%, black)
+    );
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .fold-stack:hover .fold-cover {
+    color: var(--foreground);
+    border-color: color-mix(in oklab, var(--foreground) 45%, var(--border));
+  }
+
+  .fold-chevron {
+    transition: transform 0.3s;
+  }
+
+  [data-desc-fold-open] .fold-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Die uebrigen Falze: schmaler werdende Papierkanten mit leichtem
+     Versatz - der sichtbare "Rest" des zusammengelegten Leporellos */
+  .fold-strip {
+    display: block;
+    height: 0.55rem;
+    border: 1px solid var(--border);
+    border-top-width: 0;
+    border-radius: 0 0 3px 3px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--card) 82%, black),
+      var(--card) 70%
+    );
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  }
+
+  .fold-strip-1 {
+    margin-inline: 4%;
+    transform: rotate(-0.25deg);
+  }
+
+  .fold-strip-2 {
+    margin-inline: 9%;
+    margin-top: -1px;
+    transform: rotate(0.3deg);
+  }
+
+  /* Aufgeklappt schrumpft der Stapel zur duennen Falzkante */
+  [data-desc-fold-open] .fold-strip {
+    display: none;
+  }
+
+  /* Rest-Container: grid-rows-Trick fuer die Hoehenanimation, visibility
+     nimmt den Inhalt waehrend des Zusammenfaltens erst nach der Animation
+     aus dem Zugriff (Screenreader/Tab-Reihenfolge) */
+  [data-desc-fold-ready] .fold-rest {
+    display: grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition:
+      grid-template-rows 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+      visibility 0s 0.5s;
+  }
+
+  [data-desc-fold-ready][data-desc-fold-open] .fold-rest {
+    grid-template-rows: 1fr;
+    visibility: visible;
+    transition:
+      grid-template-rows 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+      visibility 0s;
+  }
+
+  .fold-rest-inner {
+    min-height: 0;
+    overflow: clip;
+  }
+
+  /* Beim Entfalten klappen die Abschnitte wie Falz-Segmente nacheinander
+     aus der Knickkante nach unten auf */
+  @keyframes pleat-unfold {
+    from {
+      opacity: 0;
+      transform: perspective(900px) rotateX(-70deg);
+    }
+    60% {
+      opacity: 1;
+    }
+    to {
+      opacity: 1;
+      transform: perspective(900px) rotateX(0deg);
+    }
+  }
+
+  [data-desc-fold-open] .fold-pleat {
+    transform-origin: top center;
+    animation: pleat-unfold 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    animation-delay: min(calc(var(--pleat) * 80ms), 400ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-desc-fold-ready] .fold-rest,
+    [data-desc-fold-ready][data-desc-fold-open] .fold-rest {
+      transition: none;
+    }
+    [data-desc-fold-open] .fold-pleat {
+      animation: none;
+    }
+    .fold-chevron {
+      transition: none;
+    }
+  }
+
+  @media print {
+    [data-desc-fold-ready] .fold-rest {
+      display: block;
+      visibility: visible;
+    }
+    [data-desc-fold-ready] .fold-stack {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  for (const root of document.querySelectorAll("[data-desc-fold]")) {
+    root.setAttribute("data-desc-fold-ready", "");
+  }
+
+  document.addEventListener("click", (event) => {
+    const toggle = event.target instanceof Element ? event.target.closest("[data-desc-fold-toggle]") : null;
+    if (!(toggle instanceof HTMLButtonElement)) return;
+
+    const root = toggle.closest("[data-desc-fold]");
+    if (!(root instanceof HTMLElement)) return;
+
+    const open = !root.hasAttribute("data-desc-fold-open");
+    root.toggleAttribute("data-desc-fold-open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+    root.querySelector("[data-desc-fold-label-more]")?.toggleAttribute("hidden", open);
+    root.querySelector("[data-desc-fold-label-less]")?.toggleAttribute("hidden", !open);
+
+    // Beim Zusammenfalten den Anfang der Beschreibung wieder ins Bild holen,
+    // sonst landet der Blick irgendwo im nachfolgenden Seiteninhalt
+    if (!open && root.getBoundingClientRect().top < 0) {
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      root.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
+    }
+  });
+</script>
