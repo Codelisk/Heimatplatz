@@ -44,6 +44,12 @@ public class UserFilterPreferences : BaseEntity
     public bool IsZwangsversteigerungSelected { get; set; }
 
     /// <summary>
+    /// Ob Neubauprojekte (noch nicht fertig gebaute Haeuser) angezeigt werden
+    /// (standardmaessig aktiviert, abwaehlbar wie im Web/MAUI-Filter)
+    /// </summary>
+    public bool IsNeubauprojektSelected { get; set; } = true;
+
+    /// <summary>
     /// Whether private sellers are included in filter results
     /// </summary>
     public bool IsPrivateSelected { get; set; } = true;

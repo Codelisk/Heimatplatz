@@ -33,6 +33,8 @@ export type PropertySearchState = {
   /** Sort-Modus des UI-Selects (newest, price-asc, ...) */
   sort: string;
   page: number;
+  /** Neubauprojekte anzeigen (Default true); false blendet sie serverseitig aus */
+  newBuild?: boolean;
 };
 
 const SORT_MAP: Record<string, [string, boolean]> = {
@@ -123,6 +125,9 @@ export function buildPropertySearchQuery(state: PropertySearchState, ortSlugMap:
 
   const createdAfter = getCreatedAfter(state.age, Date.now());
   if (createdAfter) params.set("CreatedAfter", createdAfter);
+
+  // Nur die Abweichung vom Default mitschicken (Server: null/true = anzeigen)
+  if (state.newBuild === false) params.set("IncludeNewBuildProjects", "false");
 
   return params.toString();
 }

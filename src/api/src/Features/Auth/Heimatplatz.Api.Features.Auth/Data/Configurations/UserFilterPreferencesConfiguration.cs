@@ -36,6 +36,10 @@ public class UserFilterPreferencesConfiguration : IEntityTypeConfiguration<UserF
         builder.Property(x => x.IsZwangsversteigerungSelected)
             .HasDefaultValue(false);
 
+        // Default an (wie IsHausSelected): CLR-Initializer und DB-Default identisch
+        builder.Property(x => x.IsNeubauprojektSelected)
+            .HasDefaultValue(true);
+
         builder.Property(x => x.IsPrivateSelected)
             .HasDefaultValue(true);
 

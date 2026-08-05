@@ -76,6 +76,13 @@ Produktion: `deploy/hetzner/docker-compose.yml` setzt `IncomingRootPath`,
 - `SourceName` im Domain-Stil (`immobaer.at`) - das Web zeigt Inserate mit
   `SourceName != "Heimatplatz"` bereits als externe Quelle an.
 - System-User: dieselbe GUID wie der ZV-Sync (`OpenImmoImportConstants`).
+- **Neubauprojekt-Heuristik** (`Property.IsNewBuildProject`, nur Haeuser): OpenImmo
+  hat kein explizites "wird erst gebaut"-Feld. Als Neubauprojekt gilt:
+  `zustand_art` PROJEKTIERT/ROHBAU, ODER Baujahr >= aktuelles Jahr, ODER (kein
+  Baujahr UND ERSTBEZUG), ODER (kein Baujahr UND alter=NEUBAU UND Justimmo-Feld
+  `schluesselfertig`). `alter=NEUBAU` allein ist bewusst KEIN Signal - Immobaer
+  flaggt auch Bestand von 1994 so. Clients blenden solche Objekte ueber
+  `IncludeNewBuildProjects=false` aus (Liste + Karten-Pins).
 
 ## Abhaengigkeiten
 

@@ -19,7 +19,9 @@ public record SaveUserFilterPreferencesRequest(
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     List<Guid>? ExcludedSellerSourceIds,
-    int SelectedSort = 0
+    int SelectedSort = 0,
+    // Default true: aeltere Clients ohne das Feld blenden Neubauprojekte nicht aus
+    bool IsNeubauprojektSelected = true
 ) : IRequest<SaveUserFilterPreferencesResponse>;
 
 /// <summary>

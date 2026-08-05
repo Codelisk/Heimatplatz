@@ -46,6 +46,8 @@ const searchState: PropertySearchState = {
   sort: params.get("sort") ?? "newest",
   // URL-Parameter ist 1-basiert ("Seite 2" = ?page=2), intern/API-seitig 0-basiert
   page,
+  // "?neubau=0" blendet Neubauprojekte aus - identisch zum Client-Default (anzeigen)
+  newBuild: params.get("neubau") !== "0",
 };
 
 const searchQuery = buildPropertySearchQuery(searchState, ortSlugMap);

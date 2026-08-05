@@ -40,6 +40,11 @@ public record GetPropertiesRequest(
     // Filter: Volltextsuche (Titel, Beschreibung, Adresse, Gemeindename; case-insensitive)
     string? SearchText = null,
 
+    // Filter: Neubauprojekte (noch nicht fertig gebaute Haeuser). Nullable statt
+    // bool-Default, damit generierte Clients den Parameter nur bei bewusstem
+    // Ausblenden mitschicken. Null/true = anzeigen, false = ausblenden.
+    bool? IncludeNewBuildProjects = null,
+
     // Sorting: Field name (CreatedAt, Price, PlotArea, PostalCode)
     string? SortBy = null,
 

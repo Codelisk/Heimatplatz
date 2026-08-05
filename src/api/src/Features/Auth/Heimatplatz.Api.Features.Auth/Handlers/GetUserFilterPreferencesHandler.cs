@@ -45,7 +45,8 @@ public class GetUserFilterPreferencesHandler(
                 IsPrivateSelected: true,
                 IsBrokerSelected: true,
                 ExcludedSellerSourceIds: [],
-                SelectedSort: 0
+                SelectedSort: 0,
+                IsNeubauprojektSelected: true
             );
         }
 
@@ -62,7 +63,8 @@ public class GetUserFilterPreferencesHandler(
             IsPrivateSelected: preferences.IsPrivateSelected,
             IsBrokerSelected: preferences.IsBrokerSelected,
             ExcludedSellerSourceIds: excludedSellerSourceIds,
-            SelectedSort: preferences.SelectedSort
+            SelectedSort: preferences.SelectedSort,
+            IsNeubauprojektSelected: preferences.IsNeubauprojektSelected
         );
     }
 

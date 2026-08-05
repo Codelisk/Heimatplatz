@@ -175,6 +175,30 @@
                                 </Button>
                             </FlexLayout>
                         </VerticalStackLayout>
+
+                        <!-- Neubauprojekte: eigener Toggle, KEIN Objekttyp (ein Neubau-
+                             projekt IST ein Haus) - abgewaehlt blendet sie aus -->
+                        <BoxView Style="{StaticResource Divider}" />
+                        <Label Text="{Binding Loc.NeubauSectionTitle}"
+                               Style="{StaticResource SectionHeader}"
+                               AutomationId="FilterSettings_NeubauCard" />
+                        <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                            <Button Text="{Binding Loc.NeubauChip}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Margin="0,0,8,8"
+                                    Command="{Binding ToggleNeubauprojektCommand}"
+                                    AutomationId="FilterSettings_Chip_Neubauprojekt">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsNeubauprojektSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </FlexLayout>
+                        <Label Text="{Binding Loc.NeubauHint}"
+                               Style="{StaticResource Caption}" />
                         </VerticalStackLayout>
 
                         <VerticalStackLayout x:Name="AgeLocationColumn"

@@ -75,6 +75,11 @@ const ortRegions = await fetchOrtRegions();
         <button type="button" class="filter-chip" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
         <button type="button" class="filter-chip" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
       </div>
+      {/* Neubauprojekte-Toggle (kein Objekttyp): Verdrahtung teilt sich der Chip
+          mit der Desktop-Suchleiste ueber data-filter-newbuild */}
+      <div class="filter-chip-group" role="group" aria-label={t("filter.newBuildGroup")}>
+        <button type="button" class="filter-chip" data-filter-newbuild aria-pressed="true" title={t("filter.newBuildHint")}>{t("filter.newBuild")}</button>
+      </div>
     </div>
 
     <button

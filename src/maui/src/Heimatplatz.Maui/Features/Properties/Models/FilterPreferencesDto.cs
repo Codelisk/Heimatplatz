@@ -15,7 +15,10 @@ public record FilterPreferencesDto(
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     List<Guid> ExcludedSellerSourceIds,
-    SortOption SelectedSort = SortOption.Neueste
+    SortOption SelectedSort = SortOption.Neueste,
+    // Default true: aeltere lokal persistierte JSONs ohne das Feld zeigen
+    // Neubauprojekte weiterhin an (STJ nutzt den Ctor-Default)
+    bool IsNeubauprojektSelected = true
 )
 {
     /// <summary>
@@ -31,6 +34,7 @@ public record FilterPreferencesDto(
         IsPrivateSelected: true,
         IsBrokerSelected: true,
         ExcludedSellerSourceIds: [],
-        SelectedSort: SortOption.Neueste
+        SelectedSort: SortOption.Neueste,
+        IsNeubauprojektSelected: true
     );
 }

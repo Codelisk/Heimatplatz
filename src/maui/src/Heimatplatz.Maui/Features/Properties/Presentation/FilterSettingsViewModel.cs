@@ -59,6 +59,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         IsHausSelected = true;
         IsGrundstueckSelected = true;
         IsZwangsversteigerungSelected = false;
+        IsNeubauprojektSelected = true;
         IsPrivateSelected = true;
         IsBrokerSelected = true;
         SelectedAgeFilterIndex = 0;
@@ -93,6 +94,10 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSellerFilterVisible))]
     public partial bool IsZwangsversteigerungSelected { get; set; }
+
+    /// <summary>Neubauprojekte (noch nicht fertig gebaute Haeuser) anzeigen - kein Objekttyp, eigener Toggle</summary>
+    [ObservableProperty]
+    public partial bool IsNeubauprojektSelected { get; set; }
 
     [ObservableProperty]
     public partial bool IsPrivateSelected { get; set; }
@@ -174,6 +179,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
             IsHausSelected = state.IsHausSelected;
             IsGrundstueckSelected = state.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = state.IsZwangsversteigerungSelected;
+            IsNeubauprojektSelected = state.IsNeubauprojektSelected;
             IsPrivateSelected = state.IsPrivateSelected;
             IsBrokerSelected = state.IsBrokerSelected;
             _selectedAgeFilter = state.SelectedAgeFilter;
@@ -218,6 +224,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
                 IsHausSelected = preferences.IsHausSelected;
                 IsGrundstueckSelected = preferences.IsGrundstueckSelected;
                 IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
+                IsNeubauprojektSelected = preferences.IsNeubauprojektSelected;
                 IsPrivateSelected = preferences.IsPrivateSelected;
                 IsBrokerSelected = preferences.IsBrokerSelected;
                 _selectedAgeFilter = preferences.SelectedAgeFilter;
@@ -285,6 +292,15 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         }
 
         ResetSellerFilterIfOnlyForeclosureSelected();
+        PublishFilters();
+    }
+
+    partial void OnIsNeubauprojektSelectedChanged(bool value)
+    {
+        // Kein Mindestens-ein-Typ-Guard: der Toggle ist unabhaengig von der Typauswahl
+        if (_isSyncing)
+            return;
+
         PublishFilters();
     }
 
@@ -370,7 +386,8 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
                 IsPrivateSelected,
                 IsBrokerSelected,
                 _excludedSellerSourceIds,
-                _selectedSort);
+                _selectedSort,
+                IsNeubauprojektSelected);
         }
         finally
         {
@@ -445,7 +462,8 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
                 IsPrivateSelected,
                 IsBrokerSelected,
                 _excludedSellerSourceIds,
-                _selectedSort);
+                _selectedSort,
+                IsNeubauprojektSelected);
             await _filterPreferencesService.SavePreferencesAsync(preferences, token);
         }
         catch (OperationCanceledException)
@@ -465,6 +483,8 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         if (IsGrundstueckSelected) types.Add(Loc.TypeLand);
         if (IsZwangsversteigerungSelected) types.Add(Loc.TypeForeclosure);
         parts.Add(types.Count == 3 ? Loc.AllTypes : string.Join(", ", types));
+        if (!IsNeubauprojektSelected)
+            parts.Add(Loc.SummaryOhneNeubau);
 
         if (IsSellerFilterVisible && IsPrivateSelected != IsBrokerSelected)
             parts.Add(IsPrivateSelected ? Loc.SellerPrivate : Loc.SellerBroker);
@@ -488,6 +508,9 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
     private void ToggleZwangsversteigerung() => IsZwangsversteigerungSelected = !IsZwangsversteigerungSelected;
 
     [RelayCommand]
+    private void ToggleNeubauprojekt() => IsNeubauprojektSelected = !IsNeubauprojektSelected;
+
+    [RelayCommand]
     private void TogglePrivate() => IsPrivateSelected = !IsPrivateSelected;
 
     [RelayCommand]
@@ -503,6 +526,7 @@ public partial class FilterSettingsViewModel : ObservableObject, IPageLifecycleA
         IsHausSelected = true;
         IsGrundstueckSelected = true;
         IsZwangsversteigerungSelected = false;
+        IsNeubauprojektSelected = true;
         IsPrivateSelected = true;
         IsBrokerSelected = true;
         _selectedAgeFilter = AgeFilter.Alle;

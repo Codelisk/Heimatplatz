@@ -40,7 +40,8 @@ public static class PropertyQueryFilters
 
     /// <summary>
     /// Wendet alle gemeinsamen Suchfilter an (Typ, Anbieter, Gemeinden, Alter,
-    /// Preis, Flaeche, Zimmer, Volltext, ausgeschlossene Anbieter-Quellen).
+    /// Preis, Flaeche, Zimmer, Volltext, ausgeschlossene Anbieter-Quellen,
+    /// Neubauprojekte).
     /// </summary>
     public static IQueryable<Property> ApplyCommonFilters(
         IQueryable<Property> query,
@@ -54,10 +55,15 @@ public static class PropertyQueryFilters
         int? areaMax,
         int? roomsMin,
         string? searchText,
-        List<Guid> excludedSellerSourceIds)
+        List<Guid> excludedSellerSourceIds,
+        bool? includeNewBuildProjects)
     {
         if (propertyTypes.Count > 0)
             query = query.Where(p => propertyTypes.Contains(p.Type));
+
+        // Neubauprojekte nur bei explizitem Opt-out ausblenden (null = anzeigen)
+        if (includeNewBuildProjects == false)
+            query = query.Where(p => !p.IsNewBuildProject);
 
         if (sellerTypes.Count > 0)
             query = query.Where(p => sellerTypes.Contains(p.SellerType));

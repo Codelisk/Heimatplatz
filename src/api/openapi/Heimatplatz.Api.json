@@ -1132,6 +1132,13 @@
             }
           },
           {
+            "name": "IncludeNewBuildProjects",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "SortBy",
             "in": "query",
             "schema": {
@@ -1447,6 +1454,13 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "IncludeNewBuildProjects",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           },
           {
@@ -7688,6 +7702,10 @@
               "string"
             ],
             "format": "int32"
+          },
+          "IsNeubauprojektSelected": {
+            "type": "boolean",
+            "default": true
           }
         }
       },
@@ -11162,6 +11180,10 @@
             ],
             "format": "int32",
             "default": 0
+          },
+          "IsNeubauprojektSelected": {
+            "type": "boolean",
+            "default": true
           }
         }
       },

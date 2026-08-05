@@ -61,6 +61,10 @@ internal static class PropertyFilterRequestBuilder
         if (state.ExcludedSellerSourceIds.Count > 0)
             request.ExcludedSellerSourceIdsJson = JsonSerializer.Serialize(state.ExcludedSellerSourceIds);
 
+        // Nur die Abweichung vom Default mitschicken (Server: null/true = anzeigen)
+        if (!state.IsNeubauprojektSelected)
+            request.IncludeNewBuildProjects = false;
+
         IReadOnlyCollection<string> selectedOrte = selectedOrteOverride ?? state.SelectedOrte;
         if (selectedOrte.Count > 0)
         {
@@ -122,6 +126,9 @@ internal static class PropertyFilterRequestBuilder
 
         if (state.ExcludedSellerSourceIds.Count > 0)
             request.ExcludedSellerSourceIdsJson = JsonSerializer.Serialize(state.ExcludedSellerSourceIds);
+
+        if (!state.IsNeubauprojektSelected)
+            request.IncludeNewBuildProjects = false;
 
         if (state.SelectedOrte.Count > 0)
         {

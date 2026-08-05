@@ -49,6 +49,7 @@ const searchState: PropertySearchState = {
   age: params.get("age") ?? "",
   sort: "newest",
   page: 0,
+  newBuild: params.get("neubau") !== "0",
 };
 
 const mapQuery = buildPropertySearchQuery(searchState, ortSlugMap);

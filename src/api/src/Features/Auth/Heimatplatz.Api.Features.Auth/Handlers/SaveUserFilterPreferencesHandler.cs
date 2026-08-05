@@ -49,6 +49,7 @@ public class SaveUserFilterPreferencesHandler(
                 IsHausSelected = request.IsHausSelected,
                 IsGrundstueckSelected = request.IsGrundstueckSelected,
                 IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected,
+                IsNeubauprojektSelected = request.IsNeubauprojektSelected,
                 IsPrivateSelected = request.IsPrivateSelected,
                 IsBrokerSelected = request.IsBrokerSelected,
                 ExcludedSellerSourceIdsJson = excludedSourcesJson,
@@ -66,6 +67,7 @@ public class SaveUserFilterPreferencesHandler(
             preferences.IsHausSelected = request.IsHausSelected;
             preferences.IsGrundstueckSelected = request.IsGrundstueckSelected;
             preferences.IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected;
+            preferences.IsNeubauprojektSelected = request.IsNeubauprojektSelected;
             preferences.IsPrivateSelected = request.IsPrivateSelected;
             preferences.IsBrokerSelected = request.IsBrokerSelected;
             preferences.ExcludedSellerSourceIdsJson = excludedSourcesJson;

@@ -31,7 +31,8 @@ public class FilterStateService : IFilterStateService
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         List<Guid>? excludedSellerSourceIds = null,
-        SortOption selectedSort = SortOption.Neueste)
+        SortOption selectedSort = SortOption.Neueste,
+        bool isNeubauprojektSelected = true)
     {
         HasSessionState = true;
         _currentState = _currentState with
@@ -44,7 +45,8 @@ public class FilterStateService : IFilterStateService
             IsPrivateSelected = isPrivateSelected,
             IsBrokerSelected = isBrokerSelected,
             ExcludedSellerSourceIds = excludedSellerSourceIds ?? [],
-            SelectedSort = selectedSort
+            SelectedSort = selectedSort,
+            IsNeubauprojektSelected = isNeubauprojektSelected
         };
 
         FilterStateChanged?.Invoke(this, EventArgs.Empty);

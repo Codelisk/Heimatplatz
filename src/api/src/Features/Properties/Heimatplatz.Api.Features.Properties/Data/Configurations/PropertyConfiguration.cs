@@ -87,6 +87,12 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .IsRequired()
             .HasDefaultValue(false);
 
+        // Neubauprojekt-Flag: DB-Default muss dem CLR-Default (false) entsprechen
+        // (bool-Sentinel-Falle, vgl. UserFilterPreferencesConfiguration)
+        builder.Property(p => p.IsNewBuildProject)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         // Indizes fuer haeufige Abfragen
         builder.HasIndex(p => p.Type);
         builder.HasIndex(p => p.MunicipalityId);

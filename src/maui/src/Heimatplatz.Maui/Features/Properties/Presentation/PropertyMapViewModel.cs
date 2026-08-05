@@ -286,6 +286,7 @@ public partial class PropertyMapViewModel(
         state.IsHausSelected,
         state.IsGrundstueckSelected,
         state.IsZwangsversteigerungSelected,
+        state.IsNeubauprojektSelected,
         state.IsPrivateSelected,
         state.IsBrokerSelected,
         state.SelectedAgeFilter,

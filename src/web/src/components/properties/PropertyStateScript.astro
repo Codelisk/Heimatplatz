@@ -1082,6 +1082,7 @@
       IsHausSelected: hasCheckbox(formData, "house"),
       IsGrundstueckSelected: hasCheckbox(formData, "land"),
       IsZwangsversteigerungSelected: hasCheckbox(formData, "foreclosure"),
+      IsNeubauprojektSelected: hasCheckbox(formData, "newbuild"),
       IsPrivateSelected: hasCheckbox(formData, "private"),
       IsBrokerSelected: hasCheckbox(formData, "broker"),
       ExcludedSellerSourceIds: [],
@@ -1203,6 +1204,7 @@
     setCheckbox(form, "house", preferences.IsHausSelected as boolean);
     setCheckbox(form, "land", preferences.IsGrundstueckSelected as boolean);
     setCheckbox(form, "foreclosure", preferences.IsZwangsversteigerungSelected as boolean);
+    setCheckbox(form, "newbuild", preferences.IsNeubauprojektSelected as boolean);
     setCheckbox(form, "private", preferences.IsPrivateSelected as boolean);
     setCheckbox(form, "broker", preferences.IsBrokerSelected as boolean);
     const age = form.querySelector<HTMLSelectElement>("[name='ageFilter']");

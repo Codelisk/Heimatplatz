@@ -223,6 +223,7 @@ public class OpenImmoParserTests
         haus.Bathrooms.Should().Be(2);
         haus.Floors.Should().Be(2);
         haus.YearBuilt.Should().Be(1998);
+        haus.IsNewBuildProject.Should().BeFalse("Bestandshaus mit vergangenem Baujahr");
         haus.Condition.Should().Be(PropertyCondition.Good);
         haus.HasBasement.Should().BeTrue();
         haus.HasGarage.Should().BeTrue();
@@ -438,5 +439,95 @@ public class OpenImmoParserTests
         var act = () => Parse("<openimmo><anbieter>");
 
         act.Should().Throw<XmlException>();
+    }
+
+    // === Neubauprojekt-Heuristik ===
+
+    /// <summary>Minimal-Haus mit variablen zustand_angaben/verwaltung_objekt-Bloecken.</summary>
+    private static string NeubauFixture(string zustandAngaben, string verwaltungObjekt = "", string objektart = "<haus/>")
+        => $"""
+            <openimmo>
+              <uebertragung umfang="VOLL"/>
+              <anbieter>
+                <immobilie>
+                  <objektkategorie>
+                    <vermarktungsart KAUF="1"/>
+                    <objektart>{objektart}</objektart>
+                  </objektkategorie>
+                  <geo><plz>4600</plz><ort>Wels</ort></geo>
+                  <preise><kaufpreis>450000</kaufpreis></preise>
+                  <zustand_angaben>{zustandAngaben}</zustand_angaben>
+                  <verwaltung_objekt>{verwaltungObjekt}</verwaltung_objekt>
+                  <verwaltung_techn><openimmo_obid>NB-1</openimmo_obid></verwaltung_techn>
+                </immobilie>
+              </anbieter>
+            </openimmo>
+            """;
+
+    [Test]
+    public void Parse_ErstbezugOhneBaujahr_IstNeubauprojekt()
+    {
+        var listing = Parse(NeubauFixture("""<zustand zustand_art="ERSTBEZUG"/>""")).Listings.Single();
+
+        listing.IsNewBuildProject.Should().BeTrue("Erstbezug ohne Baujahr = Projekt mit offener Fertigstellung");
+    }
+
+    [Test]
+    public void Parse_BaujahrInZukunft_IstNeubauprojekt()
+    {
+        var nextYear = DateTime.UtcNow.Year + 1;
+        var listing = Parse(NeubauFixture($"<baujahr>{nextYear}</baujahr>")).Listings.Single();
+
+        listing.IsNewBuildProject.Should().BeTrue("Baujahr in der Zukunft = wird erst gebaut");
+    }
+
+    [Test]
+    public void Parse_ErstbezugMitVergangenemBaujahr_IstKeinNeubauprojekt()
+    {
+        var listing = Parse(NeubauFixture(
+            """<baujahr>2013</baujahr><zustand zustand_art="ERSTBEZUG"/>""")).Listings.Single();
+
+        listing.IsNewBuildProject.Should().BeFalse(
+            "fertiges Haus mit vergangenem Baujahr, auch wenn der Makler ERSTBEZUG setzt");
+    }
+
+    [Test]
+    public void Parse_Projektiert_IstNeubauprojektTrotzVergangenemBaujahr()
+    {
+        var listing = Parse(NeubauFixture(
+            """<baujahr>2020</baujahr><zustand zustand_art="PROJEKTIERT"/>""")).Listings.Single();
+
+        listing.IsNewBuildProject.Should().BeTrue("PROJEKTIERT/ROHBAU schlagen das Baujahr");
+    }
+
+    [Test]
+    public void Parse_NeubauSchluesselfertigOhneBaujahr_IstNeubauprojekt()
+    {
+        var listing = Parse(NeubauFixture(
+            """<alter alter_attr="NEUBAU"/>""",
+            """<user_defined_simplefield feldname="schluesselfertig">1</user_defined_simplefield>"""))
+            .Listings.Single();
+
+        listing.IsNewBuildProject.Should().BeTrue(
+            "Justimmo-Bautraegerhaus ohne Baujahr und ohne zustand (Kallham-Fall im Immobaer-Feed)");
+    }
+
+    [Test]
+    public void Parse_NeubauOhneSchluesselfertig_IstKeinNeubauprojekt()
+    {
+        var listing = Parse(NeubauFixture("""<alter alter_attr="NEUBAU"/>""")).Listings.Single();
+
+        listing.IsNewBuildProject.Should().BeFalse(
+            "alter=NEUBAU allein ist unzuverlaessig (Immobaer flaggt auch Bestand so)");
+    }
+
+    [Test]
+    public void Parse_GrundstueckMitErstbezug_IstKeinNeubauprojekt()
+    {
+        var listing = Parse(NeubauFixture(
+            """<zustand zustand_art="ERSTBEZUG"/>""",
+            objektart: "<grundstueck/>")).Listings.Single();
+
+        listing.IsNewBuildProject.Should().BeFalse("Heuristik gilt nur fuer Haeuser");
     }
 }

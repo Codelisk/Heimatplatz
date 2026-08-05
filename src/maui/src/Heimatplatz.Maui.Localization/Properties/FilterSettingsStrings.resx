@@ -33,6 +33,18 @@
   <data name="SellerSectionTitle" xml:space="preserve">
     <value>ANBIETER</value>
   </data>
+  <data name="NeubauSectionTitle" xml:space="preserve">
+    <value>NEUBAUPROJEKTE</value>
+  </data>
+  <data name="NeubauChip" xml:space="preserve">
+    <value>Neubauprojekte</value>
+  </data>
+  <data name="NeubauHint" xml:space="preserve">
+    <value>Häuser, die erst geplant oder noch in Bau sind. Abwählen blendet sie aus.</value>
+  </data>
+  <data name="SummaryOhneNeubau" xml:space="preserve">
+    <value>ohne Neubauprojekte</value>
+  </data>
   <data name="SellerPrivate" xml:space="preserve">
     <value>Privat</value>
   </data>

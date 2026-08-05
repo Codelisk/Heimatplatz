@@ -54,7 +54,8 @@ public class GetPropertyMapPinsHandler(
             request.AreaMax,
             request.RoomsMin,
             request.SearchText,
-            request.GetExcludedSellerSourceIds());
+            request.GetExcludedSellerSourceIds(),
+            request.IncludeNewBuildProjects);
 
         var total = await query.CountAsync(cancellationToken);
 

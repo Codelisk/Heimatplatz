@@ -514,6 +514,26 @@
                     </Button>
                 </FlexLayout>
 
+                <!-- Neubauprojekte: eigener Toggle, KEIN Objekttyp - abgewaehlt blendet sie aus -->
+                <Label Text="{Binding Loc.NeubauSectionTitle}" Style="{StaticResource SectionHeader}" />
+                <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                    <Button Text="{Binding Loc.NeubauChip}"
+                            Style="{StaticResource FilterChipStyle}"
+                            Margin="0,0,8,8"
+                            Command="{Binding ToggleNeubauprojektCommand}"
+                            AutomationId="Home_TypSheet_Neubauprojekt">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding IsNeubauprojektSelected}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                <Setter Property="BorderColor" Value="Transparent" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </FlexLayout>
+                <Label Text="{Binding Loc.NeubauSheetHint}"
+                       Style="{StaticResource Caption}" />
+
                 <Label Text="{Binding Loc.TypeSheetHint}"
                        Style="{StaticResource Caption}" />
 

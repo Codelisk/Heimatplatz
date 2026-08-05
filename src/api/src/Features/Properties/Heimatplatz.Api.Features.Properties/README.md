@@ -47,7 +47,10 @@ Hauptprojekt fuer das Properties (Immobilien) Feature.
   Favoriten und Blockierungen eines Benutzers (via `ExecuteDelete`, journaliert Tombstones manuell).
   Registriert in `AddPropertiesFeature()`.
 - `PropertyQueryFilters` - gemeinsame Filterlogik von Listen-Suche und Kartenansicht
-  (Typ/Anbieter/Gemeinden/Alter/Preis/Flaeche/Zimmer/Volltext/Blockiert-Ausschluss).
+  (Typ/Anbieter/Gemeinden/Alter/Preis/Flaeche/Zimmer/Volltext/Blockiert-Ausschluss/
+  Neubauprojekte). `IncludeNewBuildProjects=false` blendet Objekte mit
+  `Property.IsNewBuildProject` aus (Flag setzt der OpenImmo-Import heuristisch,
+  siehe OpenImmoImport-README); null/true = anzeigen.
 - `IPropertyGeocoder` / `NominatimPropertyGeocoder` - Adresse -> WGS84 (`Property.Latitude/
   Longitude/IsLocationExact`). Opt-in ueber `Geocoding:Enabled` (ohne Konfiguration keine
   externen Requests - Tests/CI bleiben offline), prozessweit auf 1 Request/Sekunde gedrosselt

@@ -339,6 +339,7 @@ public class OpenImmoPropertySyncService(
             PlotAreaSquareMeters = listing.PlotAreaSquareMeters,
             Rooms = listing.Rooms,
             YearBuilt = listing.YearBuilt,
+            IsNewBuildProject = listing.IsNewBuildProject,
             Type = listing.Type,
             SellerType = SellerType.Broker,
             SellerName = feed.SellerName,
@@ -381,6 +382,7 @@ public class OpenImmoPropertySyncService(
         property.PlotAreaSquareMeters = listing.PlotAreaSquareMeters;
         property.Rooms = listing.Rooms;
         property.YearBuilt = listing.YearBuilt;
+        property.IsNewBuildProject = listing.IsNewBuildProject;
         property.Type = listing.Type;
         property.SellerType = SellerType.Broker;
         property.SellerName = feed.SellerName;

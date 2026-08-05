@@ -84,7 +84,8 @@ public class FilterPreferencesService : IFilterPreferencesService
                 IsPrivateSelected: result.IsPrivateSelected,
                 IsBrokerSelected: result.IsBrokerSelected,
                 ExcludedSellerSourceIds: result.ExcludedSellerSourceIds,
-                SelectedSort: (SortOption)result.SelectedSort
+                SelectedSort: (SortOption)result.SelectedSort,
+                IsNeubauprojektSelected: result.IsNeubauprojektSelected
             );
 
             WriteStored(LocalKey, preferences);
@@ -172,7 +173,8 @@ public class FilterPreferencesService : IFilterPreferencesService
                     IsPrivateSelected = preferences.IsPrivateSelected,
                     IsBrokerSelected = preferences.IsBrokerSelected,
                     ExcludedSellerSourceIds = preferences.ExcludedSellerSourceIds,
-                    SelectedSort = (int)preferences.SelectedSort
+                    SelectedSort = (int)preferences.SelectedSort,
+                    IsNeubauprojektSelected = preferences.IsNeubauprojektSelected
                 }
             }, ct);
 

@@ -24,5 +24,6 @@ public record GetUserFilterPreferencesResponse(
     bool IsPrivateSelected,
     bool IsBrokerSelected,
     List<Guid> ExcludedSellerSourceIds,
-    int SelectedSort
+    int SelectedSort,
+    bool IsNeubauprojektSelected = true
 );

@@ -248,6 +248,27 @@ public class OpenImmoPropertySyncServiceTests
     }
 
     [Test]
+    public async Task Sync_Neubauprojekt_FlagWirdGespeichertUndBeimUpdateZurueckgesetzt()
+    {
+        var neubau = CreateHausListing() with { IsNewBuildProject = true, YearBuilt = null };
+        await CreateService().SyncAsync(_feed, FullSnapshot(neubau), zip: null);
+        _dbContext.ChangeTracker.Clear();
+
+        var created = await _dbContext.Set<Property>().AsNoTracking().SingleAsync(p => p.SourceId == "OBID-001");
+        created.IsNewBuildProject.Should().BeTrue();
+
+        // Haus fertiggestellt: Feed liefert das Objekt spaeter ohne Neubau-Merkmale
+        var fertig = neubau with { IsNewBuildProject = false, YearBuilt = 2026 };
+        var result = await CreateService().SyncAsync(_feed, FullSnapshot(fertig), zip: null);
+
+        result.Updated.Should().Be(1);
+
+        _dbContext.ChangeTracker.Clear();
+        var property = await _dbContext.Set<Property>().AsNoTracking().SingleAsync(p => p.SourceId == "OBID-001");
+        property.IsNewBuildProject.Should().BeFalse();
+    }
+
+    [Test]
     public async Task Sync_VerschwundenesObjekt_WirdGeloeschtInklBilder()
     {
         await CreateService().SyncAsync(

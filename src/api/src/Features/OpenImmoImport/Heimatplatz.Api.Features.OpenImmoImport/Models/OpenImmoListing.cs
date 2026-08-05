@@ -72,6 +72,12 @@ public record OpenImmoListing
 
     public int? YearBuilt { get; init; }
 
+    /// <summary>
+    /// Neubauprojekt (Haus noch nicht fertig gebaut) - heuristisch aus zustand_art,
+    /// Baujahr, alter@alter_attr und schluesselfertig abgeleitet (OpenImmoParser).
+    /// </summary>
+    public bool IsNewBuildProject { get; init; }
+
     public PropertyCondition? Condition { get; init; }
 
     /// <summary>Ausstattungs-Labels fuer Property.Features ("Keller", "Garage", ...).</summary>

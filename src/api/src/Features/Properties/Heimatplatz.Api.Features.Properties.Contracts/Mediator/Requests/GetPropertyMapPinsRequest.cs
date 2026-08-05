@@ -38,6 +38,9 @@ public record GetPropertyMapPinsRequest(
     // Filter: Volltextsuche (Titel, Beschreibung, Adresse, Gemeindename)
     string? SearchText = null,
 
+    // Filter: Neubauprojekte (null/true = anzeigen, false = ausblenden; wie GetPropertiesRequest)
+    bool? IncludeNewBuildProjects = null,
+
     // Filter: einzelnes Inserat (Mini-Karte der Detailseite). Liefert dessen Pin
     // inklusive serverseitigem Privacy-Jitter - exakte Koordinaten verlassen den
     // Server fuer ungenaue Lagen nie, egal welcher Client fragt.

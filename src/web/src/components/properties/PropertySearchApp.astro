@@ -79,7 +79,8 @@ const ortRegions = await fetchOrtRegions();
         || (!params.has("seller") && (prefs.IsPrivateSelected === false) !== (prefs.IsBrokerSelected === false))
         || (!params.has("age") && Number(prefs.SelectedAgeFilter ?? 0) > 0)
         || (!params.has("region") && Array.isArray(prefs.SelectedOrtes) && prefs.SelectedOrtes.some((ort) => String(ort).trim()))
-        || (!params.has("sort") && Number(prefs.SelectedSort ?? 0) > 0);
+        || (!params.has("sort") && Number(prefs.SelectedSort ?? 0) > 0)
+        || (!params.has("neubau") && prefs.IsNeubauprojektSelected === false);
       if (!differs) return;
       document.documentElement.setAttribute("data-search-pending", "");
       // Failsafe: laeuft das Such-Script nie (JS-Fehler, Bundle blockiert),
@@ -119,6 +120,11 @@ const ortRegions = await fetchOrtRegions();
       <div class="filter-chip-group" role="group" aria-label={t("search.settingsSellerTitle")} data-seller-filter-group>
         <button type="button" class="filter-chip" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
         <button type="button" class="filter-chip" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
+      </div>
+      {/* Neubauprojekte (noch nicht fertig gebaute Haeuser): eigener Ein-Chip-Toggle,
+          KEIN Objekttyp (ein Neubauprojekt IST ein Haus) - gedrueckt = anzeigen (Default) */}
+      <div class="filter-chip-group" role="group" aria-label={t("filter.newBuildGroup")}>
+        <button type="button" class="filter-chip" data-filter-newbuild aria-pressed="true" title={t("filter.newBuildHint")}>{t("filter.newBuild")}</button>
       </div>
     </form>
     <div class="flex flex-1 items-center justify-between gap-3 lg:flex-none lg:justify-end">
@@ -287,6 +293,7 @@ const ortRegions = await fetchOrtRegions();
   const ageControls = Array.from(document.querySelectorAll<HTMLSelectElement>("[data-filter-age]"));
   const typeButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-type]"));
   const sellerButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-seller-chip]"));
+  const newBuildButtons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-filter-newbuild]"));
   const sellerFilterGroups = Array.from(document.querySelectorAll<HTMLElement>("[data-seller-filter-group]"));
   const sort = document.querySelector<HTMLSelectElement>("[data-filter-sort]");
   const pagination = document.querySelector<HTMLElement>("[data-pagination]");
@@ -345,6 +352,7 @@ const ortRegions = await fetchOrtRegions();
     IsHausSelected?: boolean;
     IsGrundstueckSelected?: boolean;
     IsZwangsversteigerungSelected?: boolean;
+    IsNeubauprojektSelected?: boolean;
     IsPrivateSelected?: boolean;
     IsBrokerSelected?: boolean;
     SelectedOrtes?: string[];
@@ -465,6 +473,13 @@ const ortRegions = await fetchOrtRegions();
   };
   const selectedTypes = new Set(initial.types);
   const selectedSellers = new Set(initial.sellers);
+  // Neubauprojekte: URL gewinnt ("neubau=0" = ausblenden), sonst gespeicherte
+  // Praeferenz (nur explizites false blendet aus - fehlender Wert = Standard an)
+  let newBuildSelected = (() => {
+    const fromUrl = params.get("neubau");
+    if (fromUrl !== null) return fromUrl !== "0";
+    return storedPreferences?.IsNeubauprojektSelected !== false;
+  })();
   let filtersTouched = false;
 
   // Multi-Select Orte: aus URL (?region=linz,steyr), Preset oder gespeicherten Praeferenzen
@@ -754,6 +769,8 @@ const ortRegions = await fetchOrtRegions();
       const value = button.dataset.filterSellerChip;
       setChipPressed(button, Boolean(value && selectedSellers.has(value)));
     });
+
+    newBuildButtons.forEach((button) => setChipPressed(button, newBuildSelected));
   }
 
   function getSearchState(): PropertySearchState {
@@ -765,6 +782,7 @@ const ortRegions = await fetchOrtRegions();
       age: getAgeValue(),
       sort: sort?.value ?? initial.sort,
       page: currentPage,
+      newBuild: newBuildSelected,
     };
   }
 
@@ -786,7 +804,7 @@ const ortRegions = await fetchOrtRegions();
   // dieselben Treffer (gleicher Query-Builder auf dem Server).
   function updateUrl() {
     const url = new URL(window.location.href);
-    ["q", "type", "seller", "region", "age", "sort", "page"].forEach((key) => url.searchParams.delete(key));
+    ["q", "type", "seller", "region", "age", "sort", "page", "neubau"].forEach((key) => url.searchParams.delete(key));
 
     const q = (input?.value ?? initial.q).trim();
     if (q) url.searchParams.set("q", q);
@@ -804,6 +822,9 @@ const ortRegions = await fetchOrtRegions();
     if (age) url.searchParams.set("age", age);
     const sortValue = sort?.value ?? "newest";
     if (sortValue !== "newest") url.searchParams.set("sort", sortValue);
+    // Nur die Abweichung vom Default (anzeigen) landet in der URL - sonst
+    // wiche der Client-Query beim Laden vom data-ssr-query ab (Ueberfluss-Refetch)
+    if (!newBuildSelected) url.searchParams.set("neubau", "0");
     // 1-basiert in die URL spiegeln, passend zur Anzeige "Seite 2 von 2"
     if (currentPage > 0) url.searchParams.set("page", String(currentPage + 1));
 
@@ -839,6 +860,7 @@ const ortRegions = await fetchOrtRegions();
         IsHausSelected: types.includes("house"),
         IsGrundstueckSelected: types.includes("land"),
         IsZwangsversteigerungSelected: types.includes("foreclosure"),
+        IsNeubauprojektSelected: newBuildSelected,
         IsPrivateSelected: sellers.includes("private"),
         IsBrokerSelected: sellers.includes("agent"),
         ExcludedSellerSourceIds: Array.isArray(stored?.ExcludedSellerSourceIds)
@@ -948,6 +970,10 @@ const ortRegions = await fetchOrtRegions();
       sort.value = getStoredSort(preferences);
     }
 
+    if (!params.has("neubau")) {
+      newBuildSelected = preferences.IsNeubauprojektSelected !== false;
+    }
+
     if (!params.has("region") && !preset.region) {
       selectedOrtSlugs.clear();
       getStoredLocations(preferences)
@@ -1023,6 +1049,16 @@ const ortRegions = await fetchOrtRegions();
       scheduleRefresh(true);
     });
   });
+  newBuildButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      filtersTouched = true;
+      newBuildSelected = !newBuildSelected;
+      updateFilterChips();
+      updateUrl();
+      persistFilterPreferences();
+      scheduleRefresh(true);
+    });
+  });
   sort?.addEventListener("change", () => {
     filtersTouched = true;
     persistFilterPreferences();
@@ -1054,6 +1090,7 @@ const ortRegions = await fetchOrtRegions();
       DEFAULT_TYPE_VALUES.forEach((type) => selectedTypes.add(type));
       selectedSellers.clear();
       SELLER_VALUES.forEach((seller) => selectedSellers.add(seller));
+      newBuildSelected = true;
       if (sort) sort.value = "newest";
       updateFilterChips();
       persistFilterPreferences();

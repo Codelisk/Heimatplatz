@@ -35,7 +35,8 @@ public interface IFilterStateService
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
         List<Guid>? excludedSellerSourceIds = null,
-        SortOption selectedSort = SortOption.Neueste);
+        SortOption selectedSort = SortOption.Neueste,
+        bool isNeubauprojektSelected = true);
 
     /// <summary>
     /// Event wenn sich die Ergebnis-Anzahl aendert (separat von FilterStateChanged
@@ -58,6 +59,8 @@ public record FilterState
     public bool IsGrundstueckSelected { get; init; } = true;
     /// <summary>Zwangsversteigerungen sind standardmaessig deaktiviert (wie Web/API)</summary>
     public bool IsZwangsversteigerungSelected { get; init; }
+    /// <summary>Neubauprojekte (noch nicht fertig gebaute Haeuser) sind standardmaessig sichtbar</summary>
+    public bool IsNeubauprojektSelected { get; init; } = true;
     public AgeFilter SelectedAgeFilter { get; init; } = AgeFilter.Alle;
     public IReadOnlyList<string> SelectedOrte { get; init; } = [];
     public bool IsPrivateSelected { get; init; } = true;

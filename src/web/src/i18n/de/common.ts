@@ -61,6 +61,9 @@ export const common = {
   "filter.typeForeclosure": "ZV",
   "filter.sellerPrivate": "Privat",
   "filter.sellerAgent": "Makler",
+  "filter.newBuild": "Neubau",
+  "filter.newBuildGroup": "Neubauprojekte",
+  "filter.newBuildHint": "Neubauprojekte (noch nicht fertig gebaute Häuser) anzeigen oder ausblenden",
 
   "footer.tagline": "Immobilien in Oberösterreich – Häuser, Grundstücke, Zwangsversteigerungen.",
   "footer.legalAriaLabel": "Weitere Seiten und Rechtliches",

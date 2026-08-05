@@ -126,6 +126,18 @@
   <data name="TypeSheetHint" xml:space="preserve">
     <value>Änderungen wirken sofort auf die Liste.</value>
   </data>
+  <data name="NeubauSectionTitle" xml:space="preserve">
+    <value>NEUBAUPROJEKTE</value>
+  </data>
+  <data name="NeubauChip" xml:space="preserve">
+    <value>Neubauprojekte</value>
+  </data>
+  <data name="NeubauSheetHint" xml:space="preserve">
+    <value>Häuser, die erst geplant oder noch in Bau sind. Abwählen blendet sie aus.</value>
+  </data>
+  <data name="SummaryOhneNeubau" xml:space="preserve">
+    <value>ohne Neubauprojekte</value>
+  </data>
   <data name="Done" xml:space="preserve">
     <value>Fertig</value>
   </data>

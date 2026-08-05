@@ -46,6 +46,14 @@ public class Property : BaseEntity
     /// <summary>Year built (null for land)</summary>
     public int? YearBuilt { get; set; }
 
+    /// <summary>
+    /// Neubauprojekt: Haus ist noch nicht fertig gebaut (in Planung oder in Bau).
+    /// Wird beim OpenImmo-Import heuristisch gesetzt (siehe OpenImmoParser) - es gibt
+    /// kein explizites Feld im Feed. Nutzer koennen solche Inserate ueber
+    /// IncludeNewBuildProjects=false in Liste und Karte ausblenden.
+    /// </summary>
+    public bool IsNewBuildProject { get; set; }
+
     /// <summary>Type of property</summary>
     public PropertyType Type { get; set; }
 

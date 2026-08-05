@@ -125,6 +125,38 @@ public class PropertyMapPinsEndpointTests : BaseApiIntegrationTest
         FindPin(houseOnly, propertyId).Should().NotBeNull("der House-Filter muss das Haus liefern");
     }
 
+    [Test]
+    public async Task MapPins_IncludeNewBuildProjectsFalse_HidesFlaggedProperties()
+    {
+        var propertyId = await CreateHouseAsync("Kartenhaus als Neubauprojekt");
+        await SetCoordinatesAsync(propertyId, TestLatitude, TestLongitude, isExact: false);
+        await SetNewBuildProjectAsync(propertyId);
+
+        // Ohne Parameter (und mit explizitem true) bleibt das Neubauprojekt sichtbar
+        using (var defaultQuery = await GetMapPinsAsync())
+        {
+            FindPin(defaultQuery, propertyId).Should().NotBeNull("Default ist anzeigen");
+        }
+
+        using (var explicitTrue = await GetMapPinsAsync("?IncludeNewBuildProjects=true"))
+        {
+            FindPin(explicitTrue, propertyId).Should().NotBeNull();
+        }
+
+        // Nur das explizite Opt-out blendet aus (Query-Binding des bool?-Parameters)
+        using var hidden = await GetMapPinsAsync("?IncludeNewBuildProjects=false");
+        FindPin(hidden, propertyId).Should().BeNull("IncludeNewBuildProjects=false muss Neubauprojekte ausblenden");
+    }
+
+    private async Task SetNewBuildProjectAsync(Guid propertyId)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var property = await dbContext.Set<Property>().FirstAsync(p => p.Id == propertyId);
+        property.IsNewBuildProject = true;
+        await dbContext.SaveChangesAsync();
+    }
+
     private async Task<JsonDocument> GetMapPinsAsync(string query = "")
     {
         var response = await Client.GetAsync($"/api/properties/map-pins{query}");

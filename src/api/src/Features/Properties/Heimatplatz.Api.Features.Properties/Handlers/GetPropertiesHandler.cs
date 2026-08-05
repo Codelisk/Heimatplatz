@@ -57,7 +57,8 @@ public class GetPropertiesHandler(
             request.AreaMax,
             request.RoomsMin,
             request.SearchText,
-            request.GetExcludedSellerSourceIds());
+            request.GetExcludedSellerSourceIds(),
+            request.IncludeNewBuildProjects);
 
         var page = Math.Max(request.Page, 0);
         var pageSize = Math.Clamp(request.PageSize, 1, MaxPageSize);

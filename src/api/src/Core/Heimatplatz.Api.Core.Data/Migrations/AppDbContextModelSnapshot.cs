@@ -188,6 +188,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("IsNeubauprojektSelected")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("IsPrivateSelected")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
@@ -1233,6 +1238,68 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("PushSubscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Partners.Data.Entities.Partner", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PartnerSinceYear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Region")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SellerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceName")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsVisible", "DisplayOrder");
+
+                    b.ToTable("Partners", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Properties.Data.Entities.Blocked", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1332,6 +1399,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsLocationExact")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsNewBuildProject")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(false);

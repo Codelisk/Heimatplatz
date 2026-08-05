@@ -157,6 +157,11 @@ public class OpenImmoParser : IOpenImmoParser
         var zustandAngaben = El(immobilie, "zustand_angaben");
         var ausstattung = El(immobilie, "ausstattung");
 
+        var zustandArt = El(zustandAngaben, "zustand")?.Attribute("zustand_art")?.Value;
+        var yearBuilt = ParseInt(Val(zustandAngaben, "baujahr"));
+        var alterAttr = El(zustandAngaben, "alter")?.Attribute("alter_attr")?.Value;
+        var schluesselfertig = IsTruthy(userDefined.GetValueOrDefault("schluesselfertig"));
+
         var (features, hasGarage, hasGarden, hasBasement) = ParseAusstattung(ausstattung, flaechen);
 
         var freitexte = El(immobilie, "freitexte");
@@ -179,8 +184,9 @@ public class OpenImmoParser : IOpenImmoParser
             LivingAreaSquareMeters = RoundToInt(ParseDecimal(Val(flaechen, "wohnflaeche"))),
             PlotAreaSquareMeters = RoundToInt(ParseDecimal(Val(flaechen, "grundstuecksflaeche"))),
             Rooms = RoundToInt(ParseDecimal(Val(flaechen, "anzahl_zimmer"))),
-            YearBuilt = ParseInt(Val(zustandAngaben, "baujahr")),
-            Condition = ParseCondition(El(zustandAngaben, "zustand")?.Attribute("zustand_art")?.Value),
+            YearBuilt = yearBuilt,
+            IsNewBuildProject = ComputeIsNewBuildProject(type.Value, zustandArt, yearBuilt, alterAttr, schluesselfertig),
+            Condition = ParseCondition(zustandArt),
             Features = features,
             HasGarage = hasGarage,
             HasGarden = hasGarden,
@@ -304,6 +310,37 @@ public class OpenImmoParser : IOpenImmoParser
             return null;
 
         return text.Length > MaxDescriptionLength ? text[..MaxDescriptionLength] : text;
+    }
+
+    /// <summary>
+    /// Heuristik "Haus wird erst gebaut": OpenImmo hat kein explizites Feld dafuer.
+    /// Kalibriert am Immobaer-Feed (313 Objekte, 08/2026): Baujahr in der Zukunft ist
+    /// das staerkste Signal (Bautraegerprojekte), ERSTBEZUG ohne Baujahr deckt Projekte
+    /// mit offener Fertigstellung ab. alter@alter_attr="NEUBAU" allein ist UNBRAUCHBAR
+    /// (Immobaer flaggt auch Bestand von 1994 so) und zaehlt nur ohne Baujahr in
+    /// Kombination mit dem Justimmo-Zusatzfeld schluesselfertig.
+    /// </summary>
+    private static bool ComputeIsNewBuildProject(
+        PropertyType type, string? zustandArt, int? yearBuilt, string? alterAttr, bool schluesselfertig)
+    {
+        if (type != PropertyType.House)
+            return false;
+
+        var zustand = zustandArt?.Trim().ToUpperInvariant();
+        if (zustand is "PROJEKTIERT" or "ROHBAU")
+            return true;
+
+        if (yearBuilt >= DateTime.UtcNow.Year)
+            return true;
+
+        if (yearBuilt != null)
+            return false;
+
+        if (zustand == "ERSTBEZUG")
+            return true;
+
+        return schluesselfertig
+            && string.Equals(alterAttr?.Trim(), "NEUBAU", StringComparison.OrdinalIgnoreCase);
     }
 
     private static PropertyCondition? ParseCondition(string? zustandArt)
