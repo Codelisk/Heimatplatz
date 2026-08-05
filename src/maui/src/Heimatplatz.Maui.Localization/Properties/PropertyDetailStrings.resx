@@ -78,6 +78,12 @@
   <data name="DescriptionHeader" xml:space="preserve">
     <value>BESCHREIBUNG</value>
   </data>
+  <data name="DescriptionReadMore" xml:space="preserve">
+    <value>WEITERLESEN – CA. {0} MIN. LESEZEIT</value>
+  </data>
+  <data name="DescriptionCollapse" xml:space="preserve">
+    <value>ZUSAMMENFALTEN</value>
+  </data>
   <data name="SellerLabel" xml:space="preserve">
     <value>ANBIETER</value>
   </data>

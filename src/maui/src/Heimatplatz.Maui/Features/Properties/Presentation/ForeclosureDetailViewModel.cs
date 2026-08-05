@@ -178,6 +178,46 @@ public partial class ForeclosureDetailViewModel : ObservableObject, IPageLifecyc
     [ObservableProperty]
     public partial bool HasDescription { get; set; }
 
+    // Leporello-Falz (siehe DescriptionFoldPlanner): lange Beschreibungen
+    // zeigen nur den Vorspann, der Rest haengt an der Fortsetzungszeile
+    [ObservableProperty]
+    public partial string? DescriptionLead { get; set; }
+
+    [ObservableProperty]
+    public partial string? DescriptionRest { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsDescriptionFoldable { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsDescriptionExpanded { get; set; }
+
+    [ObservableProperty]
+    public partial string DescriptionToggleText { get; set; }
+
+    private int _descriptionReadingMinutes;
+
+    partial void OnDescriptionChanged(string? value)
+    {
+        var plan = DescriptionFoldPlanner.Plan(value);
+        DescriptionLead = plan.LeadText;
+        DescriptionRest = plan.RestText;
+        _descriptionReadingMinutes = plan.ReadingMinutes;
+        IsDescriptionFoldable = plan.IsFolded;
+        IsDescriptionExpanded = false;
+        UpdateDescriptionToggleText();
+    }
+
+    partial void OnIsDescriptionExpandedChanged(bool value) => UpdateDescriptionToggleText();
+
+    private void UpdateDescriptionToggleText() =>
+        DescriptionToggleText = IsDescriptionExpanded
+            ? _loc.DescriptionCollapse
+            : _loc.DescriptionReadMoreFormat(_descriptionReadingMinutes);
+
+    [RelayCommand]
+    private void ToggleDescription() => IsDescriptionExpanded = !IsDescriptionExpanded;
+
     // === Dokument-URLs ===
 
     [ObservableProperty]

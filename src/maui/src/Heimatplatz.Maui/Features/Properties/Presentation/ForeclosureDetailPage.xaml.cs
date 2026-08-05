@@ -1,10 +1,34 @@
+using System.ComponentModel;
+
 namespace Heimatplatz.Maui.Features.Properties.Presentation;
 
 public partial class ForeclosureDetailPage : ContentPage
 {
+    private ForeclosureDetailViewModel? _viewModel;
+
     public ForeclosureDetailPage()
     {
         InitializeComponent();
+    }
+
+    protected override void OnBindingContextChanged()
+    {
+        base.OnBindingContextChanged();
+
+        if (_viewModel != null)
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+
+        _viewModel = BindingContext as ForeclosureDetailViewModel;
+
+        if (_viewModel != null)
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ForeclosureDetailViewModel.IsDescriptionExpanded)
+            && _viewModel?.IsDescriptionExpanded == false)
+            DescriptionScrollGuard.OnCollapsed(this, DetailScroll, DescriptionSection);
     }
 
     /// <summary>

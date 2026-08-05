@@ -96,7 +96,8 @@
             </VerticalStackLayout>
         </Grid>
 
-        <ScrollView Grid.Row="0"
+        <ScrollView x:Name="DetailScroll"
+                    Grid.Row="0"
                     IsVisible="{Binding ShowContent}">
             <VerticalStackLayout x:Name="ForeclosureScrollContent"
                                  Spacing="0"
@@ -472,18 +473,77 @@
                             </Grid>
                         </Border>
 
-                        <!-- Beschreibung -->
-                        <VerticalStackLayout Spacing="6"
+                        <!-- Beschreibung: lange Texte kommen gefaltet an (Leporello-Falz,
+                             Logik siehe DescriptionFoldPlanner - Paritaet zum Web). Auf- und
+                             Zuklappen ist bewusst nur ein IsVisible-Umschalten des Rest-Labels:
+                             ein Layout-Pass, keine Animation (Performance vor Effekt). -->
+                        <VerticalStackLayout x:Name="DescriptionSection"
+                                             Spacing="6"
                                              Padding="16,0"
                                              MaximumWidthRequest="900"
                                              HorizontalOptions="Fill"
                                              IsVisible="{Binding HasDescription}">
                             <Label Text="{Binding Loc.DescriptionHeader}"
                                    Style="{StaticResource SectionHeader}" />
-                            <Label Text="{Binding Description}"
+                            <Label Text="{Binding DescriptionLead}"
                                    FontSize="14"
                                    LineHeight="1.25"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="{Binding DescriptionRest}"
+                                   IsVisible="{Binding IsDescriptionExpanded}"
+                                   FontSize="14"
+                                   LineHeight="1.25"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+
+                            <!-- Fortsetzungszeile im Zeitungs-Trennstrich-Stil (wie Web):
+                                 Haarlinie links/rechts, Label in Kapitaelchen, ganze Zeile
+                                 ist die Tap-Flaeche -->
+                            <Grid IsVisible="{Binding IsDescriptionFoldable}"
+                                  ColumnDefinitions="*,Auto,*"
+                                  ColumnSpacing="12"
+                                  Margin="0,4,0,0"
+                                  MinimumHeightRequest="44">
+                                <BoxView Grid.Column="0"
+                                         HeightRequest="1"
+                                         VerticalOptions="Center"
+                                         Color="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+                                <HorizontalStackLayout Grid.Column="1"
+                                                       Spacing="7"
+                                                       VerticalOptions="Center">
+                                    <Label Text="{Binding DescriptionToggleText}"
+                                           Style="{StaticResource SectionHeader}"
+                                           VerticalOptions="Center" />
+                                    <!-- Chevron als Geometrie statt Font-Glyph (siehe Schliessen-X) -->
+                                    <Path Data="M1,1 L6,5.5 L11,1"
+                                          Stroke="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                                          StrokeThickness="1.6"
+                                          StrokeLineCap="Round"
+                                          WidthRequest="12"
+                                          HeightRequest="7"
+                                          VerticalOptions="Center">
+                                        <Path.Triggers>
+                                            <DataTrigger TargetType="Path"
+                                                         Binding="{Binding IsDescriptionExpanded}"
+                                                         Value="True">
+                                                <Setter Property="Rotation" Value="180" />
+                                            </DataTrigger>
+                                        </Path.Triggers>
+                                    </Path>
+                                </HorizontalStackLayout>
+                                <BoxView Grid.Column="2"
+                                         HeightRequest="1"
+                                         VerticalOptions="Center"
+                                         Color="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+                                <Button Grid.ColumnSpan="3"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="Transparent"
+                                        BorderWidth="0"
+                                        Padding="0"
+                                        MinimumHeightRequest="0"
+                                        Command="{Binding ToggleDescriptionCommand}"
+                                        SemanticProperties.Description="{Binding DescriptionToggleText}"
+                                        AutomationId="Foreclosure_ToggleDescription" />
+                            </Grid>
                         </VerticalStackLayout>
 
                         <!-- Dokumente -->

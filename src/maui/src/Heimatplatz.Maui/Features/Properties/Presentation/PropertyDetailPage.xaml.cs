@@ -54,6 +54,10 @@ public partial class PropertyDetailPage : ContentPage
     {
         if (e.PropertyName == nameof(PropertyDetailViewModel.IsContactExpanded))
             ForceFooterRelayout();
+
+        if (e.PropertyName == nameof(PropertyDetailViewModel.IsDescriptionExpanded)
+            && _viewModel?.IsDescriptionExpanded == false)
+            DescriptionScrollGuard.OnCollapsed(this, DetailScroll, DescriptionSection);
     }
 
     /// <summary>
