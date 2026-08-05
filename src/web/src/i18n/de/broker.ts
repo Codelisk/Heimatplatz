@@ -6,12 +6,12 @@
 export const broker = {
   "broker.metaTitle": "Für Makler – Wir inserieren für Sie",
   "broker.metaDescription":
-    "Kostenlos auf Heimatplatz präsent: Wir legen Ihren Zugang an und pflegen Ihre Immobilien ein. Ein Link zu Ihren Inseraten genügt – den Rest übernehmen wir.",
+    "Kostenlos auf Heimatplatz präsent: Wir übernehmen die komplette Einrichtung und binden Exporte aus gängiger Maklersoftware wie Justimmo direkt an. Ein Link zu Ihren Inseraten genügt.",
 
   "broker.kicker": "Für Makler & Bauträger",
   "broker.title": "Ihre Immobilien auf Heimatplatz – wir übernehmen die Arbeit",
   "broker.intro":
-    "Sie möchten Ihre Objekte regional in Oberösterreich sichtbar machen, ohne sich in eine weitere Plattform einzuarbeiten? Melden Sie sich kurz bei uns – wir legen Ihren Zugang an, pflegen Ihre Immobilien ein und Sie sind ohne Aufwand online.",
+    "Sie möchten Ihre Objekte regional in Oberösterreich sichtbar machen, ohne sich in eine weitere Plattform einzuarbeiten? Melden Sie sich kurz bei uns – wir übernehmen die komplette Einrichtung. Exporte aus gängiger Maklersoftware wie Justimmo binden wir direkt an, danach laufen Ihre Inserate automatisch – für Sie entsteht so gut wie kein Aufwand.",
   "broker.ctaButton": "Jetzt unverbindlich melden",
 
   "broker.stepsTitle": "So funktioniert's",
@@ -20,15 +20,15 @@ export const broker = {
     "Kurzes Formular ausfüllen oder einfach eine E-Mail schicken – ein Link zu Ihren bestehenden Inseraten genügt.",
   "broker.step2Title": "Wir richten alles ein",
   "broker.step2Text":
-    "Wir legen Ihren Makler-Zugang an und pflegen Ihre Immobilien mit Fotos, Beschreibung und Ansprechpartner ein.",
+    "Wir legen Ihren Makler-Zugang an. Nutzen Sie eine Maklersoftware wie Justimmo, richten wir den Export für Sie ein – sonst pflegen wir Ihre Immobilien mit Fotos, Beschreibung und Ansprechpartner ein.",
   "broker.step3Title": "Sie sind online",
   "broker.step3Text":
-    "Sie erhalten Ihre Zugangsdaten, prüfen die Inserate und ergänzen jederzeit selbst – oder wir halten sie für Sie aktuell.",
+    "Sie erhalten Ihre Zugangsdaten und prüfen die Inserate. Mit angebundener Maklersoftware bleibt danach alles von selbst aktuell – sonst halten wir Ihre Inserate für Sie auf Stand.",
 
   "broker.benefitsTitle": "Ihre Vorteile",
   "broker.benefit1Title": "Kein Aufwand",
   "broker.benefit1Text":
-    "Kein Einpflegen, kein Einarbeiten: Wir übernehmen die komplette Einrichtung für Sie.",
+    "Kein Einpflegen, kein Einarbeiten: Wir übernehmen die komplette Einrichtung – auf Wunsch inklusive Anbindung Ihrer Maklersoftware (z. B. Justimmo), danach laufen neue Inserate automatisch ein.",
   "broker.benefit2Title": "Kostenlos",
   "broker.benefit2Text":
     "Die Aufnahme Ihrer Immobilien auf Heimatplatz ist kostenlos.",
@@ -54,7 +54,7 @@ export const broker = {
   "broker.listingsUrlHint":
     "Ihre Website oder Ihr Portal-Profil – daraus übernehmen wir Ihre Objekte.",
   "broker.messageLabel": "Nachricht (optional)",
-  "broker.messagePlaceholder": "Was sollen wir noch wissen?",
+  "broker.messagePlaceholder": "Was sollen wir noch wissen? Zum Beispiel, welche Maklersoftware Sie nutzen.",
   "broker.submit": "Anfrage senden",
   "broker.submitting": "Wird gesendet …",
   "broker.successTitle": "Vielen Dank für Ihre Anfrage!",
