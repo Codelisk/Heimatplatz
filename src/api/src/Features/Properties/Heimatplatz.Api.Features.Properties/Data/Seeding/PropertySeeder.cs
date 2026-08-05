@@ -74,13 +74,17 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
 
         List<string> Img(params string[] files) => BuildSeedImageUrls(configuration, files);
 
+        // Beschreibungen kommen aus PropertySeedDescriptions (eine Quelle für
+        // Erst-Seeding und den DescriptionRefreshSeeder für Bestands-DBs)
+        string Desc(string title) => PropertySeedDescriptions.ByTitle[title];
+
         var now = DateTimeOffset.UtcNow;
         var seedCandidates = new List<Property?>
         {
             // Häuser
             CreateProperty("Einfamilienhaus in Linz-Urfahr", "Hauptstraße 15", "Linz", 349000,
                 145, 520, 5, 2018, PropertyType.House, SellerType.Broker, "Mustermann Immobilien",
-                "Wunderschönes Einfamilienhaus mit großem Garten in ruhiger Lage. Hochwertige Ausstattung, Fußbodenheizung, Photovoltaikanlage.",
+                Desc("Einfamilienhaus in Linz-Urfahr"),
                 ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"],
                 Img("haus-aelter.jpg", "interieur-wohnkueche.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
@@ -88,77 +92,77 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
             // Seed-Eintrag mit IsNewBuildProject (Neubauprojekte-Filter testbar)
             CreateProperty("Modernes Reihenhaus in Wels", "Ringstraße 42", "Wels", 289000,
                 120, 180, 4, 2027, PropertyType.House, SellerType.Private, "Familie Huber",
-                "Schlüsselfertiges Neubau-Reihenhaus in zentraler Lage, Fertigstellung 2027. Perfekt für junge Familien. Kurze Wege zu Schulen und Geschäften.",
+                Desc("Modernes Reihenhaus in Wels"),
                 ["Carport", "Terrasse", "Keller", "Fußbodenheizung"],
                 Img("haus-daemmerung.jpg", "interieur-altbau.jpg"), GetMunicipalityId,
                 isNewBuildProject: true),
 
             CreateProperty("Villa am Traunsee", "Seeuferweg 8", "Gmunden", 890000,
                 220, 1200, 7, 2015, PropertyType.House, SellerType.Broker, "Luxus Immobilien GmbH",
-                "Exklusive Villa mit direktem Seezugang. Panoramablick auf den Traunsee. Hochwertigste Ausstattung.",
+                Desc("Villa am Traunsee"),
                 ["Doppelgarage", "Sauna", "Seezugang", "Bootshaus", "Kamin"],
                 Img("see-berge.jpg", "berg-see.jpg", "interieur-schlafzimmer.jpg"), GetMunicipalityId),
 
             CreateProperty("Landhaus in Bad Ischl", "Kaiserweg 23", "Bad Ischl", 425000,
                 165, 850, 5, 1998, PropertyType.House, SellerType.Private, "Herr Maier",
-                "Charmantes Landhaus im Salzkammergut. Renoviert mit Liebe zum Detail. Idealer Rückzugsort.",
+                Desc("Landhaus in Bad Ischl"),
                 ["Garage", "Garten", "Kachelofen", "Keller", "Dachboden"],
                 Img("haus-chalet.jpg", "bauernhaus.jpg", "interieur-rustikal.jpg"), GetMunicipalityId),
 
             CreateProperty("Familienhaus in Steyr", "Bahnhofstraße 67", "Steyr", 315000,
                 135, 450, 5, 2010, PropertyType.House, SellerType.Broker, "Immobilien Steyr",
-                "Gepflegtes Einfamilienhaus in guter Lage. Nahe Stadtzentrum und Naturgebiet.",
+                Desc("Familienhaus in Steyr"),
                 ["Garage", "Garten", "Terrasse", "Keller"],
                 Img("haus-teich.jpg", "interieur-wohnkueche.jpg"), GetMunicipalityId),
 
             // Grundstücke
             CreateProperty("Baugrundstück in Wels", "Neubaugebiet Süd", "Wels", 189000,
                 null, 850, null, null, PropertyType.Land, SellerType.Private, "Familie Müller",
-                "Voll erschlossenes Baugrundstück in ruhiger Wohnlage. Alle Anschlüsse vorhanden.",
+                Desc("Baugrundstück in Wels"),
                 ["Erschlossen", "Strom", "Wasser", "Kanal", "Gas"],
                 Img("grund-feld.jpg"), GetMunicipalityId),
 
             CreateProperty("Sonniges Baugrundstück Linz-Land", "Am Sonnenhang 12", "Leonding", 245000,
                 null, 720, null, null, PropertyType.Land, SellerType.Broker, "Grund & Boden OÖ",
-                "Südhanglage mit herrlichem Ausblick. Bebauungsplan liegt vor.",
+                Desc("Sonniges Baugrundstück Linz-Land"),
                 ["Erschlossen", "Südlage", "Aussicht"],
                 Img("huegel-strasse.jpg", "berge.jpg"), GetMunicipalityId),
 
             CreateProperty("Großes Baugrundstück Mühlviertel", "Dorfstraße", "Freistadt", 95000,
                 null, 1200, null, null, PropertyType.Land, SellerType.Private, "Gemeinde Freistadt",
-                "Günstiges Baugrundstück im schönen Mühlviertel. Ruhige Lage, gute Infrastruktur.",
+                Desc("Großes Baugrundstück Mühlviertel"),
                 ["Teilerschlossen", "Strom", "Wasser"],
                 Img("grund-wald.jpg", "huegel-nebel.jpg"), GetMunicipalityId),
 
             // Zwangsversteigerungen
             CreateProperty("Zwangsversteigerung: Haus in Traun", "Industriestraße 45", "Traun", 185000,
                 110, 380, 4, 1985, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Linz",
-                "Älteres Haus mit Renovierungsbedarf. Versteigerungstermin: nächsten Monat. Besichtigung möglich.",
+                Desc("Zwangsversteigerung: Haus in Traun"),
                 ["Garage", "Keller"],
                 Img("bauernhof-alt.jpg"), GetMunicipalityId),
 
             CreateProperty("Zwangsversteigerung: Grundstück Enns", "Feldweg 3", "Enns", 68000,
                 null, 650, null, null, PropertyType.Foreclosure, SellerType.Broker, "Bezirksgericht Steyr",
-                "Baugrundstück aus Zwangsversteigerung. Gute Lage, erschlossen.",
+                Desc("Zwangsversteigerung: Grundstück Enns"),
                 ["Erschlossen"],
                 Img("grund-sonnenuntergang.jpg"), GetMunicipalityId),
 
             // Weitere Häuser
             CreateProperty("Bungalow in Braunau", "Gartenstraße 18", "Braunau am Inn", 275000,
                 95, 600, 3, 2005, PropertyType.House, SellerType.Private, "Ehepaar Schmidt",
-                "Barrierefreier Bungalow, ideal für Senioren. Pflegeleichter Garten.",
+                Desc("Bungalow in Braunau"),
                 ["Carport", "Garten", "Barrierefrei", "Fußbodenheizung"],
                 Img("haus-wiese.jpg", "interieur-rustikal.jpg"), GetMunicipalityId),
 
             CreateProperty("Doppelhaushälfte Vöcklabruck", "Schulweg 7", "Vöcklabruck", 298000,
                 125, 280, 4, 2019, PropertyType.House, SellerType.Broker, "Hausfreund Immobilien",
-                "Neuwertige Doppelhaushälfte in familienfreundlicher Lage. Schulen und Kindergarten in Gehweite.",
+                Desc("Doppelhaushälfte Vöcklabruck"),
                 ["Garage", "Garten", "Terrasse", "Fußbodenheizung", "Wärmepumpe"],
                 Img("haus-landhaus.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
             CreateProperty("Einfamilienhaus am Traunfall", "Traunfallstraße 12", "Roitham am Traunfall", 365000,
                 140, 610, 5, 2012, PropertyType.House, SellerType.Private, "Familie Berger",
-                "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Großer Garten mit altem Baumbestand.",
+                Desc("Einfamilienhaus am Traunfall"),
                 ["Garage", "Garten", "Terrasse", "Keller", "Kachelofen"],
                 Img("almhuette.jpg", "wiese-blumen.jpg", "interieur-schlafzimmer.jpg"), GetMunicipalityId)
         };

@@ -98,7 +98,7 @@ public class PropertyMunicipalityFixSeeder(
                 ? null
                 : PropertySeeder.CreateProperty(TraunfallTitle, "Traunfallstraße 12", "Roitham am Traunfall", 365000,
                     140, 610, 5, 2012, PropertyType.House, SellerType.Private, "Familie Berger",
-                    "Gepflegtes Einfamilienhaus in ruhiger Siedlungslage nahe dem Traunfall. Großer Garten mit altem Baumbestand.",
+                    PropertySeedDescriptions.ByTitle[TraunfallTitle],
                     ["Garage", "Garten", "Terrasse", "Keller", "Kachelofen"],
                     PropertySeeder.BuildSeedImageUrls(configuration, "almhuette.jpg", "wiese-blumen.jpg", "interieur-schlafzimmer.jpg"),
                     city => MunicipalityNameResolver.Resolve(municipalities, city));

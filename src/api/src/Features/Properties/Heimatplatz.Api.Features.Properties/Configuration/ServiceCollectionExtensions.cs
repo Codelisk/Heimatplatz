@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddSeeder<PropertyOriginalListingBackfillSeeder>();
         services.AddSeeder<PropertyForeclosurePriceFixSeeder>();
         services.AddSeeder<PropertyCoordinateBackfillSeeder>();
+        services.AddSeeder<PropertyDescriptionRefreshSeeder>();
         services.AddSeeder<FavoriteSeeder>();
         services.AddSeeder<BlockedSeeder>();
 
