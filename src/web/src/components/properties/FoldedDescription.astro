@@ -14,11 +14,12 @@ import { t } from "@/i18n";
  * Vorbild ist das Leporello - die ziehharmonikagefaltete Papierbahn alter
  * Souvenir-Postkartenhefte (benannt nach Leporellos entfaltbarem Register-
  * Katalog in "Don Giovanni"). Lange Texte kommen "gefaltet" an: sichtbar ist
- * nur der Vorspann, darunter liegt der Rest als angeschnittener Papierstapel.
- * Der Stapel selbst ist die Affordance und der Aufklapp-Button; beim
- * Entfalten klappen die verborgenen Abschnitte als Falz-Segmente nacheinander
- * auf. Ohne JavaScript (und im Druck) ist der Text komplett ausgeklappt,
- * fuer Suchmaschinen steht er immer vollstaendig im DOM.
+ * nur der Vorspann, darunter markiert eine ruhige Fortsetzungszeile im Stil
+ * eines Zeitungs-Trennstrichs (Haarlinie + Label in Kapitaelchen) den Falz
+ * und dient als Aufklapp-Button. Beim Entfalten klappen die verborgenen
+ * Abschnitte als Falz-Segmente nacheinander auf. Ohne JavaScript (und im
+ * Druck) ist der Text komplett ausgeklappt, fuer Suchmaschinen steht er
+ * immer vollstaendig im DOM.
  */
 interface Props {
   text: string;
@@ -55,18 +56,18 @@ const unfoldLabel = t("detail.descriptionUnfold", { minutes: descriptionReadingM
 
       <button
         type="button"
-        class="fold-stack"
+        class="fold-toggle"
         aria-expanded="false"
         aria-controls={id}
         data-desc-fold-toggle
       >
-        <span class="fold-cover">
+        <span class="fold-rule" aria-hidden="true"></span>
+        <span class="fold-label">
           <span data-desc-fold-label-more>{unfoldLabel}</span>
           <span data-desc-fold-label-less hidden>{t("detail.descriptionFold")}</span>
-          <ChevronDownIcon class="fold-chevron size-4" aria-hidden="true" />
+          <ChevronDownIcon class="fold-chevron size-3.5" aria-hidden="true" />
         </span>
-        <span class="fold-strip fold-strip-1" aria-hidden="true"></span>
-        <span class="fold-strip fold-strip-2" aria-hidden="true"></span>
+        <span class="fold-rule" aria-hidden="true"></span>
       </button>
     </div>
   )
@@ -77,58 +78,61 @@ const unfoldLabel = t("detail.descriptionUnfold", { minutes: descriptionReadingM
     scroll-margin-top: 5rem;
   }
 
-  /* Ohne JS bleibt der Text ausgeklappt und der Stapel unsichtbar -
-     alles Falz-Verhalten haengt am data-desc-fold-ready des Scripts */
-  .fold-stack {
+  /* Ohne JS bleibt der Text ausgeklappt und die Fortsetzungszeile
+     unsichtbar - alles Falz-Verhalten haengt am data-desc-fold-ready
+     des Scripts */
+  .fold-toggle {
     display: none;
   }
 
-  [data-desc-fold-ready] .fold-stack {
-    display: flex;
-    flex-direction: column;
+  /* Fortsetzungszeile im Stil eines Zeitungs-Trennstrichs: Haarlinie
+     links und rechts, mittig das Label in Kapitaelchen - ruhig und
+     ohne Kasten, wie die uebrigen Abschnitts-Ueberschriften */
+  [data-desc-fold-ready] .fold-toggle {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
     width: 100%;
-    margin-top: 1rem;
-    padding: 0;
+    margin-top: 1.25rem;
+    padding: 0.5rem 0;
     border: 0;
     background: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .fold-stack:focus-visible {
+  .fold-toggle:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 3px;
     border-radius: 4px;
   }
 
-  /* Oberster Falz des Stapels: traegt die Zeile im Stil einer Zeitungs-
-     Fortsetzungszeile ("Weiterlesen - noch 3 Abschnitte") */
-  .fold-cover {
-    display: flex;
+  .fold-rule {
+    height: 1px;
+    background: var(--border);
+    transition: background-color 0.15s;
+  }
+
+  .fold-label {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    background: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--card) 90%, white),
-      var(--card) 55%,
-      color-mix(in oklab, var(--card) 88%, black)
-    );
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    gap: 0.4rem;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    white-space: nowrap;
     color: var(--muted-foreground);
-    transition: color 0.15s, border-color 0.15s;
+    transition: color 0.15s;
   }
 
-  .fold-stack:hover .fold-cover {
+  .fold-toggle:hover .fold-label {
     color: var(--foreground);
-    border-color: color-mix(in oklab, var(--foreground) 45%, var(--border));
+  }
+
+  .fold-toggle:hover .fold-rule {
+    background: color-mix(in oklab, var(--foreground) 35%, var(--border));
   }
 
   .fold-chevron {
@@ -137,38 +141,6 @@ const unfoldLabel = t("detail.descriptionUnfold", { minutes: descriptionReadingM
 
   [data-desc-fold-open] .fold-chevron {
     transform: rotate(180deg);
-  }
-
-  /* Die uebrigen Falze: schmaler werdende Papierkanten mit leichtem
-     Versatz - der sichtbare "Rest" des zusammengelegten Leporellos */
-  .fold-strip {
-    display: block;
-    height: 0.55rem;
-    border: 1px solid var(--border);
-    border-top-width: 0;
-    border-radius: 0 0 3px 3px;
-    background: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--card) 82%, black),
-      var(--card) 70%
-    );
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
-  }
-
-  .fold-strip-1 {
-    margin-inline: 4%;
-    transform: rotate(-0.25deg);
-  }
-
-  .fold-strip-2 {
-    margin-inline: 9%;
-    margin-top: -1px;
-    transform: rotate(0.3deg);
-  }
-
-  /* Aufgeklappt schrumpft der Stapel zur duennen Falzkante */
-  [data-desc-fold-open] .fold-strip {
-    display: none;
   }
 
   /* Rest-Container: grid-rows-Trick fuer die Hoehenanimation, visibility
@@ -236,7 +208,7 @@ const unfoldLabel = t("detail.descriptionUnfold", { minutes: descriptionReadingM
       display: block;
       visibility: visible;
     }
-    [data-desc-fold-ready] .fold-stack {
+    [data-desc-fold-ready] .fold-toggle {
       display: none;
     }
   }
