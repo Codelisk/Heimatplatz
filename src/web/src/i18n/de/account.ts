@@ -159,6 +159,9 @@ export const account = {
   "notifications.sellerTypeTitle": "Anbietertyp",
   "notifications.sellerPrivate": "Privat",
   "notifications.sellerBroker": "Makler",
+  "notifications.newBuildTitle": "Neubauprojekte",
+  "notifications.newBuildHint": "Häuser, die erst geplant oder noch in Bau sind.",
+  "notifications.newBuildLabel": "Bei Neubauprojekten benachrichtigen",
   "notifications.locationsTitle": "Orte",
   "notifications.locationsHint":
     "Leer lassen bedeutet: alle Orte in Oberösterreich. Mehrere Orte werden wie in der App gespeichert.",

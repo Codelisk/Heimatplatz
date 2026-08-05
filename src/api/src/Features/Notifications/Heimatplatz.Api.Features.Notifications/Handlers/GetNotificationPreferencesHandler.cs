@@ -60,7 +60,8 @@ public class GetNotificationPreferencesHandler(
                 // Wie in der Suche: Zwangsversteigerungen sind standardmaessig aus
                 IsZwangsversteigerungSelected: false,
                 IsPrivateSelected: true,
-                IsBrokerSelected: true
+                IsBrokerSelected: true,
+                IsNeubauprojektSelected: true
             );
         }
 
@@ -74,7 +75,8 @@ public class GetNotificationPreferencesHandler(
             IsGrundstueckSelected: preference.IsGrundstueckSelected,
             IsZwangsversteigerungSelected: preference.IsZwangsversteigerungSelected,
             IsPrivateSelected: preference.IsPrivateSelected,
-            IsBrokerSelected: preference.IsBrokerSelected
+            IsBrokerSelected: preference.IsBrokerSelected,
+            IsNeubauprojektSelected: preference.IsNeubauprojektSelected
         );
     }
 }

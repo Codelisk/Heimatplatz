@@ -40,6 +40,10 @@ public class NotificationPreferenceConfiguration : IEntityTypeConfiguration<Noti
         builder.Property(np => np.IsZwangsversteigerungSelected)
             .HasDefaultValue(false);
 
+        // Default an (wie IsHausSelected): CLR-Initializer und DB-Default identisch
+        builder.Property(np => np.IsNeubauprojektSelected)
+            .HasDefaultValue(true);
+
         builder.Property(np => np.IsPrivateSelected)
             .HasDefaultValue(true);
 

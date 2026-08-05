@@ -91,6 +91,14 @@ const ortRegions = await fetchOrtRegions();
           <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="broker" checked /> {t("notifications.sellerBroker")}</label>
         </div>
       </div>
+      {/* Neubauprojekte: eigene Karte, KEIN vierter Immobilientyp (wie in der Suche) */}
+      <div class="rounded-lg border border-border bg-card p-4" data-notification-custom hidden>
+        <h2 class="text-base font-semibold">{t("notifications.newBuildTitle")}</h2>
+        <p class="mt-1 text-sm text-muted-foreground">{t("notifications.newBuildHint")}</p>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <label class="flex gap-3 rounded-lg border border-border px-4 py-3 text-sm"><input type="checkbox" name="newbuild" checked /> {t("notifications.newBuildLabel")}</label>
+        </div>
+      </div>
       <div class="rounded-lg border border-border bg-card p-4" data-notification-custom hidden>
         <h2 class="text-base font-semibold">{t("notifications.locationsTitle")}</h2>
         <p class="mt-1 text-sm text-muted-foreground">

@@ -11,6 +11,7 @@ namespace Heimatplatz.Features.Notifications.Contracts.Models;
 /// <param name="IsZwangsversteigerungSelected">Foreclosure property type selected (default off, wie in der Suche)</param>
 /// <param name="IsPrivateSelected">Private seller type selected</param>
 /// <param name="IsBrokerSelected">Broker seller type selected</param>
+/// <param name="IsNeubauprojektSelected">Neubauprojekte (noch nicht fertig gebaute Haeuser) pushen (Default an, wie der Suchfilter)</param>
 public record NotificationPreferenceDto(
     bool IsEnabled,
     NotificationFilterMode FilterMode,
@@ -19,5 +20,6 @@ public record NotificationPreferenceDto(
     bool IsGrundstueckSelected = true,
     bool IsZwangsversteigerungSelected = false,
     bool IsPrivateSelected = true,
-    bool IsBrokerSelected = true
+    bool IsBrokerSelected = true,
+    bool IsNeubauprojektSelected = true
 );

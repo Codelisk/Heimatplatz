@@ -25,6 +25,7 @@ public interface INotificationService
         bool isZwangsversteigerungSelected = false,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
+        bool isNeubauprojektSelected = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -12,11 +12,13 @@ namespace Heimatplatz.Api.Features.Notifications.Contracts.Events;
 /// <param name="Price">Price of the property</param>
 /// <param name="Type">Type of the property (House, Land, Foreclosure)</param>
 /// <param name="SellerType">Type of the seller (Private, Broker, Portal)</param>
+/// <param name="IsNewBuildProject">Neubauprojekt (noch nicht fertig gebaut) - Push respektiert das Ausblende-Opt-out</param>
 public record PropertyCreatedEvent(
     Guid PropertyId,
     string Title,
     string City,
     decimal Price,
     PropertyType Type,
-    SellerType SellerType
+    SellerType SellerType,
+    bool IsNewBuildProject = false
 ) : IEvent;

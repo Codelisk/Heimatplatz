@@ -84,11 +84,14 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
                 ["Garage", "Garten", "Terrasse", "Keller", "Fußbodenheizung", "Photovoltaik"],
                 Img("haus-aelter.jpg", "interieur-wohnkueche.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
 
+            // Demo-Neubauprojekt: Baujahr in der Zukunft, Erstbezug - der einzige
+            // Seed-Eintrag mit IsNewBuildProject (Neubauprojekte-Filter testbar)
             CreateProperty("Modernes Reihenhaus in Wels", "Ringstraße 42", "Wels", 289000,
-                120, 180, 4, 2020, PropertyType.House, SellerType.Private, "Familie Huber",
-                "Neuwertiges Reihenhaus in zentraler Lage. Perfekt für junge Familien. Kurze Wege zu Schulen und Geschäften.",
+                120, 180, 4, 2027, PropertyType.House, SellerType.Private, "Familie Huber",
+                "Schlüsselfertiges Neubau-Reihenhaus in zentraler Lage, Fertigstellung 2027. Perfekt für junge Familien. Kurze Wege zu Schulen und Geschäften.",
                 ["Carport", "Terrasse", "Keller", "Fußbodenheizung"],
-                Img("haus-daemmerung.jpg", "interieur-altbau.jpg"), GetMunicipalityId),
+                Img("haus-daemmerung.jpg", "interieur-altbau.jpg"), GetMunicipalityId,
+                isNewBuildProject: true),
 
             CreateProperty("Villa am Traunsee", "Seeuferweg 8", "Gmunden", 890000,
                 220, 1200, 7, 2015, PropertyType.House, SellerType.Broker, "Luxus Immobilien GmbH",
@@ -311,7 +314,8 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
         int? livingArea, int? plotArea, int? rooms, int? yearBuilt,
         PropertyType type, SellerType sellerType, string sellerName,
         string description, List<string> features, List<string> imageUrls,
-        Func<string, Guid?> getMunicipalityId)
+        Func<string, Guid?> getMunicipalityId,
+        bool isNewBuildProject = false)
     {
         var municipalityId = getMunicipalityId(cityName);
         if (municipalityId == null)
@@ -333,7 +337,8 @@ public class PropertySeeder(AppDbContext dbContext, IConfiguration configuration
             SellerName = sellerName,
             Description = description,
             Features = features,
-            ImageUrls = imageUrls
+            ImageUrls = imageUrls,
+            IsNewBuildProject = isNewBuildProject
         };
 
         ApplySeedCoordinates(property, cityName);

@@ -32,6 +32,7 @@ public class PropertyCreatedEventHandler(
             @event.Price,
             @event.Type,
             @event.SellerType,
+            @event.IsNewBuildProject,
             cancellationToken);
     }
 }

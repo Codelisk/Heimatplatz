@@ -7080,6 +7080,10 @@
           },
           "IsBrokerSelected": {
             "type": "boolean"
+          },
+          "IsNeubauprojektSelected": {
+            "type": "boolean",
+            "default": true
           }
         }
       },
@@ -12224,6 +12228,10 @@
           },
           "IsBrokerSelected": {
             "type": "boolean"
+          },
+          "IsNeubauprojektSelected": {
+            "type": "boolean",
+            "default": true
           }
         }
       },

@@ -105,6 +105,15 @@
   <data name="SellerTypeRequired" xml:space="preserve">
     <value>Mindestens ein Anbietertyp muss ausgewählt bleiben.</value>
   </data>
+  <data name="NeubauTitle" xml:space="preserve">
+    <value>Neubauprojekte</value>
+  </data>
+  <data name="NeubauCaption" xml:space="preserve">
+    <value>Häuser, die erst geplant oder noch in Bau sind.</value>
+  </data>
+  <data name="NeubauLabel" xml:space="preserve">
+    <value>Bei Neubauprojekten benachrichtigen</value>
+  </data>
   <data name="LocationTitle" xml:space="preserve">
     <value>Orte</value>
   </data>

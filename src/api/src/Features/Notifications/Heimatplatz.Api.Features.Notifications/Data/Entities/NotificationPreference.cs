@@ -37,6 +37,12 @@ public class NotificationPreference : BaseEntity
     /// </summary>
     public bool IsZwangsversteigerungSelected { get; set; }
 
+    /// <summary>
+    /// Ob Neubauprojekte (noch nicht fertig gebaute Haeuser) gepusht werden
+    /// (Custom-Modus; Default an, wie der Suchfilter)
+    /// </summary>
+    public bool IsNeubauprojektSelected { get; set; } = true;
+
     /// <summary>Ob private Anbieter im Filter selektiert sind</summary>
     public bool IsPrivateSelected { get; set; } = true;
 

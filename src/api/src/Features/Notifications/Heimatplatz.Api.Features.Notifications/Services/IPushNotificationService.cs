@@ -17,6 +17,7 @@ public interface IPushNotificationService
         decimal price,
         PropertyType propertyType,
         SellerType sellerType,
+        bool isNewBuildProject = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>

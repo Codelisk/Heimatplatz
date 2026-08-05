@@ -62,6 +62,7 @@ public class UpdateNotificationPreferencesHandler(
         preference.IsHausSelected = request.IsHausSelected;
         preference.IsGrundstueckSelected = request.IsGrundstueckSelected;
         preference.IsZwangsversteigerungSelected = request.IsZwangsversteigerungSelected;
+        preference.IsNeubauprojektSelected = request.IsNeubauprojektSelected;
         preference.IsPrivateSelected = request.IsPrivateSelected;
         preference.IsBrokerSelected = request.IsBrokerSelected;
         preference.UpdatedAt = DateTimeOffset.UtcNow;

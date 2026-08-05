@@ -122,7 +122,7 @@
 
             <!-- Filter & Info (nur sichtbar wenn angemeldet UND Benachrichtigungen aktiviert) -->
             <Grid x:Name="NotificationFilterLayout"
-                  RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
                   RowSpacing="0"
                   ColumnDefinitions="*"
                   IsVisible="{Binding IsFilterSectionVisible}"
@@ -133,7 +133,7 @@
                             <VisualState x:Name="Compact" />
                             <VisualState x:Name="Medium">
                                 <VisualState.Setters>
-                                    <Setter Property="RowDefinitions" Value="Auto,Auto,Auto" />
+                                    <Setter Property="RowDefinitions" Value="Auto,Auto,Auto,Auto" />
                                     <Setter Property="ColumnDefinitions" Value="*,*" />
                                     <Setter Property="ColumnSpacing" Value="20" />
                                     <Setter TargetName="FilterModeCard" Property="Grid.Row" Value="0" />
@@ -144,14 +144,17 @@
                                     <Setter TargetName="SellerTypeCard" Property="Grid.Column" Value="0" />
                                     <Setter TargetName="LocationCard" Property="Grid.Row" Value="1" />
                                     <Setter TargetName="LocationCard" Property="Grid.Column" Value="1" />
-                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Row" Value="2" />
+                                    <Setter TargetName="NeubauCard" Property="Grid.Row" Value="2" />
+                                    <Setter TargetName="NeubauCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="NeubauCard" Property="Grid.ColumnSpan" Value="2" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Row" Value="3" />
                                     <Setter TargetName="NotificationInfoCard" Property="Grid.Column" Value="0" />
                                     <Setter TargetName="NotificationInfoCard" Property="Grid.ColumnSpan" Value="2" />
                                 </VisualState.Setters>
                             </VisualState>
                             <VisualState x:Name="Expanded">
                                 <VisualState.Setters>
-                                    <Setter Property="RowDefinitions" Value="Auto,Auto,Auto" />
+                                    <Setter Property="RowDefinitions" Value="Auto,Auto,Auto,Auto" />
                                     <Setter Property="ColumnDefinitions" Value="*,*" />
                                     <Setter Property="ColumnSpacing" Value="24" />
                                     <Setter TargetName="FilterModeCard" Property="Grid.Row" Value="0" />
@@ -162,7 +165,10 @@
                                     <Setter TargetName="SellerTypeCard" Property="Grid.Column" Value="0" />
                                     <Setter TargetName="LocationCard" Property="Grid.Row" Value="1" />
                                     <Setter TargetName="LocationCard" Property="Grid.Column" Value="1" />
-                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Row" Value="2" />
+                                    <Setter TargetName="NeubauCard" Property="Grid.Row" Value="2" />
+                                    <Setter TargetName="NeubauCard" Property="Grid.Column" Value="0" />
+                                    <Setter TargetName="NeubauCard" Property="Grid.ColumnSpan" Value="2" />
+                                    <Setter TargetName="NotificationInfoCard" Property="Grid.Row" Value="3" />
                                     <Setter TargetName="NotificationInfoCard" Property="Grid.Column" Value="0" />
                                     <Setter TargetName="NotificationInfoCard" Property="Grid.ColumnSpan" Value="2" />
                                 </VisualState.Setters>
@@ -338,9 +344,37 @@
                         </VerticalStackLayout>
                     </Border>
 
+                    <!-- Neubauprojekte: eigener Toggle, KEIN vierter Immobilientyp
+                         (wie in der Suche) - daher ohne Mindestens-ein-Typ-Guard -->
+                    <Border x:Name="NeubauCard"
+                            Grid.Row="3"
+                            Margin="0,0,0,24"
+                            Style="{StaticResource Card}"
+                            IsVisible="{Binding IsCustomFilterVisible}"
+                            AutomationId="NotificationSettings_NeubauCard">
+                        <VerticalStackLayout Spacing="16">
+                            <VerticalStackLayout Spacing="4">
+                                <Label
+                                    Text="{Binding Loc.NeubauTitle}"
+                                    Style="{StaticResource CardTitle}" />
+                                <Label
+                                    Text="{Binding Loc.NeubauCaption}"
+                                    Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+
+                            <HorizontalStackLayout Spacing="8">
+                                <CheckBox
+                                    IsChecked="{Binding IsNeubauprojektSelected, Mode=TwoWay}"
+                                    VerticalOptions="Center"
+                                    AutomationId="NotificationSettings_Chip_Neubauprojekt" />
+                                <Label Text="{Binding Loc.NeubauLabel}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
                     <!-- Location Filters -->
                     <Border x:Name="LocationCard"
-                            Grid.Row="3"
+                            Grid.Row="4"
                             Margin="0,0,0,24"
                             Style="{StaticResource Card}"
                             IsVisible="{Binding IsCustomFilterVisible}"
@@ -361,7 +395,7 @@
 
                 <!-- Info Card -->
                 <Border x:Name="NotificationInfoCard"
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Style="{StaticResource Card}"
                         AutomationId="NotificationSettings_InfoCard">
                     <Label

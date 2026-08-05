@@ -257,6 +257,11 @@ public class OpenImmoPropertySyncServiceTests
         var created = await _dbContext.Set<Property>().AsNoTracking().SingleAsync(p => p.SourceId == "OBID-001");
         created.IsNewBuildProject.Should().BeTrue();
 
+        // Push-Matching braucht das Flag im Event (Neubau-Opt-out der Empfaenger)
+        await _mediator.Received(1).Publish(
+            Arg.Is<PropertyCreatedEvent>(e => e != null && e.IsNewBuildProject),
+            Arg.Any<CancellationToken>());
+
         // Haus fertiggestellt: Feed liefert das Objekt spaeter ohne Neubau-Merkmale
         var fertig = neubau with { IsNewBuildProject = false, YearBuilt = 2026 };
         var result = await CreateService().SyncAsync(_feed, FullSnapshot(fertig), zip: null);

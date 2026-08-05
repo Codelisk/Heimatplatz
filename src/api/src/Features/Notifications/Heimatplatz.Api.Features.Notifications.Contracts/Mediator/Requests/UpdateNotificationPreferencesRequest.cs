@@ -13,7 +13,9 @@ public record UpdateNotificationPreferencesRequest(
     bool IsGrundstueckSelected,
     bool IsZwangsversteigerungSelected,
     bool IsPrivateSelected,
-    bool IsBrokerSelected
+    bool IsBrokerSelected,
+    // Default true: aeltere Clients ohne das Feld bestellen Neubauprojekte nicht ab
+    bool IsNeubauprojektSelected = true
 ) : IRequest<UpdateNotificationPreferencesResponse>;
 
 /// <summary>

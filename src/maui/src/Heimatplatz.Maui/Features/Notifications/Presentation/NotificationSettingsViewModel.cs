@@ -61,6 +61,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         IsGrundstueckSelected = true;
         // Zwangsversteigerungen wie in der Suche standardmaessig aus
         IsZwangsversteigerungSelected = false;
+        IsNeubauprojektSelected = true;
         IsPrivateSelected = true;
         IsBrokerSelected = true;
     }
@@ -139,6 +140,10 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
 
     [ObservableProperty]
     public partial bool IsZwangsversteigerungSelected { get; set; }
+
+    /// <summary>Neubauprojekte pushen - kein Objekttyp, eigener Toggle (nicht im Mindestens-ein-Typ-Guard)</summary>
+    [ObservableProperty]
+    public partial bool IsNeubauprojektSelected { get; set; }
 
     // Custom filter: SellerType
     [ObservableProperty]
@@ -247,6 +252,16 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
         HandlePropertyTypeSelectionChanged(value, () => IsZwangsversteigerungSelected = true);
     }
 
+    partial void OnIsNeubauprojektSelectedChanged(bool value)
+    {
+        // Bewusst NICHT im Mindestens-ein-Typ-Guard: der Toggle ist unabhaengig
+        // von der Typauswahl (ein Neubauprojekt IST ein Haus)
+        if (_isLoading || _restoringRequiredSelection)
+            return;
+
+        _ = SavePreferencesAsync();
+    }
+
     partial void OnIsPrivateSelectedChanged(bool value)
     {
         HandleSellerTypeSelectionChanged(value, () => IsPrivateSelected = true);
@@ -333,6 +348,7 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
             IsHausSelected = preferences.IsHausSelected;
             IsGrundstueckSelected = preferences.IsGrundstueckSelected;
             IsZwangsversteigerungSelected = preferences.IsZwangsversteigerungSelected;
+            IsNeubauprojektSelected = preferences.IsNeubauprojektSelected;
             IsPrivateSelected = preferences.IsPrivateSelected;
             IsBrokerSelected = preferences.IsBrokerSelected;
 
@@ -506,7 +522,8 @@ public partial class NotificationSettingsViewModel : ObservableObject, IPageLife
             IsGrundstueckSelected,
             IsZwangsversteigerungSelected,
             IsPrivateSelected,
-            IsBrokerSelected);
+            IsBrokerSelected,
+            IsNeubauprojektSelected);
 
         if (success)
             _logger.LogInformation("Notification preferences saved successfully");

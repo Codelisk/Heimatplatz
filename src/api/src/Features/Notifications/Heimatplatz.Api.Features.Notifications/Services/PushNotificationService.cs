@@ -32,6 +32,7 @@ public class PushNotificationService(
         decimal price,
         PropertyType propertyType,
         SellerType sellerType,
+        bool isNewBuildProject = false,
         CancellationToken cancellationToken = default)
     {
         try
@@ -69,11 +70,13 @@ public class PushNotificationService(
             {
                 bool matches = pref.FilterMode switch
                 {
+                    // "Alle" pusht bewusst auch Neubauprojekte (wie bei ZV: der Modus
+                    // heisst "alle neuen Objekte" und ignoriert die Suchfilter komplett)
                     NotificationFilterMode.All => true,
                     NotificationFilterMode.SameAsSearch => MatchesSameAsSearch(
-                        userFilterPrefs.GetValueOrDefault(pref.UserId), city, propertyType, sellerType),
+                        userFilterPrefs.GetValueOrDefault(pref.UserId), city, propertyType, sellerType, isNewBuildProject),
                     NotificationFilterMode.Custom => MatchesCustomFilter(
-                        pref, city, propertyType, sellerType),
+                        pref, city, propertyType, sellerType, isNewBuildProject),
                     _ => false
                 };
 
@@ -225,12 +228,18 @@ public class PushNotificationService(
         UserFilterPreferences? filterPrefs,
         string city,
         PropertyType propertyType,
-        SellerType sellerType)
+        SellerType sellerType,
+        bool isNewBuildProject)
     {
         // If user has no saved filter preferences, match the default filter:
         // Haus + Grundstueck, Zwangsversteigerungen sind standardmaessig deaktiviert
+        // (Neubauprojekte sind per Default sichtbar - kein Check noetig)
         if (filterPrefs == null)
             return propertyType != PropertyType.Foreclosure;
+
+        // Neubauprojekt-Opt-out der Suche gilt auch fuer Push
+        if (isNewBuildProject && !filterPrefs.IsNeubauprojektSelected)
+            return false;
 
         // Check location filter
         var selectedOrtes = JsonSerializer.Deserialize<List<string>>(filterPrefs.SelectedOrtesJson) ?? [];
@@ -264,8 +273,13 @@ public class PushNotificationService(
         NotificationPreference pref,
         string city,
         PropertyType propertyType,
-        SellerType sellerType)
+        SellerType sellerType,
+        bool isNewBuildProject)
     {
+        // Neubauprojekt-Opt-out (eigenes Feld im Custom-Filter, Default an)
+        if (isNewBuildProject && !pref.IsNeubauprojektSelected)
+            return false;
+
         // Check location filter
         var selectedLocations = JsonSerializer.Deserialize<List<string>>(pref.SelectedLocationsJson) ?? [];
         if (selectedLocations.Count > 0 &&

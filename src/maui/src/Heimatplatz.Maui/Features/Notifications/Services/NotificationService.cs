@@ -39,7 +39,8 @@ public class NotificationService(
                 response.IsGrundstueckSelected,
                 response.IsZwangsversteigerungSelected,
                 response.IsPrivateSelected,
-                response.IsBrokerSelected);
+                response.IsBrokerSelected,
+                response.IsNeubauprojektSelected);
         }
         catch (Exception ex)
         {
@@ -59,6 +60,7 @@ public class NotificationService(
         bool isZwangsversteigerungSelected = false,
         bool isPrivateSelected = true,
         bool isBrokerSelected = true,
+        bool isNeubauprojektSelected = true,
         CancellationToken cancellationToken = default)
     {
         try
@@ -75,7 +77,8 @@ public class NotificationService(
                         IsGrundstueckSelected = isGrundstueckSelected,
                         IsZwangsversteigerungSelected = isZwangsversteigerungSelected,
                         IsPrivateSelected = isPrivateSelected,
-                        IsBrokerSelected = isBrokerSelected
+                        IsBrokerSelected = isBrokerSelected,
+                        IsNeubauprojektSelected = isNeubauprojektSelected
                     }
                 },
                 cancellationToken);

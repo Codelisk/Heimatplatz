@@ -1131,6 +1131,11 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("IsNeubauprojektSelected")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("IsPrivateSelected")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")

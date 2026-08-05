@@ -272,7 +272,8 @@ public class OpenImmoPropertySyncService(
                     city,
                     property.Price,
                     property.Type,
-                    property.SellerType
+                    property.SellerType,
+                    property.IsNewBuildProject
                 ), ct);
             }
             catch (Exception ex)
