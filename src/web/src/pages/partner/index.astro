@@ -10,11 +10,12 @@ import { t } from "@/i18n";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { breadcrumbSchema } from "@/lib/seo";
 
-// Design laut docs/partner-seite-konzept.md, Blue-Ocean-Fassung (Kundenwunsch 4.8.):
-// Maklerverzeichnis als gebaute Zeitungsseite - Titelkopf ueber volle Breite,
-// darunter zwei Spalten: links das Verzeichnis, rechts die Randspalte mit
-// "In Zahlen"-Kasten (Punktlinien wie im Druck) und der Anzeige in eigener Sache.
-// Vertrauen kommt aus nachpruefbaren Live-Zahlen; einzige Animation sind Link-Hovers.
+// Design laut docs/partner-seite-konzept.md, Blue-Ocean-Fassung (Kundenwunsch 4./5.8.):
+// Maklerverzeichnis im Regionalblatt-Stil als EINE ruhig komponierte Spalte.
+// Bewusst eine einzige Rahmensprache (Haarlinien; einzige Ausnahme: der
+// Doppelrahmen der Anzeige), jede Zahl genau einmal (Kennzahlen in der
+// Datumszeile, Ticker im Eintrag), keine Laufnummern. Vertrauen kommt aus
+// nachpruefbaren Live-Zahlen; einzige Animation sind Link-Hovers.
 
 const partners = await fetchPartners();
 const listingsTotal = partners.reduce((sum, partner) => sum + partner.activeListingCount, 0);
@@ -25,23 +26,19 @@ const categoryLabel = (category: string) =>
     : t("partner.categoryBroker");
 
 const metaFor = (partner: (typeof partners)[number]) =>
-  [partner.region, partner.partnerSinceYear ? t("partner.metaSince", { year: partner.partnerSinceYear }) : null]
+  [
+    categoryLabel(partner.category),
+    partner.region,
+    partner.partnerSinceYear ? t("partner.metaSince", { year: partner.partnerSinceYear }) : null,
+  ]
     .filter(Boolean)
     .join(" · ");
 
-// Stand-Datum: Render-Zeitpunkt; lang fuer die Datumszeile, kurz fuer den Zahlen-Kasten
-const now = new Date();
-const standDatum = new Intl.DateTimeFormat("de-AT", { dateStyle: "long", timeZone: "Europe/Vienna" }).format(now);
-const standDatumKurz = new Intl.DateTimeFormat("de-AT", { dateStyle: "medium", timeZone: "Europe/Vienna" }).format(now);
-
-// Zahlen-Kasten der Randspalte: Label ......... Wert (Punktlinien wie im Druck)
-const railStats = [
-  { label: t("partner.railStatsBrokers"), value: String(partners.length), highlight: false },
-  ...(listingsTotal > 0
-    ? [{ label: t("partner.railStatsListings"), value: String(listingsTotal), highlight: true }]
-    : []),
-  { label: t("partner.railStatsStand"), value: standDatumKurz, highlight: false },
-];
+// Stand-Datum der Datumszeile: Render-Zeitpunkt, die Zahlen dahinter kommen live
+const standDatum = new Intl.DateTimeFormat("de-AT", {
+  dateStyle: "long",
+  timeZone: "Europe/Vienna",
+}).format(new Date());
 
 const pageUrl = new URL("/partner/", Astro.site).toString();
 
@@ -75,27 +72,32 @@ const structuredData = [
   canonicalPath="/partner/"
   structuredData={structuredData}
 >
-  <div class="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
+  <div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
     {/* Titelkopf im Regionalblatt-Stil: dicke + duenne Linie, Wappen als Krone,
-        fluide Titelgroesse, Datumszeile - die Kennzahlen wohnen im Zahlen-Kasten
-        der Randspalte, hier bleibt der Kopf ruhig */}
+        fluide Titelgroesse, Datumszeile mit ALLEN Eckdaten (der eine Ort fuer
+        die Kennzahlen) */}
     <header>
       <div class="border-t-2 border-foreground"></div>
       <div class="mt-[3px] border-t border-foreground"></div>
 
-      <BrandMark class="mx-auto mt-7 h-14 sm:h-16" />
+      <BrandMark class="mx-auto mt-7 h-12 sm:h-14" />
 
       <p class="mt-4 text-center text-[11px] font-bold uppercase tracking-[0.22em] text-primary sm:text-xs">
         {t("partner.kicker")}
       </p>
-      <h1 class="mx-auto mt-2 text-center text-[clamp(2.2rem,9.5vw,4.2rem)] font-extrabold leading-none tracking-tight">
+      <h1 class="mx-auto mt-2 text-center text-[clamp(2.2rem,9.5vw,4rem)] font-extrabold leading-none tracking-tight">
         {t("partner.title")}
       </h1>
 
       <div class="mt-6 border-y-2 border-foreground py-2">
         <p class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-[10px] font-bold uppercase tracking-[0.14em] sm:justify-between sm:text-[11px]">
           <span>{t("partner.datelineStand", { date: standDatum })}</span>
-          <span class="text-muted-foreground">{t("partner.datelineRegion")}</span>
+          <span class="hidden text-muted-foreground sm:inline">{t("partner.datelineRegion")}</span>
+          <span>
+            {t("partner.datelinePartners", { count: partners.length })}
+            {listingsTotal === 1 && ` · ${t("partner.datelineListingsOne")}`}
+            {listingsTotal > 1 && ` · ${t("partner.datelineListings", { count: listingsTotal })}`}
+          </span>
         </p>
       </div>
 
@@ -105,164 +107,134 @@ const structuredData = [
       </p>
     </header>
 
-    {/* Zeitungsseite: Hauptspalte (Verzeichnis) + Randspalte (Zahlen, Anzeige).
-        Auf dem Handy stapelt sich alles in Leserichtung. */}
-    <div class="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-14">
-      <section aria-labelledby="verzeichnis">
-        <div class="flex items-end justify-between gap-4 border-b-2 border-foreground">
-          <h2
-            id="verzeichnis"
-            class="inline-block bg-foreground px-3 py-1.5 text-xs font-bold uppercase tracking-[0.22em] text-background"
-          >
-            {t("partner.directoryHeading")}
-          </h2>
-          <span class="hidden pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:inline">
-            {t("partner.directoryColumn")}
-          </span>
-        </div>
+    {/* Verzeichnis: ein Eintrag = eine ruhige Zeile aus Logo-Anker, Text und
+        Ticker-Zahl - Fakten statt Kartenschmuck */}
+    <section class="mt-12" aria-labelledby="verzeichnis">
+      <div class="flex items-end justify-between gap-4 border-b-2 border-foreground">
+        <h2
+          id="verzeichnis"
+          class="inline-block bg-foreground px-3 py-1.5 text-xs font-bold uppercase tracking-[0.22em] text-background"
+        >
+          {t("partner.directoryHeading")}
+        </h2>
+        <span class="hidden pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:inline">
+          {t("partner.directoryColumn")}
+        </span>
+      </div>
 
+      {
+        partners.length === 0 && (
+          <p class="mt-8 max-w-prose text-base leading-7 text-muted-foreground">
+            {t("partner.emptyDirectory")}
+          </p>
+        )
+      }
+
+      <ol class="divide-y divide-border">
         {
-          partners.length === 0 && (
-            <p class="mt-8 max-w-prose text-base leading-7 text-muted-foreground">
-              {t("partner.emptyDirectory")}
-            </p>
-          )
-        }
-
-        <ol class="divide-y divide-border">
-          {
-            partners.map((partner, index) => (
-              <li class="py-9">
-                <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
-                  <div class="min-w-0 flex-1 basis-60">
-                    <p class="font-mono text-sm font-bold tabular-nums text-primary" aria-hidden="true">
-                      {String(index + 1).padStart(2, "0")}
-                    </p>
-                    <div class="mt-2 flex items-center gap-3.5">
-                      {/* Logo im Kontext des Eintrags; bleibt auch im Dark Mode
-                          auf hellem Feld - Logos nie invertieren */}
-                      {partner.logoUrl && (
-                        <img
-                          src={partner.logoUrl}
-                          alt={t("partner.logoAlt", { name: partner.name })}
-                          class="h-12 w-16 shrink-0 rounded-sm border border-border bg-white object-contain p-1 sm:h-14 sm:w-[4.75rem]"
-                          loading="lazy"
-                        />
-                      )}
-                      <h3 class="min-w-0 text-[1.6rem] font-extrabold leading-tight tracking-tight sm:text-3xl">
-                        {partner.name}
-                      </h3>
-                    </div>
-                    <p class="mt-2.5 text-[10px] font-bold uppercase tracking-[0.16em] sm:text-[11px]">
-                      <span class="text-primary">{categoryLabel(partner.category)}</span>
-                      {metaFor(partner) && (
-                        <span class="font-semibold text-muted-foreground"> · {metaFor(partner)}</span>
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Ticker-Zahl: die Live-Inseratszahl als groesster Wert des Eintrags */}
-                  {partner.activeListingCount > 0 && (
-                    <span class="shrink-0 text-right">
-                      <span class="block text-[2.6rem] font-extrabold leading-none tracking-tight tabular-nums text-primary sm:text-5xl">
-                        {partner.activeListingCount}
-                      </span>
-                      <span class="mt-1 block text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground sm:text-[10px]">
-                        {partner.activeListingCount === 1
-                          ? t("partner.statListingsLabelOne")
-                          : t("partner.statListingsLabel")}
-                      </span>
-                    </span>
-                  )}
-                </div>
-
-                {partner.description && (
-                  <p class="mt-4 max-w-prose text-[0.95rem] leading-7 text-muted-foreground">
-                    {partner.description}
-                  </p>
+          partners.map((partner) => (
+            <li class="py-9">
+              <div class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-5 sm:gap-x-6">
+                {/* Logo als Anker des Eintrags; bleibt auch im Dark Mode auf
+                    hellem Feld - Logos nie invertieren. Ohne Logo beginnt der
+                    Eintrag einfach mit dem Namen. */}
+                {partner.logoUrl && (
+                  <img
+                    src={partner.logoUrl}
+                    alt={t("partner.logoAlt", { name: partner.name })}
+                    class="mt-1 h-16 w-[5.5rem] rounded-sm border border-border bg-white object-contain p-1.5 sm:h-[4.5rem] sm:w-24"
+                    loading="lazy"
+                  />
                 )}
-
-                <p class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[0.9rem]">
-                  {partner.activeListingCount > 0 && (
-                    <a
-                      href={`/?q=${encodeURIComponent(partner.sellerName || partner.name)}`}
-                      class="group inline-flex items-center gap-1.5 font-extrabold text-primary underline-offset-4 hover:underline"
-                    >
-                      {t("partner.viewListings")}
-                      <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                    </a>
-                  )}
-                  {partner.websiteUrl && (
-                    <a
-                      href={partner.websiteUrl}
-                      target="_blank"
-                      rel="noopener"
-                      class="inline-flex items-center gap-1 font-semibold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-                    >
-                      {t("partner.websiteLink")}
-                      <ExternalLinkIcon class="size-4" aria-hidden="true" />
-                    </a>
-                  )}
-                </p>
-              </li>
-            ))
-          }
-        </ol>
-
-        {/* Fussnote traegt die Edikte-Transparenz - klein, wie im Blatt ueblich */}
-        <p class="border-t border-border pt-4 text-xs leading-5 text-muted-foreground">
-          {t("partner.footnote")}
-        </p>
-      </section>
-
-      {/* Randspalte: Zahlen-Kasten + Anzeige - bleibt beim Scrollen stehen */}
-      <aside class="space-y-8 self-start lg:sticky lg:top-20">
-        <div class="border border-foreground/70">
-          <h2 class="border-b border-foreground/70 px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.22em]">
-            {t("partner.railStatsHeading")}
-          </h2>
-          <dl class="space-y-2.5 px-4 py-4">
-            {
-              railStats.map((row) => (
-                <div class="flex items-baseline gap-2 text-sm">
-                  <dt class="shrink-0 text-muted-foreground">{row.label}</dt>
-                  <span class="leader" aria-hidden="true" />
-                  <dd class={row.highlight ? "shrink-0 font-extrabold tabular-nums text-primary" : "shrink-0 font-semibold tabular-nums"}>
-                    {row.value}
-                  </dd>
+                <div class="min-w-0" class:list={partner.logoUrl ? [] : ["col-span-2"]}>
+                  <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                    <h3 class="min-w-0 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
+                      {partner.name}
+                    </h3>
+                    {/* Ticker-Zahl: die Live-Inseratszahl, genau einmal auf der Seite */}
+                    {partner.activeListingCount > 0 && (
+                      <span class="inline-flex items-baseline gap-2">
+                        <span class="text-3xl font-extrabold leading-none tracking-tight tabular-nums text-primary sm:text-4xl">
+                          {partner.activeListingCount}
+                        </span>
+                        <span class="text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground sm:text-[10px]">
+                          {partner.activeListingCount === 1
+                            ? t("partner.statListingsLabelOne")
+                            : t("partner.statListingsLabel")}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                  <p class="mt-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground sm:text-[11px]">
+                    {metaFor(partner)}
+                  </p>
                 </div>
-              ))
-            }
-          </dl>
-        </div>
+              </div>
 
-        {/* Anzeige in eigener Sache: klassischer Doppelrahmen, wohnt in der
-            Anzeigenspalte wie im echten Blatt */}
-        <div class="border-[3px] border-foreground p-1" aria-labelledby="anzeige">
-          <div class="border border-foreground px-5 py-7 text-center">
-            <p class="text-[9px] font-bold uppercase tracking-[0.22em] text-primary">
-              {t("partner.adKicker")}
-            </p>
-            <h2 id="anzeige" class="mt-2.5 text-xl font-extrabold leading-tight tracking-tight">
-              {t("partner.adTitle")}
-            </h2>
-            <p class="mt-2.5 text-[0.85rem] leading-6 text-muted-foreground">
-              {t("partner.adText")}
-            </p>
-            <a
-              href="/makler/"
-              class="group mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-extrabold text-primary-foreground transition-colors hover:bg-primary-accent"
-            >
-              {t("partner.adButton")}
-              <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-            </a>
-          </div>
-        </div>
-      </aside>
-    </div>
+              {partner.description && (
+                <p class="mt-4 max-w-prose text-[0.95rem] leading-7 text-muted-foreground">
+                  {partner.description}
+                </p>
+              )}
+
+              <p class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[0.9rem]">
+                {partner.activeListingCount > 0 && (
+                  <a
+                    href={`/?q=${encodeURIComponent(partner.sellerName || partner.name)}`}
+                    class="group inline-flex items-center gap-1.5 font-extrabold text-primary underline-offset-4 hover:underline"
+                  >
+                    {t("partner.viewListings")}
+                    <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </a>
+                )}
+                {partner.websiteUrl && (
+                  <a
+                    href={partner.websiteUrl}
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex items-center gap-1 font-semibold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                  >
+                    {t("partner.websiteLink")}
+                    <ExternalLinkIcon class="size-4" aria-hidden="true" />
+                  </a>
+                )}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    {/* Anzeige in eigener Sache: das einzige gerahmte Element der Seite -
+        klassischer Doppelrahmen wie im Blatt */}
+    <aside class="mt-4 border-[3px] border-foreground p-1" aria-labelledby="anzeige">
+      <div class="border border-foreground px-6 py-9 text-center sm:px-10">
+        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
+          {t("partner.adKicker")}
+        </p>
+        <h2 id="anzeige" class="mx-auto mt-3 max-w-xl text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
+          {t("partner.adTitle")}
+        </h2>
+        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+          {t("partner.adText")}
+        </p>
+        <a
+          href="/makler/"
+          class="group mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-7 py-3 text-sm font-extrabold text-primary-foreground transition-colors hover:bg-primary-accent"
+        >
+          {t("partner.adButton")}
+          <ArrowRightIcon class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+        </a>
+      </div>
+    </aside>
+
+    {/* Fussnote traegt die Edikte-Transparenz - klein, wie im Blatt ueblich */}
+    <p class="mt-7 text-xs leading-5 text-muted-foreground">
+      {t("partner.footnote")}
+    </p>
 
     {/* Schlusslinie spiegelt den Titelkopf */}
-    <div class="mt-14 border-t border-foreground"></div>
+    <div class="mt-5 border-t border-foreground"></div>
     <div class="mt-[3px] border-t-2 border-foreground"></div>
   </div>
 </BaseLayout>
@@ -276,15 +248,5 @@ const structuredData = [
     line-height: 0.85;
     font-weight: 800;
     color: var(--primary);
-  }
-
-  /* Punktlinien-Fuehrung (Label ......... Wert) wie im Druck: sitzt knapp ueber
-     der Baseline; leerer Span hat seine Baseline an der Unterkante, daher der
-     kleine Hochversatz */
-  .leader {
-    flex: 1 1 auto;
-    min-width: 1rem;
-    border-bottom: 2px dotted color-mix(in oklab, var(--foreground) 32%, transparent);
-    transform: translateY(-0.22em);
   }
 </style>
