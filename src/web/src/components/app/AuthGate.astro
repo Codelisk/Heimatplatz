@@ -11,19 +11,25 @@ import { buildLoginHref, buildRegisterHref, getCurrentReturnTo } from "@/lib/nav
  * PropertyStateScript ueber data-guest-only/data-auth-only (Client-Session in
  * localStorage) - Gaeste sehen den Hinweis sofort ohne Flackern, weil der
  * Slot serverseitig hidden gerendert wird.
+ *
+ * assumeAuthenticated: Seiten, die die Anmeldung bereits serverseitig kennen
+ * (Token-Cookie-Spiegel, z.B. /meine-uebersicht/), rendern den Slot sofort
+ * sichtbar - kein leerer erster Frame. PropertyStateScript setzt beim Boot
+ * ohnehin den tatsaechlichen Zustand durch (stale Cookie -> wieder versteckt).
  */
 interface Props {
   title: string;
   description: string;
+  assumeAuthenticated?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, assumeAuthenticated = false } = Astro.props;
 const returnTo = getCurrentReturnTo(Astro.url);
 const loginHref = buildLoginHref(returnTo);
 const registerHref = buildRegisterHref(returnTo);
 ---
 
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-guest-only>
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-guest-only hidden={assumeAuthenticated ? true : undefined}>
   <div class="mx-auto max-w-xl rounded-xl border border-border bg-card p-8 text-center shadow-sm sm:p-10">
     <span class="mx-auto grid size-12 place-items-center rounded-full bg-primary/10 text-primary">
       <LoginIcon class="size-6" aria-hidden="true" />
@@ -43,6 +49,6 @@ const registerHref = buildRegisterHref(returnTo);
   </div>
 </div>
 
-<div data-auth-only hidden>
+<div data-auth-only hidden={assumeAuthenticated ? undefined : true}>
   <slot />
 </div>

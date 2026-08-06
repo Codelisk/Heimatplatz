@@ -1,7 +1,20 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import DashboardApp from "@/components/dashboard/DashboardApp.astro";
+import { fetchDashboardSsrState, readSsrAccessToken } from "@/features/dashboard/ssr-api";
 import { t } from "@/i18n";
+
+// SSR-Erstauslieferung: Kennt der Server die Anmeldung (Token-Cookie-Spiegel
+// aus PropertyStateScript), kommt die Uebersicht fertig gerendert beim Browser
+// an - kein Spinner, kein Nachspringen. Jeder Fehlschlag faellt leise auf das
+// bewaehrte Client-Rendering zurueck (ssr = null).
+const token = readSsrAccessToken(Astro.cookies);
+const ssr = token
+  ? await fetchDashboardSsrState(token, Astro.url.searchParams.get("id"))
+  : null;
+
+// Personalisierte Antwort - darf nirgends zwischengespeichert werden
+Astro.response.headers.set("Cache-Control", "private, no-store");
 ---
 
 <BaseLayout
@@ -10,5 +23,5 @@ import { t } from "@/i18n";
   canonicalPath="/meine-uebersicht/"
   noindex
 >
-  <DashboardApp />
+  <DashboardApp ssr={ssr} />
 </BaseLayout>

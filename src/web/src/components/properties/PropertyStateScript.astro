@@ -531,8 +531,31 @@
     });
   }
 
+  /**
+   * Spiegelt das Access Token in ein Cookie, damit ausgewaehlte Seiten
+   * (z.B. /meine-uebersicht/) beim SSR fertig gerendert ausgeliefert werden
+   * koennen. Bewusst kein HttpOnly (dieses Script schreibt es) - gleiche
+   * XSS-Exposition wie der localStorage-Speicher, der Server LIEST es nur.
+   * Session-Cookie ohne Expires; der Token-Ablauf wird serverseitig geprueft.
+   */
+  function syncSsrCookie(session: Session | null) {
+    try {
+      const secure = window.location.protocol === "https:" ? "; Secure" : "";
+      if (session?.AccessToken) {
+        document.cookie = `hp_ssr_at=${encodeURIComponent(session.AccessToken)}; Path=/; SameSite=Lax${secure}`;
+      } else {
+        document.cookie = `hp_ssr_at=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+      }
+    } catch {
+      // Cookies gesperrt - die Seite faellt auf Client-Rendering zurueck
+    }
+  }
+
   function renderAuthState() {
     const session = readSession();
+    // Ein Hook-Punkt genuegt: renderAuthState laeuft beim Boot und nach jeder
+    // Session-Aenderung (saveSession/clearSession/Refresh)
+    syncSsrCookie(session);
     const loggedIn = !!session;
     const roles = readSessionRoles(session);
     // Kaeufer ist jedes angemeldete Konto implizit

@@ -11,23 +11,62 @@
  * AuthGate zeigt Gästen das Login-Panel, das Script bootet nur mit Token.
  */
 import AuthGate from "@/components/app/AuthGate.astro";
+import DashboardSsr from "@/components/dashboard/DashboardSsr.astro";
 import LayoutDashboardIcon from "@tabler/icons/outline/layout-dashboard.svg";
 import SparklesIcon from "@tabler/icons/outline/sparkles.svg";
 import ArrowBackIcon from "@tabler/icons/outline/arrow-back-up.svg";
 import PencilIcon from "@tabler/icons/outline/pencil.svg";
 import TrashIcon from "@tabler/icons/outline/trash.svg";
 import PlusIcon from "@tabler/icons/outline/plus.svg";
+import { normalizeStatus } from "@/features/dashboard/spec";
+import type { DashboardSsrState } from "@/features/dashboard/ssr-api";
+import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
+
+interface Props {
+  /**
+   * SSR-Erstauslieferung (Token-Cookie-Spiegel): Liste + aktive Uebersicht +
+   * Widget-Daten bereits serverseitig beschafft. null = wie bisher rein
+   * clientseitig rendern (Gast, abgelaufenes Cookie, API-Fehler).
+   */
+  ssr?: DashboardSsrState | null;
+}
+
+const { ssr = null } = Astro.props;
+const ssrDashboard = ssr?.Dashboard ?? null;
+const ssrStatus = ssrDashboard ? normalizeStatus(ssrDashboard.Status) : null;
+const ssrShowView = ssrStatus === "finished" && !!ssrDashboard?.Definition && !!ssr?.Widgets;
+const ssrGenerating = ssrStatus === "queued" || ssrStatus === "inProgress";
+const ssrFailed = ssrStatus === "failed";
+const ssrShowCreate = !!ssr && (ssr.Summaries?.length ?? 0) === 0;
+const ssrIntro = ssrShowView ? (ssrDashboard?.Definition?.Intro?.trim() ?? null) : null;
+const ssrWishes = ssrShowView ? (ssrDashboard?.Definition?.UnsupportedWishes ?? []).filter(Boolean) : [];
+const tabClassActive = "min-h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground";
+const tabClassInactive =
+  "min-h-9 rounded-md border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
 ---
 
 <div class="py-6 sm:py-8">
   <h1 class="sr-only">{t("dash.title")}</h1>
-  <AuthGate title={t("dash.authTitle")} description={t("dash.authText")}>
+  <AuthGate title={t("dash.authTitle")} description={t("dash.authText")} assumeAuthenticated={!!ssr}>
     <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-dash-app>
       {/* Übersichts-Wechsler (erst sichtbar, wenn mindestens eine Übersicht existiert) */}
-      <div class="mb-6 hidden flex-wrap items-center gap-2" data-dash-toolbar>
+      <div
+        class:list={["mb-6 flex-wrap items-center gap-2", (ssr?.Summaries?.length ?? 0) > 0 ? "flex" : "hidden"]}
+        data-dash-toolbar
+      >
         <span class="mr-1 text-sm font-medium text-muted-foreground">{t("dash.listLabel")}</span>
-        <div class="flex flex-wrap gap-2" data-dash-tabs></div>
+        <div class="flex flex-wrap gap-2" data-dash-tabs>
+          {(ssr?.Summaries ?? []).map((summary) => (
+            <button
+              type="button"
+              data-dash-tab={summary.Id}
+              class={summary.Id === ssrDashboard?.Id ? tabClassActive : tabClassInactive}
+            >
+              {summary.Title || t("dash.title")}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           class="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-dashed border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -39,7 +78,7 @@ import { t } from "@/i18n";
       </div>
 
       {/* Erstellen (Hero bei 0 Übersichten bzw. nach "Neue Übersicht") */}
-      <div class="mx-auto hidden max-w-2xl" data-dash-create>
+      <div class:list={["mx-auto max-w-2xl", !ssrShowCreate && "hidden"]} data-dash-create>
         <div class="rounded-lg border border-border bg-card p-6 shadow-sm sm:p-8">
           <div class="mb-4 flex items-center gap-3">
             <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
@@ -89,7 +128,7 @@ import { t } from "@/i18n";
       </div>
 
       {/* Fortschritt (Polling) */}
-      <div class="mx-auto hidden max-w-2xl" data-dash-progress>
+      <div class:list={["mx-auto max-w-2xl", !ssrGenerating && "hidden"]} data-dash-progress>
         <div class="flex min-h-[40vh] flex-col items-center justify-center gap-4 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
           <span class="dash-spinner" aria-hidden="true"></span>
           <p class="text-sm font-medium text-muted-foreground" data-dash-progress-text aria-live="polite">
@@ -99,26 +138,29 @@ import { t } from "@/i18n";
       </div>
 
       {/* Fehlschlag */}
-      <div class="mx-auto hidden max-w-2xl" data-dash-failed>
+      <div class:list={["mx-auto max-w-2xl", !ssrFailed && "hidden"]} data-dash-failed>
         <div class="rounded-lg border border-border bg-card p-6 text-center shadow-sm sm:p-8">
           <h2 class="text-lg font-semibold">{t("dash.failedTitle")}</h2>
-          <p class="mt-2 text-sm text-muted-foreground" data-dash-failed-text></p>
+          <p class="mt-2 text-sm text-muted-foreground" data-dash-failed-text>{ssrFailed ? (ssrDashboard?.Error ?? "") : ""}</p>
           <p class="mt-4 text-sm text-muted-foreground">{t("dash.retryHint")}</p>
         </div>
       </div>
 
       {/* Die gerenderte Übersicht */}
-      <div class="hidden" data-dash-view>
+      <div class:list={[!(ssrShowView || ssrFailed) && "hidden"]} data-dash-view>
         <header class="mb-5">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
-              <h2 class="text-xl font-bold sm:text-2xl" data-dash-title></h2>
-              <p class="mt-1 hidden text-sm text-muted-foreground" data-dash-intro></p>
+              <h2 class="text-xl font-bold sm:text-2xl" data-dash-title>{ssrDashboard?.Title ?? ""}</h2>
+              <p class:list={["mt-1 text-sm text-muted-foreground", !ssrIntro && "hidden"]} data-dash-intro>{ssrIntro ?? ""}</p>
             </div>
             <div class="flex shrink-0 items-center gap-1.5">
               <button
                 type="button"
-                class="hidden min-h-9 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                class:list={[
+                  ssrShowView && ssrDashboard?.CanRevert ? "inline-flex" : "hidden",
+                  "min-h-9 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+                ]}
                 data-dash-revert
                 title={t("dash.revert")}
               >
@@ -161,12 +203,21 @@ import { t } from "@/i18n";
         </header>
 
         {/* Nicht erfüllbare Wünsche — ehrlich statt erfunden */}
-        <div class="mb-5 hidden rounded-md border border-border bg-muted px-4 py-3 text-sm" data-dash-unsupported>
+        <div
+          class:list={["mb-5 rounded-md border border-border bg-muted px-4 py-3 text-sm", ssrWishes.length === 0 && "hidden"]}
+          data-dash-unsupported
+        >
           <p class="font-medium">{t("dash.unsupportedTitle")}</p>
-          <ul class="mt-1 list-inside list-disc text-muted-foreground" data-dash-unsupported-list></ul>
+          <ul class="mt-1 list-inside list-disc text-muted-foreground" data-dash-unsupported-list>
+            {ssrWishes.map((wish) => <li>{wish}</li>)}
+          </ul>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-12" data-dash-grid></div>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-12" data-dash-grid>
+          {ssrShowView && ssrDashboard?.Definition && ssr?.Widgets && (
+            <DashboardSsr definition={ssrDashboard.Definition} widgets={ssr.Widgets} />
+          )}
+        </div>
 
         {/* Verfeinerungs-Zeile ("Wunsch an die KI") */}
         <div class="mt-6 rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -200,6 +251,9 @@ import { t } from "@/i18n";
       </div>
 
       <p class="mx-auto mt-6 hidden max-w-2xl rounded-md border border-border bg-muted px-4 py-3 text-center text-sm font-medium" data-dash-global-error></p>
+
+      {/* SSR-Zustand fuers Island: uebernimmt statt neu zu fetchen (jsonForScriptTag escapet gegen Stored-XSS) */}
+      {ssr && <script is:inline type="application/json" data-dash-ssr-state set:html={jsonForScriptTag(ssr)} />}
     </section>
   </AuthGate>
 </div>
@@ -1104,9 +1158,76 @@ import { t } from "@/i18n";
 
     // ---------- Boot ----------
 
+    /**
+     * SSR-Erstauslieferung uebernehmen: Liste/aktive Uebersicht kommen bereits
+     * fertig gerendert vom Server - nichts neu fetchen oder rendern, nur die
+     * Interaktivitaet anbinden und die Karten-Widgets initialisieren.
+     */
+    async function adoptSsrState(state: {
+      Summaries: DashboardSummary[];
+      Dashboard: DashboardResponse | null;
+      Widgets: WidgetData[] | null;
+    }) {
+      summaries = state.Summaries ?? [];
+      if (!state.Dashboard) {
+        renderTabs();
+        showPanel("create");
+        return;
+      }
+
+      activeId = state.Dashboard.Id;
+      current = state.Dashboard;
+      renderTabs();
+      syncUrl();
+
+      const status = normalizeStatus(state.Dashboard.Status);
+      if (status === "finished" && state.Widgets && state.Dashboard.Definition) {
+        renderHeader(state.Dashboard);
+        showPanel("view");
+        initSsrMaps();
+        return;
+      }
+
+      // Queued/InProgress/Failed: der normale Client-Pfad uebernimmt (Polling/Fehlerbild)
+      await loadDashboard();
+    }
+
+    function initSsrMaps() {
+      grid.querySelectorAll<HTMLElement>("[data-dash-ssr-map]").forEach((container) => {
+        const pinsEl = container.querySelector("script[data-dash-ssr-pins]");
+        let pins: NonNullable<WidgetData["Map"]>["Pins"] = [];
+        try {
+          pins = JSON.parse(pinsEl?.textContent ?? "[]");
+        } catch {
+          pins = [];
+        }
+        pinsEl?.remove();
+        if (pins.length > 0) void initMap(container, pins);
+      });
+    }
+
+    function readSsrState() {
+      const stateEl = document.querySelector("script[data-dash-ssr-state]");
+      if (!stateEl?.textContent) return null;
+      try {
+        return JSON.parse(stateEl.textContent) as {
+          Summaries: DashboardSummary[];
+          Dashboard: DashboardResponse | null;
+          Widgets: WidgetData[] | null;
+        };
+      } catch {
+        return null;
+      }
+    }
+
     if (readAccessToken()) {
       const preferredId = new URL(window.location.href).searchParams.get("id");
-      void loadList(preferredId).catch((error: Error) => showGlobalError(error.message));
+      const ssrState = readSsrState();
+      if (ssrState) {
+        void adoptSsrState(ssrState).catch((error: Error) => showGlobalError(error.message));
+      } else {
+        void loadList(preferredId).catch((error: Error) => showGlobalError(error.message));
+      }
     }
   }
 </script>

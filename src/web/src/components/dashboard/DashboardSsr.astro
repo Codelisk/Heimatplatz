@@ -1,0 +1,201 @@
+---
+/**
+ * SSR-Renderer der Widgets für die Erstauslieferung von /meine-uebersicht/:
+ * malt exakt dieselben Strukturen wie die <template>-Klone in DashboardApp,
+ * nur bereits serverseitig mit Daten gefüllt — die Seite kommt fertig beim
+ * Browser an. Nach der ersten Interaktion (Anpassen/Wechseln) übernimmt das
+ * Client-Rendering; Änderungen an Markup/Klassen müssen daher IMMER in beiden
+ * Pfaden passieren (Templates in DashboardApp + hier).
+ *
+ * Grid-Karten kommen von der echten ApiPropertyCard (identisch zur Startseite,
+ * inklusive Favoriten-/Blockieren-Buttons); die Karten-Widgets bekommen ihre
+ * Pins als eingebettetes JSON und werden vom Island initialisiert.
+ */
+import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
+import type { ApiProperty } from "@/features/properties/live-api";
+import {
+  formatDashboardPrice,
+  normalizePropertyType,
+  sizeToSpanClass,
+  type ApiPropertyItem,
+  type DashboardDefinition,
+  type WidgetData,
+} from "@/features/dashboard/spec";
+import { jsonForScriptTag } from "@/lib/utils/json";
+import { t } from "@/i18n";
+
+interface Props {
+  definition: DashboardDefinition;
+  widgets: WidgetData[];
+}
+
+const { definition, widgets } = Astro.props;
+const dataById = new Map(widgets.map((item) => [item.WidgetId, item]));
+
+const detailHref = (item: ApiPropertyItem) => `/immobilien/angebote/${encodeURIComponent(item.Id)}/`;
+const locationLine = (item: ApiPropertyItem) => [item.PostalCode, item.City].filter(Boolean).join(" ");
+const areaOf = (item: ApiPropertyItem) => item.LivingAreaM2 ?? item.PlotAreaM2;
+const metaLine = (item: ApiPropertyItem) =>
+  [areaOf(item) ? `${areaOf(item)} m²` : null, item.Rooms ? `${item.Rooms} Zimmer` : null, item.SellerName?.trim() || null]
+    .filter(Boolean)
+    .join(" · ");
+const badge = (item: ApiPropertyItem) => {
+  const type = normalizePropertyType(item.Type);
+  return {
+    text: type === "land" ? "Grundstück" : type === "foreclosure" ? "Zwangsversteigerung" : "Haus",
+    class:
+      type === "foreclosure"
+        ? "bg-brand text-brand-foreground"
+        : type === "land"
+          ? "bg-type-grund text-white"
+          : "bg-type-haus text-white",
+  };
+};
+---
+
+{
+  definition.Widgets.map((widget) => {
+    const data = dataById.get(widget.Id);
+    const failed = !data || !data.Success;
+    const items = data?.PropertyList?.Properties ?? [];
+    const variant = widget.Kind === "new-listings" ? "list" : (widget.Options?.Variant ?? "grid");
+    return (
+      <article
+        class:list={["min-w-0 rounded-lg border border-border bg-card shadow-sm", sizeToSpanClass(widget.Size)]}
+        data-dash-widget={widget.Kind}
+      >
+        {widget.Title && <h3 class="border-b border-border px-4 py-3 text-sm font-semibold">{widget.Title}</h3>}
+        <div class="p-4" data-w-body>
+          {failed ? (
+            <p class="py-6 text-center text-sm text-muted-foreground">{data?.Error || t("dash.widgetError")}</p>
+          ) : widget.Kind === "stat-row" ? (
+            <dl class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+              {(data!.StatRow?.Tiles ?? []).map((tile) => (
+                <div class="rounded-md border border-border bg-background px-4 py-3" data-dash-tile={tile.Key}>
+                  <dt class="text-xs font-medium text-muted-foreground">{tile.Label}</dt>
+                  <dd class="mt-1 text-xl font-bold">{tile.Value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : widget.Kind === "text-note" ? (
+            <p class="text-sm leading-relaxed text-muted-foreground">{data!.TextNote?.Text ?? ""}</p>
+          ) : widget.Kind === "price-chart" ? (
+            data!.Chart ? (
+              <figure class="m-0">
+                <img class="dash-chart-light w-full" src={data!.Chart.ImageLight} alt={data!.Chart.AltText} />
+                <img class="dash-chart-dark w-full" src={data!.Chart.ImageDark} alt={data!.Chart.AltText} />
+                {data!.Chart.Caption && (
+                  <figcaption class="mt-1 text-xs text-muted-foreground">{data!.Chart.Caption}</figcaption>
+                )}
+              </figure>
+            ) : (
+              <p class="py-6 text-center text-sm text-muted-foreground">{t("dash.widgetEmpty")}</p>
+            )
+          ) : widget.Kind === "map" ? (
+            <div>
+              <div class="h-80 overflow-hidden rounded-md border border-border bg-muted" data-w-map data-dash-ssr-map>
+                <script
+                  is:inline
+                  type="application/json"
+                  data-dash-ssr-pins
+                  set:html={jsonForScriptTag(data!.Map?.Pins ?? [])}
+                />
+              </div>
+              <p class="mt-2 text-xs text-muted-foreground">
+                {(data!.Map?.Pins?.length ?? 0) > 0
+                  ? t("dash.mapTotal", { count: data!.Map?.Total ?? 0 })
+                  : t("dash.mapNone")}
+              </p>
+            </div>
+          ) : items.length === 0 ? (
+            <p class="py-6 text-center text-sm text-muted-foreground">{t("dash.widgetEmpty")}</p>
+          ) : widget.Kind === "highlight" ? (
+            <a class="group flex flex-col gap-0 overflow-hidden sm:flex-row" href={detailHref(items[0])}>
+              <span class="relative block h-48 shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-72">
+                <img
+                  class="h-full w-full object-cover"
+                  src={items[0].ImageUrls?.[0] || "/kein-foto.svg"}
+                  alt={items[0].Title}
+                  loading="lazy"
+                  decoding="async"
+                  data-fallback-image="/kein-foto.svg"
+                />
+                <span class:list={["absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold", badge(items[0]).class]}>
+                  {badge(items[0]).text}
+                </span>
+              </span>
+              <span class="flex min-w-0 flex-1 flex-col justify-center gap-1 p-4">
+                <span class="text-lg font-semibold group-hover:underline">{items[0].Title}</span>
+                <span class="text-sm text-muted-foreground">{locationLine(items[0])}</span>
+                <span class="mt-1 text-2xl font-bold text-price">{formatDashboardPrice(items[0].Price)}</span>
+                <span class="mt-1 text-xs text-muted-foreground">{metaLine(items[0])}</span>
+              </span>
+            </a>
+          ) : variant === "grid" ? (
+            <div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                {items.map((item) => (
+                  <ApiPropertyCard property={item as unknown as ApiProperty} />
+                ))}
+              </div>
+              {(data!.PropertyList?.Total ?? 0) > items.length && (
+                <p class="mt-3 text-xs text-muted-foreground">
+                  {t("dash.listTotal", { count: data!.PropertyList?.Total ?? 0 })}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div>
+              <div class="flex flex-col gap-2">
+                {items.map((item) =>
+                  variant === "minimal" ? (
+                    <a
+                      class="flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
+                      href={detailHref(item)}
+                    >
+                      <span class="min-w-0 flex-1">
+                        <span class="truncate text-sm font-medium">{item.Title}</span>
+                        <span class="ml-2 text-xs text-muted-foreground">{locationLine(item)}</span>
+                      </span>
+                      <span class="flex shrink-0 items-baseline gap-2">
+                        {areaOf(item) && <span class="text-xs text-muted-foreground">{areaOf(item)} m²</span>}
+                        <span class="text-sm font-bold text-price">{formatDashboardPrice(item.Price)}</span>
+                      </span>
+                    </a>
+                  ) : (
+                    <a
+                      class="group flex items-center gap-3 rounded-md border border-border bg-background p-2 transition-colors hover:bg-accent"
+                      href={detailHref(item)}
+                    >
+                      <img
+                        class="h-14 w-20 shrink-0 rounded object-cover"
+                        src={item.ImageUrls?.[0] || "/kein-foto.svg"}
+                        alt={item.Title}
+                        loading="lazy"
+                        decoding="async"
+                        data-fallback-image="/kein-foto.svg"
+                      />
+                      <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm font-semibold">{item.Title}</span>
+                        <span class="block truncate text-xs text-muted-foreground">{locationLine(item)}</span>
+                      </span>
+                      <span class="shrink-0 text-right">
+                        <span class="block text-sm font-bold text-price">{formatDashboardPrice(item.Price)}</span>
+                        {areaOf(item) && <span class="block text-xs text-muted-foreground">{areaOf(item)} m²</span>}
+                      </span>
+                    </a>
+                  ),
+                )}
+              </div>
+              {(data!.PropertyList?.Total ?? 0) > items.length && (
+                <p class="mt-3 text-xs text-muted-foreground">
+                  {t("dash.listTotal", { count: data!.PropertyList?.Total ?? 0 })}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </article>
+    );
+  })
+}
