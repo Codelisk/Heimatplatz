@@ -148,6 +148,23 @@ public static class PropertyQueryMapper
             IncludeNewBuildProjects: query.IncludeNewBuild
         );
 
+    /// <summary>Wie ToGetPropertiesRequest, aber fuer die Diagramm-Rohwerte (price-chart).</summary>
+    public static GetPropertyChartDataRequest ToGetPropertyChartDataRequest(DashboardPropertyQuery query) =>
+        new(
+            PropertyTypesJson: SerializeEnums(MapTypes(query.Types)),
+            SellerTypesJson: SerializeEnums(MapSellers(query.Sellers)),
+            MunicipalityIdsJson: SerializeGuids(query.MunicipalityIds),
+            CreatedAfter: null,
+            PriceMin: query.PriceMin,
+            PriceMax: query.PriceMax,
+            AreaMin: query.AreaMin,
+            AreaMax: query.AreaMax,
+            RoomsMin: query.RoomsMin,
+            ExcludedSellerSourceIdsJson: null,
+            SearchText: query.SearchText,
+            IncludeNewBuildProjects: query.IncludeNewBuild
+        );
+
     /// <summary>Wie ToGetPropertiesRequest, aber fuer die Karten-Pins.</summary>
     public static GetPropertyMapPinsRequest ToGetPropertyMapPinsRequest(DashboardPropertyQuery query) =>
         new(

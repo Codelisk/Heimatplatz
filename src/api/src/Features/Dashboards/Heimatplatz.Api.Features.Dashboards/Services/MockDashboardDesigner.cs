@@ -68,13 +68,20 @@ public class MockDashboardDesigner(
             },
             new DashboardWidget
             {
-                Id = "w5", Kind = DashboardWidgetKinds.Highlight, Size = DashboardWidgetSizes.Full,
+                Id = "w5", Kind = DashboardWidgetKinds.PriceChart, Size = DashboardWidgetSizes.M,
+                Title = "Preisverteilung",
+                Query = new DashboardPropertyQuery(),
+                Options = new DashboardWidgetOptions { Chart = "priceHistogram" }
+            },
+            new DashboardWidget
+            {
+                Id = "w6", Kind = DashboardWidgetKinds.Highlight, Size = DashboardWidgetSizes.Full,
                 Title = "Günstigstes Angebot",
                 Query = new DashboardPropertyQuery { Sort = "price-asc" }
             },
             new DashboardWidget
             {
-                Id = "w6", Kind = DashboardWidgetKinds.TextNote, Size = DashboardWidgetSizes.Full,
+                Id = "w7", Kind = DashboardWidgetKinds.TextNote, Size = DashboardWidgetSizes.Full,
                 Options = new DashboardWidgetOptions
                 {
                     Text = "Diese Übersicht wurde im Mock-Modus ohne KI erstellt. " +

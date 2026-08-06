@@ -114,6 +114,9 @@ public class DashboardWidgetOptions
 
     /// <summary>text-note: der statische Text (steht in der Definition, keine Live-Daten)</summary>
     public string? Text { get; set; }
+
+    /// <summary>price-chart: "priceHistogram" (Preisverteilung) | "newPerWeek" (Neuzugaenge pro Woche)</summary>
+    public string? Chart { get; set; }
 }
 
 /// <summary>Widget-Arten des Katalogs v1. Neue Arten = neuer Resolver im Dashboards-Feature + Renderer je Frontend.</summary>
@@ -125,6 +128,7 @@ public static class DashboardWidgetKinds
     public const string Highlight = "highlight";
     public const string NewListings = "new-listings";
     public const string TextNote = "text-note";
+    public const string PriceChart = "price-chart";
 }
 
 /// <summary>Semantische Widget-Groessen; Web mappt auf 12-Spalten-Grid (s=4, m=6, l=8, full=12), Mobil/Phone stapelt</summary>

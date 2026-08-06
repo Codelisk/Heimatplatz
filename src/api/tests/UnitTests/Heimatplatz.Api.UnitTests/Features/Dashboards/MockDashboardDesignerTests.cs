@@ -34,6 +34,7 @@ public class MockDashboardDesignerTests
             new MapWidgetResolver(mediator, opts),
             new HighlightWidgetResolver(mediator, opts),
             new NewListingsWidgetResolver(mediator, opts),
+            new PriceChartWidgetResolver(mediator, new Heimatplatz.Api.Features.Dashboards.Services.Charts.DashboardChartRenderer(), opts),
             new TextNoteWidgetResolver()
         ];
         return new DashboardDefinitionValidator(
@@ -48,13 +49,14 @@ public class MockDashboardDesignerTests
         var validated = await CreateValidator().ValidateAsync(
             DashboardOutputParser.Parse(raw), CancellationToken.None);
 
-        validated.Widgets.Should().HaveCount(6, "die Beispiel-Definition deckt alle Katalog-Widgets ab");
+        validated.Widgets.Should().HaveCount(7, "die Beispiel-Definition deckt alle Katalog-Widgets ab");
         validated.Widgets.Select(w => w.Kind).Should().BeEquivalentTo(
         [
             DashboardWidgetKinds.StatRow,
             DashboardWidgetKinds.PropertyList,
             DashboardWidgetKinds.Map,
             DashboardWidgetKinds.NewListings,
+            DashboardWidgetKinds.PriceChart,
             DashboardWidgetKinds.Highlight,
             DashboardWidgetKinds.TextNote
         ]);

@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardWidgetResolver, MapWidgetResolver>();
         services.AddScoped<IDashboardWidgetResolver, HighlightWidgetResolver>();
         services.AddScoped<IDashboardWidgetResolver, NewListingsWidgetResolver>();
+        services.AddScoped<IDashboardWidgetResolver, PriceChartWidgetResolver>();
         services.AddScoped<IDashboardWidgetResolver, TextNoteWidgetResolver>();
 
         // KI-Provider je nach Konfiguration (Mock = Dev-Beispieldefinition ohne KI,

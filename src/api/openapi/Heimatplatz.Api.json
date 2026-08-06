@@ -1346,6 +1346,138 @@
         }
       }
     },
+    "/api/properties/chart-data": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPropertyChartData",
+        "parameters": [
+          {
+            "name": "PropertyTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SellerTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MunicipalityIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CreatedAfter",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "PriceMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "PriceMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "AreaMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "AreaMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "RoomsMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "ExcludedSellerSourceIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SearchText",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "IncludeNewBuildProjects",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertyChartDataResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/properties/map-pins": {
       "get": {
         "tags": [
@@ -5035,6 +5167,36 @@
           }
         }
       },
+      "ChartWidgetData": {
+        "required": [
+          "ChartKind",
+          "ImageLight",
+          "ImageDark",
+          "AltText",
+          "Caption"
+        ],
+        "type": "object",
+        "properties": {
+          "ChartKind": {
+            "type": "string"
+          },
+          "ImageLight": {
+            "type": "string"
+          },
+          "ImageDark": {
+            "type": "string"
+          },
+          "AltText": {
+            "type": "string"
+          },
+          "Caption": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "CheckMarketingReplyRequest": {
         "required": [
           "InboundEmailId",
@@ -5725,6 +5887,12 @@
             }
           },
           "Text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Chart": {
             "type": [
               "null",
               "string"
@@ -8012,6 +8180,46 @@
             "items": {
               "$ref": "#/components/schemas/PropertyChangeDto"
             }
+          }
+        }
+      },
+      "GetPropertyChartDataResponse": {
+        "required": [
+          "Total",
+          "Prices",
+          "CreatedAtUtc",
+          "Truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Prices": {
+            "type": "array",
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          "CreatedAtUtc": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "Truncated": {
+            "type": "boolean"
           }
         }
       },
@@ -13680,6 +13888,16 @@
               },
               {
                 "$ref": "#/components/schemas/TextNoteWidgetData"
+              }
+            ]
+          },
+          "Chart": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChartWidgetData"
               }
             ]
           }

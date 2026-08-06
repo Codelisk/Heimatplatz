@@ -70,6 +70,13 @@ export interface WidgetData {
   StatRow?: { Tiles: { Key: string; Label: string; Value: string }[] } | null;
   Map?: { Pins: MapPin[]; Total: number; WithoutCoordinates: number; Truncated: boolean } | null;
   TextNote?: { Text: string } | null;
+  Chart?: {
+    ChartKind: string;
+    ImageLight: string;
+    ImageDark: string;
+    AltText: string;
+    Caption: string | null;
+  } | null;
 }
 
 /** Reduzierte Sicht auf PropertyListItemDto — nur die von den Widgets gerenderten Felder */

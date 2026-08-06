@@ -306,6 +306,14 @@ import { t } from "@/i18n";
   <p class="text-sm leading-relaxed text-muted-foreground" data-w-text></p>
 </template>
 
+<template data-dash-tpl="price-chart">
+  <figure class="m-0">
+    <img class="dash-chart-light w-full" alt="" data-chart-light />
+    <img class="dash-chart-dark w-full" alt="" data-chart-dark />
+    <figcaption class="mt-1 text-xs text-muted-foreground" data-chart-caption></figcaption>
+  </figure>
+</template>
+
 <template data-dash-tpl="widget-error">
   <p class="py-6 text-center text-sm text-muted-foreground" data-w-error></p>
 </template>
@@ -330,6 +338,14 @@ import { t } from "@/i18n";
   @media (prefers-reduced-motion: reduce) {
     .dash-spinner { animation-duration: 2.5s; }
   }
+</style>
+
+<style is:global>
+  /* Server-gerenderte Diagramme: je Theme die passende Bildvariante zeigen.
+     Global, weil die html.dark-Klasse ausserhalb des Komponenten-Scopes lebt. */
+  .dash-chart-dark { display: none; }
+  .dark .dash-chart-light { display: none; }
+  .dark .dash-chart-dark { display: block; }
 </style>
 
 <script>
@@ -670,6 +686,8 @@ import { t } from "@/i18n";
           return renderMap(data);
         case "text-note":
           return renderTextNote(data);
+        case "price-chart":
+          return renderChart(data);
         default: {
           // Tolerant-Reader: unbekanntes Kind still überspringen
           const empty = document.createElement("div");
@@ -728,6 +746,22 @@ import { t } from "@/i18n";
       const host = note.matches("[data-w-text]") ? note : note.querySelector<HTMLElement>("[data-w-text]")!;
       host.textContent = data.TextNote?.Text ?? "";
       return note;
+    }
+
+    function renderChart(data: WidgetData): HTMLElement {
+      const chart = data.Chart;
+      if (!chart) return emptyNote();
+      const figure = clone("price-chart");
+      const light = figure.querySelector<HTMLImageElement>("[data-chart-light]")!;
+      const darkImg = figure.querySelector<HTMLImageElement>("[data-chart-dark]")!;
+      light.src = chart.ImageLight;
+      light.alt = chart.AltText;
+      darkImg.src = chart.ImageDark;
+      darkImg.alt = chart.AltText;
+      const caption = figure.querySelector<HTMLElement>("[data-chart-caption]")!;
+      if (chart.Caption) caption.textContent = chart.Caption;
+      else caption.remove();
+      return figure;
     }
 
     function emptyNote(): HTMLElement {

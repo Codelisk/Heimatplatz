@@ -20,7 +20,8 @@ public record WidgetDataDto(
     PropertyListWidgetData? PropertyList = null,
     StatRowWidgetData? StatRow = null,
     MapWidgetData? Map = null,
-    TextNoteWidgetData? TextNote = null
+    TextNoteWidgetData? TextNote = null,
+    ChartWidgetData? Chart = null
 );
 
 /// <summary>Trefferliste (property-list, highlight, new-listings). Total = Treffer der Filterung insgesamt.</summary>
@@ -52,4 +53,21 @@ public record MapWidgetData(
 /// <summary>Statischer KI-Text (text-note) - steht in der Definition, hier nur durchgereicht.</summary>
 public record TextNoteWidgetData(
     string Text
+);
+
+/// <summary>
+/// Server-gerendertes Diagramm (price-chart): die API malt das Bild per SkiaSharp,
+/// die Frontends zeigen nur ein Bild an - null Client-Bundle, in Web und MAUI
+/// identisch. Beide Theme-Varianten als data:-URIs (kein zweiter Request, keine
+/// Auth-Probleme mit img-Tags); der Client blendet passend zum Theme um.
+/// </summary>
+/// <param name="ChartKind">Diagramm-Art aus den Widget-Options ("priceHistogram" | "newPerWeek")</param>
+/// <param name="AltText">Barrierefreie Kurzbeschreibung des Diagramminhalts</param>
+/// <param name="Caption">Optionale Bildunterschrift (z.B. Datenbasis)</param>
+public record ChartWidgetData(
+    string ChartKind,
+    string ImageLight,
+    string ImageDark,
+    string AltText,
+    string? Caption
 );

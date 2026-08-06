@@ -28,9 +28,16 @@
   <ItemGroup>
     <PackageReference Include="Shiny.Mediator" />
     <PackageReference Include="Shiny.Mediator.AspNet" />
+    <!-- Server-gerenderte Diagramme (price-chart-Widget); Linux-Natives kommen vom Host-Projekt -->
+    <PackageReference Include="SkiaSharp" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <!-- Generierungs-Hintergrund-Job (MapTicker-Registrierung + ITimeTickerManager) -->
     <PackageReference Include="TickerQ" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Diagramm-Schrift (Roboto, Apache License 2.0) - die Linux-Container haben keine Systemschriften -->
+    <EmbeddedResource Include="Resources\Roboto-Regular.ttf" />
   </ItemGroup>
 
 </Project>
