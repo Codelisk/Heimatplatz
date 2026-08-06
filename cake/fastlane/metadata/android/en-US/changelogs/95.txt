@@ -1,0 +1,5 @@
+• New: show or hide new-build projects with a filter of their own
+• Notifications: a dedicated switch for new-build projects
+• Long descriptions start folded – “Read more” with reading time opens the full text
+• Search now also matches the provider name
+• Reworked design for tablets and large screens

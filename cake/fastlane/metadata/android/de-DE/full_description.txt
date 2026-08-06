@@ -1,13 +1,13 @@
 Heimatplatz ist deine Immobilienplattform für Oberösterreich. Finde Häuser, Grundstücke und Zwangsversteigerungen – übersichtlich, schnell und ohne Umwege.
 
 IMMOBILIEN ENTDECKEN
-Durchsuche aktuelle Angebote aus ganz Oberösterreich. Filtere nach Immobilientyp, Zeitraum und Ort – wahlweise einzelne Gemeinden oder gleich ganze Bezirke. Sortiere nach Preis, Fläche oder Aktualität – und finde genau das, was zu dir passt. Deine Filter merkt sich Heimatplatz automatisch.
+Durchsuche aktuelle Angebote aus ganz Oberösterreich. Filtere nach Immobilientyp, Zeitraum und Ort – wahlweise einzelne Gemeinden oder ganze Bezirke. Sortiere nach Preis, Fläche oder Aktualität – und finde, was zu dir passt. Deine Filter merkt sich Heimatplatz automatisch.
 
 KARTENANSICHT
-Sieh dir deine Suche als Karte an: Bezirks-Stempel zeigen auf einen Blick, wo wie viele Objekte liegen – ein Tipp darauf zoomt direkt in den Bezirk. Zoom hinein, und aus den Stempeln werden Preis-Schilder direkt an der Lage. Ein Tipp darauf öffnet den Mini-Zettel mit Foto und Eckdaten – von dort geht es in einem Schritt ins vollständige Inserat. Deine Filter aus der Liste gelten auf der Karte genauso. Und jedes Inserat hat unter „Lage & Umgebung“ seine eigene Karte.
+Sieh dir deine Suche als Karte an: Bezirks-Stempel zeigen, wo wie viele Objekte liegen – ein Tipp darauf zoomt direkt in den Bezirk. Zoom hinein, und aus den Stempeln werden Preis-Schilder direkt an der Lage. Ein Tipp darauf öffnet den Mini-Zettel mit Foto und Eckdaten – von dort geht's direkt ins vollständige Inserat. Deine Filter gelten auf der Karte genauso. Und jedes Inserat hat unter „Lage & Umgebung“ seine eigene Karte.
 
 ZWANGSVERSTEIGERUNGEN
-Auf Wunsch zeigt dir Heimatplatz aktuelle Versteigerungen aus der österreichischen Ediktsdatei – einfach im Filter zuschalten. Mit Schätzwert, Mindestgebot, Versteigerungstermin, den eingetragenen Lasten und Gerichtsinformationen hast du alle Details auf einen Blick. Schon in der Liste siehst du, wie viele Tage bis zur Versteigerung bleiben.
+Auf Wunsch zeigt dir Heimatplatz aktuelle Versteigerungen aus der österreichischen Ediktsdatei – einfach im Filter zuschalten. Mit Schätzwert, Mindestgebot, Versteigerungstermin, Lasten und Gerichtsinformationen hast du alle Details auf einen Blick. Schon in der Liste siehst du, wie viele Tage bis zur Versteigerung bleiben.
 
 PRIVAT ODER MAKLER
 Entscheide selbst: Filtere gezielt nach privaten Inseraten oder Angeboten von Maklern und Verwaltungen. Heimatplatz zeigt dir transparent, wer hinter jedem Inserat steht.
@@ -16,18 +16,19 @@ FAVORITEN & BENACHRICHTIGUNGEN
 Speichere interessante Objekte als Favoriten. Aktiviere Push-Benachrichtigungen für deine Wunschorte und werde sofort informiert, wenn neue Immobilien online gehen.
 
 SELBST INSERIEREN – ALLES AUF EINER SEITE
-Du möchtest verkaufen? Du gestaltest dein Inserat direkt in der Ansicht, in der es später erscheint: Fotos, Eckdaten, Lage und Preis, Beschreibung – alles auf einer Seite. Dein Entwurf wird automatisch gespeichert – du kannst jederzeit unterbrechen und später weitermachen. Bei der Beschreibung hilft dir auf Wunsch die KI: Tippe ein paar Stichwörter oder sprich sie einfach ein – du prüfst den fertigen Text, passt ihn an und veröffentlichst. Deine Fotos bleiben dabei in voller Originalqualität erhalten. Du entscheidest selbst, wie genau dein Objekt auf der Karte erscheint: punktgenau, nur ungefähr im Umkreis oder gar nicht – mit Live-Vorschau. Auf Wunsch gibst du einen eigenen Ansprechpartner mit Kontaktdaten für dein Inserat an. Verwalte deine Anzeigen bequem in deinem persönlichen Bereich.
+Du möchtest verkaufen? Du gestaltest dein Inserat direkt in der Ansicht, in der es später erscheint: Fotos, Eckdaten, Lage und Preis, Beschreibung – alles auf einer Seite. Dein Entwurf wird automatisch gespeichert – unterbrich jederzeit und mach später weiter. Bei der Beschreibung hilft dir auf Wunsch die KI: Tippe ein paar Stichwörter oder sprich sie ein – du prüfst den fertigen Text, passt ihn an und veröffentlichst. Deine Fotos bleiben in voller Originalqualität erhalten. Du entscheidest selbst, wie genau dein Objekt auf der Karte erscheint: punktgenau, nur ungefähr im Umkreis oder gar nicht – mit Live-Vorschau. Auf Wunsch nennst du einen eigenen Ansprechpartner mit Kontaktdaten. Verwalte deine Anzeigen in deinem persönlichen Bereich.
 
 DIREKTER DRAHT ZUM TEAM
-Fragen, Ideen oder ein Problem? Melde dich direkt aus der App bei unserem Team – per Text, mit Fotos oder einfach als Sprachnachricht. Die Antwort bekommst du direkt in der App und wirst benachrichtigt, sobald sie da ist.
+Fragen, Ideen oder ein Problem? Melde dich direkt aus der App bei unserem Team – per Text, mit Fotos oder als Sprachnachricht. Die Antwort bekommst du direkt in der App und wirst benachrichtigt, sobald sie da ist.
 
 DATENSCHUTZ
-Heimatplatz setzt auf Datensparsamkeit. Du kannst anonym stöbern, ohne ein Konto zu erstellen. Deine Daten gehören dir.
+Heimatplatz setzt auf Datensparsamkeit. Stöbere anonym, ganz ohne Konto. Deine Daten gehören dir.
 
 FUNKTIONEN IM ÜBERBLICK
 • Immobiliensuche mit umfangreichen Filtern
 • Ortsauswahl nach ganzen Bezirken oder einzelnen Gemeinden
 • Filter werden automatisch gemerkt
+• Neubauprojekte ein- oder ausblenden – auch bei Benachrichtigungen
 • Kartenansicht mit Bezirks-Stempeln und Preis-Schildern
 • Lage & Umgebung: eigene Karte in jedem Inserat
 • Zwangsversteigerungen mit Lasten, Gerichtsdaten und Termin-Countdown

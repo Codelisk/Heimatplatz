@@ -1,0 +1,5 @@
+• Neu: Neubauprojekte per Filter ein- oder ausblenden
+• Benachrichtigungen: eigener Schalter für Neubauprojekte
+• Lange Beschreibungen starten gefaltet – „Weiterlesen“ mit Lesezeit öffnet den ganzen Text
+• Suche findet jetzt auch den Anbieternamen
+• Überarbeitetes Design für Tablets und große Bildschirme
