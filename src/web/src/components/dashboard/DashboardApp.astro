@@ -170,7 +170,7 @@ import { t } from "@/i18n";
 
         {/* Verfeinerungs-Zeile ("Wunsch an die KI") */}
         <div class="mt-6 rounded-lg border border-border bg-card p-4 shadow-sm">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center" data-dash-refine-form>
             <div class="flex min-w-0 flex-1 items-center gap-2">
               <SparklesIcon class="size-5 shrink-0 text-primary" aria-hidden="true" />
               <input
@@ -188,6 +188,12 @@ import { t } from "@/i18n";
             >
               {t("dash.refineSubmit")}
             </button>
+          </div>
+          {/* Waehrend der Runde ersetzt dieser Zustand das Formular - genau dort,
+              wo der Nutzer gerade abgeschickt hat, sieht er den Fortschritt */}
+          <div class="hidden min-h-10 items-center gap-3" data-dash-refine-busy aria-live="polite">
+            <span class="dash-spinner dash-spinner-sm" aria-hidden="true"></span>
+            <p class="text-sm font-medium text-muted-foreground">{t("dash.progressRefine")}</p>
           </div>
           <p class="mt-2 hidden text-sm font-medium text-destructive" data-dash-refine-error></p>
         </div>
@@ -254,7 +260,10 @@ import { t } from "@/i18n";
       <span class="block truncate text-sm font-semibold" data-card-title></span>
       <span class="block truncate text-xs text-muted-foreground" data-card-location></span>
     </span>
-    <span class="shrink-0 text-sm font-bold text-price" data-card-price></span>
+    <span class="shrink-0 text-right">
+      <span class="block text-sm font-bold text-price" data-card-price></span>
+      <span class="block text-xs text-muted-foreground" data-card-area></span>
+    </span>
   </a>
 </template>
 
@@ -264,7 +273,10 @@ import { t } from "@/i18n";
       <span class="truncate text-sm font-medium" data-card-title></span>
       <span class="ml-2 text-xs text-muted-foreground" data-card-location></span>
     </span>
-    <span class="shrink-0 text-sm font-bold text-price" data-card-price></span>
+    <span class="flex shrink-0 items-baseline gap-2">
+      <span class="text-xs text-muted-foreground" data-card-area></span>
+      <span class="text-sm font-bold text-price" data-card-price></span>
+    </span>
   </a>
 </template>
 
@@ -306,6 +318,11 @@ import { t } from "@/i18n";
     border: 3px solid var(--color-border);
     border-top-color: var(--color-primary);
     animation: dash-spin 0.9s linear infinite;
+  }
+  .dash-spinner-sm {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-width: 2px;
   }
   @keyframes dash-spin {
     to { transform: rotate(360deg); }
@@ -359,6 +376,8 @@ import { t } from "@/i18n";
     const grid = q("[data-dash-grid]");
     const refineInput = q<HTMLInputElement>("[data-dash-refine-input]");
     const refineSubmit = q<HTMLButtonElement>("[data-dash-refine-submit]");
+    const refineForm = q("[data-dash-refine-form]");
+    const refineBusy = q("[data-dash-refine-busy]");
     const refineError = q("[data-dash-refine-error]");
     const revertButton = q<HTMLButtonElement>("[data-dash-revert]");
     const renameButton = q<HTMLButtonElement>("[data-dash-rename]");
@@ -545,11 +564,20 @@ import { t } from "@/i18n";
     }
 
     function setRefineBusy(value: boolean) {
+      // Deutlich sichtbar: Formular wird durch Spinner+Text ersetzt (genau dort,
+      // wo abgeschickt wurde), die alte Ansicht bleibt gedimmt stehen
+      refineForm.classList.toggle("hidden", value);
+      refineForm.classList.toggle("flex", !value);
+      refineBusy.classList.toggle("hidden", !value);
+      refineBusy.classList.toggle("flex", value);
+      grid.classList.toggle("opacity-60", value);
+      grid.classList.toggle("pointer-events-none", value);
       refineSubmit.disabled = value;
       refineInput.disabled = value;
-      revertButton.classList.toggle("opacity-50", value);
-      revertButton.disabled = value;
-      refineSubmit.textContent = value ? "…" : t("dash.refineSubmit");
+      for (const button of [revertButton, renameButton, deleteButton]) {
+        button.disabled = value;
+        button.classList.toggle("opacity-50", value);
+      }
     }
 
     // ---------- Rendern ----------
@@ -742,9 +770,13 @@ import { t } from "@/i18n";
       const price = card.querySelector<HTMLElement>("[data-card-price]");
       if (price) price.textContent = formatDashboardPrice(item.Price);
 
+      const area = item.LivingAreaM2 ?? item.PlotAreaM2;
+
+      const areaEl = card.querySelector<HTMLElement>("[data-card-area]");
+      if (areaEl) areaEl.textContent = area ? `${area} m²` : "";
+
       const meta = card.querySelector<HTMLElement>("[data-card-meta]");
       if (meta) {
-        const area = item.LivingAreaM2 ?? item.PlotAreaM2;
         meta.textContent = [
           area ? `${area} m²` : null,
           item.Rooms ? `${item.Rooms} Zimmer` : null,

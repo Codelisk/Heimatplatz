@@ -25,7 +25,8 @@ public class PropertyListWidgetResolver(
         Kind,
         "Trefferliste passender Inserate.",
         $"query wird unterstuetzt (limit 1-{options.Value.Limits.MaxListItems}, Default {DefaultLimit}). " +
-        "options.variant: \"grid\" (Foto-Karten), \"list\" (kompakte Zeilen), \"minimal\" (nur Titel/Preis/Ort).");
+        "options.variant: \"grid\" (grosse Foto-Karten), \"list\" (kompakte Zeilen MIT kleinem Foto), " +
+        "\"minimal\" (OHNE Fotos: Titel, Ort, Preis, Flaeche - fuer Wuensche wie \"ohne Bilder\").");
 
     public DashboardWidget? Sanitize(DashboardWidget widget, List<string> warnings)
     {
