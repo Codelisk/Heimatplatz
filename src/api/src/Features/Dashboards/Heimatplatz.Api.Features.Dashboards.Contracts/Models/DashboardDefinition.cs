@@ -24,11 +24,43 @@ public class DashboardDefinition
     public List<DashboardWidget> Widgets { get; set; } = [];
 
     /// <summary>
+    /// Personalisierte Detailansicht (Overlay beim Klick auf ein Inserat in der
+    /// Uebersicht): Sektions-Reihenfolge + Fakten-Felder nach Kundenwunsch.
+    /// null = Standard-Aufbau. Die oeffentliche Detailseite bleibt unberuehrt.
+    /// </summary>
+    public DashboardDetailSpec? Detail { get; set; }
+
+    /// <summary>
     /// Wuensche des Nutzers, die der Widget-Katalog (noch) nicht erfuellen kann.
     /// Werden dem Nutzer ehrlich angezeigt statt erfunden - und sind zugleich die
     /// Produkt-Roadmap aus echten Nutzerwuenschen.
     /// </summary>
     public List<string> UnsupportedWishes { get; set; } = [];
+}
+
+/// <summary>
+/// Aufbau der personalisierten Detail-Overlay. Sections bestimmen Reihenfolge
+/// und Auswahl der Bloecke, Fields die Fakten-Zeilen innerhalb von "facts"
+/// (Schluessel aus dem Feld-Katalog, serverseitig fail-closed bereinigt).
+/// </summary>
+public class DashboardDetailSpec
+{
+    /// <summary>Aus <see cref="DashboardDetailSections"/>; leer/null = Standard-Reihenfolge</summary>
+    public List<string>? Sections { get; set; }
+
+    /// <summary>Geordnete Feld-Schluessel fuer den Fakten-Block; leer/null = Standard-Felder</summary>
+    public List<string>? Fields { get; set; }
+}
+
+/// <summary>Bloecke der Detail-Overlay</summary>
+public static class DashboardDetailSections
+{
+    public const string Gallery = "gallery";
+    public const string Facts = "facts";
+    public const string Description = "description";
+    public const string Features = "features";
+    public const string Contact = "contact";
+    public const string Map = "map";
 }
 
 /// <summary>
@@ -106,8 +138,15 @@ public class DashboardPropertyQuery
 /// </summary>
 public class DashboardWidgetOptions
 {
-    /// <summary>property-list: "grid" | "list" | "minimal"</summary>
+    /// <summary>property-list: "grid" | "list" | "minimal" (Preset; fields uebersteuert die Feldauswahl)</summary>
     public string? Variant { get; set; }
+
+    /// <summary>
+    /// Listen-Widgets: geordnete Feld-Schluessel aus dem Feld-Katalog ("welche
+    /// Werte will der Kunde sehen") - z.B. ["foto","titel","ort","preis","wohnflaeche"].
+    /// leer/null = das Preset aus Variant bestimmt die Felder.
+    /// </summary>
+    public List<string>? Fields { get; set; }
 
     /// <summary>stat-row: Auswahl aus "total" | "newLast7Days" | "minPrice" | "medianPrice" | "maxPrice"</summary>
     public List<string>? Tiles { get; set; }

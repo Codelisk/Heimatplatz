@@ -23,7 +23,7 @@ public class NewListingsWidgetResolver(
         Kind,
         "Feed der Neuzugaenge der letzten 7 Tage (neueste zuerst).",
         $"query wird unterstuetzt (limit 1-{options.Value.Limits.MaxListItems}, Default {DefaultLimit}; " +
-        "sort ist fest newest, das Zeitfenster fest 7 Tage).");
+        "sort ist fest newest, das Zeitfenster fest 7 Tage). options.fields wie bei property-list.");
 
     public DashboardWidget? Sanitize(DashboardWidget widget, List<string> warnings)
     {
@@ -32,7 +32,9 @@ public class NewListingsWidgetResolver(
         widget.Query.Sort = "newest";
         widget.Size = WidgetSanitizeHelpers.NormalizeSize(widget.Size, DashboardWidgetSizes.M);
         widget.Title = WidgetSanitizeHelpers.NormalizeTitle(widget.Title);
-        widget.Options = null;
+
+        var fields = DashboardFieldCatalog.NormalizeFields(widget.Options?.Fields, forDetail: false, warnings);
+        widget.Options = fields is null ? null : new DashboardWidgetOptions { Fields = fields };
 
         return widget;
     }

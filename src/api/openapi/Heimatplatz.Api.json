@@ -5664,8 +5664,41 @@
               "$ref": "#/components/schemas/DashboardWidget"
             }
           },
+          "Detail": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DashboardDetailSpec"
+              }
+            ]
+          },
           "UnsupportedWishes": {
             "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DashboardDetailSpec": {
+        "type": "object",
+        "properties": {
+          "Sections": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "Fields": {
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string"
             }
@@ -5876,6 +5909,15 @@
               "null",
               "string"
             ]
+          },
+          "Fields": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           },
           "Tiles": {
             "type": [

@@ -18,6 +18,7 @@ import ArrowBackIcon from "@tabler/icons/outline/arrow-back-up.svg";
 import PencilIcon from "@tabler/icons/outline/pencil.svg";
 import TrashIcon from "@tabler/icons/outline/trash.svg";
 import PlusIcon from "@tabler/icons/outline/plus.svg";
+import XIcon from "@tabler/icons/outline/x.svg";
 import { normalizeStatus } from "@/features/dashboard/spec";
 import type { DashboardSsrState } from "@/features/dashboard/ssr-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
@@ -254,6 +255,35 @@ const tabClassInactive =
 
       {/* SSR-Zustand fuers Island: uebernimmt statt neu zu fetchen (jsonForScriptTag escapet gegen Stored-XSS) */}
       {ssr && <script is:inline type="application/json" data-dash-ssr-state set:html={jsonForScriptTag(ssr)} />}
+
+      {/* Personalisierte Detail-Overlay: Aufbau (Sektionen + Fakten-Felder) folgt
+          definition.Detail; die oeffentliche Detailseite bleibt unberuehrt und ist
+          unten verlinkt. Vor der Hydration navigieren Klicks ganz normal dorthin. */}
+      <div class="fixed inset-0 z-50 hidden" data-dash-detail>
+        <div class="absolute inset-0 bg-black/50" data-dash-detail-backdrop></div>
+        <aside
+          class="absolute inset-x-0 bottom-0 top-12 flex flex-col overflow-hidden rounded-t-xl border border-border bg-background shadow-2xl sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[600px] sm:rounded-none sm:border-y-0 sm:border-r-0"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("dash.detailAria")}
+        >
+          <div class="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <h3 class="min-w-0 truncate text-base font-semibold" data-dash-detail-title></h3>
+            <button
+              type="button"
+              class="grid size-9 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              data-dash-detail-close
+              aria-label={t("dash.detailClose")}
+            >
+              <XIcon class="size-4" aria-hidden="true" />
+            </button>
+          </div>
+          <div class="min-h-0 flex-1 overflow-y-auto p-4" data-dash-detail-body></div>
+          <div class="flex shrink-0 items-center justify-end border-t border-border px-4 py-3">
+            <a class="text-sm font-medium text-primary hover:underline" data-dash-detail-full>{t("dash.detailFullLink")}</a>
+          </div>
+        </aside>
+      </div>
     </section>
   </AuthGate>
 </div>
@@ -360,6 +390,28 @@ const tabClassInactive =
   <p class="text-sm leading-relaxed text-muted-foreground" data-w-text></p>
 </template>
 
+<template data-dash-tpl="property-row-fields">
+  <a class="group flex items-center gap-3 rounded-md border border-border bg-background p-2 transition-colors hover:bg-accent" data-card-link>
+    <img class="h-14 w-20 shrink-0 rounded object-cover" loading="lazy" decoding="async" alt="" data-card-image hidden />
+    <span class="min-w-0 flex-1">
+      <span class="block truncate text-sm font-semibold" data-card-line1></span>
+      <span class="block truncate text-xs text-muted-foreground" data-card-line2></span>
+    </span>
+    <span class="shrink-0 text-sm font-bold text-price" data-card-price hidden></span>
+  </a>
+</template>
+
+<template data-dash-tpl="detail-fact">
+  <div class="flex items-baseline justify-between gap-4 border-b border-border/60 py-2 last:border-0">
+    <dt class="shrink-0 text-sm text-muted-foreground" data-fact-label></dt>
+    <dd class="min-w-0 text-right text-sm font-semibold" data-fact-value></dd>
+  </div>
+</template>
+
+<template data-dash-tpl="detail-section-title">
+  <h4 class="mb-2 mt-6 text-sm font-semibold first:mt-0"></h4>
+</template>
+
 <template data-dash-tpl="price-chart">
   <figure class="m-0">
     <img class="dash-chart-light w-full" alt="" data-chart-light />
@@ -411,6 +463,11 @@ const tabClassInactive =
     normalizePropertyType,
     sizeToSpanClass,
     formatDashboardPrice,
+    listFieldValue,
+    detailFieldRow,
+    DEFAULT_DETAIL_SECTIONS,
+    DEFAULT_DETAIL_FIELDS,
+    type ApiPropertyDetail,
     type ApiPropertyItem,
     type DashboardResponse,
     type DashboardSummary,
@@ -735,7 +792,7 @@ const tabClassInactive =
         case "new-listings":
           return renderPropertyList(widget, data, "list");
         case "highlight":
-          return renderHighlight(data);
+          return renderHighlight(widget, data);
         case "map":
           return renderMap(data);
         case "text-note":
@@ -768,15 +825,22 @@ const tabClassInactive =
       const items = data.PropertyList?.Properties ?? [];
       if (items.length === 0) return emptyNote();
 
+      const fields = widget.Options?.Fields ?? null;
       const variant = forcedVariant ?? widget.Options?.Variant ?? "grid";
       const containerName = variant === "grid" ? "property-grid" : "property-rows";
       const container = clone(containerName);
       const host = container.querySelector<HTMLElement>("[data-w-items]") ?? container;
-      const itemTemplate =
-        variant === "grid" ? "property-card" : variant === "minimal" ? "property-row-minimal" : "property-row";
 
       for (const item of items) {
-        host.append(fillCard(clone(itemTemplate), item));
+        if (fields && variant !== "grid") {
+          host.append(fillRowFields(clone("property-row-fields"), item, fields));
+          continue;
+        }
+        const itemTemplate =
+          variant === "grid" ? "property-card" : variant === "minimal" ? "property-row-minimal" : "property-row";
+        const card = fillCard(clone(itemTemplate), item);
+        if (fields && variant === "grid") applyFieldsToCard(card, item, fields);
+        host.append(card);
       }
 
       const total = data.PropertyList?.Total ?? items.length;
@@ -789,10 +853,69 @@ const tabClassInactive =
       return container;
     }
 
-    function renderHighlight(data: WidgetData): HTMLElement {
+    function renderHighlight(widget: DashboardWidget, data: WidgetData): HTMLElement {
       const item = data.PropertyList?.Properties?.[0];
       if (!item) return emptyNote();
-      return fillCard(clone("highlight"), item);
+      const card = fillCard(clone("highlight"), item);
+      const fields = widget.Options?.Fields;
+      if (fields) {
+        const meta = card.querySelector<HTMLElement>("[data-card-meta]");
+        if (meta) meta.textContent = joinFieldValues(item, fields);
+      }
+      return card;
+    }
+
+    /** Restfelder (ohne die fest platzierten) in Wunsch-Reihenfolge als Info-Zeile */
+    function joinFieldValues(item: ApiPropertyItem, fields: string[]): string {
+      return fields
+        .filter((field) => !["foto", "titel", "preis", "ort"].includes(field))
+        .map((field) => listFieldValue(item, field))
+        .filter(Boolean)
+        .join(" · ");
+    }
+
+    /**
+     * Feld-gesteuerte Zeile: "titel" wird Zeile 1, "preis" steht rechts, "foto"
+     * schaltet das Vorschaubild - alle uebrigen Felder bilden in der
+     * Wunsch-Reihenfolge Zeile 2.
+     */
+    function fillRowFields(row: HTMLElement, item: ApiPropertyItem, fields: string[]): HTMLElement {
+      const href = detailHrefOf(item.Id);
+      (row as unknown as HTMLAnchorElement).href = href;
+      row.dataset.detailId = item.Id;
+
+      const image = row.querySelector<HTMLImageElement>("[data-card-image]")!;
+      if (fields.includes("foto")) {
+        image.hidden = false;
+        image.src = item.ImageUrls?.[0] || "/kein-foto.svg";
+        image.alt = item.Title;
+        image.addEventListener("error", () => (image.src = "/kein-foto.svg"), { once: true });
+      }
+
+      const price = row.querySelector<HTMLElement>("[data-card-price]")!;
+      if (fields.includes("preis")) {
+        price.hidden = false;
+        price.textContent = formatDashboardPrice(item.Price);
+      }
+
+      const rest = fields.filter((field) => !["foto", "preis", "titel"].includes(field));
+      const line1 = fields.includes("titel")
+        ? item.Title
+        : (listFieldValue(item, rest.shift() ?? "") ?? item.Title);
+      row.querySelector<HTMLElement>("[data-card-line1]")!.textContent = line1;
+      row.querySelector<HTMLElement>("[data-card-line2]")!.textContent = rest
+        .map((field) => listFieldValue(item, field))
+        .filter(Boolean)
+        .join(" · ");
+      return row;
+    }
+
+    /** Feldauswahl auf die Grid-Karte anwenden (Foto bleibt - grid IST die Foto-Variante) */
+    function applyFieldsToCard(card: HTMLElement, item: ApiPropertyItem, fields: string[]) {
+      card.querySelector<HTMLElement>("[data-card-location]")?.toggleAttribute("hidden", !fields.includes("ort"));
+      card.querySelector<HTMLElement>("[data-card-price]")?.toggleAttribute("hidden", !fields.includes("preis"));
+      const meta = card.querySelector<HTMLElement>("[data-card-meta]");
+      if (meta) meta.textContent = joinFieldValues(item, fields);
     }
 
     function renderTextNote(data: WidgetData): HTMLElement {
@@ -818,14 +941,19 @@ const tabClassInactive =
       return figure;
     }
 
-    function emptyNote(): HTMLElement {
+    function emptyNote(text?: string): HTMLElement {
       const error = clone("widget-error");
-      error.querySelector<HTMLElement>("[data-w-error]")!.textContent = t("dash.widgetEmpty");
+      error.querySelector<HTMLElement>("[data-w-error]")!.textContent = text ?? t("dash.widgetEmpty");
       return error;
     }
 
+    function detailHrefOf(id: string): string {
+      return `/immobilien/angebote/${encodeURIComponent(id)}/`;
+    }
+
     function fillCard(card: HTMLElement, item: ApiPropertyItem): HTMLElement {
-      const href = `/immobilien/angebote/${encodeURIComponent(item.Id)}/`;
+      const href = detailHrefOf(item.Id);
+      card.dataset.detailId = item.Id;
       card.querySelectorAll<HTMLAnchorElement>("[data-card-link]").forEach((link) => (link.href = href));
       if (card.matches("a[data-card-link]")) (card as unknown as HTMLAnchorElement).href = href;
 
@@ -1107,6 +1235,190 @@ const tabClassInactive =
         showGlobalError((error as Error).message);
       }
     }
+
+    // ---------- Personalisierte Detail-Overlay ----------
+
+    const detailOverlay = q("[data-dash-detail]");
+    const detailTitle = q("[data-dash-detail-title]");
+    const detailBody = q("[data-dash-detail-body]");
+    const detailFull = q<HTMLAnchorElement>("[data-dash-detail-full]");
+    let detailOpen = false;
+
+    async function openDetail(propertyId: string) {
+      detailOpen = true;
+      detailOverlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      detailFull.href = detailHrefOf(propertyId);
+      detailTitle.textContent = "…";
+      detailBody.replaceChildren(makeSkeleton());
+      try {
+        // Antwort ist gewrappt: GetPropertyByIdResponse.Property
+        const result = await apiFetch<{ Property: ApiPropertyDetail | null }>(
+          `/api/properties/${encodeURIComponent(propertyId)}`,
+        );
+        if (!detailOpen) return;
+        if (!result.Property) throw new Error("nicht gefunden");
+        renderDetail(result.Property);
+      } catch {
+        detailBody.replaceChildren(emptyNote(t("dash.detailLoadError")));
+      }
+    }
+
+    function closeDetail() {
+      detailOpen = false;
+      detailOverlay.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    function sectionTitle(text: string): HTMLElement {
+      const heading = clone("detail-section-title");
+      heading.textContent = text;
+      return heading;
+    }
+
+    /** Aufbau folgt definition.Detail (Sections + Fakten-Felder), sonst Standard */
+    function renderDetail(detail: ApiPropertyDetail) {
+      detailTitle.textContent = detail.Title;
+      const spec = current?.Definition?.Detail ?? null;
+      const sections = spec?.Sections?.length ? spec.Sections : DEFAULT_DETAIL_SECTIONS;
+      const fields = spec?.Fields?.length ? spec.Fields : DEFAULT_DETAIL_FIELDS;
+      const parts: HTMLElement[] = [];
+
+      for (const section of sections) {
+        switch (section) {
+          case "gallery": {
+            const images = (detail.PreviewImageUrls?.length ? detail.PreviewImageUrls : detail.ImageUrls) ?? [];
+            if (images.length === 0) break;
+            const wrap = document.createElement("div");
+            const main = document.createElement("img");
+            main.className = "max-h-80 w-full rounded-md object-cover";
+            main.src = images[0];
+            main.alt = detail.Title;
+            wrap.append(main);
+            if (images.length > 1) {
+              const thumbs = document.createElement("div");
+              thumbs.className = "mt-2 flex gap-2 overflow-x-auto";
+              for (const url of images.slice(0, 8)) {
+                const thumb = document.createElement("img");
+                thumb.className = "h-14 w-20 shrink-0 cursor-pointer rounded object-cover";
+                thumb.src = url;
+                thumb.alt = "";
+                thumb.addEventListener("click", () => (main.src = url));
+                thumbs.append(thumb);
+              }
+              wrap.append(thumbs);
+            }
+            parts.push(wrap);
+            break;
+          }
+          case "facts": {
+            const dl = document.createElement("dl");
+            for (const key of fields) {
+              const row = detailFieldRow(detail, key);
+              if (!row) continue;
+              const el = clone("detail-fact");
+              el.querySelector<HTMLElement>("[data-fact-label]")!.textContent = row.label;
+              el.querySelector<HTMLElement>("[data-fact-value]")!.textContent = row.value;
+              dl.append(el);
+            }
+            if (dl.childElementCount > 0) parts.push(dl);
+            break;
+          }
+          case "description": {
+            const text = detail.Description?.trim();
+            if (!text) break;
+            parts.push(sectionTitle(t("dash.detailDescriptionTitle")));
+            const p = document.createElement("p");
+            p.className = "whitespace-pre-line text-sm leading-relaxed";
+            p.textContent = text;
+            parts.push(p);
+            break;
+          }
+          case "features": {
+            const features = (detail.Features ?? []).filter(Boolean);
+            if (features.length === 0) break;
+            parts.push(sectionTitle(t("dash.detailFeaturesTitle")));
+            const chips = document.createElement("div");
+            chips.className = "flex flex-wrap gap-2";
+            for (const feature of features) {
+              const chip = document.createElement("span");
+              chip.className = "rounded bg-muted px-2 py-1 text-xs";
+              chip.textContent = feature;
+              chips.append(chip);
+            }
+            parts.push(chips);
+            break;
+          }
+          case "contact": {
+            const contacts = (detail.Contacts ?? []).filter((c) => c.Name || c.Phone || c.Email);
+            if (contacts.length === 0) break;
+            parts.push(sectionTitle(t("dash.detailContactTitle")));
+            for (const contact of contacts) {
+              const block = document.createElement("div");
+              block.className = "mb-3 text-sm";
+              if (contact.Name) {
+                const name = document.createElement("p");
+                name.className = "font-medium";
+                name.textContent = contact.Name;
+                block.append(name);
+              }
+              if (contact.Phone) {
+                const phone = document.createElement("a");
+                phone.className = "block text-primary hover:underline";
+                phone.href = `tel:${contact.Phone.replace(/\s+/g, "")}`;
+                phone.textContent = contact.Phone;
+                block.append(phone);
+              }
+              if (contact.Email) {
+                const email = document.createElement("a");
+                email.className = "block text-primary hover:underline";
+                email.href = `mailto:${contact.Email}`;
+                email.textContent = contact.Email;
+                block.append(email);
+              }
+              parts.push(block);
+            }
+            break;
+          }
+          case "map": {
+            const container = document.createElement("div");
+            container.className = "mt-2 h-64 overflow-hidden rounded-md border border-border bg-muted";
+            parts.push(container);
+            void apiFetch<{ Pins: NonNullable<WidgetData["Map"]>["Pins"] }>(
+              `/api/properties/map-pins?PropertyId=${encodeURIComponent(detail.Id)}`,
+            )
+              .then((result) => {
+                if (detailOpen && (result.Pins?.length ?? 0) > 0) void initMap(container, result.Pins);
+              })
+              .catch(() => container.remove());
+            break;
+          }
+        }
+      }
+
+      detailBody.replaceChildren(...parts);
+    }
+
+    // Klicks auf Inserats-Eintraege im Dashboard oeffnen die Overlay statt zu
+    // navigieren; Modifier-Klicks (neuer Tab) und Buttons (Favoriten) bleiben unberuehrt
+    grid.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      const target = event.target as HTMLElement;
+      if (target.closest("button")) return;
+      const link = target.closest("a");
+      if (!link || !link.href.includes("/immobilien/angebote/")) return;
+      const holder = target.closest<HTMLElement>("[data-detail-id], [data-property-id]");
+      const id = holder?.dataset.detailId || holder?.dataset.propertyId;
+      if (!id) return;
+      event.preventDefault();
+      void openDetail(id);
+    });
+
+    q("[data-dash-detail-close]").addEventListener("click", closeDetail);
+    q("[data-dash-detail-backdrop]").addEventListener("click", closeDetail);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && detailOpen) closeDetail();
+    });
 
     // ---------- Wiring ----------
 

@@ -20,7 +20,8 @@ public class HighlightWidgetResolver(
         Kind,
         "EIN hervorgehobenes Top-Inserat (der erste Treffer der Sortierung).",
         "query wird unterstuetzt (limit ist immer 1; sort bestimmt, WAS hervorgehoben wird, " +
-        "z.B. price-asc = guenstigstes, newest = neuestes).");
+        "z.B. price-asc = guenstigstes, newest = neuestes). options.fields wie bei property-list " +
+        "(steuert die Info-Zeile).");
 
     public DashboardWidget? Sanitize(DashboardWidget widget, List<string> warnings)
     {
@@ -28,7 +29,9 @@ public class HighlightWidgetResolver(
         widget.Query.Limit = 1;
         widget.Size = WidgetSanitizeHelpers.NormalizeSize(widget.Size, DashboardWidgetSizes.Full);
         widget.Title = WidgetSanitizeHelpers.NormalizeTitle(widget.Title);
-        widget.Options = null;
+
+        var fields = DashboardFieldCatalog.NormalizeFields(widget.Options?.Fields, forDetail: false, warnings);
+        widget.Options = fields is null ? null : new DashboardWidgetOptions { Fields = fields };
 
         return widget;
     }

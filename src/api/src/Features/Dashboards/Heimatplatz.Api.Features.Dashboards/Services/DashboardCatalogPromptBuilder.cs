@@ -45,6 +45,16 @@ public class DashboardCatalogPromptBuilder(
         sb.AppendLine("  \"sort\": \"newest\"|\"oldest\"|\"price-asc\"|\"price-desc\"|\"area-asc\"|\"area-desc\",");
         sb.AppendLine($"  \"limit\": Zahl                                // 1-{limits.MaxListItems}");
         sb.AppendLine("}");
+        sb.AppendLine();
+
+        sb.AppendLine("FELD-KATALOG (fuer options.fields der Listen-Widgets und detail.fields; Reihenfolge = Anzeige-Reihenfolge):");
+        foreach (var field in DashboardFieldCatalog.All)
+        {
+            var scope = field.InList && field.InDetail ? "" : field.InList ? " (nur Listen)" : " (nur Detail)";
+            sb.AppendLine($"- \"{field.Key}\": {field.PromptHint}{scope}");
+        }
+        sb.AppendLine($"Sagt der Kunde, WELCHE Werte er sehen will (\"nur Preis und Flaeche\"), setze options.fields");
+        sb.AppendLine($"exakt darauf (max. {DashboardFieldCatalog.MaxListFields} je Listen-Eintrag) - nichts Ungefragtes ergaenzen ausser \"titel\".");
 
         return sb.ToString();
     }
@@ -62,6 +72,10 @@ public class DashboardCatalogPromptBuilder(
         sb.AppendLine("  \"widgets\": [");
         sb.AppendLine("    { \"id\": \"w1\", \"kind\": \"...\", \"size\": \"s\"|\"m\"|\"l\"|\"full\", \"title\": \"...\", \"query\": {...}, \"options\": {...} }");
         sb.AppendLine("  ],");
+        sb.AppendLine("  \"detail\": {                                  // optional: personalisierte Detailansicht beim Klick auf ein Inserat");
+        sb.AppendLine("    \"sections\": [\"gallery\"|\"facts\"|\"description\"|\"features\"|\"contact\"|\"map\"],  // Reihenfolge; weglassen = Standard");
+        sb.AppendLine("    \"fields\": [\"...\"]                          // Fakten-Zeilen aus dem FELD-KATALOG");
+        sb.AppendLine("  },");
         sb.AppendLine("  \"unsupportedWishes\": [\"Wunsch, den kein Widget abdecken kann\"]");
         sb.AppendLine("}");
         sb.AppendLine("Regeln:");

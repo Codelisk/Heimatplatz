@@ -36,6 +36,11 @@ public class MockDashboardDesigner(
     {
         Title = "Ihre persönliche Übersicht",
         Intro = $"Demo-Übersicht zu Ihrem Wunsch: „{Truncate(request, 120)}“ (Mock-Modus, ohne KI erstellt).",
+        Detail = new DashboardDetailSpec
+        {
+            Sections = ["gallery", "facts", "description", "contact"],
+            Fields = ["preis", "preis-pro-m2", "wohnflaeche", "grundflaeche", "zimmer", "baujahr", "ort", "anbieter"]
+        },
         Widgets =
         [
             new DashboardWidget
@@ -52,7 +57,12 @@ public class MockDashboardDesigner(
                 Id = "w2", Kind = DashboardWidgetKinds.PropertyList, Size = DashboardWidgetSizes.L,
                 Title = "Neueste Angebote",
                 Query = new DashboardPropertyQuery { Sort = "newest", Limit = 6 },
-                Options = new DashboardWidgetOptions { Variant = "grid" }
+                // Feldauswahl statt Preset - so sieht jeder lokale E2E-Lauf den fields-Pfad
+                Options = new DashboardWidgetOptions
+                {
+                    Variant = "list",
+                    Fields = ["foto", "titel", "ort", "preis", "wohnflaeche"]
+                }
             },
             new DashboardWidget
             {

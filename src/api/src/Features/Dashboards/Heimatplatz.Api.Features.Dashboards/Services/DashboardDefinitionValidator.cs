@@ -72,6 +72,9 @@ public class DashboardDefinitionValidator(
         if ((definition.Widgets?.Count ?? 0) > options.Value.Limits.MaxWidgets)
             warnings.Add($"Definition auf {options.Value.Limits.MaxWidgets} Widgets gekappt.");
 
+        // Personalisierte Detail-Overlay: Sections + Felder fail-closed gegen den Feld-Katalog
+        definition.Detail = DashboardFieldCatalog.NormalizeDetail(definition.Detail, warnings);
+
         await ResolveLocationsAsync(sanitized, definition.UnsupportedWishes, warnings, cancellationToken);
 
         // Ids immer neu vergeben (stabil, eindeutig) - die Daten-Antwort matcht dagegen

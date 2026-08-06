@@ -61,6 +61,13 @@ public class MockDashboardDesignerTests
             DashboardWidgetKinds.TextNote
         ]);
         validated.Title.Should().NotBeNullOrWhiteSpace();
+
+        // Feldauswahl + Detail-Spec ueberleben die fail-closed-Validierung
+        var list = validated.Widgets.Single(w => w.Kind == DashboardWidgetKinds.PropertyList);
+        list.Options!.Fields.Should().Equal("foto", "titel", "ort", "preis", "wohnflaeche");
+        validated.Detail.Should().NotBeNull();
+        validated.Detail!.Sections.Should().Contain("facts");
+        validated.Detail.Fields.Should().Contain("preis-pro-m2");
     }
 
     [Test]

@@ -26,7 +26,9 @@ public class PropertyListWidgetResolver(
         "Trefferliste passender Inserate.",
         $"query wird unterstuetzt (limit 1-{options.Value.Limits.MaxListItems}, Default {DefaultLimit}). " +
         "options.variant: \"grid\" (grosse Foto-Karten), \"list\" (kompakte Zeilen MIT kleinem Foto), " +
-        "\"minimal\" (OHNE Fotos: Titel, Ort, Preis, Flaeche - fuer Wuensche wie \"ohne Bilder\").");
+        "\"minimal\" (OHNE Fotos: Titel, Ort, Preis, Flaeche - fuer Wuensche wie \"ohne Bilder\"). " +
+        "options.fields: geordnete Feld-Schluessel aus dem FELD-KATALOG - nutzen, wenn der Kunde " +
+        "sagt, WELCHE Werte er sehen will (uebersteuert das Preset).");
 
     public DashboardWidget? Sanitize(DashboardWidget widget, List<string> warnings)
     {
@@ -38,7 +40,8 @@ public class PropertyListWidgetResolver(
         var variant = widget.Options?.Variant?.Trim().ToLowerInvariant();
         widget.Options = new DashboardWidgetOptions
         {
-            Variant = variant is not null && AllowedVariants.Contains(variant) ? variant : "grid"
+            Variant = variant is not null && AllowedVariants.Contains(variant) ? variant : "grid",
+            Fields = DashboardFieldCatalog.NormalizeFields(widget.Options?.Fields, forDetail: false, warnings)
         };
 
         return widget;

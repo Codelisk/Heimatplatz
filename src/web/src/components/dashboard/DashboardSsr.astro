@@ -15,6 +15,7 @@ import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
 import type { ApiProperty } from "@/features/properties/live-api";
 import {
   formatDashboardPrice,
+  listFieldValue,
   normalizePropertyType,
   sizeToSpanClass,
   type ApiPropertyItem,
@@ -39,6 +40,25 @@ const metaLine = (item: ApiPropertyItem) =>
   [areaOf(item) ? `${areaOf(item)} m²` : null, item.Rooms ? `${item.Rooms} Zimmer` : null, item.SellerName?.trim() || null]
     .filter(Boolean)
     .join(" · ");
+// Muss zur Client-Logik joinFieldValues/fillRowFields in DashboardApp passen
+const joinFields = (item: ApiPropertyItem, fields: string[]) =>
+  fields
+    .filter((field) => !["foto", "titel", "preis", "ort"].includes(field))
+    .map((field) => listFieldValue(item, field))
+    .filter(Boolean)
+    .join(" · ");
+const rowRest = (fields: string[]) => fields.filter((field) => !["foto", "preis", "titel"].includes(field));
+const rowLine1 = (item: ApiPropertyItem, fields: string[]) =>
+  fields.includes("titel") ? item.Title : (listFieldValue(item, rowRest(fields)[0] ?? "") ?? item.Title);
+const rowLine2 = (item: ApiPropertyItem, fields: string[]) => {
+  const rest = rowRest(fields);
+  const startIndex = fields.includes("titel") ? 0 : 1;
+  return rest
+    .slice(startIndex)
+    .map((field) => listFieldValue(item, field))
+    .filter(Boolean)
+    .join(" · ");
+};
 const badge = (item: ApiPropertyItem) => {
   const type = normalizePropertyType(item.Type);
   return {
@@ -59,6 +79,7 @@ const badge = (item: ApiPropertyItem) => {
     const failed = !data || !data.Success;
     const items = data?.PropertyList?.Properties ?? [];
     const variant = widget.Kind === "new-listings" ? "list" : (widget.Options?.Variant ?? "grid");
+    const fields = widget.Options?.Fields ?? null;
     return (
       <article
         class:list={["min-w-0 rounded-lg border border-border bg-card shadow-sm", sizeToSpanClass(widget.Size)]}
@@ -110,7 +131,7 @@ const badge = (item: ApiPropertyItem) => {
           ) : items.length === 0 ? (
             <p class="py-6 text-center text-sm text-muted-foreground">{t("dash.widgetEmpty")}</p>
           ) : widget.Kind === "highlight" ? (
-            <a class="group flex flex-col gap-0 overflow-hidden sm:flex-row" href={detailHref(items[0])}>
+            <a class="group flex flex-col gap-0 overflow-hidden sm:flex-row" href={detailHref(items[0])} data-detail-id={items[0].Id}>
               <span class="relative block h-48 shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-72">
                 <img
                   class="h-full w-full object-cover"
@@ -128,15 +149,59 @@ const badge = (item: ApiPropertyItem) => {
                 <span class="text-lg font-semibold group-hover:underline">{items[0].Title}</span>
                 <span class="text-sm text-muted-foreground">{locationLine(items[0])}</span>
                 <span class="mt-1 text-2xl font-bold text-price">{formatDashboardPrice(items[0].Price)}</span>
-                <span class="mt-1 text-xs text-muted-foreground">{metaLine(items[0])}</span>
+                <span class="mt-1 text-xs text-muted-foreground">
+                  {fields ? joinFields(items[0], fields) : metaLine(items[0])}
+                </span>
               </span>
             </a>
           ) : variant === "grid" ? (
             <div>
               <div class="grid gap-4 sm:grid-cols-2">
-                {items.map((item) => (
-                  <ApiPropertyCard property={item as unknown as ApiProperty} />
-                ))}
+                {items.map((item) =>
+                  fields ? (
+                    // Feldauswahl: eigene Karte mit exakt den gewuenschten Werten
+                    // (Client-Pendant: property-card-Template + applyFieldsToCard)
+                    <article
+                      class="property-card group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
+                      data-property-card
+                      data-detail-id={item.Id}
+                    >
+                      <div class="relative h-44 overflow-hidden bg-muted">
+                        <a class="block h-full" href={detailHref(item)}>
+                          <img
+                            class="h-full w-full object-cover"
+                            src={item.ImageUrls?.[0] || "/kein-foto.svg"}
+                            alt={item.Title}
+                            loading="lazy"
+                            decoding="async"
+                            data-fallback-image="/kein-foto.svg"
+                          />
+                        </a>
+                        <span class:list={["absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold", badge(item).class]}>
+                          {badge(item).text}
+                        </span>
+                      </div>
+                      <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
+                        <div class="min-w-0">
+                          <h4 class="truncate text-base font-semibold">
+                            <a class="hover:underline" href={detailHref(item)}>{item.Title}</a>
+                          </h4>
+                          {fields.includes("ort") && <p class="mt-0.5 truncate text-sm font-medium">{locationLine(item)}</p>}
+                        </div>
+                        {fields.includes("preis") && (
+                          <p class="whitespace-nowrap text-right text-xl font-bold leading-none text-price">
+                            {formatDashboardPrice(item.Price)}
+                          </p>
+                        )}
+                      </div>
+                      <p class="mt-auto border-t border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                        {joinFields(item, fields)}
+                      </p>
+                    </article>
+                  ) : (
+                    <ApiPropertyCard property={item as unknown as ApiProperty} />
+                  ),
+                )}
               </div>
               {(data!.PropertyList?.Total ?? 0) > items.length && (
                 <p class="mt-3 text-xs text-muted-foreground">
@@ -148,10 +213,36 @@ const badge = (item: ApiPropertyItem) => {
             <div>
               <div class="flex flex-col gap-2">
                 {items.map((item) =>
-                  variant === "minimal" ? (
+                  fields ? (
+                    // Feld-gesteuerte Zeile (Client-Pendant: property-row-fields-Template)
+                    <a
+                      class="group flex items-center gap-3 rounded-md border border-border bg-background p-2 transition-colors hover:bg-accent"
+                      href={detailHref(item)}
+                      data-detail-id={item.Id}
+                    >
+                      {fields.includes("foto") && (
+                        <img
+                          class="h-14 w-20 shrink-0 rounded object-cover"
+                          src={item.ImageUrls?.[0] || "/kein-foto.svg"}
+                          alt={item.Title}
+                          loading="lazy"
+                          decoding="async"
+                          data-fallback-image="/kein-foto.svg"
+                        />
+                      )}
+                      <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm font-semibold">{rowLine1(item, fields)}</span>
+                        <span class="block truncate text-xs text-muted-foreground">{rowLine2(item, fields)}</span>
+                      </span>
+                      {fields.includes("preis") && (
+                        <span class="shrink-0 text-sm font-bold text-price">{formatDashboardPrice(item.Price)}</span>
+                      )}
+                    </a>
+                  ) : variant === "minimal" ? (
                     <a
                       class="flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
                       href={detailHref(item)}
+                      data-detail-id={item.Id}
                     >
                       <span class="min-w-0 flex-1">
                         <span class="truncate text-sm font-medium">{item.Title}</span>
@@ -166,6 +257,7 @@ const badge = (item: ApiPropertyItem) => {
                     <a
                       class="group flex items-center gap-3 rounded-md border border-border bg-background p-2 transition-colors hover:bg-accent"
                       href={detailHref(item)}
+                      data-detail-id={item.Id}
                     >
                       <img
                         class="h-14 w-20 shrink-0 rounded object-cover"

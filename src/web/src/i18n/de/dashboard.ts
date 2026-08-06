@@ -55,4 +55,12 @@ export const dashboard = {
   "dash.showAll": "Alle ansehen",
   "dash.sessionExpired": "Ihre Anmeldung ist abgelaufen — bitte melden Sie sich neu an.",
   "dash.genericError": "Das hat gerade nicht funktioniert. Bitte versuchen Sie es erneut.",
+
+  "dash.detailAria": "Inserats-Detailansicht",
+  "dash.detailClose": "Schließen",
+  "dash.detailFullLink": "Zur vollständigen Anzeige",
+  "dash.detailLoadError": "Das Inserat konnte gerade nicht geladen werden.",
+  "dash.detailDescriptionTitle": "Beschreibung",
+  "dash.detailFeaturesTitle": "Ausstattung",
+  "dash.detailContactTitle": "Kontakt",
 } as const;
