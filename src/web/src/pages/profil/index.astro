@@ -103,7 +103,7 @@ const registerHref = buildRegisterHref(returnTo);
           </svg>
         </div>
         <div class="px-5 pb-5 sm:px-6 sm:pb-6">
-          <div class="-mt-10 flex items-end gap-4 sm:-mt-12">
+          <div class="-mt-10 flex items-start gap-4 sm:-mt-12">
             {/* Marken-roter Kreis mit weissen Initialen (wie Header-Avatar); der Ring
                 in Kartenfarbe loest den Kreis als Cut-out vom Markenband. Auf der
                 Karte uebernimmt ein weicher, nach unten versetzter Schatten die
@@ -111,7 +111,10 @@ const registerHref = buildRegisterHref(returnTo);
                 und Karte sichtbar sein, ein Schatten blendet dagegen natuerlich
                 aus. relative, damit der Kreis ueber dem Markenband gezeichnet wird */}
             <div class="relative grid size-20 shrink-0 place-items-center rounded-full bg-primary text-2xl font-bold text-primary-foreground ring-[3px] ring-card shadow-[0_5px_14px_-4px_rgb(0_0_0/0.4)] sm:size-24 sm:text-3xl dark:shadow-[0_6px_16px_-4px_rgb(0_0_0/0.7)]" data-auth-initials aria-hidden="true">?</div>
-            <div class="min-w-0 flex-1 pt-1">
+            {/* pt muss den -mt der Zeile plus Luft ausgleichen, damit Name/E-Mail
+                komplett unterm Markenband beginnen - das Band ist positioniert und
+                wuerde darueberragenden Text sonst uebermalen (abgeschnittene Zeile) */}
+            <div class="min-w-0 flex-1 pt-12 sm:pt-14">
               <p class="truncate text-xl font-bold sm:text-2xl" data-auth-name>{t("profile.notLoggedIn")}</p>
               <p class="truncate text-sm text-muted-foreground" data-auth-email></p>
             </div>
