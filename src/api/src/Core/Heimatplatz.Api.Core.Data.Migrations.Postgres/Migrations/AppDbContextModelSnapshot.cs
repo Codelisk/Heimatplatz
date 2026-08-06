@@ -237,6 +237,85 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                     b.ToTable("UserFilterPreferences");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DefinitionJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("GenerationCompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GenerationError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset?>("GenerationRequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GenerationStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserDashboards", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboardRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DashboardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DefinitionJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RawOutputExcerpt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserPrompt")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DashboardId");
+
+                    b.ToTable("UserDashboardRevisions", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackAttachment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2147,6 +2226,15 @@ namespace Heimatplatz.Api.Core.Data.Migrations.Postgres.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboardRevision", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboard", null)
+                        .WithMany()
+                        .HasForeignKey("DashboardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackAttachment", b =>

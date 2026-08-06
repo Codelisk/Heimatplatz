@@ -29,6 +29,9 @@ services:
       # Marketing-E-Mails des Intern-Bereichs: gleicher AiConnector-Workspace,
       # Section sections/marketing/email (siehe Features/Marketing)
       Marketing__Provider: AiConnector
+      # KI-Dashboards "Meine Uebersicht": gleicher Workspace, Section sections/dashboard
+      # (siehe Features/Dashboards)
+      Dashboards__Provider: AiConnector
       # Oeffentliche Basis-URL fuer absolute Links (Bild-Proxy etc.), UNABHAENGIG vom Host der
       # eingehenden Anfrage - der Astro-SSR-Server (web) ruft diese API teils direkt ueber das
       # interne Docker-Netz auf (http://api:8080), dessen Host fuer echte Browser nicht aufloesbar
@@ -116,6 +119,7 @@ services:
       AiListing__Provider: AiConnector
       AiConnector__ApiKey: ${AICONNECTOR_API_KEY}
       Marketing__Provider: AiConnector
+      Dashboards__Provider: AiConnector
       Api__PublicBaseUrl: https://${TEST_API_DOMAIN}
       # Gleiche Mailbox wie Prod, aber Mail-Links zeigen auf das Test-Web
       Email__SmtpHost: ${EMAIL_SMTP_HOST}

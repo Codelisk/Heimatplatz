@@ -16,6 +16,7 @@ using Heimatplatz.Api.Features.PropertyImport.Configuration;
 using Heimatplatz.Api.Features.AiListing.Configuration;
 using Heimatplatz.Api.Features.Marketing.Configuration;
 using Heimatplatz.Api.Features.PropertyDrafts.Configuration;
+using Heimatplatz.Api.Features.Dashboards.Configuration;
 using Heimatplatz.Api.Features.Partners.Configuration;
 using Heimatplatz.Api.Features.SearchConsole.Configuration;
 using Heimatplatz.Api.Features.Telemetry.Configuration;
@@ -94,6 +95,7 @@ public static class ServiceCollectionExtensions
         services.AddAiListingFeature(configuration);
         services.AddMarketingFeature(configuration);
         services.AddPropertyDraftsFeature(backgroundJobsEnabled);
+        services.AddDashboardsFeature(configuration, backgroundJobsEnabled);
         // OTel-Pipeline + Writer/Retention haengen wie TickerQ am Connection-String-Gate
         services.AddTelemetryFeature(configuration, backgroundJobsEnabled);
         services.AddFirmenbuchFeature(configuration);
@@ -120,6 +122,7 @@ public static class ServiceCollectionExtensions
         Heimatplatz.Api.Features.AiListing.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Marketing.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.PropertyDrafts.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
+        Heimatplatz.Api.Features.Dashboards.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Telemetry.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.SearchConsole.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);
         Heimatplatz.Api.Features.Partners.MediatorEndpoints.MapGeneratedMediatorEndpoints(app);

@@ -232,6 +232,85 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                     b.ToTable("UserFilterPreferences");
                 });
 
+            modelBuilder.Entity("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DefinitionJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("GenerationCompletedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("GenerationError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("GenerationRequestedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GenerationStatus")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserDashboards", (string)null);
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboardRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("DashboardId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DefinitionJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RawOutputExcerpt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserPrompt")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DashboardId");
+
+                    b.ToTable("UserDashboardRevisions", (string)null);
+                });
+
             modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackAttachment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2142,6 +2221,15 @@ namespace Heimatplatz.Api.Core.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboardRevision", b =>
+                {
+                    b.HasOne("Heimatplatz.Api.Features.Dashboards.Data.Entities.UserDashboard", null)
+                        .WithMany()
+                        .HasForeignKey("DashboardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Heimatplatz.Api.Features.Feedback.Data.Entities.FeedbackAttachment", b =>

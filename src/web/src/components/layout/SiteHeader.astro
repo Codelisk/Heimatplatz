@@ -4,6 +4,7 @@ import BugIcon from "@tabler/icons/outline/bug.svg";
 import FilterIcon from "@tabler/icons/outline/filter.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import HomeIcon from "@tabler/icons/outline/home.svg";
+import LayoutDashboardIcon from "@tabler/icons/outline/layout-dashboard.svg";
 import LoginIcon from "@tabler/icons/outline/login.svg";
 import MenuIcon from "@tabler/icons/outline/menu-2.svg";
 import MessageIcon from "@tabler/icons/outline/message-circle.svg";
@@ -51,6 +52,8 @@ const navItems = [
   { label: t("nav.addProperty"), href: "/inserieren/", icon: PlusIcon, separator: true, sellerOnly: true },
   // Feedback ebenso konto-gebunden (Antworten landen im eigenen Verlauf)
   { label: t("nav.feedback"), href: "/feedback/", icon: MessageIcon, authOnly: true },
+  // KI-Uebersicht: personalisiert, daher nur angemeldet sichtbar
+  { label: t("nav.myOverview"), href: "/meine-uebersicht/", icon: LayoutDashboardIcon, authOnly: true },
 ];
 
 // Wie Uno NavigationView.FooterMenuItems

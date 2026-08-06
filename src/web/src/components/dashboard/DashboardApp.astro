@@ -1,0 +1,1046 @@
+---
+/**
+ * "Meine Übersicht": KI-generiertes, personalisiertes Dashboard.
+ *
+ * Server-Driven UI: Die API liefert eine validierte DashboardDefinition
+ * (Widget-Komposition) plus anzeigefertige Widget-Daten — dieses Island rendert
+ * sie nur noch. Markup der Widgets lebt in <template>-Elementen (bleibt im
+ * Designsystem, kein DOM-Bau in JS-Strings); das Script klont und befüllt.
+ *
+ * Auth wie UserListPage: SSR kennt den Nutzer nicht (localStorage-Session),
+ * AuthGate zeigt Gästen das Login-Panel, das Script bootet nur mit Token.
+ */
+import AuthGate from "@/components/app/AuthGate.astro";
+import LayoutDashboardIcon from "@tabler/icons/outline/layout-dashboard.svg";
+import SparklesIcon from "@tabler/icons/outline/sparkles.svg";
+import ArrowBackIcon from "@tabler/icons/outline/arrow-back-up.svg";
+import PencilIcon from "@tabler/icons/outline/pencil.svg";
+import TrashIcon from "@tabler/icons/outline/trash.svg";
+import PlusIcon from "@tabler/icons/outline/plus.svg";
+import { t } from "@/i18n";
+---
+
+<div class="py-6 sm:py-8">
+  <h1 class="sr-only">{t("dash.title")}</h1>
+  <AuthGate title={t("dash.authTitle")} description={t("dash.authText")}>
+    <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-dash-app>
+      {/* Übersichts-Wechsler (erst sichtbar, wenn mindestens eine Übersicht existiert) */}
+      <div class="mb-6 hidden flex-wrap items-center gap-2" data-dash-toolbar>
+        <span class="mr-1 text-sm font-medium text-muted-foreground">{t("dash.listLabel")}</span>
+        <div class="flex flex-wrap gap-2" data-dash-tabs></div>
+        <button
+          type="button"
+          class="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-dashed border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          data-dash-new
+        >
+          <PlusIcon class="size-4" aria-hidden="true" />
+          {t("dash.newButton")}
+        </button>
+      </div>
+
+      {/* Erstellen (Hero bei 0 Übersichten bzw. nach "Neue Übersicht") */}
+      <div class="mx-auto hidden max-w-2xl" data-dash-create>
+        <div class="rounded-lg border border-border bg-card p-6 shadow-sm sm:p-8">
+          <div class="mb-4 flex items-center gap-3">
+            <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+              <LayoutDashboardIcon class="size-6" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 class="text-lg font-semibold">{t("dash.createTitle")}</h2>
+              <p class="text-sm text-muted-foreground">{t("dash.createText")}</p>
+            </div>
+          </div>
+          <textarea
+            class="min-h-28 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm"
+            maxlength="1000"
+            placeholder={t("dash.createPlaceholder")}
+            data-dash-create-input></textarea>
+          <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+            <span class="text-muted-foreground">{t("dash.examplesLabel")}</span>
+            {[t("dash.example1"), t("dash.example2"), t("dash.example3")].map((example) => (
+              <button
+                type="button"
+                class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                data-dash-example
+              >
+                {example}
+              </button>
+            ))}
+          </div>
+          <p class="mt-3 hidden text-sm font-medium text-destructive" data-dash-create-error></p>
+          <div class="mt-4 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              class="hidden min-h-10 rounded-md px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent"
+              data-dash-create-cancel
+            >
+              Abbrechen
+            </button>
+            <button
+              type="button"
+              class="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              data-dash-create-submit
+            >
+              <SparklesIcon class="size-4.5" aria-hidden="true" />
+              {t("dash.createSubmit")}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Fortschritt (Polling) */}
+      <div class="mx-auto hidden max-w-2xl" data-dash-progress>
+        <div class="flex min-h-[40vh] flex-col items-center justify-center gap-4 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
+          <span class="dash-spinner" aria-hidden="true"></span>
+          <p class="text-sm font-medium text-muted-foreground" data-dash-progress-text aria-live="polite">
+            {t("dash.progressInProgress")}
+          </p>
+        </div>
+      </div>
+
+      {/* Fehlschlag */}
+      <div class="mx-auto hidden max-w-2xl" data-dash-failed>
+        <div class="rounded-lg border border-border bg-card p-6 text-center shadow-sm sm:p-8">
+          <h2 class="text-lg font-semibold">{t("dash.failedTitle")}</h2>
+          <p class="mt-2 text-sm text-muted-foreground" data-dash-failed-text></p>
+          <p class="mt-4 text-sm text-muted-foreground">{t("dash.retryHint")}</p>
+        </div>
+      </div>
+
+      {/* Die gerenderte Übersicht */}
+      <div class="hidden" data-dash-view>
+        <header class="mb-5">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 class="text-xl font-bold sm:text-2xl" data-dash-title></h2>
+              <p class="mt-1 hidden text-sm text-muted-foreground" data-dash-intro></p>
+            </div>
+            <div class="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                class="hidden min-h-9 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                data-dash-revert
+                title={t("dash.revert")}
+              >
+                <ArrowBackIcon class="size-4" aria-hidden="true" />
+                {t("dash.revert")}
+              </button>
+              <button
+                type="button"
+                class="grid size-9 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                data-dash-rename
+                aria-label={t("dash.rename")}
+                title={t("dash.rename")}
+              >
+                <PencilIcon class="size-4" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                class="grid min-h-9 place-items-center rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
+                data-dash-delete
+              >
+                <TrashIcon class="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+          <div class="mt-2 hidden items-center gap-2" data-dash-rename-row>
+            <input
+              type="text"
+              maxlength="120"
+              class="min-h-9 w-full max-w-sm rounded-md border border-border bg-background px-3 text-sm"
+              data-dash-rename-input
+            />
+            <button
+              type="button"
+              class="min-h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+              data-dash-rename-save
+            >
+              {t("dash.renameSave")}
+            </button>
+          </div>
+        </header>
+
+        {/* Nicht erfüllbare Wünsche — ehrlich statt erfunden */}
+        <div class="mb-5 hidden rounded-md border border-border bg-muted px-4 py-3 text-sm" data-dash-unsupported>
+          <p class="font-medium">{t("dash.unsupportedTitle")}</p>
+          <ul class="mt-1 list-inside list-disc text-muted-foreground" data-dash-unsupported-list></ul>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-12" data-dash-grid></div>
+
+        {/* Verfeinerungs-Zeile ("Wunsch an die KI") */}
+        <div class="mt-6 rounded-lg border border-border bg-card p-4 shadow-sm">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div class="flex min-w-0 flex-1 items-center gap-2">
+              <SparklesIcon class="size-5 shrink-0 text-primary" aria-hidden="true" />
+              <input
+                type="text"
+                maxlength="1000"
+                class="min-h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                placeholder={t("dash.refinePlaceholder")}
+                data-dash-refine-input
+              />
+            </div>
+            <button
+              type="button"
+              class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              data-dash-refine-submit
+            >
+              {t("dash.refineSubmit")}
+            </button>
+          </div>
+          <p class="mt-2 hidden text-sm font-medium text-destructive" data-dash-refine-error></p>
+        </div>
+      </div>
+
+      <p class="mx-auto mt-6 hidden max-w-2xl rounded-md border border-border bg-muted px-4 py-3 text-center text-sm font-medium" data-dash-global-error></p>
+    </section>
+  </AuthGate>
+</div>
+
+{/* ---------- Widget-Templates (das Script klont und befüllt) ---------- */}
+
+<template data-dash-tpl="frame">
+  <article class="min-w-0 rounded-lg border border-border bg-card shadow-sm">
+    <h3 class="hidden border-b border-border px-4 py-3 text-sm font-semibold" data-w-title></h3>
+    <div class="p-4" data-w-body></div>
+  </article>
+</template>
+
+<template data-dash-tpl="stat-row">
+  <dl class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5" data-w-tiles></dl>
+</template>
+
+<template data-dash-tpl="stat-tile">
+  <div class="rounded-md border border-border bg-background px-4 py-3">
+    <dt class="text-xs font-medium text-muted-foreground" data-tile-label></dt>
+    <dd class="mt-1 text-xl font-bold" data-tile-value></dd>
+  </div>
+</template>
+
+<template data-dash-tpl="property-grid">
+  <div class="grid gap-4 sm:grid-cols-2" data-w-items></div>
+</template>
+
+<template data-dash-tpl="property-rows">
+  <div class="flex flex-col gap-2" data-w-items></div>
+</template>
+
+<template data-dash-tpl="property-card">
+  <article class="property-card group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg" data-property-card>
+    <div class="relative h-44 overflow-hidden bg-muted">
+      <a class="block h-full" data-card-link>
+        <img class="h-full w-full object-cover" loading="lazy" decoding="async" alt="" data-card-image />
+      </a>
+      <span class="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold" data-card-badge></span>
+    </div>
+    <div class="grid grid-cols-[1fr_auto] gap-3 p-3">
+      <div class="min-w-0">
+        <h4 class="truncate text-base font-semibold">
+          <a class="hover:underline" data-card-link data-card-title></a>
+        </h4>
+        <p class="mt-0.5 truncate text-sm font-medium" data-card-location></p>
+      </div>
+      <p class="whitespace-nowrap text-right text-xl font-bold leading-none text-price" data-card-price></p>
+    </div>
+    <p class="mt-auto border-t border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground" data-card-meta></p>
+  </article>
+</template>
+
+<template data-dash-tpl="property-row">
+  <a class="group flex items-center gap-3 rounded-md border border-border bg-background p-2 transition-colors hover:bg-accent" data-card-link>
+    <img class="h-14 w-20 shrink-0 rounded object-cover" loading="lazy" decoding="async" alt="" data-card-image />
+    <span class="min-w-0 flex-1">
+      <span class="block truncate text-sm font-semibold" data-card-title></span>
+      <span class="block truncate text-xs text-muted-foreground" data-card-location></span>
+    </span>
+    <span class="shrink-0 text-sm font-bold text-price" data-card-price></span>
+  </a>
+</template>
+
+<template data-dash-tpl="property-row-minimal">
+  <a class="flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-accent" data-card-link>
+    <span class="min-w-0 flex-1">
+      <span class="truncate text-sm font-medium" data-card-title></span>
+      <span class="ml-2 text-xs text-muted-foreground" data-card-location></span>
+    </span>
+    <span class="shrink-0 text-sm font-bold text-price" data-card-price></span>
+  </a>
+</template>
+
+<template data-dash-tpl="highlight">
+  <a class="group flex flex-col gap-0 overflow-hidden sm:flex-row" data-card-link>
+    <span class="relative block h-48 shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-72">
+      <img class="h-full w-full object-cover" loading="lazy" decoding="async" alt="" data-card-image />
+      <span class="absolute left-3 top-3 rounded-full px-3 py-1.5 text-xs font-bold" data-card-badge></span>
+    </span>
+    <span class="flex min-w-0 flex-1 flex-col justify-center gap-1 p-4">
+      <span class="text-lg font-semibold group-hover:underline" data-card-title></span>
+      <span class="text-sm text-muted-foreground" data-card-location></span>
+      <span class="mt-1 text-2xl font-bold text-price" data-card-price></span>
+      <span class="mt-1 text-xs text-muted-foreground" data-card-meta></span>
+    </span>
+  </a>
+</template>
+
+<template data-dash-tpl="map">
+  <div>
+    <div class="h-80 overflow-hidden rounded-md border border-border bg-muted" data-w-map></div>
+    <p class="mt-2 text-xs text-muted-foreground" data-w-map-total></p>
+  </div>
+</template>
+
+<template data-dash-tpl="text-note">
+  <p class="text-sm leading-relaxed text-muted-foreground" data-w-text></p>
+</template>
+
+<template data-dash-tpl="widget-error">
+  <p class="py-6 text-center text-sm text-muted-foreground" data-w-error></p>
+</template>
+
+<style>
+  .dash-spinner {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    animation: dash-spin 0.9s linear infinite;
+  }
+  @keyframes dash-spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dash-spinner { animation-duration: 2.5s; }
+  }
+</style>
+
+<script>
+  import { t } from "@/i18n";
+  import { readDebugApiUrl } from "@/lib/utils/debug-host";
+  import { readAccessToken } from "@/lib/utils/access-token";
+  import {
+    normalizeStatus,
+    normalizePropertyType,
+    sizeToSpanClass,
+    formatDashboardPrice,
+    type ApiPropertyItem,
+    type DashboardResponse,
+    type DashboardSummary,
+    type DashboardWidget,
+    type WidgetData,
+  } from "@/features/dashboard/spec";
+
+  const app = document.querySelector<HTMLElement>("[data-dash-app]");
+
+  if (app) {
+    const API_BASE_URL = readDebugApiUrl() || import.meta.env.PUBLIC_API_BASE_URL || "https://api.heimatplatz.at";
+    const POLL_INTERVAL_MS = 3500;
+    const POLL_TIMEOUT_MS = 120_000;
+
+    const q = <T extends HTMLElement>(selector: string) => app.querySelector<T>(selector)!;
+    const toolbar = q("[data-dash-toolbar]");
+    const tabs = q("[data-dash-tabs]");
+    const newButton = q<HTMLButtonElement>("[data-dash-new]");
+    const createPanel = q("[data-dash-create]");
+    const createInput = q<HTMLTextAreaElement>("[data-dash-create-input]");
+    const createSubmit = q<HTMLButtonElement>("[data-dash-create-submit]");
+    const createCancel = q<HTMLButtonElement>("[data-dash-create-cancel]");
+    const createError = q("[data-dash-create-error]");
+    const progressPanel = q("[data-dash-progress]");
+    const progressText = q("[data-dash-progress-text]");
+    const failedPanel = q("[data-dash-failed]");
+    const failedText = q("[data-dash-failed-text]");
+    const view = q("[data-dash-view]");
+    const titleEl = q("[data-dash-title]");
+    const introEl = q("[data-dash-intro]");
+    const unsupportedPanel = q("[data-dash-unsupported]");
+    const unsupportedList = q("[data-dash-unsupported-list]");
+    const grid = q("[data-dash-grid]");
+    const refineInput = q<HTMLInputElement>("[data-dash-refine-input]");
+    const refineSubmit = q<HTMLButtonElement>("[data-dash-refine-submit]");
+    const refineError = q("[data-dash-refine-error]");
+    const revertButton = q<HTMLButtonElement>("[data-dash-revert]");
+    const renameButton = q<HTMLButtonElement>("[data-dash-rename]");
+    const renameRow = q("[data-dash-rename-row]");
+    const renameInput = q<HTMLInputElement>("[data-dash-rename-input]");
+    const renameSave = q<HTMLButtonElement>("[data-dash-rename-save]");
+    const deleteButton = q<HTMLButtonElement>("[data-dash-delete]");
+    const globalError = q("[data-dash-global-error]");
+
+    const template = (name: string) =>
+      document.querySelector<HTMLTemplateElement>(`[data-dash-tpl="${name}"]`)!;
+    const clone = (name: string) => template(name).content.firstElementChild!.cloneNode(true) as HTMLElement;
+
+    let summaries: DashboardSummary[] = [];
+    let activeId: string | null = null;
+    let current: DashboardResponse | null = null;
+    let pollTimer: number | undefined;
+    let pollStartedAt = 0;
+    let refining = false;
+    let busy = false;
+
+    // ---------- API ----------
+
+    async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+      const token = readAccessToken();
+      if (!token) throw new Error(t("dash.sessionExpired"));
+      const response = await fetch(`${API_BASE_URL}${path}`, {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(init?.body ? { "Content-Type": "application/json" } : {}),
+          ...init?.headers,
+        },
+      });
+      if (response.status === 401) throw new Error(t("dash.sessionExpired"));
+      if (!response.ok) {
+        let message = t("dash.genericError");
+        try {
+          const problem = (await response.json()) as { detail?: string; title?: string };
+          message = problem.detail || problem.title || message;
+        } catch {
+          /* Fehlertext bleibt generisch */
+        }
+        throw new Error(message);
+      }
+      return (await response.json()) as T;
+    }
+
+    // ---------- Panels ----------
+
+    type Panel = "create" | "progress" | "failed" | "view" | "none";
+    function showPanel(panel: Panel) {
+      createPanel.classList.toggle("hidden", panel !== "create");
+      progressPanel.classList.toggle("hidden", panel !== "progress");
+      failedPanel.classList.toggle("hidden", panel !== "failed");
+      view.classList.toggle("hidden", panel !== "view" && panel !== "failed");
+      // Beim Fehlschlag bleibt die Verfeinerungs-Zeile nutzbar (neuer Anlauf),
+      // aber Kopf/Grid der alten Ansicht sollen nicht halb leer herumstehen.
+      if (panel === "failed") {
+        grid.replaceChildren();
+        unsupportedPanel.classList.add("hidden");
+      }
+      globalError.classList.add("hidden");
+    }
+
+    function showGlobalError(message: string) {
+      globalError.textContent = message;
+      globalError.classList.remove("hidden");
+    }
+
+    // ---------- Übersichts-Wechsler ----------
+
+    function renderTabs() {
+      tabs.replaceChildren(
+        ...summaries.map((summary) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.dashTab = summary.Id;
+          button.textContent = summary.Title || t("dash.title");
+          button.className =
+            summary.Id === activeId
+              ? "min-h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+              : "min-h-9 rounded-md border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
+          button.addEventListener("click", () => {
+            if (summary.Id !== activeId) void selectDashboard(summary.Id);
+          });
+          return button;
+        }),
+      );
+      toolbar.classList.toggle("hidden", summaries.length === 0);
+      toolbar.classList.toggle("flex", summaries.length > 0);
+    }
+
+    function syncUrl() {
+      const url = new URL(window.location.href);
+      if (activeId) url.searchParams.set("id", activeId);
+      else url.searchParams.delete("id");
+      window.history.replaceState(null, "", url);
+    }
+
+    // ---------- Laden + Polling ----------
+
+    async function loadList(preferredId?: string | null) {
+      const result = await apiFetch<{ Dashboards: DashboardSummary[] }>("/api/dashboards");
+      summaries = result.Dashboards ?? [];
+      if (summaries.length === 0) {
+        activeId = null;
+        renderTabs();
+        syncUrl();
+        createCancel.classList.add("hidden");
+        showPanel("create");
+        return;
+      }
+      const target =
+        summaries.find((item) => item.Id === preferredId) ?? summaries[0];
+      await selectDashboard(target.Id);
+    }
+
+    async function selectDashboard(id: string) {
+      stopPolling();
+      activeId = id;
+      renderTabs();
+      syncUrl();
+      await loadDashboard();
+    }
+
+    async function loadDashboard() {
+      if (!activeId) return;
+      const dashboard = await apiFetch<DashboardResponse>(`/api/dashboards/${activeId}`);
+      current = dashboard;
+      const summary = summaries.find((item) => item.Id === dashboard.Id);
+      if (summary && dashboard.Title) summary.Title = dashboard.Title;
+      renderTabs();
+
+      const status = normalizeStatus(dashboard.Status);
+      if (status === "queued" || status === "inProgress") {
+        progressText.textContent =
+          refining && dashboard.Definition
+            ? t("dash.progressRefine")
+            : status === "queued"
+              ? t("dash.progressQueued")
+              : t("dash.progressInProgress");
+        // Während einer Verfeinerung bleibt die alte Ansicht sichtbar,
+        // nur die Aktionen sind gesperrt
+        if (refining && dashboard.Definition) {
+          setRefineBusy(true);
+        } else {
+          showPanel("progress");
+        }
+        schedulePoll();
+        return;
+      }
+
+      stopPolling();
+      refining = false;
+      setRefineBusy(false);
+
+      if (status === "failed") {
+        failedText.textContent = dashboard.Error || t("dash.genericError");
+        showPanel("failed");
+        renderHeader(dashboard);
+        return;
+      }
+
+      renderHeader(dashboard);
+      showPanel("view");
+      await renderData(dashboard);
+    }
+
+    function schedulePoll() {
+      if (!pollStartedAt) pollStartedAt = Date.now();
+      if (Date.now() - pollStartedAt > POLL_TIMEOUT_MS) {
+        progressText.textContent = t("dash.progressTimeout");
+      }
+      pollTimer = window.setTimeout(() => {
+        void loadDashboard().catch((error: Error) => showGlobalError(error.message));
+      }, POLL_INTERVAL_MS);
+    }
+
+    function stopPolling() {
+      if (pollTimer) window.clearTimeout(pollTimer);
+      pollTimer = undefined;
+      pollStartedAt = 0;
+    }
+
+    function setRefineBusy(value: boolean) {
+      refineSubmit.disabled = value;
+      refineInput.disabled = value;
+      revertButton.classList.toggle("opacity-50", value);
+      revertButton.disabled = value;
+      refineSubmit.textContent = value ? "…" : t("dash.refineSubmit");
+    }
+
+    // ---------- Rendern ----------
+
+    function renderHeader(dashboard: DashboardResponse) {
+      titleEl.textContent = dashboard.Title || t("dash.title");
+      const intro = dashboard.Definition?.Intro?.trim();
+      introEl.textContent = intro ?? "";
+      introEl.classList.toggle("hidden", !intro);
+      revertButton.classList.toggle("hidden", !dashboard.CanRevert);
+      revertButton.classList.toggle("inline-flex", dashboard.CanRevert);
+      renameRow.classList.add("hidden");
+      resetDeleteButton();
+    }
+
+    async function renderData(dashboard: DashboardResponse) {
+      const definition = dashboard.Definition;
+      grid.replaceChildren();
+      unsupportedPanel.classList.add("hidden");
+      if (!definition) return;
+
+      const wishes = (definition.UnsupportedWishes ?? []).filter(Boolean);
+      if (wishes.length > 0) {
+        unsupportedList.replaceChildren(
+          ...wishes.map((wish) => {
+            const li = document.createElement("li");
+            li.textContent = wish;
+            return li;
+          }),
+        );
+        unsupportedPanel.classList.remove("hidden");
+      }
+
+      // Skeleton-Frames sofort, Daten folgen mit einem Request für alle Widgets
+      const frames = new Map<string, HTMLElement>();
+      for (const widget of definition.Widgets ?? []) {
+        const frame = clone("frame");
+        frame.classList.add(sizeToSpanClass(widget.Size));
+        frame.dataset.dashWidget = widget.Kind;
+        const title = frame.querySelector<HTMLElement>("[data-w-title]")!;
+        if (widget.Title) {
+          title.textContent = widget.Title;
+          title.classList.remove("hidden");
+        }
+        frame.querySelector<HTMLElement>("[data-w-body]")!.append(makeSkeleton());
+        grid.append(frame);
+        frames.set(widget.Id, frame);
+      }
+
+      let data: WidgetData[] = [];
+      try {
+        const result = await apiFetch<{ Widgets: WidgetData[] }>(`/api/dashboards/${dashboard.Id}/data`);
+        data = result.Widgets ?? [];
+      } catch (error) {
+        showGlobalError((error as Error).message);
+      }
+      const dataById = new Map(data.map((item) => [item.WidgetId, item]));
+
+      for (const widget of definition.Widgets ?? []) {
+        const frame = frames.get(widget.Id);
+        if (!frame) continue;
+        const body = frame.querySelector<HTMLElement>("[data-w-body]")!;
+        body.replaceChildren(renderWidgetBody(widget, dataById.get(widget.Id)));
+      }
+    }
+
+    function makeSkeleton() {
+      const div = document.createElement("div");
+      div.className = "h-24 animate-pulse rounded-md bg-muted";
+      return div;
+    }
+
+    function renderWidgetBody(widget: DashboardWidget, data: WidgetData | undefined): HTMLElement {
+      if (!data || !data.Success) {
+        const error = clone("widget-error");
+        error.querySelector<HTMLElement>("[data-w-error]")!.textContent = data?.Error || t("dash.widgetError");
+        return error;
+      }
+
+      switch (widget.Kind) {
+        case "stat-row":
+          return renderStatRow(data);
+        case "property-list":
+          return renderPropertyList(widget, data);
+        case "new-listings":
+          return renderPropertyList(widget, data, "list");
+        case "highlight":
+          return renderHighlight(data);
+        case "map":
+          return renderMap(data);
+        case "text-note":
+          return renderTextNote(data);
+        default: {
+          // Tolerant-Reader: unbekanntes Kind still überspringen
+          const empty = document.createElement("div");
+          empty.classList.add("hidden");
+          return empty;
+        }
+      }
+    }
+
+    function renderStatRow(data: WidgetData): HTMLElement {
+      const row = clone("stat-row");
+      const tilesHost = row.matches("[data-w-tiles]") ? row : row.querySelector<HTMLElement>("[data-w-tiles]")!;
+      for (const tile of data.StatRow?.Tiles ?? []) {
+        const tileEl = clone("stat-tile");
+        tileEl.dataset.dashTile = tile.Key;
+        tileEl.querySelector<HTMLElement>("[data-tile-label]")!.textContent = tile.Label;
+        tileEl.querySelector<HTMLElement>("[data-tile-value]")!.textContent = tile.Value;
+        tilesHost.append(tileEl);
+      }
+      return row;
+    }
+
+    function renderPropertyList(widget: DashboardWidget, data: WidgetData, forcedVariant?: string): HTMLElement {
+      const items = data.PropertyList?.Properties ?? [];
+      if (items.length === 0) return emptyNote();
+
+      const variant = forcedVariant ?? widget.Options?.Variant ?? "grid";
+      const containerName = variant === "grid" ? "property-grid" : "property-rows";
+      const container = clone(containerName);
+      const host = container.querySelector<HTMLElement>("[data-w-items]") ?? container;
+      const itemTemplate =
+        variant === "grid" ? "property-card" : variant === "minimal" ? "property-row-minimal" : "property-row";
+
+      for (const item of items) {
+        host.append(fillCard(clone(itemTemplate), item));
+      }
+
+      const total = data.PropertyList?.Total ?? items.length;
+      if (total > items.length) {
+        const note = document.createElement("p");
+        note.className = "mt-3 text-xs text-muted-foreground";
+        note.textContent = t("dash.listTotal", { count: total });
+        container.append(note);
+      }
+      return container;
+    }
+
+    function renderHighlight(data: WidgetData): HTMLElement {
+      const item = data.PropertyList?.Properties?.[0];
+      if (!item) return emptyNote();
+      return fillCard(clone("highlight"), item);
+    }
+
+    function renderTextNote(data: WidgetData): HTMLElement {
+      const note = clone("text-note");
+      const host = note.matches("[data-w-text]") ? note : note.querySelector<HTMLElement>("[data-w-text]")!;
+      host.textContent = data.TextNote?.Text ?? "";
+      return note;
+    }
+
+    function emptyNote(): HTMLElement {
+      const error = clone("widget-error");
+      error.querySelector<HTMLElement>("[data-w-error]")!.textContent = t("dash.widgetEmpty");
+      return error;
+    }
+
+    function fillCard(card: HTMLElement, item: ApiPropertyItem): HTMLElement {
+      const href = `/immobilien/angebote/${encodeURIComponent(item.Id)}/`;
+      card.querySelectorAll<HTMLAnchorElement>("[data-card-link]").forEach((link) => (link.href = href));
+      if (card.matches("a[data-card-link]")) (card as unknown as HTMLAnchorElement).href = href;
+
+      const image = card.querySelector<HTMLImageElement>("[data-card-image]");
+      if (image) {
+        image.src = item.ImageUrls?.[0] || "/kein-foto.svg";
+        image.alt = item.Title;
+        image.addEventListener("error", () => (image.src = "/kein-foto.svg"), { once: true });
+      }
+
+      const badge = card.querySelector<HTMLElement>("[data-card-badge]");
+      if (badge) {
+        const type = normalizePropertyType(item.Type);
+        badge.textContent = type === "land" ? "Grundstück" : type === "foreclosure" ? "Zwangsversteigerung" : "Haus";
+        badge.classList.add(
+          ...(type === "foreclosure"
+            ? ["bg-brand", "text-brand-foreground"]
+            : type === "land"
+              ? ["bg-type-grund", "text-white"]
+              : ["bg-type-haus", "text-white"]),
+        );
+      }
+
+      const title = card.querySelector<HTMLElement>("[data-card-title]");
+      if (title) title.textContent = item.Title;
+
+      const location = card.querySelector<HTMLElement>("[data-card-location]");
+      if (location) location.textContent = [item.PostalCode, item.City].filter(Boolean).join(" ");
+
+      const price = card.querySelector<HTMLElement>("[data-card-price]");
+      if (price) price.textContent = formatDashboardPrice(item.Price);
+
+      const meta = card.querySelector<HTMLElement>("[data-card-meta]");
+      if (meta) {
+        const area = item.LivingAreaM2 ?? item.PlotAreaM2;
+        meta.textContent = [
+          area ? `${area} m²` : null,
+          item.Rooms ? `${item.Rooms} Zimmer` : null,
+          item.SellerName?.trim() || null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+      }
+      return card;
+    }
+
+    // ---------- Karten-Widget (lazy MapLibre wie PropertyLocationPreview) ----------
+
+    function renderMap(data: WidgetData): HTMLElement {
+      const wrapper = clone("map");
+      const container = wrapper.querySelector<HTMLElement>("[data-w-map]")!;
+      const totalLine = wrapper.querySelector<HTMLElement>("[data-w-map-total]")!;
+      const pins = data.Map?.Pins ?? [];
+      totalLine.textContent =
+        pins.length > 0 ? t("dash.mapTotal", { count: data.Map?.Total ?? pins.length }) : t("dash.mapNone");
+      if (pins.length > 0) void initMap(container, pins);
+      return wrapper;
+    }
+
+    async function initMap(container: HTMLElement, pins: NonNullable<WidgetData["Map"]>["Pins"]) {
+      try {
+        const TILES_URL = new URL(
+          import.meta.env.PUBLIC_MAP_TILES_URL || "/tiles/oberoesterreich.pmtiles",
+          window.location.origin,
+        ).href;
+        const ASSETS_URL = new URL(
+          import.meta.env.PUBLIC_MAP_ASSETS_URL || "/tiles/assets",
+          window.location.origin,
+        ).href;
+
+        const [loaderModule, pmtilesModule, styleModule] = await Promise.all([
+          import("@/features/map/maplibre-loader"),
+          import("pmtiles"),
+          import("@/features/map/map-style"),
+          import("maplibre-gl/dist/maplibre-gl.css"),
+        ]);
+        const maplibre = await loaderModule.loadMaplibre();
+        // addProtocol ist idempotent genug: erneutes Registrieren überschreibt nur
+        maplibre.addProtocol("pmtiles", new pmtilesModule.Protocol().tile);
+
+        let tilesAvailable = false;
+        try {
+          tilesAvailable = (await fetch(TILES_URL, { headers: { Range: "bytes=0-127" } })).ok;
+        } catch {
+          tilesAvailable = false;
+        }
+
+        let dark = document.documentElement.classList.contains("dark");
+        const buildStyle = () => styleModule.buildMapStyle({ dark, tilesAvailable, tilesUrl: TILES_URL, assetsUrl: ASSETS_URL });
+
+        const bounds = new maplibre.LngLatBounds();
+        for (const pin of pins) bounds.extend([pin.Longitude, pin.Latitude]);
+
+        const map = new maplibre.Map({
+          container,
+          style: buildStyle(),
+          bounds,
+          fitBoundsOptions: { padding: 42, maxZoom: 13.5 },
+          minZoom: 7,
+          maxZoom: 16.5,
+          attributionControl: { compact: true },
+          cooperativeGestures: true,
+          locale: {
+            "CooperativeGesturesHandler.WindowsHelpText": "Zoomen mit Strg + Scrollen",
+            "CooperativeGesturesHandler.MacHelpText": "Zoomen mit ⌘ + Scrollen",
+            "CooperativeGesturesHandler.MobileHelpText": "Verschieben mit zwei Fingern",
+            "AttributionControl.ToggleAttribution": "Quellenangabe umschalten",
+          },
+        });
+        new ResizeObserver(() => map.resize()).observe(container);
+
+        const pinFeatures = {
+          type: "FeatureCollection" as const,
+          features: pins.map((pin) => ({
+            type: "Feature" as const,
+            geometry: { type: "Point" as const, coordinates: [pin.Longitude, pin.Latitude] },
+            properties: { id: pin.Id },
+          })),
+        };
+
+        map.on("style.load", () => {
+          if (map.getSource("dash-pins")) return;
+          map.addSource("dash-pins", { type: "geojson", data: pinFeatures });
+          map.addLayer({
+            id: "dash-pins-dots",
+            type: "circle",
+            source: "dash-pins",
+            paint: {
+              "circle-radius": 6,
+              "circle-color": styleModule.BRAND_RED,
+              "circle-stroke-width": 1.5,
+              "circle-stroke-color": "#ffffff",
+            },
+          });
+        });
+        map.on("click", "dash-pins-dots", (event) => {
+          const id = event.features?.[0]?.properties?.id as string | undefined;
+          if (id) window.location.href = `/immobilien/angebote/${encodeURIComponent(id)}/`;
+        });
+        map.on("mouseenter", "dash-pins-dots", () => (map.getCanvas().style.cursor = "pointer"));
+        map.on("mouseleave", "dash-pins-dots", () => (map.getCanvas().style.cursor = ""));
+
+        new MutationObserver(() => {
+          const nextDark = document.documentElement.classList.contains("dark");
+          if (nextDark !== dark) {
+            dark = nextDark;
+            map.setStyle(buildStyle());
+          }
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+      } catch {
+        container.replaceChildren(emptyNote());
+      }
+    }
+
+    // ---------- Aktionen ----------
+
+    async function createDashboard() {
+      const prompt = createInput.value.trim();
+      if (prompt.length < 5) {
+        createError.textContent = t("dash.createHintMin");
+        createError.classList.remove("hidden");
+        return;
+      }
+      createError.classList.add("hidden");
+      createSubmit.disabled = true;
+      try {
+        const result = await apiFetch<{ DashboardId: string }>("/api/dashboards/generate", {
+          method: "POST",
+          body: JSON.stringify({ Prompt: prompt }),
+        });
+        createInput.value = "";
+        summaries.unshift({
+          Id: result.DashboardId,
+          Title: t("dash.title"),
+          Status: 1,
+          CreatedAt: new Date().toISOString(),
+          UpdatedAt: null,
+        });
+        await selectDashboard(result.DashboardId);
+      } catch (error) {
+        createError.textContent = (error as Error).message;
+        createError.classList.remove("hidden");
+      } finally {
+        createSubmit.disabled = false;
+      }
+    }
+
+    async function refineDashboard() {
+      if (!activeId || refining) return;
+      const instruction = refineInput.value.trim();
+      if (instruction.length < 5) {
+        refineError.textContent = t("dash.createHintMin");
+        refineError.classList.remove("hidden");
+        return;
+      }
+      refineError.classList.add("hidden");
+      refining = true;
+      setRefineBusy(true);
+      try {
+        await apiFetch(`/api/dashboards/refine`, {
+          method: "POST",
+          body: JSON.stringify({ Id: activeId, Instruction: instruction }),
+        });
+        refineInput.value = "";
+        await loadDashboard();
+      } catch (error) {
+        refining = false;
+        setRefineBusy(false);
+        refineError.textContent = (error as Error).message;
+        refineError.classList.remove("hidden");
+      }
+    }
+
+    async function revertDashboard() {
+      if (!activeId || busy) return;
+      busy = true;
+      try {
+        await apiFetch(`/api/dashboards/revert`, {
+          method: "POST",
+          body: JSON.stringify({ Id: activeId }),
+        });
+        await loadDashboard();
+      } catch (error) {
+        showGlobalError((error as Error).message);
+      } finally {
+        busy = false;
+      }
+    }
+
+    async function renameDashboard() {
+      if (!activeId) return;
+      const title = renameInput.value.trim();
+      if (!title) return;
+      try {
+        await apiFetch(`/api/dashboards/`, {
+          method: "PUT",
+          body: JSON.stringify({ Id: activeId, Title: title }),
+        });
+        const summary = summaries.find((item) => item.Id === activeId);
+        if (summary) summary.Title = title;
+        titleEl.textContent = title;
+        renameRow.classList.add("hidden");
+        renderTabs();
+      } catch (error) {
+        showGlobalError((error as Error).message);
+      }
+    }
+
+    // Original-Icon einmal sichern — die Bestätigungsstufe ersetzt es durch Text
+    const deleteIcon = deleteButton.querySelector("svg")?.cloneNode(true) ?? null;
+
+    function resetDeleteButton() {
+      deleteButton.dataset.confirming = "";
+      if (deleteIcon) deleteButton.replaceChildren(deleteIcon.cloneNode(true));
+      else deleteButton.textContent = t("dash.delete");
+    }
+
+    async function deleteDashboard() {
+      if (!activeId) return;
+      // Destruktiv: zweistufige Inline-Bestätigung statt blockierendem confirm()
+      if (deleteButton.dataset.confirming !== "yes") {
+        deleteButton.dataset.confirming = "yes";
+        deleteButton.textContent = t("dash.deleteConfirm");
+        window.setTimeout(() => {
+          if (deleteButton.dataset.confirming === "yes") resetDeleteButton();
+        }, 4000);
+        return;
+      }
+      try {
+        await apiFetch(`/api/dashboards/${activeId}`, { method: "DELETE" });
+        stopPolling();
+        activeId = null;
+        await loadList();
+      } catch (error) {
+        showGlobalError((error as Error).message);
+      }
+    }
+
+    // ---------- Wiring ----------
+
+    createSubmit.addEventListener("click", () => void createDashboard());
+    createInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        void createDashboard();
+      }
+    });
+    app.querySelectorAll<HTMLButtonElement>("[data-dash-example]").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        createInput.value = chip.textContent?.trim() ?? "";
+        createInput.focus();
+      });
+    });
+    newButton.addEventListener("click", () => {
+      createCancel.classList.remove("hidden");
+      showPanel("create");
+      createInput.focus();
+    });
+    createCancel.addEventListener("click", () => {
+      if (activeId) void loadDashboard();
+    });
+    refineSubmit.addEventListener("click", () => void refineDashboard());
+    // Enter darf nie ein umgebendes Formular absenden (bekannte Falle) —
+    // hier gibt es zwar keines, aber preventDefault schadet nicht und startet die Runde
+    refineInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        void refineDashboard();
+      }
+    });
+    revertButton.addEventListener("click", () => void revertDashboard());
+    renameButton.addEventListener("click", () => {
+      renameInput.value = current?.Title ?? "";
+      renameRow.classList.toggle("hidden");
+      renameRow.classList.toggle("flex");
+      renameInput.focus();
+    });
+    renameSave.addEventListener("click", () => void renameDashboard());
+    renameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        void renameDashboard();
+      }
+    });
+    deleteButton.addEventListener("click", () => void deleteDashboard());
+
+    // ---------- Boot ----------
+
+    if (readAccessToken()) {
+      const preferredId = new URL(window.location.href).searchParams.get("id");
+      void loadList(preferredId).catch((error: Error) => showGlobalError(error.message));
+    }
+  }
+</script>

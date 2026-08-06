@@ -298,6 +298,15 @@ if (!app.Environment.IsDevelopment() && app.Configuration["Marketing:Provider"] 
         "(plus AiConnector__ApiKey) setzen.");
 }
 
+// Gleicher Hinweis fuer die KI-Dashboards ("Meine Uebersicht")
+if (!app.Environment.IsDevelopment() && app.Configuration["Dashboards:Provider"] != "AiConnector")
+{
+    app.Logger.LogWarning(
+        "Dashboards laeuft im Mock-Modus: Uebersichten werden als feste Beispiel-Definition " +
+        "statt per KI erstellt. Fuer echte Uebersichten Dashboards__Provider=AiConnector " +
+        "(plus AiConnector__ApiKey) setzen.");
+}
+
 // Datenbank initialisieren (Migration + Seeding basierend auf DatabaseOptions)
 await app.InitializeDatabaseAsync();
 

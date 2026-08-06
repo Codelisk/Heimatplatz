@@ -5,6 +5,7 @@ import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import FilterIcon from "@tabler/icons/outline/filter.svg";
 import HeartIcon from "@tabler/icons/outline/heart.svg";
 import HomeIcon from "@tabler/icons/outline/home.svg";
+import LayoutDashboardIcon from "@tabler/icons/outline/layout-dashboard.svg";
 import LockIcon from "@tabler/icons/outline/lock.svg";
 import LoginIcon from "@tabler/icons/outline/login.svg";
 import LogoutIcon from "@tabler/icons/outline/logout.svg";
@@ -24,6 +25,7 @@ import { buildLoginHref, buildRegisterHref, getCurrentReturnTo } from "@/lib/nav
 // Schnellzugriff: Ziele ohne eigene Zaehler-Kachel (Favoriten/Blockiert/Inserate
 // haben oben bereits verlinkte Kacheln - hier nur der Rest, sonst doppelt)
 const quickLinks = [
+  { label: t("profile.quickDashboardLabel"), description: t("profile.quickDashboardDescription"), href: "/meine-uebersicht/", icon: LayoutDashboardIcon },
   { label: t("profile.quickInsertLabel"), description: t("profile.quickInsertDescription"), href: "/inserieren/", icon: PlusIcon, sellerOnly: true },
   { label: t("profile.quickNotificationsLabel"), description: t("profile.quickNotificationsDescription"), href: "/benachrichtigungen/", icon: BellIcon },
   { label: t("profile.quickFiltersLabel"), description: t("profile.quickFiltersDescription"), href: "/filter-einstellungen/", icon: FilterIcon },

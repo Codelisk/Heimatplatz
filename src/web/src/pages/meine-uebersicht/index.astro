@@ -1,0 +1,14 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import DashboardApp from "@/components/dashboard/DashboardApp.astro";
+import { t } from "@/i18n";
+---
+
+<BaseLayout
+  title={t("dash.title")}
+  description={t("dash.metaDescription")}
+  canonicalPath="/meine-uebersicht/"
+  noindex
+>
+  <DashboardApp />
+</BaseLayout>

@@ -47,6 +47,8 @@
     <ProjectReference Include="..\..\Features\Marketing\Heimatplatz.Api.Features.Marketing.Contracts\Heimatplatz.Api.Features.Marketing.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\PropertyDrafts\Heimatplatz.Api.Features.PropertyDrafts\Heimatplatz.Api.Features.PropertyDrafts.csproj" />
     <ProjectReference Include="..\..\Features\PropertyDrafts\Heimatplatz.Api.Features.PropertyDrafts.Contracts\Heimatplatz.Api.Features.PropertyDrafts.Contracts.csproj" />
+    <ProjectReference Include="..\..\Features\Dashboards\Heimatplatz.Api.Features.Dashboards\Heimatplatz.Api.Features.Dashboards.csproj" />
+    <ProjectReference Include="..\..\Features\Dashboards\Heimatplatz.Api.Features.Dashboards.Contracts\Heimatplatz.Api.Features.Dashboards.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Telemetry\Heimatplatz.Api.Features.Telemetry\Heimatplatz.Api.Features.Telemetry.csproj" />
     <ProjectReference Include="..\..\Features\Telemetry\Heimatplatz.Api.Features.Telemetry.Contracts\Heimatplatz.Api.Features.Telemetry.Contracts.csproj" />
     <ProjectReference Include="..\..\Features\Firmenbuch\Heimatplatz.Api.Features.Firmenbuch\Heimatplatz.Api.Features.Firmenbuch.csproj" />

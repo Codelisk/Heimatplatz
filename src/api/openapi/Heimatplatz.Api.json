@@ -1486,6 +1486,138 @@
         }
       }
     },
+    "/api/properties/stats": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetPropertyStats",
+        "parameters": [
+          {
+            "name": "PropertyTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SellerTypesJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MunicipalityIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CreatedAfter",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "PriceMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "PriceMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+              "type": [
+                "number",
+                "string"
+              ],
+              "format": "double"
+            }
+          },
+          {
+            "name": "AreaMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "AreaMax",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "RoomsMin",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "ExcludedSellerSourceIdsJson",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SearchText",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "IncludeNewBuildProjects",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPropertyStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/properties/types": {
       "get": {
         "tags": [
@@ -3584,6 +3716,235 @@
         }
       }
     },
+    "/api/dashboards/{Id}": {
+      "delete": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "DeleteDashboard",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteDashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetDashboard",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboards/generate": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GenerateDashboard",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateDashboardRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateDashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboards/{Id}/data": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetDashboardData",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDashboardDataResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboards": {
+      "get": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "GetDashboards",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDashboardsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "UpdateDashboard",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDashboardRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateDashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboards/refine": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RefineDashboard",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefineDashboardRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefineDashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboards/revert": {
+      "post": {
+        "tags": [
+          "Heimatplatz.Api"
+        ],
+        "operationId": "RevertDashboard",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevertDashboardRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevertDashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/telemetry/error-groups/{Id}": {
       "get": {
         "tags": [
@@ -5115,6 +5476,262 @@
           }
         }
       },
+      "DashboardDefinition": {
+        "type": "object",
+        "properties": {
+          "SchemaVersion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Intro": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Widgets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardWidget"
+            }
+          },
+          "UnsupportedWishes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DashboardGenerationStatus": {
+        "enum": [
+          "None",
+          "Queued",
+          "InProgress",
+          "Finished",
+          "Failed"
+        ]
+      },
+      "DashboardPropertyQuery": {
+        "type": "object",
+        "properties": {
+          "Types": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "Sellers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "Locations": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "MunicipalityIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "PriceMin": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "PriceMax": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "AreaMin": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "AreaMax": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "RoomsMin": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "IncludeNewBuild": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "SearchText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Sort": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Limit": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "DashboardSummaryDto": {
+        "required": [
+          "Id",
+          "Title",
+          "Status",
+          "CreatedAt",
+          "UpdatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/DashboardGenerationStatus"
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "DashboardWidget": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string"
+          },
+          "Kind": {
+            "type": "string"
+          },
+          "Size": {
+            "type": "string"
+          },
+          "Title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Query": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DashboardPropertyQuery"
+              }
+            ]
+          },
+          "Options": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DashboardWidgetOptions"
+              }
+            ]
+          }
+        }
+      },
+      "DashboardWidgetOptions": {
+        "type": "object",
+        "properties": {
+          "Variant": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Tiles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "Text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "DeleteAccountResponse": {
         "required": [
           "Success"
@@ -5122,6 +5739,17 @@
         "type": "object",
         "properties": {
           "Success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DeleteDashboardResponse": {
+        "required": [
+          "Deleted"
+        ],
+        "type": "object",
+        "properties": {
+          "Deleted": {
             "type": "boolean"
           }
         }
@@ -5896,6 +6524,30 @@
           }
         }
       },
+      "GenerateDashboardRequest": {
+        "type": "object",
+        "properties": {
+          "Prompt": {
+            "type": "string"
+          }
+        }
+      },
+      "GenerateDashboardResponse": {
+        "required": [
+          "DashboardId",
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "DashboardId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/DashboardGenerationStatus"
+          }
+        }
+      },
       "GenerateDraftDescriptionRequest": {
         "type": "object",
         "properties": {
@@ -6382,6 +7034,92 @@
                 "$ref": "#/components/schemas/LegalContactInfoDto"
               }
             ]
+          }
+        }
+      },
+      "GetDashboardDataResponse": {
+        "required": [
+          "Widgets"
+        ],
+        "type": "object",
+        "properties": {
+          "Widgets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WidgetDataDto"
+            }
+          }
+        }
+      },
+      "GetDashboardResponse": {
+        "required": [
+          "Id",
+          "Title",
+          "Status",
+          "Error",
+          "Definition",
+          "CanRevert",
+          "GenerationRequestedAt",
+          "GenerationCompletedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/DashboardGenerationStatus"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Definition": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DashboardDefinition"
+              }
+            ]
+          },
+          "CanRevert": {
+            "type": "boolean"
+          },
+          "GenerationRequestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "GenerationCompletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "GetDashboardsResponse": {
+        "required": [
+          "Dashboards"
+        ],
+        "type": "object",
+        "properties": {
+          "Dashboards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSummaryDto"
+            }
           }
         }
       },
@@ -7370,6 +8108,61 @@
           },
           "Truncated": {
             "type": "boolean"
+          }
+        }
+      },
+      "GetPropertyStatsResponse": {
+        "required": [
+          "Total",
+          "NewLast7Days",
+          "MinPrice",
+          "MedianPrice",
+          "MaxPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "NewLast7Days": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "MinPrice": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "MedianPrice": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "MaxPrice": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
           }
         }
       },
@@ -8514,6 +9307,42 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "MapWidgetData": {
+        "required": [
+          "Pins",
+          "Total",
+          "WithoutCoordinates",
+          "Truncated"
+        ],
+        "type": "object",
+        "properties": {
+          "Pins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyMapPinDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "WithoutCoordinates": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "Truncated": {
+            "type": "boolean"
           }
         }
       },
@@ -10099,6 +10928,29 @@
           }
         }
       },
+      "PropertyListWidgetData": {
+        "required": [
+          "Properties",
+          "Total"
+        ],
+        "type": "object",
+        "properties": {
+          "Properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyListItemDto"
+            }
+          },
+          "Total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "PropertyMapPinDto": {
         "required": [
           "Id",
@@ -10333,6 +11185,29 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "RefineDashboardRequest": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Instruction": {
+            "type": "string"
+          }
+        }
+      },
+      "RefineDashboardResponse": {
+        "required": [
+          "Status"
+        ],
+        "type": "object",
+        "properties": {
+          "Status": {
+            "$ref": "#/components/schemas/DashboardGenerationStatus"
           }
         }
       },
@@ -10790,6 +11665,26 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "RevertDashboardRequest": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "RevertDashboardResponse": {
+        "required": [
+          "Reverted"
+        ],
+        "type": "object",
+        "properties": {
+          "Reverted": {
+            "type": "boolean"
           }
         }
       },
@@ -11562,6 +12457,39 @@
           }
         }
       },
+      "StatRowWidgetData": {
+        "required": [
+          "Tiles"
+        ],
+        "type": "object",
+        "properties": {
+          "Tiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatTileDto"
+            }
+          }
+        }
+      },
+      "StatTileDto": {
+        "required": [
+          "Key",
+          "Label",
+          "Value"
+        ],
+        "type": "object",
+        "properties": {
+          "Key": {
+            "type": "string"
+          },
+          "Label": {
+            "type": "string"
+          },
+          "Value": {
+            "type": "string"
+          }
+        }
+      },
       "SubmitBrokerLeadRequest": {
         "required": [
           "Email",
@@ -11763,6 +12691,17 @@
           "Maui",
           "Web"
         ]
+      },
+      "TextNoteWidgetData": {
+        "required": [
+          "Text"
+        ],
+        "type": "object",
+        "properties": {
+          "Text": {
+            "type": "string"
+          }
+        }
       },
       "TraceSpanDto": {
         "required": [
@@ -12046,6 +12985,29 @@
                 "$ref": "#/components/schemas/LegalContactInfoDto"
               }
             ]
+          }
+        }
+      },
+      "UpdateDashboardRequest": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateDashboardResponse": {
+        "required": [
+          "Updated"
+        ],
+        "type": "object",
+        "properties": {
+          "Updated": {
+            "type": "boolean"
           }
         }
       },
@@ -12654,6 +13616,72 @@
           "AlreadyVerified": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "WidgetDataDto": {
+        "required": [
+          "WidgetId",
+          "Kind",
+          "Success",
+          "Error"
+        ],
+        "type": "object",
+        "properties": {
+          "WidgetId": {
+            "type": "string"
+          },
+          "Kind": {
+            "type": "string"
+          },
+          "Success": {
+            "type": "boolean"
+          },
+          "Error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PropertyList": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PropertyListWidgetData"
+              }
+            ]
+          },
+          "StatRow": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatRowWidgetData"
+              }
+            ]
+          },
+          "Map": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MapWidgetData"
+              }
+            ]
+          },
+          "TextNote": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TextNoteWidgetData"
+              }
+            ]
           }
         }
       }

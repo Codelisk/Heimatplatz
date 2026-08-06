@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Features\Dashboards\Heimatplatz.Api.Features.Dashboards\Heimatplatz.Api.Features.Dashboards.csproj" />
     <ProjectReference Include="..\..\..\src\Features\Firmenbuch\Heimatplatz.Api.Features.Firmenbuch\Heimatplatz.Api.Features.Firmenbuch.csproj" />
     <ProjectReference Include="..\..\..\src\Features\Properties\Heimatplatz.Api.Features.Properties\Heimatplatz.Api.Features.Properties.csproj" />
   </ItemGroup>
