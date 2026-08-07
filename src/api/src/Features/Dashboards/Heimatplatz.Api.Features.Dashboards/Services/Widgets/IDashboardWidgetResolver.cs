@@ -30,8 +30,14 @@ public interface IDashboardWidgetResolver
     /// Daten-Ebene: loest die Query des Widgets in-process ueber die bestehenden
     /// Mediator-Requests auf und liefert den anzeigefertigen Payload.
     /// </summary>
-    Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, CancellationToken cancellationToken);
+    Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, WidgetResolveContext context, CancellationToken cancellationToken);
 }
+
+/// <summary>
+/// Aufruf-Kontext der Daten-Ebene. Page blaettert die Trefferliste
+/// (Listen-Ansicht, Startseiten-Muster) - Widgets ohne Paging ignorieren sie.
+/// </summary>
+public sealed record WidgetResolveContext(int Page);
 
 /// <summary>
 /// Selbstbeschreibung einer Widget-Art. Wird zur Laufzeit in den KI-Prompt

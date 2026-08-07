@@ -47,14 +47,17 @@ public class PropertyListWidgetResolver(
         return widget;
     }
 
-    public async Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, CancellationToken cancellationToken)
+    public async Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, WidgetResolveContext context, CancellationToken cancellationToken)
     {
         var query = widget.Query ?? new DashboardPropertyQuery();
-        var request = PropertyQueryMapper.ToGetPropertiesRequest(query, query.Limit ?? DefaultLimit);
+        var pageSize = query.Limit ?? DefaultLimit;
+        var request = PropertyQueryMapper.ToGetPropertiesRequest(query, pageSize, page: context.Page);
         var result = await mediator.Request(request, cancellationToken);
 
         return new WidgetDataDto(
             widget.Id, Kind, Success: true, Error: null,
-            PropertyList: new PropertyListWidgetData(result.Result.Properties, result.Result.Total));
+            PropertyList: new PropertyListWidgetData(
+                result.Result.Properties, result.Result.Total,
+                Page: result.Result.CurrentPage, PageSize: result.Result.PageSize));
     }
 }

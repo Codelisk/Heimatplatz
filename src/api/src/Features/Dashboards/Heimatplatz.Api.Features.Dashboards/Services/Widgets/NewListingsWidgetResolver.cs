@@ -39,7 +39,7 @@ public class NewListingsWidgetResolver(
         return widget;
     }
 
-    public async Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, CancellationToken cancellationToken)
+    public async Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, WidgetResolveContext context, CancellationToken cancellationToken)
     {
         var query = widget.Query ?? new DashboardPropertyQuery();
         var request = PropertyQueryMapper.ToGetPropertiesRequest(

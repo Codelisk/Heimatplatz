@@ -107,12 +107,12 @@ public static class PropertyQueryMapper
     /// Leere Typen = Haus + Grund (Produktregel: ZV nur auf expliziten Wunsch).
     /// createdAfter setzt nur das new-listings-Widget (Zeitfenster "Neu seit ...").
     /// </summary>
-    public static GetPropertiesRequest ToGetPropertiesRequest(DashboardPropertyQuery query, int pageSize, DateTime? createdAfter = null)
+    public static GetPropertiesRequest ToGetPropertiesRequest(DashboardPropertyQuery query, int pageSize, DateTime? createdAfter = null, int page = 0)
     {
         var (sortBy, sortDescending) = MapSort(query.Sort);
 
         return new GetPropertiesRequest(
-            Page: 0,
+            Page: Math.Max(page, 0),
             PageSize: pageSize,
             PropertyTypesJson: SerializeEnums(MapTypes(query.Types)),
             SellerTypesJson: SerializeEnums(MapSellers(query.Sellers)),

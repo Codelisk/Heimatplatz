@@ -12,6 +12,8 @@
  * Pins als eingebettetes JSON und werden vom Island initialisiert.
  */
 import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
+import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
+import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import type { ApiProperty } from "@/features/properties/live-api";
 import {
   formatDashboardPrice,
@@ -84,6 +86,12 @@ const badge = (item: ApiPropertyItem) => {
     const items = data?.PropertyList?.Properties ?? [];
     const variant = widget.Kind === "new-listings" ? "list" : (widget.Options?.Variant ?? "grid");
     const fields = widget.Options?.Fields ?? null;
+    // Listen-Ansicht: Trefferzahl + Startseiten-Paging (Client blaettert per ?Page=N)
+    const listChrome = isListView && widget.Kind === "property-list" && !failed;
+    const listTotal = data?.PropertyList?.Total ?? 0;
+    const listPageSize = data?.PropertyList?.PageSize || items.length || 1;
+    const listPageCount = Math.max(1, Math.ceil(listTotal / listPageSize));
+    const listPage = data?.PropertyList?.Page ?? 0;
     return (
       <article
         class:list={[
@@ -98,7 +106,14 @@ const badge = (item: ApiPropertyItem) => {
             {widget.Title}
           </h3>
         )}
-        <div class:list={[!isListView && "p-4"]} data-w-body>
+        <div class:list={[!isListView && "p-4", isListView && "@container"]} data-w-body>
+          {listChrome && (
+            <p class="mb-3">
+              <span class="result-count">
+                {t(listTotal === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: listTotal })}
+              </span>
+            </p>
+          )}
           {failed ? (
             <p class="py-6 text-center text-sm text-muted-foreground">{data?.Error || t("dash.widgetError")}</p>
           ) : widget.Kind === "stat-row" ? (
@@ -168,7 +183,7 @@ const badge = (item: ApiPropertyItem) => {
             </a>
           ) : variant === "grid" ? (
             <div>
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div class:list={[isListView ? "grid gap-4 @2xl:grid-cols-2 @6xl:grid-cols-3" : "grid gap-4 sm:grid-cols-2"]}>
                 {items.map((item) =>
                   fields ? (
                     // Feldauswahl: eigene Karte mit exakt den gewuenschten Werten
@@ -215,7 +230,7 @@ const badge = (item: ApiPropertyItem) => {
                   ),
                 )}
               </div>
-              {(data!.PropertyList?.Total ?? 0) > items.length && (
+              {!isListView && (data!.PropertyList?.Total ?? 0) > items.length && (
                 <p class="mt-3 text-xs text-muted-foreground">
                   {t("dash.listTotal", { count: data!.PropertyList?.Total ?? 0 })}
                 </p>
@@ -291,12 +306,43 @@ const badge = (item: ApiPropertyItem) => {
                   ),
                 )}
               </div>
-              {(data!.PropertyList?.Total ?? 0) > items.length && (
+              {!isListView && (data!.PropertyList?.Total ?? 0) > items.length && (
                 <p class="mt-3 text-xs text-muted-foreground">
                   {t("dash.listTotal", { count: data!.PropertyList?.Total ?? 0 })}
                 </p>
               )}
             </div>
+          )}
+          {listChrome && items.length > 0 && listPageCount > 1 && (
+            <nav
+              class="mt-5 flex items-center justify-center gap-4 border-t border-border pt-4"
+              aria-label={t("search.paginationLabel")}
+              data-list-pagination
+              data-page={listPage}
+              data-page-count={listPageCount}
+            >
+              <button
+                type="button"
+                class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label={t("search.pagePrev")}
+                disabled={listPage <= 0}
+                data-page-prev
+              >
+                <ChevronLeftIcon class="size-5" aria-hidden="true" />
+              </button>
+              <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info>
+                {t("search.pageOf", { current: listPage + 1, total: listPageCount })}
+              </span>
+              <button
+                type="button"
+                class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label={t("search.pageNext")}
+                disabled={listPage >= listPageCount - 1}
+                data-page-next
+              >
+                <ChevronRightIcon class="size-5" aria-hidden="true" />
+              </button>
+            </nav>
           )}
         </div>
       </article>

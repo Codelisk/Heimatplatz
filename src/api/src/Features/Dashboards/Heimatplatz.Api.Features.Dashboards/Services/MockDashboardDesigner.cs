@@ -52,7 +52,8 @@ public class MockDashboardDesigner(
             {
                 Id = "w1", Kind = DashboardWidgetKinds.PropertyList, Size = DashboardWidgetSizes.Full,
                 Title = "Alle Treffer",
-                Query = new DashboardPropertyQuery { Sort = "newest", Limit = 12 },
+                // Bewusst kleine Seiten, damit lokale E2E-Laeufe das Blaettern sehen
+                Query = new DashboardPropertyQuery { Sort = "newest", Limit = 5 },
                 Options = new DashboardWidgetOptions
                 {
                     Variant = "list",

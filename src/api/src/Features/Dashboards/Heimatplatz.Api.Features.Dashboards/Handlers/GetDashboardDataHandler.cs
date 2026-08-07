@@ -53,6 +53,7 @@ public class GetDashboardDataHandler(
 
         var resolverByKind = resolvers.ToDictionary(r => r.Kind, StringComparer.OrdinalIgnoreCase);
         var results = new List<WidgetDataDto>(definition.Widgets.Count);
+        var resolveContext = new WidgetResolveContext(Math.Max(request.Page, 0));
 
         foreach (var widget in definition.Widgets)
         {
@@ -61,7 +62,7 @@ public class GetDashboardDataHandler(
 
             try
             {
-                results.Add(await resolver.ResolveAsync(widget, cancellationToken));
+                results.Add(await resolver.ResolveAsync(widget, resolveContext, cancellationToken));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

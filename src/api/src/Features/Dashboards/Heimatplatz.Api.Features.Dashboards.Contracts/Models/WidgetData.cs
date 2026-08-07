@@ -24,10 +24,16 @@ public record WidgetDataDto(
     ChartWidgetData? Chart = null
 );
 
-/// <summary>Trefferliste (property-list, highlight, new-listings). Total = Treffer der Filterung insgesamt.</summary>
+/// <summary>
+/// Trefferliste (property-list, highlight, new-listings). Total = Treffer der
+/// Filterung insgesamt; Page/PageSize dienen dem Blaettern der Listen-Ansicht
+/// (Seitenzahl = ceil(Total / PageSize), Startseiten-Muster).
+/// </summary>
 public record PropertyListWidgetData(
     List<PropertyListItemDto> Properties,
-    int Total
+    int Total,
+    int Page = 0,
+    int PageSize = 0
 );
 
 /// <summary>Kennzahl-Kacheln (stat-row). Label und Value kommen anzeigefertig vom Server (Backend-First).</summary>

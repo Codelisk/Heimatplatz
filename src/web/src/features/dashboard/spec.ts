@@ -83,7 +83,7 @@ export interface WidgetData {
   Kind: string;
   Success: boolean;
   Error: string | null;
-  PropertyList?: { Properties: ApiPropertyItem[]; Total: number } | null;
+  PropertyList?: { Properties: ApiPropertyItem[]; Total: number; Page?: number; PageSize?: number } | null;
   StatRow?: { Tiles: { Key: string; Label: string; Value: string }[] } | null;
   Map?: { Pins: MapPin[]; Total: number; WithoutCoordinates: number; Truncated: boolean } | null;
   TextNote?: { Text: string } | null;

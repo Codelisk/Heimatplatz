@@ -38,7 +38,7 @@ public class TextNoteWidgetResolver : IDashboardWidgetResolver
         return widget;
     }
 
-    public Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, CancellationToken cancellationToken) =>
+    public Task<WidgetDataDto> ResolveAsync(DashboardWidget widget, WidgetResolveContext context, CancellationToken cancellationToken) =>
         Task.FromResult(new WidgetDataDto(
             widget.Id, Kind, Success: true, Error: null,
             TextNote: new TextNoteWidgetData(widget.Options?.Text ?? "")));

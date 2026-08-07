@@ -19,6 +19,8 @@ import PencilIcon from "@tabler/icons/outline/pencil.svg";
 import TrashIcon from "@tabler/icons/outline/trash.svg";
 import PlusIcon from "@tabler/icons/outline/plus.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
+import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
+import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
 import { normalizeStatus, normalizeViewType } from "@/features/dashboard/spec";
 import type { DashboardSsrState } from "@/features/dashboard/ssr-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
@@ -423,6 +425,34 @@ const tabClassInactive =
   </a>
 </template>
 
+{/* Seiten-Navigation der Listen-Ansicht: identisches Markup wie die Startseite
+    (PropertySearchApp) - gleiche Buttons, gleiche Info-Zeile, gleiche i18n-Keys */}
+<template data-dash-tpl="list-pager">
+  <nav
+    class="mt-5 flex items-center justify-center gap-4 border-t border-border pt-4"
+    aria-label={t("search.paginationLabel")}
+    data-list-pagination
+  >
+    <button
+      type="button"
+      class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+      aria-label={t("search.pagePrev")}
+      data-page-prev
+    >
+      <ChevronLeftIcon class="size-5" aria-hidden="true" />
+    </button>
+    <span class="min-w-28 text-center text-sm font-medium text-muted-foreground" aria-live="polite" data-pagination-info></span>
+    <button
+      type="button"
+      class="grid size-10 place-items-center rounded-md border border-border bg-background text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+      aria-label={t("search.pageNext")}
+      data-page-next
+    >
+      <ChevronRightIcon class="size-5" aria-hidden="true" />
+    </button>
+  </nav>
+</template>
+
 <template data-dash-tpl="detail-fact">
   <div class="flex items-baseline justify-between gap-4 border-b border-border/60 py-2 last:border-0">
     <dt class="shrink-0 text-sm text-muted-foreground" data-fact-label></dt>
@@ -749,7 +779,7 @@ const tabClassInactive =
       resetDeleteButton();
     }
 
-    async function renderData(dashboard: DashboardResponse) {
+    async function renderData(dashboard: DashboardResponse, page = 0) {
       const definition = dashboard.Definition;
       grid.replaceChildren();
       unsupportedPanel.classList.add("hidden");
@@ -793,7 +823,9 @@ const tabClassInactive =
 
       let data: WidgetData[] = [];
       try {
-        const result = await apiFetch<{ Widgets: WidgetData[] }>(`/api/dashboards/${dashboard.Id}/data`);
+        const result = await apiFetch<{ Widgets: WidgetData[] }>(
+          `/api/dashboards/${dashboard.Id}/data?Page=${page}`,
+        );
         data = result.Widgets ?? [];
       } catch (error) {
         showGlobalError((error as Error).message);
@@ -804,7 +836,7 @@ const tabClassInactive =
         const frame = frames.get(widget.Id);
         if (!frame) continue;
         const body = frame.querySelector<HTMLElement>("[data-w-body]")!;
-        body.replaceChildren(renderWidgetBody(widget, dataById.get(widget.Id)));
+        body.replaceChildren(renderWidgetBody(widget, dataById.get(widget.Id), isListView));
       }
     }
 
@@ -814,7 +846,7 @@ const tabClassInactive =
       return div;
     }
 
-    function renderWidgetBody(widget: DashboardWidget, data: WidgetData | undefined): HTMLElement {
+    function renderWidgetBody(widget: DashboardWidget, data: WidgetData | undefined, isListView = false): HTMLElement {
       if (!data || !data.Success) {
         const error = clone("widget-error");
         error.querySelector<HTMLElement>("[data-w-error]")!.textContent = data?.Error || t("dash.widgetError");
@@ -825,7 +857,7 @@ const tabClassInactive =
         case "stat-row":
           return renderStatRow(data);
         case "property-list":
-          return renderPropertyList(widget, data);
+          return isListView ? renderListPropertyList(widget, data) : renderPropertyList(widget, data);
         case "new-listings":
           return renderPropertyList(widget, data, "list");
         case "highlight":
@@ -858,12 +890,8 @@ const tabClassInactive =
       return row;
     }
 
-    function renderPropertyList(widget: DashboardWidget, data: WidgetData, forcedVariant?: string): HTMLElement {
-      const items = data.PropertyList?.Properties ?? [];
-      if (items.length === 0) return emptyNote();
-
-      const fields = widget.Options?.Fields ?? null;
-      const variant = forcedVariant ?? widget.Options?.Variant ?? "grid";
+    /** Eintraege einer Trefferliste (Karten oder Zeilen, Preset oder Feldauswahl) */
+    function buildListEntries(items: ApiPropertyItem[], variant: string, fields: string[] | null): HTMLElement {
       const containerName = variant === "grid" ? "property-grid" : "property-rows";
       const container = clone(containerName);
       const host = container.querySelector<HTMLElement>("[data-w-items]") ?? container;
@@ -879,6 +907,16 @@ const tabClassInactive =
         if (fields && variant === "grid") applyFieldsToCard(card, item, fields);
         host.append(card);
       }
+      return container;
+    }
+
+    function renderPropertyList(widget: DashboardWidget, data: WidgetData, forcedVariant?: string): HTMLElement {
+      const items = data.PropertyList?.Properties ?? [];
+      if (items.length === 0) return emptyNote();
+
+      const fields = widget.Options?.Fields ?? null;
+      const variant = forcedVariant ?? widget.Options?.Variant ?? "grid";
+      const container = buildListEntries(items, variant, fields);
 
       const total = data.PropertyList?.Total ?? items.length;
       if (total > items.length) {
@@ -888,6 +926,53 @@ const tabClassInactive =
         container.append(note);
       }
       return container;
+    }
+
+    /**
+     * Listen-Ansicht: die Trefferliste im Startseiten-Gewand — Trefferzahl-Zeile
+     * (.result-count), Container-Query-Grid wie PropertySearchApp und dieselbe
+     * Seiten-Navigation (Blaettern laedt die Daten-Ebene mit ?Page=N neu).
+     */
+    function renderListPropertyList(widget: DashboardWidget, data: WidgetData): HTMLElement {
+      const wrap = document.createElement("div");
+      wrap.className = "@container";
+      const payload = data.PropertyList;
+      const total = payload?.Total ?? 0;
+
+      const countLine = document.createElement("p");
+      countLine.className = "mb-3";
+      const countSpan = document.createElement("span");
+      countSpan.className = "result-count";
+      countSpan.textContent = t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total });
+      countLine.append(countSpan);
+      wrap.append(countLine);
+
+      const items = payload?.Properties ?? [];
+      if (items.length === 0) {
+        wrap.append(emptyNote());
+        return wrap;
+      }
+
+      const fields = widget.Options?.Fields ?? null;
+      const variant = widget.Options?.Variant ?? "grid";
+      const entries = buildListEntries(items, variant, fields);
+      if (variant === "grid") entries.className = "grid gap-4 @2xl:grid-cols-2 @6xl:grid-cols-3";
+      wrap.append(entries);
+
+      const pageSize = payload?.PageSize || items.length || 1;
+      const pageCount = Math.max(1, Math.ceil(total / pageSize));
+      const page = payload?.Page ?? 0;
+      if (pageCount > 1) {
+        const pager = clone("list-pager");
+        pager.dataset.page = String(page);
+        pager.dataset.pageCount = String(pageCount);
+        pager.querySelector<HTMLButtonElement>("[data-page-prev]")!.disabled = page <= 0;
+        pager.querySelector<HTMLButtonElement>("[data-page-next]")!.disabled = page >= pageCount - 1;
+        pager.querySelector<HTMLElement>("[data-pagination-info]")!.textContent =
+          t("search.pageOf", { current: page + 1, total: pageCount });
+        wrap.append(pager);
+      }
+      return wrap;
     }
 
     function renderHighlight(widget: DashboardWidget, data: WidgetData): HTMLElement {
@@ -1438,6 +1523,23 @@ const tabClassInactive =
 
       detailBody.replaceChildren(...parts);
     }
+
+    // Blaettern der Listen-Ansicht: laedt die Daten-Ebene mit ?Page=N neu
+    // (identische Bedienung wie das Startseiten-Paging) und scrollt zur Liste
+    grid.addEventListener("click", (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-page-prev], [data-page-next]");
+      if (!button || button.disabled) return;
+      const nav = button.closest<HTMLElement>("[data-list-pagination]");
+      if (!nav || !current) return;
+      const page = parseInt(nav.dataset.page ?? "0", 10);
+      const pageCount = parseInt(nav.dataset.pageCount ?? "1", 10);
+      const next = button.hasAttribute("data-page-next") ? page + 1 : page - 1;
+      if (next < 0 || next >= pageCount) return;
+      event.preventDefault();
+      void renderData(current, next)
+        .then(() => grid.scrollIntoView({ behavior: "smooth", block: "start" }))
+        .catch((error: Error) => showGlobalError(error.message));
+    });
 
     // Klicks auf Inserats-Eintraege im Dashboard oeffnen die Overlay statt zu
     // navigieren; Modifier-Klicks (neuer Tab) und Buttons (Favoriten) bleiben unberuehrt
