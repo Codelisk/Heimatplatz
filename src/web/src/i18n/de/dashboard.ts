@@ -37,6 +37,9 @@ export const dashboard = {
   "dash.newButton": "Neue Ansicht",
   "dash.badgeList": "Liste",
   "dash.badgeDashboard": "Dashboard",
+  "dash.cardGenerating": "Wird erstellt …",
+  "dash.cardFailed": "Fehlgeschlagen — zum Anpassen öffnen",
+  "dash.cardUpdated": "Stand: {date}",
 
   "dash.progressQueued": "Ihre Ansicht wird vorbereitet …",
   "dash.progressInProgress": "Ihre Ansicht wird zusammengestellt — das kann bis zu einer Minute dauern.",

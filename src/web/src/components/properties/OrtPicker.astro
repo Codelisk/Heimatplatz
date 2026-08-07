@@ -357,6 +357,15 @@ const panelId = `${buttonId}-panel`;
     const trigger = picker.querySelector<HTMLButtonElement>("[data-ort-picker-trigger]");
     const clear = picker.querySelector<HTMLButtonElement>("[data-ort-picker-clear]");
 
+    // Offizielle externe Setz-API (z.B. Listen-Ansicht seedet die KI-Orte):
+    // dispatcht auf das [data-ort-picker]-Element ein CustomEvent mit
+    // { values: string[], emit?: boolean } - emit=true feuert ort-picker-change
+    picker.addEventListener("ort-picker-set", (event) => {
+      const detail = (event as CustomEvent<{ values?: string[]; emit?: boolean }>).detail;
+      setPickerValues(picker, detail?.values ?? []);
+      if (detail?.emit) emitChange(picker);
+    });
+
     trigger?.addEventListener("click", (event) => {
       event.preventDefault();
       if (isOpen(picker)) {

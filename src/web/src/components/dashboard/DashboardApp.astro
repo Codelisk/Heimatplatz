@@ -12,6 +12,8 @@
  */
 import AuthGate from "@/components/app/AuthGate.astro";
 import DashboardSsr from "@/components/dashboard/DashboardSsr.astro";
+import PropertyFilterBar, { type FilterBarInitial } from "@/components/properties/PropertyFilterBar.astro";
+import { buildOrtSlugMap, fetchOrtRegions } from "@/features/locations/live-api";
 import LayoutDashboardIcon from "@tabler/icons/outline/layout-dashboard.svg";
 import SparklesIcon from "@tabler/icons/outline/sparkles.svg";
 import ArrowBackIcon from "@tabler/icons/outline/arrow-back-up.svg";
@@ -21,7 +23,7 @@ import PlusIcon from "@tabler/icons/outline/plus.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
 import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
 import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
-import { normalizeStatus, normalizeViewType } from "@/features/dashboard/spec";
+import { formatDashboardDate, normalizeStatus, normalizeViewType } from "@/features/dashboard/spec";
 import type { DashboardSsrState } from "@/features/dashboard/ssr-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
@@ -42,43 +44,76 @@ const ssrShowView = ssrStatus === "finished" && !!ssrDashboard?.Definition && !!
 const ssrGenerating = ssrStatus === "queued" || ssrStatus === "inProgress";
 const ssrFailed = ssrStatus === "failed";
 const ssrShowCreate = !!ssr && (ssr.Summaries?.length ?? 0) === 0;
+// Uebersichts-Modus: Seite ohne aktive Ansicht (kein ?id) - Karten-Grid der Ansichten
+const ssrOverview = !!ssr && !ssrDashboard && (ssr.Summaries?.length ?? 0) > 0;
 const ssrIntro = ssrShowView ? (ssrDashboard?.Definition?.Intro?.trim() ?? null) : null;
 const ssrWishes = ssrShowView ? (ssrDashboard?.Definition?.UnsupportedWishes ?? []).filter(Boolean) : [];
-const tabClassActive = "min-h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground";
-const tabClassInactive =
-  "min-h-9 rounded-md border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
+
+// Listen-Ansicht: Startseiten-Filterleiste, vorbelegt mit der KI-Query
+const ssrIsList = normalizeViewType(ssrDashboard?.ViewType) === "list";
+const ssrListBase = ssrIsList ? (ssrDashboard?.Definition?.Widgets?.[0]?.Query ?? null) : null;
+const ssrFilterHidden = ssrDashboard?.Definition?.Filter?.Hidden === true;
+const filterInitial: FilterBarInitial | undefined = ssrListBase
+  ? {
+      types: ssrListBase.Types ?? undefined,
+      sellers: ssrListBase.Sellers?.map((seller) => (seller === "broker" ? "agent" : seller)) ?? undefined,
+      sort: ssrListBase.Sort ?? undefined,
+      newBuild: ssrListBase.IncludeNewBuild === false ? false : undefined,
+    }
+  : undefined;
+const ssrListTotal = ssrIsList ? (ssr?.Widgets?.[0]?.PropertyList?.Total ?? 0) : 0;
+
+// Slug -> MunicipalityIds fuer den Listen-Filter (identische Aufloesung wie die
+// Startseite; cached, faellt bei API-Ausfall auf leere Map zurueck)
+const ortSlugMap = buildOrtSlugMap(await fetchOrtRegions());
+
+const badgeLabel = (viewType: string | null | undefined) =>
+  normalizeViewType(viewType) === "list" ? t("dash.badgeList") : t("dash.badgeDashboard");
 ---
 
 <div class="py-6 sm:py-8">
   <h1 class="sr-only">{t("dash.title")}</h1>
   <AuthGate title={t("dash.authTitle")} description={t("dash.authText")} assumeAuthenticated={!!ssr}>
     <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-dash-app>
-      {/* Übersichts-Wechsler (erst sichtbar, wenn mindestens eine Übersicht existiert) */}
-      <div
-        class:list={["mb-6 flex-wrap items-center gap-2", (ssr?.Summaries?.length ?? 0) > 0 ? "flex" : "hidden"]}
-        data-dash-toolbar
-      >
-        <span class="mr-1 text-sm font-medium text-muted-foreground">{t("dash.listLabel")}</span>
-        <div class="flex flex-wrap gap-2" data-dash-tabs>
-          {(ssr?.Summaries ?? []).map((summary) => (
-            <button
-              type="button"
-              data-dash-tab={summary.Id}
-              class={summary.Id === ssrDashboard?.Id ? tabClassActive : tabClassInactive}
-            >
-              {summary.Title || t("dash.title")}
-              {normalizeViewType(summary.ViewType) === "list" ? ` · ${t("dash.badgeList")}` : ""}
-            </button>
-          ))}
+      {/* Übersichts-Modus (ohne ?id): Karten-Grid aller Ansichten. Karten sind
+          echte Links (?id=...) - jede Ansicht laedt als eigene SSR-Seite,
+          zurueck geht es ueber den normalen Browser-Verlauf bzw. die Kopfzeile. */}
+      <div class:list={[!ssrOverview && "hidden"]} data-dash-overview>
+        <h2 class="mb-5 text-xl font-bold sm:text-2xl">{t("dash.listLabel")}</h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-dash-overview-grid>
+          {(ssr?.Summaries ?? []).map((summary) => {
+            const status = normalizeStatus(summary.Status);
+            const statusLine =
+              status === "queued" || status === "inProgress"
+                ? t("dash.cardGenerating")
+                : status === "failed"
+                  ? t("dash.cardFailed")
+                  : t("dash.cardUpdated", { date: formatDashboardDate(summary.UpdatedAt ?? summary.CreatedAt) ?? "" });
+            return (
+              <a
+                href={`/meine-uebersicht/?id=${summary.Id}`}
+                class="group flex flex-col gap-1 rounded-lg border border-border bg-card p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg"
+                data-dash-view-card
+              >
+                <span class="flex w-full items-center justify-between gap-2">
+                  <span class="truncate text-base font-semibold group-hover:underline">{summary.Title || t("dash.title")}</span>
+                  <span class="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                    {badgeLabel(summary.ViewType)}
+                  </span>
+                </span>
+                <span class="text-xs text-muted-foreground">{statusLine}</span>
+              </a>
+            );
+          })}
+          <button
+            type="button"
+            class="flex min-h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border p-4 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            data-dash-new
+          >
+            <PlusIcon class="size-5" aria-hidden="true" />
+            <span class="text-sm font-medium">{t("dash.newButton")}</span>
+          </button>
         </div>
-        <button
-          type="button"
-          class="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-dashed border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-          data-dash-new
-        >
-          <PlusIcon class="size-4" aria-hidden="true" />
-          {t("dash.newButton")}
-        </button>
       </div>
 
       {/* Erstellen (Hero bei 0 Übersichten bzw. nach "Neue Übersicht") */}
@@ -171,8 +206,21 @@ const tabClassInactive =
         </div>
       </div>
 
-      {/* Die gerenderte Übersicht */}
+      {/* Die gerenderte Ansicht (Vollbild-Modus, ohne Ansichten-Übersicht) */}
       <div class:list={[!(ssrShowView || ssrFailed) && "hidden"]} data-dash-view>
+        <div class="mb-3 flex items-center gap-2">
+          <a
+            href="/meine-uebersicht/"
+            class="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            data-dash-back
+          >
+            <ChevronLeftIcon class="size-4" aria-hidden="true" />
+            {t("dash.title")}
+          </a>
+          <span class="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground" data-dash-view-badge>
+            {ssrDashboard ? badgeLabel(ssrDashboard.ViewType) : ""}
+          </span>
+        </div>
         <header class="mb-5">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
@@ -227,6 +275,17 @@ const tabClassInactive =
           </div>
         </header>
 
+        {/* Listen-Ansicht: die Startseiten-Filterleiste (geteiltes Control),
+            vorbelegt mit der KI-Query. Negative Raender heben das Section-Padding
+            auf - die Leiste laeuft wie auf der Startseite ueber die volle Breite.
+            Der Binder im Script uebernimmt Chips/Sortierung/Ort → Neu-Laden. */}
+        <div
+          class:list={["mb-4 -mx-4 sm:-mx-6 lg:-mx-8", (!ssrIsList || ssrFilterHidden || !ssrShowView) && "hidden"]}
+          data-dash-filterbar
+        >
+          <PropertyFilterBar showMapToggle={false} initial={filterInitial} initialTotal={ssrListTotal} />
+        </div>
+
         {/* Nicht erfüllbare Wünsche — ehrlich statt erfunden */}
         <div
           class:list={["mb-5 rounded-md border border-border bg-muted px-4 py-3 text-sm", ssrWishes.length === 0 && "hidden"]}
@@ -240,7 +299,12 @@ const tabClassInactive =
 
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-12" data-dash-grid>
           {ssrShowView && ssrDashboard?.Definition && ssr?.Widgets && (
-            <DashboardSsr definition={ssrDashboard.Definition} widgets={ssr.Widgets} viewType={ssrDashboard.ViewType} />
+            <DashboardSsr
+              definition={ssrDashboard.Definition}
+              widgets={ssr.Widgets}
+              viewType={ssrDashboard.ViewType}
+              showListCount={ssrFilterHidden}
+            />
           )}
         </div>
 
@@ -279,6 +343,8 @@ const tabClassInactive =
 
       {/* SSR-Zustand fuers Island: uebernimmt statt neu zu fetchen (jsonForScriptTag escapet gegen Stored-XSS) */}
       {ssr && <script is:inline type="application/json" data-dash-ssr-state set:html={jsonForScriptTag(ssr)} />}
+      {/* Slug -> MunicipalityIds fuer den Listen-Filter (Startseiten-Aufloesung) */}
+      <script is:inline type="application/json" data-dash-ort-slug-map set:html={jsonForScriptTag(ortSlugMap)} />
 
       {/* Personalisierte Detail-Overlay: Aufbau (Sektionen + Fakten-Felder) folgt
           definition.Detail; die oeffentliche Detailseite bleibt unberuehrt und ist
@@ -520,18 +586,23 @@ const tabClassInactive =
     normalizeViewType,
     normalizePropertyType,
     sizeToSpanClass,
+    formatDashboardDate,
     formatDashboardPrice,
     listFieldValue,
     detailFieldRow,
+    seedFilterStateFromQuery,
+    buildListSearchQuery,
     DEFAULT_DETAIL_SECTIONS,
     DEFAULT_DETAIL_FIELDS,
     type ApiPropertyDetail,
     type ApiPropertyItem,
+    type DashboardPropertyQuery,
     type DashboardResponse,
     type DashboardSummary,
     type DashboardWidget,
     type WidgetData,
   } from "@/features/dashboard/spec";
+  import type { OrtSlugMap, PropertySearchState } from "@/features/properties/search-query";
 
   const app = document.querySelector<HTMLElement>("[data-dash-app]");
 
@@ -541,9 +612,11 @@ const tabClassInactive =
     const POLL_TIMEOUT_MS = 120_000;
 
     const q = <T extends HTMLElement>(selector: string) => app.querySelector<T>(selector)!;
-    const toolbar = q("[data-dash-toolbar]");
-    const tabs = q("[data-dash-tabs]");
+    const overview = q("[data-dash-overview]");
+    const overviewGrid = q("[data-dash-overview-grid]");
     const newButton = q<HTMLButtonElement>("[data-dash-new]");
+    const viewBadge = q("[data-dash-view-badge]");
+    const filterHost = q("[data-dash-filterbar]");
     const createPanel = q("[data-dash-create]");
     const createInput = q<HTMLTextAreaElement>("[data-dash-create-input]");
     const createSubmit = q<HTMLButtonElement>("[data-dash-create-submit]");
@@ -613,8 +686,9 @@ const tabClassInactive =
 
     // ---------- Panels ----------
 
-    type Panel = "create" | "progress" | "failed" | "view" | "none";
+    type Panel = "create" | "progress" | "failed" | "view" | "overview" | "none";
     function showPanel(panel: Panel) {
+      overview.classList.toggle("hidden", panel !== "overview");
       createPanel.classList.toggle("hidden", panel !== "create");
       progressPanel.classList.toggle("hidden", panel !== "progress");
       failedPanel.classList.toggle("hidden", panel !== "failed");
@@ -633,28 +707,43 @@ const tabClassInactive =
       globalError.classList.remove("hidden");
     }
 
-    // ---------- Übersichts-Wechsler ----------
+    // ---------- Übersichts-Modus (Karten-Grid der Ansichten) ----------
 
-    function renderTabs() {
-      tabs.replaceChildren(
-        ...summaries.map((summary) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.dataset.dashTab = summary.Id;
-          const badge = normalizeViewType(summary.ViewType) === "list" ? ` · ${t("dash.badgeList")}` : "";
-          button.textContent = (summary.Title || t("dash.title")) + badge;
-          button.className =
-            summary.Id === activeId
-              ? "min-h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
-              : "min-h-9 rounded-md border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
-          button.addEventListener("click", () => {
-            if (summary.Id !== activeId) void selectDashboard(summary.Id);
-          });
-          return button;
-        }),
-      );
-      toolbar.classList.toggle("hidden", summaries.length === 0);
-      toolbar.classList.toggle("flex", summaries.length > 0);
+    function badgeLabelOf(viewType: string | null | undefined): string {
+      return normalizeViewType(viewType) === "list" ? t("dash.badgeList") : t("dash.badgeDashboard");
+    }
+
+    /** Client-Nachbau der SSR-Karten (nur noetig, wenn ohne SSR gebootet wird) */
+    function renderOverviewClient() {
+      const cards = summaries.map((summary) => {
+        const status = normalizeStatus(summary.Status);
+        const card = document.createElement("a");
+        card.href = `/meine-uebersicht/?id=${summary.Id}`;
+        card.dataset.dashViewCard = "";
+        card.className =
+          "group flex flex-col gap-1 rounded-lg border border-border bg-card p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg";
+        const top = document.createElement("span");
+        top.className = "flex w-full items-center justify-between gap-2";
+        const title = document.createElement("span");
+        title.className = "truncate text-base font-semibold group-hover:underline";
+        title.textContent = summary.Title || t("dash.title");
+        const badge = document.createElement("span");
+        badge.className = "shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground";
+        badge.textContent = badgeLabelOf(summary.ViewType);
+        top.append(title, badge);
+        const line = document.createElement("span");
+        line.className = "text-xs text-muted-foreground";
+        line.textContent =
+          status === "queued" || status === "inProgress"
+            ? t("dash.cardGenerating")
+            : status === "failed"
+              ? t("dash.cardFailed")
+              : t("dash.cardUpdated", { date: formatDashboardDate(summary.UpdatedAt ?? summary.CreatedAt) ?? "" });
+        card.append(top, line);
+        return card;
+      });
+      // newButton mitsamt Listener ans Ende zuruecklegen
+      overviewGrid.replaceChildren(...cards, newButton);
     }
 
     function syncUrl() {
@@ -671,21 +760,26 @@ const tabClassInactive =
       summaries = result.Dashboards ?? [];
       if (summaries.length === 0) {
         activeId = null;
-        renderTabs();
         syncUrl();
         createCancel.classList.add("hidden");
         showPanel("create");
         return;
       }
-      const target =
-        summaries.find((item) => item.Id === preferredId) ?? summaries[0];
+      const target = preferredId ? summaries.find((item) => item.Id === preferredId) : undefined;
+      if (!target) {
+        // Ohne ?id (oder mit unbekannter Id): Uebersichts-Modus mit Karten-Grid
+        activeId = null;
+        syncUrl();
+        renderOverviewClient();
+        showPanel("overview");
+        return;
+      }
       await selectDashboard(target.Id);
     }
 
     async function selectDashboard(id: string) {
       stopPolling();
       activeId = id;
-      renderTabs();
       syncUrl();
       await loadDashboard();
     }
@@ -696,7 +790,6 @@ const tabClassInactive =
       current = dashboard;
       const summary = summaries.find((item) => item.Id === dashboard.Id);
       if (summary && dashboard.Title) summary.Title = dashboard.Title;
-      renderTabs();
 
       const status = normalizeStatus(dashboard.Status);
       if (status === "queued" || status === "inProgress") {
@@ -725,11 +818,13 @@ const tabClassInactive =
         failedText.textContent = dashboard.Error || t("dash.genericError");
         showPanel("failed");
         renderHeader(dashboard);
+        hideListFilter();
         return;
       }
 
       renderHeader(dashboard);
       showPanel("view");
+      setupListView(dashboard);
       await renderData(dashboard);
     }
 
@@ -770,6 +865,7 @@ const tabClassInactive =
 
     function renderHeader(dashboard: DashboardResponse) {
       titleEl.textContent = dashboard.Title || t("dash.title");
+      viewBadge.textContent = badgeLabelOf(dashboard.ViewType);
       const intro = dashboard.Definition?.Intro?.trim();
       introEl.textContent = intro ?? "";
       introEl.classList.toggle("hidden", !intro);
@@ -929,25 +1025,45 @@ const tabClassInactive =
     }
 
     /**
-     * Listen-Ansicht: die Trefferliste im Startseiten-Gewand — Trefferzahl-Zeile
-     * (.result-count), Container-Query-Grid wie PropertySearchApp und dieselbe
-     * Seiten-Navigation (Blaettern laedt die Daten-Ebene mit ?Page=N neu).
+     * Listen-Ansicht: die Trefferliste im Startseiten-Gewand — Trefferzahl
+     * (Zeile im Body oder Stempel in der Filterleiste), Container-Query-Grid wie
+     * PropertySearchApp und dieselbe Seiten-Navigation.
      */
     function renderListPropertyList(widget: DashboardWidget, data: WidgetData): HTMLElement {
+      const payload = data.PropertyList;
+      return buildListBody(widget, {
+        Properties: payload?.Properties ?? [],
+        Total: payload?.Total ?? 0,
+        Page: payload?.Page ?? 0,
+        PageSize: payload?.PageSize ?? 0,
+      });
+    }
+
+    interface ListPayload {
+      Properties: ApiPropertyItem[];
+      Total: number;
+      Page: number;
+      PageSize: number;
+    }
+
+    function buildListBody(widget: DashboardWidget, payload: ListPayload): HTMLElement {
       const wrap = document.createElement("div");
       wrap.className = "@container";
-      const payload = data.PropertyList;
-      const total = payload?.Total ?? 0;
+      const total = payload.Total;
+      updateBarCount(total);
 
-      const countLine = document.createElement("p");
-      countLine.className = "mb-3";
-      const countSpan = document.createElement("span");
-      countSpan.className = "result-count";
-      countSpan.textContent = t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total });
-      countLine.append(countSpan);
-      wrap.append(countLine);
+      // Trefferzahl im Body nur, wenn die Filterleiste (mit ihrem Stempel) fehlt
+      if (filterHost.classList.contains("hidden")) {
+        const countLine = document.createElement("p");
+        countLine.className = "mb-3";
+        const countSpan = document.createElement("span");
+        countSpan.className = "result-count";
+        countSpan.textContent = t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total });
+        countLine.append(countSpan);
+        wrap.append(countLine);
+      }
 
-      const items = payload?.Properties ?? [];
+      const items = payload.Properties;
       if (items.length === 0) {
         wrap.append(emptyNote());
         return wrap;
@@ -959,9 +1075,9 @@ const tabClassInactive =
       if (variant === "grid") entries.className = "grid gap-4 @2xl:grid-cols-2 @6xl:grid-cols-3";
       wrap.append(entries);
 
-      const pageSize = payload?.PageSize || items.length || 1;
+      const pageSize = payload.PageSize || items.length || 1;
       const pageCount = Math.max(1, Math.ceil(total / pageSize));
-      const page = payload?.Page ?? 0;
+      const page = payload.Page;
       if (pageCount > 1) {
         const pager = clone("list-pager");
         pager.dataset.page = String(page);
@@ -974,6 +1090,179 @@ const tabClassInactive =
       }
       return wrap;
     }
+
+    // ---------- Listen-Ansicht: Filterleisten-Binder ----------
+    //
+    // Die Filterleiste ist das geteilte Startseiten-Control (PropertyFilterBar);
+    // dieser Binder uebersetzt ihre Bedienung in denselben Suchzustand wie die
+    // Startseite (PropertySearchState -> buildPropertySearchQuery) und ergaenzt
+    // die KI-Basis-Einschraenkungen (Preis/Flaeche/Zimmer/Volltext), die die
+    // Leiste nicht abbildet. Ergebnis-Rendering bleibt die Feld-Darstellung
+    // der Ansicht (buildListBody).
+
+    const ortSlugMapClient: OrtSlugMap = (() => {
+      const el = document.querySelector("script[data-dash-ort-slug-map]");
+      try {
+        return el?.textContent ? (JSON.parse(el.textContent) as OrtSlugMap) : {};
+      } catch {
+        return {};
+      }
+    })();
+
+    let listActive = false;
+    let listWidget: DashboardWidget | null = null;
+    let listBase: DashboardPropertyQuery | null = null;
+    let listPageSize = 12;
+    let listState: PropertySearchState = seedFilterStateFromQuery(null);
+
+    function hideListFilter() {
+      listActive = false;
+      filterHost.classList.add("hidden");
+    }
+
+    function setupListView(dashboard: DashboardResponse) {
+      if (normalizeViewType(dashboard.ViewType) !== "list" || !dashboard.Definition) {
+        hideListFilter();
+        return;
+      }
+      listWidget = dashboard.Definition.Widgets?.[0] ?? null;
+      listBase = listWidget?.Query ?? null;
+      listPageSize = listBase?.Limit ?? 12;
+      listState = seedFilterStateFromQuery(listBase);
+      listActive = true;
+      const hidden = dashboard.Definition.Filter?.Hidden === true;
+      filterHost.classList.toggle("hidden", hidden);
+      if (!hidden) syncFilterUi();
+    }
+
+    /** Leisten-Zustand (Desktop + Mobile-Duplikate) auf listState bringen */
+    function syncFilterUi() {
+      filterHost.querySelectorAll<HTMLButtonElement>("[data-filter-type]").forEach((chip) => {
+        chip.setAttribute("aria-pressed", listState.types.includes(chip.dataset.filterType ?? "") ? "true" : "false");
+      });
+      filterHost.querySelectorAll<HTMLButtonElement>("[data-filter-seller-chip]").forEach((chip) => {
+        chip.setAttribute(
+          "aria-pressed",
+          listState.sellers.includes(chip.dataset.filterSellerChip ?? "") ? "true" : "false",
+        );
+      });
+      filterHost.querySelectorAll<HTMLButtonElement>("[data-filter-newbuild]").forEach((chip) => {
+        chip.setAttribute("aria-pressed", listState.newBuild ? "true" : "false");
+      });
+      filterHost.querySelectorAll<HTMLSelectElement>("[data-filter-age]").forEach((el) => (el.value = listState.age));
+      filterHost.querySelectorAll<HTMLSelectElement>("[data-filter-sort]").forEach((el) => (el.value = listState.sort));
+      // Orts-Picker erst nach dem Modul-Durchlauf setzen - ihr Init-Script muss
+      // den "ort-picker-set"-Listener schon gebunden haben
+      requestAnimationFrame(() => {
+        filterHost.querySelectorAll<HTMLElement>("[data-ort-picker]").forEach((picker) => {
+          picker.dispatchEvent(new CustomEvent("ort-picker-set", { detail: { values: listState.ortSlugs } }));
+        });
+      });
+    }
+
+    function updateBarCount(total: number) {
+      filterHost.querySelectorAll<HTMLElement>("[data-result-count]").forEach((el) => {
+        el.textContent = t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total });
+      });
+    }
+
+    /** Neu laden ueber die Startseiten-Suche (/api/properties) statt der Daten-Ebene */
+    async function refreshListFromFilters(page: number) {
+      if (!listWidget) return;
+      listState.page = page;
+      const query = buildListSearchQuery(listBase, listState, ortSlugMapClient, listPageSize);
+      const result = await apiFetch<{ Properties: ApiPropertyItem[]; Total: number }>(`/api/properties?${query}`);
+      const body = grid.querySelector<HTMLElement>("[data-w-body]");
+      body?.replaceChildren(
+        buildListBody(listWidget, {
+          Properties: result.Properties ?? [],
+          Total: result.Total ?? 0,
+          Page: page,
+          PageSize: listPageSize,
+        }),
+      );
+    }
+
+    function applyFilterChange() {
+      void refreshListFromFilters(0).catch((error: Error) => showGlobalError(error.message));
+    }
+
+    filterHost.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement;
+      const mobileToggle = target.closest<HTMLButtonElement>("[data-mobile-filter-toggle]");
+      if (mobileToggle) {
+        const expanded = mobileToggle.getAttribute("aria-expanded") === "true";
+        mobileToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+        filterHost.querySelector<HTMLElement>("[data-mobile-filter-body]")?.classList.toggle("hidden", expanded);
+        return;
+      }
+      if (!listActive) return;
+      if (target.closest("[data-filter-reset]")) {
+        listState = seedFilterStateFromQuery(listBase);
+        syncFilterUi();
+        applyFilterChange();
+        return;
+      }
+      const typeChip = target.closest<HTMLButtonElement>("[data-filter-type]");
+      if (typeChip) {
+        const value = typeChip.dataset.filterType ?? "";
+        const next = listState.types.includes(value)
+          ? listState.types.filter((item) => item !== value)
+          : [...listState.types, value];
+        if (next.length === 0) return; // mindestens eine Objektart bleibt aktiv
+        listState.types = next;
+        syncFilterUi();
+        applyFilterChange();
+        return;
+      }
+      const sellerChip = target.closest<HTMLButtonElement>("[data-filter-seller-chip]");
+      if (sellerChip) {
+        const value = sellerChip.dataset.filterSellerChip ?? "";
+        const next = listState.sellers.includes(value)
+          ? listState.sellers.filter((item) => item !== value)
+          : [...listState.sellers, value];
+        if (next.length === 0) return; // mindestens ein Anbieter bleibt aktiv
+        listState.sellers = next;
+        syncFilterUi();
+        applyFilterChange();
+        return;
+      }
+      if (target.closest("[data-filter-newbuild]")) {
+        listState.newBuild = !listState.newBuild;
+        syncFilterUi();
+        applyFilterChange();
+      }
+    });
+
+    filterHost.addEventListener("change", (event) => {
+      if (!listActive) return;
+      const target = event.target as HTMLSelectElement;
+      if (target.matches("[data-filter-age]")) {
+        listState.age = target.value;
+        syncFilterUi();
+        applyFilterChange();
+      } else if (target.matches("[data-filter-sort]")) {
+        listState.sort = target.value;
+        syncFilterUi();
+        applyFilterChange();
+      }
+    });
+
+    // OrtPicker (Multi-Select) im Binder: gemeinsamer Zustand fuer Desktop- und
+    // Mobile-Instanz, danach neu laden (Ereignis bubbelt bis filterHost)
+    filterHost.addEventListener("ort-picker-change", (event) => {
+      if (!listActive) return;
+      const detail = (event as CustomEvent<{ name: string; values: string[] }>).detail;
+      if (!detail || detail.name !== "region") return;
+      listState.ortSlugs = detail.values ?? [];
+      const source = event.target as HTMLElement;
+      filterHost.querySelectorAll<HTMLElement>("[data-ort-picker]").forEach((picker) => {
+        if (picker !== source && !picker.contains(source)) {
+          picker.dispatchEvent(new CustomEvent("ort-picker-set", { detail: { values: listState.ortSlugs } }));
+        }
+      });
+      applyFilterChange();
+    });
 
     function renderHighlight(widget: DashboardWidget, data: WidgetData): HTMLElement {
       const item = data.PropertyList?.Properties?.[0];
@@ -1325,7 +1614,6 @@ const tabClassInactive =
         if (summary) summary.Title = title;
         titleEl.textContent = title;
         renameRow.classList.add("hidden");
-        renderTabs();
       } catch (error) {
         showGlobalError((error as Error).message);
       }
@@ -1354,8 +1642,8 @@ const tabClassInactive =
       try {
         await apiFetch(`/api/dashboards/${activeId}`, { method: "DELETE" });
         stopPolling();
-        activeId = null;
-        await loadList();
+        // Zurueck zur Uebersicht als frische SSR-Seite (bzw. Erstellen-Panel)
+        window.location.assign("/meine-uebersicht/");
       } catch (error) {
         showGlobalError((error as Error).message);
       }
@@ -1524,8 +1812,8 @@ const tabClassInactive =
       detailBody.replaceChildren(...parts);
     }
 
-    // Blaettern der Listen-Ansicht: laedt die Daten-Ebene mit ?Page=N neu
-    // (identische Bedienung wie das Startseiten-Paging) und scrollt zur Liste
+    // Blaettern der Listen-Ansicht (identische Bedienung wie das Startseiten-
+    // Paging): mit aktiver Filterleiste ueber die Suche, sonst die Daten-Ebene
     grid.addEventListener("click", (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-page-prev], [data-page-next]");
       if (!button || button.disabled) return;
@@ -1536,7 +1824,8 @@ const tabClassInactive =
       const next = button.hasAttribute("data-page-next") ? page + 1 : page - 1;
       if (next < 0 || next >= pageCount) return;
       event.preventDefault();
-      void renderData(current, next)
+      const reload = listActive ? refreshListFromFilters(next) : renderData(current, next);
+      void reload
         .then(() => grid.scrollIntoView({ behavior: "smooth", block: "start" }))
         .catch((error: Error) => showGlobalError(error.message));
     });
@@ -1595,7 +1884,12 @@ const tabClassInactive =
       createInput.focus();
     });
     createCancel.addEventListener("click", () => {
-      if (activeId) void loadDashboard();
+      if (activeId) {
+        void loadDashboard();
+      } else if (summaries.length > 0) {
+        renderOverviewClient();
+        showPanel("overview");
+      }
     });
     refineSubmit.addEventListener("click", () => void refineDashboard());
     // Enter darf nie ein umgebendes Formular absenden (bekannte Falle) —
@@ -1636,20 +1930,21 @@ const tabClassInactive =
     }) {
       summaries = state.Summaries ?? [];
       if (!state.Dashboard) {
-        renderTabs();
-        showPanel("create");
+        // Uebersichts-Modus bzw. Erstellen-Panel sind bereits SSR-sichtbar -
+        // nur den leeren Zustand explizit schalten
+        if (summaries.length === 0) showPanel("create");
         return;
       }
 
       activeId = state.Dashboard.Id;
       current = state.Dashboard;
-      renderTabs();
       syncUrl();
 
       const status = normalizeStatus(state.Dashboard.Status);
       if (status === "finished" && state.Widgets && state.Dashboard.Definition) {
         renderHeader(state.Dashboard);
         showPanel("view");
+        setupListView(state.Dashboard);
         initSsrMaps();
         return;
       }

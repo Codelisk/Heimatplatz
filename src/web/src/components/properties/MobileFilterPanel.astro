@@ -5,7 +5,21 @@ import MapIcon from "@tabler/icons/outline/map-2.svg";
 import { NativeSelect } from "@/components/starwind/native-select";
 import OrtPicker from "@/components/properties/OrtPicker.astro";
 import { fetchOrtRegions } from "@/features/locations/live-api";
+import type { FilterBarInitial } from "@/components/properties/PropertyFilterBar.astro";
 import { t } from "@/i18n";
+
+interface Props {
+  /** Karten-Toggle anzeigen (nur wenn PropertyMapPanel auf der Seite ist) */
+  showMapToggle?: boolean;
+  /** SSR-Startzustaende (Listen-Ansicht); fehlt = Startseiten-Defaults */
+  initial?: FilterBarInitial;
+}
+
+const { showMapToggle = true, initial } = Astro.props;
+const typePressed = (slug: string) =>
+  initial?.types ? initial.types.includes(slug) : slug !== "foreclosure";
+const sellerPressed = (slug: string) => (initial?.sellers ? initial.sellers.includes(slug) : true);
+const newBuildPressed = initial?.newBuild !== false;
 
 // Gleiche API-basierte Ortsliste wie der Desktop-Picker im SiteHeader (cached)
 const ortRegions = await fetchOrtRegions();
@@ -35,17 +49,19 @@ const ortRegions = await fetchOrtRegions();
     {/* Kartenansicht rechts oben in der Leiste: gleicher Toggle-Chip wie in der
         Desktop-Suchleiste (PropertySearchApp), gleiche aria-pressed-Sprache -
         oeffnet die Vollbild-Faltkarte (PropertyMapPanel) */}
-    <button
-      type="button"
-      class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-input bg-muted px-2.5 py-1.5 text-sm font-semibold text-foreground transition-colors aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
-      data-map-toggle
-      aria-pressed="false"
-      aria-expanded="false"
-      aria-controls="property-map"
-    >
-      <MapIcon class="size-4" aria-hidden="true" />
-      {t("search.mapToggle")}
-    </button>
+    {showMapToggle && (
+      <button
+        type="button"
+        class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-input bg-muted px-2.5 py-1.5 text-sm font-semibold text-foreground transition-colors aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+        data-map-toggle
+        aria-pressed="false"
+        aria-expanded="false"
+        aria-controls="property-map"
+      >
+        <MapIcon class="size-4" aria-hidden="true" />
+        {t("search.mapToggle")}
+      </button>
+    )}
   </div>
 
   <form action="/" method="get" class="hidden px-3 pb-3" data-mobile-filter-body>
@@ -67,18 +83,18 @@ const ortRegions = await fetchOrtRegions();
           die Desktop-Suchleiste bietet ihn ebenfalls nicht - Filterung laeuft
           komplett serverseitig. Zwangsversteigerungen standardmaessig deaktiviert. */}
       <div class="filter-chip-group" role="group" aria-label={t("search.settingsTypeTitle")}>
-        <button type="button" class="filter-chip" data-filter-type="house" aria-pressed="true">{t("filter.typeHouse")}</button>
-        <button type="button" class="filter-chip" data-filter-type="land" aria-pressed="true">{t("filter.typeLand")}</button>
-        <button type="button" class="filter-chip" data-filter-type="foreclosure" aria-pressed="false">{t("filter.typeForeclosure")}</button>
+        <button type="button" class="filter-chip" data-filter-type="house" aria-pressed={typePressed("house") ? "true" : "false"}>{t("filter.typeHouse")}</button>
+        <button type="button" class="filter-chip" data-filter-type="land" aria-pressed={typePressed("land") ? "true" : "false"}>{t("filter.typeLand")}</button>
+        <button type="button" class="filter-chip" data-filter-type="foreclosure" aria-pressed={typePressed("foreclosure") ? "true" : "false"}>{t("filter.typeForeclosure")}</button>
       </div>
       <div class="filter-chip-group" role="group" aria-label={t("search.settingsSellerTitle")} data-seller-filter-group>
-        <button type="button" class="filter-chip" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
-        <button type="button" class="filter-chip" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
+        <button type="button" class="filter-chip" data-filter-seller-chip="private" aria-pressed={sellerPressed("private") ? "true" : "false"}>{t("filter.sellerPrivate")}</button>
+        <button type="button" class="filter-chip" data-filter-seller-chip="agent" aria-pressed={sellerPressed("agent") ? "true" : "false"}>{t("filter.sellerAgent")}</button>
       </div>
       {/* Neubauprojekte-Toggle (kein Objekttyp): Verdrahtung teilt sich der Chip
           mit der Desktop-Suchleiste ueber data-filter-newbuild */}
       <div class="filter-chip-group" role="group" aria-label={t("filter.newBuildGroup")}>
-        <button type="button" class="filter-chip" data-filter-newbuild aria-pressed="true" title={t("filter.newBuildHint")}>{t("filter.newBuild")}</button>
+        <button type="button" class="filter-chip" data-filter-newbuild aria-pressed={newBuildPressed ? "true" : "false"} title={t("filter.newBuildHint")}>{t("filter.newBuild")}</button>
       </div>
     </div>
 

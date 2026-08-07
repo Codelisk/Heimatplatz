@@ -5687,6 +5687,16 @@
               }
             ]
           },
+          "Filter": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DashboardFilterSpec"
+              }
+            ]
+          },
           "UnsupportedWishes": {
             "type": "array",
             "items": {
@@ -5715,6 +5725,17 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "DashboardFilterSpec": {
+        "type": "object",
+        "properties": {
+          "Hidden": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },

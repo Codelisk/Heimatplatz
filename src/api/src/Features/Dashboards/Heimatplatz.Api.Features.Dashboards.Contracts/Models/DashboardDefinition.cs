@@ -31,6 +31,13 @@ public class DashboardDefinition
     public DashboardDetailSpec? Detail { get; set; }
 
     /// <summary>
+    /// Filterleisten-Verhalten der Listen-Ansicht. null = Standard (die
+    /// Startseiten-Filterleiste erscheint, vorbelegt mit der KI-Query).
+    /// Nur gesetzt, wenn der Kunde AUSDRUECKLICH etwas anderes wuenscht.
+    /// </summary>
+    public DashboardFilterSpec? Filter { get; set; }
+
+    /// <summary>
     /// Wuensche des Nutzers, die der Widget-Katalog (noch) nicht erfuellen kann.
     /// Werden dem Nutzer ehrlich angezeigt statt erfunden - und sind zugleich die
     /// Produkt-Roadmap aus echten Nutzerwuenschen.
@@ -50,6 +57,17 @@ public class DashboardDetailSpec
 
     /// <summary>Geordnete Feld-Schluessel fuer den Fakten-Block; leer/null = Standard-Felder</summary>
     public List<string>? Fields { get; set; }
+}
+
+/// <summary>
+/// Filterleisten-Verhalten der Listen-Ansicht ("nur wenn der Kunde explizit
+/// einen anderen Filter wuenscht"). v1: nur Ausblenden; weitere Anpassungen
+/// (z.B. gesperrte Filter) sind additive Erweiterungen.
+/// </summary>
+public class DashboardFilterSpec
+{
+    /// <summary>true = Filterleiste komplett ausblenden</summary>
+    public bool? Hidden { get; set; }
 }
 
 /// <summary>Bloecke der Detail-Overlay</summary>

@@ -62,8 +62,10 @@ export async function fetchDashboardSsrState(
 
     const list = await fetchJson<{ Dashboards: DashboardSummary[] }>("/api/dashboards");
     const summaries = list.Dashboards ?? [];
-    const target = summaries.find((item) => item.Id === preferredId) ?? summaries[0];
-    if (!target) return { Summaries: [], Dashboard: null, Widgets: null };
+    // Ohne ?id (oder mit unbekannter Id) rendert die Seite den Uebersichts-Modus
+    // (Karten-Grid) - KEINE Auto-Auswahl der ersten Ansicht
+    const target = preferredId ? summaries.find((item) => item.Id === preferredId) : undefined;
+    if (!target) return { Summaries: summaries, Dashboard: null, Widgets: null };
 
     const dashboard = await fetchJson<DashboardResponse>(`/api/dashboards/${target.Id}`);
 

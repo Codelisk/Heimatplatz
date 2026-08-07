@@ -33,9 +33,11 @@ interface Props {
   widgets: WidgetData[];
   /** "dashboard" | "list" - Listen-Ansichten rendern ohne Widget-Karten-Rahmen */
   viewType?: string | null;
+  /** false = Trefferzahl-Zeile weglassen (die Filterleiste traegt sie bereits) */
+  showListCount?: boolean;
 }
 
-const { definition, widgets, viewType = null } = Astro.props;
+const { definition, widgets, viewType = null, showListCount = true } = Astro.props;
 const isListView = normalizeViewType(viewType) === "list";
 const dataById = new Map(widgets.map((item) => [item.WidgetId, item]));
 
@@ -107,7 +109,7 @@ const badge = (item: ApiPropertyItem) => {
           </h3>
         )}
         <div class:list={[!isListView && "p-4", isListView && "@container"]} data-w-body>
-          {listChrome && (
+          {listChrome && showListCount && (
             <p class="mb-3">
               <span class="result-count">
                 {t(listTotal === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: listTotal })}

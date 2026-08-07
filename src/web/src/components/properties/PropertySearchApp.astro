@@ -1,18 +1,13 @@
 ---
-import ArrowsSortIcon from "@tabler/icons/outline/arrows-sort.svg";
 import ChevronLeftIcon from "@tabler/icons/outline/chevron-left.svg";
 import ChevronRightIcon from "@tabler/icons/outline/chevron-right.svg";
-import MapIcon from "@tabler/icons/outline/map-2.svg";
-import { NativeSelect } from "@/components/starwind/native-select";
 import type { ApiProperty } from "@/features/properties/live-api";
 import type { OrtSlugMap } from "@/features/properties/search-query";
 import { SEARCH_PAGE_SIZE } from "@/features/properties/search-query";
-import { fetchOrtRegions } from "@/features/locations/live-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
 import ApiPropertyCard from "@/components/properties/ApiPropertyCard.astro";
-import MobileFilterPanel from "@/components/properties/MobileFilterPanel.astro";
-import OrtPicker from "@/components/properties/OrtPicker.astro";
+import PropertyFilterBar from "@/components/properties/PropertyFilterBar.astro";
 import PropertyMapPanel from "@/components/properties/PropertyMapPanel.astro";
 
 interface Props {
@@ -35,13 +30,7 @@ const {
   ortSlugMap = {},
 } = Astro.props;
 const pageCount = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
-// Such-Picker arbeitet auf der echten Bezirk/Gemeinde-Hierarchie der API
-// (Slugs -> MunicipalityIds, serverseitige Filterung). Cached, faellt bei
-// API-Ausfall auf die statischen SEO-Ortsteile zurueck.
-const ortRegions = await fetchOrtRegions();
 ---
-
-<MobileFilterPanel />
 
 <div
   data-search-config
@@ -92,83 +81,10 @@ const ortRegions = await fetchOrtRegions();
   })();
 </script>
 
-{/* Suchleiste: Desktop-Filter links, Treffer-Stempel + Sortierung rechts.
-    Ab lg klebt sie unter dem Header (Filter bleiben beim Scrollen greifbar);
-    auf Mobile liefert das MobileFilterPanel darueber die Filter. */}
-<section class="z-30 border-b border-border bg-background supports-[backdrop-filter]:bg-background/85 supports-[backdrop-filter]:backdrop-blur-md lg:sticky lg:top-14">
-  <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2 sm:px-5">
-    <form action="/" method="get" class="hidden min-w-0 flex-1 flex-wrap items-center gap-2.5 lg:flex">
-      <div class="w-44 xl:w-56">
-        <OrtPicker name="region" placeholder={t("filter.locationPlaceholder")} regions={ortRegions.length > 0 ? ortRegions : undefined} />
-      </div>
-      {/* aria-label PFLICHT: die erste Option ist nur ein visueller Titel, ohne
-          Label bliebe die Auswahl im Accessibility-Tree namenlos (WEB-B07) */}
-      <NativeSelect name="age" size="sm" class="w-32" aria-label={t("filter.period")} data-filter-age>
-        <option value="">{t("filter.period")}</option>
-        <option value="day">{t("filter.period24h")}</option>
-        <option value="week">{t("filter.period7d")}</option>
-        <option value="month">{t("filter.period30d")}</option>
-        <option value="year">{t("filter.period1y")}</option>
-      </NativeSelect>
-      <div class="filter-chip-group" role="group" aria-label={t("search.settingsTypeTitle")}>
-        <button type="button" class="filter-chip" data-filter-type="house" aria-pressed="true">{t("filter.typeHouse")}</button>
-        <button type="button" class="filter-chip" data-filter-type="land" aria-pressed="true">{t("filter.typeLand")}</button>
-        {/* Zwangsversteigerungen sind standardmaessig deaktiviert - Chip startet
-            unpressed, updateFilterChips uebernimmt danach URL/Praeferenzen */}
-        <button type="button" class="filter-chip" data-filter-type="foreclosure" aria-pressed="false">{t("filter.typeForeclosure")}</button>
-      </div>
-      <div class="filter-chip-group" role="group" aria-label={t("search.settingsSellerTitle")} data-seller-filter-group>
-        <button type="button" class="filter-chip" data-filter-seller-chip="private" aria-pressed="true">{t("filter.sellerPrivate")}</button>
-        <button type="button" class="filter-chip" data-filter-seller-chip="agent" aria-pressed="true">{t("filter.sellerAgent")}</button>
-      </div>
-      {/* Neubauprojekte (noch nicht fertig gebaute Haeuser): eigener Ein-Chip-Toggle,
-          KEIN Objekttyp (ein Neubauprojekt IST ein Haus) - gedrueckt = anzeigen (Default) */}
-      <div class="filter-chip-group" role="group" aria-label={t("filter.newBuildGroup")}>
-        <button type="button" class="filter-chip" data-filter-newbuild aria-pressed="true" title={t("filter.newBuildHint")}>{t("filter.newBuild")}</button>
-      </div>
-    </form>
-    <div class="flex flex-1 items-center justify-between gap-3 lg:flex-none lg:justify-end">
-      {/* Kartenansicht: Toggle-Chip mit gleicher aria-pressed-Sprache wie die
-          Filter-Chips - die Faltkarte (PropertyMapPanel) klappt als rechte
-          Split-Spalte neben der Trefferliste auf, die Liste bleibt sichtbar */}
-      {/* Unter lg uebernimmt der gleiche Toggle-Chip rechts oben in der sticky
-          Filterzeile (MobileFilterPanel) - beide tragen data-map-toggle */}
-      <button
-        type="button"
-        class="hidden shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-input bg-muted px-2.5 py-1.5 text-sm font-semibold text-foreground transition-colors aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground lg:inline-flex"
-        data-map-toggle
-        aria-pressed="false"
-        aria-expanded="false"
-        aria-controls="property-map"
-      >
-        <MapIcon class="size-4" aria-hidden="true" />
-        {t("search.mapToggle")}
-      </button>
-      <span class="result-count" data-result-count>{t(total === 1 ? "search.resultCountOne" : "search.resultCountMany", { count: total })}</span>
-      <label class="flex items-center">
-        <span class="sr-only">{t("search.sortLabel")}</span>
-        {/* Gleiche eingefasste Optik wie das Zeitraum-Select; das Sortier-Icon
-            sitzt als Indikator im Rahmen (ersetzt den Chevron-Slot).
-            text-base auf Mobile: <select> unter 16px loest auf iOS Auto-Zoom aus */}
-        <NativeSelect size="sm" class="cursor-pointer text-base sm:text-sm" data-filter-sort>
-          <option value="newest">{t("search.sortNewest")}</option>
-          <option value="oldest">{t("search.sortOldest")}</option>
-          <option value="price-asc">{t("search.sortPriceAsc")}</option>
-          <option value="price-desc">{t("search.sortPriceDesc")}</option>
-          <option value="area-desc">{t("search.sortAreaDesc")}</option>
-          <option value="area-asc">{t("search.sortAreaAsc")}</option>
-          <option value="postal-asc">{t("search.sortPostalAsc")}</option>
-          <option value="postal-desc">{t("search.sortPostalDesc")}</option>
-          <ArrowsSortIcon
-            slot="icon"
-            class="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-foreground opacity-50"
-            aria-hidden="true"
-          />
-        </NativeSelect>
-      </label>
-    </div>
-  </div>
-</section>
+{/* Such-/Filterleiste (Desktop-Suchzeile + MobileFilterPanel) - geteiltes
+    Control mit der Listen-Ansicht unter /meine-uebersicht/, siehe
+    PropertyFilterBar.astro. Das Script hier bindet weiter ueber data-Attribute. */}
+<PropertyFilterBar initialTotal={total} />
 
 <slot name="after-toolbar" />
 

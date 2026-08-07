@@ -188,6 +188,31 @@ public class DashboardDefinitionValidatorTests
     }
 
     [Test]
+    public async Task Validate_KeepsExplicitFilterHiddenAndDropsEverythingElse()
+    {
+        var validator = CreateValidator();
+        var hidden = new DashboardDefinition
+        {
+            Title = "Test",
+            Widgets = [Widget("property-list")],
+            Filter = new DashboardFilterSpec { Hidden = true }
+        };
+        var noise = new DashboardDefinition
+        {
+            Title = "Test",
+            Widgets = [Widget("property-list")],
+            Filter = new DashboardFilterSpec { Hidden = false }
+        };
+
+        var hiddenResult = await validator.ValidateAsync(hidden, DashboardViewTypes.List, CancellationToken.None);
+        var noiseResult = await validator.ValidateAsync(noise, DashboardViewTypes.List, CancellationToken.None);
+
+        hiddenResult.Filter.Should().NotBeNull();
+        hiddenResult.Filter!.Hidden.Should().BeTrue();
+        noiseResult.Filter.Should().BeNull("nur die dokumentierte Abweichung hidden=true bleibt erhalten");
+    }
+
+    [Test]
     public async Task Validate_ForcesHighlightLimitToOne()
     {
         var validator = CreateValidator();

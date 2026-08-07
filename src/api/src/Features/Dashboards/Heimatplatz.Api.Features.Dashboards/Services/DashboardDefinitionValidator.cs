@@ -103,6 +103,9 @@ public class DashboardDefinitionValidator(
         // Personalisierte Detail-Overlay: Sections + Felder fail-closed gegen den Feld-Katalog
         definition.Detail = DashboardFieldCatalog.NormalizeDetail(definition.Detail, warnings);
 
+        // Filterleisten-Spec: nur die dokumentierte Abweichung (hidden=true) bleibt
+        definition.Filter = definition.Filter?.Hidden == true ? new DashboardFilterSpec { Hidden = true } : null;
+
         await ResolveLocationsAsync(sanitized, definition.UnsupportedWishes, warnings, cancellationToken);
 
         // Ids immer neu vergeben (stabil, eindeutig) - die Daten-Antwort matcht dagegen

@@ -83,6 +83,8 @@ public class DashboardCatalogPromptBuilder(
         sb.AppendLine("    \"sections\": [\"gallery\"|\"facts\"|\"description\"|\"features\"|\"contact\"|\"map\"],  // Reihenfolge; weglassen = Standard");
         sb.AppendLine("    \"fields\": [\"...\"]                          // Fakten-Zeilen aus dem FELD-KATALOG");
         sb.AppendLine("  },");
+        if (viewType == DashboardViewTypes.List)
+            sb.AppendLine("  \"filter\": { \"hidden\": true },             // NUR wenn der Kunde ausdruecklich KEINE Filterleiste will; sonst weglassen");
         sb.AppendLine("  \"unsupportedWishes\": [\"Wunsch, den kein Widget abdecken kann\"]");
         sb.AppendLine("}");
         sb.AppendLine("Regeln:");

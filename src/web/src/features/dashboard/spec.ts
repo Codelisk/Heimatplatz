@@ -42,6 +42,8 @@ export interface DashboardDefinition {
   Intro?: string | null;
   Widgets: DashboardWidget[];
   Detail?: DashboardDetailSpec | null;
+  /** Listen-Ansicht: { Hidden: true } blendet die Filterleiste aus */
+  Filter?: { Hidden?: boolean | null } | null;
   UnsupportedWishes?: string[] | null;
 }
 
@@ -62,9 +64,15 @@ export interface DashboardWidget {
 
 export interface DashboardPropertyQuery {
   Types?: string[] | null;
+  Sellers?: string[] | null;
   Locations?: string[] | null;
   PriceMin?: number | null;
   PriceMax?: number | null;
+  AreaMin?: number | null;
+  AreaMax?: number | null;
+  RoomsMin?: number | null;
+  IncludeNewBuild?: boolean | null;
+  SearchText?: string | null;
   Limit?: number | null;
   Sort?: string | null;
 }
@@ -279,6 +287,64 @@ export const DEFAULT_DETAIL_FIELDS = [
   "anbieter",
   "eingestellt-am",
 ];
+
+// ---------------------------------------------------------------------------
+// Listen-Ansicht: Filter-Anbindung an die Startseiten-Suchlogik
+// ---------------------------------------------------------------------------
+
+import {
+  ALL_SELLERS,
+  DEFAULT_TYPES,
+  buildPropertySearchQuery,
+  type OrtSlugMap,
+  type PropertySearchState,
+} from "@/features/properties/search-query";
+import { slugifyLocation } from "@/features/locations/region-match";
+
+/** Sortierungen, die sowohl KI-Query als auch Suchleiste kennen */
+const LIST_SORTS = ["newest", "oldest", "price-asc", "price-desc", "area-asc", "area-desc"];
+
+/**
+ * Startzustand der Filterleiste aus der KI-Query der Liste: Typen/Anbieter →
+ * Chips, Sortierung → Select, Orts-NAMEN → Picker-Slugs (slugifyLocation;
+ * dieselbe Hierarchie, aus der die Namen serverseitig aufgeloest wurden).
+ */
+export function seedFilterStateFromQuery(base: DashboardPropertyQuery | null | undefined): PropertySearchState {
+  return {
+    q: "",
+    types: base?.Types?.length ? [...base.Types] : [...DEFAULT_TYPES],
+    sellers: base?.Sellers?.length
+      ? base.Sellers.map((seller) => (seller === "broker" ? "agent" : seller))
+      : [...ALL_SELLERS],
+    ortSlugs: (base?.Locations ?? []).map((name) => slugifyLocation(name)).filter(Boolean),
+    age: "",
+    sort: base?.Sort && LIST_SORTS.includes(base.Sort) ? base.Sort : "newest",
+    page: 0,
+    newBuild: base?.IncludeNewBuild === false ? false : true,
+  };
+}
+
+/**
+ * Query der Listen-Ansicht = Startseiten-Query (buildPropertySearchQuery,
+ * identische Logik/Parameter) + die KI-Basis-Einschraenkungen, die die
+ * Filterleiste nicht abbildet (Preis/Flaeche/Zimmer/Volltext).
+ */
+export function buildListSearchQuery(
+  base: DashboardPropertyQuery | null | undefined,
+  state: PropertySearchState,
+  ortSlugMap: OrtSlugMap,
+  pageSize: number,
+): string {
+  const params = new URLSearchParams(buildPropertySearchQuery(state, ortSlugMap));
+  params.set("PageSize", String(Math.max(1, pageSize)));
+  if (base?.PriceMin) params.set("PriceMin", String(base.PriceMin));
+  if (base?.PriceMax) params.set("PriceMax", String(base.PriceMax));
+  if (base?.AreaMin) params.set("AreaMin", String(base.AreaMin));
+  if (base?.AreaMax) params.set("AreaMax", String(base.AreaMax));
+  if (base?.RoomsMin) params.set("RoomsMin", String(base.RoomsMin));
+  if (base?.SearchText?.trim() && !params.has("SearchText")) params.set("SearchText", base.SearchText.trim());
+  return params.toString();
+}
 
 /** Fakten-Zeile der Detail-Overlay; null = Wert fehlt (Zeile weglassen) */
 export function detailFieldRow(detail: ApiPropertyDetail, key: string): { label: string; value: string } | null {
