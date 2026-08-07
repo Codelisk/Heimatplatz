@@ -14,6 +14,13 @@ public class GenerateDashboardRequest : IRequest<GenerateDashboardResponse>
 {
     /// <summary>Der Wunsch in eigenen Worten: wonach gesucht wird und wie es angezeigt werden soll</summary>
     public string Prompt { get; set; } = "";
+
+    /// <summary>
+    /// Gewaehlter Ansichts-Typ aus <see cref="Models.DashboardViewTypes"/>:
+    /// "dashboard" (freie Widget-Komposition) oder "list" (seitenfuellende
+    /// Immobilienliste). Unbekanntes faellt auf "dashboard" zurueck.
+    /// </summary>
+    public string ViewType { get; set; } = Models.DashboardViewTypes.Dashboard;
 }
 
 /// <summary>

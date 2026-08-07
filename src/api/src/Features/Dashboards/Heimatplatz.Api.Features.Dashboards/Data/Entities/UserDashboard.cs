@@ -17,6 +17,13 @@ public class UserDashboard : BaseEntity
     /// <summary>Titel (von der KI vorgeschlagen, vom Nutzer umbenennbar)</summary>
     public string Title { get; set; } = "";
 
+    /// <summary>
+    /// Ansichts-Typ aus DashboardViewTypes: "dashboard" (Widget-Komposition)
+    /// oder "list" (seitenfuellende Immobilienliste). Steuert KI-Prompt,
+    /// Validierungsregeln und Rendering; bleibt ueber Verfeinerungsrunden erhalten.
+    /// </summary>
+    public string ViewType { get; set; } = DashboardViewTypes.Dashboard;
+
     /// <summary>Serialisierte, validierte DashboardDefinition (null bis zur ersten erfolgreichen Generierung)</summary>
     public string? DefinitionJson { get; set; }
 

@@ -3,40 +3,48 @@
  * Enthält auch den Navigations- und Profil-Schnellzugriff des Features.
  */
 export const dashboard = {
-  "nav.myOverview": "Meine Übersicht",
+  "nav.myOverview": "Meine Ansichten",
 
-  "profile.quickDashboardLabel": "Meine Übersicht",
-  "profile.quickDashboardDescription": "Ihre persönliche Übersicht nach Wunsch",
+  "profile.quickDashboardLabel": "Meine Ansichten",
+  "profile.quickDashboardDescription": "Ihre persönlichen Ansichten nach Wunsch",
 
-  "dash.title": "Meine Übersicht",
+  "dash.title": "Meine Ansichten",
   "dash.metaDescription":
-    "Ihre persönliche Immobilien-Übersicht: Beschreiben Sie, wonach Sie suchen — Heimatplatz stellt die passende Ansicht für Sie zusammen.",
-  "dash.authTitle": "Ihre persönliche Übersicht",
+    "Erstellen Sie Ihre persönliche Ansicht: Dashboard oder Immobilienliste — beschrieben in eigenen Worten, zusammengestellt aus allen Daten.",
+  "dash.authTitle": "Ihre persönlichen Ansichten",
   "dash.authText":
-    "Melden Sie sich an, um sich eine Übersicht nach Ihren Wünschen zusammenstellen zu lassen.",
+    "Melden Sie sich an, um sich Dashboards und Immobilienlisten nach Ihren Wünschen zusammenstellen zu lassen.",
 
-  "dash.createTitle": "Was möchten Sie sehen?",
+  "dash.createTitle": "Erstellen Sie Ihre persönliche Ansicht",
   "dash.createText":
-    "Beschreiben Sie in eigenen Worten, wonach Sie suchen und wie es angezeigt werden soll — daraus wird Ihre persönliche Übersicht zusammengestellt.",
+    "Wählen Sie die Art der Ansicht und beschreiben Sie in eigenen Worten, wonach Sie suchen und welche Werte Sie sehen möchten.",
+  "dash.typeDashboard": "Dashboard",
+  "dash.typeDashboardHint": "Kennzahlen, Listen, Karte und Diagramme frei kombiniert",
+  "dash.typeList": "Immobilienliste",
+  "dash.typeListHint": "Eine große Trefferliste mit genau Ihren Werten",
   "dash.createPlaceholder":
     "z. B.: Ich suche ein Haus im Bezirk Vöcklabruck bis 400.000 €. Zeig mir zuerst die neuesten Angebote, dazu eine Karte und wie viele neue Inserate dazukommen.",
-  "dash.createSubmit": "Übersicht erstellen",
+  "dash.createPlaceholderList":
+    "z. B.: Alle Grundstücke unter 200.000 €, ohne Fotos, mit Titel, Preis und Grundfläche — günstigste zuerst.",
+  "dash.createSubmit": "Ansicht erstellen",
   "dash.createHintMin": "Bitte beschreiben Sie kurz, wonach Sie suchen.",
   "dash.examplesLabel": "Beispiele:",
   "dash.example1": "Häuser bis 300.000 € mit Karte",
   "dash.example2": "Nur Grundstücke, günstigste zuerst",
   "dash.example3": "Was ist neu diese Woche?",
 
-  "dash.listLabel": "Ihre Übersichten",
-  "dash.newButton": "Neue Übersicht",
+  "dash.listLabel": "Ihre Ansichten",
+  "dash.newButton": "Neue Ansicht",
+  "dash.badgeList": "Liste",
+  "dash.badgeDashboard": "Dashboard",
 
-  "dash.progressQueued": "Ihre Übersicht wird vorbereitet …",
-  "dash.progressInProgress": "Ihre Übersicht wird zusammengestellt — das kann bis zu einer Minute dauern.",
-  "dash.progressRefine": "Ihre Übersicht wird überarbeitet …",
+  "dash.progressQueued": "Ihre Ansicht wird vorbereitet …",
+  "dash.progressInProgress": "Ihre Ansicht wird zusammengestellt — das kann bis zu einer Minute dauern.",
+  "dash.progressRefine": "Ihre Ansicht wird überarbeitet …",
   "dash.progressTimeout": "Das dauert gerade länger als üblich. Sie können die Seite später erneut öffnen.",
 
   "dash.failedTitle": "Das hat leider nicht geklappt",
-  "dash.retryHint": "Formulieren Sie Ihren Wunsch unten neu — die Übersicht wird dann neu aufgebaut.",
+  "dash.retryHint": "Formulieren Sie Ihren Wunsch unten neu — die Ansicht wird dann neu aufgebaut.",
 
   "dash.refinePlaceholder": "Was soll anders sein? z. B. „Nur Privatanbieter, Karte größer“",
   "dash.refineSubmit": "Anpassen",
@@ -46,7 +54,7 @@ export const dashboard = {
   "dash.delete": "Löschen",
   "dash.deleteConfirm": "Wirklich löschen?",
 
-  "dash.unsupportedTitle": "Das kann Ihre Übersicht noch nicht:",
+  "dash.unsupportedTitle": "Das kann Ihre Ansicht noch nicht:",
   "dash.widgetError": "Dieser Bereich konnte gerade nicht geladen werden.",
   "dash.widgetEmpty": "Aktuell keine passenden Inserate.",
   "dash.mapTotal": "{count} Treffer auf der Karte",

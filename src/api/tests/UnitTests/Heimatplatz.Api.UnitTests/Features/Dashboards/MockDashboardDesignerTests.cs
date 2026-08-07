@@ -44,10 +44,9 @@ public class MockDashboardDesignerTests
     [Test]
     public async Task InitialDesign_SurvivesFullPipelineWithAllWidgetKinds()
     {
-        var raw = await CreateDesigner().DesignAsync("Häuser bis 400.000 Euro mit Karte", null);
+        var raw = await CreateDesigner().DesignAsync("Häuser bis 400.000 Euro mit Karte", DashboardViewTypes.Dashboard, null);
 
-        var validated = await CreateValidator().ValidateAsync(
-            DashboardOutputParser.Parse(raw), CancellationToken.None);
+        var validated = await CreateValidator().ValidateAsync(DashboardOutputParser.Parse(raw), DashboardViewTypes.Dashboard, CancellationToken.None);
 
         validated.Widgets.Should().HaveCount(7, "die Beispiel-Definition deckt alle Katalog-Widgets ab");
         validated.Widgets.Select(w => w.Kind).Should().BeEquivalentTo(
@@ -71,18 +70,33 @@ public class MockDashboardDesignerTests
     }
 
     [Test]
+    public async Task ListDesign_SurvivesPipelineWithExactlyOneFullList()
+    {
+        var raw = await CreateDesigner().DesignAsync("Nur Titel und Preis", DashboardViewTypes.List, null);
+
+        var validated = await CreateValidator().ValidateAsync(
+            DashboardOutputParser.Parse(raw), DashboardViewTypes.List, CancellationToken.None);
+
+        validated.Widgets.Should().HaveCount(1);
+        validated.Widgets[0].Kind.Should().Be(DashboardWidgetKinds.PropertyList);
+        validated.Widgets[0].Size.Should().Be(DashboardWidgetSizes.Full);
+        validated.Widgets[0].Options!.Fields.Should().NotBeNullOrEmpty();
+        validated.Detail.Should().NotBeNull();
+    }
+
+    [Test]
     public async Task RefineDesign_AppendsInstructionNoteToCurrentDefinition()
     {
         var designer = CreateDesigner();
         var validator = CreateValidator();
 
-        var initialRaw = await designer.DesignAsync("Häuser in Linz", null);
-        var initial = await validator.ValidateAsync(DashboardOutputParser.Parse(initialRaw), CancellationToken.None);
+        var initialRaw = await designer.DesignAsync("Häuser in Linz", DashboardViewTypes.Dashboard, null);
+        var initial = await validator.ValidateAsync(DashboardOutputParser.Parse(initialRaw), DashboardViewTypes.Dashboard, CancellationToken.None);
         var initialJson = System.Text.Json.JsonSerializer.Serialize(
             initial, Heimatplatz.Api.Features.Dashboards.Infrastructure.DashboardDefinitionSerializer.JsonOptions);
 
-        var refinedRaw = await designer.DesignAsync("Mach die Karte größer", initialJson);
-        var refined = await validator.ValidateAsync(DashboardOutputParser.Parse(refinedRaw), CancellationToken.None);
+        var refinedRaw = await designer.DesignAsync("Mach die Karte größer", DashboardViewTypes.Dashboard, initialJson);
+        var refined = await validator.ValidateAsync(DashboardOutputParser.Parse(refinedRaw), DashboardViewTypes.Dashboard, CancellationToken.None);
 
         refined.Widgets.Should().HaveCount(initial.Widgets.Count + 1);
         refined.Widgets[^1].Kind.Should().Be(DashboardWidgetKinds.TextNote);

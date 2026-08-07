@@ -16,6 +16,12 @@ export interface DashboardSummary {
   Status: DashboardStatusValue;
   CreatedAt: string;
   UpdatedAt: string | null;
+  ViewType?: string | null;
+}
+
+/** Ansichts-Typ normalisieren; alles Unbekannte gilt als Dashboard */
+export function normalizeViewType(value: string | null | undefined): "dashboard" | "list" {
+  return value?.toLowerCase() === "list" ? "list" : "dashboard";
 }
 
 export interface DashboardResponse {
@@ -27,6 +33,7 @@ export interface DashboardResponse {
   CanRevert: boolean;
   GenerationRequestedAt: string | null;
   GenerationCompletedAt: string | null;
+  ViewType?: string | null;
 }
 
 export interface DashboardDefinition {

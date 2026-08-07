@@ -158,6 +158,19 @@ public class DashboardWidgetOptions
     public string? Chart { get; set; }
 }
 
+/// <summary>
+/// Die zwei Ansichts-Typen: "dashboard" = freie Widget-Komposition,
+/// "list" = eine seitenfuellende Immobilienliste (genau EIN property-list-Widget
+/// in voller Breite + optionale Detail-Spec; der Validator erzwingt das fail-closed).
+/// Der Nutzer waehlt den Typ beim Erstellen - er steuert KI-Prompt,
+/// Validierungsregeln und das Rendering.
+/// </summary>
+public static class DashboardViewTypes
+{
+    public const string Dashboard = "dashboard";
+    public const string List = "list";
+}
+
 /// <summary>Widget-Arten des Katalogs v1. Neue Arten = neuer Resolver im Dashboards-Feature + Renderer je Frontend.</summary>
 public static class DashboardWidgetKinds
 {

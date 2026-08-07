@@ -30,12 +30,13 @@ public class DashboardDefinitionValidator(
         "beschreiben Sie bitte etwas konkreter, was Sie sehen möchten.";
 
     /// <summary>
-    /// Validiert und bereinigt eine geparste KI-Definition. Wirft
-    /// <see cref="DashboardValidationException"/> (nutzerfreundlich), wenn am Ende
-    /// kein einziges gueltiges Widget uebrig bleibt. Warnungen (verworfene Teile)
-    /// werden geloggt - auf Warning-Level, Prod loggt Info nicht.
+    /// Validiert und bereinigt eine geparste KI-Definition. <paramref name="viewType"/>
+    /// erzwingt die Ansichts-Regeln fail-closed (Liste = genau EIN property-list-Widget
+    /// in voller Breite). Wirft <see cref="DashboardValidationException"/>
+    /// (nutzerfreundlich), wenn am Ende kein einziges gueltiges Widget uebrig bleibt.
+    /// Warnungen (verworfene Teile) werden geloggt - auf Warning-Level, Prod loggt Info nicht.
     /// </summary>
-    public async Task<DashboardDefinition> ValidateAsync(DashboardDefinition definition, CancellationToken cancellationToken)
+    public async Task<DashboardDefinition> ValidateAsync(DashboardDefinition definition, string viewType, CancellationToken cancellationToken)
     {
         if (definition.SchemaVersion != DashboardDefinition.CurrentSchemaVersion)
             throw new DashboardValidationException(
@@ -71,6 +72,33 @@ public class DashboardDefinitionValidator(
 
         if ((definition.Widgets?.Count ?? 0) > options.Value.Limits.MaxWidgets)
             warnings.Add($"Definition auf {options.Value.Limits.MaxWidgets} Widgets gekappt.");
+
+        // Listen-Ansicht: genau EIN Listen-Widget in voller Breite - alles andere
+        // fliegt (die KI bekommt fuer Listen ohnehin nur diesen Katalog angeboten)
+        if (viewType == DashboardViewTypes.List)
+        {
+            var dropped = sanitized.Where(w => w.Kind != DashboardWidgetKinds.PropertyList).ToList();
+            foreach (var widget in dropped)
+                warnings.Add($"Listen-Ansicht: Widget {widget.Kind} verworfen.");
+            sanitized.RemoveAll(w => w.Kind != DashboardWidgetKinds.PropertyList);
+
+            if (sanitized.Count > 1)
+            {
+                warnings.Add($"Listen-Ansicht: {sanitized.Count - 1} zusaetzliche Listen-Widgets verworfen.");
+                sanitized.RemoveRange(1, sanitized.Count - 1);
+            }
+
+            if (sanitized.Count == 1)
+            {
+                sanitized[0].Size = DashboardWidgetSizes.Full;
+                // Eine seitenfuellende Liste vertraegt mehr Eintraege als ein Widget -
+                // der Resolver hat vorher schon seinen Widget-Default (6) gesetzt,
+                // deshalb wird genau der angehoben (explizite KI-Werte bleiben)
+                sanitized[0].Query ??= new DashboardPropertyQuery();
+                if (sanitized[0].Query!.Limit is null or PropertyListWidgetResolver.DefaultLimit)
+                    sanitized[0].Query!.Limit = 12;
+            }
+        }
 
         // Personalisierte Detail-Overlay: Sections + Felder fail-closed gegen den Feld-Katalog
         definition.Detail = DashboardFieldCatalog.NormalizeDetail(definition.Detail, warnings);

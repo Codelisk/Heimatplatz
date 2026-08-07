@@ -58,7 +58,7 @@ public class DashboardDefinitionValidatorTests
             ]
         };
 
-        var result = await validator.ValidateAsync(definition, CancellationToken.None);
+        var result = await validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         result.Widgets.Should().HaveCount(2);
         result.Widgets.Select(w => w.Kind).Should().Equal("property-list", "map");
@@ -75,7 +75,7 @@ public class DashboardDefinitionValidatorTests
             Widgets = [new DashboardWidget { Kind = "Property-List", Size = "riesig" }]
         };
 
-        var result = await validator.ValidateAsync(definition, CancellationToken.None);
+        var result = await validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         result.Widgets[0].Kind.Should().Be("property-list");
         result.Widgets[0].Size.Should().Be(DashboardWidgetSizes.L);
@@ -97,7 +97,7 @@ public class DashboardDefinitionValidatorTests
             ]
         };
 
-        var result = await validator.ValidateAsync(definition, CancellationToken.None);
+        var result = await validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         result.Widgets.Should().HaveCount(1);
         result.Widgets[0].Options!.Text.Should().Be("Hallo!");
@@ -114,7 +114,7 @@ public class DashboardDefinitionValidatorTests
             Widgets = [Widget("map"), Widget("map"), Widget("map")]
         };
 
-        var result = await validator.ValidateAsync(definition, CancellationToken.None);
+        var result = await validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         result.Widgets.Should().HaveCount(2);
     }
@@ -130,7 +130,7 @@ public class DashboardDefinitionValidatorTests
             UnsupportedWishes = Enumerable.Range(1, 15).Select(i => $"Wunsch {i}").ToList()
         };
 
-        var result = await validator.ValidateAsync(definition, CancellationToken.None);
+        var result = await validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         result.Title.Should().Be("Meine Übersicht");
         result.UnsupportedWishes.Should().HaveCount(10);
@@ -146,7 +146,7 @@ public class DashboardDefinitionValidatorTests
             Widgets = [Widget("hologram"), Widget("text-note")]
         };
 
-        var act = () => validator.ValidateAsync(definition, CancellationToken.None);
+        var act = () => validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         await act.Should().ThrowAsync<DashboardValidationException>()
             .WithMessage(DashboardDefinitionValidator.NoWidgetsMessage);
@@ -158,9 +158,33 @@ public class DashboardDefinitionValidatorTests
         var validator = CreateValidator();
         var definition = new DashboardDefinition { SchemaVersion = 99, Widgets = [Widget("map")] };
 
-        var act = () => validator.ValidateAsync(definition, CancellationToken.None);
+        var act = () => validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         await act.Should().ThrowAsync<DashboardValidationException>();
+    }
+
+    [Test]
+    public async Task Validate_ListViewKeepsExactlyOneFullWidthList()
+    {
+        var validator = CreateValidator();
+        var definition = new DashboardDefinition
+        {
+            Title = "Test",
+            Widgets =
+            [
+                Widget("map"),
+                new DashboardWidget { Kind = "property-list", Size = "s", Query = new DashboardPropertyQuery() },
+                Widget("property-list"),
+                Widget("stat-row")
+            ]
+        };
+
+        var result = await validator.ValidateAsync(definition, DashboardViewTypes.List, CancellationToken.None);
+
+        result.Widgets.Should().HaveCount(1);
+        result.Widgets[0].Kind.Should().Be("property-list");
+        result.Widgets[0].Size.Should().Be(DashboardWidgetSizes.Full);
+        result.Widgets[0].Query!.Limit.Should().Be(12, "seitenfuellende Listen bekommen einen hoeheren Default");
     }
 
     [Test]
@@ -180,7 +204,7 @@ public class DashboardDefinitionValidatorTests
             ]
         };
 
-        var result = await validator.ValidateAsync(definition, CancellationToken.None);
+        var result = await validator.ValidateAsync(definition, DashboardViewTypes.Dashboard, CancellationToken.None);
 
         result.Widgets[0].Query!.Limit.Should().Be(1);
         result.Widgets[0].Query!.Sort.Should().Be("price-asc");

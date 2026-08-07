@@ -1,6 +1,7 @@
 using System.Text;
 using Heimatplatz.Api;
 using Heimatplatz.Api.Features.Dashboards.Configuration;
+using Heimatplatz.Api.Features.Dashboards.Contracts.Models;
 using Heimatplatz.Api.Features.Dashboards.Services.Widgets;
 using Microsoft.Extensions.Options;
 using Shiny;
@@ -19,13 +20,19 @@ public class DashboardCatalogPromptBuilder(
     IOptions<DashboardOptions> options
 )
 {
-    public string BuildCatalogSection()
+    public string BuildCatalogSection(string viewType)
     {
         var limits = options.Value.Limits;
         var sb = new StringBuilder();
 
+        // Listen-Ansicht: nur das Listen-Widget anbieten - alles andere waere
+        // eine Einladung zu Regelverstoessen, die der Validator dann wegwerfen muss
+        var offered = viewType == DashboardViewTypes.List
+            ? resolvers.Where(r => r.Kind == DashboardWidgetKinds.PropertyList)
+            : resolvers;
+
         sb.AppendLine("WIDGET-KATALOG (nur diese kind-Werte sind erlaubt):");
-        foreach (var resolver in resolvers)
+        foreach (var resolver in offered)
         {
             var d = resolver.Descriptor;
             sb.AppendLine($"- \"{d.Kind}\": {d.Purpose} {d.Details}");
@@ -59,7 +66,7 @@ public class DashboardCatalogPromptBuilder(
         return sb.ToString();
     }
 
-    public string BuildOutputContractSection()
+    public string BuildOutputContractSection(string viewType)
     {
         var limits = options.Value.Limits;
         var sb = new StringBuilder();
@@ -79,6 +86,8 @@ public class DashboardCatalogPromptBuilder(
         sb.AppendLine("  \"unsupportedWishes\": [\"Wunsch, den kein Widget abdecken kann\"]");
         sb.AppendLine("}");
         sb.AppendLine("Regeln:");
+        if (viewType == DashboardViewTypes.List)
+            sb.AppendLine("- LISTEN-ANSICHT: GENAU EIN Widget mit kind \"property-list\" und size \"full\" - sonst nichts.");
         sb.AppendLine($"- Maximal {limits.MaxWidgets} Widgets; so wenige wie noetig, Reihenfolge = Wichtigkeit fuer den Nutzer.");
         sb.AppendLine("- NICHTS erfinden: Wuensche, die der Katalog nicht abdeckt, gehoeren nach unsupportedWishes.");
         sb.AppendLine("- Optik (Farben, Schriften, Layout-Details) bestimmt die Plattform - dafuer gibt es keine Felder.");

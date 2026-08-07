@@ -23,5 +23,6 @@ public record GetDashboardResponse(
     DashboardDefinition? Definition,
     bool CanRevert,
     DateTimeOffset? GenerationRequestedAt,
-    DateTimeOffset? GenerationCompletedAt
+    DateTimeOffset? GenerationCompletedAt,
+    string ViewType
 );

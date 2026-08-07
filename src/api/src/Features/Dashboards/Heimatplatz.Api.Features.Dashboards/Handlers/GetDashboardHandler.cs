@@ -52,6 +52,7 @@ public class GetDashboardHandler(
             definition,
             CanRevert: revisionsWithDefinition >= 2,
             dashboard.GenerationRequestedAt,
-            dashboard.GenerationCompletedAt);
+            dashboard.GenerationCompletedAt,
+            dashboard.ViewType);
     }
 }

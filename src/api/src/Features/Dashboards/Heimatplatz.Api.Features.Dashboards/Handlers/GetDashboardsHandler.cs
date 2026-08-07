@@ -32,7 +32,7 @@ public class GetDashboardsHandler(
             .AsNoTracking()
             .Where(d => d.UserId == userId)
             .OrderByDescending(d => d.CreatedAt)
-            .Select(d => new DashboardSummaryDto(d.Id, d.Title, d.GenerationStatus, d.CreatedAt, d.UpdatedAt))
+            .Select(d => new DashboardSummaryDto(d.Id, d.Title, d.GenerationStatus, d.CreatedAt, d.UpdatedAt, d.ViewType))
             .ToListAsync(cancellationToken);
 
         return new GetDashboardsResponse(dashboards);

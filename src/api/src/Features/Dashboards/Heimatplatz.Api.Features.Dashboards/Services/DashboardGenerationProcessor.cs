@@ -73,10 +73,10 @@ public class DashboardGenerationProcessor(
                 dashboard.Id, retryCount + 1);
 
             // Verfeinerung, wenn schon eine Definition existiert - sie ist die Basis
-            rawOutput = await designer.DesignAsync(revision.UserPrompt, dashboard.DefinitionJson, cancellationToken);
+            rawOutput = await designer.DesignAsync(revision.UserPrompt, dashboard.ViewType, dashboard.DefinitionJson, cancellationToken);
 
             var parsed = DashboardOutputParser.Parse(rawOutput);
-            var validated = await validator.ValidateAsync(parsed, cancellationToken);
+            var validated = await validator.ValidateAsync(parsed, dashboard.ViewType, cancellationToken);
             var definitionJson = DashboardDefinitionSerializer.Serialize(validated);
 
             dashboard.DefinitionJson = definitionJson;

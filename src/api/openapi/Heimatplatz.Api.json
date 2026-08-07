@@ -5834,7 +5834,8 @@
           "Title",
           "Status",
           "CreatedAt",
-          "UpdatedAt"
+          "UpdatedAt",
+          "ViewType"
         ],
         "type": "object",
         "properties": {
@@ -5858,6 +5859,9 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "ViewType": {
+            "type": "string"
           }
         }
       },
@@ -6739,6 +6743,9 @@
         "properties": {
           "Prompt": {
             "type": "string"
+          },
+          "ViewType": {
+            "type": "string"
           }
         }
       },
@@ -7270,7 +7277,8 @@
           "Definition",
           "CanRevert",
           "GenerationRequestedAt",
-          "GenerationCompletedAt"
+          "GenerationCompletedAt",
+          "ViewType"
         ],
         "type": "object",
         "properties": {
@@ -7316,6 +7324,9 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "ViewType": {
+            "type": "string"
           }
         }
       },

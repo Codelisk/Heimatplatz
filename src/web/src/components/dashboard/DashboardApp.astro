@@ -19,7 +19,7 @@ import PencilIcon from "@tabler/icons/outline/pencil.svg";
 import TrashIcon from "@tabler/icons/outline/trash.svg";
 import PlusIcon from "@tabler/icons/outline/plus.svg";
 import XIcon from "@tabler/icons/outline/x.svg";
-import { normalizeStatus } from "@/features/dashboard/spec";
+import { normalizeStatus, normalizeViewType } from "@/features/dashboard/spec";
 import type { DashboardSsrState } from "@/features/dashboard/ssr-api";
 import { jsonForScriptTag } from "@/lib/utils/json";
 import { t } from "@/i18n";
@@ -65,6 +65,7 @@ const tabClassInactive =
               class={summary.Id === ssrDashboard?.Id ? tabClassActive : tabClassInactive}
             >
               {summary.Title || t("dash.title")}
+              {normalizeViewType(summary.ViewType) === "list" ? ` · ${t("dash.badgeList")}` : ""}
             </button>
           ))}
         </div>
@@ -89,6 +90,27 @@ const tabClassInactive =
               <h2 class="text-lg font-semibold">{t("dash.createTitle")}</h2>
               <p class="text-sm text-muted-foreground">{t("dash.createText")}</p>
             </div>
+          </div>
+          {/* Typwahl: Dashboard (Widget-Komposition) oder Immobilienliste (eine grosse Liste) */}
+          <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2" role="group" aria-label={t("dash.createTitle")}>
+            <button
+              type="button"
+              class="rounded-md border border-border px-4 py-3 text-left transition-colors hover:bg-accent"
+              data-dash-type="dashboard"
+              aria-pressed="true"
+            >
+              <span class="block text-sm font-semibold">{t("dash.typeDashboard")}</span>
+              <span class="mt-0.5 block text-xs text-muted-foreground">{t("dash.typeDashboardHint")}</span>
+            </button>
+            <button
+              type="button"
+              class="rounded-md border border-border px-4 py-3 text-left transition-colors hover:bg-accent"
+              data-dash-type="list"
+              aria-pressed="false"
+            >
+              <span class="block text-sm font-semibold">{t("dash.typeList")}</span>
+              <span class="mt-0.5 block text-xs text-muted-foreground">{t("dash.typeListHint")}</span>
+            </button>
           </div>
           <textarea
             class="min-h-28 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm"
@@ -216,7 +238,7 @@ const tabClassInactive =
 
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-12" data-dash-grid>
           {ssrShowView && ssrDashboard?.Definition && ssr?.Widgets && (
-            <DashboardSsr definition={ssrDashboard.Definition} widgets={ssr.Widgets} />
+            <DashboardSsr definition={ssrDashboard.Definition} widgets={ssr.Widgets} viewType={ssrDashboard.ViewType} />
           )}
         </div>
 
@@ -438,6 +460,11 @@ const tabClassInactive =
     height: 1.25rem;
     border-width: 2px;
   }
+  /* Typwahl-Chips: gewaehlter Zustand wie die Filter-Chips ueber aria-pressed */
+  [data-dash-type][aria-pressed="true"] {
+    border-color: var(--color-primary);
+    background: color-mix(in oklab, var(--color-primary) 8%, transparent);
+  }
   @keyframes dash-spin {
     to { transform: rotate(360deg); }
   }
@@ -460,6 +487,7 @@ const tabClassInactive =
   import { readAccessToken } from "@/lib/utils/access-token";
   import {
     normalizeStatus,
+    normalizeViewType,
     normalizePropertyType,
     sizeToSpanClass,
     formatDashboardPrice,
@@ -583,7 +611,8 @@ const tabClassInactive =
           const button = document.createElement("button");
           button.type = "button";
           button.dataset.dashTab = summary.Id;
-          button.textContent = summary.Title || t("dash.title");
+          const badge = normalizeViewType(summary.ViewType) === "list" ? ` · ${t("dash.badgeList")}` : "";
+          button.textContent = (summary.Title || t("dash.title")) + badge;
           button.className =
             summary.Id === activeId
               ? "min-h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
@@ -738,18 +767,26 @@ const tabClassInactive =
         unsupportedPanel.classList.remove("hidden");
       }
 
-      // Skeleton-Frames sofort, Daten folgen mit einem Request für alle Widgets
+      // Skeleton-Frames sofort, Daten folgen mit einem Request für alle Widgets.
+      // Listen-Ansicht: ohne Widget-Karten-Rahmen — die Liste IST die Seite.
+      const isListView = normalizeViewType(dashboard.ViewType) === "list";
       const frames = new Map<string, HTMLElement>();
       for (const widget of definition.Widgets ?? []) {
         const frame = clone("frame");
         frame.classList.add(sizeToSpanClass(widget.Size));
         frame.dataset.dashWidget = widget.Kind;
         const title = frame.querySelector<HTMLElement>("[data-w-title]")!;
+        const body = frame.querySelector<HTMLElement>("[data-w-body]")!;
+        if (isListView) {
+          frame.className = `min-w-0 ${sizeToSpanClass(widget.Size)}`;
+          title.className = "mb-3 hidden text-base font-semibold";
+          body.className = "";
+        }
         if (widget.Title) {
           title.textContent = widget.Title;
           title.classList.remove("hidden");
         }
-        frame.querySelector<HTMLElement>("[data-w-body]")!.append(makeSkeleton());
+        body.append(makeSkeleton());
         grid.append(frame);
         frames.set(widget.Id, frame);
       }
@@ -1114,6 +1151,8 @@ const tabClassInactive =
 
     // ---------- Aktionen ----------
 
+    let createViewType: "dashboard" | "list" = "dashboard";
+
     async function createDashboard() {
       const prompt = createInput.value.trim();
       if (prompt.length < 5) {
@@ -1126,7 +1165,7 @@ const tabClassInactive =
       try {
         const result = await apiFetch<{ DashboardId: string }>("/api/dashboards/generate", {
           method: "POST",
-          body: JSON.stringify({ Prompt: prompt }),
+          body: JSON.stringify({ Prompt: prompt, ViewType: createViewType }),
         });
         createInput.value = "";
         summaries.unshift({
@@ -1135,6 +1174,7 @@ const tabClassInactive =
           Status: 1,
           CreatedAt: new Date().toISOString(),
           UpdatedAt: null,
+          ViewType: createViewType,
         });
         await selectDashboard(result.DashboardId);
       } catch (error) {
@@ -1421,6 +1461,18 @@ const tabClassInactive =
     });
 
     // ---------- Wiring ----------
+
+    // Typwahl-Chips: Auswahl + passender Beispiel-Platzhalter
+    app.querySelectorAll<HTMLButtonElement>("[data-dash-type]").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        createViewType = chip.dataset.dashType === "list" ? "list" : "dashboard";
+        app.querySelectorAll<HTMLButtonElement>("[data-dash-type]").forEach((other) => {
+          other.setAttribute("aria-pressed", other === chip ? "true" : "false");
+        });
+        createInput.placeholder =
+          createViewType === "list" ? t("dash.createPlaceholderList") : t("dash.createPlaceholder");
+      });
+    });
 
     createSubmit.addEventListener("click", () => void createDashboard());
     createInput.addEventListener("keydown", (event) => {

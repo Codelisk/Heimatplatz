@@ -59,7 +59,8 @@ public class GenerateDashboardHandler(
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            Title = "Neue Übersicht",
+            Title = "Neue Ansicht",
+            ViewType = NormalizeViewType(request.ViewType),
             GenerationStatus = DashboardGenerationStatus.Queued,
             GenerationRequestedAt = DateTimeOffset.UtcNow
         };
@@ -78,6 +79,14 @@ public class GenerateDashboardHandler(
 
         return new GenerateDashboardResponse(dashboard.Id, dashboard.GenerationStatus);
     }
+
+    /// <summary>Unbekannte Werte fallen bewusst auf "dashboard" zurueck (fail-safe).</summary>
+    public static string NormalizeViewType(string? viewType) =>
+        viewType?.Trim().ToLowerInvariant() switch
+        {
+            "list" or "liste" or "immobilienliste" => DashboardViewTypes.List,
+            _ => DashboardViewTypes.Dashboard
+        };
 
     /// <summary>
     /// Rollierendes 24h-Fenster ueber alle Revisionen (Erstellen + Verfeinern) des

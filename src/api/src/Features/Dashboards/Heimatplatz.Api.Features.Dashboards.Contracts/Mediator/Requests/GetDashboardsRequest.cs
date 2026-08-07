@@ -16,12 +16,14 @@ public record GetDashboardsResponse(
 );
 
 /// <summary>
-/// Listenzeile einer Uebersicht (ohne Definition - die liefert GetDashboard).
+/// Listenzeile einer Ansicht (ohne Definition - die liefert GetDashboard).
 /// </summary>
+/// <param name="ViewType">"dashboard" oder "list" (DashboardViewTypes)</param>
 public record DashboardSummaryDto(
     Guid Id,
     string Title,
     DashboardGenerationStatus Status,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? UpdatedAt
+    DateTimeOffset? UpdatedAt,
+    string ViewType
 );

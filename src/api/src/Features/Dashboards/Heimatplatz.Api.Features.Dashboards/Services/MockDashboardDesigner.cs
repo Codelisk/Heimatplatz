@@ -19,7 +19,7 @@ public class MockDashboardDesigner(
     ILogger<MockDashboardDesigner> logger
 ) : IDashboardDesigner
 {
-    public async Task<string> DesignAsync(string request, string? currentDefinitionJson, CancellationToken cancellationToken = default)
+    public async Task<string> DesignAsync(string request, string viewType, string? currentDefinitionJson, CancellationToken cancellationToken = default)
     {
         var delay = Math.Max(options.Value.MockDelaySeconds, 0);
         logger.LogWarning("[Dashboards] Mock-Designer aktiv (keine echte KI) - liefere Beispiel-Definition in {Delay}s", delay);
@@ -27,10 +27,40 @@ public class MockDashboardDesigner(
             await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken);
 
         var current = DashboardDefinitionSerializer.DeserializeStored(currentDefinitionJson);
-        var definition = current is null ? BuildInitialDefinition(request) : BuildRefinedDefinition(current, request);
+        var definition = current is not null
+            ? BuildRefinedDefinition(current, request, viewType)
+            : viewType == DashboardViewTypes.List
+                ? BuildInitialListDefinition(request)
+                : BuildInitialDefinition(request);
 
         return DashboardDefinitionSerializer.Serialize(definition);
     }
+
+    /// <summary>Listen-Ansicht: genau EIN seitenfuellendes Listen-Widget + Detail-Spec.</summary>
+    private static DashboardDefinition BuildInitialListDefinition(string request) => new()
+    {
+        Title = "Ihre Immobilienliste",
+        Intro = $"Demo-Liste zu Ihrem Wunsch: „{Truncate(request, 120)}“ (Mock-Modus, ohne KI erstellt).",
+        Detail = new DashboardDetailSpec
+        {
+            Sections = ["facts", "gallery", "description", "contact"],
+            Fields = ["preis", "wohnflaeche", "grundflaeche", "zimmer", "ort", "anbieter"]
+        },
+        Widgets =
+        [
+            new DashboardWidget
+            {
+                Id = "w1", Kind = DashboardWidgetKinds.PropertyList, Size = DashboardWidgetSizes.Full,
+                Title = "Alle Treffer",
+                Query = new DashboardPropertyQuery { Sort = "newest", Limit = 12 },
+                Options = new DashboardWidgetOptions
+                {
+                    Variant = "list",
+                    Fields = ["foto", "titel", "ort", "preis", "wohnflaeche"]
+                }
+            }
+        ]
+    };
 
     private static DashboardDefinition BuildInitialDefinition(string request) => new()
     {
@@ -101,8 +131,17 @@ public class MockDashboardDesigner(
         ]
     };
 
-    private static DashboardDefinition BuildRefinedDefinition(DashboardDefinition current, string instruction)
+    private static DashboardDefinition BuildRefinedDefinition(DashboardDefinition current, string instruction, string viewType)
     {
+        // Listen-Ansicht erlaubt nur das eine Listen-Widget - dort wird die
+        // Anweisung im Intro vermerkt statt als Notiz-Widget angehaengt
+        if (viewType == DashboardViewTypes.List)
+        {
+            current.Intro = $"Mock-Modus: Anweisung „{Truncate(instruction, 160)}“ vermerkt - " +
+                            "mit aktiviertem AiConnector wird die Liste wirklich umgebaut.";
+            return current;
+        }
+
         current.Widgets.Add(new DashboardWidget
         {
             Id = $"w{current.Widgets.Count + 1}",

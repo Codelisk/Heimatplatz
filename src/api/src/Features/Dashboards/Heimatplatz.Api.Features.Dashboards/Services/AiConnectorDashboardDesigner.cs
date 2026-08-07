@@ -1,6 +1,7 @@
 using System.Text;
 using Heimatplatz.Api.Core.AiConnectorClient.Generated;
 using Heimatplatz.Api.Features.Dashboards.Configuration;
+using Heimatplatz.Api.Features.Dashboards.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shiny.Mediator;
@@ -22,13 +23,13 @@ public class AiConnectorDashboardDesigner(
     ILogger<AiConnectorDashboardDesigner> logger
 ) : IDashboardDesigner
 {
-    public async Task<string> DesignAsync(string request, string? currentDefinitionJson, CancellationToken cancellationToken = default)
+    public async Task<string> DesignAsync(string request, string viewType, string? currentDefinitionJson, CancellationToken cancellationToken = default)
     {
         var opts = options.Value.AiConnector;
-        var prompt = BuildPrompt(request, currentDefinitionJson, opts.SectionPath);
+        var prompt = BuildPrompt(request, viewType, currentDefinitionJson, opts.SectionPath);
 
-        logger.LogInformation("[Dashboards] Starte AiConnector-Dashboard-Generierung im Workspace {WorkspaceId} (Section {SectionPath}, Refine={IsRefine})",
-            opts.WorkspaceId, opts.SectionPath, currentDefinitionJson is not null);
+        logger.LogInformation("[Dashboards] Starte AiConnector-Generierung im Workspace {WorkspaceId} (Section {SectionPath}, ViewType={ViewType}, Refine={IsRefine})",
+            opts.WorkspaceId, opts.SectionPath, viewType, currentDefinitionJson is not null);
 
         var response = await mediator.Request(new RunPromptHttpRequest
         {
@@ -56,19 +57,29 @@ public class AiConnectorDashboardDesigner(
         return promptResponse.Output;
     }
 
-    private string BuildPrompt(string request, string? currentDefinitionJson, string sectionPath)
+    private string BuildPrompt(string request, string viewType, string? currentDefinitionJson, string sectionPath)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"Lies zuerst die Datei {sectionPath}/AGENTS.md in diesem Workspace und folge deren Regeln exakt.");
         sb.AppendLine();
 
-        sb.AppendLine("Entwirf eine persoenliche Immobilien-Uebersicht (\"Meine Uebersicht\") fuer einen Nutzer von Heimatplatz.");
-        sb.AppendLine("Der Nutzer beschreibt, WONACH er sucht und WIE er es sehen moechte - uebersetze das in eine Widget-Komposition.");
+        if (viewType == DashboardViewTypes.List)
+        {
+            sb.AppendLine("Entwirf eine persoenliche IMMOBILIENLISTE fuer einen Nutzer von Heimatplatz: eine");
+            sb.AppendLine("seitenfuellende Trefferliste (genau EIN property-list-Widget, size full). Der Nutzer");
+            sb.AppendLine("beschreibt, WONACH er sucht und WELCHE Werte er sehen moechte - uebersetze das in");
+            sb.AppendLine("query + options.fields der Liste und optional eine detail-Spec fuers Anklicken.");
+        }
+        else
+        {
+            sb.AppendLine("Entwirf ein persoenliches DASHBOARD fuer einen Nutzer von Heimatplatz.");
+            sb.AppendLine("Der Nutzer beschreibt, WONACH er sucht und WIE er es sehen moechte - uebersetze das in eine Widget-Komposition.");
+        }
         sb.AppendLine();
 
         if (currentDefinitionJson is not null)
         {
-            sb.AppendLine("Bestehende Uebersicht (JSON) - baue sie gemaess dem Aenderungswunsch um, behalte Bewaehrtes bei:");
+            sb.AppendLine("Bestehende Ansicht (JSON) - baue sie gemaess dem Aenderungswunsch um, behalte Bewaehrtes bei:");
             sb.AppendLine(currentDefinitionJson);
             sb.AppendLine();
             sb.AppendLine("Aenderungswunsch des Nutzers:");
@@ -83,8 +94,8 @@ public class AiConnectorDashboardDesigner(
         sb.AppendLine("\"\"\"");
         sb.AppendLine();
 
-        sb.AppendLine(catalogBuilder.BuildCatalogSection());
-        sb.AppendLine(catalogBuilder.BuildOutputContractSection());
+        sb.AppendLine(catalogBuilder.BuildCatalogSection(viewType));
+        sb.AppendLine(catalogBuilder.BuildOutputContractSection(viewType));
 
         return sb.ToString();
     }

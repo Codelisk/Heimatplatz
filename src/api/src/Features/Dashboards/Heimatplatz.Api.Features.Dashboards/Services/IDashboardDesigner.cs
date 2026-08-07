@@ -12,8 +12,10 @@ public interface IDashboardDesigner
 {
     /// <summary>
     /// <paramref name="request"/> = Freitext-Wunsch (Erstellung) bzw.
-    /// Verfeinerungs-Anweisung; <paramref name="currentDefinitionJson"/> ist bei
-    /// Verfeinerungsrunden die bestehende Definition (sonst null).
+    /// Verfeinerungs-Anweisung; <paramref name="viewType"/> = Ansichts-Typ aus
+    /// DashboardViewTypes (steuert Aufgabe und Katalog-Umfang des Prompts);
+    /// <paramref name="currentDefinitionJson"/> ist bei Verfeinerungsrunden die
+    /// bestehende Definition (sonst null).
     /// </summary>
-    Task<string> DesignAsync(string request, string? currentDefinitionJson, CancellationToken cancellationToken = default);
+    Task<string> DesignAsync(string request, string viewType, string? currentDefinitionJson, CancellationToken cancellationToken = default);
 }

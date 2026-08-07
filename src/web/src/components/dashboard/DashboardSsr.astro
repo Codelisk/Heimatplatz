@@ -17,6 +17,7 @@ import {
   formatDashboardPrice,
   listFieldValue,
   normalizePropertyType,
+  normalizeViewType,
   sizeToSpanClass,
   type ApiPropertyItem,
   type DashboardDefinition,
@@ -28,9 +29,12 @@ import { t } from "@/i18n";
 interface Props {
   definition: DashboardDefinition;
   widgets: WidgetData[];
+  /** "dashboard" | "list" - Listen-Ansichten rendern ohne Widget-Karten-Rahmen */
+  viewType?: string | null;
 }
 
-const { definition, widgets } = Astro.props;
+const { definition, widgets, viewType = null } = Astro.props;
+const isListView = normalizeViewType(viewType) === "list";
 const dataById = new Map(widgets.map((item) => [item.WidgetId, item]));
 
 const detailHref = (item: ApiPropertyItem) => `/immobilien/angebote/${encodeURIComponent(item.Id)}/`;
@@ -82,11 +86,19 @@ const badge = (item: ApiPropertyItem) => {
     const fields = widget.Options?.Fields ?? null;
     return (
       <article
-        class:list={["min-w-0 rounded-lg border border-border bg-card shadow-sm", sizeToSpanClass(widget.Size)]}
+        class:list={[
+          "min-w-0",
+          !isListView && "rounded-lg border border-border bg-card shadow-sm",
+          sizeToSpanClass(widget.Size),
+        ]}
         data-dash-widget={widget.Kind}
       >
-        {widget.Title && <h3 class="border-b border-border px-4 py-3 text-sm font-semibold">{widget.Title}</h3>}
-        <div class="p-4" data-w-body>
+        {widget.Title && (
+          <h3 class:list={[isListView ? "mb-3 text-base font-semibold" : "border-b border-border px-4 py-3 text-sm font-semibold"]}>
+            {widget.Title}
+          </h3>
+        )}
+        <div class:list={[!isListView && "p-4"]} data-w-body>
           {failed ? (
             <p class="py-6 text-center text-sm text-muted-foreground">{data?.Error || t("dash.widgetError")}</p>
           ) : widget.Kind === "stat-row" ? (

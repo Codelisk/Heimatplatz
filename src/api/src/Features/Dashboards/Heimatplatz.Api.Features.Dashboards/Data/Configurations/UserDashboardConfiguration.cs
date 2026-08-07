@@ -22,6 +22,10 @@ public class UserDashboardConfiguration : IEntityTypeConfiguration<UserDashboard
             .IsRequired()
             .HasMaxLength(120);
 
+        builder.Property(d => d.ViewType)
+            .IsRequired()
+            .HasMaxLength(20);
+
         builder.Property(d => d.DefinitionJson)
             .HasColumnType("TEXT");
 
